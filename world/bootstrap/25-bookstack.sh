@@ -25,16 +25,32 @@ php artisan migrate --force --no-interaction
 mariadb --protocol=socket --socket=/run/mysqld/mysqld.sock bookstack <<SQL
 UPDATE users SET email='${ADMIN_MAIL}', name='World Admin' WHERE id=1;
 SQL
-php artisan bookstack:reset-password 1 "${ADMIN_PASS}" --no-interaction 2>/dev/null \
-  || php -r '
-    require "/opt/bookstack/vendor/autoload.php";
-    $app = require "/opt/bookstack/bootstrap/app.php";
-    $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-    $u = \BookStack\Users\Models\User::find(1);
-    $u->password = Illuminate\Support\Facades\Hash::make(getenv("ADMIN_PASS"));
-    $u->save();
-    echo "password set\n";
-  ' 2>/dev/null || echo "warn: could not reset bookstack admin password"
+# Set the admin password. There is no `bookstack:reset-password` artisan
+# command, so this goes through the model — and ADMIN_PASS must be EXPORTED,
+# because php reads it with getenv() and a plain shell variable is invisible
+# there. Getting that wrong hashes the empty string, and BookStack then rejects
+# every login with "These credentials do not match our records" while looking
+# perfectly configured.
+export ADMIN_PASS
+php -r '
+  require "/opt/bookstack/vendor/autoload.php";
+  $app = require "/opt/bookstack/bootstrap/app.php";
+  $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+  $pass = getenv("ADMIN_PASS");
+  if ($pass === false || $pass === "") {
+      fwrite(STDERR, "25-bookstack: ADMIN_PASS is empty in the php environment\n");
+      exit(1);
+  }
+  $u = \BookStack\Users\Models\User::find(1);
+  $u->password = Illuminate\Support\Facades\Hash::make($pass);
+  $u->save();
+  // Assert rather than assume: verify the stored hash accepts the password.
+  if (!Illuminate\Support\Facades\Hash::check($pass, $u->fresh()->password)) {
+      fwrite(STDERR, "25-bookstack: admin password did not take\n");
+      exit(1);
+  }
+  echo "admin password set\n";
+'
 
 # --- API token for ingest_docs.py ------------------------------------------
 # BookStack stores the secret hashed, so it can only be created through the

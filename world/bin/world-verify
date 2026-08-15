@@ -67,6 +67,38 @@ except Exception as e: bad(f"SMTP: {e}")
 PY
 [[ $? -eq 0 ]] && PASS=$((PASS+1)) || FAIL=$((FAIL+1))
 
+head_ "Admin can actually sign in"
+# Not just "the service responds": a world whose credentials do not work is
+# unusable, and looks perfectly healthy from every other check here.
+ADMIN_USER="${WORLD_ADMIN_USER:-worldadmin}"
+ADMIN_PASS="${WORLD_ADMIN_PASSWORD:-worldadmin}"
+ADMIN_MAIL="${WORLD_ADMIN_EMAIL:-worldadmin@${DOMAIN}}"
+
+curl -s --max-time 10 -u "${ADMIN_USER}:${ADMIN_PASS}" http://127.0.0.1:3300/api/v1/user 2>/dev/null \
+  | grep -q '"login"' && ok "Gitea login as ${ADMIN_USER}" || bad "Gitea login as ${ADMIN_USER} failed"
+
+curl -s --max-time 15 -X POST -H "Content-Type: application/json" \
+  -d "{\"login_id\":\"${ADMIN_USER}\",\"password\":\"${ADMIN_PASS}\"}" \
+  http://127.0.0.1:8065/api/v4/users/login 2>/dev/null \
+  | grep -q '"id"' && ok "Mattermost login as ${ADMIN_USER}" || bad "Mattermost login as ${ADMIN_USER} failed"
+
+# BookStack: POST the real login form. Its password is set through the model at
+# build time, and an unexported ADMIN_PASS once hashed the empty string here —
+# every other check still passed while no one could log in.
+BS_JAR="$(mktemp)"
+BS_TOKEN="$(curl -s -c "$BS_JAR" http://127.0.0.1:7090/login 2>/dev/null \
+  | grep -oE 'name="_token" value="[^"]+"' | sed 's/.*value="//;s/"//')"
+BS_CODE="$(curl -s -b "$BS_JAR" -c "$BS_JAR" -o /dev/null -w '%{redirect_url}' -X POST \
+  http://127.0.0.1:7090/login \
+  -d "_token=${BS_TOKEN}" -d "email=${ADMIN_MAIL}" -d "password=${ADMIN_PASS}" 2>/dev/null)"
+rm -f "$BS_JAR"
+# A rejected login redirects back to /login; a good one goes to the root.
+if [[ -n "$BS_CODE" && "$BS_CODE" != *"/login"* ]]; then
+  ok "BookStack login as ${ADMIN_MAIL}"
+else
+  bad "BookStack login as ${ADMIN_MAIL} failed (landed at ${BS_CODE:-nowhere})"
+fi
+
 head_ "Curator repository"
 TOKEN="$(cat /etc/sweworld/gitea-token 2>/dev/null)"
 REPO="$(curl -s --max-time 10 -H "Authorization: token $TOKEN" \
