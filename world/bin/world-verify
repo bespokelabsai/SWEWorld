@@ -99,6 +99,23 @@ else
   bad "BookStack login as ${ADMIN_MAIL} failed (landed at ${BS_CODE:-nowhere})"
 fi
 
+# Roundcube: the webmail login is a separate question from IMAP working. Its
+# php-fpm user (www-data) differs from every other service's, so a permissions
+# slip breaks the browser login while imaplib still succeeds.
+RC_JAR="$(mktemp)"
+RC_TOKEN="$(curl -s -c "$RC_JAR" http://127.0.0.1:7080/ 2>/dev/null \
+  | grep -oE 'name="_token" value="[^"]*"' | sed 's/.*value="//;s/"//')"
+RC_REDIR="$(curl -s -b "$RC_JAR" -c "$RC_JAR" -o /dev/null -w '%{redirect_url}' -X POST \
+  "http://127.0.0.1:7080/?_task=login" \
+  -d "_token=${RC_TOKEN}" -d "_task=login" -d "_action=login" \
+  -d "_user=${ADMIN_MAIL}" -d "_pass=${ADMIN_PASS}" 2>/dev/null)"
+rm -f "$RC_JAR"
+if [[ "$RC_REDIR" == *"_task=mail"* ]]; then
+  ok "Roundcube webmail login as ${ADMIN_MAIL}"
+else
+  bad "Roundcube webmail login failed (landed at ${RC_REDIR:-nowhere})"
+fi
+
 head_ "Curator repository"
 TOKEN="$(cat /etc/sweworld/gitea-token 2>/dev/null)"
 REPO="$(curl -s --max-time 10 -H "Authorization: token $TOKEN" \

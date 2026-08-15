@@ -44,9 +44,18 @@ fi
 
 # --- roundcube ---------------------------------------------------------------
 install -m 644 /world-src/config/roundcube-config.inc.php /opt/roundcube/config/config.inc.php
-install -d -m 755 -o worldsvc -g worldsvc /var/lib/world/roundcube
+install -d -m 755 /var/lib/world/roundcube
 sqlite3 /var/lib/world/roundcube/roundcube.db < /opt/roundcube/SQL/sqlite.initial.sql
-chown -R worldsvc:worldsvc /var/lib/world/roundcube
-chown -R www-data:www-data /opt/roundcube/temp /opt/roundcube/logs 2>/dev/null || true
+
+# Roundcube runs under php-fpm as www-data, NOT as worldsvc like the rest of the
+# world's services. Its sqlite database, temp and log directories must be
+# writable by www-data or every login returns 401 with nothing in the log --
+# because it cannot write the log either.
+install -d -m 755 /var/lib/world/roundcube/temp /var/lib/world/roundcube/logs
+chown -R www-data:www-data /var/lib/world/roundcube /opt/roundcube/temp /opt/roundcube/logs
+
+# Assert: a 401 with an empty log is a miserable thing to debug later.
+su -s /bin/bash www-data -c 'test -w /var/lib/world/roundcube/roundcube.db' \
+  || { echo "15-mail: roundcube db is not writable by www-data" >&2; exit 1; }
 
 echo "15-mail: OK"

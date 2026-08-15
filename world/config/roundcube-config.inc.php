@@ -7,7 +7,8 @@ $config['smtp_user'] = '%u';
 $config['smtp_pass'] = '%p';
 $config['support_url'] = '';
 $config['product_name'] = 'SWEWorld Mail';
-$config['des_key'] = 'sweworld-roundcube-deskey24';
+// Must be exactly 24 characters.
+$config['des_key'] = 'sweworld-roundcube-des24';
 $config['plugins'] = ['archive', 'zipdownload'];
 $config['skin'] = 'elastic';
 $config['temp_dir'] = '/var/lib/world/roundcube/temp';
