@@ -24,6 +24,7 @@ ARG MATTERMOST_VERSION=11.9.1
 ARG ROUNDCUBE_VERSION=1.7.3
 ARG BOOKSTACK_VERSION=v25.11
 ARG GO_VERSION=1.23.4
+ARG NODE_VERSION=20.18.1
 
 ENV LANG=C.UTF-8 \
     TZ=UTC \
@@ -66,7 +67,12 @@ RUN set -eux; \
     curl -fsSL "https://releases.mattermost.com/${MATTERMOST_VERSION}/mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz" \
       | tar -C /opt -xz; \
     # go toolchain — CI builds agent-authored services offline
-    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${arch}.tar.gz" | tar -C /usr/local -xz
+    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${arch}.tar.gz" | tar -C /usr/local -xz; \
+    # node: every JavaScript Action (actions/checkout included) is executed by
+    # act_runner as `node dist/index.js`. Without it every workflow dies with
+    # "Cannot find: node in PATH" after successfully resolving the action.
+    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+      | tar -C /usr/local --strip-components=1 -xJ
 
 # --- roundcube (webmail over maddy's IMAP) -----------------------------------
 RUN set -eux; \

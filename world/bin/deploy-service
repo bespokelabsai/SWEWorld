@@ -37,6 +37,13 @@ echo "[deploy] $svc: installing $build_dir -> $release"
 install -d -m 755 "$release"
 rsync -a --exclude '.git' --exclude '.gitea' "$build_dir"/ "$release"/
 rc=$?; [[ $rc -eq 0 || $rc -eq 24 ]] || { echo "[deploy] rsync failed rc=$rc" >&2; exit 1; }
+# The service entrypoint is owned by the world, not by the repo: a CI build
+# ships whatever the agent wrote, which will not include run.sh. Without this
+# the new release has nothing to exec, the health check fails and every deploy
+# rolls back — correct behaviour, baffling cause.
+if [[ -f /usr/local/lib/sweworld/run-$svc.sh ]]; then
+  install -m 755 "/usr/local/lib/sweworld/run-$svc.sh" "$release/run.sh"
+fi
 chown -R svc:svc "$release"
 
 # `prev` may itself be a release that never passed a health check, so rolling

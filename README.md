@@ -1,249 +1,165 @@
 # SWEWorld
 
-A self-hosted "world": a git server, a docs wiki, a chat workspace, and a mail
-server, all running locally behind one reverse proxy with a shared identity.
+A self-hosted company "world" for agent tasks: a git server, a chat workspace, a
+docs wiki, and a mail server, running as **one container image** with
+supervisord as PID 1 — the same shape as AlphaShop, so both run under the same
+harness.
 
-This repository is **plumbing only**. It stands the services up and defines how
-content gets in. It does not generate any content — commits, documents,
-messages, and emails are produced by a separate process and dropped into
-`data/`.
+The agent works inside this world as an ordinary engineer: it has no sudo, and
+the only way its code reaches a running service is through CI.
 
-| Service | Role | URL |
-|---|---|---|
-| Gitea | git server + OIDC identity provider | https://git.world.local |
-| Outline | Notion-style docs | https://docs.world.local |
-| Mattermost | Slack-style chat | https://chat.world.local |
-| Roundcube | webmail (over Maddy) | https://mail.world.local |
-| Maddy | SMTP + IMAP | `localhost:587` / `localhost:143` |
-| Traefik | reverse proxy | dashboard on `:8080` |
+| Role | Service | URL (in-world) | Store |
+|---|---|---|---|
+| github | Gitea | `http://git.world.local` | SQLite |
+| slack | Mattermost | `http://chat.world.local` | PostgreSQL |
+| notion | BookStack | `http://docs.world.local` | MariaDB |
+| email | Roundcube over Maddy | `http://mail.world.local` | SQLite |
+| credentials | passstore | `http://pass.world.local` | static |
+| the deployable service | curator | `http://curator.world.local` | — |
 
-Backing stores: a dedicated Postgres per service, Redis and MinIO for Outline.
+Everything is plain HTTP behind one nginx vhost ingress on port 80.
 
 ## Quick start
 
 ```bash
-sudo ./scripts/hosts.sh add     # point *.world.local at 127.0.0.1
-pip install -r scripts/requirements.txt
-./scripts/bootstrap.sh          # certs, stack, accounts, tokens — idempotent
-./scripts/verify.sh             # 37 assertions; exits non-zero on failure
+make build-image      # build sweworld:dev
+make run              # boot it, published on :8080
+make verify           # 24 acceptance checks
+make shell            # a shell as the agent (ubuntu, no sudo)
 ```
 
-`bootstrap.sh` leaves `.env` fully populated. There is no manual browser step.
+To browse the sites from your own machine, see **[Viewing the world](#viewing-the-world)**.
 
 ## Credentials
 
-One identity is admin on every service — the same username and password an
-agent working in this world signs in with. It is defined once in `.env`:
+One identity is admin on every service:
 
 ```
-WORLD_ADMIN_USER=worldadmin
-WORLD_ADMIN_PASSWORD=worldadmin-dev-password
-WORLD_ADMIN_EMAIL=worldadmin@world.local
+worldadmin / worldadmin          (worldadmin@world.local)
 ```
 
-| Service | Sign in with |
-|---|---|
-| Gitea | `worldadmin` / `WORLD_ADMIN_PASSWORD` |
-| Mattermost | `worldadmin` / `WORLD_ADMIN_PASSWORD` |
-| Outline | the **Sign in with Gitea** button — same credentials, no password of its own |
-| Roundcube | `worldadmin@world.local` / `WORLD_ADMIN_PASSWORD` |
+The live list is served inside the world at `http://pass.world.local`. The Gitea
+API token is at `/etc/sweworld/gitea-token`, readable by the agent.
 
-Change `WORLD_ADMIN_PASSWORD` and re-run `./scripts/bootstrap.sh`. It propagates
-the value into the per-service keys **and resets the password on accounts that
-already exist**, so the change takes effect on a running world. `verify.sh`
-proves the login works on each service rather than assuming it.
+## Deploying code
 
-MinIO and the Traefik dashboard are internal plumbing and keep their own
-settings; neither is part of the agent's identity.
-
-To browse without certificate warnings, trust the generated CA once:
-
-```bash
-sudo cp config/tls/world-ca.crt /usr/local/share/ca-certificates/sweworld.crt
-sudo update-ca-certificates
-```
-
-Firefox and Chrome keep their own trust stores — import the same file there.
-
-Tear everything down with `docker compose down -v` (destroys all data) and
-`sudo ./scripts/hosts.sh remove`.
-
-## Four decisions worth knowing
-
-These are the non-obvious constraints. Each one cost real debugging time, and
-each will bite anyone who changes the setup without knowing about it.
-
-### 1. Gitea is the identity provider
-
-Outline ships **no password login at all**. It delegates authentication
-entirely to an external provider, and its email magic-link sign-in only works
-for users who already exist — so it cannot bootstrap its own first account.
-Most guides solve this by adding Keycloak, Authelia, or Authentik.
-
-Instead, Gitea acts as the OIDC provider. It has been an OAuth2/OIDC provider
-since 1.8 and serves a discovery document at
-`https://git.world.local/.well-known/openid-configuration`. `bootstrap.sh`
-registers Outline as an OAuth2 client through Gitea's API.
-
-The payoff beyond one fewer container: the world gets a single identity source,
-which is what `data/schemas/identities.md` builds on.
-
-**A user's first successful OIDC login is what provisions their Outline account
-and workspace.** They cannot be pre-created.
-
-### 2. Everything is HTTPS, and that is not a preference
-
-Outline hardcodes `secure: env.isProduction` on its OAuth CSRF cookie
-(`build/server/utils/passport.js`). With `NODE_ENV=production`, signing in over
-plain HTTP fails with:
+This is the point of the privilege model. The agent (`ubuntu`) has no sudo and
+cannot reach the supervisord socket, so it cannot restart or install anything.
+Code reaches a running service only through CI:
 
 ```
-Error: Cannot send secure cookie over unencrypted connection
+git push  →  Gitea Actions (act_runner, host mode, as user `deploy`)
+          →  build + test
+          →  request-deploy <svc> <build-dir>     # submits to the spool dir
+          →  root deploy-daemon
+          →  install release, flip `current`, restart under supervisord,
+             health-check, roll back to `last-good` on failure
 ```
 
-There is no environment variable to turn this off. HTTPS is mandatory.
+`request-deploy` is not setuid and uses no sudo — it writes a request into a
+spool directory that only root and `deploy` can touch, and blocks on the result.
+gVisor ignores the setuid bit, so this indirection is what makes privilege
+separation work at all.
 
-`scripts/gen-certs.sh` therefore generates a local CA and one leaf covering
-`*.world.local` plus the internal service names. The CA — rather than a bare
-self-signed cert — matters because Outline's OIDC token exchange calls Gitea
-*server-side*, and Node rejects self-signed certificates. Outline gets
-`NODE_EXTRA_CA_CERTS`, so verification stays on everywhere instead of being
-disabled with `NODE_TLS_REJECT_UNAUTHORIZED=0`.
+Verified end to end: an agent push reaches a healthy deployed release in ~25s,
+and a release that fails its health check is rolled back automatically.
 
-Traefik redirects `:80` to `:443`.
+## Architecture notes
 
-### 3. Traefik will not route to an unhealthy container
+Things that are non-obvious and cost real debugging time.
 
-Traefik's Docker provider skips containers whose health status is not
-`healthy`. The Outline image's built-in healthcheck runs on a **60-second
-interval with no `start_period`**, so a freshly started container sits in
-`health: starting` for up to a minute — during which `docs.world.local` returns
-a bare Traefik `404 page not found` that looks exactly like a misconfigured
-router.
+### Two databases, and only two
 
-`docker-compose.yml` overrides that healthcheck with a 10s interval and a 20s
-start period, and `bootstrap.sh` explicitly waits for `healthy`. The override
-also passes `X-Forwarded-Proto: https`, because `FORCE_HTTPS` would otherwise
-turn the probe into a 301 and the container would never report healthy at all.
+Each is the sole option for exactly one service:
 
-The hostnames also resolve *inside* the Docker network, via network aliases on
-the Traefik service. Outline performs its OIDC token exchange against
-`https://git.world.local` server-side, so the container and the browser must
-agree on one URL.
+- **PostgreSQL** — Mattermost. MySQL was removed from the Mattermost codebase in
+  v11; there is no SQLite option.
+- **MariaDB** — BookStack. It supports MySQL/MariaDB only, no SQLite, no Postgres.
 
-### 4. docker compose ranks the environment above `.env`
+Gitea, Maddy and Roundcube all use SQLite and need no server. There is **no
+Redis and no object storage** — BookStack keeps cache, sessions and uploads on
+local disk by default, and Mattermost stores files on disk.
 
-An exported shell variable beats the same key in the `.env` file. Because
-`bootstrap.sh` sources `.env` early, it holds empty exports for values it is
-about to generate — so after writing a new secret to the file it must also
-re-`export` it. Otherwise `docker compose up` silently injects the stale empty
-value, and Outline renders a login page with no sign-in button.
+### `maddy creds create` exits 0 when it fails
 
-## Mail
+It could not create its `runtime_dir`, printed an error, and returned success —
+so `set -e` sailed straight past and the image shipped a mail server with zero
+accounts while logging `15-mail: OK`. `world/bootstrap/15-mail.sh` now creates
+the directory *and* asserts the account exists afterwards. Do not trust that
+exit code.
 
-Maddy is configured for a closed world in `config/maddy/maddy.conf`, which
-differs from its stock config in four ways: no DMARC/DKIM/SPF/MX checks (they
-need public DNS), no outbound delivery (non-local recipients are rejected
-immediately rather than queued against MX records that never resolve), no DKIM
-signing, and `insecure_auth` on submission and IMAP so ingestion scripts can
-log in over plaintext `:143`.
+### Offline CI needs two things
 
-Mail ports publish directly to the host, bypassing Traefik, which proxies HTTP
-only.
+`DEFAULT_ACTIONS_URL = self` makes Gitea resolve actions from its own instance,
+so `actions/checkout` is mirrored into a local `actions` org at image build.
+Mirror it with explicit refspecs — a `--mirror` push also carries GitHub's
+`refs/pull/*`, which Gitea rejects outright and fails the whole push.
 
-Credentials and mailboxes are separate objects in Maddy — creating a user needs
-both `maddy creds create` and `maddy imap-acct create`.
+Actions are JavaScript, executed as `node dist/index.js`, so the image ships
+Node. Without it every workflow dies with `Cannot find: node in PATH` *after*
+successfully resolving the action, which reads like a mirror problem and is not.
+
+### `run.sh` belongs to the world, not the repo
+
+A CI build ships whatever the agent wrote, which will not include a service
+entrypoint. `deploy-service` installs `/usr/local/lib/sweworld/run-<svc>.sh`
+into every release. Without it the new release has nothing to exec, the health
+check fails, and every deploy rolls back — correct behaviour, baffling cause.
+
+### Service users and IDs
+
+IDs are assigned by the system, never pinned: the apt install gives gid 999 to
+`systemd-journal`, so a hardcoded `groupadd -g 999 deploy` fails. Gitea also
+rewrites `~/.ssh` on every start even with SSH disabled, so it needs a home
+directory it actually owns (`/var/lib/world/gitea`).
+
+## The curator repository
+
+`bespokelabs/curator` is imported at image build as a standalone copy with every
+tie to GitHub severed — `--depth 1` (no upstream history), `rm -rf .git`
+(detached), then a fresh `git init` and a single `Initial import` commit.
+
+- working copy: `/opt/world-state/input/curator` (root-only)
+- in Gitea: `worldadmin/curator`, default branch `main`
+- deployed: `/opt/sweworld/curator/current`, serving on port 9100
+
+That single commit is the baseline. When generated history is ready,
+`scripts/ingest_git.py` force-pushes a rewritten history over the same branch.
 
 ## Layout
 
 ```
-docker-compose.yml          the stack
-.env.example                every secret, with where each comes from
-config/maddy/maddy.conf     closed-world mail config
-config/traefik/dynamic.yml  TLS certificate wiring
-scripts/
-  hosts.sh                  /etc/hosts entries (add|remove|status)
-  gen-certs.sh              local CA + leaf
-  bootstrap.sh              one-shot setup, idempotent
-  mint_outline_token.py     headless OIDC login to mint an API token
-  verify.sh                 acceptance checks
-  worldlib.py               shared: .env, personas, timestamps, validation
-  ingest_git.py             commits.jsonl  -> Gitea
-  ingest_docs.py            data/docs/     -> Outline
-  ingest_chat.py            messages.jsonl -> Mattermost
-  ingest_mail.py            data/emails/   -> Maddy over IMAP
-data/
-  schemas/                  the data contracts
-    identities.md           shared persona list + conventions for all schemas
-    commits.md              git history as JSONL
-    docs.md                 Outline collections and documents
-    messages.md             Mattermost chat history
-    emails.md               mailbox contents as .eml + index
-  identities.yaml           placeholder personas
-  commits.jsonl             placeholder history
-  channels.yaml             placeholder channels
-  messages.jsonl            placeholder chat
-  docs/                     placeholder documents
-  emails/                   placeholder mailboxes
+world/
+  Dockerfile              the world image
+  supervisord/            PID 1 config + priority tiers (05/10/20/30)
+  nginx/sweworld.conf     vhost ingress: map $host -> backend port
+  bootstrap/              build-time seeding, numbered in dependency order
+  bin/                    deploy-daemon, request-deploy, deploy-service,
+                          wait-for-service, world-verify, init-runtime
+  config/                 per-service configuration
+  ci-templates/           .gitea/workflows/ci.yml seeded into repos
+  passstore/              the credentials page
+scripts/                  ingestion: git, docs, chat, mail (+ worldlib)
+data/schemas/             the data contracts a generation step must satisfy
+data/                     placeholder content matching those contracts
+Makefile                  build-image · run · verify · bake-image · push-image
 ```
 
-## Ingestion
+## Publishing
+
+Build, populate and publish are deliberately separate steps, so you never push
+something you did not intend to.
 
 ```bash
-python3 scripts/ingest_git.py  --dry-run     # validate + replay, push nothing
-python3 scripts/ingest_docs.py --dry-run
-python3 scripts/ingest_chat.py --dry-run
-python3 scripts/ingest_mail.py --dry-run
+make build-image           # base image: services installed, world empty
+make bake-image TAG=0.1.0  # boot, ingest data/, gate on world-verify, commit
+make push-image TAG=0.1.0  # tag into the registry and push
 ```
 
-Drop `--dry-run` to write to the running world. Common flags: `--data-dir`,
-`--env-file`, `--fail-fast`, `-v`.
-
-`--dry-run` is not a no-op. It does the full parse and validation and builds
-the real artifacts: `ingest_git.py` replays the entire history into a temp repo
-you can `git log`, and `ingest_chat.py` writes the complete Mattermost import
-archive. Only the writes to a live service are skipped.
-
-Validation collects **every** error before reporting, each with `file:line`, so
-one run tells you everything wrong with a generated dataset:
-
-```
-data/commits.jsonl:6: unknown field 'authr' (did you mean 'author'?)
-data/commits.jsonl:2: unknown persona 'dave' in author — known ids: alice, bob, carol
-data/messages.jsonl:9: thread_id 'does-not-exist' does not match any message id
-```
-
-To replace the placeholder content with real generated data, overwrite the
-files under `data/` and re-run. To wipe the world first:
-`docker compose down -v && ./scripts/bootstrap.sh`.
-
-Out of scope, raising `NotImplementedError` rather than failing quietly: merge
-commits, git LFS, submodules, signed commits, and Mattermost custom emoji.
-
-## Data contracts
-
-`data/schemas/` specifies exactly what a data-generation step must produce for
-each service. Start with `identities.md` — it defines the persona list every
-other schema references, plus the conventions (ISO-8601 timestamps, persona
-`id` references, strict unknown-key rejection) that apply across all of them.
-
-The guiding principle: **authored formats stay simple and human-writable; the
-ingestion scripts absorb each service's awkwardness.** The one place that is
-deliberately not a 1:1 mapping is Mattermost, whose importer demands nested
-objects in a fixed order with millisecond epochs — `messages.md` explains why
-authoring stays flat there.
-
-Nothing in `data/` is generated yet. The world is expected to be reset with real
-generated content later; `docker compose down -v` destroys everything and
-`bootstrap.sh` rebuilds it empty.
+`bake-image` refuses to commit unless `world-verify` passes.
 
 ## Status
 
-- **Phase 1 — infrastructure: complete.** `verify.sh` passes 37/37.
-- **Phase 2 — data contracts in `data/schemas/`: complete.**
-- **Phase 3 — ingestion scripts: complete.** All four run end to end.
-- **Phase 4 — placeholder data and dry runs: complete.** All four validate
-  clean data, and reject malformed data with `file:line` errors and exit 1.
-
-The placeholder content in `data/` has been ingested into the running world as
-a live end-to-end test. Replace it with generated content when ready.
+- Image builds clean; `world-verify` passes 24/24 from a fresh build.
+- Agent push → CI → deploy → health check → live, verified end to end.
+- `data/schemas/` defines the contracts; `data/` holds placeholder content.

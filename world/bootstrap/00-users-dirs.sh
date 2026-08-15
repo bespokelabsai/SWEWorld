@@ -67,5 +67,7 @@ install -m 755 /world-src/bin/request-deploy   /usr/local/bin/request-deploy
 install -m 755 /world-src/bin/init-runtime.sh  /usr/local/bin/init-runtime.sh
 install -m 755 /world-src/bin/wait-for-service /usr/local/bin/wait-for-service
 install -m 755 /world-src/bin/world-verify    /usr/local/bin/world-verify
+install -d -m 755 /usr/local/lib/sweworld
+install -m 755 /world-src/config/curator-run.sh /usr/local/lib/sweworld/run-curator.sh
 
 echo "00-users-dirs: OK"

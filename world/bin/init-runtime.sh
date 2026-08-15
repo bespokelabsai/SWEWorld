@@ -13,7 +13,8 @@ if ! grep -q "sweworld vhosts" /etc/hosts 2>/dev/null; then
   } >> /etc/hosts
 fi
 
-install -d -m 755 /run/php /run/mysqld
+install -d -m 755 /run/php /run/mysqld /run/maddy
+chown worldsvc:worldsvc /run/maddy 2>/dev/null || true
 chown mysql:mysql /run/mysqld 2>/dev/null || true
 install -d -m 755 /var/log/supervisor
 

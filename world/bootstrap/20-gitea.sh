@@ -41,6 +41,28 @@ su -s /bin/bash deploy -c "cd /var/lib/world/act-runner && \
   act_runner register --no-interactive --instance '$GITEA_URL' --token '$REG_TOKEN' \
   --name world-runner --labels host:host --config /etc/act_runner/config.yaml"
 
+# --- mirror actions/checkout so `uses: actions/checkout@v4` resolves offline ---
+# DEFAULT_ACTIONS_URL=self makes Gitea look for actions inside its own instance.
+# Without this mirror every workflow fails at the checkout step, which surfaces
+# only as "task N repo is ..." in the runner log and a failed run in the UI.
+# Needs network, which exists at image build time and never again.
+api() { curl -sf -H "Authorization: token ${TOKEN}" -H "Content-Type: application/json" "$@"; }
+api -X POST -d '{"username":"actions","full_name":"actions"}' "$GITEA_URL/api/v1/orgs" >/dev/null 2>&1 || true
+api -X POST -d '{"name":"checkout","private":false,"auto_init":false}' \
+    "$GITEA_URL/api/v1/orgs/actions/repos" >/dev/null 2>&1 || true
+
+git clone -q --mirror https://github.com/actions/checkout /tmp/actions-checkout
+# Branches and tags only. A --mirror push also carries GitHub's refs/pull/*,
+# which Gitea rejects outright ("hook declined") and fails the whole push.
+git -C /tmp/actions-checkout push -q \
+    "http://${ADMIN_USER}:${TOKEN}@127.0.0.1:3300/actions/checkout.git" \
+    'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
+rm -rf /tmp/actions-checkout
+
+# Assert: a missing mirror only shows up much later as failed CI runs.
+api "$GITEA_URL/api/v1/repos/actions/checkout" >/dev/null \
+  || { echo "20-gitea: actions/checkout mirror missing" >&2; exit 1; }
+
 # curator lands here too, while gitea is still up.
 WORLD_GITEA_TOKEN="$TOKEN" /world-src/bootstrap/22-curator.sh
 
