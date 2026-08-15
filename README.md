@@ -37,13 +37,24 @@ the sites are browsable immediately:
 |---|---|---|
 | Gitea | http://localhost:3300 | `worldadmin` / `worldadmin` |
 | Mattermost | http://localhost:8065 | `worldadmin` / `worldadmin` |
-| BookStack | http://localhost:8090 | `worldadmin@world.local` / `worldadmin` |
-| Roundcube | http://localhost:8080 | `worldadmin@world.local` / `worldadmin` |
-| Credentials | http://localhost:8250 | — |
+| BookStack | http://localhost:7090 | `worldadmin@world.local` / `worldadmin` |
+| Roundcube | http://localhost:7080 | `worldadmin@world.local` / `worldadmin` |
+| Credentials | http://localhost:7250 | — |
 
-**On a remote machine** (VS Code Remote-SSH forwards these automatically; other
-clients need `ssh -L 3300:localhost:3300 -L 8065:localhost:8065 …`). Everything
+Ports are overridable if any clash on your machine:
+`make run BOOKSTACK_PORT=9090 ROUNDCUBE_PORT=9080`.
+
+**On a remote machine** VS Code Remote-SSH forwards these automatically; other
+clients need `ssh -L 3300:localhost:3300 -L 7090:localhost:7090 …`. Everything
 still works because `PUBLIC_HOST=localhost` is what the apps advertise.
+
+**The published port and the container-internal port are deliberately the
+same.** BookStack redirects to its `APP_URL`, so if it is published on 7090 but
+serves on 8090 internally, that redirect resolves outside the container and
+dead-ends inside it — the site half-works, which is worse than failing. The two
+numbers move together for that reason. 8080/8090 are avoided entirely because
+they collide on most dev machines, and a forwarded port that collides gets
+silently remapped to a different local port.
 
 If you would rather use the in-world hostnames, run with `PUBLIC_HOST=` unset
 and point `*.world.local` at the host running docker:

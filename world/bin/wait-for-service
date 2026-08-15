@@ -15,8 +15,8 @@ done
 declare -A CHECK=(
   [gitea]="curl -sf --max-time 3 http://127.0.0.1:3300/api/v1/version"
   [mattermost]="curl -sf --max-time 3 http://127.0.0.1:8065/api/v4/system/ping"
-  [bookstack]="curl -sf --max-time 3 -o /dev/null http://127.0.0.1:8090/login"
-  [roundcube]="curl -sf --max-time 3 -o /dev/null http://127.0.0.1:8080/"
+  [bookstack]="curl -sf --max-time 3 -o /dev/null http://127.0.0.1:7090/login"
+  [roundcube]="curl -sf --max-time 3 -o /dev/null http://127.0.0.1:7080/"
   [maddy]="bash -c 'exec 3<>/dev/tcp/127.0.0.1/143'"
   [nginx]="curl -sf --max-time 3 -o /dev/null -H 'Host: git.world.local' http://127.0.0.1/"
   [postgres]="pg_isready -h 127.0.0.1 -q"

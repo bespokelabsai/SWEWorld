@@ -19,12 +19,15 @@
 set -euo pipefail
 DOMAIN="${WORLD_DOMAIN:-world.local}"
 
-# Per-service ports, published by `make run`.
-GITEA_PORT=3300
-MATTERMOST_PORT=8065
-BOOKSTACK_PORT=8090
-ROUNDCUBE_PORT=8080
-PASSSTORE_PORT=8250
+# The ports you browse, i.e. the ports docker publishes on the host. These are
+# not necessarily the container-internal ports: 8080 in particular collides with
+# something on most dev machines, so `make run` publishes it elsewhere. The base
+# URLs below must match what the browser used or every link breaks.
+GITEA_PORT="${PUBLIC_GITEA_PORT:-3300}"
+MATTERMOST_PORT="${PUBLIC_MM_PORT:-8065}"
+BOOKSTACK_PORT="${PUBLIC_BOOKSTACK_PORT:-7090}"
+ROUNDCUBE_PORT="${PUBLIC_ROUNDCUBE_PORT:-7080}"
+PASSSTORE_PORT="${PUBLIC_PASS_PORT:-7250}"
 
 if ! grep -q "sweworld vhosts" /etc/hosts 2>/dev/null; then
   {

@@ -5,7 +5,7 @@
 # should never push something you did not intend to.
 #
 #   make build-image              base image: services installed, world empty
-#   make run                      boot it locally on :8080
+#   make run                      boot it and publish every service
 #   make bake-image TAG=0.1.0     boot base, ingest data/, verify, commit
 #   make push-image TAG=0.1.0     tag into the registry and push (manual)
 # =============================================================================
@@ -21,6 +21,16 @@ HTTP_PORT ?= 8081
 # -L). Every app's public base URL is repointed at it on boot — see
 # world/bin/init-runtime.sh for why that is necessary.
 PUBLIC_HOST ?= localhost
+
+# Published host ports, deliberately identical to the container-internal ones:
+# an app that redirects to :PORT must reach the same service inside and out.
+# 8080/8090 are avoided because they collide on most dev machines, and a
+# forwarded port that collides gets silently remapped to another one.
+GITEA_PORT     ?= 3300
+MM_PORT        ?= 8065
+BOOKSTACK_PORT ?= 7090
+ROUNDCUBE_PORT ?= 7080
+PASS_PORT      ?= 7250
 
 # Bake boots the base image, populates it, then commits the result.
 RELEASE_SOURCE    ?= $(IMAGE):dev
@@ -42,19 +52,23 @@ run: ## Boot the world and publish every service so you can browse it
 	-docker rm -f $(CONTAINER) >/dev/null 2>&1
 	docker run -d --name $(CONTAINER) \
 	  -e PUBLIC_HOST=$(PUBLIC_HOST) \
+	  -e PUBLIC_GITEA_PORT=$(GITEA_PORT) -e PUBLIC_MM_PORT=$(MM_PORT) \
+	  -e PUBLIC_BOOKSTACK_PORT=$(BOOKSTACK_PORT) \
+	  -e PUBLIC_ROUNDCUBE_PORT=$(ROUNDCUBE_PORT) -e PUBLIC_PASS_PORT=$(PASS_PORT) \
 	  -p $(HTTP_PORT):80 \
-	  -p 3300:3300 -p 8065:8065 -p 8090:8090 -p 8080:8080 -p 8250:8250 \
+	  -p $(GITEA_PORT):3300 -p $(MM_PORT):8065 \
+	  -p $(BOOKSTACK_PORT):7090 -p $(ROUNDCUBE_PORT):7080 -p $(PASS_PORT):7250 \
 	  -p 2525:25 -p 1143:143 -p 1587:587 \
 	  $(IMAGE):dev
 	@echo ">> waiting for the world to come up..."
 	@docker exec $(CONTAINER) wait-for-service --all
 	@echo
 	@echo "   Browse the world at:"
-	@echo "     Gitea       http://$(PUBLIC_HOST):3300"
-	@echo "     Mattermost  http://$(PUBLIC_HOST):8065"
-	@echo "     BookStack   http://$(PUBLIC_HOST):8090"
-	@echo "     Roundcube   http://$(PUBLIC_HOST):8080"
-	@echo "     Credentials http://$(PUBLIC_HOST):8250"
+	@echo "     Gitea       http://$(PUBLIC_HOST):$(GITEA_PORT)"
+	@echo "     Mattermost  http://$(PUBLIC_HOST):$(MM_PORT)"
+	@echo "     BookStack   http://$(PUBLIC_HOST):$(BOOKSTACK_PORT)"
+	@echo "     Roundcube   http://$(PUBLIC_HOST):$(ROUNDCUBE_PORT)"
+	@echo "     Credentials http://$(PUBLIC_HOST):$(PASS_PORT)"
 	@echo
 	@echo "   Sign in as worldadmin / worldadmin"
 	@echo "   (BookStack and Roundcube want the email: worldadmin@world.local)"

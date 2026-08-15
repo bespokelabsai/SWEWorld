@@ -121,7 +121,7 @@ RUN set -eux; \
 
 # 80 = the whole world (nginx vhosts). Mail ports are direct: ingestion and
 # desktop clients speak raw SMTP/IMAP, which nginx does not proxy.
-EXPOSE 80 25 143 587 993
+EXPOSE 80 3300 7080 7090 7250 8065 25 143 587 993
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=90s --retries=20 \
   CMD /usr/local/bin/wait-for-service --all --quiet || exit 1
