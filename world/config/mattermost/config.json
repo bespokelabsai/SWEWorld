@@ -1,0 +1,56 @@
+{
+  "ServiceSettings": {
+    "SiteURL": "http://chat.@@DOMAIN@@",
+    "ListenAddress": "127.0.0.1:8065",
+    "EnableLocalMode": true,
+    "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket",
+    "EnableAPIChannelDeletion": true,
+    "EnableTesting": false,
+    "EnableDeveloper": false,
+    "EnableSecurityFixAlert": false,
+    "EnableInsecureOutgoingConnections": true,
+    "AllowCorsFrom": "",
+    "SessionLengthWebInHours": 8760
+  },
+  "SqlSettings": {
+    "DriverName": "postgres",
+    "DataSource": "postgres://mattermost:mattermost@127.0.0.1:5432/mattermost?sslmode=disable&connect_timeout=10",
+    "MaxIdleConns": 5,
+    "MaxOpenConns": 20
+  },
+  "FileSettings": {
+    "DriverName": "local",
+    "Directory": "/opt/mattermost/data/",
+    "MaxFileSize": 104857600
+  },
+  "LogSettings": {
+    "EnableConsole": true,
+    "ConsoleLevel": "INFO",
+    "EnableFile": false
+  },
+  "TeamSettings": {
+    "SiteName": "SWEWorld Chat",
+    "EnableOpenServer": false,
+    "EnableUserCreation": true,
+    "MaxUsersPerTeam": 500
+  },
+  "EmailSettings": {
+    "SendEmailNotifications": false,
+    "RequireEmailVerification": false,
+    "SMTPServer": "127.0.0.1",
+    "SMTPPort": "587",
+    "ConnectionSecurity": ""
+  },
+  "PluginSettings": {
+    "Enable": true,
+    "EnableUploads": false,
+    "Directory": "/opt/mattermost/plugins",
+    "ClientDirectory": "/opt/mattermost/client/plugins"
+  },
+  "BleveSettings": {
+    "IndexDir": "/var/lib/world/mattermost/bleve"
+  },
+  "MetricsSettings": { "Enable": false },
+  "AnnouncementSettings": { "EnableBanner": false },
+  "SupportSettings": { "AboutLink": "", "HelpLink": "" }
+}

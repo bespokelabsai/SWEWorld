@@ -1,0 +1,33 @@
+# Placeholder persona list. Replace wholesale when real data is generated.
+# Schema: data/schemas/identities.md
+version: 1
+domain: world.local
+
+personas:
+  # The agent's own account. Created by bootstrap.sh from WORLD_ADMIN_* in .env;
+  # listed here only so it can author content. Ingestion never recreates it.
+  - id: worldadmin
+    display_name: World Admin
+    email: worldadmin@world.local
+    role: Platform
+    is_admin: true
+
+  - id: alice
+    display_name: Alice Nguyen
+    email: alice@world.local
+    role: Staff Engineer
+    timezone: America/Los_Angeles
+
+  - id: bob
+    display_name: Bob Okafor
+    email: bob@world.local
+    role: Backend Engineer
+    timezone: Europe/Berlin
+    # Exercises the git_author override: historical commits predate the domain.
+    git_author: Bob Okafor <bob.okafor@oldcorp.example>
+
+  - id: carol
+    display_name: Carol Iyer
+    email: carol@world.local
+    role: Product Manager
+    timezone: Asia/Kolkata

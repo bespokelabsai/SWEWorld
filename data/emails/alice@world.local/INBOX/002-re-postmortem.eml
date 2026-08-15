@@ -1,0 +1,14 @@
+From: Bob Okafor <bob@world.local>
+To: Alice Nguyen <alice@world.local>
+Subject: Re: Deploy postmortem
+Date: Wed, 11 Feb 2026 10:02:44 +0000
+Message-ID: <20260211100244.bob.1@world.local>
+In-Reply-To: <20260211091402.alice.1@world.local>
+References: <20260211091402.alice.1@world.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Agreed on the constant. I'll open a PR this afternoon.
+
+One more thing worth noting: the alert never fired because the check was
+technically returning 200, just from the wrong service.

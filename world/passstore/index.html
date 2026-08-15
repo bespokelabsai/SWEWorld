@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SWEWorld Credentials</title>
+<style>
+ body{font-family:system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem}
+ h1{border-bottom:2px solid #444;padding-bottom:.3rem}
+ table{border-collapse:collapse;width:100%;margin:1rem 0 2rem}
+ th,td{border:1px solid #ccc;padding:.4rem .7rem;text-align:left}
+ th{background:#f0f0f0} code{background:#f6f6f6;padding:.1rem .3rem}
+</style>
+<h1>SWEWorld Credentials</h1>
+<p>One identity is admin on every service. Disposable local world; nothing here faces a network.</p>
+
+<h2>Services</h2>
+<table>
+<tr><th>Service</th><th>URL</th><th>User</th><th>Password</th></tr>
+<tr><td>Gitea (git)</td><td>http://git.world.local</td><td><code>worldadmin</code></td><td><code>worldadmin</code></td></tr>
+<tr><td>Mattermost (chat)</td><td>http://chat.world.local</td><td><code>worldadmin</code></td><td><code>worldadmin</code></td></tr>
+<tr><td>BookStack (docs)</td><td>http://docs.world.local</td><td><code>worldadmin@world.local</code></td><td><code>worldadmin</code></td></tr>
+<tr><td>Roundcube (webmail)</td><td>http://mail.world.local</td><td><code>worldadmin@world.local</code></td><td><code>worldadmin</code></td></tr>
+</table>
+
+<h2>Infrastructure</h2>
+<table>
+<tr><th>Endpoint</th><th>Detail</th></tr>
+<tr><td>Maddy SMTP / IMAP</td><td><code>127.0.0.1:25</code> · <code>:587</code> · <code>:143</code> — plaintext auth</td></tr>
+<tr><td>PostgreSQL (mattermost)</td><td><code>127.0.0.1:5432</code> · <code>mattermost</code>/<code>mattermost</code></td></tr>
+<tr><td>MariaDB (bookstack)</td><td><code>127.0.0.1:3306</code> · <code>bookstack</code>/<code>bookstack</code></td></tr>
+<tr><td>Gitea API token</td><td><code>/etc/sweworld/gitea-token</code></td></tr>
+</table>
+
+<h2>Deploying code</h2>
+<p>The agent (<code>ubuntu</code>) has no sudo and cannot reach supervisord. Code reaches a running
+service only through CI:</p>
+<pre>git push  →  Gitea Actions (act_runner, host mode, user `deploy`)
+          →  build + test  →  request-deploy &lt;svc&gt; &lt;build-dir&gt;
+          →  root deploy-daemon: install release, flip `current`,
+             restart under supervisord, health-check, auto-rollback</pre>
+<p>Deployable service: <code>curator</code> on port 9100 (<code>http://curator.world.local</code>).</p>

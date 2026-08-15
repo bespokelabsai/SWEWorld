@@ -1,0 +1,17 @@
+# Real secrets — only .env.example is committed
+.env
+
+# Generated TLS material for the mail server
+config/maddy/tls/
+
+# Runtime state (docker named volumes live outside the repo, but these are
+# scratch dirs the scripts may write to)
+volumes/
+*.log
+
+# Phase 3/4 artifacts that are regenerated, not authored
+scripts/__pycache__/
+.venv/
+
+# Local CA and leaf certificates — regenerate with scripts/gen-certs.sh
+config/tls/

@@ -1,0 +1,13 @@
+# Schema: data/schemas/messages.md
+version: 1
+team: world
+channels:
+  - name: engineering
+    display_name: Engineering
+    type: O
+    purpose: Day-to-day engineering chatter.
+    header: "on-call: see the runbook"
+  - name: product
+    display_name: Product
+    type: O
+    purpose: Roadmap and release planning.

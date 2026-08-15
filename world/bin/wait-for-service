@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# wait-for-service [--all] [--quiet] [service...]
+# Blocks until the world (or the named services) answer. Used by the image
+# HEALTHCHECK, by bake-time population, and by tasks that need a ready world.
+set -uo pipefail
+TIMEOUT="${WAIT_TIMEOUT:-240}"
+QUIET=0; ALL=0; declare -a WANT=()
+for a in "$@"; do
+  case "$a" in
+    --all) ALL=1 ;; --quiet|-q) QUIET=1 ;; *) WANT+=("$a") ;;
+  esac
+done
+(( ALL )) || (( ${#WANT[@]} )) || ALL=1
+
+declare -A CHECK=(
+  [gitea]="curl -sf --max-time 3 http://127.0.0.1:3300/api/v1/version"
+  [mattermost]="curl -sf --max-time 3 http://127.0.0.1:8065/api/v4/system/ping"
+  [bookstack]="curl -sf --max-time 3 -o /dev/null http://127.0.0.1:8090/login"
+  [roundcube]="curl -sf --max-time 3 -o /dev/null http://127.0.0.1:8080/"
+  [maddy]="bash -c 'exec 3<>/dev/tcp/127.0.0.1/143'"
+  [nginx]="curl -sf --max-time 3 -o /dev/null -H 'Host: git.world.local' http://127.0.0.1/"
+  [postgres]="pg_isready -h 127.0.0.1 -q"
+  [mariadb]="mariadb-admin --protocol=socket --socket=/run/mysqld/mysqld.sock ping"
+)
+(( ALL )) && WANT=(postgres mariadb gitea maddy bookstack mattermost roundcube nginx)
+
+say() { (( QUIET )) || echo "$@"; }
+deadline=$(( $(date +%s) + TIMEOUT )); failed=0
+for svc in "${WANT[@]}"; do
+  cmd="${CHECK[$svc]:-}"
+  [[ -n "$cmd" ]] || { echo "wait-for-service: unknown service '$svc'" >&2; failed=1; continue; }
+  say -n "  waiting for $svc"
+  ok=0
+  while (( $(date +%s) < deadline )); do
+    if eval "$cmd" >/dev/null 2>&1; then ok=1; break; fi
+    say -n "."; sleep 2
+  done
+  if (( ok )); then say " ready"; else say " TIMEOUT"; failed=1; fi
+done
+exit $failed

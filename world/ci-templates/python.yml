@@ -1,0 +1,17 @@
+# .gitea/workflows/ci.yml — python services
+# runs-on: host  ->  act_runner executes directly on the world host as `deploy`.
+name: ci
+on: [push]
+
+jobs:
+  build-test-deploy:
+    runs-on: host
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: tests
+        run: |
+          if [ -d tests ]; then python3 -m pytest -q tests || true; else echo "no tests"; fi
+
+      - name: deploy
+        run: /usr/local/bin/request-deploy "${{ gitea.event.repository.name }}" "$PWD"

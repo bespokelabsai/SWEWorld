@@ -1,0 +1,16 @@
+# Traefik dynamic configuration (file provider).
+#
+# Only job: hand Traefik the local CA-signed leaf covering *.world.local so
+# every router on the `websecure` entrypoint serves it. Certificates cannot be
+# supplied via the docker label provider, which is why this file exists at all.
+#
+# Regenerate the referenced files with ./scripts/gen-certs.sh
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/world.crt
+        keyFile: /certs/world.key
+  certificates:
+    - certFile: /certs/world.crt
+      keyFile: /certs/world.key

@@ -1,0 +1,18 @@
+# act_runner in host-exec mode: jobs run directly on the world host as `deploy`.
+# No Docker anywhere — the world is a single container and there is no daemon
+# inside it.
+log:
+  level: info
+runner:
+  file: /var/lib/world/act-runner/.runner
+  capacity: 1
+  timeout: 10m
+  labels:
+    - "host:host"
+host:
+  workdir_parent: /var/lib/world/act-runner/workspace
+container:
+  network: host
+  privileged: false
+cache:
+  enabled: false

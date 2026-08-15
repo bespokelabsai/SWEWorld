@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# request-deploy <service> <build-dir>
+#
+# The deploy step of a CI job (runs as `deploy`). Submits a request to the root
+# deploy-daemon and blocks on the result, mirroring its exit code and log.
+# No sudo and no setuid, so it behaves identically under runc and gVisor.
+set -euo pipefail
+
+QUEUE=/opt/sweworld/deploy-queue
+TIMEOUT=180
+
+[[ $# -eq 2 ]] || { echo "usage: request-deploy <service> <build-dir>" >&2; exit 2; }
+svc="$1"
+build_dir="$(realpath -e -- "$2")"
+sha="${GITHUB_SHA:-${GITEA_SHA:-}}"
+
+result="$QUEUE/$svc.result"
+rm -f "$result" 2>/dev/null || true
+
+# Write to a temp name and rename, so the daemon never reads a half-written file.
+tmp="$QUEUE/.$svc.request.$$"
+{ echo "$build_dir"; echo "${sha:0:7}"; } > "$tmp"
+mv -f "$tmp" "$QUEUE/$svc.request"
+echo "request-deploy: submitted $svc, waiting for deploy-daemon..."
+
+deadline=$(( $(date +%s) + TIMEOUT ))
+until [[ -f "$result" ]]; do
+  (( $(date +%s) >= deadline )) && { echo "request-deploy: timed out waiting for $svc" >&2; exit 1; }
+  sleep 1
+done
+
+rc="$(head -n1 "$result")"
+tail -n +2 "$result"
+rm -f "$result" 2>/dev/null || true
+exit "$rc"

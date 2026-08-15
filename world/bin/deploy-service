@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# deploy-service <service> <build-dir> [sha]
+#
+# Root-only. Installs a built artifact as a new release, flips `current`,
+# restarts the service under supervisord, health-checks it, and rolls back to
+# the last known-good release if the check fails.
+#
+# Everything it consumes came from a CI job that ran agent-authored code, so it
+# stays paranoid: fixed service allowlist, no symlink games, no path escapes.
+set -uo pipefail
+RELEASES_KEEP=5
+HEALTH_TIMEOUT=60
+
+usage() { echo "usage: deploy-service <service> <build-dir> [sha]" >&2; exit 2; }
+[[ $# -ge 2 ]] || usage
+svc="$1"; build_dir_raw="$2"; sha="${3:-nosha}"
+
+# --- allowlist: service -> health port ---------------------------------------
+declare -A PORTS=( [curator]=9100 )
+[[ -n "${PORTS[$svc]:-}" ]] || { echo "deploy-service: unknown service '$svc'" >&2; exit 2; }
+port="${PORTS[$svc]}"
+
+# --- validate the build dir ---------------------------------------------------
+build_dir="$(realpath -e -- "$build_dir_raw" 2>/dev/null)" || {
+  echo "deploy-service: build dir not found: $build_dir_raw" >&2; exit 2; }
+[[ -d "$build_dir" ]] || { echo "deploy-service: not a directory: $build_dir" >&2; exit 2; }
+case "$build_dir" in
+  /tmp/deploy-*|/var/lib/world/act-runner/*|/home/deploy/*) ;;
+  *) echo "deploy-service: build dir outside allowed roots: $build_dir" >&2; exit 2 ;;
+esac
+
+base="/opt/sweworld/$svc"
+release="$base/releases/$(date +%Y%m%d%H%M%S)-$sha"
+install -d -m 755 "$base/releases"
+
+echo "[deploy] $svc: installing $build_dir -> $release"
+install -d -m 755 "$release"
+rsync -a --exclude '.git' --exclude '.gitea' "$build_dir"/ "$release"/
+rc=$?; [[ $rc -eq 0 || $rc -eq 24 ]] || { echo "[deploy] rsync failed rc=$rc" >&2; exit 1; }
+chown -R svc:svc "$release"
+
+# `prev` may itself be a release that never passed a health check, so rolling
+# back to it would just restore a second broken version. `last-good` only
+# advances after a passing check and is the preferred rollback target.
+prev="$(readlink -f "$base/current" 2>/dev/null || true)"
+good="$(readlink -f "$base/last-good" 2>/dev/null || true)"
+
+ln -sfn "$release" "$base/current.new"
+mv -Tf "$base/current.new" "$base/current"
+
+# A crash-looping new release makes supervisorctl exit non-zero; swallow it so
+# the health check below is the arbiter and the rollback actually runs.
+supervisorctl -c /etc/supervisor/supervisord.conf restart "app:$svc" >/dev/null 2>&1 || true
+
+echo "[deploy] $svc: health check on 127.0.0.1:$port/health"
+deadline=$(( $(date +%s) + HEALTH_TIMEOUT )); healthy=0
+while (( $(date +%s) < deadline )); do
+  if curl -sf --max-time 3 "http://127.0.0.1:$port/health" >/dev/null 2>&1; then healthy=1; break; fi
+  sleep 2
+done
+
+if (( healthy )); then
+  ln -sfn "$release" "$base/last-good.new"
+  mv -Tf "$base/last-good.new" "$base/last-good"
+  echo "[deploy] $svc: healthy, release $release is live"
+  ls -1dt "$base"/releases/*/ 2>/dev/null | tail -n +$((RELEASES_KEEP+1)) | xargs -r rm -rf
+  exit 0
+fi
+
+rollback="${good:-$prev}"
+if [[ -n "$rollback" && -d "$rollback" && "$rollback" != "$release" ]]; then
+  echo "[deploy] $svc: UNHEALTHY -> rolling back to $rollback" >&2
+  ln -sfn "$rollback" "$base/current.new"
+  mv -Tf "$base/current.new" "$base/current"
+  supervisorctl -c /etc/supervisor/supervisord.conf restart "app:$svc" >/dev/null 2>&1 || true
+else
+  echo "[deploy] $svc: UNHEALTHY and no known-good release to roll back to" >&2
+fi
+exit 1

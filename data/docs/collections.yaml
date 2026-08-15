@@ -1,0 +1,13 @@
+# Schema: data/schemas/docs.md
+version: 1
+collections:
+  - dir: engineering
+    name: Engineering
+    description: How the platform is built and run.
+    color: "#0366d6"
+    permission: read_write
+  - dir: product
+    name: Product
+    description: Roadmap and decisions.
+    color: "#d63384"
+    permission: read_write

@@ -1,0 +1,4 @@
+# Dependencies for the SWEWorld scripts (bootstrap helpers + Phase 3 ingestion).
+# Minimums match what ships on Ubuntu 22.04 so no upgrade is forced.
+requests>=2.25
+PyYAML>=5.4

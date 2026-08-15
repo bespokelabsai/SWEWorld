@@ -1,0 +1,28 @@
+APP_KEY=
+APP_URL=http://docs.@@DOMAIN@@
+APP_ENV=production
+APP_DEBUG=false
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bookstack
+DB_USERNAME=bookstack
+DB_PASSWORD=bookstack
+
+# Filesystem for cache/sessions/uploads: no redis and no object storage in this
+# world, which is exactly what BookStack defaults to.
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
+STORAGE_TYPE=local_secure
+
+MAIL_DRIVER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=587
+MAIL_FROM=worldadmin@@@DOMAIN@@
+MAIL_FROM_NAME="SWEWorld Docs"
+
+ALLOWED_IFRAME_HOSTS=
+AVATAR_URL=
+DISABLE_EXTERNAL_SERVICES=true

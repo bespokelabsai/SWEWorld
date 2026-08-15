@@ -1,0 +1,3 @@
+{"path":"alice@world.local/Sent/001-postmortem.eml","mailbox":"alice@world.local","folder":"Sent","date":"2026-02-11T09:14:02Z","flags":["\\Seen"]}
+{"path":"bob@world.local/INBOX/001-postmortem.eml","mailbox":"bob@world.local","folder":"INBOX","date":"2026-02-11T09:14:05Z","flags":[]}
+{"path":"alice@world.local/INBOX/002-re-postmortem.eml","mailbox":"alice@world.local","folder":"INBOX","date":"2026-02-11T10:02:44Z","flags":["\\Seen","\\Answered"]}

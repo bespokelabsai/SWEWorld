@@ -1,0 +1,15 @@
+From: Alice Nguyen <alice@world.local>
+To: Bob Okafor <bob@world.local>
+Subject: Deploy postmortem
+Date: Wed, 11 Feb 2026 09:14:02 +0000
+Message-ID: <20260211091402.alice.1@world.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Writing up what happened this morning.
+
+The rollout stalled because the health check was pointing at the old port.
+Nothing was actually down, but the deploy sat in "pending" for eleven minutes
+before anyone looked at it.
+
+Action item: make the health check port a build-time constant.
