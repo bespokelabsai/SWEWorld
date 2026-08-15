@@ -1,7 +1,7 @@
 {
   "ServiceSettings": {
     "SiteURL": "http://chat.@@DOMAIN@@",
-    "ListenAddress": "127.0.0.1:8065",
+    "ListenAddress": ":8065",
     "EnableLocalMode": true,
     "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket",
     "EnableAPIChannelDeletion": true,

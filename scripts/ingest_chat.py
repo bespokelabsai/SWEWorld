@@ -77,8 +77,9 @@ MESSAGE_OPTIONAL = ("id", "channel", "participants", "text", "thread_id",
 REACTION_REQUIRED = ("author", "emoji")
 REACTION_OPTIONAL = ("created_at",)
 
-MATTERMOST_CONTAINER = "sweworld-mattermost-1"
-MATTERMOST_VOLUME = "sweworld_mattermost-data"
+# Inside the world image everything is a local process: no docker, no compose.
+MMCTL = "/opt/mattermost/bin/mmctl"
+IMPORT_DIR = "/opt/mattermost/data/import"
 
 
 # =============================================================================
@@ -436,25 +437,18 @@ def run(cmd: list[str]) -> str:
 
 
 def stage_archive(archive: Path) -> str:
-    """Copy the archive into Mattermost's filestore so the server can read it.
+    """Place the archive where the Mattermost server can read it.
 
-    `mmctl import process --bypass-upload` reads from the filestore's import
-    directory, and the container runs as uid 2000, so the file has to be owned
-    by that user once it is inside.
+    `mmctl import process --bypass-upload` takes a filesystem path, not the
+    filestore name that `mmctl import list available` prints — passing the
+    latter fails with "file doesn't exist".
     """
-    name = archive.name
-    helper = ["docker", "run", "--rm", "-v", f"{MATTERMOST_VOLUME}:/d", "alpine:3.20", "sh", "-c"]
-
-    # The import directory must exist before docker cp can write into it, and
-    # the mattermost image is distroless so mkdir/chown come from a helper.
-    run([*helper, "mkdir -p /d/import && chown 2000:2000 /d/import"])
-    run(["docker", "cp", str(archive),
-         f"{MATTERMOST_CONTAINER}:/mattermost/data/import/{name}"])
-    # docker cp lands the file owned by root; the server runs as uid 2000.
-    run([*helper, f"chown 2000:2000 '/d/import/{name}'"])
-    # --bypass-upload takes a filesystem path as seen from inside the container,
-    # not the filestore name that `mmctl import list available` prints.
-    return f"/mattermost/data/import/{name}"
+    import shutil
+    Path(IMPORT_DIR).mkdir(parents=True, exist_ok=True)
+    target = Path(IMPORT_DIR) / archive.name
+    shutil.copy2(archive, target)
+    shutil.chown(target, user="worldsvc", group="worldsvc")
+    return str(target)
 
 
 def _job_id(output: str) -> str | None:
@@ -468,11 +462,8 @@ def wait_for_job(job_id: str, timeout: int = 300, verbose: bool = False) -> str:
     deadline = time.time() + timeout
     last = ""
     while time.time() < deadline:
-        proc = subprocess.run(
-            ["docker", "compose", "exec", "-T", "mattermost", "mmctl", "--local",
-             "import", "job", "show", job_id],
-            capture_output=True, text=True,
-        )
+        proc = subprocess.run([MMCTL, "--local", "import", "job", "show", job_id],
+                              capture_output=True, text=True)
         match = re.search(r"Status:\s*(\S+)", proc.stdout)
         status = match.group(1) if match else "unknown"
         if status != last and verbose:
@@ -578,8 +569,7 @@ def main(argv: list[str] | None = None) -> int:
 
     wl.heading("Importing into Mattermost")
     container_path = stage_archive(archive_path)
-    output = run(["docker", "compose", "exec", "-T", "mattermost", "mmctl", "--local",
-                  "import", "process", "--bypass-upload", container_path])
+    output = run([MMCTL, "--local", "import", "process", "--bypass-upload", container_path])
     if args.verbose:
         wl.info(output)
 

@@ -36,6 +36,28 @@ php artisan bookstack:reset-password 1 "${ADMIN_PASS}" --no-interaction 2>/dev/n
     echo "password set\n";
   ' 2>/dev/null || echo "warn: could not reset bookstack admin password"
 
+# --- API token for ingest_docs.py ------------------------------------------
+# BookStack stores the secret hashed, so it can only be created through the
+# app: generate it here and write the plaintext half where ingestion can read
+# it. The world is disposable and this token never leaves the container.
+TOKEN_LINE="$(php artisan tinker --execute='
+  $t = new \BookStack\Api\ApiToken();
+  $t->name = "ingest";
+  $t->token_id = \Illuminate\Support\Str::random(32);
+  $secret = \Illuminate\Support\Str::random(32);
+  $t->secret = \Illuminate\Support\Facades\Hash::make($secret);
+  $t->user_id = 1;
+  $t->expires_at = "2099-01-01";
+  $t->save();
+  echo $t->token_id . ":" . $secret . PHP_EOL;
+' 2>/dev/null | tail -1 | tr -d "\r\n ")"
+install -d -m 755 /etc/sweworld
+printf '%s\n' "$TOKEN_LINE" > /etc/sweworld/bookstack-token
+chmod 644 /etc/sweworld/bookstack-token
+# Assert: a silently empty token surfaces much later as 401s during ingestion.
+grep -q ':' /etc/sweworld/bookstack-token \
+  || { echo "25-bookstack: API token was not generated" >&2; exit 1; }
+
 mariadb-admin --protocol=socket --socket=/run/mysqld/mysqld.sock shutdown
 sleep 2
 

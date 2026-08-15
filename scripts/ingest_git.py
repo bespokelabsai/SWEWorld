@@ -330,19 +330,17 @@ def set_default_branch(world: wl.World, repo: str, branch: str, token: str) -> N
 
 def push_repo(world: wl.World, repo_dir: Path, repo: str, token: str) -> None:
     """Force-push every branch and tag to Gitea over HTTPS."""
-    port = "" if world.https_port == 443 else f":{world.https_port}"
+    port = "" if world.http_port == 80 else f":{world.http_port}"
     remote = (
-        f"https://{world.admin_user}:{token}@git.{world.domain}{port}"
+        f"http://{world.admin_user}:{token}@git.{world.domain}{port}"
         f"/{world.admin_user}/{repo}.git"
     )
     if "origin" in run_git(repo_dir, "remote").split():
         run_git(repo_dir, "remote", "remove", "origin")
     run_git(repo_dir, "remote", "add", "origin", remote)
-    # The local CA is not in git's trust store; this is a local world over a
-    # certificate we generated ourselves.
-    env = {"GIT_SSL_CAINFO": str(wl.CA_CERT)} if wl.CA_CERT.exists() else {}
-    run_git(repo_dir, "push", "--force", "--all", "origin", env=env)
-    run_git(repo_dir, "push", "--force", "--tags", "origin", env=env)
+    # Plain HTTP inside a closed world: no certificates involved.
+    run_git(repo_dir, "push", "--force", "--all", "origin")
+    run_git(repo_dir, "push", "--force", "--tags", "origin")
 
 
 # =============================================================================

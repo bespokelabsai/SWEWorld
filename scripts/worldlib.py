@@ -29,7 +29,8 @@ except ImportError:  # pragma: no cover
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_ENV_FILE = REPO_ROOT / ".env"
 DEFAULT_DATA_DIR = REPO_ROOT / "data"
-CA_CERT = REPO_ROOT / "config" / "tls" / "world-ca.crt"
+GITEA_TOKEN_FILE = Path("/etc/sweworld/gitea-token")
+BOOKSTACK_TOKEN_FILE = Path("/etc/sweworld/bookstack-token")
 
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{1,31}$")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -152,19 +153,32 @@ def _closest(word: str, candidates: Iterable[str]) -> str | None:
 # .env
 # =============================================================================
 def load_env(env_file: Path | None = None) -> dict[str, str]:
-    """Parse a .env file into a dict. Comments and blank lines ignored."""
+    """Parse .env if present, then fill in what the world provides itself.
+
+    Inside the world image there is no .env: every service is configured at
+    image build, so the scripts fall back to the same defaults and read tokens
+    straight off disk. Running from outside, a .env supplies anything that
+    differs.
+    """
     env_file = Path(env_file) if env_file else DEFAULT_ENV_FILE
-    if not env_file.exists():
-        raise SystemExit(
-            f"{env_file} not found — run ./scripts/bootstrap.sh first"
-        )
     env: dict[str, str] = {}
+    if not env_file.exists():
+        for key, path in (("GITEA_API_TOKEN", GITEA_TOKEN_FILE),
+                          ("BOOKSTACK_TOKEN", BOOKSTACK_TOKEN_FILE)):
+            if path.exists():
+                env[key] = path.read_text().strip()
+        return env
     for raw in env_file.read_text().splitlines():
         line = raw.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
         env[key.strip()] = value.strip()
+    # Tokens on disk win only where .env is silent.
+    for key, path in (("GITEA_API_TOKEN", GITEA_TOKEN_FILE),
+                      ("BOOKSTACK_TOKEN", BOOKSTACK_TOKEN_FILE)):
+        if not env.get(key) and path.exists():
+            env[key] = path.read_text().strip()
     return env
 
 
@@ -179,8 +193,8 @@ class World:
         return self.env.get("WORLD_DOMAIN", "world.local")
 
     @property
-    def https_port(self) -> int:
-        return int(self.env.get("HTTPS_PORT", "443"))
+    def http_port(self) -> int:
+        return int(self.env.get("HTTP_PORT", "80"))
 
     @property
     def imap_port(self) -> int:
@@ -196,7 +210,7 @@ class World:
 
     @property
     def admin_password(self) -> str:
-        return self.env.get("WORLD_ADMIN_PASSWORD", "")
+        return self.env.get("WORLD_ADMIN_PASSWORD", "worldadmin")
 
     @property
     def admin_email(self) -> str:
@@ -204,12 +218,12 @@ class World:
 
     @property
     def persona_password(self) -> str:
-        return self.env.get("MAIL_PERSONA_PASSWORD", "change-me-persona-mailboxes")
+        return self.env.get("MAIL_PERSONA_PASSWORD", "persona")
 
     def url(self, service: str, path: str = "") -> str:
-        """https://<service>.<domain><path>, with the port only if non-standard."""
-        port = "" if self.https_port == 443 else f":{self.https_port}"
-        return f"https://{service}.{self.domain}{port}{path}"
+        """http://<service>.<domain><path>, port included only if non-standard."""
+        port = "" if self.http_port == 80 else f":{self.http_port}"
+        return f"http://{service}.{self.domain}{port}{path}"
 
     def require(self, *keys: str) -> None:
         """Fail early and clearly if a needed credential is absent."""
@@ -223,17 +237,12 @@ class World:
 
 
 def session(world: World | None = None):
-    """A requests session that trusts the world's local CA.
-
-    Imported lazily so --dry-run works on a machine without `requests`.
-    """
+    """A plain requests session. Imported lazily so --dry-run works without it."""
     try:
         import requests
     except ImportError:  # pragma: no cover
         sys.exit("requests is required: pip install -r scripts/requirements.txt")
-    sess = requests.Session()
-    sess.verify = str(CA_CERT) if CA_CERT.exists() else True
-    return sess
+    return requests.Session()
 
 
 # =============================================================================
@@ -565,17 +574,16 @@ def validate_common_args(args: argparse.Namespace) -> None:
         raise SystemExit(f"--data-dir {args.data_dir} does not exist")
     if not args.data_dir.is_dir():
         raise SystemExit(f"--data-dir {args.data_dir} is not a directory")
-    if not args.dry_run and not args.env_file.exists():
-        raise SystemExit(
-            f"--env-file {args.env_file} does not exist "
-            "(use --dry-run to validate data without a running world)"
-        )
+    # No .env is required: inside the world image every value has a default and
+    # the tokens are read from /etc/sweworld/.
 
 
 def setup(args: argparse.Namespace) -> tuple[World, Identities, Problems]:
     """Load .env and identities.yaml — the first step of every script."""
     validate_common_args(args)
-    env = load_env(args.env_file) if args.env_file.exists() else {}
+    # load_env handles a missing .env itself, falling back to the tokens the
+    # world writes to /etc/sweworld/. Short-circuiting to {} here skipped that.
+    env = load_env(args.env_file)
     world = World(env=env)
     problems = Problems(fail_fast=args.fail_fast)
     identities = Identities.load(args.data_dir / "identities.yaml", world, problems)

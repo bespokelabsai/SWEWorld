@@ -15,7 +15,12 @@ IMAGE     ?= sweworld
 REGISTRY  ?=
 TAG       ?=
 CONTAINER ?= sweworld
-HTTP_PORT ?= 8080
+HTTP_PORT ?= 8081
+# The hostname you will browse the world with. `localhost` is right when you are
+# on the machine running docker, or forwarding its ports (VS Code Remote / ssh
+# -L). Every app's public base URL is repointed at it on boot — see
+# world/bin/init-runtime.sh for why that is necessary.
+PUBLIC_HOST ?= localhost
 
 # Bake boots the base image, populates it, then commits the result.
 RELEASE_SOURCE    ?= $(IMAGE):dev
@@ -33,17 +38,26 @@ help: ## Show this help
 build-image: ## Build the base world image (services installed, no generated content)
 	docker build -f world/Dockerfile -t $(IMAGE):dev .
 
-run: ## Boot the world locally, published on $(HTTP_PORT)
+run: ## Boot the world and publish every service so you can browse it
 	-docker rm -f $(CONTAINER) >/dev/null 2>&1
 	docker run -d --name $(CONTAINER) \
-	  -p $(HTTP_PORT):80 -p 2525:25 -p 1143:143 -p 1587:587 \
+	  -e PUBLIC_HOST=$(PUBLIC_HOST) \
+	  -p $(HTTP_PORT):80 \
+	  -p 3300:3300 -p 8065:8065 -p 8090:8090 -p 8080:8080 -p 8250:8250 \
+	  -p 2525:25 -p 1143:143 -p 1587:587 \
 	  $(IMAGE):dev
 	@echo ">> waiting for the world to come up..."
 	@docker exec $(CONTAINER) wait-for-service --all
 	@echo
-	@echo "   world is up. Add to your /etc/hosts:"
-	@echo "     127.0.0.1 git.world.local chat.world.local docs.world.local mail.world.local pass.world.local"
-	@echo "   then browse http://git.world.local:$(HTTP_PORT)"
+	@echo "   Browse the world at:"
+	@echo "     Gitea       http://$(PUBLIC_HOST):3300"
+	@echo "     Mattermost  http://$(PUBLIC_HOST):8065"
+	@echo "     BookStack   http://$(PUBLIC_HOST):8090"
+	@echo "     Roundcube   http://$(PUBLIC_HOST):8080"
+	@echo "     Credentials http://$(PUBLIC_HOST):8250"
+	@echo
+	@echo "   Sign in as worldadmin / worldadmin"
+	@echo "   (BookStack and Roundcube want the email: worldadmin@world.local)"
 
 stop: ## Stop and remove the running world
 	-docker rm -f $(CONTAINER)

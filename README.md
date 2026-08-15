@@ -23,12 +23,43 @@ Everything is plain HTTP behind one nginx vhost ingress on port 80.
 
 ```bash
 make build-image      # build sweworld:dev
-make run              # boot it, published on :8080
+make run              # boot it and publish every service
 make verify           # 24 acceptance checks
 make shell            # a shell as the agent (ubuntu, no sudo)
 ```
 
-To browse the sites from your own machine, see **[Viewing the world](#viewing-the-world)**.
+## Viewing the world
+
+`make run` publishes every service on its own port and sets `PUBLIC_HOST`, so
+the sites are browsable immediately:
+
+| Service | URL | Sign in with |
+|---|---|---|
+| Gitea | http://localhost:3300 | `worldadmin` / `worldadmin` |
+| Mattermost | http://localhost:8065 | `worldadmin` / `worldadmin` |
+| BookStack | http://localhost:8090 | `worldadmin@world.local` / `worldadmin` |
+| Roundcube | http://localhost:8080 | `worldadmin@world.local` / `worldadmin` |
+| Credentials | http://localhost:8250 | — |
+
+**On a remote machine** (VS Code Remote-SSH forwards these automatically; other
+clients need `ssh -L 3300:localhost:3300 -L 8065:localhost:8065 …`). Everything
+still works because `PUBLIC_HOST=localhost` is what the apps advertise.
+
+If you would rather use the in-world hostnames, run with `PUBLIC_HOST=` unset
+and point `*.world.local` at the host running docker:
+
+```bash
+make run PUBLIC_HOST=          # keep the world.local base URLs
+sudo ./scripts/hosts.sh add    # 127.0.0.1 git.world.local, chat…, docs…, mail…
+# then browse http://git.world.local:8081
+```
+
+Why the two modes exist: nginx routes by `Host` header, so reaching the world
+from another machine means either resolving `*.world.local` there or hitting
+each service on its own port. The second needs no DNS — but Gitea, Mattermost
+and BookStack all build absolute links from a configured base URL, so those
+have to be repointed or every link and redirect breaks. `PUBLIC_HOST` does
+exactly that at boot; see `world/bin/init-runtime.sh`.
 
 ## Credentials
 

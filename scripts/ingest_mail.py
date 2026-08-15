@@ -50,7 +50,10 @@ INDEX_REQUIRED = ("path", "mailbox", "date")
 INDEX_OPTIONAL = ("folder", "flags")
 REQUIRED_HEADERS = ("From", "To", "Subject", "Date", "Message-ID")
 KNOWN_FLAGS = {"\\Seen", "\\Answered", "\\Flagged", "\\Draft", "\\Deleted", "\\Recent"}
-MADDY_CONTAINER_SERVICE = "maddy"
+# Inside the world image maddy is a local binary owned by worldsvc; its config
+# interpolates MADDY_* so those must be supplied on every invocation.
+MADDY = "/usr/local/bin/maddy"
+MADDY_CONF = "/etc/maddy/maddy.conf"
 
 
 # =============================================================================
@@ -187,15 +190,18 @@ def _check_threading(entries: list[dict], problems: wl.Problems) -> None:
 # =============================================================================
 # Maddy accounts
 # =============================================================================
-def compose_exec(*args: str) -> subprocess.CompletedProcess:
+def maddy_exec(*args: str, domain: str = "world.local") -> subprocess.CompletedProcess:
+    """Run a maddy management command as worldsvc, inside the world."""
+    cmd = " ".join(f"'{a}'" for a in (MADDY, "--config", MADDY_CONF, *args))
     return subprocess.run(
-        ["docker", "compose", "exec", "-T", MADDY_CONTAINER_SERVICE, *args],
+        ["su", "-s", "/bin/bash", "worldsvc", "-c",
+         f"cd /var/lib/world/maddy && MADDY_HOSTNAME=mx.{domain} MADDY_DOMAIN={domain} {cmd}"],
         capture_output=True, text=True,
     )
 
 
 def existing_accounts() -> set[str]:
-    proc = compose_exec("maddy", "imap-acct", "list")
+    proc = maddy_exec("imap-acct", "list")
     if proc.returncode != 0:
         return set()
     return {line.strip() for line in proc.stdout.splitlines() if line.strip()}
@@ -209,18 +215,16 @@ def ensure_mailbox(address: str, password: str) -> bool:
     authenticates but has nowhere to deliver.
     """
     created = False
-    creds = compose_exec("maddy", "creds", "list")
-    if address not in (creds.stdout or ""):
-        made = compose_exec("maddy", "creds", "create", "--password", password, address)
-        if made.returncode != 0:
-            raise RuntimeError(f"maddy creds create failed for {address}: {made.stderr.strip()}")
+    if address not in (maddy_exec("creds", "list").stdout or ""):
+        maddy_exec("creds", "create", "--password", password, address)
         created = True
-    acct = compose_exec("maddy", "imap-acct", "list")
-    if address not in (acct.stdout or ""):
-        made = compose_exec("maddy", "imap-acct", "create", address)
-        if made.returncode != 0:
-            raise RuntimeError(f"maddy imap-acct create failed for {address}: {made.stderr.strip()}")
+    if address not in (maddy_exec("imap-acct", "list").stdout or ""):
+        maddy_exec("imap-acct", "create", address)
         created = True
+    # maddy exits 0 even when it fails (see world/bootstrap/15-mail.sh), so the
+    # only trustworthy check is asking whether the account now exists.
+    if address not in (maddy_exec("creds", "list").stdout or ""):
+        raise RuntimeError(f"maddy: credentials for {address} were not created")
     return created
 
 
@@ -234,9 +238,9 @@ def connect(world: wl.World, address: str, password: str, use_ssl: bool):
     logged in as them.
     """
     if use_ssl:
-        context = ssl.create_default_context(
-            cafile=str(wl.CA_CERT) if wl.CA_CERT.exists() else None
-        )
+        # maddy's certificate is self-signed and nothing in this closed world
+        # verifies it; the plaintext port is the normal path anyway.
+        context = ssl._create_unverified_context()
         conn = imaplib.IMAP4_SSL("127.0.0.1", world.imaps_port, ssl_context=context)
     else:
         conn = imaplib.IMAP4("127.0.0.1", world.imap_port)

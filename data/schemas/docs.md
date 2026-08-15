@@ -1,8 +1,8 @@
-# `data/docs/` — Outline collections and documents
+# `data/docs/` — BookStack books, chapters and pages
 
 **Files:** `data/docs/collections.yaml` + `data/docs/**/*.md`
 **Consumed by:** `scripts/ingest_docs.py`
-**Target:** Outline's `collections.create` and `documents.create` API
+**Target:** BookStack's `/api/books`, `/api/chapters`, `/api/pages`
 
 Conventions are defined in [`identities.md`](identities.md).
 
@@ -16,7 +16,7 @@ is a file inside a directory named for its parent.
 ```
 data/docs/
   collections.yaml
-  engineering/                     # -> collection "Engineering"
+  engineering/                     # -> book "Engineering"
     onboarding.md                  # top-level document
     architecture.md
     architecture/                  # children of architecture.md
@@ -27,7 +27,7 @@ data/docs/
 ```
 
 A directory that shares a stem with a sibling `.md` file holds that document's
-children. Nesting is unlimited.
+children. See *Mapping onto BookStack's model* below for how depth is handled.
 
 ---
 
@@ -48,15 +48,15 @@ collections:
 |---|---|---|---|---|
 | `version` | int | yes | — | Must be `1`. |
 | `collections[].dir` | string | yes | — | Directory name under `data/docs/`. Must exist. |
-| `collections[].name` | string | yes | — | Display name in Outline. |
+| `collections[].name` | string | yes | — | The book's display name. |
 | `collections[].description` | string | no | `""` | Plain text. |
-| `collections[].icon` | string | no | — | Outline icon name. |
-| `collections[].color` | string | no | — | `#rrggbb`. Outline validates this and rejects malformed values. |
-| `collections[].permission` | enum | no | `read_write` | `read` \| `read_write` \| `null` (private). |
+| `collections[].icon` | string | no | — | Accepted and ignored. |
+| `collections[].color` | string | no | — | Accepted and ignored. |
+| `collections[].permission` | enum | no | `read_write` | Accepted and ignored; the world is a single trusted workspace. |
 
 Every directory directly under `data/docs/` must have an entry. An unlisted
-directory is an error, not an implicit collection — silently inventing
-collections makes typos invisible.
+directory is an error, not an implicit book — silently inventing books
+makes typos invisible.
 
 ---
 
@@ -81,18 +81,17 @@ chat and docs at the same time.
 
 | Frontmatter | Type | Required | Default | Notes |
 |---|---|---|---|---|
-| `title` | string | yes | — | Outline shows this, not the filename. |
+| `title` | string | yes | — | Shown as the page/chapter name, not the filename. |
 | `author` | string | yes | — | Persona `id`. See *Authorship* below. |
-| `created_at` | string | yes | — | ISO-8601. **Must be in the past** — Outline rejects future dates. |
-| `updated_at` | string | no | `created_at` | Advisory; Outline sets its own on write. |
-| `publish` | bool | no | `true` | `false` creates a draft, visible only to its author. |
-| `icon` | string | no | — | Outline icon name. |
-| `full_width` | bool | no | `false` | Maps to `fullWidth`. |
+| `created_at` | string | yes | — | ISO-8601. Written to the database after creation. |
+| `updated_at` | string | no | `created_at` | Written alongside `created_at`. |
+| `publish` | bool | no | `true` | Accepted and ignored; BookStack has no draft state for API-created pages. |
+| `icon` | string | no | — | Accepted and ignored. |
+| `full_width` | bool | no | `false` | Accepted and ignored. |
+| `tags` | list | no | — | Reserved for BookStack tags. |
 
-The body is passed to Outline as `text` verbatim. Outline parses standard
-Markdown, so headings, tables, code fences, task lists, and `[links](...)` all
-survive. It is stored as ProseMirror internally, so exotic raw HTML may be
-dropped — stick to Markdown.
+The body is sent as `markdown`, so headings, tables, code fences and links all
+survive. BookStack converts it to HTML on write and keeps the markdown source.
 
 ### Cross-links between documents
 
@@ -102,28 +101,45 @@ Reference another document by its repo-relative path:
 See [the API gateway](engineering/architecture/api-gateway.md).
 ```
 
-`ingest_docs.py` rewrites these to real Outline URLs after all documents are
-created, in a second pass — the target's UUID does not exist until it has been
-created. Unresolvable links are reported as warnings and left as-is.
+Links that resolve to a real file are validated at parse time. Unresolvable
+ones are reported as warnings and left exactly as written, so a broken link is
+visible in the source rather than silently rewritten.
 
 ---
 
-## Authorship
+## Mapping onto BookStack's model
 
-Outline's `documents.create` accepts `createdAt` but has **no author field**.
-The document is attributed to whoever owns the API token.
+BookStack is **Shelf > Book > Chapter > Page**, only two levels below a book,
+while this tree allows arbitrary nesting. The ingestion resolves that:
 
-So `ingest_docs.py` has two modes:
+| Source | BookStack |
+|---|---|
+| a collection directory | **Book** |
+| a `.md` with no children | **Page** in that book |
+| a `.md` with children | **Chapter** — plus a page holding its own body, so no content is lost |
+| anything nested deeper | flattened into that chapter, with a warning naming the file |
 
-- **default** — for each distinct `author`, log into Outline as that persona via
-  Gitea OIDC (the mechanism `scripts/mint_outline_token.py` already implements),
-  mint a token, and create their documents with it. Requires each persona to
-  have a Gitea password; see `identities.md`.
-- **`--single-author`** — create everything with `$OUTLINE_API_TOKEN`. Every
-  document shows the admin as author. Faster, no persona passwords needed.
+If you need a strict two-level structure, keep the source tree two levels deep
+and nothing is reshaped.
 
-A persona's Outline account is created by their first OIDC login. There is no
-API to pre-create one.
+## Authorship and dates
+
+BookStack's API has no `created_at` and no author field: a page is stamped
+`now` and attributed to whoever owns the token.
+
+Unlike Outline, this is fully fixable — the world owns the database. So
+`ingest_docs.py` creates entities through the API (which handles slugs,
+revisions and the search index properly) and then corrects the record:
+
+```sql
+UPDATE entities
+   SET created_at=?, updated_at=?, created_by=?, updated_by=?, owned_by=?
+ WHERE id=?;
+```
+
+Personas are created as BookStack users on demand purely so attribution has
+something to point at — they never log in, so they get no password.
+`--single-author` skips all of that and leaves everything owned by the admin.
 
 ---
 
@@ -136,23 +152,25 @@ API to pre-create one.
 3. Every `.md` file has parseable frontmatter with `title`, `author`,
    `created_at`.
 4. `author` exists in `identities.yaml`.
-5. `created_at` parses and is in the past.
-6. `color` matches `^#[0-9a-fA-F]{6}$` if present.
-7. Every child directory has a matching sibling `.md` file — an orphan
+5. `created_at` parses.
+6. Every child directory has a matching sibling `.md` file — an orphan
    directory means the parent document is missing.
-8. Cross-links resolve to a file that exists; unresolved ones are warnings.
+7. Cross-links resolve to a file that exists; unresolved ones are warnings.
+8. Nesting deeper than one level below a book is a warning, not an error — it
+   is flattened, and the warning names the file so it is never a surprise.
 9. No unknown frontmatter keys.
 
 ---
 
 ## Mapping to the API
 
-| Source | API call | Field |
+| Source | Call | Fields |
 |---|---|---|
-| `collections.yaml` entry | `collections.create` | `name`, `description`, `icon`, `color`, `permission` |
-| `data/docs/x/foo.md` | `documents.create` | `title`, `text` (body), `createdAt`, `publish` |
-| parent directory | `documents.create` | `collectionId` |
-| nested directory | `documents.create` | `parentDocumentId` |
+| `collections.yaml` entry | `POST /api/books` | `name`, `description` |
+| a `.md` with children | `POST /api/chapters` | `book_id`, `name` |
+| a `.md` without children | `POST /api/pages` | `book_id` or `chapter_id`, `name`, `markdown` |
+| every entity, afterwards | `UPDATE entities` | `created_at`, `created_by`, `owned_by` |
 
-`documents.import` is deliberately not used: it uploads a file and does not
-accept `createdAt`, so every document would be stamped with the ingest time.
+Authentication is one header: `Authorization: Token <token_id>:<token_secret>`.
+Inside the world that pair is at `/etc/sweworld/bookstack-token`, generated at
+image build.
