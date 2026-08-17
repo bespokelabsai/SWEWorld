@@ -99,6 +99,7 @@ bake-image: ## Boot base, ingest data/, gate on verify, commit $(IMAGE):TAG
 	docker exec $(RELEASE_CONTAINER) bash -c 'cd /opt/world-state && \
 	  python3 scripts/ingest_git.py  --data-dir data && \
 	  python3 scripts/ingest_docs.py --data-dir data && \
+	  python3 scripts/ingest_comments.py --data-dir data && \
 	  python3 scripts/ingest_chat.py --data-dir data && \
 	  python3 scripts/ingest_mail.py --data-dir data'
 	@echo ">> [bake] GATE: verifying the populated world..."

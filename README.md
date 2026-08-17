@@ -181,7 +181,8 @@ world/
   config/                 per-service configuration
   ci-templates/           .gitea/workflows/ci.yml seeded into repos
   passstore/              the credentials page
-scripts/                  ingestion: git, docs, chat, mail (+ worldlib)
+scripts/                  ingestion: git, docs, comments, chat, mail
+                          (+ worldlib)
 data/schemas/             the data contracts a generation step must satisfy
 data/                     placeholder content matching those contracts
 Makefile                  build-image · run · verify · bake-image · push-image

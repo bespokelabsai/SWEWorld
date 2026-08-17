@@ -1,0 +1,9 @@
+# Schema: data/schemas/comments.md
+{"doc":"engineering/architecture/storage-layer.md","author":"alice","created_at":"2026-01-18T09:12:00Z","id":"c1","quote":"Blast radius.","text":"Does this hold for the read replicas too? They share a primary, so a lock on the primary still reaches everything."}
+{"doc":"engineering/architecture/storage-layer.md","author":"bob","created_at":"2026-01-18T10:04:00Z","id":"c2","reply_to":"c1","text":"Good catch. Replicas are not isolated — the blast radius argument is about the write path only. I will make that explicit."}
+{"doc":"engineering/architecture/storage-layer.md","author":"alice","created_at":"2026-01-18T10:31:00Z","reply_to":"c2","text":"Thanks. Worth a sentence on connection pooling too, since that is shared as well."}
+{"doc":"engineering/onboarding.md","author":"bob","created_at":"2026-01-16T10:00:00Z","quote":"Clone platform","text":"This needs the SSH key step before it, otherwise day one stalls here."}
+{"doc":"engineering/onboarding.md","author":"carol","created_at":"2026-01-16T15:22:00Z","text":"Reads well. Could we add roughly how long day one takes? New starters keep asking."}
+{"doc":"engineering/architecture.md","author":"carol","created_at":"2026-01-19T09:40:00Z","text":"Is the proxy in scope for the Q1 docs site work, or is that a separate surface?"}
+{"doc":"product/roadmap-q1.md","author":"alice","created_at":"2026-01-20T11:05:00Z","id":"c3","archived":true,"quote":"Metrics pipeline","text":"Owner should be shared with bob — most of the collection work lands in his services."}
+{"doc":"product/roadmap-q1.md","author":"carol","created_at":"2026-01-20T12:18:00Z","reply_to":"c3","text":"Updated, thanks. Marking this one resolved."}

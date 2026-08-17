@@ -4,7 +4,8 @@
 **Consumed by:** `scripts/ingest_docs.py`
 **Target:** BookStack's `/api/books`, `/api/chapters`, `/api/pages`
 
-Conventions are defined in [`identities.md`](identities.md).
+Conventions are defined in [`identities.md`](identities.md). Comments on these
+documents are defined in [`comments.md`](comments.md).
 
 ---
 

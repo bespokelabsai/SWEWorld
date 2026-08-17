@@ -42,11 +42,17 @@ Personas are created as BookStack users on demand so attribution has something
 to point at. Use --single-author to skip that and leave everything owned by the
 admin.
 
+A successful run also writes .docs-manifest.json beside the data directory,
+mapping each document's path to the page it became. ingest_comments.py reads it
+so a comment can name a document rather than a page id.
+
 --dry-run resolves the whole tree, validates it and prints the plan without
 touching the API or the database.
 """
 from __future__ import annotations
 
+import datetime as dt
+import json
 import os
 import re
 import subprocess
@@ -75,6 +81,10 @@ DOC_OPTIONAL = ("updated_at", "publish", "icon", "full_width", "tags")
 MYSQL = ["mariadb", "--protocol=socket", "--socket=/run/mysqld/mysqld.sock",
          "-N", "-B", "-D", "bookstack", "-e"]
 
+# Written after a successful run so ingest_comments.py can resolve a document
+# path to the page it became, without re-deriving ids from the API.
+MANIFEST_NAME = ".docs-manifest.json"
+
 
 @dataclass
 class DocNode:
@@ -84,12 +94,25 @@ class DocNode:
     author: str
     created_at: Any
     body: str
+    updated_at: Any = None
     collection_dir: str = ""
     parent_rel: str | None = None
     depth: int = 0
     children: list["DocNode"] = field(default_factory=list)
     entity_id: int | None = None
     entity_type: str = "page"
+    body_page_id: int | None = None
+
+    @property
+    def page_id(self) -> int | None:
+        """The page a comment on this document would attach to.
+
+        A document with children becomes a Chapter plus a page holding its body,
+        and comments attach to pages only — so for a chapter it is the body page,
+        never the chapter itself. This property is the single place that rule
+        lives.
+        """
+        return self.entity_id if self.entity_type == "page" else self.body_page_id
 
 
 @dataclass
@@ -188,11 +211,18 @@ def load_documents(docs_dir: Path, collections: dict[str, BookSpec],
         identities.require(meta.get("author"), problems, md_path, 1, "author")
         created = wl.parse_ts(meta.get("created_at"), path=md_path, line=1,
                               problems=problems, field_name="created_at")
+        updated = created
+        if meta.get("updated_at") is not None:
+            updated = wl.parse_ts(meta.get("updated_at"), path=md_path, line=1,
+                                  problems=problems, field_name="updated_at")
+            if created and updated and updated < created:
+                problems.error("updated_at is earlier than created_at", md_path, 1)
 
         parent_rel = Path(*parts[:-1]).as_posix() + ".md" if len(parts) > 2 else None
         nodes[rel] = DocNode(
             path=md_path, rel=rel, title=str(meta.get("title", "")),
             author=str(meta.get("author", "")), created_at=created, body=body,
+            updated_at=updated,
             collection_dir=collection_dir, parent_rel=parent_rel,
             depth=len(parts) - 2,
         )
@@ -264,6 +294,13 @@ class BookStack:
             raise RuntimeError(f"GET {endpoint} -> {resp.status_code}: {resp.text[:300]}")
         return resp.json()
 
+    def put(self, endpoint: str, payload: dict) -> dict:
+        resp = self.sess.put(self.world.url("docs", f"/api/{endpoint}"),
+                             json=payload, headers=self.headers, timeout=60)
+        if resp.status_code not in (200, 201):
+            raise RuntimeError(f"PUT {endpoint} -> {resp.status_code}: {resp.text[:300]}")
+        return resp.json()
+
 
 def sql(statement: str) -> str:
     """Run one statement against the BookStack database (in-container only)."""
@@ -273,6 +310,27 @@ def sql(statement: str) -> str:
     return proc.stdout.strip()
 
 
+def sql_lit(value: Any) -> str:
+    """Quote a value as a SQL string literal.
+
+    Hex rather than escaping: MariaDB accepts X'...' anywhere a string literal
+    goes, so there are no quoting rules to get wrong and no dependence on
+    sql_mode (NO_BACKSLASH_ESCAPES changes what a hand-rolled escaper must do).
+    An apostrophe in a display name used to break the INSERT below.
+    """
+    return "X'" + str(value).encode("utf-8").hex() + "'"
+
+
+def _stamp(when) -> str:
+    """Render a datetime as MySQL DATETIME, in UTC.
+
+    strftime on an aware datetime drops the offset, so a +01:00 timestamp would
+    land as its local wall clock in a container that reads DATETIME as UTC —
+    an hour adrift, and worse for larger offsets.
+    """
+    return when.astimezone(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def ensure_bookstack_user(persona: wl.Persona) -> int:
     """Return the BookStack user id for a persona, creating the row if needed.
 
@@ -280,31 +338,98 @@ def ensure_bookstack_user(persona: wl.Persona) -> int:
     password-policy dance for a user that will never log in — these accounts
     exist purely so authorship has something to point at.
     """
-    existing = sql(f"SELECT id FROM users WHERE email='{persona.email}' LIMIT 1;")
+    lookup = f"SELECT id FROM users WHERE email={sql_lit(persona.email)} LIMIT 1;"
+    existing = sql(lookup)
     if existing:
         return int(existing.splitlines()[0])
     slug = re.sub(r"[^a-z0-9]+", "-", persona.display_name.lower()).strip("-")
     sql(
         "INSERT INTO users (name, email, password, slug, created_at, updated_at, "
         "email_confirmed, external_auth_id, system_name) VALUES "
-        f"('{persona.display_name}', '{persona.email}', '', '{slug}', NOW(), NOW(), 1, '', NULL);"
+        f"({sql_lit(persona.display_name)}, {sql_lit(persona.email)}, '', "
+        f"{sql_lit(slug)}, NOW(), NOW(), 1, '', NULL);"
     )
-    return int(sql(f"SELECT id FROM users WHERE email='{persona.email}' LIMIT 1;").splitlines()[0])
+    return int(sql(lookup).splitlines()[0])
 
 
-def backdate(entity_id: int, when, user_id: int) -> None:
+def make_user_resolver(identities: wl.Identities, single_author: bool, admin_id: int):
+    """Return a memoised author -> BookStack user id function.
+
+    Shared with ingest_comments.py so a page and the comments on it never end up
+    attributed differently — one script creating persona users and the other not
+    would do exactly that.
+    """
+    author_ids: dict[str, int] = {}
+
+    def user_for(author: str) -> int:
+        if single_author:
+            return admin_id
+        if author not in author_ids:
+            persona = identities.get(author)
+            author_ids[author] = ensure_bookstack_user(persona)
+            wl.info(f"bookstack user for {persona.display_name} -> {author_ids[author]}")
+        return author_ids[author]
+
+    return user_for
+
+
+def backdate(entity_id: int, when, user_id: int, updated=None) -> None:
     """Set the real creation date and author on an entity.
 
     The API stamps `now` and the token owner; this is the correction pass. It
     touches only the entities row — BookStack reads authorship from there.
     """
-    stamp = when.strftime("%Y-%m-%d %H:%M:%S")
+    created_stamp = _stamp(when)
+    updated_stamp = _stamp(updated) if updated is not None else created_stamp
     sql(
         "UPDATE entities SET "
-        f"created_at='{stamp}', updated_at='{stamp}', "
+        f"created_at='{created_stamp}', updated_at='{updated_stamp}', "
         f"created_by={user_id}, updated_by={user_id}, owned_by={user_id} "
         f"WHERE id={entity_id};"
     )
+
+
+def backdate_comment(comment_id: int, when, user_id: int) -> None:
+    """Set the real creation date and author on a comment.
+
+    Not a call to backdate(): that writes `owned_by`, which the comments table
+    has no column for, so reusing it fails outright with `Unknown column`.
+    Comments are owned by their page, not independently.
+
+    Metadata only — the comment's html and text stay exactly as the API wrote
+    them, because BookStack derives `text` from the submitted html and sanitises
+    it server-side.
+    """
+    stamp = _stamp(when)
+    sql(
+        "UPDATE comments SET "
+        f"created_at='{stamp}', updated_at='{stamp}', "
+        f"created_by={user_id}, updated_by={user_id} "
+        f"WHERE id={comment_id};"
+    )
+
+
+def write_manifest(path: Path, documents: list[DocNode]) -> int:
+    """Record which page each document became.
+
+    ingest_comments.py needs `doc path -> page id`, and rebuilding that from the
+    API means paginating books, chapters and pages and matching on title, which
+    is ambiguous the moment two documents share one. `title` is stored alongside
+    so a consumer can detect a manifest left over from a destroyed database.
+    """
+    pages = {
+        node.rel: {
+            "page_id": node.page_id,
+            "title": node.title,
+            "author": node.author,
+            "created_at": node.created_at.isoformat() if node.created_at else None,
+            "updated_at": node.updated_at.isoformat() if node.updated_at else None,
+        }
+        for node in sorted(documents, key=lambda n: n.rel)
+        if node.page_id is not None
+    }
+    path.write_text(json.dumps({"version": 1, "pages": pages}, indent=2) + "\n")
+    return len(pages)
 
 
 # =============================================================================
@@ -316,12 +441,18 @@ def main(argv: list[str] | None = None) -> int:
                         help="attribute everything to the admin instead of creating "
                              "a BookStack user per author")
     parser.add_argument("--collection", help="only process this collection directory")
+    parser.add_argument("--manifest", type=Path,
+                        help=f"where to record doc path -> page id "
+                             f"(default: {MANIFEST_NAME} beside --data-dir)")
     args = parser.parse_args(argv)
 
     world, identities, problems = wl.setup(args)
     docs_dir = args.data_dir / "docs"
     if not docs_dir.is_dir():
         raise SystemExit(f"{docs_dir} does not exist")
+    # Beside data/, not inside it: `docker cp data` into the world would
+    # otherwise carry a manifest pointing at some other database's page ids.
+    manifest_path = args.manifest or (args.data_dir.parent / MANIFEST_NAME)
 
     wl.heading("Parsing")
     books = load_collections(docs_dir / "collections.yaml", docs_dir, problems)
@@ -346,6 +477,7 @@ def main(argv: list[str] | None = None) -> int:
                    f"{where} created_at="
                    f"{node.created_at.isoformat() if node.created_at else '?'}")
         wl.dry("then UPDATE entities SET created_at/created_by/owned_by per item")
+        wl.dry(f"then write {manifest_path} mapping doc path -> page id")
         wl.summarise(True, [f"{len(books)} book(s), {len(documents)} document(s) validated"])
         return 0
 
@@ -359,16 +491,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Author -> BookStack user id, resolved once.
     admin_id = int(sql("SELECT id FROM users WHERE id=1;") or 1)
-    author_ids: dict[str, int] = {}
-
-    def user_for(author: str) -> int:
-        if args.single_author:
-            return admin_id
-        if author not in author_ids:
-            persona = identities.get(author)
-            author_ids[author] = ensure_bookstack_user(persona)
-            wl.info(f"bookstack user for {persona.display_name} -> {author_ids[author]}")
-        return author_ids[author]
+    user_for = make_user_resolver(identities, args.single_author, admin_id)
 
     wl.heading("Creating books")
     for spec in books.values():
@@ -384,7 +507,7 @@ def main(argv: list[str] | None = None) -> int:
             "name": node.title,
             "description": "",
         })["id"]
-        backdate(node.entity_id, node.created_at, user_for(node.author))
+        backdate(node.entity_id, node.created_at, user_for(node.author), node.updated_at)
         if args.verbose:
             wl.info(f"chapter {node.rel} -> {node.entity_id}")
 
@@ -397,7 +520,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             payload["book_id"] = books[node.collection_dir].book_id
         node.entity_id = api.post("pages", payload)["id"]
-        backdate(node.entity_id, node.created_at, user_for(node.author))
+        backdate(node.entity_id, node.created_at, user_for(node.author), node.updated_at)
         if args.verbose:
             wl.info(f"page {node.rel} -> {node.entity_id}")
 
@@ -408,12 +531,15 @@ def main(argv: list[str] | None = None) -> int:
     for node in chapters:
         if not node.body.strip():
             continue
-        page_id = api.post("pages", {"chapter_id": node.entity_id,
-                                     "name": node.title,
-                                     "markdown": node.body})["id"]
-        backdate(page_id, node.created_at, user_for(node.author))
+        node.body_page_id = api.post("pages", {"chapter_id": node.entity_id,
+                                               "name": node.title,
+                                               "markdown": node.body})["id"]
+        backdate(node.body_page_id, node.created_at, user_for(node.author), node.updated_at)
         kept += 1
     wl.ok(f"{kept} chapter body page(s) preserved")
+
+    written = write_manifest(manifest_path, documents)
+    wl.ok(f"manifest: {written} page(s) -> {manifest_path}")
 
     wl.summarise(False, [
         f"{len(books)} book(s), {len(chapters)} chapter(s), {len(pages) + kept} page(s)",
