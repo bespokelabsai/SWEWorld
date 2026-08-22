@@ -506,6 +506,8 @@ def main(argv: list[str] | None = None) -> int:
             wl.dry(f"then PUT /api/comments/<id> archived=true for {archived} comment(s)")
         wl.dry(f"then UPDATE comments SET created_at/created_by per item ({len(rows)} rows)")
         wl.dry(f"then re-apply UPDATE entities for {len(by_doc)} commented page(s)")
+        wl.dry("then reattribute the activities feed so the dashboard shows the "
+               "real authors and dates")
         if quoted:
             wl.dry(f"content_ref for {quoted} quote(s) is derived from the rendered HTML "
                    "at write time; offline they are only checked against the markdown "
@@ -628,6 +630,13 @@ def main(argv: list[str] | None = None) -> int:
         updated_at = wl.parse_ts(entry["updated_at"]) or created_at
         docs.backdate(page["id"], created_at, user_for(entry["author"]), updated_at)
     wl.ok(f"{len(pages)} commented page(s) re-settled")
+
+    # Commenting writes two rows into the activity feed per comment, owned by
+    # the token holder and stamped now. That feed is the dashboard's main
+    # content, so leaving it would put "World Admin commented on X, 3 minutes
+    # ago" in front of every reader of the wiki.
+    revisions, activities = docs.resettle_history()
+    wl.ok(f"{revisions} revision(s) and {activities} activity row(s) reattributed")
 
     if not args.no_verify:
         verify_comments(pages, by_doc, len(created), quoted)

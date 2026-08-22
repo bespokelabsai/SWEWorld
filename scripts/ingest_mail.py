@@ -271,6 +271,35 @@ def append_message(conn, folder: str, entry: dict) -> None:
 # =============================================================================
 # Main
 # =============================================================================
+def add_admin_copies(entries: list[dict], admin_mailbox: str) -> int:
+    """Deliver one copy of every message to the admin mailbox.
+
+    The admin is the account a person or an agent actually signs in as, and a
+    world where it can only read its own mail cannot be inspected. One copy per
+    Message-ID, not per file: a message already exists twice on disk (the
+    sender's Sent and the recipient's INBOX), and appending both would show the
+    same conversation twice in one mailbox.
+
+    The recipient's copy is preferred over the sender's, so the headers read the
+    way they would for someone who received it.
+    """
+    have = {e["message_id"] for e in entries
+            if e["mailbox"] == admin_mailbox and e["message_id"]}
+    best: dict[str, dict] = {}
+    for entry in entries:
+        mid = entry["message_id"]
+        if not mid or mid in have:
+            continue
+        current = best.get(mid)
+        if current is None or (current["folder"] == "Sent" and entry["folder"] != "Sent"):
+            best[mid] = entry
+
+    for mid, entry in sorted(best.items(), key=lambda kv: kv[1]["date"]):
+        entries.append({**entry, "mailbox": admin_mailbox, "folder": "INBOX",
+                        "flags": [], "admin_copy": True})
+    return len(best)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = wl.base_parser(__doc__)
     parser.add_argument("--use-ssl", action="store_true",
@@ -278,6 +307,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mailbox", help="only process this mailbox address")
     parser.add_argument("--no-create-accounts", action="store_true",
                         help="fail instead of creating missing Maddy mailboxes")
+    parser.add_argument("--no-admin-copy", action="store_true",
+                        help="do not deliver a copy of every message to the admin "
+                             "mailbox (by default it receives one of each)")
     args = parser.parse_args(argv)
 
     world, identities, problems = wl.setup(args)
@@ -287,9 +319,13 @@ def main(argv: list[str] | None = None) -> int:
 
     wl.heading("Parsing")
     entries = load_index(emails_dir / "index.jsonl", emails_dir, identities, problems)
+    problems.raise_if_any()
+
+    if not args.no_admin_copy:
+        copied = add_admin_copies(entries, world.admin_email)
+        wl.ok(f"{copied} message(s) copied to {world.admin_email}")
     if args.mailbox:
         entries = [e for e in entries if e["mailbox"] == args.mailbox]
-    problems.raise_if_any()
 
     by_mailbox: dict[str, list[dict]] = {}
     for entry in entries:
@@ -319,6 +355,11 @@ def main(argv: list[str] | None = None) -> int:
     for mailbox in sorted(by_mailbox):
         persona = next((p for p in identities if p.mailbox == mailbox), None)
         password = persona.password if persona else world.persona_password
+        # The admin's Maddy account is created at image build from WORLD_ADMIN_*,
+        # not by this script, so it has the admin password rather than the
+        # persona default — logging in with the wrong one fails at IMAP AUTH.
+        if mailbox == world.admin_email:
+            password = world.admin_password
         passwords[mailbox] = password
         if args.no_create_accounts:
             if mailbox not in existing_accounts():

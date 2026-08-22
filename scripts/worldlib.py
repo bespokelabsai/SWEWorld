@@ -218,7 +218,12 @@ class World:
 
     @property
     def persona_password(self) -> str:
-        return self.env.get("MAIL_PERSONA_PASSWORD", "persona")
+        # Eight characters minimum: Gitea rejects anything shorter when
+        # creating an account, and reports it as "PasswordIsRequired", which
+        # sends you looking for a missing field rather than a short one. The
+        # same value logs a persona into git, mail and the wiki, so it has to
+        # satisfy the strictest of them.
+        return self.env.get("MAIL_PERSONA_PASSWORD", "persona-world")
 
     def url(self, service: str, path: str = "") -> str:
         """http://<service>.<domain><path>, port included only if non-standard."""

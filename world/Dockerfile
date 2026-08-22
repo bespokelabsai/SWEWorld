@@ -25,6 +25,10 @@ ARG ROUNDCUBE_VERSION=1.7.3
 ARG BOOKSTACK_VERSION=v25.11
 ARG GO_VERSION=1.23.4
 ARG NODE_VERSION=20.18.1
+# Vendored third-party source, frozen rather than cloned. See vendor/README.md
+# for the upstream commits and why these are blobs instead of git clones.
+ARG CURATOR_SNAPSHOT=curator-461b4170b966.tar.gz
+ARG ACTIONS_CHECKOUT_SNAPSHOT=actions-checkout-v4-11d5960a3267.tar.gz
 
 ENV LANG=C.UTF-8 \
     TZ=UTC \
@@ -88,6 +92,12 @@ RUN set -eux; \
     cd /opt/bookstack; \
     COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction \
       --optimize-autoloader --no-progress
+
+# --- vendored third-party source ----------------------------------------------
+# Above COPY world/ on purpose: this layer is invalidated only when the frozen
+# snapshot itself changes, which is a deliberate act, not a side effect of
+# editing an nginx config.
+COPY vendor/ /vendor/
 
 # --- world source ------------------------------------------------------------
 COPY world/ /world-src/

@@ -1,0 +1,10 @@
+# Cached GitHub API responses. Keyed by URL, regenerated on demand, and large.
+cache/
+
+# Generated artefacts. Both files are a deterministic function of the pinned
+# curator clone, so committing them would put megabytes of regenerable JSON into
+# a repository that cannot easily shed a blob once pushed. Rebuild with:
+#   python3 data_gen/analyze_repository.py
+#   python3 data_gen/build_episodes.py
+build/
+__pycache__/

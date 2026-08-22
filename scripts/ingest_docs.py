@@ -121,6 +121,11 @@ class BookSpec:
     name: str
     description: str = ""
     book_id: int | None = None
+    # Taken from the earliest document in the collection: a book came into
+    # existence when someone wrote its first page. collections.yaml carries no
+    # author or date of its own, and inventing one would be less true than this.
+    author: str = ""
+    created_at: Any = None
 
 
 # =============================================================================
@@ -255,6 +260,22 @@ def load_documents(docs_dir: Path, collections: dict[str, BookSpec],
                     f"cross-link {target!r} does not resolve; left as written", node.path)
 
     return list(nodes.values())
+
+
+def attribute_books(books: dict[str, BookSpec], documents: list[DocNode]) -> None:
+    """Give each book the author and date of its earliest document.
+
+    Without this a book is stamped `now` and owned by the admin, which is what
+    the whole backdating pass exists to avoid — and it is visible immediately,
+    since a book page shows Created/Updated in its sidebar.
+    """
+    for spec in books.values():
+        owned = [d for d in documents
+                 if d.collection_dir == spec.dir and d.created_at is not None]
+        if not owned:
+            continue
+        first = min(owned, key=lambda d: d.created_at)
+        spec.author, spec.created_at = first.author, first.created_at
 
 
 def _link_candidates(from_rel: str, target: str) -> list[str]:
@@ -409,6 +430,79 @@ def backdate_comment(comment_id: int, when, user_id: int) -> None:
     )
 
 
+def resettle_history() -> tuple[int, int]:
+    """Point BookStack's revisions and activity feed at the real authors/dates.
+
+    Correcting the `entities` and `comments` rows fixes the bylines on a page,
+    but BookStack surfaces authorship from two more places, and both are more
+    prominent than the byline:
+
+      * `page_revisions` — the "Revision #1 ... by ..." line, and the whole
+        revision history behind it.
+      * `activities` — the Recent Activity feed, which is the main content of
+        the dashboard and appears on every book page.
+
+    Left alone, the dashboard reads "World Admin created page X, 3 minutes ago"
+    for the entire world. This is not an audit log tucked away in an admin
+    screen; it is the first thing anyone sees on opening the wiki.
+
+    Returns (revisions, activities) corrected.
+    """
+    sql(
+        "UPDATE page_revisions r JOIN entities e ON e.id = r.page_id "
+        "SET r.created_by = e.created_by, r.created_at = e.created_at, "
+        "    r.updated_at = e.updated_at;"
+    )
+    revisions = int(sql("SELECT count(*) FROM page_revisions;") or 0)
+
+    # Books, chapters and pages: the activity points straight at the entity.
+    sql(
+        "UPDATE activities a JOIN entities e "
+        "  ON e.id = a.loggable_id AND a.loggable_type = e.type "
+        "SET a.user_id = e.created_by, a.created_at = e.created_at, "
+        "    a.updated_at = e.created_at;"
+    )
+
+    # Comments are logged as a consecutive pair with no usable loggable_id:
+    #   comment_create   loggable NULL, detail "Comment #1 (ID: 7) for page (ID: 4)"
+    #   commented_on     loggable = the *page*, so it cannot be joined to an author
+    # The comment id is only recoverable from the detail text, and the
+    # commented_on row is matched to the comment_create it follows.
+    # comment_update comes from setting `archived`, which is a write this
+    # ingestion makes rather than an event in the world. Attributing it to the
+    # thread's author beats leaving "World Admin, just now" in the feed.
+    rows = sql("SELECT id, type, detail FROM activities "
+               "WHERE type IN ('comment_create','comment_update','commented_on') "
+               "ORDER BY id;")
+    pending: str | None = None
+    for line in rows.splitlines():
+        if not line.strip():
+            continue
+        act_id, act_type, detail = (line.split("\t", 2) + ["", ""])[:3]
+        if act_type in ("comment_create", "comment_update"):
+            match = re.search(r"\(ID:\s*(\d+)\)", detail)
+            if not match:
+                continue
+            _sync_activity_to_comment(act_id, match.group(1))
+            if act_type == "comment_create":
+                pending = match.group(1)
+        elif act_type == "commented_on" and pending is not None:
+            _sync_activity_to_comment(act_id, pending)
+            pending = None
+
+    total = int(sql("SELECT count(*) FROM activities;") or 0)
+    return revisions, total
+
+
+def _sync_activity_to_comment(activity_id: str, comment_id: str) -> None:
+    sql(
+        "UPDATE activities a JOIN comments c ON c.id = " + str(int(comment_id)) + " "
+        "SET a.user_id = c.created_by, a.created_at = c.created_at, "
+        "    a.updated_at = c.created_at "
+        "WHERE a.id = " + str(int(activity_id)) + ";"
+    )
+
+
 def write_manifest(path: Path, documents: list[DocNode]) -> int:
     """Record which page each document became.
 
@@ -457,6 +551,7 @@ def main(argv: list[str] | None = None) -> int:
     wl.heading("Parsing")
     books = load_collections(docs_dir / "collections.yaml", docs_dir, problems)
     documents = load_documents(docs_dir, books, identities, problems)
+    attribute_books(books, documents)
     if args.collection:
         books = {k: v for k, v in books.items() if k == args.collection}
         documents = [d for d in documents if d.collection_dir == args.collection]
@@ -470,13 +565,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         wl.heading("Dry run")
         for spec in books.values():
-            wl.dry(f"books.create name={spec.name!r}")
+            wl.dry(f"books.create name={spec.name!r} author={spec.author or '?'} "
+                   f"created_at={spec.created_at.isoformat() if spec.created_at else '?'}"
+                   " (from its earliest document)")
         for node in sorted(documents, key=lambda n: n.rel):
             where = f"chapter={node.parent_rel}" if node.parent_rel else f"book={node.collection_dir}"
             wl.dry(f"{node.entity_type}s.create title={node.title!r} author={node.author} "
                    f"{where} created_at="
                    f"{node.created_at.isoformat() if node.created_at else '?'}")
         wl.dry("then UPDATE entities SET created_at/created_by/owned_by per item")
+        wl.dry("then reattribute page_revisions and the activities feed to match")
         wl.dry(f"then write {manifest_path} mapping doc path -> page id")
         wl.summarise(True, [f"{len(books)} book(s), {len(documents)} document(s) validated"])
         return 0
@@ -497,6 +595,8 @@ def main(argv: list[str] | None = None) -> int:
     for spec in books.values():
         spec.book_id = api.post("books", {"name": spec.name,
                                           "description": spec.description})["id"]
+        if spec.created_at is not None:
+            backdate(spec.book_id, spec.created_at, user_for(spec.author))
         wl.ok(f"book {spec.name!r} -> {spec.book_id}")
 
     wl.heading("Creating chapters and pages")
@@ -537,6 +637,9 @@ def main(argv: list[str] | None = None) -> int:
         backdate(node.body_page_id, node.created_at, user_for(node.author), node.updated_at)
         kept += 1
     wl.ok(f"{kept} chapter body page(s) preserved")
+
+    revisions, activities = resettle_history()
+    wl.ok(f"{revisions} revision(s) and {activities} activity row(s) reattributed")
 
     written = write_manifest(manifest_path, documents)
     wl.ok(f"manifest: {written} page(s) -> {manifest_path}")

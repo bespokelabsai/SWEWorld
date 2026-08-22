@@ -51,13 +51,29 @@ api -X POST -d '{"username":"actions","full_name":"actions"}' "$GITEA_URL/api/v1
 api -X POST -d '{"name":"checkout","private":false,"auto_init":false}' \
     "$GITEA_URL/api/v1/orgs/actions/repos" >/dev/null 2>&1 || true
 
-git clone -q --mirror https://github.com/actions/checkout /tmp/actions-checkout
-# Branches and tags only. A --mirror push also carries GitHub's refs/pull/*,
-# which Gitea rejects outright ("hook declined") and fails the whole push.
-git -C /tmp/actions-checkout push -q \
+# Vendored, not mirrored: no network, and the tree is the same on every build.
+# Only the v4 tree ships — ci-templates/python.yml names actions/checkout@v4 and
+# nothing else, and the action's upstream history is of no use inside the world.
+# A workflow naming any other ref fails loudly at resolution; add the ref to
+# vendor/ if that ever becomes something the world should support.
+SNAPSHOT="/vendor/${ACTIONS_CHECKOUT_SNAPSHOT:?ACTIONS_CHECKOUT_SNAPSHOT is required}"
+[ -f "$SNAPSHOT" ] || {
+  echo "20-gitea: $SNAPSHOT not found — the ACTIONS_CHECKOUT_SNAPSHOT arg in" \
+       "world/Dockerfile must name a file that exists in vendor/" >&2
+  exit 1
+}
+work=$(mktemp -d)
+tar -xzf "$SNAPSHOT" -C "$work"
+git -C "$work" init -q -b main
+git -C "$work" config user.name  "World Admin"
+git -C "$work" config user.email "${ADMIN_USER}@${DOMAIN}"
+git -C "$work" add -A
+git -C "$work" commit -q -m "actions/checkout v4"
+git -C "$work" tag v4
+git -C "$work" push -q \
     "http://${ADMIN_USER}:${TOKEN}@127.0.0.1:3300/actions/checkout.git" \
     'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
-rm -rf /tmp/actions-checkout
+rm -rf "$work"
 
 # Assert: a missing mirror only shows up much later as failed CI runs.
 api "$GITEA_URL/api/v1/repos/actions/checkout" >/dev/null \

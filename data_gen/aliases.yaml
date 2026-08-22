@@ -1,0 +1,11 @@
+# Contributor aliases for the repository under data_gen's --repo (curator).
+# Keys and values are lowercased git author names; everything sharing a value is
+# treated as one person. Only needed where names share neither email nor
+# spelling — the automatic joins handle the rest. Replace wholesale for a
+# different repository, or delete the file entirely.
+thedude: kartik4949
+"the dude": kartik4949
+adamoptimizer: kartik4949
+kartik4949: kartik4949
+vutrung96: trung vu
+"trung vu": trung vu

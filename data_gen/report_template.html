@@ -1,0 +1,1382 @@
+<title>Curator Ground Truth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@600&display=swap">
+
+<style>
+/* ---------------------------------------------------------------------------
+   Tokens. The bare :root block is the complete light palette; the two blocks
+   after it redefine only tokens, so every component styles through them and
+   resolves in all three viewer states (system, explicit light, explicit dark).
+   --------------------------------------------------------------------------- */
+:root {
+  --bg:#F5F7F7; --surface:#FFFFFF; --surface-2:#FAFBFB; --surface-3:#F0F3F4;
+  --border:#E1E6E8; --border-strong:#C7D0D4;
+  --ink:#121A1F; --ink-2:#4C5A62; --ink-3:#7E8D95;
+  --accent:#0A8F9C; --accent-deep:#076F79; --accent-wash:#E4F3F4;
+  --cat-1:#0A8F9C; --cat-2:#5B4BC4; --cat-3:#B4622A;
+  --added:#14713A; --removed:#A62F27; --warn:#8A5A08; --warn-wash:#FBF1DF;
+  --on-accent:#FFFFFF;
+  --track:#E8ECEE; --shadow:0 1px 2px rgba(18,26,31,.06), 0 8px 24px -16px rgba(18,26,31,.18);
+
+  --step--1:.75rem; --step-0:.875rem; --step-1:1rem; --step-2:1.25rem;
+  --step-3:1.6rem; --step-4:2.1rem; --step-5:2.9rem;
+  --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --serif:"IBM Plex Serif", ui-serif, Georgia, serif;
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius:6px; --gutter:clamp(1rem, 4vw, 2.5rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0F1417; --surface:#161D21; --surface-2:#1A2226; --surface-3:#202A2F;
+    --border:#27323A; --border-strong:#3A4952;
+    --ink:#E7EEF1; --ink-2:#A6B4BB; --ink-3:#74858D;
+    --accent:#29A6B2; --accent-deep:#4FC3CE; --accent-wash:#122A2E;
+    --cat-1:#29A6B2; --cat-2:#8B7BEA; --cat-3:#CE7F45;
+    --added:#4FB672; --removed:#E4695E; --warn:#D79A3C; --warn-wash:#2A2113;
+    --on-accent:#0F1417;
+    --on-accent:#0F1417;
+  --track:#232E34; --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0F1417; --surface:#161D21; --surface-2:#1A2226; --surface-3:#202A2F;
+  --border:#27323A; --border-strong:#3A4952;
+  --ink:#E7EEF1; --ink-2:#A6B4BB; --ink-3:#74858D;
+  --accent:#29A6B2; --accent-deep:#4FC3CE; --accent-wash:#122A2E;
+  --cat-1:#29A6B2; --cat-2:#8B7BEA; --cat-3:#CE7F45;
+  --added:#4FB672; --removed:#E4695E; --warn:#D79A3C; --warn-wash:#2A2113;
+  --track:#232E34; --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+}
+
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:var(--step-0); line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4 { font-family:var(--serif); font-weight:600; text-wrap:balance; margin:0; }
+a { color:var(--accent-deep); text-decoration-thickness:1px; text-underline-offset:2px; }
+:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+
+.wrap { max-width:1200px; margin:0 auto; padding:0 var(--gutter); }
+.mono { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+.num { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+
+/* --- masthead ------------------------------------------------------------ */
+.masthead { border-bottom:1px solid var(--border); background:var(--surface); }
+.masthead-inner { display:flex; flex-wrap:wrap; gap:1.5rem 2rem; align-items:flex-end;
+  justify-content:space-between; padding-top:2.4rem; padding-bottom:1.4rem; }
+.title { font-size:var(--step-5); letter-spacing:-.022em; line-height:1.02; }
+.subtitle { color:var(--ink-2); margin-top:.5rem; max-width:62ch; }
+.provenance { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1rem; }
+.chip { font-family:var(--mono); font-size:var(--step--1); padding:.2rem .5rem;
+  border:1px solid var(--border); border-radius:4px; color:var(--ink-2); background:var(--surface-2); }
+.chip b { color:var(--ink); font-weight:500; }
+
+/* --- tabs ---------------------------------------------------------------- */
+.tabs { position:sticky; top:0; z-index:20; background:var(--surface);
+  border-bottom:1px solid var(--border); }
+.tabs-inner { display:flex; gap:.25rem; align-items:stretch; }
+.tab { appearance:none; background:none; border:0; border-bottom:2px solid transparent;
+  padding:.85rem .1rem; margin-right:1.75rem; cursor:pointer; color:var(--ink-3);
+  font-family:var(--sans); font-size:var(--step-0); font-weight:500; letter-spacing:.01em;
+  transition:color .15s ease, border-color .15s ease; display:flex; align-items:baseline; gap:.5rem; }
+.tab:hover { color:var(--ink-2); }
+.tab[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--accent); }
+.tab .file { font-family:var(--mono); font-size:var(--step--1); color:var(--ink-3); }
+
+/* --- sections ------------------------------------------------------------ */
+.panel[hidden] { display:none; }
+section { padding:2.6rem 0; border-bottom:1px solid var(--border); }
+section:last-child { border-bottom:0; }
+.eyebrow { font-size:var(--step--1); text-transform:uppercase; letter-spacing:.1em;
+  color:var(--ink-3); font-weight:600; margin-bottom:.5rem; }
+.h2 { font-size:var(--step-3); letter-spacing:-.012em; }
+.lede { color:var(--ink-2); max-width:68ch; margin-top:.6rem; }
+.section-head { margin-bottom:1.6rem; }
+
+/* --- stat tiles ---------------------------------------------------------- */
+.tiles { display:grid; gap:1px; background:var(--border); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden;
+  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); }
+.tile { background:var(--surface); padding:1rem 1.1rem; }
+.tile .v { font-family:var(--mono); font-size:var(--step-4); font-weight:500;
+  letter-spacing:-.02em; line-height:1.1; font-variant-numeric:tabular-nums; }
+.tile .k { color:var(--ink-3); font-size:var(--step--1); margin-top:.3rem;
+  text-transform:uppercase; letter-spacing:.06em; }
+.tile .sub { color:var(--ink-2); font-size:var(--step--1); margin-top:.35rem; }
+
+/* --- cards --------------------------------------------------------------- */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); }
+.grid { display:grid; gap:1rem; }
+.cols-2 { grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); }
+.cols-3 { grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); }
+
+.area { padding:1.05rem 1.15rem; display:flex; flex-direction:column; gap:.7rem; }
+.area-top { display:flex; justify-content:space-between; gap:1rem; align-items:baseline; }
+.area h3 { font-size:var(--step-2); letter-spacing:-.01em; }
+.area .key { font-family:var(--mono); font-size:var(--step--1); color:var(--ink-3); }
+.area p { margin:0; color:var(--ink-2); font-size:var(--step-0); }
+.meta-row { display:flex; flex-wrap:wrap; gap:.35rem .5rem; align-items:center; }
+.pill { font-size:var(--step--1); padding:.14rem .45rem; border-radius:99px;
+  border:1px solid var(--border-strong); color:var(--ink-2); white-space:nowrap; }
+.pill.accent { border-color:var(--accent); color:var(--accent-deep); background:var(--accent-wash); }
+.pill.warn { border-color:var(--warn); color:var(--warn); background:var(--warn-wash); }
+.pill.mono { font-family:var(--mono); }
+
+/* --- bars ---------------------------------------------------------------- */
+.bars { display:flex; flex-direction:column; gap:.3rem; }
+.bar-row { display:grid; grid-template-columns:minmax(90px, 30%) 1fr auto; gap:.7rem;
+  align-items:center; font-size:var(--step-0); }
+.bar-row .lbl { color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bar-track { background:var(--track); border-radius:3px; height:11px; position:relative; }
+.bar-fill { background:var(--accent); height:100%; border-radius:0 3px 3px 0; min-width:2px;
+  transition:filter .15s ease; }
+.bar-row:hover .bar-fill { filter:brightness(1.12); }
+.bar-row .val { font-family:var(--mono); font-variant-numeric:tabular-nums;
+  font-size:var(--step--1); color:var(--ink); min-width:3.4em; text-align:right; }
+
+/* --- tables -------------------------------------------------------------- */
+.scroll { overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius);
+  background:var(--surface); }
+table { border-collapse:collapse; width:100%; font-size:var(--step-0); }
+th { text-align:left; font-weight:600; font-size:var(--step--1); text-transform:uppercase;
+  letter-spacing:.06em; color:var(--ink-3); padding:.6rem .8rem; white-space:nowrap;
+  border-bottom:1px solid var(--border); background:var(--surface-2); position:sticky; top:0; }
+td { padding:.55rem .8rem; border-bottom:1px solid var(--border); vertical-align:top; }
+tbody tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:var(--surface-2); }
+td.n, th.n { text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; }
+
+/* --- misc ---------------------------------------------------------------- */
+.note { border-left:2px solid var(--accent); background:var(--surface-2);
+  padding:.7rem .95rem; border-radius:0 var(--radius) var(--radius) 0; color:var(--ink-2);
+  max-width:72ch; }
+.note.warn { border-left-color:var(--warn); }
+.note b { color:var(--ink); font-weight:600; }
+.add { color:var(--added); } .del { color:var(--removed); }
+.muted { color:var(--ink-3); }
+.stack { display:flex; flex-direction:column; gap:1rem; }
+.chain { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; font-family:var(--mono);
+  font-size:var(--step--1); }
+.chain span { border:1px solid var(--border-strong); border-radius:4px; padding:.22rem .5rem;
+  background:var(--surface); color:var(--ink-2); }
+.chain span.hi { border-color:var(--accent); color:var(--accent-deep); background:var(--accent-wash); }
+.chain i { color:var(--ink-3); font-style:normal; }
+
+/* --- filters + explorer -------------------------------------------------- */
+.filters { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin-bottom:1rem; }
+.search { flex:1 1 220px; min-width:180px; padding:.45rem .65rem; font-family:var(--sans);
+  font-size:var(--step-0); color:var(--ink); background:var(--surface);
+  border:1px solid var(--border-strong); border-radius:var(--radius); }
+.search::placeholder { color:var(--ink-3); }
+.fchip { appearance:none; cursor:pointer; font-family:var(--sans); font-size:var(--step--1);
+  padding:.3rem .6rem; border-radius:99px; border:1px solid var(--border-strong);
+  background:var(--surface); color:var(--ink-2); transition:all .12s ease; }
+.fchip:hover { border-color:var(--ink-3); color:var(--ink); }
+.fchip[aria-pressed="true"] { background:var(--accent); border-color:var(--accent);
+  color:var(--on-accent); }
+.ep-row { cursor:pointer; }
+.ep-row td:first-child { font-family:var(--mono); font-size:var(--step--1); color:var(--ink-3); }
+.ep-title { font-weight:500; }
+.ep-sub { color:var(--ink-3); font-size:var(--step--1); margin-top:.15rem;
+  display:flex; gap:.5rem; flex-wrap:wrap; }
+.detail td { background:var(--surface-2); padding:1rem 1.1rem; }
+.detail-grid { display:grid; gap:1.1rem; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); }
+.detail h4 { font-size:var(--step--1); text-transform:uppercase; letter-spacing:.07em;
+  color:var(--ink-3); font-family:var(--sans); font-weight:600; margin-bottom:.4rem; }
+.kv { display:grid; grid-template-columns:auto 1fr; gap:.15rem .7rem; font-size:var(--step--1); }
+.kv dt { color:var(--ink-3); } .kv dd { margin:0; font-family:var(--mono); }
+.flist { font-family:var(--mono); font-size:var(--step--1); display:flex;
+  flex-direction:column; gap:.15rem; }
+.flist div { display:flex; gap:.6rem; justify-content:space-between; }
+.flist .p { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; direction:rtl;
+  text-align:left; color:var(--ink-2); }
+.type-dot { display:inline-block; width:8px; height:8px; border-radius:2px;
+  background:var(--accent); margin-right:.4rem; vertical-align:baseline; }
+
+/* --- diffs --------------------------------------------------------------- */
+.diff { font-family:var(--mono); font-size:var(--step--1); line-height:1.45;
+  overflow-x:auto; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:.6rem .75rem; margin:0; white-space:pre; }
+.diff .a { color:var(--added); }
+.diff .r { color:var(--removed); }
+.diff .h { color:var(--ink-3); }
+.diff .m { color:var(--cat-2); }
+.triple { display:flex; flex-direction:column; gap:.55rem; padding:1rem 1.1rem; }
+.triple-head { display:flex; flex-wrap:wrap; gap:.4rem .8rem; align-items:baseline;
+  justify-content:space-between; }
+.triple .p { font-family:var(--mono); font-size:var(--step-0); word-break:break-all; }
+.flow { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap;
+  font-family:var(--mono); font-size:var(--step--1); color:var(--ink-3); }
+.flow b { color:var(--ink); font-weight:500; }
+
+/* --- interpreted layer ---------------------------------------------------
+   Everything read by a model rather than measured wears the second validated
+   hue, consistently, so the distinction is visible without reading a label. */
+.interpreted { border-left:2px solid var(--cat-2); }
+.pill.interp { border-color:var(--cat-2); color:var(--cat-2); background:transparent; }
+.badge-interp { font-size:var(--step--1); color:var(--cat-2); border:1px solid var(--cat-2);
+  border-radius:99px; padding:.1rem .45rem; white-space:nowrap; }
+.inferred { background:var(--surface-3); border-radius:var(--radius); padding:.6rem .75rem;
+  border-left:2px solid var(--cat-2); }
+.inferred h5 { margin:0 0 .3rem; font-family:var(--sans); font-size:var(--step--1);
+  text-transform:uppercase; letter-spacing:.07em; color:var(--cat-2); font-weight:600; }
+.conf { font-family:var(--mono); font-size:var(--step--1); color:var(--ink-3); }
+
+/* --- era band ------------------------------------------------------------ */
+.eras { display:flex; gap:2px; margin-top:.5rem; }
+.era-band { position:relative; border-radius:3px; background:var(--cat-2); opacity:.22;
+  height:34px; transition:opacity .12s ease; }
+.era-band:hover { opacity:.42; }
+.era-band.on { opacity:.55; }
+.era-labels { display:flex; gap:2px; margin-top:.35rem; }
+.era-labels div { font-size:var(--step--1); color:var(--ink-2); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; }
+.era-card { padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+.era-card h3 { font-size:var(--step-2); }
+
+/* --- person cards -------------------------------------------------------- */
+.person { padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+.person h3 { font-size:var(--step-1); }
+.person .headline { color:var(--ink-2); font-size:var(--step-0); }
+.arc { display:flex; flex-direction:column; gap:.45rem; }
+.arc-step { display:grid; grid-template-columns:minmax(120px,26%) 1fr; gap:.7rem;
+  font-size:var(--step--1); }
+.arc-step .era { color:var(--cat-2); font-family:var(--mono); }
+.tl-list { display:flex; flex-direction:column; }
+.tl-item { display:grid; grid-template-columns:92px 150px 1fr; gap:.9rem; padding:.55rem 0;
+  border-bottom:1px solid var(--border); align-items:baseline; }
+.tl-item:last-child { border-bottom:0; }
+.tl-item .d { font-family:var(--mono); font-size:var(--step--1); color:var(--ink-3); }
+
+/* --- timeline ------------------------------------------------------------ */
+.timeline { display:flex; align-items:flex-end; gap:2px; height:120px; }
+.tl-col { flex:1; background:var(--accent); min-height:2px; border-radius:2px 2px 0 0;
+  position:relative; transition:filter .12s ease; }
+.tl-col:hover { filter:brightness(1.2); }
+.tl-axis { display:flex; justify-content:space-between; font-family:var(--mono);
+  font-size:var(--step--1); color:var(--ink-3); margin-top:.4rem; }
+
+#tip { position:fixed; z-index:60; pointer-events:none; opacity:0; transition:opacity .1s ease;
+  background:var(--ink); color:var(--bg); font-family:var(--mono); font-size:var(--step--1);
+  padding:.35rem .55rem; border-radius:4px; max-width:280px; box-shadow:var(--shadow); }
+#tip.on { opacity:1; }
+footer { padding:2rem 0 3rem; color:var(--ink-3); font-size:var(--step--1); }
+</style>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <div>
+      <h1 class="title">Curator Ground Truth</h1>
+      <p class="subtitle">Everything SWEWorld knows about the repository its synthetic
+        company is built around — read off the repository itself, never invented alongside
+        the company spec.</p>
+      <div class="provenance" id="provenance"></div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Views">
+  <div class="wrap tabs-inner" role="tablist">
+    <button class="tab" role="tab" id="tab-codebase" aria-controls="panel-codebase"
+            aria-selected="true">What the codebase is
+      <span class="file">engineering_grounding.json</span></button>
+    <button class="tab" role="tab" id="tab-work" aria-controls="panel-work"
+            aria-selected="false">What work happens in it
+      <span class="file">engineering_episodes.json</span></button>
+    <button class="tab" role="tab" id="tab-org" aria-controls="panel-org"
+            aria-selected="false">How the organization worked
+      <span class="file">interpreted</span></button>
+    <button class="tab" role="tab" id="tab-raw" aria-controls="panel-raw"
+            aria-selected="false">The raw record
+      <span class="file">repository_history.json</span></button>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap panel" id="panel-codebase" role="tabpanel" aria-labelledby="tab-codebase"></div>
+  <div class="wrap panel" id="panel-work" role="tabpanel" aria-labelledby="tab-work" hidden></div>
+  <div class="wrap panel" id="panel-org" role="tabpanel" aria-labelledby="tab-org" hidden></div>
+  <div class="wrap panel" id="panel-raw" role="tabpanel" aria-labelledby="tab-raw" hidden></div>
+</main>
+
+<div class="wrap"><footer id="footer"></footer></div>
+
+<script type="application/json" id="report-data">__REPORT_DATA__</script>
+<script>
+const DATA = JSON.parse(document.getElementById("report-data").textContent);
+const G = DATA.grounding, E = DATA.episodes;
+
+/* ---------- helpers ---------- */
+const h = (tag, attrs = {}, ...kids) => {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") node.className = v;
+    else if (k === "html") node.innerHTML = v;
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid === null || kid === undefined || kid === false) continue;
+    node.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return node;
+};
+const n = x => (x === null || x === undefined) ? "—" : x.toLocaleString("en-US");
+const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "—";
+const short = s => s ? s.slice(0, 10) : "—";
+const dur = s => {
+  if (s === null || s === undefined) return "—";
+  const hrs = s / 3600;
+  if (hrs < 1) return Math.round(s / 60) + "m";
+  if (hrs < 48) return (hrs < 10 ? hrs.toFixed(1) : Math.round(hrs)) + "h";
+  return Math.round(hrs / 24) + "d";
+};
+
+/* One shared tooltip; charts attach data-tip and it follows the pointer. */
+const tip = document.getElementById("tip");
+document.addEventListener("pointermove", ev => {
+  const target = ev.target.closest("[data-tip]");
+  if (!target) { tip.classList.remove("on"); return; }
+  tip.textContent = target.dataset.tip;
+  tip.classList.add("on");
+  const pad = 14, box = tip.getBoundingClientRect();
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  if (x + box.width > innerWidth - 8) x = ev.clientX - box.width - pad;
+  if (y + box.height > innerHeight - 8) y = ev.clientY - box.height - pad;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+});
+
+const tiles = items => h("div", { class: "tiles" },
+  items.map(t => h("div", { class: "tile" },
+    h("div", { class: "v" }, t.v), h("div", { class: "k" }, t.k),
+    t.sub ? h("div", { class: "sub" }, t.sub) : null)));
+
+/* Magnitude comparison on one dimension: horizontal bars, one hue, sorted. */
+const bars = (items, opts = {}) => {
+  const max = Math.max(...items.map(i => i.value), 1);
+  return h("div", { class: "bars" }, items.map(i => h("div", { class: "bar-row" },
+    h("div", { class: "lbl", title: i.full || i.label }, i.label),
+    h("div", { class: "bar-track", "data-tip": (i.full || i.label) + " — " + (i.tip || n(i.value)) },
+      h("div", {
+        class: "bar-fill",
+        style: `width:${Math.max(1.5, 100 * i.value / max)}%${i.color ? `;background:${i.color}` : ""}`
+      })),
+    h("div", { class: "val" }, opts.format ? opts.format(i.value) : n(i.value)))));
+};
+
+const sectionHead = (eyebrow, title, lede) => h("div", { class: "section-head" },
+  h("div", { class: "eyebrow" }, eyebrow),
+  h("h2", { class: "h2" }, title),
+  lede ? h("p", { class: "lede" }, lede) : null);
+
+const table = (headers, rows) => h("div", { class: "scroll" },
+  h("table", {},
+    h("thead", {}, h("tr", {}, headers.map(head =>
+      h("th", { class: head.n ? "n" : null }, head.label || head)))),
+    h("tbody", {}, rows)));
+
+/* ---------- masthead ---------- */
+document.getElementById("provenance").append(
+  h("span", { class: "chip", html: "<b>" + G.source.remote.replace(/^https:\/\/github.com\//, "") + "</b>" }),
+  h("span", { class: "chip", html: "HEAD <b>" + G.source.head.slice(0, 12) + "</b>" }),
+  h("span", { class: "chip", html: "<b>" + n(G.source.commits) + "</b> commits" }),
+  h("span", { class: "chip", html: "<b>" + short(G.source.first) + "</b> → <b>" + short(G.source.last) + "</b>" }),
+  h("span", { class: "chip", html: "<b>" + G.source.latest_tag + "</b>" }),
+);
+
+/* ===========================================================================
+   Panel 1 — what the codebase is
+   =========================================================================== */
+const p1 = document.getElementById("panel-codebase");
+
+/* Module names are shown without their package prefix; which prefix that is
+   comes from the discovered layout, not from a hardcoded project name. */
+const trimModule = m => {
+  const prefixes = (G.layout && G.layout.import_prefixes) || [];
+  for (const p of prefixes.slice().sort((a, b) => b.length - a.length)) {
+    if (m.startsWith(p + ".")) return m.slice(p.length + 1);
+  }
+  return m;
+};
+
+p1.append(h("section", {},
+  tiles([
+    { v: n(G.headline.capability_areas), k: "capability areas", sub: "packages a spec can attach goals to" },
+    { v: n(G.headline.extension_points), k: "extension points", sub: "abstract bases + protocols" },
+    { v: n(G.headline.source_lines), k: "source lines", sub: G.headline.modules + " modules" },
+    { v: n(G.headline.test_functions), k: "test functions", sub: G.tests.ratio + "× test:source lines" },
+    { v: n(G.headline.contributors), k: "contributors", sub: G.headline.bots + " bots, identities merged" },
+    { v: n(G.headline.runtime_deps), k: "runtime deps", sub: G.config.pinned.length + " pinned exactly" },
+  ])));
+
+/* Capability areas */
+{
+  const areas = G.capability_areas.filter(a => a.commits > 0);
+  const cards = areas.map(a => {
+    const detail = h("div", { hidden: true, class: "stack" },
+      a.extension_points.length ? h("div", {},
+        h("h4", { class: "eyebrow" }, "Extension points"),
+        h("div", { class: "flist" }, a.extension_points.map(p => h("div", {},
+          h("span", { class: "p" }, p.name),
+          h("span", { class: "muted" }, p.abstract_methods.length
+            ? p.abstract_methods.length + " abstract · " + p.subclasses.length + " impls"
+            : p.subclasses.length + " impls"))))) : null,
+      h("div", {},
+        h("h4", { class: "eyebrow" }, "Work landing here"),
+        bars(Object.entries(a.work_mix).slice(0, 6)
+          .map(([k, v]) => ({ label: k, value: v })))),
+      h("div", {},
+        h("h4", { class: "eyebrow" }, "Paths"),
+        h("div", { class: "flist" }, a.paths.map(p => h("div", {}, h("span", { class: "p" }, p))))));
+
+    const toggle = h("button", { class: "fchip", "aria-expanded": "false",
+      onclick: ev => {
+        const open = detail.hidden;
+        detail.hidden = !open;
+        ev.currentTarget.setAttribute("aria-expanded", String(open));
+        ev.currentTarget.textContent = open ? "Hide detail" : "Detail";
+      } }, "Detail");
+
+    return h("div", { class: "card area" },
+      h("div", { class: "area-top" },
+        h("div", {}, h("h3", {}, a.name), h("div", { class: "key" }, a.key)),
+        h("div", { class: "pill mono", title: "recency-weighted commits" }, a.recent)),
+      h("p", {}, a.purpose || "No module docstring."),
+      h("div", { class: "meta-row" },
+        h("span", { class: "pill mono" }, n(a.loc) + " loc"),
+        h("span", { class: "pill mono" }, n(a.commits) + " commits"),
+        h("span", { class: "pill mono" }, a.tests + " test files"),
+        h("span", { class: a.bus_factor === 1 ? "pill warn" : "pill" },
+          "bus factor " + a.bus_factor)),
+      h("div", { class: "meta-row" },
+        a.owners.map(o => h("span", { class: "pill" }, o.id + " " +
+          Math.round(o.share * 100) + "%"))),
+      h("div", { class: "meta-row" }, toggle),
+      detail);
+  });
+
+  p1.append(h("section", {},
+    sectionHead("The join", "Capability areas",
+      "Each area is one package with its real purpose, extension points, owners, test files " +
+      "and the mix of work that lands there. Ordered by recency-weighted change, so what is " +
+      "alive now sorts above what was built first."),
+    h("div", { class: "grid cols-3" }, cards)));
+}
+
+/* Extension points */
+p1.append(h("section", {},
+  sectionHead("How the code is extended", "Interfaces and abstractions",
+    "The abstract bases and protocols the codebase is meant to be extended through. " +
+    "Adding a provider backend is the dominant shape of feature work here, and this is why."),
+  table(
+    ["Name", "Kind", { label: "Abstract", n: true }, "Implementations", "Defined in"],
+    G.interfaces.points.map(p => h("tr", {},
+      h("td", {}, h("span", { class: "mono" }, p.name),
+        p.doc ? h("div", { class: "ep-sub" }, p.doc.slice(0, 90)) : null),
+      h("td", {}, h("span", { class: "pill" },
+        p.protocol ? "protocol" : p.is_abstract ? "abstract base" : "base class")),
+      h("td", { class: "n" }, p.abstract.length || "—"),
+      h("td", {}, p.subclasses.length
+        ? h("span", { class: "mono muted" }, p.subclasses.join(", "))
+        : h("span", { class: "muted" }, "none")),
+      h("td", {}, h("span", { class: "mono muted" },
+        p.path.replace((G.layout && G.layout.source_roots[0] || "") + "/", "")))))))); 
+
+/* Tests + CI side by side */
+{
+  const markerRows = G.tests.declared_markers.map(m => h("tr", {},
+    h("td", {}, h("span", { class: "mono" }, m)),
+    h("td", { class: "n" }, G.tests.used_markers[m] || 0),
+    h("td", {}, G.tests.unused_markers.includes(m)
+      ? h("span", { class: "pill warn" }, "declared, never applied")
+      : h("span", { class: "muted" }, "in use"))));
+
+  const dirBars = Object.entries(G.tests.directories)
+    .filter(([, v]) => v.tests > 0)
+    .sort((a, b) => b[1].tests - a[1].tests)
+    .map(([k, v]) => ({ label: k, value: v.tests, tip: v.tests + " tests in " + v.files + " files" }));
+
+  const ciSteps = G.ci.steps.map((s, i) => h("div", {},
+    h("span", { class: "p" }, (i + 1) + ". " + s.name),
+    h("span", { class: "muted" }, s.uses ? "action" : "run")));
+
+  p1.append(h("section", {},
+    sectionHead("Verification", "Tests and CI",
+      "How correctness is actually checked here — and one thing the configuration says " +
+      "that the test suite does not do."),
+    h("div", { class: "grid cols-2" },
+      h("div", { class: "card area" },
+        h("h3", {}, "Test architecture"),
+        h("div", { class: "meta-row" },
+          h("span", { class: "pill mono" }, n(G.tests.functions) + " tests"),
+          h("span", { class: "pill mono" }, n(G.tests.test_lines) + " test loc"),
+          h("span", { class: "pill mono" }, G.tests.ratio + "× ratio"),
+          h("span", { class: "pill mono" }, G.tests.cassettes + " VCR cassettes")),
+        h("h4", { class: "eyebrow" }, "Tests by directory"),
+        bars(dirBars),
+        h("h4", { class: "eyebrow" }, "Markers"),
+        table(["Marker", { label: "Uses", n: true }, "Status"], markerRows),
+        h("p", { class: "note warn" },
+          h("b", {}, "The unit/integration split is by directory, not by marker. "),
+          "pytest.ini declares an ", h("span", { class: "mono" }, "integration"),
+          " marker that no test ever applies, so anything selecting on it runs nothing.")),
+      h("div", { class: "card area" },
+        h("h3", {}, "Continuous integration"),
+        h("div", { class: "meta-row" },
+          h("span", { class: "pill mono" }, G.ci.workflow),
+          h("span", { class: "pill accent" }, "coverage ≥ " + G.ci.gates.coverage_threshold + "%"),
+          G.ci.gates.lint ? h("span", { class: "pill accent" }, "lint gate") : null,
+          G.ci.manual_release ? h("span", { class: "pill warn" }, "release is manual") : null),
+        h("h4", { class: "eyebrow" }, "Pipeline, in order"),
+        h("div", { class: "flist" }, ciSteps),
+        h("p", { class: "note" },
+          "One workflow, one job, triggered on push and pull request against ",
+          h("span", { class: "mono" }, "main"), ". Nothing publishes from CI — ",
+          h("span", { class: "mono" }, "publish_pkg.sh"), " is run by hand."))))); 
+}
+
+/* Hotspots */
+{
+  const makeBars = which => bars((which === "recent" ? G.hotspots.recent : G.hotspots.files)
+    .map(f => ({
+      label: f.path.split("/").pop(),
+      full: f.path,
+      value: which === "recent" ? f.recency_weighted : f.commits,
+      tip: f.commits + " commits" + (f.distinct_authors ? ", " + f.distinct_authors + " authors" : ""),
+    })), { format: v => which === "recent" ? v.toFixed(1) : n(v) });
+
+  const holder = h("div", {}, makeBars("recent"));
+  const setMode = mode => {
+    holder.replaceChildren(makeBars(mode));
+    [...modeRow.children].forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  };
+  const modeRow = h("div", { class: "filters" },
+    h("button", { class: "fchip", "data-mode": "recent", "aria-pressed": "true",
+      onclick: () => setMode("recent") }, "Recency-weighted"),
+    h("button", { class: "fchip", "data-mode": "raw", "aria-pressed": "false",
+      onclick: () => setMode("raw") }, "Raw commit count"));
+
+  p1.append(h("section", {},
+    sectionHead("Where the change is", "Hotspots and coupling",
+      G.hotspots.note + ". Raw counts say where the code was built, not where it lives now; " +
+      "without decay the hotspots of a front-loaded history are just wherever it started."),
+    h("div", { class: "grid cols-2" },
+      h("div", { class: "card area" }, h("h3", {}, "Files"), modeRow, holder),
+      h("div", { class: "card area" },
+        h("h3", {}, "Subsystems"),
+        bars(G.hotspots.subsystems.slice(0, 12).map(s => ({
+          label: s.subsystem, value: s.commits,
+          tip: s.commits + " commits, " + s.recency_weighted + " weighted" }))),
+        h("h4", { class: "eyebrow" }, "Files that change together"),
+        h("div", { class: "flist" }, G.hotspots.coupling.slice(0, 7).map(c => h("div", {},
+          h("span", { class: "p" }, c.a.split("/").pop() + " ↔ " + c.b.split("/").pop()),
+          h("span", { class: "muted" }, c.co_changes + "×  " +
+            Math.round(c.confidence * 100) + "%"))))))));
+}
+
+/* Dependencies */
+p1.append(h("section", {},
+  sectionHead("Structure", "Dependency shape",
+    G.headline.modules + " internal modules and " + n(G.headline.edges) + " import edges, " +
+    "counting imports inside functions and TYPE_CHECKING blocks — without those the " +
+    "factory-to-backend edges vanish."),
+  h("div", { class: "grid cols-2" },
+    h("div", { class: "card area" },
+      h("h3", {}, "Most depended on"),
+      bars(G.deps.most_depended.map(m => ({
+        label: trimModule(m.module), full: m.module,
+        value: m.importers, tip: m.importers + " modules import it" }))),
+      G.deps.cycles.length ? h("p", { class: "note warn" },
+        h("b", {}, "One import cycle: "),
+        G.deps.cycles[0].map(trimModule).join(" ↔ ")) : null),
+    h("div", { class: "card area" },
+      h("h3", {}, "Third-party reach"),
+      bars(G.deps.external.map(m => ({
+        label: m.package, value: m.import_sites,
+        tip: m.import_sites + " import sites" }))))))); 
+
+/* People */
+p1.append(h("section", {},
+  sectionHead("Ownership", "Who works where",
+    "Roles are derived, not assigned: an archetype from the parts of the tree someone " +
+    "touches, a primary kind of work from what they commit, and ownership from their share " +
+    "of each subsystem. Identities are merged first — four people here commit under names " +
+    "that share neither email nor spelling."),
+  table(
+    ["Person", "Archetype", "Primary work", "Focus", { label: "Commits", n: true },
+     "Active", "Owns"],
+    G.roles.map(r => {
+      const person = G.people.find(p => p.id === r.person) || {};
+      return h("tr", {},
+        h("td", {}, h("span", { class: "ep-title" }, person.name || r.person),
+          person.aliases && person.aliases.length > 1
+            ? h("div", { class: "ep-sub" }, person.aliases.length + " git identities merged")
+            : null,
+          r.is_bot ? h("span", { class: "pill warn" }, "bot") : null),
+        h("td", {}, r.archetype),
+        h("td", {}, r.primary_work.type
+          ? `${r.primary_work.type} ${Math.round(r.primary_work.share * 100)}%`
+          : "—"),
+        h("td", {}, h("span", { class: "pill" }, r.focus)),
+        h("td", { class: "n" }, n(r.commits)),
+        h("td", {}, h("span", { class: "mono muted" },
+          short(r.active.from) + " → " + short(r.active.to))),
+        h("td", {}, r.owns.length
+          ? h("span", { class: "muted" }, r.owns.map(o => o.label).join(" · "))
+          : h("span", { class: "muted" }, "no dominant area")));
+    }))));
+
+/* Work types */
+p1.append(h("section", {},
+  sectionHead("What engineers do here", "Types of work",
+    "Every non-merge commit classified by deterministic rules over the conventional-commit " +
+    "prefix, branch name, changed paths and message keywords. Where no rule fires the commit " +
+    "is marked unclassified rather than guessed into a bucket."),
+  h("div", { class: "grid cols-2" },
+    h("div", { class: "card area" },
+      h("h3", {}, "Distribution"),
+      bars(G.work_types.distribution.map(w => ({
+        label: w.type, value: w.commits,
+        color: w.type === "unclassified" ? "var(--ink-3)" : null,
+        tip: w.commits + " commits · median " + w.median_files + " files, +" +
+             w.median_lines_added + "/-" + w.median_lines_deleted })))),
+    h("div", { class: "card area" },
+      h("h3", {}, "Typical size"),
+      table(["Type", { label: "Commits", n: true }, { label: "Files", n: true },
+             { label: "+", n: true }, { label: "−", n: true }, { label: "Conf.", n: true }],
+        G.work_types.distribution.map(w => h("tr", {},
+          h("td", {}, w.type),
+          h("td", { class: "n" }, n(w.commits)),
+          h("td", { class: "n" }, w.median_files),
+          h("td", { class: "n add" }, w.median_lines_added),
+          h("td", { class: "n del" }, w.median_lines_deleted),
+          h("td", { class: "n muted" }, w.mean_confidence)))))))); 
+
+/* ===========================================================================
+   Panel 2 — what work happens
+   =========================================================================== */
+const p2 = document.getElementById("panel-work");
+const S = E.stats;
+
+p2.append(h("section", {},
+  h("div", { class: "section-head" },
+    h("div", { class: "eyebrow" }, "The unit"),
+    h("h2", { class: "h2" }, "One episode is one coherent change"),
+    h("p", { class: "lede" }, "Not one commit. The whole chain that produced a change " +
+      "collapses into a single record, with every piece of its provenance attached:"),
+    h("div", { class: "chain" },
+      h("span", {}, "issue"), h("i", {}, "→"), h("span", {}, "branch"), h("i", {}, "→"),
+      h("span", {}, "commit A"), h("i", {}, "→"), h("span", {}, "commit B"), h("i", {}, "→"),
+      h("span", { class: "hi" }, "PR opened"), h("i", {}, "→"),
+      h("span", { class: "hi" }, "changes requested"), h("i", {}, "→"),
+      h("span", {}, "commit C"), h("i", {}, "→"),
+      h("span", { class: "hi" }, "approved"), h("i", {}, "→"), h("span", {}, "merge"))),
+  tiles([
+    { v: n(S.episodes), k: "episodes", sub: S.pr_anchored + " anchored on a real PR" },
+    { v: pct(S.commits_covered, S.commits_in_history), k: "commits covered",
+      sub: n(S.commits_covered) + " of " + n(S.commits_in_history) + ", none lost" },
+    { v: dur(S.median_pr_open_to_merge_s), k: "median PR → merge", sub: "open to merged" },
+    { v: n(S.with_any_review), k: "reviewed", sub: S.with_review_cycles + " went back for changes" },
+    { v: n(S.with_linked_issue), k: "link an issue", sub: "from PR body and title refs" },
+    { v: n(S.commits_per_episode.p90), k: "commits p90", sub: "median " + S.commits_per_episode.p50 +
+      ", max " + S.commits_per_episode.max },
+  ])));
+
+/* Honesty panel */
+p2.append(h("section", {},
+  sectionHead("What could not be recovered", "Provenance gaps, counted",
+    "Where a fact does not exist, the field is null and the episode says why. Nothing is " +
+    "inferred to paper over a missing value — a confident wrong number is worse than a " +
+    "hole, because nothing downstream can tell the difference."),
+  h("div", { class: "grid cols-2" },
+    h("div", { class: "card area" },
+      h("h3", {}, "Gaps"),
+      bars(Object.entries(S.provenance_gaps).map(([k, v]) => ({
+        label: k.length > 34 ? k.slice(0, 33) + "…" : k, full: k, value: v,
+        color: "var(--warn)", tip: v + " episodes" }))),
+      h("p", { class: "note warn" },
+        h("b", {}, "Squash-merged PRs lose their branch commits. "),
+        "A plain clone has no refs/pull/*, so such an episode reports what is local " +
+        "alongside the true branch count from the API, and marks the gap.")),
+    h("div", { class: "card area" },
+      h("h3", {}, "Episodes nest"),
+      h("div", { class: "meta-row" },
+        h("span", { class: "pill mono" }, S.episodes_contained_by_another + " inside another"),
+        h("span", { class: "pill mono" }, S.episodes_containing_another + " containers"),
+        h("span", { class: "pill accent mono" }, n(S.commits_first_seen_sum) + " counted once")),
+      h("p", { class: "note" }, S.deduplication_note),
+      h("p", { class: "note" },
+        h("b", {}, "Why PRs anchor episodes rather than the mainline. "),
+        "Many of this repository's PR merges sit off the first-parent line — merged into " +
+        "branches that landed later. Walking the mainline alone would silently drop that " +
+        "PR provenance, so episodes anchor on pull requests and fall back to first-parent " +
+        "runs only for commits that never had one (" + n(S.heuristically_grouped +
+        S.single_commit) + " here).")))));
+
+/* Distributions + timeline */
+{
+  const months = Object.entries(E.per_month);
+  const maxMonth = Math.max(...months.map(m => m[1]));
+  const cols = months.map(([month, count]) => h("div", {
+    class: "tl-col",
+    style: `height:${Math.max(2, 100 * count / maxMonth)}%`,
+    "data-tip": month + " — " + count + " episodes",
+  }));
+  const styleColors = { "merge-commit": "var(--cat-1)", "squash-or-rebase": "var(--cat-2)",
+                        "direct": "var(--cat-3)" };
+
+  p2.append(h("section", {},
+    sectionHead("Shape of the work", "Distributions",
+      "Change type is the same deterministic classifier the codebase view uses, run over " +
+      "each episode's full diff rather than a single commit message."),
+    h("div", { class: "grid cols-2" },
+      h("div", { class: "card area" },
+        h("h3", {}, "By change type"),
+        bars(Object.entries(S.by_change_type).map(([k, v]) => ({
+          label: k, value: v, color: k === "unclassified" ? "var(--ink-3)" : null,
+          tip: v + " episodes" })))),
+      h("div", { class: "card area" },
+        h("h3", {}, "How it landed"),
+        bars(Object.entries(S.by_merge_style).map(([k, v]) => ({
+          label: k, value: v, color: styleColors[k], tip: v + " episodes" }))),
+        h("div", { class: "meta-row" },
+          Object.keys(S.by_merge_style).map(k => h("span", { class: "pill" },
+            h("span", { class: "type-dot", style: `background:${styleColors[k]}` }), k))),
+        h("h4", { class: "eyebrow" }, "Size per episode"),
+        table(["", { label: "p50", n: true }, { label: "p90", n: true }, { label: "max", n: true }],
+          [["commits", S.commits_per_episode], ["files", S.files_per_episode],
+           ["lines", S.lines_changed_per_episode]].map(([label, s]) => h("tr", {},
+            h("td", {}, label),
+            h("td", { class: "n" }, n(s.p50)),
+            h("td", { class: "n" }, n(s.p90)),
+            h("td", { class: "n" }, n(s.max))))))),
+    h("div", { class: "card area", style: "margin-top:1rem" },
+      h("h3", {}, "Episodes per month"),
+      h("div", { class: "timeline" }, cols),
+      h("div", { class: "tl-axis" },
+        h("span", {}, months[0][0]),
+        h("span", { class: "muted" }, months.length + " months"),
+        h("span", {}, months[months.length - 1][0])))));
+}
+
+/* Reviewers */
+p2.append(h("section", {},
+  sectionHead("Review", "Who reviews, who writes",
+    "Reviewer identity and review cycles exist nowhere in a git clone — they are GitHub " +
+    "state, which is the whole reason this script needs a token."),
+  h("div", { class: "grid cols-2" },
+    h("div", { class: "card area" }, h("h3", {}, "Most active reviewers"),
+      bars(E.reviewers.map(([login, count]) => ({
+        label: login, value: count, tip: count + " episodes reviewed" })))),
+    h("div", { class: "card area" }, h("h3", {}, "Most active authors"),
+      bars(E.authors.map(([person, count]) => ({
+        label: person, value: count, tip: count + " episodes authored" }))))))); 
+
+/* Episode explorer */
+{
+  const state = { q: "", type: null, style: null };
+  const body = h("tbody", {});
+  const count = h("span", { class: "muted" });
+
+  const detailFor = ep => {
+    const cell = h("td", { colspan: 7 },
+      h("div", { class: "detail-grid" },
+        h("div", {},
+          h("h4", {}, "Objective"),
+          h("p", { style: "margin:0;color:var(--ink-2)" }, ep.objective || "—"),
+          h("h4", { style: "margin-top:.8rem" }, "Classified as " + ep.type),
+          h("div", { class: "flist" }, ep.why.map(w => h("div", {},
+            h("span", { class: "p" }, w))))),
+        h("div", {},
+          h("h4", {}, "Provenance"),
+          h("dl", { class: "kv" },
+            h("dt", {}, "grouping"), h("dd", {}, ep.rule),
+            h("dt", {}, "branch"), h("dd", {}, ep.branch || "—"),
+            h("dt", {}, "before"), h("dd", {}, ep.before ? ep.before.slice(0, 10) : "root"),
+            h("dt", {}, "after"), h("dd", {}, ep.after.slice(0, 10)),
+            h("dt", {}, "commits"), h("dd", {}, ep.commits +
+              (ep.commits_branch !== null ? " local / " + ep.commits_branch + " on branch" : "")),
+            h("dt", {}, "issue → PR"), h("dd", {}, dur(ep.t_issue_pr)),
+            h("dt", {}, "PR → merge"), h("dd", {}, dur(ep.t_open_merge)),
+            h("dt", {}, "first review"), h("dd", {}, dur(ep.t_first_review))),
+          ep.issues.length ? h("div", { style: "margin-top:.5rem" },
+            h("h4", {}, "Issues"),
+            h("div", { class: "flist" }, ep.issues.map(i => h("div", {},
+              h("span", { class: "p" }, "#" + i.n + " " + (i.title || "")),
+              h("span", { class: "muted" }, i.link))))) : null,
+          ep.gaps.length ? h("p", { class: "note warn", style: "margin-top:.6rem" },
+            ep.gaps.join(" · ")) : null),
+        h("div", {},
+          h("h4", {}, "Files (" + ep.files + ")"),
+          h("div", { class: "flist" }, ep.top_files.map(f => h("div", {},
+            h("span", { class: "p", title: f.p }, f.p),
+            h("span", {}, h("span", { class: "add" }, "+" + f.a), " ",
+              h("span", { class: "del" }, "−" + f.d))))),
+          (ep.symbols.added + ep.symbols.removed + ep.symbols.modified) ? h("div", {},
+            h("h4", { style: "margin-top:.8rem" }, "Symbols"),
+            h("div", { class: "meta-row" },
+              h("span", { class: "pill mono" }, "+" + ep.symbols.added),
+              h("span", { class: "pill mono" }, "−" + ep.symbols.removed),
+              h("span", { class: "pill mono" }, "~" + ep.symbols.modified)),
+            h("div", { class: "flist", style: "margin-top:.35rem" },
+              ep.symbol_names.slice(0, 6).map(s => h("div", {},
+                h("span", { class: "p" }, s))))) : null),
+        h("div", {},
+          h("h4", {}, "Commits (" + ep.source_total + ")"),
+          h("div", { class: "flist" }, ep.sources.map(c => h("div", {},
+            h("span", { class: "p" }, c.sha + "  " + c.subject),
+            !c.new ? h("span", { class: "muted" }, "reused") : null))),
+          ep.reviewers.length ? h("div", { style: "margin-top:.7rem" },
+            h("h4", {}, "Reviewers"),
+            h("div", { class: "meta-row" }, ep.reviewers.map(r => h("span", { class: "pill" },
+              r.login + " · " + r.states.join("/").toLowerCase())))) : null,
+          ep.deps.length ? h("div", { style: "margin-top:.7rem" },
+            h("h4", {}, "Depends on"),
+            h("div", { class: "flist" }, ep.deps.slice(0, 5).map(d => h("div", {},
+              h("span", { class: "p" }, d.id + " (" + d.kind + ")"),
+              h("span", { class: "muted", title: d.why }, d.why.slice(0, 28)))))) : null)));
+    return h("tr", { class: "detail" }, cell);
+  };
+
+  const render = () => {
+    const q = state.q.toLowerCase();
+    const rows = E.episodes.filter(ep =>
+      (!state.type || ep.type === state.type) &&
+      (!state.style || ep.style === state.style) &&
+      (!q || ep.title.toLowerCase().includes(q) ||
+        (ep.branch || "").toLowerCase().includes(q) ||
+        String(ep.pr || "").includes(q) ||
+        (ep.author || "").toLowerCase().includes(q)));
+
+    body.replaceChildren();
+    count.textContent = rows.length + " of " + E.episodes.length + " episodes";
+    for (const ep of rows.slice(0, 220)) {
+      let detail = null;
+      const row = h("tr", { class: "ep-row", tabindex: "0", role: "button",
+        "aria-expanded": "false",
+        onclick: ev => toggle(ev.currentTarget),
+        onkeydown: ev => { if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault(); toggle(ev.currentTarget); } } },
+        h("td", {}, ep.when ? ep.when.slice(0, 10) : "—"),
+        h("td", {},
+          h("div", { class: "ep-title" }, ep.title),
+          h("div", { class: "ep-sub" },
+            h("span", {}, ep.rule),
+            ep.branch ? h("span", { class: "mono" }, ep.branch) : null,
+            ep.inside ? h("span", {}, "inside another episode") : null)),
+        h("td", {}, h("span", { class: "pill" }, ep.type)),
+        h("td", {}, ep.pr ? h("a", { href: ep.pr_url, target: "_blank", rel: "noopener",
+          class: "mono", onclick: ev => ev.stopPropagation() }, "#" + ep.pr)
+          : h("span", { class: "muted" }, "—")),
+        h("td", { class: "n" }, ep.commits_branch && ep.commits_branch !== ep.commits
+          ? `${ep.commits} / ${ep.commits_branch}` : String(ep.commits)),
+        h("td", { class: "n" }, h("span", { class: "add" }, "+" + n(ep.add)), " ",
+          h("span", { class: "del" }, "−" + n(ep.del))),
+        h("td", { class: "n" }, ep.cycles ? h("span", { class: "pill warn" }, ep.cycles + "×")
+          : ep.approvals ? h("span", { class: "muted" }, "approved") : h("span", { class: "muted" }, "—")));
+
+      const toggle = el => {
+        if (detail) { detail.remove(); detail = null; el.setAttribute("aria-expanded", "false"); return; }
+        detail = detailFor(ep);
+        el.after(detail);
+        el.setAttribute("aria-expanded", "true");
+      };
+      body.append(row);
+    }
+    if (rows.length > 220) {
+      body.append(h("tr", {}, h("td", { colspan: 7, class: "muted" },
+        "Showing the first 220. Narrow the filters to see the rest.")));
+    }
+  };
+
+  const chipRow = (values, key) => values.map(v => h("button", {
+    class: "fchip", "aria-pressed": "false", "data-key": key, "data-value": v,
+    onclick: ev => {
+      const on = state[key] === v;
+      state[key] = on ? null : v;
+      document.querySelectorAll(`[data-key="${key}"]`).forEach(b =>
+        b.setAttribute("aria-pressed", String(!on && b.dataset.value === v)));
+      render();
+    } }, v));
+
+  p2.append(h("section", {},
+    sectionHead("Every episode", "Explorer",
+      "Click any row for its full provenance: the commits behind it, the files and Python " +
+      "symbols it changed, its reviewers, and what it depends on."),
+    h("div", { class: "filters" },
+      h("input", { class: "search", type: "search",
+        placeholder: "Search title, branch, PR number, author…",
+        oninput: ev => { state.q = ev.target.value; render(); } }),
+      count),
+    h("div", { class: "filters" },
+      chipRow(Object.keys(S.by_change_type), "type")),
+    h("div", { class: "filters" },
+      chipRow(Object.keys(S.by_merge_style), "style")),
+    h("div", { class: "scroll" },
+      h("table", {},
+        h("thead", {}, h("tr", {},
+          h("th", {}, "Landed"), h("th", {}, "Episode"), h("th", {}, "Type"),
+          h("th", {}, "PR"), h("th", { class: "n" }, "Commits"),
+          h("th", { class: "n" }, "Lines"), h("th", { class: "n" }, "Review"))),
+        body))));
+  render();
+}
+
+
+/* ===========================================================================
+   Panel 3 — how the organization worked (interpreted)
+   =========================================================================== */
+const O = G.org;
+const p3 = document.getElementById("panel-org");
+
+if (!O) {
+  p3.append(h("section", {}, h("p", { class: "note" },
+    "This grounding file was built with --no-enrich, so it carries only measured sections.")));
+} else {
+  const conf = c => h("span", { class: "conf" }, "confidence " + c);
+  const evidence = list => list && list.length
+    ? h("div", { class: "ep-sub" }, list.slice(0, 6).map(e => h("span", { class: "mono" }, e)))
+    : null;
+  const inferredBlock = (obj, title = "Inferred") => obj ? h("div", { class: "inferred" },
+    h("h5", {}, title),
+    Object.entries(obj).filter(([k]) => k !== "confidence").map(([k, v]) =>
+      h("div", { style: "font-size:var(--step--1);margin-bottom:.2rem" },
+        h("span", { class: "muted" }, k.replace(/_/g, " ") + ": "),
+        Array.isArray(v) ? v.join("; ") : String(v))),
+    obj.confidence !== undefined ? conf(obj.confidence) : null) : null;
+
+  /* --- how to read this --- */
+  const a = O.analysis;
+  p3.append(h("section", {},
+    sectionHead("Read this differently", "Interpreted, not measured",
+      "The other two tabs are computed from git and the GitHub API — run them again and you get " +
+      "the same bytes. This tab is a reading of that evidence by " + (a.model || "a model") +
+      ". Every claim carries its citations, and anything that could not be shown from the " +
+      "evidence is kept in a separate inferred block rather than stated as fact."),
+    tiles([
+      { v: n(O.eras.length), k: "eras", sub: "boundaries chosen from the monthly data" },
+      { v: n(O.areas.length), k: "capability areas", sub: "named at product level" },
+      { v: n(O.people.counts.core), k: "core team",
+        sub: O.people.counts.occasional + " occasional, " + O.people.counts.bots + " bot" },
+      { v: n(O.timeline.length), k: "timeline events", sub: "dated and cited" },
+      { v: n(a.citations_checked), k: "citations checked",
+        sub: a.citation_problems ? a.citation_problems + " unresolved" : "all resolve" },
+      { v: "$" + (a.usage?.estimated_cost_usd ?? "—"), k: "cost to produce",
+        sub: (a.usage?.calls ?? 0) + " model calls, cached" },
+    ]),
+    h("p", { class: "note interpreted", style: "margin-top:1rem" },
+      h("b", {}, "How the tiers are decided. "), O.people.tiering_rule)));
+
+  /* --- eras --- */
+  {
+    const months = Object.entries(E.per_month);
+    const idx = m => months.findIndex(([k]) => k === m);
+    const total = months.length;
+    const bands = O.eras.map(era => {
+      const start = Math.max(0, idx(era.start_month));
+      const end = idx(era.end_month) < 0 ? total - 1 : idx(era.end_month);
+      const width = Math.max(1, end - start + 1);
+      return h("div", { class: "era-band", style: `flex:${width}`,
+        "data-tip": `${era.name} — ${era.start_month} to ${era.end_month}` });
+    });
+    const labels = O.eras.map(era => {
+      const start = Math.max(0, idx(era.start_month));
+      const end = idx(era.end_month) < 0 ? total - 1 : idx(era.end_month);
+      return h("div", { style: `flex:${Math.max(1, end - start + 1)}` }, era.start_month);
+    });
+
+    const cards = O.eras.map(era => h("div", { class: "card era-card interpreted" },
+      h("div", { class: "area-top" },
+        h("div", {}, h("h3", {}, era.name),
+          h("div", { class: "key" }, era.start_month + " → " + era.end_month)),
+        h("span", { class: "badge-interp" }, "interpreted")),
+      h("p", { style: "margin:0;color:var(--ink-2)" }, era.summary),
+      h("div", {}, h("h4", { class: "eyebrow" }, "How they worked"),
+        h("p", { style: "margin:0;color:var(--ink-2);font-size:var(--step--1)" },
+          era.how_they_worked)),
+      h("div", {}, h("h4", { class: "eyebrow" }, "What changed entering it"),
+        h("p", { style: "margin:0;color:var(--ink-2);font-size:var(--step--1)" },
+          era.what_changed_entering_it)),
+      h("div", { class: "meta-row" },
+        era.dominant_work_types.map(t => h("span", { class: "pill" }, t))),
+      h("div", { class: "meta-row" },
+        era.key_people.map(p => h("span", { class: "pill mono" }, p))),
+      inferredBlock(era.inferred),
+      evidence(era.evidence),
+      conf(era.confidence)));
+
+    p3.append(h("section", {},
+      sectionHead("The arc", "Six eras",
+        "Boundaries placed from the monthly volume, the merge-style mix and the review rate — " +
+        "so an era marks a change in how the team worked, not just what they were building."),
+      h("div", { class: "eras" }, bands),
+      h("div", { class: "era-labels" }, labels),
+      h("div", { class: "grid cols-2", style: "margin-top:1.4rem" }, cards)));
+  }
+
+  /* --- capability areas --- */
+  p3.append(h("section", {},
+    sectionHead("What the product does", "Capability areas",
+      "Named the way the team would name them, not after directories. Each maps back to the " +
+      "real packages, paths and episodes it was read from."),
+    h("div", { class: "grid cols-3" }, O.areas.map(area => h("div", { class: "card area interpreted" },
+      h("div", { class: "area-top" },
+        h("div", {}, h("h3", {}, area.name), h("div", { class: "key" }, area.slug)),
+        h("span", { class: "pill accent" }, area.activity)),
+      h("p", {}, area.description),
+      h("div", { class: "meta-row" },
+        h("span", { class: "pill" }, area.maturity),
+        h("span", { class: "pill mono" }, "since " + area.introduced_month),
+        area.owners.map(o => h("span", { class: "pill mono" }, o))),
+      h("div", {}, h("h4", { class: "eyebrow" }, "What a task here looks like"),
+        h("p", { style: "margin:0;color:var(--ink-2);font-size:var(--step--1)" },
+          area.typical_work)),
+      h("div", { class: "meta-row" },
+        area.packages.map(pk => h("span", { class: "pill mono" }, pk))),
+      conf(area.confidence))))));
+
+  /* --- people --- */
+  {
+    const card = profile => {
+      const m = profile.measured;
+      const detail = h("div", { hidden: true, class: "stack" },
+        h("div", {}, h("h4", { class: "eyebrow" }, "Arc"),
+          h("div", { class: "arc" }, profile.arc.map(step => h("div", { class: "arc-step" },
+            h("div", { class: "era" }, step.era_slug),
+            h("div", {}, step.what_they_did))))),
+        h("div", {}, h("h4", { class: "eyebrow" }, "Working style"),
+          h("dl", { class: "kv" },
+            Object.entries(profile.working_style).flatMap(([k, v]) =>
+              [h("dt", {}, k.replace(/_/g, " ")),
+               h("dd", { style: "font-family:var(--sans)" }, v)]))),
+        h("div", {}, h("h4", { class: "eyebrow" }, "Review behaviour"),
+          h("dl", { class: "kv" },
+            h("dt", {}, "as reviewer"), h("dd", { style: "font-family:var(--sans)" },
+              profile.review_behaviour.as_reviewer),
+            h("dt", {}, "as author"), h("dd", { style: "font-family:var(--sans)" },
+              profile.review_behaviour.as_author))),
+        h("div", {}, h("h4", { class: "eyebrow" }, "How it ended"),
+          h("p", { style: "margin:0;color:var(--ink-2);font-size:var(--step--1)" },
+            profile.how_it_ended)),
+        inferredBlock(profile.inferred),
+        evidence(profile.evidence));
+
+      const toggle = h("button", { class: "fchip", "aria-expanded": "false",
+        onclick: ev => {
+          const open = detail.hidden;
+          detail.hidden = !open;
+          ev.currentTarget.setAttribute("aria-expanded", String(open));
+          ev.currentTarget.textContent = open ? "Hide" : "Full profile";
+        } }, "Full profile");
+
+      return h("div", { class: "card person interpreted" },
+        h("div", { class: "area-top" },
+          h("div", {}, h("h3", {}, profile.display_name),
+            h("div", { class: "key" }, profile.id)),
+          h("span", { class: "pill" }, profile.status)),
+        h("div", { class: "headline" }, profile.headline),
+        h("div", { class: "meta-row" },
+          h("span", { class: "pill interp" }, profile.inferred.likely_seniority),
+          h("span", { class: "pill mono" }, n(m.commits) + " commits"),
+          h("span", { class: "pill mono" }, short(m.first_commit) + " → " + short(m.last_commit)),
+          m.pr_share !== null ? h("span", { class: "pill mono" },
+            Math.round(m.pr_share * 100) + "% via PR") : null),
+        h("div", { class: "muted", style: "font-size:var(--step--1)" },
+          profile.inferred.apparent_role_title),
+        h("div", { class: "meta-row" },
+          profile.specialties.slice(0, 4).map(sp => h("span", { class: "pill" }, sp))),
+        h("div", { class: "meta-row" }, toggle),
+        detail);
+    };
+
+    const byId = Object.fromEntries(O.people.profiles.map(p => [p.id, p]));
+    const group = (title, ids, lede) => ids.length ? h("div", { style: "margin-top:1.6rem" },
+      h("h3", { class: "eyebrow" }, title),
+      lede ? h("p", { class: "lede", style: "margin-bottom:.8rem" }, lede) : null,
+      h("div", { class: "grid cols-3" }, ids.map(id => byId[id]).filter(Boolean).map(card))) : null;
+
+    p3.append(h("section", {},
+      sectionHead("Who was here", "People",
+        "Every non-bot contributor has a profile. The core team is named explicitly in the JSON " +
+        "under people.roster.core, so nothing downstream has to guess who mattered."),
+      group("Core team — " + O.people.counts.core, O.people.roster.core,
+        "Five or more commits and a derived ownership role."),
+      group("Occasional contributors — " + O.people.counts.occasional, O.people.roster.occasional,
+        "Drive-by contributors: a fix, an example, a provider."),
+      group("Automation — " + O.people.counts.bots, O.people.roster.bots,
+        "Bot accounts, profiled as tooling rather than staff — which is itself a fact about " +
+        "how this team worked.")));
+  }
+
+  /* --- process + collaboration --- */
+  {
+    const proc = O.process, col = O.collaboration;
+    const fields = ["how_work_starts", "branching", "review_norms", "merge_norms",
+                    "release_process", "ci_role", "testing_norms"];
+    p3.append(h("section", {},
+      sectionHead("How work flowed", "Process and collaboration",
+        proc.summary),
+      h("div", { class: "grid cols-2" },
+        h("div", { class: "card area interpreted" },
+          h("h3", {}, "Process"),
+          h("dl", { class: "kv" }, fields.flatMap(f =>
+            [h("dt", {}, f.replace(/_/g, " ")),
+             h("dd", { style: "font-family:var(--sans)" }, proc[f])])),
+          h("p", { class: "note warn", style: "margin-top:.7rem" },
+            h("b", {}, "Stated vs actual. "), proc.stated_vs_actual),
+          h("h4", { class: "eyebrow", style: "margin-top:.8rem" }, "How it changed"),
+          h("div", { class: "arc" }, proc.evolution.map(ev => h("div", { class: "arc-step" },
+            h("div", { class: "era" }, ev.era_slug),
+            h("div", {}, ev.change))))),
+        h("div", { class: "card area interpreted" },
+          h("h3", {}, "Collaboration"),
+          h("p", { style: "margin:0;color:var(--ink-2)" }, col.shape),
+          h("h4", { class: "eyebrow" }, "Sub-teams"),
+          h("div", { class: "arc" }, col.subteams.map(t => h("div", { class: "arc-step" },
+            h("div", { class: "era" }, t.name),
+            h("div", {}, t.focus, h("div", { class: "ep-sub" },
+              t.members.map(mm => h("span", { class: "mono" }, mm))))))),
+          h("h4", { class: "eyebrow" }, "Ownership handoffs"),
+          h("div", { class: "arc" }, col.handoffs.map(hf => h("div", { class: "arc-step" },
+            h("div", { class: "era" }, hf.when),
+            h("div", {}, hf.area, h("div", { class: "muted" },
+              hf.from_person + " → " + hf.to_person))))),
+          h("h4", { class: "eyebrow" }, "Automation"),
+          h("p", { style: "margin:0;color:var(--ink-2);font-size:var(--step--1)" },
+            col.automation_role),
+          inferredBlock(col.inferred)))));
+  }
+
+  /* --- timeline --- */
+  p3.append(h("section", {},
+    sectionHead("In order", "Timeline",
+      "The dated events someone who lived through this would put on a wall chart."),
+    h("div", { class: "card", style: "padding:.8rem 1.1rem" },
+      h("div", { class: "tl-list" }, O.timeline.map(ev => h("div", { class: "tl-item" },
+        h("div", { class: "d" }, ev.date),
+        h("div", {}, h("span", { class: "pill" }, ev.kind)),
+        h("div", {},
+          h("div", { class: "ep-title" }, ev.title),
+          h("div", { class: "ep-sub" }, ev.detail))))))));
+}
+
+
+/* ===========================================================================
+   Panel 4 — the raw record (stage 0)
+   =========================================================================== */
+const H = DATA.history;
+const p4 = document.getElementById("panel-raw");
+
+if (!H) {
+  p4.append(h("section", {}, h("p", { class: "note" },
+    "No repository_history.json was found when this report was built.")));
+} else {
+  /* A patch, coloured. Built from text nodes, never innerHTML — this is real
+     file content and must not be interpreted as markup. */
+  const renderDiff = patch => {
+    const pre = h("pre", { class: "diff" });
+    for (const line of patch.split("\n")) {
+      const cls = line.startsWith("+++") || line.startsWith("---") ? "h"
+        : line.startsWith("@@") ? "m"
+        : line.startsWith("+") ? "a"
+        : line.startsWith("-") ? "r"
+        : line.startsWith("diff --git") || line.startsWith("index ") ? "h" : "";
+      pre.append(h("span", cls ? { class: cls } : {}, line + "\n"));
+    }
+    return pre;
+  };
+
+  const r = H.retention, t = H.totals;
+  p4.append(h("section", {},
+    sectionHead("Stage 0", "Everything, before anything synthetic",
+      "The repository mined once, exactly as it is: the full commit graph across every ref, " +
+      "GitHub's issues, reviews and releases, and — the part that matters — the actual code. " +
+      "Every change keeps its before-state, its diff and its after-state, so a later stage " +
+      "adapts a real change instead of inventing a file from scratch."),
+    tiles([
+      { v: n(t.commits), k: "commits", sub: H.dag.merges + " merges, all refs" },
+      { v: n(t.file_changes), k: "file changes",
+        sub: r.patch_stats.files_with_patch + " with the diff retained" },
+      { v: n(r.blob_stats.blobs), k: "file versions stored",
+        sub: "every text blob, by SHA" },
+      { v: n(t.pull_requests), k: "pull requests", sub: n(t.issues) + " issues" },
+      { v: n(t.review_comments), k: "line comments",
+        sub: n(t.reviews) + " reviews, " + n(t.comments) + " thread comments" },
+      { v: n(t.releases), k: "releases", sub: H.tag_count + " tags" },
+    ]),
+    h("p", { class: "note", style: "margin-top:1rem" },
+      h("b", {}, "This page is a view, not the data. "),
+      "The record is ", h("span", { class: "mono" }, "build/repository_history.json"),
+      " with a content-addressed blob store beside it; only a sample is shown here.")));
+
+  /* --- the retained code --- */
+  p4.append(h("section", {},
+    sectionHead("The point of all this", "Real before → change → after",
+      H.triples.length + " real modified files, spread across the history. Each keeps the " +
+      "exact bytes it started from and ended at, addressed by git blob SHA, with the diff " +
+      "between them. Applying a stored patch to its stored before-state reproduces the " +
+      "recorded after-state exactly."),
+    h("div", { class: "stack" }, H.triples.map(tr => h("div", { class: "card triple" },
+      h("div", { class: "triple-head" },
+        h("div", { class: "p" }, tr.path),
+        h("div", { class: "muted", style: "font-size:var(--step--1)" },
+          tr.date + " · " + (tr.author || "unknown"))),
+      h("div", { class: "muted", style: "font-size:var(--step--1)" }, tr.subject),
+      h("div", { class: "flow" },
+        h("span", {}, "before "), h("b", {}, tr.blob_before),
+        h("span", {}, "(" + n(tr.bytes_before) + " B)"),
+        h("span", {}, "→"),
+        h("span", { class: "add" }, "+" + tr.added), h("span", { class: "del" }, "−" + tr.deleted),
+        h("span", {}, "→"),
+        h("span", {}, "after "), h("b", {}, tr.blob_after),
+        h("span", {}, "(" + n(tr.bytes_after) + " B)"),
+        h("span", { class: "muted" }, "· " + tr.commit)),
+      renderDiff(tr.patch))))));
+
+  /* --- graph shape --- */
+  {
+    const years = Object.entries(H.commits_per_year);
+    p4.append(h("section", {},
+      sectionHead("Shape of the graph", "Commits, branches and refs",
+        "Walked from every ref, not just the mainline — " + H.dag.side_branch_only +
+        " commits exist only on side branches and would be invisible to a HEAD-only walk."),
+      h("div", { class: "grid cols-2" },
+        h("div", { class: "card area" },
+          h("h3", {}, "Commit graph"),
+          h("dl", { class: "kv" },
+            h("dt", {}, "across all refs"), h("dd", {}, n(H.dag.all_refs)),
+            h("dt", {}, "reachable from HEAD"), h("dd", {}, n(H.dag.on_head)),
+            h("dt", {}, "side branches only"), h("dd", {}, n(H.dag.side_branch_only)),
+            h("dt", {}, "landings on main"), h("dd", {}, n(H.dag.first_parent)),
+            h("dt", {}, "merges"), h("dd", {}, n(H.dag.merges))),
+          h("h4", { class: "eyebrow" }, "Commits per year"),
+          bars(years.map(([y, c]) => ({ label: y, value: c })))),
+        h("div", { class: "card area" },
+          h("h3", {}, "Branches with unmerged work"),
+          bars(H.branches.filter(b => b.commits_not_on_head > 0).map(b => ({
+            label: b.name.replace(/^origin\//, ""), full: b.name,
+            value: b.commits_not_on_head,
+            tip: b.commits_not_on_head + " commits not on HEAD" }))),
+          h("h4", { class: "eyebrow" }, "Recent releases"),
+          h("div", { class: "flist" }, H.releases.slice(-8).reverse().map(rel => h("div", {},
+            h("span", { class: "p" }, rel.tag || rel.name),
+            h("span", { class: "muted" }, rel.published))))))));
+  }
+
+  /* --- what was kept and what was not --- */
+  p4.append(h("section", {},
+    sectionHead("Retention", "What is kept, and what is deliberately not",
+      "Lockfiles, recorded HTTP cassettes and binaries are bulk with nothing to adapt, so " +
+      "their diffs and contents are skipped. The exclusions are listed rather than silently " +
+      "applied."),
+    h("div", { class: "grid cols-2" },
+      h("div", { class: "card area" },
+        h("h3", {}, "Kept"),
+        h("dl", { class: "kv" },
+          h("dt", {}, "file patches"), h("dd", {}, n(r.patch_stats.files_with_patch)),
+          h("dt", {}, "patch bytes"), h("dd", {}, n(r.patch_stats.patch_bytes)),
+          h("dt", {}, "truncated"), h("dd", {},
+            r.patch_stats.truncated + " over " + n(r.max_file_patch_bytes) + " B"),
+          h("dt", {}, "blobs stored"), h("dd", {}, n(r.blob_stats.blobs)),
+          h("dt", {}, "blob bytes"), h("dd", {}, n(r.blob_stats.bytes))),
+        h("h4", { class: "eyebrow" }, "Stored file versions by language"),
+        bars(Object.entries(H.blob_languages).map(([k, v]) => ({ label: k, value: v })))),
+      h("div", { class: "card area" },
+        h("h3", {}, "Skipped as noise"),
+        bars(Object.entries(H.noise_excluded).map(([k, v]) => ({
+          label: k, value: v, color: "var(--ink-3)",
+          tip: v + " file changes skipped" }))),
+        h("p", { class: "note", style: "margin-top:.6rem" },
+          h("b", {}, "Why. "),
+          "These are bulk with nothing to adapt — recorded HTTP fixtures, lockfiles and " +
+          "binaries. " + n(r.patch_stats.skipped_noise) + " file changes were skipped on " +
+          "that basis; the pattern that decides is in ",
+          h("span", { class: "mono" }, "retention.noise_pattern"), ".")))));
+
+  /* --- how they write --- */
+  {
+    const cs = H.patterns.commit_subjects, b = H.patterns.bodies;
+    const yearly = Object.entries(H.patterns.commit_subjects_by_year);
+    p4.append(h("section", {},
+      sectionHead("Voice", "How this team writes",
+        "Message and title conventions, measured — the raw material for making synthetic " +
+        "commits and pull requests sound like they came from this repository."),
+      h("div", { class: "grid cols-2" },
+        h("div", { class: "card area" },
+          h("h3", {}, "Commit subjects"),
+          h("div", { class: "meta-row" },
+            h("span", { class: "pill mono" }, "p50 " + cs.length.p50 + " chars"),
+            h("span", { class: "pill mono" },
+              Math.round(cs.conventional_share * 100) + "% conventional"),
+            h("span", { class: "pill mono" },
+              Math.round(cs.starts_capitalised * 100) + "% capitalised"),
+            h("span", { class: "pill mono" },
+              Math.round(b.share_with_body * 100) + "% have a body")),
+          h("h4", { class: "eyebrow" }, "Prefixes actually used"),
+          bars(Object.entries(cs.conventional_prefixes).slice(0, 10)
+            .map(([k, v]) => ({ label: k + ":", value: v }))),
+          (() => {
+            const ranked = Object.entries(cs.conventional_prefixes);
+            if (!ranked.length) return null;
+            const [top, topN] = ranked[0];
+            const spec = ["feat", "fix", "chore", "docs", "test", "refactor", "perf",
+                          "build", "ci", "style", "revert"];
+            return h("p", { class: "note", style: "margin-top:.5rem" },
+              h("b", {}, "Most-used prefix: "), h("span", { class: "mono" }, top + ":"),
+              ` (${topN} uses)`,
+              spec.includes(top) ? "." :
+                " — which is not part of the Conventional Commits spec at all. Reading a " +
+                "project's conventions off its own history beats assuming the standard ones.");
+          })()),
+        h("div", { class: "card area" },
+          h("h3", {}, "Pull request titles and branches"),
+          h("div", { class: "meta-row" },
+            h("span", { class: "pill mono" },
+              "p50 " + H.patterns.pull_request_titles.length.p50 + " chars"),
+            h("span", { class: "pill mono" },
+              Math.round(H.patterns.pull_request_titles.conventional_share * 100) +
+              "% conventional")),
+          h("h4", { class: "eyebrow" }, "Branch name prefixes"),
+          bars(Object.entries(H.patterns.branch_name_prefixes).slice(0, 10)
+            .map(([k, v]) => ({ label: k, value: v }))),
+          h("h4", { class: "eyebrow" }, "Trailers and links"),
+          h("dl", { class: "kv" },
+            h("dt", {}, "Co-authored-by"), h("dd", {}, n(b.co_authored_by)),
+            h("dt", {}, "Signed-off-by"), h("dd", {}, n(b.signed_off_by)),
+            h("dt", {}, "closes an issue"), h("dd", {}, n(b.closes_an_issue))),
+          h("h4", { class: "eyebrow" }, "Conventional share by year"),
+          bars(yearly.map(([y, v]) => ({
+            label: y, value: Math.round(v.conventional_share * 100),
+            tip: Math.round(v.conventional_share * 100) + "% of " + v.count + " subjects" })),
+            { format: v => v + "%" })))));
+  }
+}
+
+/* ---------- tabs ---------- */
+const panels = { "tab-codebase": "panel-codebase", "tab-work": "panel-work",
+                 "tab-org": "panel-org", "tab-raw": "panel-raw" };
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    for (const [t, p] of Object.entries(panels)) {
+      const on = t === tab.id;
+      document.getElementById(t).setAttribute("aria-selected", String(on));
+      document.getElementById(p).hidden = !on;
+    }
+    scrollTo({ top: 0, behavior: "instant" });
+  });
+});
+
+document.getElementById("footer").append(
+  h("div", {}, "Generated " + G.generated_at + " by data_gen/analyze_repository.py and " +
+    "data_gen/build_episodes.py, then projected by data_gen/make_report.py."),
+  h("div", {}, "Every number here comes from those two files. Nothing is computed in this page."),
+);
+</script>

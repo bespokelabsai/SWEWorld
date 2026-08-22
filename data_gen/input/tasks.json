@@ -1,0 +1,2210 @@
+{
+  "repository": "https://github.com/bespokelabsai/curator",
+  "tasks": [
+    {
+      "title": "Prompt-level response cache keying",
+      "description": "Add a `cache_stats()` method to `curator.LLM` that reports how many of the last run's requests were served from the local cache versus sent to the backend, so users can gauge how much a re-run will cost before running it.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The cache key used to look up a prior response must be derived from the exact tuple of (rendered prompt text, model_name, response_format schema, and generation_params) \u2014 not from the raw input row alone.",
+            "scope": "Applies to every request path that already calls the existing cache-lookup helper, including batch and online modes.",
+            "exclusions_or_crossover": "Two rows that render to an identical prompt string but differ only in fields unused by `prompt()` must be counted as the same cache entry, not treated as separate misses.",
+            "failure_behavior": "If `response_format` cannot be hashed (e.g. a dynamically constructed Pydantic model), the row must be treated as a guaranteed cache miss rather than raising.",
+            "observability": "`cache_stats()` must expose a `hit_rate` float and a `misses` int that together account for 100% of processed rows."
+          },
+          "earlier_reversed_version": "The team originally cached on the raw input row's hash alone, but reversed this after noticing identical prompts with cosmetic input differences were needlessly re-billed.",
+          "fragmentation_sources": [
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T6"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "`cache_stats()` must read from the same on-disk cache directory the rest of `curator.LLM` uses, honoring `CURATOR_CACHE_DIR` if set, and must never write to or mutate the cache directory itself.",
+            "scope": "Read-only access to whatever directory the existing caching layer resolves to at call time.",
+            "failure_behavior": "If the cache directory does not exist yet (no prior run), return zeroed stats rather than raising a file-not-found error.",
+            "observability": "The returned object must include the resolved cache directory path so users can verify which cache was inspected."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "notion",
+            "github"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Batch mode cost estimate before submission",
+      "description": "When `batch=True` is passed to `curator.LLM`, add a pre-flight step that prints an estimated cost for the batch job before any requests are submitted to the provider.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The discount factor applied to the estimate must be provider-specific: 50% off standard per-token pricing for OpenAI and Anthropic batch, but the discount must NOT be applied for any provider routed through the `litellm` backend, since litellm does not expose a distinct batch pricing tier in this codebase.",
+            "scope": "Only the batch cost pre-flight estimator; does not change actual billing.",
+            "exclusions_or_crossover": "litellm-backed models must show the standard (non-discounted) per-token estimate even when batch=True is set on them."
+          },
+          "earlier_reversed_version": "An early version applied the flat 50% discount to every backend uniformly, which was reversed once it was noticed litellm requests aren't actually charged at the batch rate.",
+          "fragmentation_sources": [
+            "slack",
+            "github"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The estimate must be computed from a sample of the first N rows (not the full dataset) when the dataset exceeds a size threshold, to avoid iterating the entire dataset just to print an estimate.",
+            "scope": "Applies whenever the input dataset length exceeds the threshold; below it, use every row.",
+            "failure_behavior": "If prompt() raises on any sampled row while estimating, skip that row from the estimate silently rather than aborting the whole pre-flight step.",
+            "observability": "The printed estimate must state whether it was computed from a full pass or a sample, and the sample size used."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Rate limiter shared across chained LLM blocks",
+      "description": "Support passing an existing rate limiter instance between two `curator.LLM` blocks in a pipeline (e.g. TopicGenerator -> Poet) so they share the same requests-per-minute budget instead of each block getting its own independent limiter.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "When a shared limiter is passed, the second block in the chain must NOT re-initialize `max_requests_per_minute` / `max_tokens_per_minute` from its own `backend_params`; those values must be ignored in favor of the shared limiter's configuration.",
+            "scope": "Only applies when a limiter object (not raw numbers) is explicitly passed into `backend_params`.",
+            "exclusions_or_crossover": "If no shared limiter is passed, each block must continue to build its own independent limiter from its own backend_params exactly as before."
+          },
+          "earlier_reversed_version": "The first draft let the second block's backend_params override the shared limiter's rpm, which silently broke the whole point of sharing it, and was reversed.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The shared limiter must track token and request budgets per-process, and must be reset (not reused) between two separate top-level pipeline invocations run back-to-back in the same Python process.",
+            "scope": "Applies to reuse of the same limiter object across multiple `.__call__()` invocations of the pipeline.",
+            "failure_behavior": "If the limiter is not reset and a second invocation starts while budget already appears exhausted from the first, it must raise a clear error rather than silently stalling forever.",
+            "observability": "A `.remaining_budget()` accessor must be available on the limiter for the pipeline to log at the start of each invocation."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "DeepSeek empty-response retry handling",
+      "description": "Add automatic retry-on-empty-response handling for the `openai`-compatible backend when used against DeepSeek's API, since DeepSeek intermittently returns empty completions under load.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "An empty (zero-length) completion string from DeepSeek must be treated as a retryable failure and re-queued using the backend's existing retry/backoff path, not surfaced to `parse()` as a valid response.",
+            "scope": "Only applies when the resolved base_url points at DeepSeek's API; must not change retry behavior for other openai-compatible endpoints, which may legitimately return short or empty strings as valid content.",
+            "failure_behavior": "After `max_retries` is exhausted on empty responses, the row must fail with an error message that explicitly names DeepSeek and empty-response retries as the cause, not a generic timeout message."
+          },
+          "earlier_reversed_version": "The team first considered treating any response under a fixed character-length threshold as 'empty' and retrying it, but reversed this once it started retrying legitimately short one-word completions.",
+          "fragmentation_sources": [
+            "github",
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "This special-casing must live entirely inside the openai-compatible backend's response-handling path and must not require the caller to pass any DeepSeek-specific flag; detection of 'this is DeepSeek' must be inferred from the configured base_url alone.",
+            "scope": "Backend-internal detection only.",
+            "exclusions_or_crossover": "Must not add a new public `backend_params` key like `is_deepseek` \u2014 the ticket's contract is that existing `backend_params` (base_url, api_key, max_retries) are the only inputs."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Curator Viewer default dataset visibility",
+      "description": "Wire up the `CURATOR_VIEWER` environment variable so that when set, each `curator.LLM` run streams its generated rows to the hosted viewer as they're produced, and prints the viewer URL next to the progress bar.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Datasets streamed to the viewer without an associated `BESPOKE_API_KEY` must be uploaded as accessible-to-anyone-with-the-link, and the CLI must print an explicit one-line notice that the run is not private the first time a viewer session starts without a key.",
+            "scope": "Applies once per process per viewer session, not once per row.",
+            "exclusions_or_crossover": "Once `BESPOKE_API_KEY` is set, no such notice should print, and the dataset must instead be associated with that account.",
+            "failure_behavior": "If the upload call itself fails (network error), generation must continue locally and only the viewer streaming must be disabled for the remainder of that run \u2014 the underlying `curator.LLM` job must never fail because of a viewer upload error.",
+            "observability": "The printed viewer URL must appear exactly once per run, immediately next to the rich progress display, not once per streamed row."
+          },
+          "earlier_reversed_version": "The first implementation silently defaulted new datasets to link-accessible with no notice at all, which was reversed after users were surprised their generations were viewable by link.",
+          "fragmentation_sources": [
+            "notion",
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T8"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Viewer streaming must degrade gracefully to the tqdm fallback path when `CURATOR_DISABLE_RICH_DISPLAY` is also set, and the printed viewer URL must still appear in that mode via plain `print()`, not via the Rich console object.",
+            "scope": "Interaction between CURATOR_VIEWER and CURATOR_DISABLE_RICH_DISPLAY.",
+            "exclusions_or_crossover": "The Rich console object must not be constructed at all when CURATOR_DISABLE_RICH_DISPLAY is set, even transiently, since it can interfere with pdb as documented."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Telemetry opt-out propagation",
+      "description": "Ensure the anonymized usage telemetry Curator sends respects the `TELEMETRY_ENABLED` environment variable across every code path that currently fires a telemetry event.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The `TELEMETRY_ENABLED` check must be re-evaluated at the moment each event is about to be sent, not cached once at process start, so that a user who sets the variable mid-session (e.g. in a notebook cell) has it take effect for subsequent events without restarting the kernel.",
+            "scope": "Applies to every telemetry call site: LLM init, batch submission, code executor invocation, trainer runs.",
+            "exclusions_or_crossover": "Events already queued for async send before the variable changes may still complete; only new events must respect the change."
+          },
+          "earlier_reversed_version": "The original design read the env var once into a module-level constant at import time, which was reversed because notebook users couldn't opt out without restarting.",
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Telemetry payloads must never include the literal prompt or parse function source code or the rendered prompt text of any row \u2014 only structural metadata (model name, backend, row count, elapsed time) \u2014 even though the event schema technically has room for a free-text field.",
+            "scope": "All telemetry payload construction sites.",
+            "failure_behavior": "If a caller mistakenly passes prompt text into the free-text field, it must be dropped/redacted before the event is serialized, not sent as-is.",
+            "observability": "A debug-mode flag must let a developer print the exact payload about to be sent, for auditing."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "TinkerTrainer checkpoint resume without replay",
+      "description": "Implement `TinkerTrainer.load_checkpoint()` so that calling `.train()` again after loading a checkpoint continues training from that point using new data, matching the documented 'no data is replayed' behavior.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Loading a checkpoint must restore both model weights and optimizer state, and the trainer's internal step counter must resume from the checkpoint's recorded step rather than resetting to zero, so that learning-rate schedules keyed on step count continue correctly.",
+            "scope": "`load_checkpoint()` and the subsequent `.train()` call only.",
+            "exclusions_or_crossover": "The training data passed to the resumed `.train()` call must never be concatenated with or compared against data from the original run \u2014 the trainer must not attempt deduplication against prior batches.",
+            "failure_behavior": "If the checkpoint's optimizer state is missing or corrupted, `load_checkpoint()` must raise immediately rather than silently falling back to freshly-initialized optimizer state, since that would violate the 'continues from where it left off' contract."
+          },
+          "earlier_reversed_version": "An earlier draft reset the step counter to zero on every load_checkpoint() call for simplicity, which was reversed once it broke LR schedules on resumed runs.",
+          "fragmentation_sources": [
+            "notion",
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "`CheckpointInfo` objects passed to `load_checkpoint()` must be validated against the `base_model` and `lora_config` of the `TinkerTrainerConfig` currently being used; a checkpoint saved under a different base model or LoRA rank must be rejected.",
+            "scope": "Validation happens inside `load_checkpoint()`, before any weights are restored.",
+            "failure_behavior": "Mismatch must raise a descriptive error naming both the checkpoint's and the current config's base_model/rank, not a generic shape-mismatch tensor error from the underlying SDK."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "FireworksTrainer mock mode fidelity",
+      "description": "Make `FireworksTrainer` fully usable offline: when neither the Fireworks SDK nor an API key is available, it should run in mock mode so examples and tests work without real training infrastructure.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Mock mode must still enforce the same `training_data` validation Fireworks itself enforces (minimum of 3 examples), and must raise the identical error type/message a real Fireworks call would raise on too-few examples, so example scripts and tests behave the same in both modes.",
+            "scope": "Validation of `training_data` length, applied before any mock/real branching for the actual training call.",
+            "exclusions_or_crossover": "Mock mode must not validate `lora_rank` against real Fireworks account tier limits, since that check requires a live account and has no offline equivalent."
+          },
+          "earlier_reversed_version": "Mock mode originally skipped all input validation entirely to 'just make it work offline', which was reversed after example scripts with too little data silently 'succeeded' locally then failed in production.",
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "In mock mode, `result.weights_name` must be a clearly-fake, deterministically-generated placeholder string (not a random UUID) so that repeated test runs with the same input produce the same mock weights_name, keeping tests reproducible.",
+            "scope": "Mock-mode result construction only.",
+            "failure_behavior": "Real (non-mock) mode must never produce a weights_name matching the mock naming pattern, to avoid a downstream consumer mistaking a real deployment for a mock one.",
+            "observability": "The mock weights_name must be visibly distinguishable (e.g. an obvious prefix) so logs make clear a job ran in mock mode."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T4"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "FireworksTrainer deployment teardown",
+      "description": "Ensure `trainer.close()` reliably tears down the on-demand Fireworks deployment provisioned by `trainer.sample()`, so users aren't billed for idle deployments they forgot about.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "`close()` must be safe to call multiple times and safe to call even if `sample()` was never invoked (i.e. no deployment was ever provisioned) \u2014 it must not raise in either case.",
+            "scope": "`FireworksTrainer.close()` only.",
+            "exclusions_or_crossover": "Must not attempt to tear down a deployment belonging to a different trainer instance or a different `weights_name` than the one this trainer provisioned."
+          },
+          "earlier_reversed_version": "An early version raised if close() was called without a prior sample() call, on the theory that it indicated misuse; this was reversed since defensive double-close() calls are a normal cleanup pattern (e.g. in a finally block).",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If teardown fails (network error, deployment already gone), `close()` must log a clear warning naming the deployment/weights_name that could not be torn down, and must not raise, so that a script's cleanup-on-exit `finally: trainer.close()` never itself crashes the program.",
+            "failure_behavior": "Log-and-continue, never raise, on teardown failure.",
+            "observability": "The warning message must include enough identifying info (weights_name or deployment id) for the user to manually clean it up via the Fireworks console."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Code executor backend selection",
+      "description": "Add a unified `CodeExecutor` entry point that dispatches generated code to one of four backends \u2014 local (multiprocessing), Ray, Docker, or e2b \u2014 based on a `backend` argument, with local as the default.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "When `backend='docker'` is selected but the Docker daemon is not reachable, the executor must fail fast with a clear 'Docker daemon not running' error before attempting to run any code, rather than falling back silently to the local multiprocessing backend.",
+            "scope": "Backend availability check happens once at CodeExecutor construction time, not per-execution.",
+            "exclusions_or_crossover": "This fail-fast behavior must NOT apply to the `local` backend being unavailable, since local has no external dependency to check \u2014 it must always be considered available."
+          },
+          "earlier_reversed_version": "An earlier draft silently fell back to the local backend whenever Docker wasn't reachable, on the theory that 'something running is better than nothing', but this was reversed because it silently changed the sandboxing guarantees users were relying on.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The e2b backend must read its API key exclusively from the `E2B_API_KEY` environment variable and must never accept the key via a `backend_params` dict entry, unlike every other backend in this executor which does accept credentials via `backend_params`.",
+            "scope": "e2b backend credential resolution only.",
+            "exclusions_or_crossover": "Other backends (Docker, Ray) continue to accept their configuration via `backend_params` as normal; only e2b's key path is restricted to the env var."
+          },
+          "earlier_reversed_version": "The team initially added an `api_key` field to backend_params for e2b for consistency with other backends, then reversed it after a security review flagged that backend_params objects sometimes get logged or serialized in debug output.",
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ray code executor resource limits",
+      "description": "Extend the Ray backend of `CodeExecutor` to accept per-task CPU and memory limits so generated code can't starve the cluster.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "CPU and memory limits must be passed through to Ray's `@ray.remote(num_cpus=..., memory=...)` resource options at task submission time, not enforced after the fact by monitoring and killing the task.",
+            "scope": "Ray backend task submission path only.",
+            "failure_behavior": "If a task exceeds the memory limit, Ray's own OOM killer behavior must be allowed to terminate it, and CodeExecutor must surface that as a distinguishable 'resource limit exceeded' error rather than a generic execution failure."
+          },
+          "earlier_reversed_version": "A first pass tried to poll task memory usage from a background thread and cancel tasks that exceeded the limit, which was reversed in favor of using Ray's native resource reservation since polling was racy and could miss short spikes.",
+          "fragmentation_sources": [
+            "email",
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T8"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Default CPU/memory limits must be applied when the caller does not specify them, using values pulled from a constants module already used elsewhere in the codebase for the local/multiprocessing backend's defaults, so Ray and local defaults stay consistent.",
+            "scope": "Default value sourcing only.",
+            "exclusions_or_crossover": "The Ray backend must not define its own separate hardcoded defaults that could drift from the local backend's defaults over time."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Structured output schema validation before dispatch",
+      "description": "Before sending any request to a backend, validate that the `response_format` Pydantic model passed to `curator.LLM` is compatible with structured-output mode for the selected model, and fail early with a clear message if not.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Compatibility must be checked against a maintained list of model name patterns known to support structured outputs (e.g. gpt-4o family, o3 family per the existing model-support list), and the check must happen once at `LLM.__init__` time, not per-row at request time.",
+            "scope": "`LLM.__init__` only.",
+            "failure_behavior": "An unsupported model + response_format combination must raise `ValueError` immediately at construction, before `__call__` ever touches the dataset, so failures show up before any API spend."
+          },
+          "earlier_reversed_version": "The check was originally deferred to the first request's response, relying on the backend's own 400 error to surface incompatibility \u2014 this was reversed since it meant burning at least one paid request before the user found out.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The model-support list used for this check must be the same list maintained for the existing structured-output feature (the one already updated when new models like o3 are added) \u2014 this task must not introduce a second, separate list that could drift out of sync with it.",
+            "scope": "Reuse of the existing model-support list only."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Multimodal image input encoding",
+      "description": "Support passing local image file paths (not just URLs) as part of the prompt for multimodal `curator.LLM` runs, automatically base64-encoding them for the backend.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Images must be encoded lazily, at the point each row's request is actually built and sent, not eagerly for the whole dataset at `LLM.__call__` time \u2014 encoding the whole dataset upfront would spike memory for large multimodal datasets.",
+            "scope": "Applies to the request-building path for multimodal rows specifically."
+          },
+          "earlier_reversed_version": "An early implementation base64-encoded every image path in the input dataset upfront in a pre-processing pass for simplicity, which was reversed after it caused memory spikes on datasets with thousands of large images.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If an image path in the input does not exist on disk, that row must fail with an error identifying the missing path and the row index, and processing of other rows in the same batch must continue rather than aborting the whole run.",
+            "scope": "Per-row error isolation for missing image files.",
+            "failure_behavior": "Missing-file errors must be collected and reported in the final summary rather than raised synchronously mid-run, matching how other per-row failures are already surfaced in this codebase.",
+            "observability": "The final run summary must list which row indices failed due to missing images, distinct from rows that failed for other reasons (e.g. API errors)."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "HuggingFace Dataset input pass-through",
+      "description": "Allow `curator.LLM.__call__` to accept a HuggingFace `Dataset` object directly (in addition to a plain list of dicts), preserving any existing dataset features/columns not touched by `prompt()`.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Columns present in the input `Dataset` that `prompt()` never reads must still be carried through into the corresponding output rows unless `parse()` explicitly overwrites a same-named key, so a caller who just wants to add one derived column doesn't lose the rest of their dataset.",
+            "scope": "Applies to Dataset input specifically; a plain list-of-dicts input has no 'extra columns' concept and is unaffected.",
+            "exclusions_or_crossover": "If `parse()` returns a key with the same name as an existing input column, the parsed value must win \u2014 untouched pass-through never overrides explicit `parse()` output."
+          },
+          "earlier_reversed_version": "The first version only kept columns explicitly referenced inside `prompt()`, which was reversed once users complained their unrelated metadata columns (e.g. source, id) silently disappeared.",
+          "fragmentation_sources": [
+            "notion",
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Passing a HuggingFace `Dataset` must not require materializing the entire dataset into memory as a Python list before processing begins; the existing lazy/streaming iteration path already used for list inputs must be reused for Dataset inputs too.",
+            "scope": "Iteration strategy for Dataset inputs."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Anthropic batch mode polling window",
+      "description": "Implement Anthropic batch mode support for `curator.LLM` (`batch=True` with an Anthropic model), including polling the batch job until completion.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The poller must use exponential backoff between status checks, starting at a short interval and capping at a maximum interval, rather than polling at a fixed interval \u2014 this must match the polling strategy already used by the existing OpenAI batch implementation, for consistency across providers.",
+            "scope": "Polling loop implementation for Anthropic batch jobs.",
+            "exclusions_or_crossover": "Must not introduce a second, differently-tuned backoff schedule just for Anthropic; it must reuse the same backoff helper/constants as OpenAI batch."
+          },
+          "earlier_reversed_version": "A first draft polled Anthropic at a fixed 10-second interval since that was simplest, but this was reversed to keep behavior consistent with the existing OpenAI backoff poller and avoid two different tuning knobs to maintain.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If the Anthropic batch job reports a partial failure (some requests in the batch succeeded, others errored), the successful results must still be parsed and returned, with only the failed rows marked as errors in the final dataset \u2014 the whole batch must not be treated as failed.",
+            "scope": "Result assembly after batch completion.",
+            "failure_behavior": "Partial failure must be surfaced per-row, not as a single job-level exception.",
+            "observability": "The run summary must report counts of succeeded vs failed rows within the batch."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ollama backend default base_url",
+      "description": "Wire up `backend='ollama'` support so `curator.LLM` can target a local or remote Ollama server via `backend_params={'base_url': ...}`.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "When no `base_url` is provided in `backend_params`, the backend must default to `http://localhost:11434` (Ollama's standard local port) rather than raising a required-parameter error, since the documented quickstart usage omits base_url entirely for local use.",
+            "scope": "Ollama backend param resolution only."
+          },
+          "earlier_reversed_version": "An early draft made `base_url` a required backend_param for the ollama backend for explicitness, which was reversed to match the documented example that runs with no base_url set at all.",
+          "fragmentation_sources": [
+            "slack",
+            "github"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The Ollama backend must not apply the same `max_retries` default used by the openai-compatible backend for hosted APIs; because a local Ollama server has no rate limits or transient network hops to a remote datacenter, its default retry count must be lower.",
+            "scope": "Default retry configuration, Ollama backend only.",
+            "exclusions_or_crossover": "This lower default must not be applied when a user targets a remote (non-localhost) Ollama server via a custom base_url \u2014 but detecting 'remote' is out of scope for this task; the lower default applies unconditionally whenever backend='ollama'."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "vLLM backend gpu_memory_utilization bounds",
+      "description": "Add validation for the `gpu_memory_utilization` and `tensor_parallel_size` backend_params accepted by the vLLM backend.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "`gpu_memory_utilization` must be validated as a float strictly between 0 and 1 (exclusive of 0, inclusive-or-exclusive of 1 depending on vLLM's own accepted range) at `LLM.__init__` time, and an out-of-range value must raise before any GPU/model loading is attempted.",
+            "scope": "Validation at construction time, before the vLLM engine is instantiated.",
+            "failure_behavior": "Out-of-range values raise `ValueError` naming the offending value and the valid range, not a downstream CUDA/vLLM stack trace."
+          },
+          "earlier_reversed_version": "The team first let vLLM's own engine raise on invalid values, but reversed this because vLLM's underlying error for this case is a low-level assertion with no user-friendly message.",
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T8"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "`tensor_parallel_size` must default to 1 when omitted, matching the documented example, and must be validated as a positive integer; but this validation must not attempt to check it against the number of GPUs actually visible on the machine \u2014 that check is explicitly out of scope and left to vLLM itself to fail on.",
+            "scope": "Type/positivity validation only, no hardware introspection."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Semaphore-gated row creation to prevent OOM",
+      "description": "Add a configurable semaphore that limits how many in-flight rows can be actively being processed (prompt built, request sent, response parsed) at once, to prevent out-of-memory errors on very large datasets.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The semaphore must gate the creation of new in-flight rows, not just the sending of requests \u2014 i.e. a row must not even have its prompt rendered and held in memory until a semaphore slot is available, since prompt rendering itself can be memory-heavy for multimodal inputs.",
+            "scope": "Applies to the row-processing pipeline stage that currently renders prompts eagerly ahead of request dispatch."
+          },
+          "earlier_reversed_version": "An initial version gated only the network request step while still eagerly rendering all prompts upfront, which was reversed once it became clear that step alone didn't fix the OOM since prompt rendering was already the memory-heavy part.",
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The semaphore's default size must scale with a value already computed elsewhere for rate limiting (e.g. derived from `max_requests_per_minute`), not be a new independent hardcoded constant, so the two throttling mechanisms don't fight each other under load.",
+            "scope": "Default semaphore size sourcing.",
+            "exclusions_or_crossover": "Must not hardcode an unrelated fixed default like 100 that ignores the configured rate limit entirely."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cache invalidation on response_format schema change",
+      "description": "Ensure that changing the fields or types inside a `response_format` Pydantic model invalidates previously cached responses for prompts that used the old schema, so users don't silently get stale, differently-shaped cached data.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The cache key must incorporate a hash of the `response_format` model's JSON schema (field names, types, and required-ness), not just the model's class name, since two model classes with the same name across code revisions would otherwise collide.",
+            "scope": "Cache key construction for structured-output requests only; unstructured (plain string) requests are unaffected.",
+            "failure_behavior": "If the schema cannot be introspected (e.g. a malformed Pydantic model), the row must be treated as an automatic cache miss."
+          },
+          "earlier_reversed_version": "The first version keyed the cache on `response_format.__name__` alone, which was reversed after users hit stale-shape bugs when they edited a model's fields but kept its class name the same.",
+          "fragmentation_sources": [
+            "github",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "This schema-aware cache key change must apply going forward only \u2014 it must not attempt to retroactively invalidate or migrate any existing on-disk cache entries created before this change, since older cache entries have no recorded schema hash to compare against.",
+            "scope": "Migration/backward-compatibility scope.",
+            "exclusions_or_crossover": "Do not write a cache migration script as part of this task."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "CLI progress display rpm indicator",
+      "description": "Add a requests-per-minute (rpm) live indicator to the Rich CLI progress display shown during `curator.LLM` runs.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The rpm value shown must be a rolling window average (e.g. over the trailing 60 seconds of completed requests), not a cumulative average since the run started, since a cumulative average would understate the true current rate for long-running jobs as they slow down or speed up.",
+            "scope": "Rich progress display rpm computation only."
+          },
+          "earlier_reversed_version": "An early version computed rpm as total_completed / elapsed_minutes since job start, which was reversed after users found it misleading on long jobs whose rate changed significantly partway through.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "When `CURATOR_DISABLE_RICH_DISPLAY` is set and the tqdm fallback is used instead, the same rolling rpm figure must still be shown in the tqdm postfix string \u2014 this feature must not be Rich-exclusive.",
+            "scope": "tqdm fallback path.",
+            "exclusions_or_crossover": "Must not skip the rpm indicator entirely in tqdm mode just because Rich is unavailable."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T4"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Function-calling dataset generation: tool schema validation",
+      "description": "Add a dedicated example-support feature: when generating function-calling fine-tuning data, validate that each generated `tools` schema in a row is valid JSON Schema before it's included in the output dataset.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Rows with an invalid tool schema must be dropped from the final output dataset rather than included with a null/empty tools field, since a function-calling fine-tuning row with an invalid schema is not a usable training example at all.",
+            "scope": "Post-parse validation and filtering step.",
+            "failure_behavior": "Dropped rows must be counted and reported in the run summary, distinguishable from rows dropped for other reasons."
+          },
+          "earlier_reversed_version": "The first pass kept invalid-schema rows in the output with a warning logged, on the theory that users could filter afterward, but this was reversed after a dataset with silently-broken tool schemas was used for training before anyone noticed the warnings.",
+          "fragmentation_sources": [
+            "slack",
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T8"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Schema validation must run using a JSON Schema validator already present as a dependency elsewhere in the codebase (used for structured-output response_format validation) rather than adding a new JSON Schema validation library as a dependency.",
+            "scope": "Dependency reuse for validation only."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "RAFT block distractor document sampling",
+      "description": "In the RAFT (Retrieval Augmented Fine-Tuning) example block, add a step that samples distractor documents (irrelevant to the question) to mix in with the golden document, per the RAFT paper's methodology.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Distractor documents must be sampled from documents outside the current question's source document set entirely \u2014 never from other chunks of the same source document the golden passage came from \u2014 since near-duplicate distractors from the same document defeat RAFT's purpose of teaching the model to ignore irrelevant retrieved context.",
+            "scope": "Distractor sampling pool definition.",
+            "exclusions_or_crossover": "The golden document chunk itself must never appear in the distractor pool for its own question, even accidentally via a shuffle bug."
+          },
+          "earlier_reversed_version": "An initial version sampled distractors from any chunk in the corpus including other chunks of the same source document, which was reversed once it was noticed same-document distractors were too easy for the model to reject, weakening the training signal.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The number of distractor documents mixed in per question must be configurable via a parameter on the RAFT block, defaulting to the value specified in project documentation for reproducing the paper's setup \u2014 this default value is not derivable from the code alone.",
+            "scope": "Default distractor count."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Batch job status persistence across process restarts",
+      "description": "Ensure that if a Python process running a `batch=True` job is killed and restarted while a batch job is still pending on the provider's side, re-running the same script resumes polling the existing batch job instead of submitting a duplicate one.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The batch job ID must be persisted to the on-disk cache directory (keyed the same way as the existing prompt cache) immediately after successful submission, before polling begins, so a crash during polling doesn't lose the ability to resume.",
+            "scope": "Batch job ID persistence, submission-time only.",
+            "failure_behavior": "If persistence itself fails (disk full, permissions), the batch submission must still be allowed to proceed \u2014 losing resumability is preferable to blocking the job outright, but a warning must be logged."
+          },
+          "earlier_reversed_version": "An earlier draft persisted the batch job ID only after the job completed, which was reversed once it was clear that defeated the whole purpose \u2014 a crash during the (long) pending/running window would still cause a duplicate resubmission.",
+          "fragmentation_sources": [
+            "notion",
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "On restart, before resuming an existing batch job ID, the code must verify the persisted job's provider, model name, and request payload hash still match the current run's configuration; a mismatch must cause a fresh submission rather than resuming a stale/incompatible job.",
+            "scope": "Resume-time validation.",
+            "failure_behavior": "Mismatch causes a fresh submission with a logged reason for why the old job was not resumed, not a silent resume of incompatible results."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Custom TinkerTrainer subclass data validation",
+      "description": "Document and enforce the contract for subclassing `TinkerTrainer` and overriding `format_example()`: ensure the base `.train()` method validates that overridden `format_example()` implementations return a `TrainingExample`.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The type check on `format_example()`'s return value must happen once per unique row shape sampled from the input data before committing to processing the full dataset (e.g. check the first row), not after the entire dataset has already been formatted, so a broken subclass fails fast rather than after minutes of wasted formatting work on a large dataset.",
+            "scope": "Validation timing within `.train()`."
+          },
+          "earlier_reversed_version": "The first version validated every single row's return type inline during full-dataset formatting, which technically worked but meant large-dataset failures surfaced only after most of the dataset had already been processed; this was reversed in favor of an early fail-fast check on a sample.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "A wrong-type return from `format_example()` must raise a `TypeError` that includes the subclass's class name and the actual type returned, not a generic downstream error from deep inside the Tinker SDK's training call.",
+            "scope": "Error message content only."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "kluster.ai backend model name pass-through",
+      "description": "Wire up `backend='klusterai'` so `curator.LLM(model_name=..., backend='klusterai')` routes requests to kluster.ai's OpenAI-compatible endpoint.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The kluster.ai backend must reuse the existing openai-compatible backend's request/response handling code path entirely (base_url pointed at kluster.ai's endpoint), rather than introducing a new parallel backend implementation, since kluster.ai's API is OpenAI-compatible per its documented usage.",
+            "scope": "Implementation approach for the klusterai backend.",
+            "exclusions_or_crossover": "Must not duplicate retry/rate-limit logic into a new klusterai-specific module."
+          },
+          "earlier_reversed_version": "A draft implementation started writing a dedicated KlusterAIBackend class mirroring the openai backend's code, which was reversed in favor of routing through the existing openai-compatible backend with a preset base_url, to avoid maintaining duplicate logic.",
+          "fragmentation_sources": [
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The kluster.ai base_url and any kluster-specific default headers must live in a single named constant/config location so that if kluster.ai changes their endpoint, only one place needs updating \u2014 this location is not specified by the ticket and must match where other preset-provider defaults (if any) are already kept in this codebase.",
+            "scope": "Config constant location."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Mistral batch mode integration",
+      "description": "Add Mistral batch API support to `curator.LLM`'s batch mode, alongside the existing OpenAI, Anthropic, and Gemini batch integrations.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Mistral batch file uploads must chunk the request payload according to Mistral's documented per-file size limit, splitting into multiple batch files and submitting them as separate batch jobs if the dataset exceeds that limit \u2014 the existing OpenAI batch implementation's chunking helper must be reused rather than reimplemented, since OpenAI batch already handles this exact problem.",
+            "scope": "File-size chunking for Mistral batch submission."
+          },
+          "earlier_reversed_version": "A first draft assumed Mistral's per-file limit was large enough that chunking wasn't needed and submitted single unchunked files, which was reversed after large datasets started hitting Mistral's file size limit and failing outright.",
+          "fragmentation_sources": [
+            "notion",
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Results from multiple chunked Mistral batch jobs belonging to the same logical `curator.LLM` run must be re-assembled back into a single output dataset in the original row order, not left as separate per-chunk outputs or reordered by completion time.",
+            "scope": "Result re-assembly after all chunk jobs complete.",
+            "failure_behavior": "If one chunk job fails while others succeed, the failed chunk's rows must be marked as errors in their correct original positions, not dropped or appended at the end.",
+            "observability": "The run summary must report per-chunk completion status during polling, not just a single aggregate 'batch pending' status."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T7"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Gemini batch mode MIME type handling",
+      "description": "Fix and extend Gemini batch mode to correctly handle multimodal (image) rows, since Gemini's batch API has stricter MIME type requirements than its online API.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Before submission, every image's MIME type must be validated against Gemini batch's documented supported MIME type list, and unsupported types (e.g. a raw .bmp) must cause that row to fail with a clear pre-submission error rather than being submitted and silently rejected or mis-processed by Gemini's batch backend.",
+            "scope": "Pre-submission validation for Gemini batch multimodal rows only; Gemini online (non-batch) mode already handles this differently and is out of scope.",
+            "failure_behavior": "Pre-submission rejection with a row-level error naming the unsupported MIME type, collected into the run summary like other row-level failures."
+          },
+          "earlier_reversed_version": "An earlier version relied on Gemini's batch API to reject unsupported files itself, but this was reversed after discovering Gemini batch's own error reporting for bad MIME types was too vague to map back to which row/image caused it.",
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The int() wrapping fix already applied elsewhere in the litellm backend for token estimation (per the existing bugfix for token count wrapping) must also be applied to any new token/size estimation code written for Gemini batch multimodal rows in this task, to avoid reintroducing the same float/int type bug in a new code path.",
+            "scope": "Token/size estimation code added by this task."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Poetry/pyproject optional dependency gating for Fireworks",
+      "description": "Ensure the `fireworks-ai` SDK is treated as a truly optional add-on dependency: importing `bespokelabs.curator` must not fail even when `fireworks-ai` is not installed, and `FireworksTrainer` must clearly explain how to install it only when actually needed.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The `fireworks-ai` import must be deferred to inside `FireworksTrainer`'s methods (lazy import), not placed at module top-level in the curator package's `__init__`, so that users who never touch `FireworksTrainer` are never forced to have the optional dependency installed.",
+            "scope": "Import placement for the fireworks-ai SDK specifically.",
+            "exclusions_or_crossover": "This lazy-import pattern must not be applied to `tinker`, which the ticket does not mention and which may already be handled differently \u2014 do not touch the Tinker import path in this task."
+          },
+          "earlier_reversed_version": "A first pass imported fireworks-ai at the top of the curator package's __init__.py for convenience, which was reversed once it broke `import bespokelabs.curator` entirely for users who hadn't installed the optional extra.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "When `fireworks-ai` is not installed and a user tries to construct `FireworksTrainer` in non-mock mode (i.e. they've set `FIREWORKS_API_KEY` expecting real training), the error raised must explicitly say to run `pip install fireworks-ai` rather than a generic `ModuleNotFoundError`.",
+            "scope": "Error message at the lazy-import call site, non-mock-mode path only.",
+            "exclusions_or_crossover": "Mock mode must continue to work with no SDK installed at all and must not raise this error."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Backend auto-detection from model_name prefix",
+      "description": "When no explicit `backend` argument is passed to `curator.LLM`, auto-detect the correct backend from the `model_name` string (e.g. `gemini/...` implies litellm, `ollama/...` implies ollama) instead of always defaulting to the openai backend.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Auto-detection must only kick in when `backend` is left as `None`; if a user explicitly passes a `backend` argument, it must always take precedence over what the model_name prefix would suggest, even if that combination looks unusual (e.g. explicitly forcing backend='openai' with a 'gemini/...' model_name must not be silently overridden).",
+            "scope": "Backend resolution priority ordering.",
+            "exclusions_or_crossover": "Never override an explicitly-passed backend argument."
+          },
+          "earlier_reversed_version": "A first draft let the model_name prefix win even when a backend was explicitly passed, reasoning that the prefix was more likely correct, but this was reversed since it silently ignored users' explicit configuration.",
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Model name prefixes without a recognized mapping (e.g. a bare 'gpt-4o-mini' with no slash prefix) must continue defaulting to the openai backend exactly as today, preserving full backward compatibility for all existing example scripts in the repo that don't pass an explicit backend.",
+            "scope": "Fallback/default behavior for unrecognized or absent prefixes."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T4"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prompt function input normalization for list vs scalar",
+      "description": "Support `prompt()` being called with either a raw scalar (str, dict) input row or a full HuggingFace Dataset row, normalizing both into what the user's `prompt()` implementation expects.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "When the input dataset is a plain Python list of scalars (e.g. `['a', 'b', 'c']`, as in the TopicGenerator chaining example), each element must be passed to `prompt()` unmodified (not wrapped in a dict or Dataset row object), preserving the documented chaining example's behavior where `prompt(self, subject)` receives a bare string.",
+            "scope": "Input normalization for plain list-of-scalar datasets.",
+            "exclusions_or_crossover": "This unmodified pass-through must not apply to list-of-dict inputs, which are already handled by the existing dict-row path and must continue receiving each dict unmodified as well \u2014 this task only needs to ensure scalars aren't accidentally coerced into dicts."
+          },
+          "earlier_reversed_version": "An intermediate refactor considered wrapping every row into a uniform dict-like object (e.g. `{'value': row}`) for internal consistency, which was reversed because it broke the documented chaining example where prompt() destructures the raw string/dict directly.",
+          "fragmentation_sources": [
+            "notion",
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "This normalization logic must live in the same input-dispatch location that already branches on list-vs-Dataset input type, not be duplicated into a second, separate normalization pass added elsewhere.",
+            "scope": "Code location."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "parse() return value flattening",
+      "description": "Support `parse()` returning either a single dict or a list of dicts (as shown in the README's SentimentAnalyzer vs Poet examples), flattening the results correctly into the final output dataset either way.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "When `parse()` returns a list of dicts for a given input row (e.g. TopicGenerator's `parse` returning multiple topics per subject), each dict in that list must become its own separate row in the final output dataset \u2014 the list must never be preserved as a single row containing a nested list column.",
+            "scope": "Output flattening for list-returning parse() implementations.",
+            "exclusions_or_crossover": "When `parse()` returns a single dict (not wrapped in a list), it must produce exactly one output row, not be mistakenly iterated over its own keys as if it were a list."
+          },
+          "earlier_reversed_version": "An early version tried to auto-detect 'is this dict actually meant as a single-row multi-column result or a to-be-flattened structure' using heuristics on key names, which was reversed in favor of the simple, unambiguous rule: list return type always means multiple rows, dict return type always means one row.",
+          "fragmentation_sources": [
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Rows that would be produced with zero dicts (i.e. `parse()` returns an empty list for some input) must be silently omitted from the output dataset \u2014 not represented as an empty/null row \u2014 since that's a valid way for a filtering-style parse() to drop unwanted inputs.",
+            "scope": "Empty-list parse() return handling."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Structured-output parsing failure isolation",
+      "description": "When a backend response fails to validate against the user's `response_format` Pydantic model, ensure that failure is isolated to that single row rather than crashing the whole run, and that the raw invalid response is retained for debugging.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The raw (unparsed) response text that failed Pydantic validation must be retained and attached to that row's error entry in the run summary, since discarding it makes it impossible for users to debug why the model's output didn't match their schema.",
+            "scope": "Error entry construction for validation failures specifically.",
+            "exclusions_or_crossover": "This raw-response retention must not apply to other error types like network timeouts, where there is no 'raw response' to retain \u2014 only validation failures have a response body worth keeping."
+          },
+          "earlier_reversed_version": "An early version only logged the Pydantic `ValidationError` message (e.g. 'field x required') without the raw text, which was reversed after users repeatedly asked what the model actually returned to cause the mismatch.",
+          "fragmentation_sources": [
+            "email",
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "A validation failure must count toward the same `max_retries` budget as network/API errors and be retried by re-sending the same request, rather than being treated as immediately terminal \u2014 since a single malformed structured-output response is often a transient model sampling issue that succeeds on retry.",
+            "scope": "Retry eligibility for validation failures.",
+            "failure_behavior": "Only after `max_retries` is exhausted does the row become a final, permanent error entry."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T7"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "API key resolution priority for openai-compatible backend",
+      "description": "Support resolving the API key for the `openai` backend from either an explicit `backend_params={'api_key': ...}` value or the `OPENAI_API_KEY` environment variable.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "An explicitly passed `backend_params['api_key']` must always take precedence over the `OPENAI_API_KEY` environment variable when both are present, since a caller who goes to the trouble of passing an explicit key (e.g. to target a specific sub-account) clearly intends to override whatever's in the environment.",
+            "scope": "API key resolution priority ordering, openai backend only."
+          },
+          "earlier_reversed_version": "A draft implementation had the environment variable win over an explicitly-passed backend_params key, reasoning env vars represented 'the real account key', but this was reversed since it made explicit backend_params silently ineffective whenever an env var happened to also be set.",
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If neither source provides a key, the resulting error message must name the exact environment variable (`OPENAI_API_KEY`) the user needs to set, matching the naming convention documented for other providers (e.g. `ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`), not a generic 'no API key found' message.",
+            "scope": "Error messaging when no key is resolved."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cost report period aggregation for hosted viewer",
+      "description": "Implement the data aggregation feeding the hosted viewer's Cost Report page, summing data generation costs for a given account over a selected time period.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Costs must be aggregated using the same per-token pricing tables already used to compute in-run cost estimates printed during `curator.LLM` execution, not a second, separately-maintained pricing table for the viewer backend, since the two would otherwise drift apart as pricing changes.",
+            "scope": "Pricing source for cost aggregation.",
+            "exclusions_or_crossover": "Do not duplicate pricing constants into the viewer-reporting module."
+          },
+          "earlier_reversed_version": "An early version hardcoded a second pricing table directly into the reporting module for simplicity, which was reversed once a pricing update to the in-run estimator wasn't mirrored to the report, causing the two to disagree for the same runs.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T6"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Runs made with batch mode enabled must have their costs reported using the batch (discounted) pricing tier in the Cost Report, matching whatever discount was actually applied at billing time \u2014 not the standard non-batch rate \u2014 even though the underlying per-token rate table is shared with the non-batch estimator.",
+            "scope": "Batch-vs-standard rate selection within the shared pricing table."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dataset export to pandas preserving column order",
+      "description": "Ensure `.to_pandas()` on a curator output dataset preserves the column order that `parse()`'s returned dict keys were defined in, rather than an arbitrary or alphabetically-sorted order.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Column order in the resulting DataFrame must match the order keys first appear across the dataset's rows (first-row-wins for ordering), not be re-sorted alphabetically by pandas' default dict-to-DataFrame conversion behavior, which the naive implementation path would otherwise trigger.",
+            "scope": "`.to_pandas()` conversion path only."
+          },
+          "earlier_reversed_version": "The initial implementation just called the underlying HF Dataset's default `.to_pandas()` conversion directly, which was reversed after it was noticed that under certain construction paths pandas re-sorted columns alphabetically, silently changing the column order users expected from their parse() return statement.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If different rows' `parse()` calls returned different sets of keys (e.g. some rows include an optional field others don't), missing values in the resulting DataFrame for those rows must be `NaN`, not an omitted column or a KeyError during conversion.",
+            "scope": "Heterogeneous-key row handling during pandas conversion."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cache directory migration on CURATOR_CACHE_DIR change",
+      "description": "Support `CURATOR_CACHE_DIR` being changed between runs without breaking the cache lookup for previously-cached entries left in the old directory.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Changing `CURATOR_CACHE_DIR` must NOT trigger any automatic copying or migration of cache entries from the old directory to the new one \u2014 the ticket's contract is that Curator simply starts fresh (cache-miss) at the new location; this task must not implement an auto-migration feature even though it might seem like the more user-friendly behavior.",
+            "scope": "Behavior on CURATOR_CACHE_DIR change between runs."
+          },
+          "earlier_reversed_version": "A design discussion proposed auto-copying old cache entries to a newly-set directory on first use, but this was reversed as out of scope/too risky (could silently copy large amounts of data) in favor of a documented note telling users to move the directory themselves if desired.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The resolved cache directory path must be created (via makedirs, if missing) lazily on first actual cache write, not eagerly at `LLM.__init__` time, so that constructing an `LLM` object with `CURATOR_DISABLE_CACHE=true` set never creates an unused empty cache directory on disk.",
+            "scope": "Directory creation timing.",
+            "exclusions_or_crossover": "Must not create the directory during __init__ even 'just in case', regardless of the disable-cache setting."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T4"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Batch mode row-order preservation across retries",
+      "description": "Ensure that when individual rows within a batch job need to be resubmitted after a partial failure, the final output dataset still preserves original input row order.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Resubmitted rows must be re-inserted into the output dataset at their original index position once they succeed, not appended at the end of the dataset after the rest of the batch completes, since downstream consumers (e.g. code zipping the output back up against the original input list) rely on positional alignment.",
+            "scope": "Result assembly for resubmitted rows specifically."
+          },
+          "earlier_reversed_version": "An early version appended late-arriving resubmitted rows to the end of the results list in completion order, which was reversed after it broke a documented workflow where users zip curator's output back up against their original input list by index.",
+          "fragmentation_sources": [
+            "slack",
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If a resubmitted row ultimately fails permanently (retries exhausted), its original index position in the output dataset must still be occupied by an explicit error marker rather than the dataset silently shrinking by one row, so index alignment with the original input is never broken even by permanent failures.",
+            "scope": "Permanent-failure placeholder behavior."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "LiteLLM backend_params pass-through validation",
+      "description": "Validate `backend_params` passed to the litellm backend (e.g. `max_requests_per_minute`, `max_tokens_per_minute`) before passing them through to litellm, catching typos in key names early.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Validation must reject unrecognized keys in `backend_params` for the litellm backend with an error listing the valid known keys, rather than silently passing unknown keys through to litellm's own call (where a typo'd key like `max_request_per_minute` would just be silently ignored by litellm, leaving the user's rate limit unset with no warning).",
+            "scope": "litellm backend_params key validation, at LLM.__init__ time.",
+            "exclusions_or_crossover": "This strict validation must not apply to the `openai` or `vllm` backends' backend_params, which are out of scope for this ticket and may have different accepted key sets."
+          },
+          "earlier_reversed_version": "An initial version let all backend_params flow through to litellm unchecked, matching litellm's own permissive **kwargs style, which was reversed after users reported their rate limits appeared to silently not apply due to a typo'd key.",
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The list of recognized valid keys for the litellm backend must be sourced from a single shared constant also used by the litellm backend's own request-construction code, not redeclared as a second hardcoded list in the new validation function, to avoid the two lists drifting apart as new params are added.",
+            "scope": "Source of truth for valid key names."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chained LLM block error propagation",
+      "description": "When chaining two `curator.LLM` blocks (e.g. TopicGenerator -> Poet), ensure a failure in the first block's run prevents the second block from silently running on an empty or partial dataset.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "If the first block's run ends with any permanently-failed rows (not just a total failure), the second block must still run only on the successfully-produced rows \u2014 partial success in block one must not block block two entirely \u2014 but the final combined result must retain a record of which original inputs never made it through block one at all.",
+            "scope": "Chaining behavior between two curator.LLM blocks used sequentially.",
+            "exclusions_or_crossover": "A first block that fails on every single row (zero successful outputs) must raise before block two is invoked at all, rather than calling block two with an empty dataset and producing a confusing empty final result."
+          },
+          "earlier_reversed_version": "An early version always proceeded to block two regardless of how many rows failed in block one, even at 100% failure, which was reversed after users got a silently-empty final dataset instead of a clear early error explaining the actual chain failure.",
+          "fragmentation_sources": [
+            "slack",
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The failure record passed between blocks must be accessible via a documented attribute on the returned dataset object (not just printed to the console), so users can programmatically inspect which inputs were dropped from the chain.",
+            "scope": "Failure record accessibility."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T2"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Docker code executor image pinning",
+      "description": "Pin the Docker image used by the Docker backend of `CodeExecutor` to a specific tag rather than `latest`, and allow callers to override it via `backend_params`.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The default image tag must be pinned to a specific version string maintained in project documentation (not derivable from the code alone), and this task must update the code to reference that pinned tag instead of `latest`.",
+            "scope": "Default Docker image tag."
+          },
+          "earlier_reversed_version": "The original implementation used the `latest` tag for simplicity and always-up-to-date dependencies, which was reversed after an upstream image update silently broke reproducibility of previously-working code execution runs.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T2"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "When a caller overrides the image via `backend_params={'image': ...}`, the executor must still enforce the same non-root user and read-only filesystem mount constraints applied to the default pinned image \u2014 an overridden image must not be allowed to run as root inside the container even if the custom image's own Dockerfile defaults to root.",
+            "scope": "Security constraints applied regardless of which image is used.",
+            "failure_behavior": "If the enforced non-root/read-only settings are incompatible with a custom image (e.g. it requires root), the container must fail to start with a clear error, not silently run with elevated privileges."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T4"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "e2b sandbox timeout handling",
+      "description": "Add a configurable execution timeout for code run via the e2b backend of `CodeExecutor`, killing the sandbox if generated code runs too long.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "On timeout, the e2b sandbox must be explicitly torn down (not just have its output ignored) to avoid leaking a running sandbox that continues to accrue e2b usage charges after CodeExecutor has already moved on to the next row.",
+            "scope": "Timeout handling in the e2b backend specifically."
+          },
+          "earlier_reversed_version": "An early draft simply stopped waiting for the sandbox's result on timeout without calling any teardown/kill API, which was reversed after it was discovered orphaned sandboxes kept running (and billing) in the background.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T8"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The default timeout value must be the same default already used by the local (multiprocessing) backend's own execution timeout, reused via the shared constants module, not a new independently-chosen e2b-specific default.",
+            "scope": "Default timeout value sourcing."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trainer sample() concurrency guard",
+      "description": "Add a guard to `TinkerTrainer.sample()` and `FireworksTrainer.sample()` preventing concurrent sampling calls from racing against an in-progress `.train()` call on the same trainer instance.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Calling `.sample()` while `.train()` is actively running on the same trainer instance must raise a clear error immediately rather than blocking until training completes or silently sampling from stale/partially-updated weights.",
+            "scope": "Concurrency guard covering both TinkerTrainer and FireworksTrainer, since both share the BaseTrainer interface.",
+            "exclusions_or_crossover": "This guard must not block calling `.sample()` on a *different* trainer instance while another instance trains \u2014 the lock must be scoped per-instance, not global."
+          },
+          "earlier_reversed_version": "A first draft used a single process-wide lock shared across all trainer instances for simplicity, which was reversed after it was noticed that blocked unrelated trainers from sampling concurrently, unnecessarily serializing independent workloads.",
+          "fragmentation_sources": [
+            "email",
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "This guard logic must live in `BaseTrainer` (the shared interface both trainers implement), not be duplicated separately inside `TinkerTrainer` and `FireworksTrainer`, so future trainer subclasses inherit the protection automatically.",
+            "scope": "Code location."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Fireworks lora_rank power-of-two enforcement",
+      "description": "Validate that `FireworksTrainerConfig.lora_rank`, when provided, is a power of two up to 32, matching Fireworks' documented supported rank values, and reject invalid values before submitting the training job.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Validation must happen at `FireworksTrainerConfig` construction time (not deferred to `trainer.train()`), so a config built early in a script and reused across multiple training attempts fails immediately if misconfigured, rather than after other setup work has already run.",
+            "scope": "Validation timing: config construction, not train() call time.",
+            "failure_behavior": "Invalid rank raises `ValueError` listing the valid set {1,2,4,8,16,32} explicitly, not a generic 'invalid config' message."
+          },
+          "earlier_reversed_version": "An early draft deferred this check to inside train(), which was reversed since it meant users could build and pass around an already-invalid config for a while before the error ever surfaced.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "`lora_rank=None` (full fine-tuning, no LoRA) must remain valid and must skip this validation entirely \u2014 the power-of-two check must only apply when a rank value is actually provided, since None is a documented, supported way to request full fine-tuning.",
+            "scope": "None-value exclusion from validation."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trainer format_example() default implementation for chat dicts",
+      "description": "Provide a default `BaseTrainer.format_example()` implementation that correctly converts the documented chat-format dict layout (`{'messages': [{'role': ..., 'content': ...}]}`) into a `TrainingExample`, so subclasses only need to override it for non-standard layouts.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The default implementation must preserve message order exactly as given in the input `messages` list \u2014 it must not reorder, deduplicate, or collapse consecutive same-role messages, since some valid training conversations legitimately contain consecutive same-role turns (e.g. two consecutive user messages after a tool call) that must be preserved verbatim.",
+            "scope": "Default format_example() message handling."
+          },
+          "earlier_reversed_version": "An early version merged consecutive same-role messages into one for 'cleanliness', which was reversed after it was found to corrupt training examples that intentionally had back-to-back same-role turns.",
+          "fragmentation_sources": [
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If a row's `messages` list is missing or empty, the default implementation must raise a descriptive error naming the offending row rather than passing an empty/malformed `TrainingExample` through to the underlying SDK, which would otherwise fail with a much less legible internal error.",
+            "scope": "Malformed-row error handling in default format_example()."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Curator viewer dataset sharing with collaborators",
+      "description": "Implement the 'share datasets with collaborators' feature referenced in the README, allowing an authenticated user to grant another Bespoke Labs account view access to one of their datasets.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Sharing a dataset must never change its default visibility for unauthenticated/link-only access \u2014 a private dataset shared with a specific collaborator account must remain inaccessible to anyone else with just the link; sharing is additive (grants one more account access) and never loosens the base visibility setting.",
+            "scope": "Interaction between the sharing feature and the existing private/link-accessible visibility setting.",
+            "exclusions_or_crossover": "Sharing a dataset that is already link-accessible (not private) is a no-op with respect to visibility, though the collaborator grant should still be recorded for tracking purposes."
+          },
+          "earlier_reversed_version": "An early design treated 'share with a collaborator' as equivalent to 'make link-accessible', reusing the same visibility flag for both, which was reversed once it was clear that silently made private datasets link-accessible the moment they were shared with anyone.",
+          "fragmentation_sources": [
+            "email",
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Revoking a previously-granted share must take effect for that collaborator's next request, not require the dataset owner to also rotate or regenerate the dataset's access link/ID.",
+            "scope": "Revocation behavior."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Poem fine-tuning example pipeline reproducibility",
+      "description": "Update the end-to-end poem fine-tuning example script (curate with curator.LLM, then fine-tune with TinkerTrainer) so that re-running it with the same inputs produces a deterministic, reproducible curated dataset before it's handed to the trainer.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The curation stage's `curator.LLM` calls in the example must rely on the library's existing caching behavior for determinism (same prompt + model + params => same cached response) rather than the example script adding its own separate seeding/determinism logic, since reimplementing determinism at the example-script level would duplicate what caching already guarantees.",
+            "scope": "Determinism strategy for the example script's curation stage.",
+            "exclusions_or_crossover": "Do not add a `random.seed()` call or similar to the example script as the primary determinism mechanism \u2014 caching is the intended mechanism per this ticket."
+          },
+          "earlier_reversed_version": "A draft of the example added explicit random seeding across the curation stage to try to guarantee reproducibility independently of caching, which was reversed since it was redundant with (and could even mask bugs in) the library's own caching guarantee.",
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The example must explicitly document (in a code comment, since this example is user-facing reference material) that `CURATOR_DISABLE_CACHE=true` would break the reproducibility guarantee described above, so a user who copies this example and disables caching for a 'fresh run' understands the tradeoff they're making.",
+            "scope": "Documentation/comment requirement in the example file."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Backend params serialization for logging",
+      "description": "Add debug-level logging of the resolved `backend_params` dict whenever a `curator.LLM` run starts, to help diagnose misconfiguration reports.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Any key that looks like a credential (e.g. `api_key`, or any key ending in `_key` or `_token`) must be redacted (e.g. replaced with `***`) before the backend_params dict is logged, even in debug mode, since debug logs are often pasted into shared bug reports or Slack threads verbatim.",
+            "scope": "Logging redaction applied to all backends' backend_params uniformly.",
+            "exclusions_or_crossover": "Non-sensitive keys like `max_requests_per_minute`, `base_url`, or `tensor_parallel_size` must be logged in full, unredacted, since they're needed for diagnosing the exact misconfiguration reports this feature exists to help with."
+          },
+          "earlier_reversed_version": "An initial version logged the full raw backend_params dict verbatim for maximum debugging value, which was reversed immediately after a debug log containing a live API key was pasted into a public bug report.",
+          "fragmentation_sources": [
+            "slack",
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "This redaction logic must be implemented as a single shared utility function used by every backend's debug logging call site, not reimplemented ad hoc per backend, so a newly-added backend in the future doesn't accidentally skip redaction.",
+            "scope": "Code location/reuse."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Retry backoff jitter for rate-limited responses",
+      "description": "Add jitter to the exponential backoff used when retrying requests that failed due to a 429 rate-limit response, to avoid many parallel workers retrying in lockstep and re-triggering the same rate limit.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Jitter must only be added to the backoff delay for 429-specific retries; retries triggered by other error types (5xx server errors, network timeouts) must continue using the existing non-jittered backoff schedule already in place for those cases, since this ticket's motivation (many workers retrying in lockstep) is specific to shared rate-limit windows.",
+            "scope": "429-specific retry path only.",
+            "exclusions_or_crossover": "Do not change backoff behavior for non-429 error types as part of this task."
+          },
+          "earlier_reversed_version": "An early draft applied jitter globally to all retry types for consistency, which was reversed to keep the change minimal and scoped only to the rate-limit case that motivated it, avoiding unintended behavior changes to well-tested non-429 retry paths.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If the 429 response includes a `Retry-After` header, that value must take precedence over the computed jittered backoff delay entirely \u2014 jitter must only apply when the server does not tell the client how long to wait.",
+            "scope": "Retry-After header precedence."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T3",
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dataset row count consistency check after generation",
+      "description": "Add a post-run assertion that the number of output rows produced is consistent with the number of input rows and each row's parse() fan-out, surfacing a warning if the accounting doesn't add up (a signal of a bug elsewhere in the pipeline).",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The expected output count must be computed by summing, per input row, either 1 (dict-returning parse) or len(returned list) (list-returning parse) or 0 (empty-list/dropped) \u2014 not simply comparing len(input) to len(output), since one-to-many and filtering parse() implementations make those two numbers legitimately different by design.",
+            "scope": "Expected-count computation for the consistency check.",
+            "exclusions_or_crossover": "Rows that failed permanently (see the error-isolation behavior elsewhere in this codebase) must be excluded from both the expected and actual counts, not counted as a discrepancy."
+          },
+          "earlier_reversed_version": "A first draft simply compared total input row count to total output row count and warned on any mismatch, which was reversed after it produced constant false-positive warnings on every fan-out (TopicGenerator-style) or filtering pipeline, which are expected to have differing counts by design.",
+          "fragmentation_sources": [
+            "slack",
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "This check must only ever produce a warning, never raise or halt the run, since it's a diagnostic aid for catching pipeline bugs, not a correctness gate that should ever block a user's actual data from being returned.",
+            "scope": "Severity of the check's failure mode."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T3"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Environment variable precedence for CURATOR_DISABLE_CACHE",
+      "description": "Ensure `CURATOR_DISABLE_CACHE` is read consistently across all code paths that check whether caching is enabled, including batch mode and code execution result caching.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The environment variable's truthiness must be parsed using the same case-insensitive true/false string parsing already used elsewhere in the codebase for other boolean env vars (e.g. `TELEMETRY_ENABLED`, `CURATOR_VIEWER`), not a new ad hoc check like `os.environ.get(...) == 'true'` that would fail to recognize `'True'` or `'TRUE'`.",
+            "scope": "Boolean parsing of CURATOR_DISABLE_CACHE specifically, reusing the shared parser."
+          },
+          "earlier_reversed_version": "A code path added for batch-mode caching used a case-sensitive exact-match check against the lowercase string 'true', which was reversed after users who set the variable as `CURATOR_DISABLE_CACHE=True` (capital T, as many other tools expect) found caching wasn't actually being disabled.",
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Code execution result caching (a separate cache from prompt/response caching) must also respect `CURATOR_DISABLE_CACHE` even though it's a conceptually different cache, since the environment variable is documented at the top-level as disabling 'caching for curator.LLM generations' without carving out an exception for code execution results.",
+            "scope": "Applicability of the flag to the code-execution result cache."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Structured output list-of-models response_format support",
+      "description": "Support `response_format` being a Pydantic model whose top-level field is a `List[SomeModel]` (as in the README's `Topics` example with `topics_list: List[str]`), ensuring structured-output prompting instructions are generated correctly for list-typed fields.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "When constructing the structured-output schema sent to the backend, list-typed fields must be represented using the backend's native array/list JSON schema type, not flattened into a comma-separated string field with a note asking the model to split it \u2014 the latter would be a workaround, not a genuine structured-output implementation, and the backends already used here (OpenAI, Anthropic) support native array types in their structured-output modes.",
+            "scope": "Schema construction for list-typed response_format fields."
+          },
+          "earlier_reversed_version": "An early exploratory implementation asked the model to return a comma-separated string for list fields and split it client-side as a workaround for a since-fixed schema construction bug, which was reversed once native array support was correctly wired up, since comma-splitting breaks on any list item that itself contains a comma.",
+          "fragmentation_sources": [
+            "email",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Nested list fields (a list of a list, or a list of a model that itself contains a list field) must be explicitly rejected with a clear 'unsupported nesting' error at `LLM.__init__` time if the target backend's structured-output mode doesn't support that level of nesting, rather than silently attempting the request and failing with a backend-specific 400 error later.",
+            "scope": "Nesting-depth validation at construction time.",
+            "failure_behavior": "Clear error naming the unsupported field path, not a generic schema-invalid message from the backend."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "CLI display fallback when running in a non-interactive terminal",
+      "description": "Detect when `curator.LLM` runs in a non-interactive/non-TTY environment (e.g. piped output, CI logs) and automatically fall back to periodic plain-text progress logging instead of the Rich live progress display, which renders poorly or not at all in such environments.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "TTY detection must check the actual output stream being written to (stdout), not simply check for the presence of a `CI` or similar environment variable, since many legitimate interactive terminal sessions also happen to have CI-like env vars set (e.g. inside an interactive debugging session in a CI runner's shell), and the correct signal is genuinely about whether the terminal can render live-updating output.",
+            "scope": "Detection mechanism for interactive vs non-interactive environments."
+          },
+          "earlier_reversed_version": "A first draft checked for common CI environment variables (CI, GITHUB_ACTIONS, etc.) as a proxy for non-interactivity, which was reversed in favor of directly checking `sys.stdout.isatty()`, since the env-var heuristic produced both false positives and false negatives.",
+          "fragmentation_sources": [
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The fallback plain-text progress logging must still respect `CURATOR_DISABLE_RICH_DISPLAY`'s existing tqdm-fallback behavior where applicable \u2014 this new non-TTY detection is an additional trigger for the same fallback path, not a third, separate progress-display mode to build and maintain.",
+            "scope": "Code reuse: route through the existing tqdm fallback rather than building new plain-text logging."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T4",
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Batch job cancellation on user interrupt",
+      "description": "When a user presses Ctrl+C during a `batch=True` run while polling for job completion, offer to cancel the in-progress batch job on the provider's side rather than just exiting the local process and leaving the remote job running.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "On interrupt, the code must prompt the user interactively (yes/no) before cancelling the remote batch job, since the job may already be far along and the user might just want to detach and resume polling later rather than actually cancel and lose the (partially paid-for) in-progress work.",
+            "scope": "Interrupt handling during the batch polling loop only.",
+            "exclusions_or_crossover": "This confirmation prompt must be skipped (defaulting to 'do not cancel, just exit') when running in a non-interactive/non-TTY environment, since there's no one to answer the prompt and blocking forever on stdin would be worse than either choice."
+          },
+          "earlier_reversed_version": "An early version cancelled the remote job automatically and immediately on any Ctrl+C with no prompt, which was reversed after a user lost hours of in-progress batch work from an accidental double Ctrl+C.",
+          "fragmentation_sources": [
+            "github",
+            "notion",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If the user confirms cancellation, the persisted batch job ID (from the on-disk resume mechanism) must be cleared only after the provider confirms the cancellation succeeded, not immediately upon the user's 'yes' answer, so a failed cancellation attempt doesn't leave an orphaned job with no local record to resume polling it.",
+            "scope": "Ordering between cancellation confirmation and local state cleanup."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T7"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Multimodal prompt token/cost estimation accuracy",
+      "description": "Extend the pre-flight cost estimator to account for image tokens (not just text tokens) when a multimodal `response_format`/prompt is used, since images can dominate total token cost.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "Image token cost must be estimated using each provider's own documented image-tokenization formula (which vary \u2014 e.g. dimension-tile-based for some providers, flat-fee-per-image for others) rather than a single universal per-image flat estimate applied across all providers, since a universal flat estimate would be wildly inaccurate for providers that scale image cost with resolution.",
+            "scope": "Image token estimation, per-provider."
+          },
+          "earlier_reversed_version": "An early version used a single flat 'assume 1000 tokens per image' estimate across all providers for simplicity, which was reversed after it produced estimates off by an order of magnitude for high-resolution images on providers that tokenize by tile/resolution.",
+          "fragmentation_sources": [
+            "notion",
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "For a provider whose exact image-tokenization formula isn't yet implemented in the estimator, the pre-flight estimate must clearly flag itself as a lower-bound/text-only estimate (via a printed caveat) rather than silently reporting a number that omits image costs entirely with no indication anything was left out.",
+            "scope": "Fallback behavior for unimplemented provider formulas.",
+            "observability": "Printed caveat must be visually distinct (e.g. a warning line) from the main estimate line."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T8"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trainer config serialization for reproducibility logging",
+      "description": "Log the full `TinkerTrainerConfig` / `FireworksTrainerConfig` used for a training run to a local file alongside the run's output, so users can later reproduce exactly what config produced a given fine-tuned model.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The logged config must be the fully-resolved config (including any defaults that were auto-filled, like a default `learning_rate` Fireworks auto-selects) captured at the point training actually starts, not the config object as originally constructed by the user before any defaults were resolved \u2014 otherwise re-loading the logged config later wouldn't actually reproduce the same run if defaults changed between library versions.",
+            "scope": "Timing and completeness of the logged config snapshot."
+          },
+          "earlier_reversed_version": "An initial version logged the user's original config object immediately at TrainerConfig construction time, which was reversed once it was clear that omitted any provider-side auto-selected defaults (like Fireworks' auto-selected learning_rate), making the logged config insufficient to actually reproduce the run.",
+          "fragmentation_sources": [
+            "slack",
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T2",
+            "T5"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "This config log file must be written to the same output directory the trainer's checkpoints are already saved to, not a new separate logging directory, so a user archiving one directory captures both the checkpoints and the config that produced them together.",
+            "scope": "File location."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Code executor stdout/stderr size capping",
+      "description": "Cap the amount of stdout/stderr captured from generated code executed via any `CodeExecutor` backend, to prevent a runaway print loop from exhausting memory while collecting output.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The cap must be enforced as a streaming limit during execution (stop retaining further output once the cap is hit, while letting the process continue running until its own timeout/completion) rather than capturing all output in memory first and truncating it afterward, since the latter approach is exactly the OOM risk this ticket exists to prevent.",
+            "scope": "Streaming vs post-hoc truncation, applies to all four backends' output capture."
+          },
+          "earlier_reversed_version": "A first draft captured full output into an in-memory buffer and truncated the final string before returning it, which was reversed once it was pointed out that this didn't actually fix the OOM risk \u2014 the runaway print loop would still exhaust memory building the buffer before truncation ever happened.",
+          "fragmentation_sources": [
+            "email",
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "When output is truncated due to the cap, the returned result must include a clear marker (e.g. an appended `[output truncated, N bytes omitted]` note) so users can distinguish a truncated-but-otherwise-successful run from one whose real output was genuinely short.",
+            "scope": "Truncation marker in returned result."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Litellm backend rate limit config validation against provider minimums",
+      "description": "Warn (not error) when a user configures `max_requests_per_minute` or `max_tokens_per_minute` for the litellm backend below a sensible minimum that would make meaningful progress on a large dataset impractically slow.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "This must be a warning printed once at `LLM.__init__` time, never a hard validation error that blocks construction \u2014 a user might have a legitimate reason (e.g. a very restrictive shared API key) for an intentionally low rate limit, and this ticket's job is only to flag a likely-unintentional misconfiguration, not to enforce a policy.",
+            "scope": "Severity/blocking behavior of this check.",
+            "exclusions_or_crossover": "Must not raise or refuse to construct the LLM object under any rate-limit value, however low."
+          },
+          "earlier_reversed_version": "An early draft treated an extremely low rate limit as a hard construction-time error requiring the user to explicitly override a flag to proceed, which was reversed since it blocked legitimate low-rate-limit use cases behind an extra required flag most users wouldn't know to add.",
+          "fragmentation_sources": [
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The 'sensible minimum' threshold used for this warning must be a named constant, not a magic number inlined at the check site, so it can be tuned later without hunting through the codebase for where the check lives.",
+            "scope": "Code style/location for the threshold constant."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T6"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trainer sample() prompt formatting consistency with training format",
+      "description": "Ensure `TinkerTrainer.sample()` and `FireworksTrainer.sample()` format the input prompt using the same chat-template logic that `format_example()` used during training, so sampled outputs reflect the model's actual fine-tuned behavior rather than being subtly out-of-distribution due to a formatting mismatch.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "`sample()` must reuse the exact same chat-template rendering path `format_example()` invoked during `.train()` (not reimplement a second, parallel prompt-formatting function for the sampling code path), since any divergence between the two would mean the model is sampled with a differently-formatted prompt than it was trained on, silently degrading output quality in a way that would be hard for users to diagnose.",
+            "scope": "Prompt formatting code reuse between train() and sample() paths, both trainers."
+          },
+          "earlier_reversed_version": "An early implementation wrote sample()'s prompt formatting independently (a simpler, single-turn-only formatter) since it seemed like sample() only needed to handle simple prompts, which was reversed once it was noticed this diverged from the (potentially multi-turn, system-prompt-including) format_example() logic used in training.",
+          "fragmentation_sources": [
+            "email",
+            "notion",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T4"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "If a user has subclassed the trainer and overridden `format_example()` with custom logic, `sample()` must call that same overridden method's formatting logic (via the instance, not the base class), so the reuse requirement above also holds for custom subclasses, not just the default implementation.",
+            "scope": "Polymorphic dispatch for custom subclasses."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prompt caching key stability across curator version upgrades",
+      "description": "Ensure the cache key format used by `curator.LLM` includes a library-version-scoped namespace, so that upgrading curator to a new version whose prompt-rendering or request-construction logic changed doesn't silently return stale cache hits from an incompatible earlier version.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "The version scope used in the cache key must be tied to a dedicated 'cache format version' constant maintained specifically for this purpose (bumped only when a change would actually affect cached content), not the full package version string, since bumping the cache key on every routine patch release (most of which don't touch caching-relevant logic) would needlessly invalidate the entire cache on every upgrade.",
+            "scope": "Choice of version identifier used in the cache key namespace."
+          },
+          "earlier_reversed_version": "A first draft used the full curator package version string directly in the cache key, which was reversed after it caused every user's entire cache to be invalidated on routine patch upgrades that had nothing to do with caching behavior, defeating much of caching's value.",
+          "fragmentation_sources": [
+            "notion",
+            "slack",
+            "email"
+          ],
+          "hidden_requirement_types": [
+            "T1",
+            "T3"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "Old cache entries under a stale cache-format-version namespace must not be actively deleted by this change \u2014 they should simply become unreachable (cache misses) and are left for a separate, future cache-pruning task, since implementing pruning here would be out of this ticket's scope.",
+            "scope": "Old-entry cleanup scope.",
+            "exclusions_or_crossover": "Do not implement automatic pruning/deletion of stale-namespace cache entries as part of this task."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Anonymized telemetry event batching before send",
+      "description": "Batch multiple telemetry events together and send them periodically instead of firing an individual network request per event, to reduce overhead on very short-lived scripts that generate many small events.",
+      "hidden_requirements": [
+        {
+          "requirement": {
+            "rule": "On process exit (including normal exit and common signal-based termination), any telemetry events still sitting in the batch buffer must be flushed synchronously before the process actually exits, using an exit-hook mechanism, rather than being silently dropped because the periodic batching timer never got another chance to fire.",
+            "scope": "Exit-time flush behavior for the telemetry batching buffer."
+          },
+          "earlier_reversed_version": "The first version relied solely on the periodic timer to eventually send batched events, with no exit hook, which was reversed after it was noticed short-lived scripts (the exact case this batching change was meant to help) were losing nearly all their telemetry events since the process exited before the timer ever fired.",
+          "fragmentation_sources": [
+            "github",
+            "email",
+            "slack"
+          ],
+          "hidden_requirement_types": [
+            "T5",
+            "T7"
+          ]
+        },
+        {
+          "requirement": {
+            "rule": "The exit-time flush must itself still respect `TELEMETRY_ENABLED` at flush time (re-checked at the moment of flush, per the existing rule that this variable is re-evaluated live rather than cached) \u2014 if a user disabled telemetry mid-session, the exit flush must discard the buffered events rather than sending them.",
+            "scope": "Interaction between exit-flush and the TELEMETRY_ENABLED live-check behavior established elsewhere."
+          },
+          "earlier_reversed_version": null,
+          "fragmentation_sources": [
+            "notion"
+          ],
+          "hidden_requirement_types": [
+            "T4"
+          ]
+        }
+      ]
+    }
+  ]
+}

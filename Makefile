@@ -39,11 +39,19 @@ RELEASE_CONTAINER ?= sweworld-bake
 # The published image still RUNS under gVisor; runc is only how it is produced.
 RELEASE_RUNTIME   ?= runc
 
-.PHONY: help build-image run stop logs shell verify bake-image push-image clean
+.PHONY: help build-image run stop logs shell verify history bake-image push-image clean
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+
+history: ## Rewrite the real repository's history under the company's names
+	@# Runs on the host, where curator/ is. Reads it, never writes to it.
+	python3 scripts/ingest_history.py --export
+	@# And the forge record beside it: issues, pull requests, reviews and
+	@# comments, trimmed out of the generator's build directory into data/
+	@# so that bake-image copies them in with everything else.
+	python3 scripts/ingest_forge.py --export
 
 build-image: ## Build the base world image (services installed, no generated content)
 	docker build -f world/Dockerfile -t $(IMAGE):dev .
@@ -91,12 +99,21 @@ bake-image: ## Boot base, ingest data/, gate on verify, commit $(IMAGE):TAG
 	@echo ">> [bake] TAG=$(TAG) SOURCE=$(RELEASE_SOURCE) RUNTIME=$(RELEASE_RUNTIME)"
 	-docker rm -f $(RELEASE_CONTAINER) >/dev/null 2>&1
 	docker run -d --runtime=$(RELEASE_RUNTIME) --name $(RELEASE_CONTAINER) $(RELEASE_SOURCE)
+	@# Baking a baked image ingests everything twice AND nests scripts/ inside
+	@# itself (docker cp of a dir into an existing dir), so the run silently
+	@# executes the previous bake's code. Both failures are invisible.
+	@docker exec $(RELEASE_CONTAINER) test ! -e /opt/world-state/data 2>/dev/null \
+	  || { echo "!! bake-image: $(RELEASE_SOURCE) is already populated. Bake from the"; \
+	       echo "!!   base image — 'make build-image' rebuilds $(IMAGE):dev empty."; \
+	       docker rm -f $(RELEASE_CONTAINER) >/dev/null 2>&1; exit 1; }
 	@echo ">> [bake] waiting for every tier..."
 	docker exec $(RELEASE_CONTAINER) wait-for-service --all
 	@echo ">> [bake] ingesting data/ into the world..."
 	docker cp data $(RELEASE_CONTAINER):/opt/world-state/data
 	docker cp scripts $(RELEASE_CONTAINER):/opt/world-state/scripts
 	docker exec $(RELEASE_CONTAINER) bash -c 'cd /opt/world-state && \
+	  python3 scripts/ingest_history.py --data-dir data && \
+	  python3 scripts/ingest_forge.py   --data-dir data && \
 	  python3 scripts/ingest_git.py  --data-dir data && \
 	  python3 scripts/ingest_docs.py --data-dir data && \
 	  python3 scripts/ingest_comments.py --data-dir data && \

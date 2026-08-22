@@ -1,0 +1,18 @@
+# Dependencies for the data_gen repository-mining scripts.
+#
+# These run on the host, before ingestion, so they are free to differ from
+# scripts/requirements.txt — but the same discipline applies: nothing here that
+# the standard library can already do. TOML is parsed by repolib.parse_toml
+# rather than tomli, because this box has Python 3.10 (no tomllib) and no pip.
+requests>=2.25
+PyYAML>=5.4
+
+# Only for the organization pass in analyze_repository.py. This box has no pip,
+# so install it into a venv built on the system interpreter (which keeps the two
+# above visible):
+#
+#   uv venv --python /usr/bin/python3.10 --system-site-packages data_gen/.venv
+#   uv pip install --python data_gen/.venv/bin/python anthropic
+#
+# and run that script with data_gen/.venv/bin/python. --no-enrich skips it.
+anthropic>=0.40

@@ -122,9 +122,24 @@ REPO="$(curl -s --max-time 10 -H "Authorization: token $TOKEN" \
   http://127.0.0.1:3300/api/v1/repos/worldadmin/curator 2>/dev/null)"
 if printf '%s' "$REPO" | grep -q '"name":"curator"'; then
   ok "curator repo exists in Gitea"
-  CNT="$(curl -s -H "Authorization: token $TOKEN" \
-    'http://127.0.0.1:3300/api/v1/repos/worldadmin/curator/commits?limit=5' 2>/dev/null | grep -c '"sha"')"
-  note "commits visible: $CNT"
+  # The real count comes from the pagination header, not from counting "sha" in
+  # a page of five: a commit object mentions several, so the old grep reported a
+  # number that was neither the page size nor the total.
+  CNT="$(curl -sI -H "Authorization: token $TOKEN" \
+    'http://127.0.0.1:3300/api/v1/repos/worldadmin/curator/commits?limit=1' 2>/dev/null \
+    | tr -d '\r' | awk -F': ' '/^[Xx]-Total:/ {print $2; exit}')"
+  BRANCHES="$(curl -s -H "Authorization: token $TOKEN" \
+    'http://127.0.0.1:3300/api/v1/repos/worldadmin/curator/branches?limit=100' \
+    2>/dev/null | grep -o '"user_can_push"' | wc -l)"
+  TAGS="$(curl -s -H "Authorization: token $TOKEN" \
+    'http://127.0.0.1:3300/api/v1/repos/worldadmin/curator/tags?limit=100' \
+    2>/dev/null | grep -o '"zipball_url"' | wc -l)"
+  note "commits on the default branch: ${CNT:-?}, branches: $BRANCHES, tags: $TAGS"
+  if [ "${BRANCHES:-0}" -gt 1 ]; then
+    ok "history has been ingested (more than the bootstrap baseline)"
+  else
+    note "only the bootstrap baseline is present — run scripts/ingest_history.py"
+  fi
 else
   bad "curator repo missing from Gitea"
 fi
