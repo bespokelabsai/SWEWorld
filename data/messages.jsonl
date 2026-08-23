@@ -1,8 +1,1 @@
-{"id":"m1","channel":"engineering","author":"alice","created_at":"2026-02-11T09:02:14Z","text":"Deploy is green.","reactions":[{"author":"bob","emoji":"tada"},{"author":"carol","emoji":"rocket"}]}
-{"channel":"engineering","author":"bob","created_at":"2026-02-11T09:04:01Z","text":"Nice, checking metrics now.","thread_id":"m1"}
-{"channel":"engineering","author":"carol","created_at":"2026-02-11T09:06:30Z","text":"p99 looks flat, no regression.","thread_id":"m1"}
-{"id":"m2","channel":"engineering","author":"bob","created_at":"2026-02-11T14:22:00Z","text":"Anyone else seeing slow test runs on `main`?","pinned":true}
-{"channel":"engineering","author":"alice","created_at":"2026-02-11T14:31:12Z","text":"Yeah — the metrics branch added a sleep in the fixture. Fixing.","thread_id":"m2"}
-{"channel":"product","author":"carol","created_at":"2026-02-12T08:00:00Z","text":"Q1 roadmap is up in the wiki, comments welcome."}
-{"channel":null,"participants":["alice","bob"],"author":"alice","created_at":"2026-02-12T11:00:00Z","text":"got a minute to look at the metrics PR?"}
-{"channel":null,"participants":["alice","bob"],"author":"bob","created_at":"2026-02-12T11:02:40Z","text":"sure, give me 10"}
+# Schema: data/schemas/messages.md

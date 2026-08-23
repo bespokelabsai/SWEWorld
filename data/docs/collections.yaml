@@ -1,13 +1,5 @@
-# Schema: data/schemas/docs.md
+# The wiki's shelves. Empty until the renderer fills it from
+# data_gen/build/ — the sample content that used to be here named
+# people who are not on this company's roster.
 version: 1
-collections:
-  - dir: engineering
-    name: Engineering
-    description: How the platform is built and run.
-    color: "#0366d6"
-    permission: read_write
-  - dir: product
-    name: Product
-    description: Roadmap and decisions.
-    color: "#d63384"
-    permission: read_write
+collections: []

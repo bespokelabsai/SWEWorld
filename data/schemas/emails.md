@@ -18,12 +18,12 @@ and it lets each copy carry its own flags.
 ```
 data/emails/
   index.jsonl
-  alice@world.local/
+  dario@world.local/
     INBOX/
       2026-02-11-deploy-postmortem.eml
     Sent/
       2026-02-11-re-deploy-postmortem.eml
-  bob@world.local/
+  gideon@world.local/
     INBOX/
       2026-02-11-re-deploy-postmortem.eml
 ```
@@ -42,12 +42,12 @@ human-readable.
 Standard RFC 5322. Written as-is into the mailbox, byte for byte.
 
 ```
-From: Alice Nguyen <alice@world.local>
-To: Bob Okafor <bob@world.local>
+From: Dario Kestrel <dario@world.local>
+To: Gideon Okafor <gideon@world.local>
 Cc: platform@world.local
 Subject: Deploy postmortem
 Date: Wed, 11 Feb 2026 09:14:02 +0000
-Message-ID: <20260211091402.alice.1@world.local>
+Message-ID: <20260211091402.dario.1@world.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 
@@ -89,7 +89,7 @@ IMAP carries per-message state that cannot live inside the message itself. One
 line per `.eml` file:
 
 ```json
-{"path":"alice@world.local/INBOX/2026-02-11-deploy-postmortem.eml","mailbox":"alice@world.local","folder":"INBOX","date":"2026-02-11T09:14:02Z","flags":["\\Seen"]}
+{"path":"dario@world.local/INBOX/2026-02-11-deploy-postmortem.eml","mailbox":"dario@world.local","folder":"INBOX","date":"2026-02-11T09:14:02Z","flags":["\\Seen"]}
 ```
 
 | Field | Type | Required | Default | Notes |
@@ -159,10 +159,10 @@ which the closed-world Maddy config permits via `insecure_auth`. Use
 ## Example
 
 ```jsonl
-{"path":"alice@world.local/Sent/001-deploy-postmortem.eml","mailbox":"alice@world.local","folder":"Sent","date":"2026-02-11T09:14:02Z","flags":["\\Seen"]}
-{"path":"bob@world.local/INBOX/001-deploy-postmortem.eml","mailbox":"bob@world.local","folder":"INBOX","date":"2026-02-11T09:14:05Z","flags":[]}
-{"path":"alice@world.local/INBOX/002-re-deploy-postmortem.eml","mailbox":"alice@world.local","folder":"INBOX","date":"2026-02-11T10:02:44Z","flags":["\\Seen","\\Answered"]}
+{"path":"dario@world.local/Sent/001-deploy-postmortem.eml","mailbox":"dario@world.local","folder":"Sent","date":"2026-02-11T09:14:02Z","flags":["\\Seen"]}
+{"path":"gideon@world.local/INBOX/001-deploy-postmortem.eml","mailbox":"gideon@world.local","folder":"INBOX","date":"2026-02-11T09:14:05Z","flags":[]}
+{"path":"dario@world.local/INBOX/002-re-deploy-postmortem.eml","mailbox":"dario@world.local","folder":"INBOX","date":"2026-02-11T10:02:44Z","flags":["\\Seen","\\Answered"]}
 ```
 
-The same message body appears twice — once in Alice's `Sent`, once in Bob's
+The same message body appears twice — once in Dario's `Sent`, once in Gideon's
 `INBOX` — with different flags and slightly different INTERNALDATEs.

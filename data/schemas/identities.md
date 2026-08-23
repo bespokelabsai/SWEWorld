@@ -17,7 +17,7 @@ These apply to **all** schemas in this directory.
 | Rule | Detail |
 |---|---|
 | Timestamps | ISO-8601 with an explicit offset: `2026-03-14T09:22:31Z` or `...+01:00`. Ingestion converts to whatever each service wants (Mattermost needs epoch **milliseconds**, Outline needs a `Date`, git needs its own format). Never emit bare local times. |
-| Person references | Always the persona `id` (`alice`), never a display name or email. |
+| Person references | Always the persona `id` (`dario`), never a display name or email. |
 | Encoding | UTF-8, LF line endings. |
 | Ordering | Files may be in any order. Ingestion sorts by timestamp where order matters. |
 | Unknown fields | Rejected, not ignored — a typo'd key is a bug, not a silent no-op. |
@@ -32,9 +32,9 @@ version: 1
 domain: world.local          # must match WORLD_DOMAIN in .env
 
 personas:
-  - id: alice
-    display_name: Alice Nguyen
-    email: alice@world.local
+  - id: dario
+    display_name: Dario Kestrel
+    email: dario@world.local
     role: Staff Engineer
 ```
 
@@ -85,8 +85,8 @@ biggest constraint on the whole pipeline:
 | Mail | The `From:` header, plus which mailbox it is APPENDed into. | Yes, to log in as them |
 
 Outline's `documents.create` accepts `createdAt` but has no `createdBy`. To
-attribute a document to Alice, the script must hold *Alice's* token — which
-means logging into Outline as Alice via Gitea OIDC, which means Alice needs a
+attribute a document to Dario, the script must hold *Dario's* token — which
+means logging into Outline as Dario via Gitea OIDC, which means Dario needs a
 Gitea password. That is what `password` is for.
 
 If `password` is omitted, ingestion falls back to `MAIL_PERSONA_PASSWORD` from
@@ -117,19 +117,19 @@ personas:
     role: Platform
     is_admin: true
 
-  - id: alice
-    display_name: Alice Nguyen
-    email: alice@world.local
+  - id: dario
+    display_name: Dario Kestrel
+    email: dario@world.local
     role: Staff Engineer
     timezone: America/Los_Angeles
 
-  - id: bob
-    display_name: Bob Okafor
-    email: bob@world.local
+  - id: gideon
+    display_name: Gideon Okafor
+    email: gideon@world.local
     role: Backend Engineer
     timezone: Europe/Berlin
     # Historical commits predate the world domain.
-    git_author: Bob Okafor <bob.okafor@oldcorp.example>
+    git_author: Gideon Okafor <gideon.okafor@oldcorp.example>
 ```
 
 ---

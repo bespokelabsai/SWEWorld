@@ -17,7 +17,7 @@ branch. This keeps the format writable by a generation step that does not have
 to model a DAG.
 
 ```json
-{"repo":"platform","branch":"main","author":"alice","authored_at":"2026-01-08T10:14:02Z","message":"Add health check endpoint","changes":[{"path":"api/health.go","action":"add","content":"package api\n\nfunc Health() string {\n\treturn \"ok\"\n}\n"}]}
+{"repo":"platform","branch":"main","author":"dario","authored_at":"2026-01-08T10:14:02Z","message":"Add health check endpoint","changes":[{"path":"api/health.go","action":"add","content":"package api\n\nfunc Health() string {\n\treturn \"ok\"\n}\n"}]}
 ```
 
 ---
@@ -72,10 +72,10 @@ Gitea side anyway.
 ## Example
 
 ```jsonl
-{"repo":"platform","branch":"main","author":"alice","authored_at":"2026-01-08T10:14:02Z","message":"Initial commit\n\nSkeleton service.","changes":[{"path":"README.md","action":"add","content":"# platform\n"},{"path":"go.mod","action":"add","content":"module platform\n\ngo 1.22\n"}]}
-{"repo":"platform","branch":"main","author":"bob","authored_at":"2026-01-09T14:03:55Z","message":"Add health endpoint","changes":[{"path":"api/health.go","action":"add","content":"package api\n\nfunc Health() string { return \"ok\" }\n"}]}
-{"repo":"platform","branch":"feat/metrics","author":"alice","authored_at":"2026-01-11T09:41:00Z","message":"Start metrics work","changes":[{"path":"api/metrics.go","action":"add","content":"package api\n"}]}
-{"repo":"platform","branch":"main","author":"bob","committer":"alice","authored_at":"2026-01-12T16:20:10Z","committed_at":"2026-01-13T08:02:00Z","message":"Drop deprecated ping handler","changes":[{"path":"api/ping.go","action":"delete"}],"tag":"v0.1.0"}
+{"repo":"platform","branch":"main","author":"dario","authored_at":"2026-01-08T10:14:02Z","message":"Initial commit\n\nSkeleton service.","changes":[{"path":"README.md","action":"add","content":"# platform\n"},{"path":"go.mod","action":"add","content":"module platform\n\ngo 1.22\n"}]}
+{"repo":"platform","branch":"main","author":"gideon","authored_at":"2026-01-09T14:03:55Z","message":"Add health endpoint","changes":[{"path":"api/health.go","action":"add","content":"package api\n\nfunc Health() string { return \"ok\" }\n"}]}
+{"repo":"platform","branch":"feat/metrics","author":"dario","authored_at":"2026-01-11T09:41:00Z","message":"Start metrics work","changes":[{"path":"api/metrics.go","action":"add","content":"package api\n"}]}
+{"repo":"platform","branch":"main","author":"gideon","committer":"dario","authored_at":"2026-01-12T16:20:10Z","committed_at":"2026-01-13T08:02:00Z","message":"Drop deprecated ping handler","changes":[{"path":"api/ping.go","action":"delete"}],"tag":"v0.1.0"}
 ```
 
 ---

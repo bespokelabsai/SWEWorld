@@ -165,8 +165,15 @@ def load_collections(path: Path, docs_dir: Path,
         problems.error(f"version must be 1, got {raw.get('version')!r}", path)
 
     entries = raw.get("collections")
-    if not isinstance(entries, list) or not entries:
-        problems.error("collections must be a non-empty list", path)
+    if not isinstance(entries, list):
+        problems.error("collections must be a list", path)
+        return {}
+    if not entries:
+        # An empty wiki is a state the world can legitimately be in — before the
+        # renderer has filled it, or in a world that simply does not use one.
+        # Refusing to start is how one absent corpus took the whole bake down
+        # with it, including the six ingests that had nothing to do with docs.
+        wl.info("no collections listed; there is no wiki content to ingest")
         return {}
 
     specs: dict[str, BookSpec] = {}

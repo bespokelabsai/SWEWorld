@@ -16,7 +16,7 @@ JSON Lines: one comment per line. Lines may be in any order; ingestion sorts by
 `created_at`.
 
 ```json
-{"doc":"engineering/architecture/storage-layer.md","author":"alice","created_at":"2026-01-18T09:12:00Z","id":"c1","quote":"Blast radius.","text":"Does this hold for the read replicas too?"}
+{"doc":"engineering/architecture/storage-layer.md","author":"dario","created_at":"2026-01-18T09:12:00Z","id":"c1","quote":"Blast radius.","text":"Does this hold for the read replicas too?"}
 ```
 
 ---
@@ -65,7 +65,7 @@ Write `quote` as the text **as it reads on the rendered page**, not as it
 appears in the markdown source:
 
 ```json
-{"doc":"engineering/onboarding.md","author":"bob","created_at":"2026-01-16T10:00:00Z","quote":"Clone platform","text":"This needs the SSH key step first."}
+{"doc":"engineering/onboarding.md","author":"gideon","created_at":"2026-01-16T10:00:00Z","quote":"Clone platform","text":"This needs the SSH key step first."}
 ```
 
 The source says ``Clone `platform` `` — the backticks are markup, not text, so

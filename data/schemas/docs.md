@@ -68,7 +68,7 @@ Markdown with YAML frontmatter. The body is the document.
 ```markdown
 ---
 title: Storage Layer
-author: alice
+author: dario
 created_at: 2026-02-11T14:03:00Z
 ---
 

@@ -68,7 +68,7 @@ made. Listing them is allowed and is a no-op.
 One message per line.
 
 ```json
-{"channel":"engineering","author":"alice","created_at":"2026-02-11T09:02:14Z","text":"Deploy is green.","thread_id":null}
+{"channel":"engineering","author":"dario","created_at":"2026-02-11T09:02:14Z","text":"Deploy is green.","thread_id":null}
 ```
 
 | Field | Type | Required | Default | Notes |
@@ -79,7 +79,7 @@ One message per line.
 | `text` | string | yes | — | Mattermost-flavoured Markdown. May be `""` only if `reactions` is non-empty. |
 | `thread_id` | string \| null | no | `null` | See *Threads* below. |
 | `id` | string | no | — | Stable handle so other messages can reply to this one. Required on a message that is replied to. |
-| `reactions` | array | no | `[]` | `[{"author":"bob","emoji":"tada","created_at":"..."}]` — emoji name without colons. |
+| `reactions` | array | no | `[]` | `[{"author":"gideon","emoji":"tada","created_at":"..."}]` — emoji name without colons. |
 | `pinned` | bool | no | `false` | Maps to `is_pinned`. |
 | `attachments` | array | no | `[]` | `[{"path":"files/diagram.png"}]`, relative to `data/`. Copied into the archive's `data/` directory. |
 
@@ -88,9 +88,9 @@ One message per line.
 A root message carries an `id`. A reply sets `thread_id` to that `id`:
 
 ```jsonl
-{"id":"m1","channel":"engineering","author":"alice","created_at":"2026-02-11T09:02:14Z","text":"Deploy is green."}
-{"channel":"engineering","author":"bob","created_at":"2026-02-11T09:04:01Z","text":"Nice, checking metrics now.","thread_id":"m1"}
-{"channel":"engineering","author":"carol","created_at":"2026-02-11T09:06:30Z","text":"p99 looks flat.","thread_id":"m1"}
+{"id":"m1","channel":"engineering","author":"dario","created_at":"2026-02-11T09:02:14Z","text":"Deploy is green."}
+{"channel":"engineering","author":"gideon","created_at":"2026-02-11T09:04:01Z","text":"Nice, checking metrics now.","thread_id":"m1"}
+{"channel":"engineering","author":"dermot","created_at":"2026-02-11T09:06:30Z","text":"p99 looks flat.","thread_id":"m1"}
 ```
 
 `ingest_chat.py` groups replies under their root and emits one post object with
@@ -109,7 +109,7 @@ must not be nested more than one level — Mattermost has no sub-threads.
 Set `channel` to `null` and provide `participants`:
 
 ```json
-{"channel":null,"participants":["alice","bob"],"author":"alice","created_at":"2026-02-12T11:00:00Z","text":"got a minute?"}
+{"channel":null,"participants":["dario","gideon"],"author":"dario","created_at":"2026-02-12T11:00:00Z","text":"got a minute?"}
 ```
 
 These become `direct_channel` and `direct_post` objects, which must come after

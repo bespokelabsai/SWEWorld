@@ -573,7 +573,7 @@ def main(argv: list[str] | None = None) -> int:
     admin_id = int(docs.sql("SELECT id FROM users WHERE id=1;") or 1)
     user_for = docs.make_user_resolver(identities, args.single_author, admin_id)
 
-    if args.replace:
+    if args.replace and pages:
         ids = ",".join(str(p["id"]) for p in pages.values())
         wl.warn(f"--replace: deleting existing comments on page(s) {ids}")
         docs.sql("DELETE FROM comments WHERE commentable_type='page' "
@@ -656,6 +656,12 @@ def verify_comments(pages: dict[str, dict], by_doc: dict[str, list[dict]],
     a mismatch here is something to look at, not a reason to fail the bake.
     """
     wl.heading("Verifying")
+    if not pages:
+        # `IN ()` is a syntax error, not an empty set. With no wiki to comment
+        # on there is nothing to check, and this pass is explicitly the one that
+        # warns rather than fails — so it must not be what stops the bake.
+        wl.info("no pages, so no comments to verify")
+        return
     ids = ",".join(str(p["id"]) for p in pages.values())
     scope = f"commentable_type='page' AND commentable_id IN ({ids})"
 
