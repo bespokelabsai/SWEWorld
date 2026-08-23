@@ -305,6 +305,15 @@ def verify_plan(forge: Forge, plan: list[dict]) -> list[str]:
     if both:
         problems.append(f"{len(both)} number(s) are both an issue and a pull request")
 
+    for release in forge.gh["releases"]:
+        text = forge.rewrite(release.get("body") or "") + " " + \
+               forge.rewrite(release.get("name") or "")
+        for pattern in forge.patterns:
+            if re.search(re.escape(pattern), text, re.I):
+                problems.append(f"release {release.get('tag_name')}: {pattern!r} "
+                                "survives in the notes")
+                break
+
     resolved = [describe(forge, i) for i in plan]
     for item in resolved:
         if item["kind"] == "gap":
@@ -522,6 +531,34 @@ def statements(forge: Forge, tables: Tables, resolved: list[dict],
                 f"{item.get('merged') or 0}, 0);")
             if merged:
                 counts["merged"] += 1
+
+    # -- releases ----------------------------------------------------------
+    # Gitea writes a `release` row for every tag it sees, with is_tag=1 and the
+    # tag message as the note. Those are not releases — they are tags wearing a
+    # release's table. The real ones carry notes somebody wrote by hand ("What's
+    # New"), a publisher, and a publication date that is not the tag's, so each
+    # is upgraded in place rather than inserted beside its tag.
+    for release in forge.gh["releases"]:
+        tag = release.get("tag_name") or ""
+        if not tag:
+            continue
+        author = forge.username((release.get("author") or {}).get("login"))
+        when = epoch(release.get("published_at") or release.get("created_at"))
+        out.append(
+            f"DELETE FROM release WHERE repo_id = {repo} AND "
+            f"lower_tag_name = {lit(tag.lower())};")
+        out.append(
+            f"INSERT INTO release (repo_id, publisher_id, tag_name, "
+            f"original_author, original_author_id, lower_tag_name, target, title, "
+            f"sha1, num_commits, note, is_draft, is_prerelease, is_tag, "
+            f"created_unix) VALUES "
+            f"({repo}, {tables.user(author)}, {lit(tag)}, '', 0, "
+            f"{lit(tag.lower())}, {lit(forge.ref_name(release.get('target_commitish')))}, "
+            f"{lit(forge.rewrite(release.get('name') or tag))}, '', 0, "
+            f"{lit(forge.rewrite(release.get('body')))}, "
+            f"{1 if release.get('draft') else 0}, "
+            f"{1 if release.get('prerelease') else 0}, 0, {when});")
+        counts["releases"] += 1
 
     # -- what was said about them ------------------------------------------
     talk: Counter = Counter()
@@ -778,6 +815,8 @@ def main(argv: list[str] | None = None) -> int:
           "numbers GitHub took back")
     wl.ok(f"{counts['comments']} comment(s), {counts['reviews']} review(s), "
           f"{counts['review_comments']} line comment(s), {counts['labels']} label(s)")
+    wl.ok(f"{counts['releases']} release(s), each with the notes somebody wrote "
+          "for it rather than the tag message Gitea would have used")
 
     wl.heading("Reading it back")
     broken = verify_written(tables, resolved)
