@@ -4185,6 +4185,848 @@
           "userId": "gideon",
           "text": "Just go ahead, it's a version pin change, not new logic.",
           "ts": "2024-12-20T18:17:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 and PR 163 are both still sitting open, 33+ days now. the Prometheus judge and the cache-dir helper are both ready to merge, just need eyes.",
+          "ts": "2024-12-24T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "If they've been ready this whole time, what's actually held them up?",
+          "ts": "2024-12-24T09:24:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we just call it and land both this week?",
+          "ts": "2024-12-24T09:24:05",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-24T09:24:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "totally",
+          "ts": "2024-12-24T09:24:23",
+          "threadParentTs": "2024-12-24T09:24:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's got bandwidth to review them this week?",
+          "ts": "2024-12-24T09:34:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "I've got bandwidth this week if someone can return the favor on PR 161 and 163",
+          "ts": "2024-12-24T10:11:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "happy to swap reviews",
+          "ts": "2024-12-24T10:11:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Swap makes sense for now, but I'm not sure we want to keep handling this one-off, do we actually set some expectation on turnaround going forward, or just deal with it as it comes up?",
+          "ts": "2024-12-24T10:26:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Just checked the wiki for the 0.1.13 release notes - page doesn't exist yet",
+          "ts": "2024-12-24T10:26:54"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we have a format for those, or is it just write it up however?",
+          "ts": "2024-12-24T10:27:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "honestly if we just had a rule like \"anything older than 5 days without a review gets flagged here, we'd probably catch most of this before it stacks up.",
+          "ts": "2024-12-24T11:03:02"
+        },
+        {
+          "userId": "dario",
+          "text": "We've also got PR 78, PR 90, PR 106, and PR 133 sitting in the same queue",
+          "ts": "2024-12-24T11:44:02"
+        },
+        {
+          "userId": "dario",
+          "text": "Are those landing this week too, or do they defer to next planning window?",
+          "ts": "2024-12-24T11:44:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is ready on my end, just needs a reviewer to land this week",
+          "ts": "2024-12-24T11:48:14"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 are both ready on my end too. Anyone know where PR 133 stands - is Otto still working on it?",
+          "ts": "2024-12-24T11:50:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 133 is the one we're missing - nobody here can speak to it until Otto checks in.",
+          "ts": "2024-12-24T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is PR 106 in the swap pool, or do I need to find a reviewer separately?",
+          "ts": "2024-12-24T11:52:31"
+        },
+        {
+          "userId": "konrad",
+          "text": "The wiki still has no 0.1.13 release notes page, that one's on me",
+          "ts": "2024-12-24T12:58:31"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there anything specific you need called out in it?",
+          "ts": "2024-12-24T12:58:43"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly we could just pool all five ready PRs together (78, 90, 106, 161, 163) and each take a couple this week instead of tracking individual swaps",
+          "ts": "2024-12-24T13:16:43",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "the pool idea works, but without named assignments I'm not sure it's different from what we have now.",
+          "ts": "2024-12-24T13:59:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "I do wonder if some of these are actually still clean merges after this long, or if there's been enough drift that a reviewer is inheriting more work than they realize.",
+          "ts": "2024-12-24T14:00:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Fair on the named assignments",
+          "ts": "2024-12-24T14:22:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we just split them up now, or is the drift concern a reason to hold off and check first?",
+          "ts": "2024-12-24T14:22:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "holding off to check first is just another waiting loop.",
+          "ts": "2024-12-24T15:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "so are we actually splitting these up right now, or is this another thing that resolves \"later this week\" and doesn't?",
+          "ts": "2024-12-24T15:00:38"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can take two of these this week, happy to name them now if we're doing it",
+          "ts": "2024-12-24T15:04:38",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Nice",
+          "ts": "2024-12-24T15:33:38"
+        },
+        {
+          "userId": "dario",
+          "text": "Konrad. I can take two as well - if we're naming them now I'm in.",
+          "ts": "2024-12-24T15:33:50",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "then I'll put my two in the pool, PR 161 and PR 163, curator-viewer and examples, both ready to go.",
+          "ts": "2024-12-24T15:50:50",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'll take PR 106 and PR 163",
+          "ts": "2024-12-24T16:09:50"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 133 stays open until Otto checks in",
+          "ts": "2024-12-24T16:10:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is up if anyone has cycles, it's the text message summarization example for examples-cookbooks",
+          "ts": "2024-12-25T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not blocking anything but would be good to get eyes on it before the week fills up",
+          "ts": "2024-12-25T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone had a chance to look at PR 243, the anthropic-batches integration?",
+          "ts": "2024-12-25T09:00:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not sure who put it up",
+          "ts": "2024-12-25T09:00:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "ok",
+          "ts": "2024-12-25T10:09:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "answered my own question, pulled up PR 243, it's \"Add Anthropic batch and general refactor\" and it closes issue 62",
+          "ts": "2024-12-25T10:09:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is that closure intentional or just a side effect of the refactor?",
+          "ts": "2024-12-25T10:09:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "ah ok, that tracks actually",
+          "ts": "2024-12-25T11:19:52"
+        },
+        {
+          "userId": "dario",
+          "text": "Put the weekly notes up for this week - it's in the engineering wiki as \"Weekly notes: week of Dec 23 - 0.1.13 out\" (engineering/weekly-notes-week-of-dec-23-0-1-13-out.md), covers the 0.1.13 release, in-flight PRs and the open issues we're carrying. Still need to sit with PR 243 before I weigh in, but I'd lean toward deferring merge until we have integration tests on the batch mapping changes.",
+          "ts": "2024-12-25T11:50:00",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "+1 on deferring 243 until integration tests are in",
+          "ts": "2024-12-25T11:52:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "checked the weekly notes too, PR 106's in there so I'm good",
+          "ts": "2024-12-25T11:52:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's picking up the integration tests for the batch mapping piece, is that on Emil or Dario?",
+          "ts": "2024-12-25T11:52:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the batch mapping fix tracked in its own issue anywhere, or is it just bundled into PR 243's scope?",
+          "ts": "2024-12-25T12:21:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is up if anyone has a moment to look at it today, it's the text message summarization example for examples-cookbooks",
+          "ts": "2024-12-26T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "I think it's pretty clean and coudl land without much back and forth",
+          "ts": "2024-12-26T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does anyone know if PR 78 and PR 90 are still in a state to land, or have enough things merged since that they'd need a rebase first?",
+          "ts": "2024-12-26T09:00:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "worth noting: PR 90 closes issue 88 if that context helps anyone triaging it.",
+          "ts": "2024-12-26T09:14:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, do you know if either of those needs a rebase at this point?",
+          "ts": "2024-12-26T09:49:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "So while I'm waiting on Dario, is there a sense of what else is blocking next release beyond the stale PRs?",
+          "ts": "2024-12-26T09:49:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "good question actually",
+          "ts": "2024-12-26T10:17:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Also, I just checked the wiki and there's no 0.1.13 release notes page up yet",
+          "ts": "2024-12-26T10:37:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is that needed before we cut the next release?",
+          "ts": "2024-12-26T10:37:51"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and 90 are both mine, and at this point they'll need a rebase",
+          "ts": "2024-12-26T11:12:51"
+        },
+        {
+          "userId": "dario",
+          "text": "A lot has landed since they went up",
+          "ts": "2024-12-26T11:13:03"
+        },
+        {
+          "userId": "dario",
+          "text": "Also no release notes page on the wiki yet, just the weekly notes I put up",
+          "ts": "2024-12-26T11:13:11"
+        },
+        {
+          "userId": "dario",
+          "text": "- *PR 78*: needs rebase, will sort it this afternoon\n- *PR 90*: same, doing both at once since they're related areas\n- *PR 106* touches examples-cookbooks, which is mine, so I'll reveiw it today",
+          "ts": "2024-12-26T11:13:38",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "- *PR 163*: curator-viewer, ready for review, no rebase needed\n- *PR 161*: the Prometheus LLM judge example, also sitting and waiting on eyes",
+          "ts": "2024-12-26T11:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 161 lands in examples-cookbooks too, so I've got two in my subsystem waiting on review, not one.",
+          "ts": "2024-12-26T11:36:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "So who's picking up PR 163 then?",
+          "ts": "2024-12-26T11:40:00"
+        },
+        {
+          "userId": "dario",
+          "text": "No release notes page up for 0.1.13, I checked the wiki myself.",
+          "ts": "2024-12-26T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "That one's Konrad's to write, just flagging it since it's still missing",
+          "ts": "2024-12-26T11:50:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Yeah",
+          "ts": "2024-12-26T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "that's mine. Is there a previous one I can use as a template, or just wing it?",
+          "ts": "2024-12-26T11:52:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, are you covering PR 163 as well or does it need someone else?",
+          "ts": "2024-12-26T11:52:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does Dario's weekly notes page cover the release notes, or do we still need a separate 0.1.13 page?",
+          "ts": "2024-12-26T12:05:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "Only page on the wiki right now is Dario's weekly notes, there's no prior release notes page to pull a template from.",
+          "ts": "2024-12-26T12:23:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario PR 163 is curator-viewer, not examples-cookbooks, so I wasn't sure if you were already planning to pick it up or if it needs someone else.",
+          "ts": "2024-12-26T12:23:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "are there other PRs sitting that we haven't named yet?",
+          "ts": "2024-12-26T12:47:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "I feel like PR 133 might be in a similar state",
+          "ts": "2024-12-26T12:48:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "Since there's no template to pull from, I'll just write the 0.1.13 release notes from scratch this afternoon and post it to the engineering section of the wiki",
+          "ts": "2024-12-26T13:11:07"
+        },
+        {
+          "userId": "dario",
+          "text": "I can grab PR 163 but I've already got 106 and 161 queued today, is someone else free to take it?",
+          "ts": "2024-12-26T13:30:07",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-26T14:14:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario that's already a lot for one afternoon, don't worry about PR 163.",
+          "ts": "2024-12-26T14:09:07",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "The weekly notes I wrote covers the 0.1.13 release and what was in flight at the time",
+          "ts": "2024-12-26T14:14:07"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, does any of that help as a starting point, or are you going fully fresh?",
+          "ts": "2024-12-26T14:14:15"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad nice, appreciate you jumping on that.",
+          "ts": "2024-12-26T14:14:33",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll track down a reviewer, don't add it to your queue.",
+          "ts": "2024-12-26T14:14:42",
+          "threadParentTs": "2024-12-26T13:30:07"
+        },
+        {
+          "userId": "dario",
+          "text": "What's the status on PR 133?",
+          "ts": "2024-12-26T14:16:42"
+        },
+        {
+          "userId": "dario",
+          "text": "Gideon flagged it earlier and I don't think anyone picked that up",
+          "ts": "2024-12-26T14:16:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "still looking for a reviewer for PR 163 if anyone has bandwidth this afternoon.",
+          "ts": "2024-12-26T14:19:54"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, it covers what's in flight, but not what actually landed in 0.1.13",
+          "ts": "2024-12-26T14:43:54"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there a changelog I should pull from, or do I dig through the commit log myself?",
+          "ts": "2024-12-26T14:44:06"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we know if 78, 90, and 163 are the only things on the critical path, or are there other PRs that need to clear before next release?",
+          "ts": "2024-12-26T14:44:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario how are you tracking on the rebases, still on for this afternoon?",
+          "ts": "2024-12-26T15:12:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Still on for the rebases. On the critical path question, I honestly don't know if 78 and 90 are the only things that need to clear - does someone have better visibility on what the next release actually needs?",
+          "ts": "2024-12-26T15:31:49"
+        },
+        {
+          "userId": "dario",
+          "text": "- PR 78: starting the rebase now\n- PR 90: queued right after\n- PR 106 review pushed to later this afternoon",
+          "ts": "2024-12-26T15:32:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "So does anyone actually own what's in scope for next release, or is that still undefined?",
+          "ts": "2024-12-26T16:12:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil probably has the clearest view on that, given he owns release-and-ci",
+          "ts": "2024-12-26T16:22:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, do you have a read on what needs to land before next release? We're trying to sort out the critical path and it sounds like you'd have the clearest view",
+          "ts": "2024-12-26T16:43:18"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 106 doesn't have to wait on the scope question, that one stands on its own",
+          "ts": "2024-12-26T17:10:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are you still getting to PR 106 today, or is that pushing to tomorrow at this point?",
+          "ts": "2024-12-26T17:31:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Pushing to tomorrow, rebases ran longer than expected.",
+          "ts": "2024-12-26T18:03:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 228 is also sitting out there, Dario's quick fix for expired batches, and it might be in the same shape as 78 and 90.",
+          "ts": "2024-12-26T18:06:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2024-12-26T18:14:53.355572"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 228 is mine, the expired batches fix",
+          "ts": "2024-12-26T18:14:58.355572"
+        },
+        {
+          "userId": "dario",
+          "text": "Probaly in the same shape as 78 and 90, I'll fold it in when I get to the rebases tomorrow",
+          "ts": "2024-12-26T18:15:06.355572"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is mostly done, just cleaning up the summarization example before it's ready for review, touches examples-cookbooks, not blocking anything. I've got some bandwidth this morning if anyone needs eyes on their stuff",
+          "ts": "2024-12-27T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Would you mind taking a look at PR 163? it's curator-viewer, pretty focused, just swaps in the getCacheDir helper and adds a param for the cache dir.",
+          "ts": "2024-12-27T09:22:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll grab it",
+          "ts": "2024-12-27T09:35:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Actually, if there are few others in similar shape, small and focused, this morning feels like a good window to move bunch of them through at once",
+          "ts": "2024-12-27T09:35:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 is up too if you want more to batch, that's the Prometheus LLM judge example, touches examples-cookbooks.",
+          "ts": "2024-12-27T09:43:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "While we have the moment, worth making a call on which viewer examples we're trying to land before the break vs which we're just bumping to 2025? I keep going back and forth on it.",
+          "ts": "2024-12-27T09:43:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "totally, worth just deciding it today",
+          "ts": "2024-12-27T09:52:13",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "honestly not sure PR 161 is close enough to call before the break, is it worth just naming it 2025 now?",
+          "ts": "2024-12-27T10:32:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "actually, I'll just call it: PR 161 goes to 2025.",
+          "ts": "2024-12-27T10:32:25",
+          "reactions": [
+            {
+              "emoji": "📌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone have a view on the batch fix in PR 228, do we try to land that before the break or not?",
+          "ts": "2024-12-27T10:32:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can take a look at PR 228 this afternoon and give a view on it, been sitting on the same question myself.",
+          "ts": "2024-12-27T10:49:37"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad are we actually deciding merge-or-defer on PR 228 today, or just getting a read on it?",
+          "ts": "2024-12-27T11:17:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "hold on, I was too hasty on PR 161 just now.",
+          "ts": "2024-12-27T11:20:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "we haven't actually looked at the viewer examples backlog as a whole to know what should land vs what waits.",
+          "ts": "2024-12-27T11:20:53"
+        },
+        {
+          "userId": "dario",
+          "text": "One thing for whoever reviews PR 228 - don't add validation into LLM.__init__",
+          "ts": "2024-12-27T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "That constuctor should stay cheap and dumb, it just holds config",
+          "ts": "2024-12-27T11:50:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Skip it and we get bug reports from everyone the moment a new base_url or proxy shows up.",
+          "ts": "2024-12-27T11:50:10.666667"
+        },
+        {
+          "userId": "dario",
+          "text": "The response tells us what we need to know, that's where the checking belongs.",
+          "ts": "2024-12-27T11:50:13.333334"
+        },
+        {
+          "userId": "dario",
+          "text": "Any model name or response_format checking belongs at request time, not construction time",
+          "ts": "2024-12-27T11:50:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Went looking for the Dec 13 batch postmortem on the wiki and it's not there yet",
+          "ts": "2024-12-27T11:50:31"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad is that still coming, or is it sitting somewhere else?",
+          "ts": "2024-12-27T11:50:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Probably just a read from me today, I don't think we should call merge or defer on PR 228 until I've actually gotten into it.",
+          "ts": "2024-12-27T12:03:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "is the viewer examples backlog tracked anywhere, or is it mostly just in people's heads at this point?",
+          "ts": "2024-12-27T12:29:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad have you had a chance to look at PR 163 yet?",
+          "ts": "2024-12-27T12:29:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "are issue 92 and 93 on anyone's pre-break list, or are those definitely 2025?",
+          "ts": "2024-12-27T13:15:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "Havent gotten to PR 163 yet, on the backlog question though, issue 92 and issue 93 are probably the closest thing to a tracker for viewer work we have right now",
+          "ts": "2024-12-27T14:34:48"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is ready for review, examples-cookbooks, text summarization example, not blocking a release",
+          "ts": "2024-12-27T14:35:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly if we're not going to make the call today, I'd rather just name PR 228 as 2025 now and close it out before the break than leave it hanging",
+          "ts": "2024-12-27T15:06:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "totally fair",
+          "ts": "2024-12-27T15:45:30",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'd feel better if someone had actually gotten eyes on PR 228 before we defer it, just so we know what we're actually pushing past the break.",
+          "ts": "2024-12-27T16:01:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there actually time to get eyes on PR 228 before end of day, or are we deferring it either way?",
+          "ts": "2024-12-27T16:04:30",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-27T16:29:13"
+        },
+        {
+          "userId": "dario",
+          "text": "Pulled it up, it's titled \"quick fix expired batches\", sounds like it could actually be small enough to get eyes on before we close out today.",
+          "ts": "2024-12-27T16:29:13",
+          "threadParentTs": "2024-12-27T16:04:30"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 228 is 2025, nobody got proper eyes on it today so I'd rather carry it over than rush a call",
+          "ts": "2024-12-27T17:19:42",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 are both still in progress and won't be ready before the break either",
+          "ts": "2024-12-27T17:19:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "with PR 163 still unreviewed at this point, do we call that 2025 too, or is there still a shot today?",
+          "ts": "2024-12-27T17:36:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 163 didn't get eyes from me today, I dropped the ball on that one",
+          "ts": "2024-12-27T18:27:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "If nobody else has a few minutes for it, probably has to be 2025",
+          "ts": "2024-12-27T18:27:48",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-27T18:28:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "so that's a call, or are you actually asking around?",
+          "ts": "2024-12-27T18:28:28",
+          "threadParentTs": "2024-12-27T18:27:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "first week back, or genuinely whenever?",
+          "ts": "2024-12-27T18:28:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "- PR 106 is the text message summarization example, touches examples-cookbooks\n- draft is up, not blocking a release but I'd like to get eyes on it before it sits much longer\n- happy to reshape it if the approach isn't what we want",
+          "ts": "2025-01-02T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 and PR 163 are both still live on my end",
+          "ts": "2025-01-02T10:18:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 163 is the smaller one, just a getCacheDir helper swap in the viewer, and PR 161 is the Prometheus judge example which could use a second set of eyes before we decide if the approach fits",
+          "ts": "2025-01-02T10:18:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "For PR 161, is the question about whether the Prometheus judge fits as an examples-cookbooks pattern, or something more about the implementation itself?",
+          "ts": "2025-01-02T10:20:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "honestly both, but the pattern question is the one I'd want @Dario Kestrel to weigh in on since he owns examples-cookbooks.",
+          "ts": "2025-01-02T11:19:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not convinced it fits the cookbook pattern.",
+          "ts": "2025-01-02T11:50:00",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Also, PR 78 and PR 90 on my end have been sitting there a while, worth knowing if those are still wanted before we go further",
+          "ts": "2025-01-02T11:50:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "So roughly: PR 163 and PR 106 are both small enough to get reviewed this afternoon, PR 161 probably needs a reshape before it goes back up, and PR 78 and PR 90 are Dario's call on whether they're still active or can close.",
+          "ts": "2025-01-02T11:52:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel are PR 78 and PR 90 close enough to merge or are they basically stale at this point?",
+          "ts": "2025-01-02T11:52:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is PR 163 waiting on anything specific or just needs someone to take a look at it?",
+          "ts": "2025-01-02T12:52:25"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 are both still active, not stale",
+          "ts": "2025-01-02T13:37:25"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 90 is basically ready for review, it's the disable-cache argument for Prompter, and PR 78 is the vLLM example which just needs eyes on it",
+          "ts": "2025-01-02T13:37:37"
         }
       ],
       "projectSpec": {
@@ -9091,6 +9933,301 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is basically done, the text summarization example is cleaned up and I'll push it for review this morning",
+          "ts": "2024-12-27T09:00:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Also wanted to check, did the path-handling refactor land cleanly in 0.1.13?",
+          "ts": "2024-12-27T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Just want to make sure nothing in the examples layer got affected",
+          "ts": "2024-12-27T09:00:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "What's the base URL option in release-and-ci, is that something that landed in 0.1.13?",
+          "ts": "2024-12-27T09:00:42"
+        },
+        {
+          "userId": "dermot",
+          "text": "I haven't confirmed the path-handling refactor is clean in 0.1.13",
+          "ts": "2024-12-27T09:08:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do you know who made the change, or is there a PR we can trace back to check it?",
+          "ts": "2024-12-27T09:39:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "so here's the thing, I pulled up the weekly notes and there's nothing in there specifically about path handling, just says no regressions on 0.1.13 so far",
+          "ts": "2024-12-27T09:40:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel do you remember which PR the path-handling change was in?",
+          "ts": "2024-12-27T10:07:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Well, finding the PR is a start, but that only tells us what changed, not whether it's actually solid in 0.1.13",
+          "ts": "2024-12-27T10:38:43"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I don't have the PR off the top of my head, I'd have to go look. Base URL option though, that was a couple of my commits",
+          "ts": "2024-12-27T11:10:43"
+        },
+        {
+          "userId": "dario",
+          "text": "- PR 78 and PR 90 are both still in progress on my end, neither is merged yet\n- base URL option was my commits and it did make it into 0.1.13, happy to walk through what it does if that helps close the question this afternoon\n- path-handling I honestly can't confirm from memory, would need to trace the PR",
+          "ts": "2024-12-27T11:11:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll trace the path-handling commits this afternoon",
+          "ts": "2024-12-27T11:40:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel that base URL walkthrough, yes, I'd want to be there for that",
+          "ts": "2024-12-27T11:40:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "The weekly notes page is up, confirms 0.1.13 shipped with no regressions flagged, but nothing in there specifically on path handling.",
+          "ts": "2024-12-27T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel, can I jump on that base URL walkthrough this afternoon too?",
+          "ts": "2024-12-27T11:52:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Konrad Feltrin you doing alright after the 0.1.13 cut?",
+          "ts": "2024-12-27T12:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel what time were you thinking for that walkthrough?",
+          "ts": "2024-12-27T12:00:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure where to start, which service does the path handling actually live in?",
+          "ts": "2024-12-27T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel is the base URL option backward compatible or does it change existing behavior?",
+          "ts": "2024-12-27T13:52:00",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-27T13:55:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "Yeah, all good on my end",
+          "ts": "2024-12-27T13:54:57",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Path-handling refactor in 0.1.13 still isn't confirmed solid, Dermot's trying to trace it but doesn't have a starting point yet, so that feels like it's still pretty open going into the afternoon.",
+          "ts": "2024-12-27T13:55:09",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-27T14:41:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Backward compatible in the sense that existing code won't break, yeah?",
+          "ts": "2024-12-27T13:55:52",
+          "threadParentTs": "2024-12-27T13:52:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Does this afternoon work for both of you for the base URL walkthrough, or is there a better window today?",
+          "ts": "2024-12-27T13:56:04"
+        },
+        {
+          "userId": "konrad",
+          "text": "Definitely works for me, free for the rest of the afternoon.",
+          "ts": "2024-12-27T14:31:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Still waiting on Dermot to confirm, I'll ping if we're good to go",
+          "ts": "2024-12-27T14:41:04"
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean the weekly notes say no regressions, so it's unverified more than open, no?",
+          "ts": "2024-12-27T14:41:48",
+          "threadParentTs": "2024-12-27T13:55:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "went through release-and-ci commits looking for the path-handling change and couldn't find anything, am I looking in the wrong place?",
+          "ts": "2024-12-27T14:42:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Free now for the walkthrough if you are, Dermot",
+          "ts": "2024-12-27T15:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "If it's not showing up in release-and-ci, the change probably isn't there, might be worth looking at whichever service actually handles file paths",
+          "ts": "2024-12-27T15:03:00",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-27T15:03:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "which service do you mean?",
+          "ts": "2024-12-27T15:03:41",
+          "threadParentTs": "2024-12-27T15:03:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Honestly I was just guessing there, I don't actually know, @Dario Kestrel would know better than me which service owns that.",
+          "ts": "2024-12-27T15:47:52"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd check caching-and-resume first, that's where cache dir paths live, though I'm not certain the refactor landed there.",
+          "ts": "2024-12-27T16:26:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha, I'll check there",
+          "ts": "2024-12-27T17:04:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "checked release-and-ci, nothing path-related in there.",
+          "ts": "2024-12-27T17:05:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Base URL walkthrough never happened today",
+          "ts": "2024-12-27T17:15:06"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd flag that change for review when we're back before it goes into a release",
+          "ts": "2024-12-27T17:15:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "Well, the base URL change already made it into 0.1.13, flagging for review before the next release still leaves it unreviewed in what's already out",
+          "ts": "2024-12-27T17:44:11"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah, fair, but I'd still rather look at it and know it's clean than just leave it out there unexamined.",
+          "ts": "2024-12-27T17:57:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are you thinking you'll look at it tonight, or is that more of a next week thing?",
+          "ts": "2024-12-27T18:25:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference side is stable, nothing blocking on my end",
+          "ts": "2025-01-02T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "want to make sure dario's resume abstraction is solid across the layers before I add more test coverage on top of it",
+          "ts": "2025-01-02T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel is the resume abstraction shared across batch and online, or does each layer have its own implementation?",
+          "ts": "2025-01-02T10:00:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone had chance to look at the caching-and-resume changes yet, or is dario still the only one who's been in that code?",
+          "ts": "2025-01-02T10:11:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel do you consider the resume abstraction stable enough to build test coverage on top of, or is there still reshaping expected?",
+          "ts": "2025-01-02T10:34:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "is dario around this afternoon, or should we flag this for tomorrow?",
+          "ts": "2025-01-02T11:10:33"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm around. The resume logic is shared, it sits in caching-and-resume and both the batch and online layers build on top of it. I'd lean toward calling it stable enough to add coverage, but honestly I'd like another set of eyes on the abstraction before I go wide on the tests.",
+          "ts": "2025-01-02T11:53:10",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "who's best placed to review it, is that emil?",
+          "ts": "2025-01-02T12:42:55"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil yeah. Nice catch on the bulk-llm-inference side being stable, Dermot, that actually helps narrow where the abstraction needs to hold",
+          "ts": "2025-01-02T13:16:55",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Still need someone to sign off on the resume abstraction before I go wider on tests.",
+          "ts": "2025-01-02T13:42:27"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold are you able to take a look at caching-and-resume this afternoon?",
+          "ts": "2025-01-02T13:42:32"
         }
       ],
       "projectSpec": {
@@ -12566,6 +13703,192 @@
           "userId": "dario",
           "text": "@Dermot Callaghan, is it written up somewhere else, or is that still coming?",
           "ts": "2024-12-18T18:30:59.003255"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 163 is up for review, getCacheDir helper refactor plus the extra cache dir param",
+          "ts": "2024-12-25T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 is still in progres",
+          "ts": "2024-12-25T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, is the anthropic-batches provider integration at a testable state right now?",
+          "ts": "2024-12-25T09:00:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone looked at PR 289 yet, or is it still waiting on a first pass?",
+          "ts": "2024-12-25T09:50:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "The test added in PR 289, does it exercise the anthropic-batches path specifically or just the generic batch mapping?",
+          "ts": "2024-12-25T09:59:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, are your provider-integrations and batch-mode changes going into one PR or split across a few?",
+          "ts": "2024-12-25T11:02:22"
+        },
+        {
+          "userId": "dario",
+          "text": "hold on, will answer both of those",
+          "ts": "2024-12-25T11:53:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also curious while you're in there, is there a shared completion cost function across providers or is each one computing it separately?",
+          "ts": "2024-12-25T12:53:10"
+        },
+        {
+          "userId": "dario",
+          "text": "Anthropic-batches integration is testable on the provider side - batch mapping fix is in, mocking for the anthropic server is solid, so the core request path should exercise cleanly",
+          "ts": "2024-12-25T12:57:10",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "And yes on the cost function, I've got a shared completion cost function landing as part of this because each provider computing it separately was getting unwieldly",
+          "ts": "2024-12-25T12:57:22",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Still figuring out the PR split, the batch-mode pieces touch Emil's territory so that probably wants to be its own PR",
+          "ts": "2024-12-25T12:57:27"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure whether to push for merging the provider side now or hold until we have better end-to-end coverage - the unit tests are there but I don't think we've fully exercised the batch submission path under realistic conditions",
+          "ts": "2024-12-25T12:57:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone have a strong opinion, or do we just defer and pick it back up this afternoon?",
+          "ts": "2024-12-25T12:57:44"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take a look at PR 289 this afternoon.",
+          "ts": "2024-12-25T13:13:44",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Batch mapping fix is confirmed working on my end",
+          "ts": "2024-12-25T13:35:44",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Is PR 289 ready to merge at this point, or does it still need a formal review pass?",
+          "ts": "2024-12-25T13:46:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "examples-cookbooks is in decent shape, been reviewing the provider config changes dario landed and I have few question on the tracker/resubmit logic beofre nils gets here next week",
+          "ts": "2025-01-02T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "honestly, when Dario says \"tracker/resubmit logic\" in these changes, is that a single unified path or are resubmits handled separately from the main tracker flow?",
+          "ts": "2025-01-02T09:42:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "same question I had. from what I can see in the logs there are two separate things happening:\n\n```\n[batch] tracker updated: request_id=abc123 status=pending\n[batch] resubmitting request_id=abc123 (no tracker ref passed)\n```\n\nnot entirely sure if that's by design or a gap. @Dario Kestrel can you clarify whether those are meant to be one flow?",
+          "ts": "2025-01-02T09:56:00",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario Kestrel also curious whether progress-and-cli would even see those resubmits if no tracker ref is passed through.",
+          "ts": "2025-01-02T10:12:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "can't really sign off on the provider config side until we know whether the tracker ref is threaded through or not, so I'm waiting on dario's answer too",
+          "ts": "2025-01-02T10:28:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario Kestrel any chance you can get us an answer on this this afternoon?",
+          "ts": "2025-01-02T11:12:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dermot's blocked on provider config review until we know",
+          "ts": "2025-01-02T11:12:08"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah",
+          "ts": "2025-01-02T11:23:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "give me a minute to look at the actual tracker flow",
+          "ts": "2025-01-02T11:23:16"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold can you weigh in on this?",
+          "ts": "2025-01-02T11:23:27"
+        },
+        {
+          "userId": "dario",
+          "text": "The tracker/resubmit question is touching batch-mode on your side too and I'd rather we nail down the intended flow before Nils gets here",
+          "ts": "2025-01-02T11:23:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "provider config review is on hold until dario confirms the tracker flow, everything else on my side is clear",
+          "ts": "2025-01-02T12:02:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel when you look at the tracker flow, can you also confirm whether the provider config enums are stable or if those are still likely to change?",
+          "ts": "2025-01-02T12:03:10"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel are you still on this, or should we pick it up this afternoon?",
+          "ts": "2025-01-02T12:39:00"
         }
       ],
       "projectSpec": {

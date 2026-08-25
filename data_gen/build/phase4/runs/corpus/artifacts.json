@@ -586,5 +586,17 @@
     "done": true,
     "at": "2024-12-23T09:42:00+00:00",
     "date": "2024-12-23"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2024-12-23",
+    "title": "Weekly notes: week of Dec 23 - 0.1.13 out",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2024-12-25T09:35:00+00:00",
+    "date": "2024-12-25"
   }
 ]

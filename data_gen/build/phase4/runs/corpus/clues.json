@@ -373,5 +373,61 @@
       ],
       "rewrote": false
     }
+  },
+  {
+    "clue": "t2.r1.h2",
+    "holder": "dario",
+    "date": "2024-12-27",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "That constuctor should stay cheap and dumb, it just holds config",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's 11:50 sequence of messages states every part: no validation in __init__, keep it cheap/dumb config-only, the bug-report consequence tied to base_url/proxy, checking belongs at request time for model/response_format, and that the response provides the needed info.",
+    "elements": [
+      {
+        "part": "don't add validation into LLM.__init__",
+        "present": true,
+        "why": "Dario says explicitly not to add validation into LLM.__init__."
+      },
+      {
+        "part": "__init__ should stay cheap and dumb, just holding config",
+        "present": true,
+        "why": "Dario says the constructor should stay cheap and dumb, it just holds config."
+      },
+      {
+        "part": "if __init__ asserts things about model names, bug reports come in from everyone hitting a new base_url or proxy",
+        "present": true,
+        "why": "Dario says skipping it causes bug reports from everyone pointing at a new base_url or proxy."
+      },
+      {
+        "part": "checking should happen at request time, not construction time",
+        "present": true,
+        "why": "Dario says any model name or response_format checking belongs at request time, not construction time."
+      },
+      {
+        "part": "the response tells us what we need to know",
+        "present": true,
+        "why": "Dario states the response tells us what we need to know, that's where checking belongs."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:20  gideon    we haven't actually looked at the viewer examples backlog as a whole to know what should",
+      "11:50  dario     One thing for whoever reviews PR 228 - don't add validation into LLM.__init__",
+      "11:50  dario     That constuctor should stay cheap and dumb, it just holds config   <-- the clue",
+      "11:50  dario     Skip it and we get bug reports from everyone the moment a new base_url or proxy shows up",
+      "11:50  dario     The response tells us what we need to know, that's where the checking belongs."
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "Skip it and we get bug reports from everyone the moment a new base_url or proxy shows up.",
+        "The response tells us what we need to know, that's where the checking belongs."
+      ],
+      "rewrote": false
+    }
   }
 ]
