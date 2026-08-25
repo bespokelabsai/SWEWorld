@@ -75,3 +75,12 @@
 {"path": "emil@world.local/INBOX/0004-weekly-update-week-of-nov-25.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2024-12-02T09:07:00+00:00", "flags": []}
 {"path": "konrad@world.local/INBOX/0004-weekly-update-week-of-nov-25.eml", "mailbox": "konrad@world.local", "folder": "INBOX", "date": "2024-12-02T09:07:00+00:00", "flags": []}
 {"path": "otto@world.local/INBOX/0004-weekly-update-week-of-nov-25.eml", "mailbox": "otto@world.local", "folder": "INBOX", "date": "2024-12-02T09:07:00+00:00", "flags": []}
+{"path": "dario@world.local/Sent/0001-v0-1-11-is-out.eml", "mailbox": "dario@world.local", "folder": "Sent", "date": "2024-12-06T09:35:00+00:00", "flags": ["\\Seen"]}
+{"path": "dermot@world.local/INBOX/0001-v0-1-11-is-out.eml", "mailbox": "dermot@world.local", "folder": "INBOX", "date": "2024-12-06T09:35:00+00:00", "flags": []}
+{"path": "konrad@world.local/INBOX/0001-v0-1-11-is-out.eml", "mailbox": "konrad@world.local", "folder": "INBOX", "date": "2024-12-06T09:35:00+00:00", "flags": []}
+{"path": "konrad@world.local/Sent/0002-weekly-update-week-of-dec-2.eml", "mailbox": "konrad@world.local", "folder": "Sent", "date": "2024-12-09T09:28:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0002-weekly-update-week-of-dec-2.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2024-12-09T09:28:00+00:00", "flags": []}
+{"path": "emil@world.local/INBOX/0002-weekly-update-week-of-dec-2.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2024-12-09T09:28:00+00:00", "flags": []}
+{"path": "otto@world.local/INBOX/0002-weekly-update-week-of-dec-2.eml", "mailbox": "otto@world.local", "folder": "INBOX", "date": "2024-12-09T09:28:00+00:00", "flags": []}
+{"path": "gideon@world.local/INBOX/0002-weekly-update-week-of-dec-2.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2024-12-09T09:28:00+00:00", "flags": []}
+{"path": "dermot@world.local/INBOX/0002-weekly-update-week-of-dec-2.eml", "mailbox": "dermot@world.local", "folder": "INBOX", "date": "2024-12-09T09:28:00+00:00", "flags": []}

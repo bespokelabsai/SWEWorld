@@ -203,5 +203,23 @@
       ],
       "rewrote": false
     }
+  },
+  {
+    "clue": "t1.r2.L3",
+    "holder": "dermot",
+    "date": "2024-12-09",
+    "channel": "code-review",
+    "wrote_into": "page:design-ws-012-bulk-llm-inference",
+    "attempt": 1,
+    "said": true,
+    "quote": "single point of resolution in the caching layer",
+    "said_by": "dermot",
+    "why": "The document asserts as plain fact that the caching layer owns a single resolver and that all new code must call it, matching the required information without needing 'team agreed' framing.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Bulk LLM Inference: next-phase design",
+    "written_as": "engineering/bulk-llm-inference-next-phase-design.md"
   }
 ]

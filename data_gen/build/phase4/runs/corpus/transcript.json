@@ -2678,6 +2678,667 @@
           "userId": "dario",
           "text": "@Gideon, did you end up filing the Future Works piece as a separate issue, or is that still pending?",
           "ts": "2024-12-02T12:04:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "pr 141 (LiteLLM+instructor backend) is essentially done on my end, just waiting on CI to go green before it's ready to land.",
+          "ts": "2024-12-03T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the retry logic in those 12 commits need a second look before we call this ready, or are we good to approve on ci green alone?",
+          "ts": "2024-12-03T09:40:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "the retry side I'm pretty comfortable with, honestly. a second look on the overall handler shape would mean more to me before we land it.",
+          "ts": "2024-12-03T09:50:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "the logging level changes are probably worth a dedicated look, separate from the handler shape pass.",
+          "ts": "2024-12-03T10:02:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "going through the handler shape on pr 141 now, I'll post what I find before end of day",
+          "ts": "2024-12-03T15:00:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "the logging changes I want to look at separatley",
+          "ts": "2024-12-03T15:00:48"
+        },
+        {
+          "userId": "dario",
+          "text": "+1 on separating the logging look",
+          "ts": "2024-12-03T15:27:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "if Dermot's handler look comes back clean, are we comfortable approving PR 141 on CI green before the logging review wraps?",
+          "ts": "2024-12-03T16:14:09"
+        },
+        {
+          "userId": "dario",
+          "text": "Fine with approving on handler clean + CI green, but can we find a few minutes tomorrow to go through the rename and cache side before this cuts?",
+          "ts": "2024-12-03T16:17:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "might be worth tracking the rename check and the logging review as explicit items before the v0.1.11 cut, rather than just loose threads.",
+          "ts": "2024-12-03T16:35:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "handler shape looks clean from my read",
+          "ts": "2024-12-03T17:11:09",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "the logging and rename check are still open",
+          "ts": "2024-12-03T17:11:21"
+        },
+        {
+          "userId": "dario",
+          "text": "If the handler shape is cleared, might make sense to go ahead and gate PR 141 on CI green now, and track the rename and logging checks as separate pre-cut items",
+          "ts": "2024-12-03T17:16:21",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "are we sure those two checks won't slip if they're just pre-cut items with no explicit owner?",
+          "ts": "2024-12-03T17:33:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "has anyone actually confirmed the logging level changes don't mask failures in the provider and batch paths?",
+          "ts": "2024-12-03T17:33:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "not sure if that's a blocker for approving PR 141 pending CI, or if we treat it as a separate pre-cut check.",
+          "ts": "2024-12-03T17:34:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 202 is ready for review, it's the retry-once fix for online-request-processing",
+          "ts": "2024-12-04T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Potentially blocking the release cut, so eyes welcome sooner rather than later",
+          "ts": "2024-12-04T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "I've got five batch PRs merged since yesterday, three more still pending review",
+          "ts": "2024-12-04T09:05:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "will pull up PR 202 shortly and see if it's solid before we talk cut",
+          "ts": "2024-12-04T09:05:20",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "are PR 197 and 198 in that pending set, or already through?",
+          "ts": "2024-12-04T09:18:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "five batch prs through as of this morning. pr 197 and 198 are still in the pending three.",
+          "ts": "2024-12-04T09:56:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "gotcha",
+          "ts": "2024-12-04T10:33:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "do either of those touch the retry path, or are they purely batch-layer changes?",
+          "ts": "2024-12-04T10:48:54"
+        },
+        {
+          "userId": "dario",
+          "text": "let me check on 197 and 198",
+          "ts": "2024-12-04T11:23:54"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 197 is the progress bar fix on resume, PR 198 is the key-switching during batch resume, neither touches the retry path, they're purely batch-layer",
+          "ts": "2024-12-04T11:24:19",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "So basically I'd want all three, PR 197, PR 198, and PR 202, to land before cut; just not sure we've agreed on that or on the order",
+          "ts": "2024-12-04T11:24:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "not fully sure PR 202 is clean for the batch resume paths, has anyone actually checked that?",
+          "ts": "2024-12-04T11:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon, want to walk through it together this afternoon?",
+          "ts": "2024-12-04T11:50:00",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Also, does the v0.1.10 release notes doc exist anywhere?",
+          "ts": "2024-12-04T11:50:14"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm not finding it on the wiki, not sure if someone has it elsewhere or if it hasn't been written yet",
+          "ts": "2024-12-04T11:50:26"
+        },
+        {
+          "userId": "dermot",
+          "text": "if we can agree the order this afternoon, we'd still have time to get ci running on all three before end of day",
+          "ts": "2024-12-04T11:52:26",
+          "reactions": [
+            {
+              "emoji": "⏱️",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Postmortem for the Dec 4 revert is up on the wiki, \"Postmortem: Dec 4 revert of end-of-run retry logic.\" Covers the double-spin root cause and what PR 202 fixed",
+          "ts": "2024-12-05T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Worth a read before we cut the next release",
+          "ts": "2024-12-05T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 211 is nearly there, just working through the last few review comments and I'm hoping to get it merged this afternoon",
+          "ts": "2024-12-05T10:06:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "- PR 210 is ready for review, touches cost mapping in online-request-processing, would appreciate eyes on it today\n- PR 202 retry fix has been stable since it merged, no issues reported",
+          "ts": "2024-12-05T10:41:36"
+        },
+        {
+          "userId": "dario",
+          "text": "- PR 90 should be mergeable this afternoon, just need to verify the cache-disable flag behaves correctly with the existing Prompter flow\n- Will review PR 210 today, want to confirm the cost mapping actually covers what we need before it lands\n- Still have a couple open comments on PR 211, checking if Konrad's addressed them yet",
+          "ts": "2024-12-05T10:45:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, got time this afternoon to go through the PR 211 comments together?",
+          "ts": "2024-12-05T11:09:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "nice, thanks @Dario",
+          "ts": "2024-12-05T11:29:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 202 has been in and stable, no retry regressions since it merged, so that one's good to go.",
+          "ts": "2024-12-05T11:29:08"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad yeah, this afternoon works, though I still have a couple comments on PR 211 I want to double-check before we sync, not sure I've fully resolved my view on the cost mapping side.",
+          "ts": "2024-12-05T12:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 202 looks solid from my end, no issues since it merged",
+          "ts": "2024-12-05T12:22:51",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "watching pr 210 to make sure the cost mapping is confirmed before we tag",
+          "ts": "2024-12-05T12:22:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, when you say you haven't fully resolved your view on the cost mapping side, is that specific to PR 211, or does it also affect what you're looking for in PR 210?",
+          "ts": "2024-12-05T12:33:56"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not sure we can afford both pr 210 and pr 211 being held on the same open question if we're tagging today",
+          "ts": "2024-12-05T12:46:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 211 still has open comments and we haven't gotten to them yet",
+          "ts": "2024-12-05T13:20:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, can you drop the specific comments here so I can work through them before we sync?",
+          "ts": "2024-12-05T13:20:21"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, cost mapping question is holding up both PR 210 and PR 211 and we're trying to tag today - might need you to make the call on whether we wait or go without one of them",
+          "ts": "2024-12-05T14:17:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "+1, Emil's call on this one.",
+          "ts": "2024-12-05T14:43:56"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 202 staying clean this long is a good sign, solid fix @Gideon.",
+          "ts": "2024-12-05T14:49:56",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad did you get through those PR 211 comments, or are you still mid-review?",
+          "ts": "2024-12-05T14:56:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, the cost mapping call is still open and it's holding up both PR 210 and PR 211, if we're tagging today, we need a direction from you this afternoon.",
+          "ts": "2024-12-05T15:14:23"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad while we wait on Emil, can you take another pass at the PR 211 comments and flag which ones are still blocking?",
+          "ts": "2024-12-05T15:38:23"
+        },
+        {
+          "userId": "dario",
+          "text": "Around for another hour or so if anyone needs a final review pass before end of day.",
+          "ts": "2024-12-05T17:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, PR 210 is still waiting on your cost mapping review if you have time in that window.",
+          "ts": "2024-12-05T17:38:08"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil this is the second ping on cost mapping today, PR 210 is still blocked waiting on your call and we're basically out of day.",
+          "ts": "2024-12-05T17:49:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 202 retry fix has been stable all day, no regressions.",
+          "ts": "2024-12-05T17:55:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, if you can't call the cost mapping question tonight, does PR 210 slip to tomorrow or can Dario make the call?",
+          "ts": "2024-12-05T17:55:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, source the PR 211 implementation is based on: https://git.world.local/tencent-ailab/persona-hub/blob/main/code/openai_synthesize.py, might help with the cost mapping comments.",
+          "ts": "2024-12-05T18:13:20",
+          "unfurl": {
+            "title": "git.world.local",
+            "url": "https://git.world.local/tencent-ailab/persona-hub/blob/main/code/openai_synthesize.py,"
+          }
+        },
+        {
+          "userId": "konrad",
+          "text": "Every release day I tell myself I am logging off by 5 and then here we are.",
+          "ts": "2024-12-05T18:13:45",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "haha same, every time",
+          "ts": "2024-12-05T18:28:31.141989",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Good dig on the source reference, Konrad",
+          "ts": "2024-12-05T18:28:39.141989",
+          "reactions": [
+            {
+              "emoji": "👏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 and 163 are both up on my end, no blockers as of this morning",
+          "ts": "2024-12-06T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "161 is the Prometheus LLM Judge usage example, 163 is the getCacheDir helper change in curator-viewer, and I'd like to get a read on which of those are safe to land this cycle before end of day",
+          "ts": "2024-12-06T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is still open on my end, text message summarization example, no blockers",
+          "ts": "2024-12-06T09:45:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can have it ready for review today if someone has time to take a look",
+          "ts": "2024-12-06T09:45:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "Honestly, do we want to triage which of these are actually in scope for this cycle before anyone starts pulling review time on them?",
+          "ts": "2024-12-06T10:15:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Yeah, that's basically my blocker too, I don't have a clear read on which of PR 78, 90, 106, 161, 163 are actually in scope vs need to wait, and I'd rather not sink review time into ones that are going to get deferred anyway.",
+          "ts": "2024-12-06T10:30:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "totally",
+          "ts": "2024-12-06T11:00:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "weekly notes are up - Dario has \"agree which PRs land before 0.1.12\" as an open next action right there, no call made yet as of Dec 4",
+          "ts": "2024-12-06T11:00:22"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd want to draw a line between examples and actual code changes before we get to readiness, because 163 touches real helper logic in curator-viewer which is different risk than landing an example",
+          "ts": "2024-12-06T11:56:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we want to triage on that axis, or are we just going by who's review-ready?",
+          "ts": "2024-12-06T11:56:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "we could greenlight the pure examples as a batch and hold PR 90 and 163 for a closer individual look.",
+          "ts": "2024-12-06T12:30:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "is PR 90 currently rebased against main?",
+          "ts": "2024-12-06T12:30:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "has PR 78 had any review at all yet?",
+          "ts": "2024-12-06T12:39:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "honestly, do we have enough signal to call any of these today, or does this need Dario to weigh in on PR 78 and 90 first?",
+          "ts": "2024-12-06T13:05:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "pulled up the weekly notes - all six PRs are still listed as in flight with no decision, and Dario flagged 0.1.12 timing as TBD as of Dec 4.",
+          "ts": "2024-12-06T13:16:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "do we even have a cut date yet, or are we calling the list before we have one?",
+          "ts": "2024-12-06T13:16:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone else's AC trying to turn this building into a freezer this afternoon, or is it just our floor",
+          "ts": "2024-12-06T13:42:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon Halloway can you drop a link to those weekly notes? I want to see the 0.1.12 timing context myself before we try to call anything",
+          "ts": "2024-12-06T14:05:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad it's the \"Weekly notes: week of Dec 2 - v0.1.11 out\" page in the engineering collection - 0.1.12 timing is listed as TBD there, which is basically where we're stuck on calling the list.",
+          "ts": "2024-12-06T14:22:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "So I've read it now",
+          "ts": "2024-12-06T14:56:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm not sure the cut date is actually what's blocking the triage call - \"which ones are ready\" feels like a separate question from \"when does 0.1.12 ship.\" @Dario Kestrel can we at least agree on ready vs. not-ready today, even with timing still TBD?",
+          "ts": "2024-12-06T14:56:59",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "That actually gets us unstuck. PR 78 hasnt had a single review pass yet, and 90 needs a rebase, so both of mine are not ready",
+          "ts": "2024-12-06T15:18:59",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "sounds like 78 and 90 defer, 106 and 161 move to review this cycle - and I'd want a separate look at 163 given what Dario flagged about the code change risk.",
+          "ts": "2024-12-06T15:56:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk llm inference next-phase design is written up and on the wiki, title is \"Bulk LLM Inference: next-phase design\" under engineering. covers cache resolution, request lifecycle and resume, rate limiting, and where the scale boundary sits, have a look if any of it touches your work",
+          "ts": "2024-12-09T09:00:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is up and waiting on review, it's the text message summarization example, nothing blocking on my end",
+          "ts": "2024-12-09T09:23:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Also just sent out the weekly update for Dec 2; two asks in there: whether PR 231 or PR 234 blocks the 0.1.12 cut, and whether we can do a quick triage pass on the 13 stale PRs today",
+          "ts": "2024-12-09T09:23:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, do PR 231 and PR 234 need to land before you cut 0.1.12?",
+          "ts": "2024-12-09T10:06:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "Once Emil confirms, I'd like to also run through the stale PR triage this afternoon if people have a few minutes.",
+          "ts": "2024-12-09T10:36:20"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 90 is ready for a look whenever someone has a moment, it adds the disable-cache argument to Prompter and touches caching-and-resume",
+          "ts": "2024-12-09T10:48:15"
+        },
+        {
+          "userId": "dario",
+          "text": "Not blocking 0.1.12 as far as I know but want it merged before we pile on more changes there",
+          "ts": "2024-12-09T10:48:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Read the weekly update",
+          "ts": "2024-12-09T11:22:31"
+        },
+        {
+          "userId": "dario",
+          "text": "The 0.1.12 question really does come down to @Emil's call on PR 231 and PR 234, and that's still open as far as I can tell",
+          "ts": "2024-12-09T11:22:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is still sitting waiting on review, no changes from my end",
+          "ts": "2024-12-09T11:55:54"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still hoping we can do that triage pass this afternoon once Emil weighs in",
+          "ts": "2024-12-09T11:56:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, konrad's hoping to do the stale PR triage this afternoon, any sense of when you can weigh in on the 231 and 234 question?",
+          "ts": "2024-12-09T14:01:08"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 is close too, just cleaning up the vLLM example, should be ready for review by end of day",
+          "ts": "2024-12-09T15:02:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone had a chance to look at the bulk llm inference next-phase design doc yet?",
+          "ts": "2024-12-09T15:44:46"
+        },
+        {
+          "userId": "konrad",
+          "text": "We still don't have a triage order on the 13 stale PRs, I raised it in the weekly update this morning: https://millrow.internal/mail/weekly-2024-12-02",
+          "ts": "2024-12-09T16:09:46",
+          "unfurl": {
+            "title": "millrow.internal",
+            "url": "https://millrow.internal/mail/weekly-2024-12-02"
+          }
+        },
+        {
+          "userId": "konrad",
+          "text": "Even if Emil's answer on 231 and 234 slips to tomorrow, can we at least agree on a priority order for the backlog before end of day?",
+          "ts": "2024-12-09T16:09:51"
+        },
+        {
+          "userId": "dario",
+          "text": "Still no answer from Emil on PR 231 and PR 234, so we still don't know if either blocks the 0.1.12 cut.",
+          "ts": "2024-12-09T16:29:51"
+        },
+        {
+          "userId": "dario",
+          "text": "Is that going to slip to tomorrow, or does someone have enough context to call it without him?",
+          "ts": "2024-12-09T16:29:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "cache directory resolution lives in exactly one place in the caching layer and everything that needs the location calls it, I've deleted three hand-rolled path joins in review this quarter. that's in the design doc.",
+          "ts": "2024-12-09T17:00:59",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "the rule going forward is: if you need the cache path, call the helper, don't build it yourself",
+          "ts": "2024-12-09T17:01:04"
+        },
+        {
+          "userId": "dario",
+          "text": "Day's almost done and Emil still hasn't answered - do we do the stale PR triage now without that answer, or punt to tomorrow?",
+          "ts": "2024-12-09T17:44:04"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly, I'd just carry the triage to tomorrow at this point - no point starting it tonight without Emil's answer on PR 231 and PR 234",
+          "ts": "2024-12-09T17:44:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ok, triage moves to tomorrow. Let's make sure Emil knows we're doing it with or without his answer on PR 231 and PR 234",
+          "ts": "2024-12-09T17:51:21"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 is ready for review, just posted it",
+          "ts": "2024-12-09T18:12:21",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -6614,6 +7275,159 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk llm inference next-phase design is written, it's on the wiki under engineering if you want to look",
+          "ts": "2024-12-09T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "it covers cache resolution, request lifecycle and resume, and rate limiting",
+          "ts": "2024-12-09T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "before we go too far I want to confirm cache-and-resume is actually solid enough to build on, @Dario, is that where you'd call it?",
+          "ts": "2024-12-09T09:00:17",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-09T10:55:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is sitting in review, it's the text message summarization example, pretty self-contained, shouldn't be blocking anything else",
+          "ts": "2024-12-09T09:26:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, did you get a chance to look at that cache-and-resume question?",
+          "ts": "2024-12-09T10:36:22"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean yes, but I want to verify the unclean shutdown path before I'd fully call it solid",
+          "ts": "2024-12-09T10:55:56",
+          "threadParentTs": "2024-12-09T09:00:17"
+        },
+        {
+          "userId": "dario",
+          "text": "has anyone actually tested the SIGKILL path, or are we assuming the checkpoint handles it?",
+          "ts": "2024-12-09T11:08:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "three tabs open from friday that I still haven't closed, typical monday",
+          "ts": "2024-12-09T11:40:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario can you take that SIGKILL path check and report back?",
+          "ts": "2024-12-09T11:52:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "i mean, gideon and I are already looking at that in pipeline, not sure we need two people on the same check",
+          "ts": "2024-12-09T12:09:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, what do you actually need to see from the check to call it solid?",
+          "ts": "2024-12-09T12:09:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "cache-and-resume looks solid to me based on what's landed, the unclean shutdown path is just the one thing still unverified",
+          "ts": "2024-12-09T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "are we ready to call it reliable enough to move into design-phase work on bulk inference v2, or do we wait for gideon's result first?",
+          "ts": "2024-12-09T12:39:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2024-12-09T13:54:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own question, I think we can start design-phase work now and treat the SIGKILL check as a pre-release gate, not a pre-design one",
+          "ts": "2024-12-09T13:54:20",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "does that track for everyone?",
+          "ts": "2024-12-09T13:54:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm not totally sure about that split, if the shutdown path changes something fundamental, the design might need to account for it",
+          "ts": "2024-12-09T14:15:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wait, that has the mechanism in it",
+          "ts": "2024-12-09T14:15:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "Let me try again within the constraint... Hmm, not sure I'd call that a pre-release gate rather than a pre-design one",
+          "ts": "2024-12-09T14:15:45"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd lean toward Konrad on this one - if the shutdown check surfaces something unexpected about partial write handling, does that actually affect how we design the replay side for v2?",
+          "ts": "2024-12-09T14:56:45",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "fair point, I'll concede that. if partial writes change the structure we'd need to know before we spec the replay side. here's what an unsubmitted request looks like now:\n\n```\n{\"id\": \"req_abc123\", \"status\": \"pending\", \"submitted\": false, \"response\": null}\n```\n\nif a SIGKILL mid-write corrupts that, the replay logic we design has to handle it differently.",
+          "ts": "2024-12-09T15:10:45",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-09T15:10:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "So the concern is the file is physically mid-write and unreadable, not just a stale status field?",
+          "ts": "2024-12-09T15:10:56",
+          "threadParentTs": "2024-12-09T15:10:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah and that's the actual gap, the request files aren't written atomically, so a SIGKILL mid-write could leave an unparseable file the resume path has no handler for.",
+          "ts": "2024-12-09T15:52:17",
+          "reactions": [
+            {
+              "emoji": "⚠️",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2024-12-09T16:36:52"
+        },
+        {
+          "userId": "dario",
+          "text": "the resume path currently just skips unparseable files, or does it error out?",
+          "ts": "2024-12-09T16:36:52",
+          "threadParentTs": "2024-12-09T15:52:17"
         }
       ],
       "projectSpec": {
@@ -7314,6 +8128,108 @@
           "userId": "gideon",
           "text": "Is the token logging gap a hold on releases, or are we proceeding while Dario works through it?",
           "ts": "2024-11-23T14:09:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 202 is up, it's the proper fix for what caused the revert",
+          "ts": "2024-12-04T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "parallel async retries were firing on all entries, not just the ones that actually failed",
+          "ts": "2024-12-04T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "when did that actually start shipping, was it in 0.1.10 or did it come in before that?",
+          "ts": "2024-12-04T09:30:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "postmortem isn't written up yet. I'd have to check to pin down which version that behavior first shipped in.",
+          "ts": "2024-12-04T10:09:06"
+        },
+        {
+          "userId": "gideon",
+          "text": "is the revert still the baseline on main right now, or did something else land since?",
+          "ts": "2024-12-04T10:42:43"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward merging PR 202 and dropping the revert rather than shipping both, carrying a revert and then the fix on top feels messy and is going to confuse anyone reading the history",
+          "ts": "2024-12-04T11:15:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure that decision's been made though, is that settled?",
+          "ts": "2024-12-04T11:15:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "totally",
+          "ts": "2024-12-04T11:20:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "can someone take a look at PR 202 and confirm the fix is complete before we sign off on it?",
+          "ts": "2024-12-04T11:53:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "looks like we're aligned on merging PR 202 and dropping the revert, that decisoin seems made",
+          "ts": "2024-12-04T12:43:49",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "still need someone to actually walk through the diff and sign off before it goes in",
+          "ts": "2024-12-04T12:44:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "still not clear which release the broken retry behavior first shipped in, does anyone know offhand?",
+          "ts": "2024-12-04T13:26:41"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon, can you pin down which release the broken behavior first shipped in, since you're already on the postmortem?",
+          "ts": "2024-12-04T13:44:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "still putting the postmortem together, it's not up yet.",
+          "ts": "2024-12-04T14:20:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "do you know which release the async retry change first shipped in?",
+          "ts": "2024-12-04T14:20:11"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly i'd have to check on which release it first shipped, I don't have that offhand",
+          "ts": "2024-12-04T14:48:11"
+        },
+        {
+          "userId": "dario",
+          "text": "More pressing though, I don't think we've actually decided whether we merge PR 202 and drop the revert, or ship with both in the history",
+          "ts": "2024-12-04T14:48:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Still open as far as I can tell",
+          "ts": "2024-12-04T14:48:21"
         }
       ],
       "projectSpec": {
@@ -8624,6 +9540,508 @@
           "userId": "gideon",
           "text": "@Emil, anything from the release-and-ci side?",
           "ts": "2024-12-02T12:53:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Refactored the core request loop, the handler shape is a lot cleaner now",
+          "ts": "2024-12-03T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "want to make sure the retry abstraction isn't silently losing or duplicating requests before we call it done",
+          "ts": "2024-12-03T09:00:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "did anyone verify that resume and caching still work cleanly after the rename?",
+          "ts": "2024-12-03T09:57:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "sorry, just catching up on this",
+          "ts": "2024-12-03T14:57:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "the resume and caching question is something I've been meaning to flag too, I'm not sure where that stands after the rename",
+          "ts": "2024-12-03T14:57:22"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I haven't verified it from my side either",
+          "ts": "2024-12-03T15:24:22"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we assuming it held up, or has somebody actually run it through since the rename?",
+          "ts": "2024-12-03T15:24:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "welp",
+          "ts": "2024-12-03T16:09:34",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "refactor is looking solid on my end, I'd call the request processor ready for both v0.1.11 and v0.1.12",
+          "ts": "2024-12-03T16:19:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "also tried to pull up the v0.1.10 release notes and they're just not there yet, so someone still owes that",
+          "ts": "2024-12-03T16:19:43"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth a specific pass on the logging level changes before we fully call it clean, just to make sure failures in the provider and batch paths aren't getting buried by the new settings",
+          "ts": "2024-12-03T16:57:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can run a pass on the logging level changes through the provider and batch paths tomorrow morning and post what I find.",
+          "ts": "2024-12-03T17:27:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd hold off on calling no regression risk identified until that pass actually comes back, not just have it as a tomorrow morning item.",
+          "ts": "2024-12-03T17:50:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "Retry-once fix is wrapped up in PR 202",
+          "ts": "2024-12-04T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Filed a batch of follow-on issues from the edge cases that surfaced, rate limiting, auth errors, a few others",
+          "ts": "2024-12-04T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure the follow-on issues should all wait until post-ship, do we have a view on which of those actually block 0.1.12 vs which can defer?",
+          "ts": "2024-12-04T09:28:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, you around this morning?",
+          "ts": "2024-12-04T10:04:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dermot's asking about triage on the retry follow-ons",
+          "ts": "2024-12-04T10:04:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "do we know if the rate limit edge cases I filed are actually hitting anyone on 0.1.11, or are they mostly theoretical at this point?",
+          "ts": "2024-12-04T10:35:52"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah, around",
+          "ts": "2024-12-04T11:00:52"
+        },
+        {
+          "userId": "dario",
+          "text": "also just posted the weekly notes for week of Dec 2 / v0.1.11, engineering/weekly-notes-week-of-dec-2-v0-1-11-out, has the carry-forward list including the retry triage",
+          "ts": "2024-12-04T11:01:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, does that carry-forward list actually make a call on which ones block 0.1.12, or is the triage still open?",
+          "ts": "2024-12-04T11:12:04"
+        },
+        {
+          "userId": "dario",
+          "text": "Sorry, just saw this. The notes say triage is ongoing, so no, it doesn't settle which ones block 0.1.12, that's still open.",
+          "ts": "2024-12-04T11:29:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "the Nov 25 weekly notes aren't up yet, so for now, do we just call the new retry issues post-ship, or does that need a proper decision before cut?",
+          "ts": "2024-12-04T11:46:25"
+        },
+        {
+          "userId": "dario",
+          "text": "Batch retry work on my end is wrapped, PR 197 and PR 198 are ready, and the file cleanup landed",
+          "ts": "2024-12-04T11:54:25",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "One thing I want to make sure we settle before cut: async retry parallelism under batch load, is that actually production-ready or are we still unsure?",
+          "ts": "2024-12-04T11:54:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure we can call it ready without someone actually testing it under real batch load, so is that something we can verify before cut or do we defer it?",
+          "ts": "2024-12-04T12:09:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "actually, I wonder if the weekly notes Dario just posted have anything on the parallelism question, has anyone read through that yet?",
+          "ts": "2024-12-04T12:10:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone actually heard from a 0.1.11 user about the rate limit cases, or are we still treating those as theoretical?",
+          "ts": "2024-12-04T12:39:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 202, 197, and 198 are all ready for cut. the postmortem for the Nov 23 revert isn't written up yet, that's on me.",
+          "ts": "2024-12-04T13:23:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone actually run the retry path under real batch load, or are we going off code review only?",
+          "ts": "2024-12-04T13:41:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 201, 203, 205, and 207 are all filed but I still don't have a call on which ones actually block 0.1.12.",
+          "ts": "2024-12-04T13:51:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "my default would be to defer those to post-ship unless we hear about hard breaks from 0.1.11 users, but that hasn't been settled.",
+          "ts": "2024-12-04T13:51:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "the Nov 25 weekly notes aren't up yet.",
+          "ts": "2024-12-04T14:27:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the working agreement that PR 202 and the batch PRs ship with 0.1.12, and the retry follow-ons defer unless we hear from users?",
+          "ts": "2024-12-04T14:27:59"
+        },
+        {
+          "userId": "gideon",
+          "text": "the Nov 23 revert postmortem still isn't written up.",
+          "ts": "2024-12-04T14:48:59"
+        },
+        {
+          "userId": "gideon",
+          "text": "does that block anything for the 0.1.12 cut, or can it follow after?",
+          "ts": "2024-12-04T14:49:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "The retry fix from PR 202 is merged and holding, no duplicate submissions in the runs I've seen since. Wanted to get eyes on commit 3b8cfcbd specifically, the asyncio double-while-loop patch, before we call that fully closed.",
+          "ts": "2024-12-05T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "on that commit, is the fix scoped to the online request path only, or does it also cover the batch submission loop?",
+          "ts": "2024-12-05T09:47:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "Online path only, and that side is clean now.",
+          "ts": "2024-12-05T10:21:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "so the batch submission loop still has the double-while issue, or was it not affected?",
+          "ts": "2024-12-05T10:29:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "Batch isn't built out yet so there's no equivalent loop to audit there",
+          "ts": "2024-12-05T10:35:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "For now I just need someone to confirm 3b8cfcbd looks solid on the online side and we can close it out",
+          "ts": "2024-12-05T10:35:27"
+        },
+        {
+          "userId": "dario",
+          "text": "fair",
+          "ts": "2024-12-05T10:35:39"
+        },
+        {
+          "userId": "dario",
+          "text": "I can pull that up",
+          "ts": "2024-12-05T10:40:27"
+        },
+        {
+          "userId": "dario",
+          "text": "While we're here, what's the call on batch cancel behavior for v0.1.12?",
+          "ts": "2024-12-05T10:41:08"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward not shipping anything half-baked there, but I dunno if the team wants to just define the failure mode and move on",
+          "ts": "2024-12-05T10:41:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "asyncio scope is clear from my end now, batch not built so no gap there, and once dario signs off on the commit that one's closed",
+          "ts": "2024-12-05T11:18:13"
+        },
+        {
+          "userId": "dario",
+          "text": "Also, PR 215 is still open, cache hit failures and a fingerprinting issue in caching-and-resume",
+          "ts": "2024-12-05T11:50:00",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-05T12:49:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we triage that before the cut, or does it wait?",
+          "ts": "2024-12-05T11:50:08"
+        },
+        {
+          "userId": "dario",
+          "text": "If anyone here hasn't caught it yet, Gideon put up the postmortem on the wiki, \"Postmortem: Dec 4 revert of end-of-run retry logic.\" Has the double-loop root cause in it, relevant for the asyncio conversation we were having",
+          "ts": "2024-12-05T12:03:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "on pr 215, how often are the cache hit failures actually occurring, is this every run or more of an edge case?",
+          "ts": "2024-12-05T12:42:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "issue 47 has the open thread on batch cancel behavior, worth a look before the team decides.",
+          "ts": "2024-12-05T12:49:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "the fingerprinting issue, is that a cache key collision or something upstream of it?",
+          "ts": "2024-12-05T12:49:36",
+          "threadParentTs": "2024-12-05T11:50:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, have you had a chance to look at commit 3b8cfcbd yet?",
+          "ts": "2024-12-05T13:34:36",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-05T14:44:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Batch cancel and cost tracking still don't have a decision, and I'm not sure v0.1.12 should tag before we've called those",
+          "ts": "2024-12-05T14:10:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Issue 47 is open, and so far nobody's said what the expected behavior actually is when a cancel comes in mid-run",
+          "ts": "2024-12-05T14:10:41"
+        },
+        {
+          "userId": "dario",
+          "text": "Not yet, is that the full fix or just the first patch?",
+          "ts": "2024-12-05T14:44:06",
+          "threadParentTs": "2024-12-05T13:34:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario that's the full fix, not a partial patch, it closes the loop entirely by gating retries on the completion flag before anything else can schedule.",
+          "ts": "2024-12-05T14:50:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Good, that's clean enough to sign off on - asyncio fix is confirmed from my end",
+          "ts": "2024-12-05T15:18:06",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Still working through the cache hit failures on PR 215, want to get that triaged before we close out today",
+          "ts": "2024-12-05T15:18:18",
+          "replyCount": 2,
+          "replyLastTs": "2024-12-05T16:55:30"
+        },
+        {
+          "userId": "dermot",
+          "text": "asyncio fix is confirmed closed from my end too.",
+          "ts": "2024-12-05T15:54:18",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "are the cache hit failures reproducible on a clean run, or only under specific conditions?",
+          "ts": "2024-12-05T15:54:52",
+          "threadParentTs": "2024-12-05T15:18:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Sorry, got pulled into other things",
+          "ts": "2024-12-05T16:54:52"
+        },
+        {
+          "userId": "dario",
+          "text": "From what I can tell it's reproducible on clean runs, not just under load",
+          "ts": "2024-12-05T16:54:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "consistently, or does it fail on the first cache lookup sometimes and not others?",
+          "ts": "2024-12-05T16:55:30",
+          "threadParentTs": "2024-12-05T15:18:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Not fully consistent, it fails on first lookup more often than not but I've also seen it pass and fail later, which is pointing me toward the fingerprinting side being the root cause.",
+          "ts": "2024-12-05T17:03:30"
+        },
+        {
+          "userId": "dermot",
+          "text": "can someone share the pr 215 diff or the relevant section of the fingerprinting code, I'd like to take a look at it",
+          "ts": "2024-12-05T17:26:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 215 has the full repro and the fingerprint strings, worth looking at the `prompt_func_hash` diff in the debug output there.",
+          "ts": "2024-12-05T17:41:02"
+        },
+        {
+          "userId": "dario",
+          "text": "this is the fingerprinting issue right here, the second segment changes file to file even though the prompt_func is identical:\n\n```\n[one.py] Curator Cache Fingerprint String: 296cb6f9ceed11ea_f863c1445ea56722_gpt-4o-mini_text_False\n[two.py] Curator Cache Fingerprint String: 296cb6f9ceed11ea_1f200c7acbf974e4_gpt-4o-mini_text_False\n```\n\nso basically the hash is including file path info when it serializes the lambda.",
+          "ts": "2024-12-05T18:00:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "python's `inspect.getsource` on a lambda includes the source file path in some serialization paths, that's a known gotcha, https://docs.python.org/3/library/inspect.html#inspect.getsourcefile",
+          "ts": "2024-12-05T18:12:25.239534",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ],
+          "unfurl": {
+            "title": "docs.python.org",
+            "url": "https://docs.python.org/3/library/inspect.html#inspect.getsourcefile"
+          }
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll take the fix on that, stripping the file path from the serialization input before hashing is the right call, and it's mine to sort out in caching-and-resume.",
+          "ts": "2024-12-05T18:27:25.239534"
+        },
+        {
+          "userId": "dermot",
+          "text": "hf pickler fix is merged and that unblocks resume from a clean checkpoint. what I still want to verify is whether batch state actually survives an unclean shutdown and replays correctly, not sure we've tested that path explicitly.",
+          "ts": "2024-12-09T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "do we have any signal on what \"unclean\" looks like in practice, is it a SIGKILL mid-write, or more like a partial flush before the process dies?",
+          "ts": "2024-12-09T09:44:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "both probably, and that's exactly what I'm not sure we've covered",
+          "ts": "2024-12-09T10:03:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon want to look at it together this morning?",
+          "ts": "2024-12-09T10:03:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can walk through what the request files look like when the process doesn't exit cleanly",
+          "ts": "2024-12-09T10:03:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah",
+          "ts": "2024-12-09T10:22:17",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm in, do you have a reproducible way to trigger the unclean exit, or are we working from logs of a real failure?",
+          "ts": "2024-12-09T10:22:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "let me check",
+          "ts": "2024-12-09T10:34:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "while you're checking, is the replay logic in caching-and-resume or does it live somewhere in bulk-llm-inference?",
+          "ts": "2024-12-09T10:39:22"
+        },
+        {
+          "userId": "dario",
+          "text": "replay is in caching-and-resume, Gideon.",
+          "ts": "2024-12-09T10:44:22",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-09T10:44:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "so the checkpoint write is in there too, or just the replay side?",
+          "ts": "2024-12-09T10:44:55",
+          "threadParentTs": "2024-12-09T10:44:22"
+        },
+        {
+          "userId": "dario",
+          "text": "Separate thing on my end: haven't confirmed that the manual rate-limit defaults we're shipping won't trip provider-side rejection for users who don't set their own limits.",
+          "ts": "2024-12-09T11:04:55"
+        },
+        {
+          "userId": "dario",
+          "text": "on the rate-limit defaults question, does anyone have a read on whether the numbers we're using are actually safe across providers, or should we treat this as still open going into this afternoon?",
+          "ts": "2024-12-09T11:16:39"
         }
       ],
       "projectSpec": {
@@ -9206,6 +10624,393 @@
           "userId": "dario",
           "text": "I'll find out who owns it and get back to the channel tomorrow morning",
           "ts": "2024-11-19T18:18:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is close, just working through the last review comments before it's ready to merge",
+          "ts": "2024-12-05T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are we close to cutting v0.1.12, or are there still things blocking the tag?",
+          "ts": "2024-12-05T09:00:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "on my end, pr 210 is sitting with an approval and I'm looking to land it this morning, which should close out the cost mapping question before the cut",
+          "ts": "2024-12-05T09:40:11",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Good news on PR 210. With the cut getting close, does PR 212 (OpenAI TPM fallback) make it into v0.1.12 or are we pushing that to v0.1.13?",
+          "ts": "2024-12-05T10:04:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Konrad how are the review comments on PR 106 going, nearly through them?",
+          "ts": "2024-12-05T10:11:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "Yeah",
+          "ts": "2024-12-05T10:28:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "nearly through them",
+          "ts": "2024-12-05T10:28:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Did PR 210 actually land this morning?",
+          "ts": "2024-12-05T10:28:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "was working on it, I haven't confirmed it fully merged yet, PR 210 is the litellm missing cost handling fix, defaults cost to 0 when no cost mapping is found",
+          "ts": "2024-12-05T11:01:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Are the pipeline changes good to go for v0.1.12, or is something still open on that side?",
+          "ts": "2024-12-05T11:25:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Trying to get a read before we decide on the tag",
+          "ts": "2024-12-05T11:25:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "- pr 210 (litellm cost handling) was in flight this morning, I haven't confirmed the merge landed yet\n- asyncio fix looks clean on the online side per gideon, dario you were pulling up the commit\n- pr 212 (openai tpm fallback) is still a question for me on whether it goes in this cut or defers",
+          "ts": "2024-12-05T12:02:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario what's your read on PR 212, cherry-pick into v0.1.12 or hold for v0.1.13?",
+          "ts": "2024-12-05T12:03:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "wait, is PR 212 actually a pull request or just the issue? I'm only seeing an issue filed on the tpm fallback, not a code change",
+          "ts": "2024-12-05T12:16:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2024-12-05T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own question on 212, it's an issue, not a PR yet, so the real question is whether anyone's planning to open a fix before the cut or if we just defer it to v0.1.13.",
+          "ts": "2024-12-05T12:39:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario do you have a target time for the tag today, or is it more \"when the last PR is through\"?",
+          "ts": "2024-12-05T13:02:05"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot you doing alright coordinating all this solo? I'll get you answers on those questions this afternoon.",
+          "ts": "2024-12-05T13:20:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "If there's no code for the TPM fallback yet, are we just deferring it to v0.1.13?",
+          "ts": "2024-12-05T14:05:05"
+        },
+        {
+          "userId": "dario",
+          "text": "- PR 210 cost mapping fix is in flight, need to confirm it actually landed before we tag\n- Still working through commit 3b8cfcbd sign-off on the asyncio fix, should have that done this afternoon\n- TPM fallback has no PR yet so I'd lean toward deferring it to v0.1.13",
+          "ts": "2024-12-05T14:41:05",
+          "replyCount": 3,
+          "replyLastTs": "2024-12-05T14:54:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "where are you on the 3b8cfcbd sign-off?",
+          "ts": "2024-12-05T14:41:14",
+          "threadParentTs": "2024-12-05T14:41:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Still pulling it up, should have the sign-off done before end of day.",
+          "ts": "2024-12-05T14:54:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2024-12-05T14:54:45",
+          "threadParentTs": "2024-12-05T14:41:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "and pr 210, has that actually merged yet?",
+          "ts": "2024-12-05T14:54:53",
+          "threadParentTs": "2024-12-05T14:41:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Pulled up PR 210, the cost fix is there, but I can't confirm from what I'm seeing whether it actually merged yet",
+          "ts": "2024-12-05T15:20:57"
+        },
+        {
+          "userId": "dario",
+          "text": "Someone with repo access needs to verify the status before we tag",
+          "ts": "2024-12-05T15:21:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm around, I can check the merge status on pr 210 now",
+          "ts": "2024-12-05T15:58:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can see the pr and the fix is there, but I can't confirm the merge status from what I'm looking at, the tool isn't showing me open vs merged",
+          "ts": "2024-12-05T15:58:45"
+        },
+        {
+          "userId": "dario",
+          "text": "classic, we can see the fix but not whether it actually landed",
+          "ts": "2024-12-05T17:53:35"
+        },
+        {
+          "userId": "dario",
+          "text": "very on brand for a release day",
+          "ts": "2024-12-05T17:53:47",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 2
+            }
+          ],
+          "replyCount": 3,
+          "replyLastTs": "2024-12-05T17:55:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not sure we should tag while the merge status is still unconfirmed, that's the kind of thing that bites you after.",
+          "ts": "2024-12-05T17:54:20",
+          "threadParentTs": "2024-12-05T17:53:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not just on brand though, we actually can't tag without someone confirming that merge.",
+          "ts": "2024-12-05T17:54:39",
+          "threadParentTs": "2024-12-05T17:53:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll chase it down.",
+          "ts": "2024-12-05T17:55:03",
+          "threadParentTs": "2024-12-05T17:53:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "I tried to pull it up but the tool I have doesn't show merge status, someone with direct access to the repo will need to confirm pr 210 before we tag.",
+          "ts": "2024-12-05T17:55:29"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil any update on your end?",
+          "ts": "2024-12-05T18:20:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "from my side, asyncio fix is confirmed, issue 212 is triaged as defer to v0.1.13 since there's no pr yet",
+          "ts": "2024-12-05T18:29:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "still waiting on pr 210 merge confirmation before I can call pipeline clear",
+          "ts": "2024-12-05T18:29:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.11 is tagged and merged this morning, so the hard part is done. I want to confirm the release notes are going out today and that announcement mail reaches stakeholders before we close out the week",
+          "ts": "2024-12-06T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario are the v0.1.11 release notes ready to go out today",
+          "ts": "2024-12-06T09:00:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "is the announcement mail going to the full stakeholder list or just the internal team",
+          "ts": "2024-12-06T09:12:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we have a target time for the notes and announcement to go out today",
+          "ts": "2024-12-06T10:03:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "is anything blocking the v0.1.11 release notes from going out",
+          "ts": "2024-12-06T11:12:33"
+        },
+        {
+          "userId": "dario",
+          "text": "v0.1.11 release notes are up on the wiki, under engineering.",
+          "ts": "2024-12-06T11:50:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "All six merged fixes are in there.",
+          "ts": "2024-12-06T11:50:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Announcement mail is out to Dermot and Konrad",
+          "ts": "2024-12-06T12:00:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone else who should be on that list?",
+          "ts": "2024-12-06T12:00:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "got the mail, I'm around this afternoon if anything needs a second look",
+          "ts": "2024-12-06T12:30:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the page called on the wiki",
+          "ts": "2024-12-06T12:31:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok, found the page myself. are the v0.1.10 release notes still coming out separately or are they folded in",
+          "ts": "2024-12-06T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "did ci run clean on the v0.1.11 cut",
+          "ts": "2024-12-06T13:26:00"
+        },
+        {
+          "userId": "dario",
+          "text": "The mail asked both of you to flag anything that looks wrong with the six fixes, so let me know if something's off",
+          "ts": "2024-12-06T15:24:11"
+        },
+        {
+          "userId": "dario",
+          "text": "And v0.1.10 notes are separate, still mine to finish",
+          "ts": "2024-12-06T15:24:19"
+        },
+        {
+          "userId": "dario",
+          "text": "v0.1.10 release notes page doesn't exist yet.",
+          "ts": "2024-12-06T15:25:00"
+        },
+        {
+          "userId": "dario",
+          "text": "That's mine to write, so I'll get it done before end of day.",
+          "ts": "2024-12-06T15:25:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk llm inference fix reads right to me",
+          "ts": "2024-12-06T15:31:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "minor typo in the bulk llm inference entry:\n```\nso they dont accumulate across restarts\n```\nshould be \"don't\"",
+          "ts": "2024-12-06T15:31:24"
+        },
+        {
+          "userId": "dario",
+          "text": "I don't think that line is in what I wrote - the bulk-llm-inference entry I put in is about a file handle leak, not anything about accumulating across restarts. Are you on the v0.1.11 release notes page in the engineering collection?",
+          "ts": "2024-12-06T16:12:24"
+        },
+        {
+          "userId": "dermot",
+          "text": "six fixes in one cut, good work getting this closed out on a friday",
+          "ts": "2024-12-06T16:26:24",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Can I get added to whatever sends the CI pass/fail notifications for releases?",
+          "ts": "2024-12-06T16:42:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Would've saved me a step when Dermot asked about 0.1.11 earlier",
+          "ts": "2024-12-06T16:42:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll add you to the release ci notifications",
+          "ts": "2024-12-06T17:22:36",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.11 is wrapped on my end",
+          "ts": "2024-12-06T17:23:03"
+        },
+        {
+          "userId": "dario",
+          "text": "v0.1.11 is done on my end, notes are up and the mail went out",
+          "ts": "2024-12-06T17:50:03",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "v0.1.10 notes I haven't gotten to yet, that's sliding to next week",
+          "ts": "2024-12-06T17:50:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "did you end up fixing the 'dont' in the bulk inference entry",
+          "ts": "2024-12-06T17:50:24"
+        },
+        {
+          "userId": "dermot",
+          "text": "still there",
+          "ts": "2024-12-06T17:50:53"
+        },
+        {
+          "userId": "dario",
+          "text": "Fixed the typo in the bulk-llm-inference entry, that one was on me for missing it earlier",
+          "ts": "2024-12-06T18:25:53",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {

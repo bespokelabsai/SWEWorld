@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-32 of 32 obligations met.
+38 of 38 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -40,3 +40,9 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-11-26 | dario | send | 09:14 | v0.1.10 is out |
 | 2024-11-27 | gideon | write | 09:14 | Weekly notes: week of Nov 25 - v0.1.10 out |
 | 2024-12-02 | gideon | send | 09:07 | Weekly update: week of Nov 25 |
+| 2024-12-04 | dario | write | 09:14 | Weekly notes: week of Dec 2 - v0.1.11 out |
+| 2024-12-05 | gideon | write | 09:14 | Postmortem: Dec 4 revert of end-of-run retry logic |
+| 2024-12-06 | dario | write | 09:21 | v0.1.11 release notes |
+| 2024-12-06 | dario | send | 09:35 | v0.1.11 is out |
+| 2024-12-09 | konrad | send | 09:28 | Weekly update: week of Dec 2 |
+| 2024-12-09 | dermot | write | 09:14 | Bulk LLM Inference: next-phase design |

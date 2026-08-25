@@ -1,0 +1,33 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, otto@world.local, gideon@world.local,
+ dermot@world.local
+Subject: Weekly update: week of Dec 2
+Date: Mon, 09 Dec 2024 09:28:00 +0000
+Message-ID: <178764208771.1808630.1200840637605431386@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all,
+
+Quick rundown from my end for the week of Dec 2.
+
+PR 106 (text message summarization example) is still in review =E2=80=94 no b=
+lockers, just waiting on eyes. That one is pretty self-contained so it should=
+n't hold anything up.
+
+Two things I'd like to get a decision on this week:
+
+1. PR 231 and PR 234 =E2=80=94 do either of these block the 0.1.12 release cu=
+t? I don't have enough context on what they touch to call it myself, so if so=
+meone close to those can weigh in, that would help.
+
+2. We have a backlog of 13 stale PRs that haven't been triaged. I'd like to s=
+ort out a priority order so they don't keep sitting. Can we find time today o=
+r tomorrow to go through them, even briefly?
+
+Also worth noting: Dermot has a design doc up on the wiki for bulk LLM infere=
+nce next-phase, under engineering. Worth a read if any of your work intersect=
+s with cache resolution or request lifecycle.
+
+- Konrad

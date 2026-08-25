@@ -1,0 +1,28 @@
+From: dario@world.local
+To: dermot@world.local, konrad@world.local
+Subject: v0.1.11 is out
+Date: Fri, 06 Dec 2024 09:35:00 +0000
+Message-ID: <178764140044.1808630.4809415317948542225@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Millrow v0.1.11 has shipped.
+
+Six fixes in this release, all in the request pipeline:
+- caching-and-resume: race condition fixed where resume state was written bef=
+ore prior request completed, causing duplicate entries on retry
+- online-request-processing: off-by-one in batch index tracking that silently=
+ dropped the last request in a batch
+- provider-integrations: missing retry backoff for 429 responses on the OpenA=
+I-compatible endpoint path
+- bulk-llm-inference: file handle leak when a vLLM worker exited mid-stream
+- caching-and-resume: cache key collision when two requests shared the same p=
+rompt but different generation configs
+- online-request-processing: status callback was firing after response finali=
+zation, causing a spurious second callback on success
+
+No breaking changes, no migration steps. Full release notes are on the wiki u=
+nder engineering (v0.1.11 release notes).
+
+Dario

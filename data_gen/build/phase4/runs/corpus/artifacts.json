@@ -382,5 +382,77 @@
     "done": true,
     "at": "2024-12-02T09:07:00+00:00",
     "date": "2024-12-02"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2024-12-02",
+    "title": "Weekly notes: week of Dec 2 - v0.1.11 out",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2024-12-04T09:14:00+00:00",
+    "date": "2024-12-04"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2024-12-04",
+    "title": "Postmortem: Dec 4 revert of end-of-run retry logic",
+    "by": "gideon",
+    "action": "write",
+    "to": "",
+    "doc_kind": "postmortem",
+    "done": true,
+    "at": "2024-12-05T09:14:00+00:00",
+    "date": "2024-12-05"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-11",
+    "title": "v0.1.11 release notes",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2024-12-06T09:21:00+00:00",
+    "date": "2024-12-06"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-11",
+    "title": "v0.1.11 is out",
+    "by": "dario",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-12-06T09:35:00+00:00",
+    "date": "2024-12-06"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2024-12-02",
+    "title": "Weekly update: week of Dec 2",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-12-09T09:28:00+00:00",
+    "date": "2024-12-09"
+  },
+  {
+    "kind": "doc",
+    "id": "design-ws-012-bulk-llm-inference",
+    "title": "Bulk LLM Inference: next-phase design",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "design",
+    "done": true,
+    "at": "2024-12-09T09:14:00+00:00",
+    "date": "2024-12-09"
   }
 ]
