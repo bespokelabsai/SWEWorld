@@ -10,105 +10,8 @@ Worth keeping in mind while reading:
 
 
 ==============================================================================
-# 2025-02-28 — 4 conversation(s), 41 turns budgeted
+# 2025-03-06 — 3 conversation(s), 32 turns budgeted
 ==============================================================================
-
-------------------------------------------------------------------------------
-## #releases — 8 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #releases: v0.1.20 shipped today; release notes due, announcement ready to send.
-
-    Today is Friday 28 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: v0.1.20 shipped today; release notes due, announcement ready to send.
-    
-    What it should get through:
-      1. Release notes accurately summarize the four merged PRs and their surface-level impact.   [Dario Kestrel must raise this]
-           - Dario Kestrel: here's what I wrote for 0.1.20, covering the four merges
-           - Emil Brandvold: Claude 3.7 Reasoning is the headline, litellm gen params is a quiet refactor, session id + viewer resume is the push-to-viewer fix
-           - Dario Kestrel: nods, updates the install-command note, publishes
-      2. Announcement goes out to stakeholders same day, with install instructions confirmed.   [Dario Kestrel must raise this]
-           - Dario Kestrel: the fix in PR 555 is one-liner, just making sure install docs match it
-           - Emil Brandvold: already tested, looks good
-    
-    On the agenda: Release notes capture: Claude 3.7, gen params in litellm, session id in metadata, viewer resume, test coverage; Verify install command fix is documented; Confirm announcement recipients and timing
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: v0.1.20 release notes published and announcement sent; team and stakeholders notified same day.
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
-
-    On the table
-      - Release notes: v0.1.20 (Dario Kestrel)
-      - Release notes: 0.1.19 (Gideon Halloway)
-      - announce-v0-1-20 (Dario Kestrel)
-      - release-v0-1-20 (Dario Kestrel)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Release lead; owns the tag, the changelog summary, and the announcement. Merged Claude 3.7, the gen params refactor, and the install command fix.
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Release notes accurately summarize the four merged PRs and their surface-level impact.   *** MUST RAISE ***
-      2. Announcement goes out to stakeholders same day, with install instructions confirmed.   *** MUST RAISE ***
-      3. the page you are writing, Release notes: v0.1.20, has to say this in your own words: Release checklist note for the code execution backend: the container the library ships against does not update itself and there is nothing in the codebase that will tell you it is stale. Before you touch that line, go and check what the image status notes say, otherwise you are guessing.   *** MUST SETTLE (clue t4.r1.L11) ***
-      4. that the doc "Release notes: v0.1.20" is done, and where the others can find it   *** MUST RAISE ***
-      5. that "v0.1.20 is out" has gone out, and what you asked in it   *** MUST RAISE ***
-      6. what "Release notes: 0.1.19" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      7. what "Release notes: v0.1.20" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Release notes accurately summarize the four merged PRs and their surface-level impact.
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Drove four of the five workstreams that landed in this release. Knows what multimodal/litellm test coverage gaps just closed and what the hosted-curator session-id change means.
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Release notes accurately summarize the four merged PRs and their surface-level impact.
-      2. Announcement goes out to stakeholders same day, with install instructions confirmed.
-    goal        v0.1.20 shipped today; release notes due, announcement ready to send.
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   v0.1.20 release notes published and announcement sent; team and stakeholders notified same day.
-
 
 ------------------------------------------------------------------------------
 ## #code-review — 10 turns, 3 people
@@ -116,102 +19,1477 @@ Channel #releases: v0.1.20 shipped today; release notes due, announcement ready 
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: Two PRs stale >2 days; Gideon Halloway opened cost-estimation epics today (PR 559–PR 563) and has PR 546 in flight; Dario Kestrel and Emil Brandvold are senior reviewers.
+Channel #code-review: PR 578 merged today needs code-review closure; PR 581 opened and needs first review; five older PRs are stale and need strategy
 
-    Today is Friday 28 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Thursday 6 March 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Two PRs stale >2 days; Gideon Halloway opened cost-estimation epics today (PR 559–PR 563) and has PR 546 in flight; Dario Kestrel and Emil Brandvold are senior reviewers.
+    Why it is happening: PR 578 merged today needs code-review closure; PR 581 opened and needs first review; five older PRs are stale and need strategy
     
     What it should get through:
-      1. PR 546 either gets a clear path to landing or gets explicit feedback on what needs to change.   [Gideon Halloway must raise this]
-           - Gideon Halloway: PR 546 is the first of the cost estimation work, online processors pre/post-call estimation
-           - Dario Kestrel: code looks sound, question is whether this goes in before the status-tracker refactor (PR 557–PR 558)
-           - Emil Brandvold: they can be parallel; 546 is the logic, 557/558 is the infrastructure. ship 546.
-      2. PR 468 disposition clear: still waiting on something, or can it land?   [Dario Kestrel must raise this]
-           - Dario Kestrel: PR 468 has been open 21 days; Emil Brandvold reviewed it, where are we?
-           - Emil Brandvold: not blocking anything critical right now. can defer past 0.1.21 if cost estimation takes priority.
-      3. Cost-estimation epic scope settled: which of the five issues (PR 559–PR 563) are in scope for this sprint.   [Gideon Halloway must raise this]
-           - Gideon Halloway: opened five sub-tasks for the cost estimation work today. what's the priority?
-           - Dario Kestrel: PR 560 and PR 563 (online and batch status trackers) are the core; PR 561 and PR 562 are nice-to-have polish.
-           - Gideon Halloway: understood; I'll start with 560.
+      1. Confirm PR 578 merge is complete and document the three-part Gemini landing   [Emil Brandvold must raise this]
+           - Emil summarizes what merged (578) and what landed alongside it (failed-count fix, batch example)
+           - Gideon or Dario confirms all three pieces are in and no rollback needed
+           - Group agrees the Gemini rate limit story is closed
+      2. Get PR 581 into review queue and identify blockers on 565/566   [Gideon Halloway must raise this]
+           - Gideon walks through PR 581 implementation and context from PR 580
+           - Emil or Dario notes whether it conflicts with other in-flight work
+           - Group agrees if it is safe to merge or needs a dependency
     
-    On the agenda: Status of PR 546 (Cost Estimation revamp [1/n] Online processors): blockers, readiness; Status of PR 468 (n samples support): 21 days open, still blocked?; Triage the cost-estimation epics (PR 559–PR 563): which land this sprint?
+    On the agenda: Review and merge PR 578 (Gemini rate limits); Assess PR 581 (Environment variable to disable rich) readiness; Decide on stale PR unblocking strategy
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: PR 546 gets explicit approval or actionable feedback; PR 468 gets a decision (land or defer); cost-estimation work is ordered by priority.
+    Wrap when: PR 578 confirmed merged; PR 581 assigned reviewer; decision made on whether to unblock 565/566 before continuing
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
     Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
       - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
+      - 285 changes merged to date
 
     On the table
+      - Weekly Notes — Week of Mar 3 (Emil Brandvold)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
 
     Open questions
       - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
       - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
       - issue 105: Distribution graph is skewed for data viewer 
       - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
       - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
 
-    DOES NOT EXIST YET (4 names)
+    DOES NOT EXIST YET (3 names)
       - agentic-curation
-      - blocks-and-recipes
       - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Gemini rate limit handling and token-usage field fixes; context on the three-part landing (PR 578, failed-count fix, batch example)
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm PR 578 merge is complete and document the three-part Gemini landing   *** MUST RAISE ***
+      2. Get PR 581 into review queue and identify blockers on 565/566
+      3. what "Weekly Notes — Week of Mar 3" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm PR 578 merge is complete and document the three-part Gemini landing
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Fresh eyes on environment variable implementation; understanding of CLI-disabling use case
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Confirm PR 578 merge is complete and document the three-part Gemini landing
+      2. Get PR 581 into review queue and identify blockers on 565/566   *** MUST RAISE ***
+    goal        Get PR 581 into review queue and identify blockers on 565/566
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Perspective on OpenAI/DeepSeek API work blocking; seniority to guide merge strategy
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm PR 578 merge is complete and document the three-part Gemini landing
+      2. Get PR 581 into review queue and identify blockers on 565/566
+    goal        PR 578 merged today needs code-review closure; PR 581 opened and needs first review; five older PRs are stale and need strategy
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   PR 578 confirmed merged; PR 581 assigned reviewer; decision made on whether to unblock 565/566 before continuing
+
+
+------------------------------------------------------------------------------
+## #engineering — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: PR 578 merged today closes a workstream; PR 581 opened; team is in the consolidation phase of the sprint and needs to know what just shipped
+
+    Today is Thursday 6 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: PR 578 merged today closes a workstream; PR 581 opened; team is in the consolidation phase of the sprint and needs to know what just shipped
+    
+    What it should get through:
+      1. Mark end of Gemini rate limits workstream and highlight the batch example users should follow   [Emil Brandvold must raise this]
+           - Emil flags that Gemini rate limit handling is now in place and PR 578 is merged
+           - Emil points to the new batch example (ep-e4b3066065c7) as the reference for users
+           - Team acknowledges and notes it for documentation or blog
+      2. Unblock OpenAI and DeepSeek client work by assessing the stale PR situation   [Dario Kestrel must raise this]
+           - Dario notes that PRs 565 and 566 (OpenAI, DeepSeek) are now 4 days stale
+           - Emil or Gideon raises whether Gemini landing clears the way for those to merge
+           - Group decides: do those PRs need to be pulled forward or can they wait for the next release window
+    
+    On the agenda: Celebrate Gemini rate limits landing and point to the batch example; Brief update on environment variable for rich CLI; Briefly frame next provider integrations work (OpenAI, DeepSeek clients)
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Team knows Gemini rate limits are live and batch example is the reference; OpenAI/DeepSeek client PR status is explicit
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - Q2 Plan: Consolidation and Provider Breadth (Konrad Feltrin)
+      - Q2 Plan: Consolidation and Provider Breadth (Konrad Feltrin)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Completion of Gemini rate limit handling; awareness of token-usage field work; context on the three-part landing and what users can do now
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Mark end of Gemini rate limits workstream and highlight the batch example users should follow   *** MUST RAISE ***
+      2. Unblock OpenAI and DeepSeek client work by assessing the stale PR situation
+      3. what "Q2 Plan: Consolidation and Provider Breadth" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Mark end of Gemini rate limits workstream and highlight the batch example users should follow
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. New environment-variable pattern for disabling rich; perspective on observability/CLI flexibility
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Mark end of Gemini rate limits workstream and highlight the batch example users should follow
+      2. Unblock OpenAI and DeepSeek client work by assessing the stale PR situation
+    goal        PR 578 merged today closes a workstream; PR 581 opened; team is in the consolidation phase of the sprint and needs to know what just shipped
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Broader provider API perspective; unblocking strategy for 565 and 566 (OpenAI and DeepSeek clients)
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Mark end of Gemini rate limits workstream and highlight the batch example users should follow
+      2. Unblock OpenAI and DeepSeek client work by assessing the stale PR situation   *** MUST RAISE ***
+      3. what "Q2 Plan: Consolidation and Provider Breadth" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Unblock OpenAI and DeepSeek client work by assessing the stale PR situation
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Team knows Gemini rate limits are live and batch example is the reference; OpenAI/DeepSeek client PR status is explicit
+
+
+------------------------------------------------------------------------------
+## #viewer — 14 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #viewer: Gideon Halloway tried the draft with the progress display on and the exception came out mangled underneath a half-drawn progress bar
+
+    Today is Thursday 6 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Gideon Halloway tried the draft with the progress display on and the exception came out mangled underneath a half-drawn progress bar
+    
+    What it should get through:
+    
+    On the agenda: Gideon Halloway shows the mangled output: the bars had already been started, so the traceback interleaved with them and the useful line scrolled off; Emil Brandvold notes the end-of-run summary table also printed with zeroes across it, which reads like a run that did nothing rather than a run that was refused; Dario Kestrel says if the thing is refused it should be refused before any of that furniture is on screen, so the message is the only thing the user sees
+    
+    Wrap when: consensus that the failure should land before the display is initialised; whether the summary table is suppressed or fixed is left to Gideon Halloway; it is settled that the team agrees a startup rejection has to surface a message naming what was rejected
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Cost Estimation Revamp: knows what PR 546 is trying to do—pre/post API call cost estimation for online processors. Has 15 commits today on token accounting and unified TokenCount/TokenUsage.
+    role        Core Engineer — Dataset Viewer & Run Observability. 
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. PR 546 either gets a clear path to landing or gets explicit feedback on what needs to change.   *** MUST RAISE ***
-      2. PR 468 disposition clear: still waiting on something, or can it land?
-      3. Cost-estimation epic scope settled: which of the five issues (PR 559–PR 563) are in scope for this sprint.   *** MUST RAISE ***
-    goal        PR 546 either gets a clear path to landing or gets explicit feedback on what needs to change.
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Senior context on request-processing architecture. Reviewed both stale PRs at various points.
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. PR 546 either gets a clear path to landing or gets explicit feedback on what needs to change.
-      2. PR 468 disposition clear: still waiting on something, or can it land?   *** MUST RAISE ***
-      3. Cost-estimation epic scope settled: which of the five issues (PR 559–PR 563) are in scope for this sprint.
-    goal        PR 468 disposition clear: still waiting on something, or can it land?
+      1. Heads up from the CLI side: when a docker task dies at container start, all the progress table gets is the task marked failed plus a container id. People screenshot it and send it to me and I have nothing to tell them. If we are going to start having creates rejected, whatever text comes back needs to name the setting that was rejected or it lands in my inbox instead.   *** MUST SETTLE (clue t4.r2.L11) ***
+    goal        the team agrees a startup rejection has to surface a message naming what was rejected
     available   around today
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Approved PR 552 today; reviewed the others. Knows what landed in 0.1.20 and what's still open.
+    role        Core Platform Engineer, Request Processing. 
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. PR 546 either gets a clear path to landing or gets explicit feedback on what needs to change.
-      2. PR 468 disposition clear: still waiting on something, or can it land?
-      3. Cost-estimation epic scope settled: which of the five issues (PR 559–PR 563) are in scope for this sprint.
-    goal        Two PRs stale >2 days; Gideon Halloway opened cost-estimation epics today (PR 559–PR 563) and has PR 546 in flight; Dario Kestrel and Emil Brandvold are senior reviewers.
+    goal        Gideon Halloway tried the draft with the progress display on and the exception came out mangled underneath a half-drawn progress bar
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        Gideon Halloway tried the draft with the progress display on and the exception came out mangled underneath a half-drawn progress bar
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   consensus that the failure should land before the display is initialised; whether the summary table is suppressed or fixed is left to Gideon Halloway; it is settled that the team agrees a startup rejection has to surface a message naming what was rejected
+
+
+==============================================================================
+# 2025-03-07 — 2 conversation(s), 18 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 8 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Two PRs opened today; six older PRs stale; need to clear the mime_type change before it cascades into multimodal and backend work.
+
+    Today is Friday 7 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Two PRs opened today; six older PRs stale; need to clear the mime_type change before it cascades into multimodal and backend work.
+    
+    What it should get through:
+      1. Approve PR 582 or identify blockers   [Emil Brandvold must raise this]
+           - Emil explains the Image type changes and their reach into batch/bulk/online
+           - Dario or Gideon ask whether float-to-int wrapping for litellm is in scope
+           - Land or defer
+      2. Clarify PR 583 scope and release impact   [Emil Brandvold must raise this]
+           - Emil reports that Nikolai Berresford opened PR 583 to disable metadata db via param
+           - Check whether it blocks v0.1.20 or defers to next
+           - Defer or queue for merge
+    
+    On the agenda: PR 582 mime_type extraction and its multimodal surface; PR 583 metadata db toggle and release readiness; Whether either blocks Dario Kestrel's backend PRs
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: PR 582 approved or returned with clear feedback; PR 583 scoped as blocking or deferrable; Dario Kestrel unblocked on whether to merge his own backends before or after.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - Weekly Notes — Week of Mar 3 (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Just shipped mime_type extraction across multimodal types and opened PR 582; also driving cost processor cleanup (ws-042)
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Approve PR 582 or identify blockers   *** MUST RAISE ***
+      2. Clarify PR 583 scope and release impact   *** MUST RAISE ***
+      3. that the doc "WS-044: Blocks & Recipes (RAFT, SimpleStrat)" is done, and where the others can find it   *** MUST RAISE ***
+      4. what "Weekly Notes — Week of Mar 3" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Approve PR 582 or identify blockers
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Owns request processing; context on whether backend client PRs (PR 565, PR 566) need anything from these multimodal changes
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Approve PR 582 or identify blockers
+      2. Clarify PR 583 scope and release impact
+    goal        Two PRs opened today; six older PRs stale; need to clear the mime_type change before it cascades into multimodal and backend work.
     available   around today
 
 ### 4. How it should land
 
     lands as  partial
-    leaving   PR 546 gets explicit approval or actionable feedback; PR 468 gets a decision (land or defer); cost-estimation work is ordered by priority.
+    leaving   PR 582 approved or returned with clear feedback; PR 583 scoped as blocking or deferrable; Dario Kestrel unblocked on whether to merge his own backends before or after.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 10 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Three services touched by today's commits; cost estimation revamp (ws-038) mid-flight; need to confirm mime_type and token-handling fixes thread cleanly into request processing.
+
+    Today is Friday 7 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Three services touched by today's commits; cost estimation revamp (ws-038) mid-flight; need to confirm mime_type and token-handling fixes thread cleanly into request processing.
+    
+    What it should get through:
+      1. Confirm mime_type threading is complete across batch/online   [Emil Brandvold must raise this]
+           - Emil walks image handling through batch/bulk paths
+           - Gideon or Dario ask whether multimodal requests need extra marshalling
+           - Confirm coverage or flag missing links
+      2. Validate int wrapping fixes deepseek dump   [Gideon Halloway must raise this]
+           - Gideon reports kluster deepseek soak was hitting output-token default 0 dump
+           - Emil confirms int(estimate) wrapping is in PR 582
+           - Schedule next soak or defer to next batch of provider work
+    
+    On the agenda: Emil's mime_type extraction and multimodal handling across batch/bulk/online; Int wrapping for litellm token estimates and deepseek backpressure; Cost projection with success factor (ws-038 mid-flight)
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Mime_type threading confirmed complete; int wrapping validated as addressing deepseek backpressure; Gideon Halloway has a clear next-step for cost estimation revamp soak.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - Weekly Notes — Week of Mar 3 (Emil Brandvold)
+      - Postmortem: kluster.ai DeepSeek Output-Token Default (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Just landed mime_type extraction on Image; int-wrapping fix for litellm float token estimates; raft schema update for blocks-and-recipes
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm mime_type threading is complete across batch/online   *** MUST RAISE ***
+      2. Validate int wrapping fixes deepseek dump
+      3. what "Weekly Notes — Week of Mar 3" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm mime_type threading is complete across batch/online
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Diagnosed the deepseek output-token default dump in kluster testing; knows what cost estimation revamp needs
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Confirm mime_type threading is complete across batch/online
+      2. Validate int wrapping fixes deepseek dump   *** MUST RAISE ***
+      3. what "Postmortem: kluster.ai DeepSeek Output-Token Default" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Validate int wrapping fixes deepseek dump
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Owns the full request path; context on whether these changes affect batch mode or online concurrency
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm mime_type threading is complete across batch/online
+      2. Validate int wrapping fixes deepseek dump
+    goal        Three services touched by today's commits; cost estimation revamp (ws-038) mid-flight; need to confirm mime_type and token-handling fixes thread cleanly into request processing.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Mime_type threading confirmed complete; int wrapping validated as addressing deepseek backpressure; Gideon Halloway has a clear next-step for cost estimation revamp soak.
+
+
+==============================================================================
+# 2025-03-10 — 4 conversation(s), 40 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #general — 8 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #general: Two new contractors are joining; Konrad Feltrin has onboarding materials and Dario Kestrel is welcoming them to the team
+
+    Today is Monday 10 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Two new contractors are joining; Konrad Feltrin has onboarding materials and Dario Kestrel is welcoming them to the team
+    
+    What it should get through:
+      1. Nils receives setup and context for batch-mode work   [Konrad Feltrin must raise this]
+           - Konrad shares onboarding doc and initial pointers
+           - Nils acknowledges and asks clarifying questions
+           - Emil adds note on batch-processor structure already in flight
+    
+    On the agenda: Konrad posts onboarding notes for Nils Brandt and Theo Marchetti; Dario's welcome message adds context on the team structure; Brief snapshot of current batch-mode and provider work
+    
+    Belongs in this channel: news the whole company needs: releases that matter to everyone, scheduling, people joining or moving on, and decisions that cross every team.
+    Does NOT belong here: work on any individual service, and anything only one team cares about.
+    
+    Wrap when: Nils has the onboarding material, knows where the batch-mode work stands, and is ready to integrate into the codebase.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - onboarding-Nils Brandt (Konrad Feltrin)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Konrad's setup notes for the incoming batch-backend contractor and the Mistral-batch examples contributor
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Nils receives setup and context for batch-mode work   *** MUST RAISE ***
+      2. what "Onboarding: nils and theo" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Nils receives setup and context for batch-mode work
+    available   around today
+
+  Nils Brandt  (nils)
+    role        Batch Backend Engineer (short-term contract). Presence as new contractor starting batch-mode work
+    owns        batch-mode, provider-integrations
+    agenda
+      1. Nils receives setup and context for batch-mode work
+    goal        Two new contractors are joining; Konrad Feltrin has onboarding materials and Dario Kestrel is welcoming them to the team
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Welcome message extending Konrad Feltrin's onboarding to the full team
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Nils receives setup and context for batch-mode work
+    goal        Two new contractors are joining; Konrad Feltrin has onboarding materials and Dario Kestrel is welcoming them to the team
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Current state of the work Nils Brandt is joining into
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Nils receives setup and context for batch-mode work
+    goal        Two new contractors are joining; Konrad Feltrin has onboarding materials and Dario Kestrel is welcoming them to the team
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Nils has the onboarding material, knows where the batch-mode work stands, and is ready to integrate into the codebase.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 12 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Nils has committed 6 commits on Mistral batch processor in the first day; the structure and approach need eyes before he builds further
+
+    Today is Monday 10 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Nils has committed 6 commits on Mistral batch processor in the first day; the structure and approach need eyes before he builds further
+    
+    What it should get through:
+      1. Batch processor request/response parsing direction is confirmed or redirected   [Nils Brandt must raise this]
+           - Nils shows the request parsing and response mapping flow
+           - Emil spots alignment or asks about deviations from other batch processors
+           - Group agrees on next steps or flags rework needed before file upload
+      2. Token accounting approach for Mistral batch is settled   [Gideon Halloway must raise this]
+           - Gideon asks how tokenUsage is being parsed and stored
+           - Nils explains the current implementation
+           - Group decides if immediate-response cost calc or batch-result polling needed
+    
+    On the agenda: Nils walks through the batch processor structure and parsing logic; Group assesses whether request/response mapping matches existing patterns; Talk through token accounting and cost implications
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Nils knows whether his batch processor structure is sound and has clarity on token accounting before the next round of commits.
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - onboarding-Nils Brandt (Konrad Feltrin)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Nils Brandt  (nils)
+    role        Batch Backend Engineer (short-term contract). Six commits building Mistral batch processor: request parsing, response handling, file upload, batch creation
+    owns        batch-mode, provider-integrations
+    agenda
+      1. Batch processor request/response parsing direction is confirmed or redirected   *** MUST RAISE ***
+      2. Token accounting approach for Mistral batch is settled
+      3. what "Onboarding: nils and theo" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Batch processor request/response parsing direction is confirmed or redirected
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Context on how previous batch processors were structured; patterns for request/response mapping
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Batch processor request/response parsing direction is confirmed or redirected
+      2. Token accounting approach for Mistral batch is settled
+    goal        Nils has committed 6 commits on Mistral batch processor in the first day; the structure and approach need eyes before he builds further
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. High-level shape of how batch processors fit into provider-integrations
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Batch processor request/response parsing direction is confirmed or redirected
+      2. Token accounting approach for Mistral batch is settled
+    goal        Nils has committed 6 commits on Mistral batch processor in the first day; the structure and approach need eyes before he builds further
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Rate-limit and cost-accounting implications of batch APIs
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Batch processor request/response parsing direction is confirmed or redirected
+      2. Token accounting approach for Mistral batch is settled   *** MUST RAISE ***
+    goal        Token accounting approach for Mistral batch is settled
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Nils knows whether his batch processor structure is sound and has clarity on token accounting before the next round of commits.
+
+
+------------------------------------------------------------------------------
+## #cookbooks — 10 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #cookbooks: Emil is driving ws-044 (RAFT block cleanup and finetuning example) which is at kickoff; the PR has been under review with 11 comments from both Emil Brandvold and Konrad Feltrin, and the design doc was posted 2025-03-07
+
+    Today is Monday 10 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Emil is driving ws-044 (RAFT block cleanup and finetuning example) which is at kickoff; the PR has been under review with 11 comments from both Emil Brandvold and Konrad Feltrin, and the design doc was posted 2025-03-07
+    
+    What it should get through:
+      1. RAFT block data schema cleanup is approved or iteration is clear   [Emil Brandvold must raise this]
+           - Emil explains the schema changes and why they were needed
+           - Konrad pushes back or validates the new shape
+           - Group agrees it's ready or flags what needs one more pass
+      2. Finetuning example demonstrates the end-to-end shape   [Emil Brandvold must raise this]
+           - Emil shows what the example teaches: generated data → finetuning → sampling
+           - Konrad/Dario Kestrel assess whether the example is clear enough for cookbooks
+           - Outcome: example is ready to ship or needs one more refinement
+      3. write up Onboarding: Nils Brandt and Theo Marchetti   [Konrad Feltrin must raise this]
+           - Konrad Feltrin says they will write Onboarding: Nils Brandt and Theo Marchetti — Konrad's setup notes for the incoming batch-backend contractor and the Mistral-batch examples contributor.
+    
+    On the agenda: Emil walks through the RAFT block cleanup and what changed in the data schema; Review of the finetuning example and what it teaches users; Integration test setup and whether it's ready for CI; Onboarding: Nils Brandt and Theo Marchetti
+    
+    Out today: Nikolai Berresford (no commit, review or comment 2025-02-27..2025-03-15) — their input is missing and people may say so
+    
+    No longer here: Priya Vandersloot — do not expect them back or wait on them
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: PR 571 can move forward with clarity on whether the schema cleanup and example shape are ready, or what one more pass looks like.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - WS-044: Blocks & Recipes (RAFT, SimpleStrat) (Emil Brandvold)
+      - Onboarding: Nils Brandt and Theo Marchetti (Konrad Feltrin)
+      - weekly-2025-03-03 (Konrad Feltrin)
+      - welcome-Nils Brandt-2025-03-10 (Konrad Feltrin)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Five commits on RAFT block: data schema cleanup, finetuning example, multimodal reqs, OCR backend support, integration test
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. RAFT block data schema cleanup is approved or iteration is clear   *** MUST RAISE ***
+      2. Finetuning example demonstrates the end-to-end shape   *** MUST RAISE ***
+      3. write up Onboarding: Nils Brandt and Theo Marchetti
+      4. what "WS-044: Blocks & Recipes (RAFT, SimpleStrat)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        RAFT block data schema cleanup is approved or iteration is clear
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Perspective on the data schema cleanup and whether it satisfies the gaps from the previous iteration
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. RAFT block data schema cleanup is approved or iteration is clear
+      2. Finetuning example demonstrates the end-to-end shape
+      3. write up Onboarding: Nils Brandt and Theo Marchetti   *** MUST RAISE ***
+      4. the page you are writing, Onboarding: nils and theo, has to say this in your own words: Reminder on the Sandbox Image Release Log: the promoted line on this page is the only statement of which curator-sandbox build has actually been signed off. The registry tag list is not curated, CI pushes a tag for every branch build and the sort order there means nothing. If you need to know what is safe to run, read this page, do not read the registry.   *** MUST SETTLE (clue t4.r1.L1) ***
+         must contain literally: curator-sandbox
+      5. that the doc "Onboarding: nils and theo" is done, and where the others can find it   *** MUST RAISE ***
+      6. that "Weekly update: week of Mar 3" has gone out, and what you asked in it   *** MUST RAISE ***
+      7. that "Welcome nils (and theo)" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        write up Onboarding: Nils Brandt and Theo Marchetti
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. CI/release readiness perspective on the RAFT example and new integration test
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. RAFT block data schema cleanup is approved or iteration is clear
+      2. Finetuning example demonstrates the end-to-end shape
+      3. write up Onboarding: Nils Brandt and Theo Marchetti
+    goal        Emil is driving ws-044 (RAFT block cleanup and finetuning example) which is at kickoff; the PR has been under review with 11 comments from both Emil Brandvold and Konrad Feltrin, and the design doc was posted 2025-03-07
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   PR 571 can move forward with clarity on whether the schema cleanup and example shape are ready, or what one more pass looks like.
+
+
+------------------------------------------------------------------------------
+## #code-review — 10 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: 9 PRs are open and older than the era's median merge time (6.6h); 6 are marked as stale; Emil Brandvold has 3 PRs waiting and reviewed heavily today; Nils Brandt' first batch of commits are likely to PR soon
+
+    Today is Monday 10 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: 9 PRs are open and older than the era's median merge time (6.6h); 6 are marked as stale; Emil Brandvold has 3 PRs waiting and reviewed heavily today; Nils Brandt' first batch of commits are likely to PR soon
+    
+    What it should get through:
+      1. RAFT and cost processor PR review feedback is current or next   [Emil Brandvold must raise this]
+           - Emil flags the RAFT (571), cost processor (575), and payload PRs as priority
+           - Konrad confirms he can turn around review on RAFT and cost processor
+           - Group agrees on whether to gate Dario Kestrel's backend PRs behind RAFT landing
+      2. Nils knows review expectations for batch-mode PRs   [Nils Brandt must raise this]
+           - Nils asks about the review cycle for batch processor PRs
+           - Emil explains the pattern: structural review early, then test coverage sweep
+           - Outcome: Nils Brandt knows to post early and expect iterative feedback
+    
+    On the agenda: Snapshot of which PRs are blocking what; Review priorities given the week's workstreams; Expectations for Nils Brandt' batch-mode PRs
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: Review priorities are clear, Nils Brandt knows how PRs flow through the team, and blockers on Dario Kestrel's backend PRs are identified; it is settled that the team agrees new code should go through supports_structured_output rather than adding its own set of model names
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 285 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 465 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: supports_structured_output.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Multiple PRs in flight: RAFT block (571), cost processor fix (575), and payload handling (582)
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. RAFT and cost processor PR review feedback is current or next   *** MUST RAISE ***
+      2. Nils knows review expectations for batch-mode PRs
+    goal        RAFT and cost processor PR review feedback is current or next
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Context on the RAFT cleanup design and cost processor semantics
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. RAFT and cost processor PR review feedback is current or next
+      2. Nils knows review expectations for batch-mode PRs
+    goal        9 PRs are open and older than the era's median merge time (6.6h); 6 are marked as stale; Emil Brandvold has 3 PRs waiting and reviewed heavily today; Nils Brandt' first batch of commits are likely to PR soon
+    available   around today
+
+  Nils Brandt  (nils)
+    role        Batch Backend Engineer (short-term contract). Mistral batch work now in PRs; new to the codebase and unfamiliar with the review process
+    owns        batch-mode, provider-integrations
+    agenda
+      1. RAFT and cost processor PR review feedback is current or next
+      2. Nils knows review expectations for batch-mode PRs   *** MUST RAISE ***
+    goal        Nils knows review expectations for batch-mode PRs
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. OpenAI and DeepSeek backend PRs (565, 566) waiting on provider-integrations review
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. RAFT and cost processor PR review feedback is current or next
+      2. Nils knows review expectations for batch-mode PRs
+      3. Left a comment on the kluster PR: drop the set of model names you added and call supports_structured_output instead. That helper is already what we edit when a new model lands, and I don't want to be grepping for model strings again next time o3-mini ships.   *** MUST SETTLE (clue t2.r2.l7) ***
+         must contain literally: supports_structured_output
+    goal        the team agrees new code should go through supports_structured_output rather than adding its own set of model names
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Review priorities are clear, Nils Brandt knows how PRs flow through the team, and blockers on Dario Kestrel's backend PRs are identified; it is settled that the team agrees new code should go through supports_structured_output rather than adding its own set of model names
+
+
+==============================================================================
+# 2025-03-11 — 3 conversation(s), 29 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Three new PRs opened today need eyes; token wrapping and mime type fixes are blocking batch mode work
+
+    Today is Tuesday 11 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Three new PRs opened today need eyes; token wrapping and mime type fixes are blocking batch mode work
+    
+    What it should get through:
+      1. Confirm int wrapping of litellm token estimates fixes rate limiter backpressure   [Gideon Halloway must raise this]
+           - Gideon Halloway raises the deepseek zero-default token problem from postmortem-2025-03-01
+           - Emil Brandvold walks through the int wrapping fix in PR 586
+           - Konrad Feltrin checks test coverage for the change
+      2. Land MIME type extraction so Image types carry format info to providers   [Emil Brandvold must raise this]
+           - Emil Brandvold flags Image types weren't carrying mime_type, causing provider rejection on some formats
+           - Konrad Feltrin asks about backward compatibility with existing Image objects
+           - Gideon Halloway confirms the default fallback covers the gap
+    
+    On the agenda: Token estimate type safety in rate limiter; Image MIME type propagation through batch backends; Review status of PR 585 and PR 586
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: PR 586 approved and merged; PR 585 queued for next review cycle pending team capacity; mime type extraction unblocks batch processing for image prompts
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 287 changes merged to date
+
+    On the table
+      - Postmortem: kluster.ai DeepSeek Output-Token Default (someone)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+      - PR 581: Environment variable to disable rich (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 464 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. litellm backend token estimate wrapping and mime_type extraction from Image objects
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm int wrapping of litellm token estimates fixes rate limiter backpressure
+      2. Land MIME type extraction so Image types carry format info to providers   *** MUST RAISE ***
+    goal        Land MIME type extraction so Image types carry format info to providers
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. structured output path knowledge and test coverage around input handling
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Confirm int wrapping of litellm token estimates fixes rate limiter backpressure
+      2. Land MIME type extraction so Image types carry format info to providers
+    goal        Three new PRs opened today need eyes; token wrapping and mime type fixes are blocking batch mode work
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. rate limiter internals and the deepseek backpressure issue context
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Confirm int wrapping of litellm token estimates fixes rate limiter backpressure   *** MUST RAISE ***
+      2. Land MIME type extraction so Image types carry format info to providers
+      3. what "postmortem-2025-03-01" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm int wrapping of litellm token estimates fixes rate limiter backpressure
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   PR 586 approved and merged; PR 585 queued for next review cycle pending team capacity; mime type extraction unblocks batch processing for image prompts
+
+
+------------------------------------------------------------------------------
+## #engineering — 7 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Four commits to multimodal-prompts today; mime type fix is landing and needs team alignment
+
+    Today is Tuesday 11 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Four commits to multimodal-prompts today; mime type fix is landing and needs team alignment
+    
+    What it should get through:
+      1. Validate MIME type defaults won't cause regression for existing image prompts   [Emil Brandvold must raise this]
+           - Emil Brandvold walks through the default mime type fallback logic
+           - Konrad Feltrin raises cookbook examples that might be affected
+           - Gideon Halloway confirms bulk path handles the default cleanly
+      2. Confirm raft readme update captures the current recipe state   [Emil Brandvold must raise this]
+           - Emil Brandvold notes the readme was updated as part of the sprint
+           - Konrad Feltrin skims for completeness
+           - decision to update docs after next release instead
+    
+    On the agenda: MIME type extraction and defaults in Image; RAFT readme update adequacy; Multimodal test coverage before next release
+    
+    No longer here: Priya Vandersloot — do not expect them back or wait on them
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Team agrees mime type defaults are safe; raft readme deferred to next doc pass; multimodal surface stable for release
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 287 changes merged to date
+
+    On the table
+      - WS-044: Blocks & Recipes (RAFT, SimpleStrat) (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+      - PR 581: Environment variable to disable rich (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 464 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. mime type extraction work and the four commits touching multimodal today
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Validate MIME type defaults won't cause regression for existing image prompts   *** MUST RAISE ***
+      2. Confirm raft readme update captures the current recipe state   *** MUST RAISE ***
+      3. what "WS-044: Blocks & Recipes (RAFT, SimpleStrat)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Validate MIME type defaults won't cause regression for existing image prompts
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. cookbook integration perspective and raft design context
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Validate MIME type defaults won't cause regression for existing image prompts
+      2. Confirm raft readme update captures the current recipe state
+    goal        Four commits to multimodal-prompts today; mime type fix is landing and needs team alignment
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. bulk inference path through multimodal prompts
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Validate MIME type defaults won't cause regression for existing image prompts
+      2. Confirm raft readme update captures the current recipe state
+    goal        Four commits to multimodal-prompts today; mime type fix is landing and needs team alignment
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   Team agrees mime type defaults are safe; raft readme deferred to next doc pass; multimodal surface stable for release
+
+
+------------------------------------------------------------------------------
+## #cookbooks — 14 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #cookbooks: the RAFT block and the SimpleStrat recipe construct their Pydantic models dynamically, so any check that assumes a hand-written class needs to cope
+
+    Today is Tuesday 11 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: the RAFT block and the SimpleStrat recipe construct their Pydantic models dynamically, so any check that assumes a hand-written class needs to cope
+    
+    What it should get through:
+    
+    On the agenda: Emil Brandvold explains how the SimpleStrat auto-stratification builds its model from the discovered strata, so the field set is not known until the recipe runs; Dermot Callaghan brings up the recipe-generation example, which uses a free-form dict for the ingredient map, and says he already had to flatten it once for a provider and would rather be told up front than flatten it again mid-run; Dario Kestrel asks whether recipes should get to opt out or whether they should just stop producing schemas that only work on one provider
+    
+    Wrap when: no decision; Emil Brandvold will list which of the shipped blocks and recipes would fail the draft check today; it is settled that the team agrees a dynamically built response model currently aborts the run in the lookup pass
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 287 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 571: Feat/raft (Emil Brandvold)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+      - PR 581: Environment variable to disable rich (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 464 function/class names and 13 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: TypeError: unhashable type, create_model.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        the RAFT block and the SimpleStrat recipe construct their Pydantic models dynamically, so any check that assumes a hand-written class needs to cope
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+    goal        the RAFT block and the SimpleStrat recipe construct their Pydantic models dynamically, so any check that assumes a hand-written class needs to cope
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. SimpleStrat builds its response model at runtime with pydantic create_model, and the lookup pass dies on it: TypeError: unhashable type. Run is dead at row zero, before a single request goes out. Traceback in thread.   *** MUST SETTLE (clue t1.r1.l_unhash_1) ***
+         must contain literally: create_model, TypeError: unhashable type
+    goal        the team agrees a dynamically built response model currently aborts the run in the lookup pass
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   no decision; Emil Brandvold will list which of the shipped blocks and recipes would fail the draft check today; it is settled that the team agrees a dynamically built response model currently aborts the run in the lookup pass
+
+
+==============================================================================
+# 2025-03-12 — 4 conversation(s), 41 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 10 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: 6 PRs older than the era's median merge time; need triage and decision
+
+    Today is Wednesday 12 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: 6 PRs older than the era's median merge time; need triage and decision
+    
+    What it should get through:
+      1. Clear PR 571 and related RAFT work   [Emil Brandvold must raise this]
+           - Emil walks through PR 571 RAFT merge status and related commits
+           - Konrad asks about docs/example alignment
+           - Decision: lands today or wait for secondary review
+      2. Unblock batch-mode and provider-integrations queue   [Nils Brandt must raise this]
+           - Nils flags PR 584 and PR 585 status
+           - Team discusses what's blocking each
+           - Assign next reviewer or defer if dependencies unclear
+      3. Decide on OpenAI/DeepSeek backend timeline   [Dario Kestrel must raise this]
+           - Dario updates on PR 565 and PR 566 age
+           - Konrad checks if these can land in consolidation phase or need next sprint
+           - Clear next step or defer
+    
+    On the agenda: RAFT block and multimodal PRs: what's ready; Batch and provider-integrations stale work: blockers; OpenAI/DeepSeek backend status
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: RAFT lands same day; batch/provider-integrations PRs either get assigned a reviewer or move to next week's queue; OpenAI/DeepSeek timeline clarified
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 288 changes merged to date
+
+    On the table
+      - WS-044: Blocks & Recipes (RAFT, SimpleStrat) (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+      - PR 581: Environment variable to disable rich (Gideon Halloway)
+      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 436 function/class names and 0 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Just landed RAFT block; context on multimodal-prompts and release-and-ci changes
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Clear PR 571 and related RAFT work   *** MUST RAISE ***
+      2. Unblock batch-mode and provider-integrations queue
+      3. Decide on OpenAI/DeepSeek backend timeline
+      4. what "WS-044: Blocks & Recipes (RAFT, SimpleStrat)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Clear PR 571 and related RAFT work
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Founding maintainer perspective; can clear blockages
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Clear PR 571 and related RAFT work
+      2. Unblock batch-mode and provider-integrations queue
+      3. Decide on OpenAI/DeepSeek backend timeline
+    goal        6 PRs older than the era's median merge time; need triage and decision
+    available   around today
+
+  Nils Brandt  (nils)
+    role        Batch Backend Engineer (short-term contract). Recent batch and provider-integrations work; knows constraints
+    owns        batch-mode, provider-integrations
+    agenda
+      1. Clear PR 571 and related RAFT work
+      2. Unblock batch-mode and provider-integrations queue   *** MUST RAISE ***
+      3. Decide on OpenAI/DeepSeek backend timeline
+      4. that the doc "Weekly Notes — Week of Mar 10" is done, and where the others can find it   *** MUST RAISE ***
+    goal        Unblock batch-mode and provider-integrations queue
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Owns request-processing stack; OpenAI/DeepSeek client backend context
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Clear PR 571 and related RAFT work
+      2. Unblock batch-mode and provider-integrations queue
+      3. Decide on OpenAI/DeepSeek backend timeline   *** MUST RAISE ***
+    goal        Decide on OpenAI/DeepSeek backend timeline
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   RAFT lands same day; batch/provider-integrations PRs either get assigned a reviewer or move to next week's queue; OpenAI/DeepSeek timeline clarified
+
+
+------------------------------------------------------------------------------
+## #engineering — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: 2 commits to multimodal-prompts (token wrapping, prompt__internal) need context before they propagate
+
+    Today is Wednesday 12 March 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: 2 commits to multimodal-prompts (token wrapping, prompt__internal) need context before they propagate
+    
+    What it should get through:
+      1. Validate token estimate int wrapping fix   [Emil Brandvold must raise this]
+           - Emil explains the bug (litellm returning float)
+           - Dario asks if structured output tests cover this
+           - Confirm fix is safe or flag test gap
+      2. Confirm prompt__internal scope is safe   [Konrad Feltrin must raise this]
+           - Konrad questions the scope of prompt__internal change
+           - Emil walks through where it is and is not used
+           - Land on: safe to proceed or needs audit
+    
+    On the agenda: Token estimate wrapping in litellm backend; prompt__internal usage pattern; Multimodal test coverage on these changes
+    
+    Meeting today: Weekly sync
+    
+    No longer here: Priya Vandersloot — do not expect them back or wait on them
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Token wrapping and prompt__internal changes are validated as safe; team has confidence in multimodal-prompts test coverage
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 18 release(s) shipped, currently v0.1.20
+      - 288 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+      - PR 581: Environment variable to disable rich (Gideon Halloway)
+      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 436 function/class names and 0 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Just landed RAFT; owns multimodal-prompts; knows impact of prompt__internal change and token wrapping fix
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Validate token estimate int wrapping fix   *** MUST RAISE ***
+      2. Confirm prompt__internal scope is safe
+    goal        Validate token estimate int wrapping fix
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Founding context; can spot API surface issues
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Validate token estimate int wrapping fix
+      2. Confirm prompt__internal scope is safe   *** MUST RAISE ***
+    goal        Confirm prompt__internal scope is safe
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Request-processing perspective; knows downstream consumers
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Validate token estimate int wrapping fix
+      2. Confirm prompt__internal scope is safe
+    goal        2 commits to multimodal-prompts (token wrapping, prompt__internal) need context before they propagate
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Token wrapping and prompt__internal changes are validated as safe; team has confidence in multimodal-prompts test coverage
 
 
 ------------------------------------------------------------------------------
@@ -220,1451 +1498,193 @@ Channel #code-review: Two PRs stale >2 days; Gideon Halloway opened cost-estimat
 
 ### 1. What the DIRECTOR is told
 
-Channel #pipeline: Gideon landed 15 commits today on token accounting unification; Dario Kestrel and Emil Brandvold reviewed and committed to the pipeline; this is the core refactor that cost-estimation work (PR 546) depends on.
+Channel #pipeline: 3 commits each to batch-mode and provider-integrations; PR 584 (Mistral) is 1 day old and needs review
 
-    Today is Friday 28 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Wednesday 12 March 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Gideon landed 15 commits today on token accounting unification; Dario Kestrel and Emil Brandvold reviewed and committed to the pipeline; this is the core refactor that cost-estimation work (PR 546) depends on.
+    Why it is happening: 3 commits each to batch-mode and provider-integrations; PR 584 (Mistral) is 1 day old and needs review
     
     What it should get through:
-      1. Token accounting refactor is consistent across all request types (online, batch, offline) and field names no longer leak old TokenCount references.   [Gideon Halloway must raise this]
-           - Gideon Halloway: unified TokenCount with TokenUsage throughout codebase, fixed field names, put total in init
-           - Dario Kestrel: diffs show the old current_cost gone, running average in place. any remaining TokenCount refs?
-           - Gideon Halloway: checked; offline and the test suite all aligned now.
-      2. Cost-estimation logic (pre/post API call) uses the running average correctly and doesn't double-count or lose precision.   [Gideon Halloway must raise this]
-           - Gideon Halloway: pre-call estimate uses average of prior calls, post-call adjusts with actual usage
-           - Dario Kestrel: what happens if the first call is wildly different from the average?
-           - Gideon Halloway: the post-call adjustment catches it; next call uses the updated average.
-      3. Batch-mode cost tracking aligns with the unified model and doesn't regress on accuracy.   [Dario Kestrel must raise this]
-           - Dario Kestrel: batch processes thousands of requests; cost reporting has to be spot-on
-           - Emil Brandvold: batch status tracker (PR 563) will handle the pre/post call estimation same way online does
-           - Dario Kestrel: good; we're consistent.
+      1. Align on Mistral batch processor design   [Nils Brandt must raise this]
+           - Nils walks through Mistral batch design and PR PR 584 constraints
+           - Emil flags how it interacts with PR 585 retry/batch work
+           - Dario asks about token accounting and rate limits
+           - Decision: ready to review or needs refinement
+      2. Validate Pydantic model refactor and upload logic   [Nils Brandt must raise this]
+           - Nils explains tempfile refactor and BatchJobOut model
+           - Emil checks for side effects on existing batches
+           - Confirm it's safe to land
+      3. Unblock retry/batch interaction   [Emil Brandvold must raise this]
+           - Emil flags PR 585 age (1 day) and concerns
+           - Nils and Dario discuss whether Mistral work unblocks or complicates it
+           - Set priority: land Mistral first or run in parallel
     
-    On the agenda: Token accounting unified across online, batch, and offline: TokenCount/TokenUsage names consistent; Cost-estimation pre/post-call logic: is the running average correct?; Batch-mode cost tracking: does it work with the unified model?
+    On the agenda: Mistral batch processor design and PR PR 584; Upload file logic and Pydantic models; Retry/batch interaction and PR PR 585 status
+    
+    Meeting today: Weekly sync
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Token accounting unified and cost-estimation logic verified; no regressions in batch-mode cost tracking.
+    Wrap when: Mistral batch processor design is clear and aligned; PR 584 is ready for review or has blockers named; PR 585 path is clarified (can land after Mistral or in parallel); it is settled that the team agrees a private copy of the model names in batch mode contradicted the maintained support list and cost a day
     
     Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
     Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
       - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
+      - 288 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+      - PR 581: Environment variable to disable rich (Gideon Halloway)
+      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
 
     Open questions
       - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
       - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
       - issue 105: Distribution graph is skewed for data viewer 
       - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
       - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
 
-    DOES NOT EXIST YET (4 names)
+    DOES NOT EXIST YET (3 names)
       - agentic-curation
-      - blocks-and-recipes
       - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 436 function/class names and 0 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 15 commits today on token accounting. Unified TokenCount with TokenUsage, fixed token_usage field names, put total in initialization. Knows the unified model inside and out.
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+  Nils Brandt  (nils)
+    role        Batch Backend Engineer (short-term contract). Just landed batch upload logic refactor and Pydantic model work; knows current state
+    owns        batch-mode, provider-integrations
     agenda
-      1. Token accounting refactor is consistent across all request types (online, batch, offline) and field names no longer leak old TokenCount references.   *** MUST RAISE ***
-      2. Cost-estimation logic (pre/post API call) uses the running average correctly and doesn't double-count or lose precision.   *** MUST RAISE ***
-      3. Batch-mode cost tracking aligns with the unified model and doesn't regress on accuracy.
-    goal        Token accounting refactor is consistent across all request types (online, batch, offline) and field names no longer leak old TokenCount references.
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Senior architect of the request pipeline. Reviewed Gideon Halloway's token work. Knows where batch-mode and the other processors need to align.
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Token accounting refactor is consistent across all request types (online, batch, offline) and field names no longer leak old TokenCount references.
-      2. Cost-estimation logic (pre/post API call) uses the running average correctly and doesn't double-count or lose precision.
-      3. Batch-mode cost tracking aligns with the unified model and doesn't regress on accuracy.   *** MUST RAISE ***
-    goal        Batch-mode cost tracking aligns with the unified model and doesn't regress on accuracy.
+      1. Align on Mistral batch processor design   *** MUST RAISE ***
+      2. Validate Pydantic model refactor and upload logic   *** MUST RAISE ***
+      3. Unblock retry/batch interaction
+    goal        Align on Mistral batch processor design
     available   around today
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Merged the gen params refactor (PR 552) today. Knows the litellm backend and how it reports token usage; also owns the provider-integrations side.
+    role        Core Platform Engineer, Request Processing. Owns three core services; context on litellm wrapping fix and how batch interacts
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Token accounting refactor is consistent across all request types (online, batch, offline) and field names no longer leak old TokenCount references.
-      2. Cost-estimation logic (pre/post API call) uses the running average correctly and doesn't double-count or lose precision.
-      3. Batch-mode cost tracking aligns with the unified model and doesn't regress on accuracy.
-    goal        Gideon landed 15 commits today on token accounting unification; Dario Kestrel and Emil Brandvold reviewed and committed to the pipeline; this is the core refactor that cost-estimation work (PR 546) depends on.
+      1. Align on Mistral batch processor design
+      2. Validate Pydantic model refactor and upload logic
+      3. Unblock retry/batch interaction   *** MUST RAISE ***
+      4. Lost most of yesterday to batch mode. The model was in the support list, online run gave me clean JSON objects, the batch submission for the exact same config refused to attach a schema. Turned out the batch submitter was checking against a tuple of model names it keeps in its own file, last touched in January.   *** MUST SETTLE (clue t2.r2.l4) ***
+    goal        Unblock retry/batch interaction
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Senior request-processing owner; can spot interaction issues
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Align on Mistral batch processor design
+      2. Validate Pydantic model refactor and upload logic
+      3. Unblock retry/batch interaction
+    goal        3 commits each to batch-mode and provider-integrations; PR 584 (Mistral) is 1 day old and needs review
     available   around today
 
 ### 4. How it should land
 
-    lands as  partial
-    leaving   Token accounting unified and cost-estimation logic verified; no regressions in batch-mode cost tracking.
+    lands as  resolves
+    leaving   Mistral batch processor design is clear and aligned; PR 584 is ready for review or has blockers named; PR 585 path is clarified (can land after Mistral or in parallel); it is settled that the team agrees a private copy of the model names in batch mode contradicted the maintained support list and cost a day
 
 
 ------------------------------------------------------------------------------
-## #help — 14 turns, 3 people
+## #incidents — 14 turns, 3 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #help: a user posted a traceback and Dermot Callaghan recognised it as the third variant of the same class of problem this week
+Channel #incidents: a batch job submitted overnight came back with every line failed on the same schema complaint, twenty-two hours after submission
 
-    Today is Friday 28 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Wednesday 12 March 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: a user posted a traceback and Dermot Callaghan recognised it as the third variant of the same class of problem this week
+    Why it is happening: a batch job submitted overnight came back with every line failed on the same schema complaint, twenty-two hours after submission
     
     What it should get through:
     
-    On the agenda: Dermot Callaghan walks through the OpenAI strict-mode rejection a user hit: the model had a field with a default on it and strict mode would not take the schema, which the user reasonably read as a curator bug; Gideon Halloway adds the one he answered on Monday, where a Gemini run refused a model with an Optional field and the user rewrote the whole schema by trial and error before asking; Dario Kestrel says the two do not have the same rule behind them and he does not want a check that only knows OpenAI's rules and then lies about everything else
+    On the agenda: Dario Kestrel posts the batch object ids and the error line repeated 60k times, and notes the submit call itself returned 200 so nothing looked wrong at bedtime; Emil Brandvold points out the batch retry logic dutifully resubmitted the failures, which cost another cycle and produced the identical result; Gideon Halloway says the wait is the expensive part here and this path in particular cannot be allowed to reach the submit call with a schema the provider will not take
     
-    Wrap when: three concrete rejection cases collected in one thread; no rule set derived from them yet, and Anthropic's tool-shaped path is noted as unexamined; it is settled that the team agrees changing temperature currently returns the previous run's outputs
+    Wrap when: incident closed by hand-editing the schema and resubmitting; the batch path is now explicitly in scope for the pre-dispatch check and Dario Kestrel notes the online path was already assumed; it is settled that the team agrees a schema change should resend only the affected rows rather than discard everything
     
     Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
     Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
       - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
+      - 288 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+      - PR 565: add openai client backend (Dario Kestrel)
+      - PR 566: deepseek api (Dario Kestrel)
+      - PR 579: Feat/openai/deepseek api (Emil Brandvold)
+      - PR 581: Environment variable to disable rich (Gideon Halloway)
+      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
 
     Open questions
       - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
       - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
       - issue 105: Distribution graph is skewed for data viewer 
       - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
       - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 128: curator-viewer doesn't display the output of parse_func
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
 
-    DOES NOT EXIST YET (4 names)
+    DOES NOT EXIST YET (3 names)
       - agentic-curation
-      - blocks-and-recipes
       - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: temperature.
+      - — and 436 function/class names and 0 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. 
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-    goal        a user posted a traceback and Dermot Callaghan recognised it as the third variant of the same class of problem this week
+    goal        a batch job submitted overnight came back with every line failed on the same schema complaint, twenty-two hours after submission
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+    goal        a batch job submitted overnight came back with every line failed on the same schema complaint, twenty-two hours after submission
     available   around today
 
   Gideon Halloway  (gideon)
     role        Core Engineer — Dataset Viewer & Run Observability. 
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Bumped temperature from 0 to 1.2 on the poem set to get some variety and got the identical 5k rows back. I spent an hour convinced vLLM was ignoring temperature before I worked out where they were coming from.   *** MUST SETTLE (clue t1.r1.l_params_1) ***
-         must contain literally: temperature
-    goal        the team agrees changing temperature currently returns the previous run's outputs
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. 
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-    goal        a user posted a traceback and Dermot Callaghan recognised it as the third variant of the same class of problem this week
+      1. Nuking the whole cache dir every time I tweak one field is the main reason people here do not trust reruns. On a 200k set that is real money to get one extra field.   *** MUST SETTLE (clue t1.r1.l_schema_3) ***
+    goal        the team agrees a schema change should resend only the affected rows rather than discard everything
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   three concrete rejection cases collected in one thread; no rule set derived from them yet, and Anthropic's tool-shaped path is noted as unexamined; it is settled that the team agrees changing temperature currently returns the previous run's outputs
-
-
-==============================================================================
-# 2025-03-01 — 4 conversation(s), 44 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #incidents — 12 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #incidents: Three reverts in one day on core request processing; main branch stability and v0.1.20 release viability need confirmation.
-
-    Today is Saturday 1 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three reverts in one day on core request processing; main branch stability and v0.1.20 release viability need confirmation.
-    
-    What it should get through:
-      1. Understand revert scope and confirm main is stable for release   [Gideon Halloway must raise this]
-           - Gideon lays out the three reverts: output token defaults twice, integration tests once
-           - Dario checks whether v0.1.20 release notes (already written) assume these changes landed
-           - Emil clarifies the deepseek token dump issue that triggered it
-      2. Decide whether to reland or defer the token-default fix   [Emil Brandvold must raise this]
-           - Gideon outlines the cost projection and success-rate tracking changes that got caught up
-           - Emil weighs whether the fix is necessary for Gemini work or can be a follow-on
-           - Dario notes if this blocks anything in the next sprint
-    
-    On the agenda: State what reverted and why; Assess damage to online processing and multimodal; Decide if fixes need to land today or can wait
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: Confirmation that v0.1.20 is shippable as-is and reverted code is understood well enough to address properly next week, or decision to reland a narrower fix before release.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
-
-    On the table
-      - Release notes: v0.1.20 (someone)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. The reverts themselves: output token defaults and integration test passes that went sideways
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Understand revert scope and confirm main is stable for release   *** MUST RAISE ***
-      2. Decide whether to reland or defer the token-default fix
-      3. what "release-v0-1-20" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Understand revert scope and confirm main is stable for release
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Request processing context and whether this blocks the release
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Understand revert scope and confirm main is stable for release
-      2. Decide whether to reland or defer the token-default fix
-    goal        Three reverts in one day on core request processing; main branch stability and v0.1.20 release viability need confirmation.
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Provider integration perspective on the token default issue
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Understand revert scope and confirm main is stable for release
-      2. Decide whether to reland or defer the token-default fix   *** MUST RAISE ***
-    goal        Decide whether to reland or defer the token-default fix
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Confirmation that v0.1.20 is shippable as-is and reverted code is understood well enough to address properly next week, or decision to reland a narrower fix before release.
-
-
-------------------------------------------------------------------------------
-## #code-review — 8 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Two open PRs older than the era median merge time; both touch core request processing and observer layer.
-
-    Today is Saturday 1 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two open PRs older than the era median merge time; both touch core request processing and observer layer.
-    
-    What it should get through:
-      1. Determine if PR 546 (cost estimation) can move to merge   [Gideon Halloway must raise this]
-           - Gideon notes the reverts mean the cost tracking commits need re-review or rebasing
-           - Dario or Emil checks whether the reverts affect the cost estimation logic itself
-      2. Clarify status of PR 468 (n samples) and whether it is blocked   [Emil Brandvold must raise this]
-           - Emil states whether Gemini work (ws-040) depends on n samples landing
-           - Gideon notes if this is blocked on something else or just needs a review pass
-    
-    On the agenda: Check PR 546 status and what it needs; Assess PR 468 age and next steps
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: Clear signal on whether PR 546 can land after revert triage, and whether PR 468 should be revived or deferred to next cycle.
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
-
-    On the table
-      - Release notes: v0.1.20 (Dario Kestrel)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. New commits on PR 546 (cost estimation) and context on what is blocking it
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Determine if PR 546 (cost estimation) can move to merge   *** MUST RAISE ***
-      2. Clarify status of PR 468 (n samples) and whether it is blocked
-      3. what "Release notes: v0.1.20" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Determine if PR 546 (cost estimation) can move to merge
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. PR 468 context (n samples support) and whether it needs review or is waiting on something else
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Determine if PR 546 (cost estimation) can move to merge
-      2. Clarify status of PR 468 (n samples) and whether it is blocked   *** MUST RAISE ***
-    goal        Clarify status of PR 468 (n samples) and whether it is blocked
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Clear signal on whether PR 546 can land after revert triage, and whether PR 468 should be revived or deferred to next cycle.
-
-
-------------------------------------------------------------------------------
-## #pipeline — 14 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: 14 commits to online-request-processing and 11 to provider-integrations, including a double revert on token defaults; core request path needs triage before release.
-
-    Today is Saturday 1 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 14 commits to online-request-processing and 11 to provider-integrations, including a double revert on token defaults; core request path needs triage before release.
-    
-    What it should get through:
-      1. Untangle cost projection logic and revert fallout   [Gideon Halloway must raise this]
-           - Gideon walks through the cost projection commits: success/in-process stats first, then weighted-avg cost with success factor
-           - Dario or Emil flags whether the revert leaves a gap in cost estimation or if the approach is sound but timing was off
-      2. Resolve output token default handling for deepseek and Gemini   [Emil Brandvold must raise this]
-           - Gideon explains the deepseek issue: 0 output tokens causing request dump; the fix and why it reverted
-           - Emil notes whether Gemini rate-limit work needs token defaults to be locked down first
-      3. Validate online request stability for v0.1.20   [Dario Kestrel must raise this]
-           - Dario checks that v0.1.20 release notes do not assume reverted changes
-           - Gideon confirms that initialization, cost tracking, and token handling are internally consistent after reverts
-    
-    On the agenda: Map out what changed on cost projection and why it reverted; Align on token-default handling across providers; Confirm online request path is stable for release
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Agreement on which cost/token changes should reland post-release and confirmation that online request path is safe to ship.
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
-
-    On the table
-      - Release notes: v0.1.20 (Dario Kestrel)
-      - Release notes: v0.1.20 (Dario Kestrel)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. The day's 12 commits on cost projection, output tokens, and request initialization; the reverts and what they mean for the request path
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Untangle cost projection logic and revert fallout   *** MUST RAISE ***
-      2. Resolve output token default handling for deepseek and Gemini
-      3. Validate online request stability for v0.1.20
-      4. what "Release notes: v0.1.20" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Untangle cost projection logic and revert fallout
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Gemini-specific rate limit and token-usage work (ws-040); perspective on whether token defaults matter for provider stability
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Untangle cost projection logic and revert fallout
-      2. Resolve output token default handling for deepseek and Gemini   *** MUST RAISE ***
-      3. Validate online request stability for v0.1.20
-    goal        Resolve output token default handling for deepseek and Gemini
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Release readiness; whether the reverted changes should have been in v0.1.20 or are correctly deferred
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Untangle cost projection logic and revert fallout
-      2. Resolve output token default handling for deepseek and Gemini
-      3. Validate online request stability for v0.1.20   *** MUST RAISE ***
-      4. what "Release notes: v0.1.20" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Validate online request stability for v0.1.20
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Agreement on which cost/token changes should reland post-release and confirmation that online request path is safe to ship.
-
-
-------------------------------------------------------------------------------
-## #viewer — 10 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #viewer: Six changes to progress-and-cli; cost projection reverted; display surface needs to stay consistent with request processing.
-
-    Today is Saturday 1 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Six changes to progress-and-cli; cost projection reverted; display surface needs to stay consistent with request processing.
-    
-    What it should get through:
-      1. Ensure progress tracking is coherent with cost estimation after reverts   [Gideon Halloway must raise this]
-           - Gideon notes which progress commits depend on the cost commits that reverted
-           - Emil checks whether the progress display will degrade or is independent of the reverted cost logic
-      2. Confirm run summary and token counters reflect current cost approach   [Emil Brandvold must raise this]
-           - Emil reviews whether the end-of-run tables need updates to match the cost estimation refresh
-           - Gideon confirms that the commits that landed leave the display surface in a consistent state
-    
-    On the agenda: Audit progress display against reverted cost changes; Confirm cost counters and run-summary tables are aligned
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Validation that progress bars, cost counters, and summary tables are safe to ship as-is, or identification of display tweaks needed before release.
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 280 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Six commits on progress tracking and cost projection; what changed and why the cost-side commits reverted
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Ensure progress tracking is coherent with cost estimation after reverts   *** MUST RAISE ***
-      2. Confirm run summary and token counters reflect current cost approach
-    goal        Ensure progress tracking is coherent with cost estimation after reverts
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Perspective on whether progress updates are blocked on the cost projection stabilizing
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Ensure progress tracking is coherent with cost estimation after reverts
-      2. Confirm run summary and token counters reflect current cost approach   *** MUST RAISE ***
-    goal        Confirm run summary and token counters reflect current cost approach
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Validation that progress bars, cost counters, and summary tables are safe to ship as-is, or identification of display tweaks needed before release.
-
-
-==============================================================================
-# 2025-03-03 — 4 conversation(s), 44 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Emil opened three PRs today; two are fresh, one is a quick fix already approved
-
-    Today is Monday 3 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Emil opened three PRs today; two are fresh, one is a quick fix already approved
-    
-    What it should get through:
-      1. RAFT block lands with API shape locked   [Emil Brandvold must raise this]
-           - Emil walks through the block API and example usage
-           - Konrad pushes back on shape consistency with SimpleStrat
-           - Landing: approved with minor style cleanup
-      2. Parsing and dataset creation fixes merge cleanly   [Emil Brandvold must raise this]
-           - Dermot confirms PR 574 is solid; Emil clarifies PR 573 interaction with caching
-           - Both land without changes
-      3. write up Handover: Packaging, Version Bumps & Release Cutting   [Dermot Callaghan must raise this]
-           - Dermot Callaghan says they will write Handover: Packaging, Version Bumps & Release Cutting — Dermot's write-up handing the release-cutting role (version bumps, tagging, packaging) to Emil Brandvold.
-      4. write up Q2 Plan: Consolidation and Provider Breadth   [Konrad Feltrin must raise this]
-           - Konrad Feltrin says they will write Q2 Plan: Consolidation and Provider Breadth — Konrad's kickoff plan for slowing the pace, squashing PRs, and pruning provider integrations after the Stratos sprint.
-    
-    On the agenda: RAFT block and example implementation (PR 571); Parse method hash and fingerprint (PR 573); Process response mandatory in dataset files (PR 574); Handover: Packaging, Version Bumps & Release Cutting; Q2 Plan: Consolidation and Provider Breadth
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 574 merges today; PR 571 approved pending style pass; PR 573 queued for merge
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 281 changes merged to date
-
-    On the table
-      - Handover: Packaging, Version Bumps & Release Cutting (Dermot Callaghan)
-      - Handover: Packaging, Version Bumps & Release Cutting (Dermot Callaghan)
-      - Q2 Plan: Consolidation and Provider Breadth (Konrad Feltrin)
-      - weekly-2025-02-24 (Konrad Feltrin)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 574: fix: make process_response mandatory in create_dataset files (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. The RAFT block and example work, plus two fixes to parsing and dataset creation that need review
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. RAFT block lands with API shape locked   *** MUST RAISE ***
-      2. Parsing and dataset creation fixes merge cleanly   *** MUST RAISE ***
-      3. write up Handover: Packaging, Version Bumps & Release Cutting
-      4. write up Q2 Plan: Consolidation and Provider Breadth
-      5. that the doc "Postmortem: kluster.ai DeepSeek Output-Token Default" is done, and where the others can find it   *** MUST RAISE ***
-    goal        RAFT block lands with API shape locked
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Maintainer perspective on API shape and design consistency
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. RAFT block lands with API shape locked
-      2. Parsing and dataset creation fixes merge cleanly
-      3. write up Handover: Packaging, Version Bumps & Release Cutting
-      4. write up Q2 Plan: Consolidation and Provider Breadth   *** MUST RAISE ***
-      5. that the doc "Q2 Plan: Consolidation and Provider Breadth" is done, and where the others can find it   *** MUST RAISE ***
-      6. that "Weekly update: week of Feb 24" has gone out, and what you asked in it   *** MUST RAISE ***
-    goal        write up Q2 Plan: Consolidation and Provider Breadth
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Pipeline and dataset knowledge; already approved PR 574
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. RAFT block lands with API shape locked
-      2. Parsing and dataset creation fixes merge cleanly
-      3. write up Handover: Packaging, Version Bumps & Release Cutting   *** MUST RAISE ***
-      4. write up Q2 Plan: Consolidation and Provider Breadth
-      5. that the doc "Handover: Packaging, Version Bumps & Release Cutting" is done, and where the others can find it   *** MUST RAISE ***
-    goal        write up Handover: Packaging, Version Bumps & Release Cutting
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 574 merges today; PR 571 approved pending style pass; PR 573 queued for merge
-
-
-------------------------------------------------------------------------------
-## #cookbooks — 8 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #cookbooks: Emil landed three commits to blocks-and-recipes today, including RAFT block and example
-
-    Today is Monday 3 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Emil landed three commits to blocks-and-recipes today, including RAFT block and example
-    
-    What it should get through:
-      1. RAFT block API locked in and documented   [Emil Brandvold must raise this]
-           - Emil shows the block signature and example call site
-           - Konrad checks it against SimpleStrat and agentic patterns
-           - Settled: API is consistent
-    
-    On the agenda: RAFT block design and API; Example coverage and runability
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: RAFT block approved for example publication
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 281 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 574: fix: make process_response mandatory in create_dataset files (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. RAFT implementation and example code
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. RAFT block API locked in and documented   *** MUST RAISE ***
-    goal        RAFT block API locked in and documented
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Recipe design patterns and user-facing API judgement
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. RAFT block API locked in and documented
-    goal        Emil landed three commits to blocks-and-recipes today, including RAFT block and example
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   RAFT block approved for example publication
-
-
-------------------------------------------------------------------------------
-## #engineering — 14 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Gideon landed postmortem on Mar 1 incident and is writing it up today; Emil is picking up Gemini issues; both workstreams are mid-flight
-
-    Today is Monday 3 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Gideon landed postmortem on Mar 1 incident and is writing it up today; Emil is picking up Gemini issues; both workstreams are mid-flight
-    
-    What it should get through:
-      1. Gemini rate-limit and parse-failure-count issues tracked   [Emil Brandvold must raise this]
-           - Emil describes the Gemini rate-limit handling and None parse-value counting gap
-           - Konrad asks if it blocks provider-integrations or cost-estimation
-           - Deferred: opened as issues for next iteration
-    
-    On the agenda: DeepSeek output-token default root cause and fix; Cost projection success-rate weighting; Gemini rate limits and token estimation issues
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Gideon unblocked to land cost-estimation fix; Emil captures Gemini issues for backlog
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 281 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 574: fix: make process_response mandatory in create_dataset files (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Gemini rate-limit handling and token-estimation fixes from litellm; the parse_response failure counting issue
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Gemini rate-limit and parse-failure-count issues tracked   *** MUST RAISE ***
-    goal        Gemini rate-limit and parse-failure-count issues tracked
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Architectural oversight and o3-mini structured output path
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Gemini rate-limit and parse-failure-count issues tracked
-    goal        Gideon landed postmortem on Mar 1 incident and is writing it up today; Emil is picking up Gemini issues; both workstreams are mid-flight
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Gideon unblocked to land cost-estimation fix; Emil captures Gemini issues for backlog
-
-
-------------------------------------------------------------------------------
-## #general — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #general: Dermot and Emil exchanging release-cutting handover by mail; Konrad publishing Q2 plan today
-
-    Today is Monday 3 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Dermot and Emil exchanging release-cutting handover by mail; Konrad publishing Q2 plan today
-    
-    What it should get through:
-      1. Emil confirms release-cutting procedures and takes the role   [Dermot Callaghan must raise this]
-           - Dermot publishes handover doc
-           - Emil confirms understanding and asks about edge cases
-           - Settled: handoff complete
-      2. Q2 plan communicated: consolidate, prune, sustain   [Konrad Feltrin must raise this]
-           - Konrad publishes plan with context on episode drop and contributor churn
-           - Team acknowledges the shift in pace
-    
-    On the agenda: Release-cutting handover from Dermot to Emil; Q2 consolidation and provider-breadth plan kickoff
-    
-    Belongs in this channel: news the whole company needs: releases that matter to everyone, scheduling, people joining or moving on, and decisions that cross every team.
-    Does NOT belong here: work on any individual service, and anything only one team cares about.
-    
-    Wrap when: Handover acknowledged; Q2 plan in circulation
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 281 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 574: fix: make process_response mandatory in create_dataset files (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 472 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release-cutting procedures and context for handoff to Emil
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Emil confirms release-cutting procedures and takes the role   *** MUST RAISE ***
-      2. Q2 plan communicated: consolidate, prune, sustain
-    goal        Emil confirms release-cutting procedures and takes the role
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Technical readiness and block-ownership perspective
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Emil confirms release-cutting procedures and takes the role
-      2. Q2 plan communicated: consolidate, prune, sustain
-    goal        Dermot and Emil exchanging release-cutting handover by mail; Konrad publishing Q2 plan today
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Q2 strategy: consolidation, pruning, and sustainable pace
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Emil confirms release-cutting procedures and takes the role
-      2. Q2 plan communicated: consolidate, prune, sustain   *** MUST RAISE ***
-    goal        Q2 plan communicated: consolidate, prune, sustain
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Handover acknowledged; Q2 plan in circulation
-
-
-==============================================================================
-# 2025-03-04 — 3 conversation(s), 42 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Three PRs opened or merged today; two stale PRs (>25 days) blocking provider work
-
-    Today is Tuesday 4 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three PRs opened or merged today; two stale PRs (>25 days) blocking provider work
-    
-    What it should get through:
-      1. Land PR 575 and PR 576 to unblock cost estimation and viewer   [Emil Brandvold must raise this]
-           - Emil Brandvold explains the model-name fix in cost processor addresses a Gemini edge case
-           - Gideon Halloway validates it aligns with the online processor revamp
-           - Dermot Callaghan signs off on PR 576 after checking the viewer push
-      2. Triage the stalled provider backends and decide next steps   [Dario Kestrel must raise this]
-           - Dario Kestrel flags PR 565 (OpenAI client) and PR 566 (DeepSeek) have been open 2 days and need review
-           - Emil Brandvold or Gideon Halloway offers to take a pass or delegates to someone with provider bandwidth
-           - group acknowledges the backlog and slots them for next day
-    
-    On the agenda: Review and merge PR 575 (cost processor model name fix); Review and merge PR 576 (viewer integration); Check on stalled provider backends (PR 565, PR 566)
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 575 and PR 576 merge; provider PRs get explicit next-step assigned or flagged for tomorrow
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 283 changes merged to date
-
-    On the table
-      - Postmortem: kluster.ai DeepSeek Output-Token Default (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
-      - PR 576: Ref/push to viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 469 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Two new PRs ready for eyes: cost processor fix and viewer integration, plus context on mandatory process_response validation
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Land PR 575 and PR 576 to unblock cost estimation and viewer   *** MUST RAISE ***
-      2. Triage the stalled provider backends and decide next steps
-      3. what "Postmortem: kluster.ai DeepSeek Output-Token Default" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Land PR 575 and PR 576 to unblock cost estimation and viewer
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Just merged the online processor cost revamp (PR PR 546); knows the shape of the remaining fixes needed
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Land PR 575 and PR 576 to unblock cost estimation and viewer
-      2. Triage the stalled provider backends and decide next steps
-    goal        Three PRs opened or merged today; two stale PRs (>25 days) blocking provider work
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Fresh review of PR 576 (viewer push) with approval; knows the pipeline surface
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Land PR 575 and PR 576 to unblock cost estimation and viewer
-      2. Triage the stalled provider backends and decide next steps
-    goal        Three PRs opened or merged today; two stale PRs (>25 days) blocking provider work
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Unblocked on two provider backend PRs (PR 565, PR 566) that have been sitting; knows what those need
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Land PR 575 and PR 576 to unblock cost estimation and viewer
-      2. Triage the stalled provider backends and decide next steps   *** MUST RAISE ***
-    goal        Triage the stalled provider backends and decide next steps
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 575 and PR 576 merge; provider PRs get explicit next-step assigned or flagged for tomorrow
-
-
-------------------------------------------------------------------------------
-## #pipeline — 14 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: 5 changes to online-request-processing, 4 to provider-integrations; cost revamp merged, gemini fixes in flight
-
-    Today is Tuesday 4 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 5 changes to online-request-processing, 4 to provider-integrations; cost revamp merged, gemini fixes in flight
-    
-    What it should get through:
-      1. Confirm output-token default and success-factor fixes prevent request dumps and improve cost projection   [Gideon Halloway must raise this]
-           - Gideon Halloway walks through the 0→better-default and weighted-avg→weighted-avg×success-factor logic
-           - Emil Brandvold confirms the litellm int wrapper stacks cleanly on top
-           - group agrees the kluster deepseek case is now handled
-      2. Land token-field fixes (mime_type, None-value tally, process_response mandatory) to close cost estimation loop   [Emil Brandvold must raise this]
-           - Emil Brandvold flags that failed responses with None parsed values weren't being counted, throwing off summaries
-           - Gideon Halloway or Dermot Callaghan confirm the tally fix is correct
-           - process_response now mandatory in create_dataset closes a validation gap
-      3. Route Gemini rate limit handling: own path or lean on generic fallback   [Emil Brandvold must raise this]
-           - Emil Brandvold explains Gemini rate limits need special handling instead of falling through generic
-           - Dario Kestrel or Gideon Halloway asks whether to add a Gemini-specific branch or strengthen the generic
-           - group decides: either patch it now or flag as follow-up if the generic path is good enough
-    
-    On the agenda: Validate the output-token-estimate and success-factor fixes; Land the litellm float→int wrapper and token-field fixes; Clarify Gemini rate limit handling versus generic fallback
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Cost estimation revamp is complete and landing; Gemini rate limit strategy is decided (fix now or defer)
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 283 changes merged to date
-
-    On the table
-      - Postmortem: kluster.ai DeepSeek Output-Token Default (Emil Brandvold)
-      - Weekly sync notes: week of Feb 24 — v0.1.19.post1 and v0.1.20 shipped (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
-      - PR 576: Ref/push to viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 469 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Just shipped the online processor cost revamp (PR 546); knows the exact bug (output token default 0) that caused kluster deepseek to dump requests at once, plus the success-factor fix for remaining-cost projection
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm output-token default and success-factor fixes prevent request dumps and improve cost projection   *** MUST RAISE ***
-      2. Land token-field fixes (mime_type, None-value tally, process_response mandatory) to close cost estimation loop
-      3. Route Gemini rate limit handling: own path or lean on generic fallback
-      4. what "Postmortem: kluster.ai DeepSeek Output-Token Default" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm output-token default and success-factor fixes prevent request dumps and improve cost projection
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Three commits stacked on top of Gideon's work: token estimate wrapping in int (litellm backend float issue), mime_type grab off Image, and mandatory process_response validation; also driving the Gemini rate limit and failed-response-None-value tally fixes
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm output-token default and success-factor fixes prevent request dumps and improve cost projection
-      2. Land token-field fixes (mime_type, None-value tally, process_response mandatory) to close cost estimation loop   *** MUST RAISE ***
-      3. Route Gemini rate limit handling: own path or lean on generic fallback   *** MUST RAISE ***
-      4. what "Weekly sync notes: week of Feb 24 — v0.1.19.post1 and v0.1.20 shipped" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Land token-field fixes (mime_type, None-value tally, process_response mandatory) to close cost estimation loop
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Fresh review of the cost-estimation chain; owns the bulk pipeline and can spot integration gaps
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Confirm output-token default and success-factor fixes prevent request dumps and improve cost projection
-      2. Land token-field fixes (mime_type, None-value tally, process_response mandatory) to close cost estimation loop
-      3. Route Gemini rate limit handling: own path or lean on generic fallback
-    goal        5 changes to online-request-processing, 4 to provider-integrations; cost revamp merged, gemini fixes in flight
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Owns request-processing core; may spot downstream impact in online or batch paths
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm output-token default and success-factor fixes prevent request dumps and improve cost projection
-      2. Land token-field fixes (mime_type, None-value tally, process_response mandatory) to close cost estimation loop
-      3. Route Gemini rate limit handling: own path or lean on generic fallback
-    goal        5 changes to online-request-processing, 4 to provider-integrations; cost revamp merged, gemini fixes in flight
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Cost estimation revamp is complete and landing; Gemini rate limit strategy is decided (fix now or defer)
-
-
-------------------------------------------------------------------------------
-## #engineering — 16 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: 7 commits, 2 merged, 3 workstreams active, 2 blocked on old PRs
-
-    Today is Tuesday 4 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 7 commits, 2 merged, 3 workstreams active, 2 blocked on old PRs
-    
-    What it should get through:
-      1. Cost estimation 1/n is done; next steps clear   [Gideon Halloway must raise this]
-           - Gideon Halloway: cost revamp landed, output token default and success factor fixed
-           - Emil Brandvold: token-field fixes stacking on top, process_response now mandatory
-           - group agrees the consolidation sprint is tracking well
-      2. Unblock PR 468 (n samples) and PR 571 (RAFT) or defer them explicitly   [Emil Brandvold must raise this]
-           - Emil Brandvold flags PR 468 is 25 days old and PR 571 just opened
-           - Dario Kestrel or Konrad Feltrin says whether those are blockers or can slip
-           - group assigns owner or marks as next-sprint
-      3. Dario gets time to review provider backends or handoff is assigned   [Dario Kestrel must raise this]
-           - Dario Kestrel asks for review time on PR 565 and PR 566 or delegates to Gideon Halloway/Emil Brandvold
-           - group slots it or confirms it's lower priority than Gemini fixes
-           - understood: provider breadth is consolidation-era work, should move this week
-    
-    On the agenda: State of cost estimation fixes and what's next; Review blockers and stalled work; Confirm priorities for rest of week
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team understands cost revamp is landing, blockers are either unblocked or deferred, and provider backend review is scheduled
-    
-    Do NOT wrap before about 11 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 283 changes merged to date
-
-    On the table
-      - Postmortem: kluster.ai DeepSeek Output-Token Default (Emil Brandvold)
-      - Q2 Plan: Consolidation and Provider Breadth (Konrad Feltrin)
-      - Q2 Plan: Consolidation and Provider Breadth (Konrad Feltrin)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
-      - PR 576: Ref/push to viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 469 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Six commits across cost estimation, token handling, and process_response validation; two PRs open and waiting; two driving workstreams
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Cost estimation 1/n is done; next steps clear
-      2. Unblock PR 468 (n samples) and PR 571 (RAFT) or defer them explicitly   *** MUST RAISE ***
-      3. Dario gets time to review provider backends or handoff is assigned
-    goal        Unblock PR 468 (n samples) and PR 571 (RAFT) or defer them explicitly
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Cost revamp just merged; knows the remaining steps in the 1/n series and what it unblocks
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Cost estimation 1/n is done; next steps clear   *** MUST RAISE ***
-      2. Unblock PR 468 (n samples) and PR 571 (RAFT) or defer them explicitly
-      3. Dario gets time to review provider backends or handoff is assigned
-      4. what "Postmortem: kluster.ai DeepSeek Output-Token Default" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      5. what "Q2 Plan: Consolidation and Provider Breadth" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Cost estimation 1/n is done; next steps clear
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Provider backend work stalled; knows the two new backends and what's needed to land them
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Cost estimation 1/n is done; next steps clear
-      2. Unblock PR 468 (n samples) and PR 571 (RAFT) or defer them explicitly
-      3. Dario gets time to review provider backends or handoff is assigned   *** MUST RAISE ***
-      4. what "Q2 Plan: Consolidation and Provider Breadth" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Dario gets time to review provider backends or handoff is assigned
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Reviewed PR 576 (viewer); owns the pipeline surface and can flag integration risks
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Cost estimation 1/n is done; next steps clear
-      2. Unblock PR 468 (n samples) and PR 571 (RAFT) or defer them explicitly
-      3. Dario gets time to review provider backends or handoff is assigned
-    goal        7 commits, 2 merged, 3 workstreams active, 2 blocked on old PRs
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Helping with cost revamp; can advise on whether it blocks downstream work
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Cost estimation 1/n is done; next steps clear
-      2. Unblock PR 468 (n samples) and PR 571 (RAFT) or defer them explicitly
-      3. Dario gets time to review provider backends or handoff is assigned
-    goal        7 commits, 2 merged, 3 workstreams active, 2 blocked on old PRs
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Team understands cost revamp is landing, blockers are either unblocked or deferred, and provider backend review is scheduled
-
-
-==============================================================================
-# 2025-03-05 — 1 conversation(s), 10 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Emil has two fresh PRs waiting for review; one already approved, one needs eyes.
-
-    Today is Wednesday 5 March 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Emil has two fresh PRs waiting for review; one already approved, one needs eyes.
-    
-    What it should get through:
-      1. Determine if PR 579 complements or duplicates PR 565/#566   [Dario Kestrel must raise this]
-           - Emil explains the scope of PR 579 (openai and deepseek in one PR)
-           - Dario asks whether it is the same backend work or a different implementation
-           - Land on: either merge both and consolidate later, or one takes precedence
-      2. Approve PR 578 for merge   [Konrad Feltrin must raise this]
-           - Konrad confirms PR 578 already approved and safe to land
-           - Emil confirms no conflicts with the hardening work
-           - Move to merge
-      3. write up Weekly Notes — Week of Mar 3   [Emil Brandvold must raise this]
-           - Emil Brandvold says they will write Weekly Notes — Week of Mar 3 — Emil's sync notes for a quiet week of provider-integration work (17 commits).
-    
-    On the agenda: Status of PR 578 (gemini rate limits) and PR 579 (openai/deepseek); Whether PR 579 overlaps with Dario Kestrel's PR 565/#566 or takes a different path; Any blocking concerns before merge; Weekly Notes — Week of Mar 3
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 578 merges; PR 579 either merges or is clarified as a parallel effort to Dario Kestrel's backend work.
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 18 release(s) shipped, currently v0.1.20
-      - 284 changes merged to date
-
-    On the table
-      - Q2 Plan: Consolidation and Provider Breadth (Konrad Feltrin)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 565: add openai client backend (Dario Kestrel)
-      - PR 566: deepseek api (Dario Kestrel)
-      - PR 571: Feat/raft (Emil Brandvold)
-      - PR 575: fix: use model name from config in  cost processor (Emil Brandvold)
-      - PR 578: Ref/update/ratelimits/gemini (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 128: curator-viewer doesn't display the output of parse_func
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 469 function/class names and 14 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Five commits on gemini batch rate limits, google project env fix, and openai/deepseek API integration
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Determine if PR 579 complements or duplicates PR 565/#566
-      2. Approve PR 578 for merge
-      3. write up Weekly Notes — Week of Mar 3   *** MUST RAISE ***
-      4. that the doc "Weekly Notes — Week of Mar 3" is done, and where the others can find it   *** MUST RAISE ***
-    goal        write up Weekly Notes — Week of Mar 3
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Review perspective on input handling changes and provider integration patterns
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Determine if PR 579 complements or duplicates PR 565/#566
-      2. Approve PR 578 for merge   *** MUST RAISE ***
-      3. write up Weekly Notes — Week of Mar 3
-    goal        Approve PR 578 for merge
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Knowledge of openai and deepseek backend requirements
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Determine if PR 579 complements or duplicates PR 565/#566   *** MUST RAISE ***
-      2. Approve PR 578 for merge
-      3. write up Weekly Notes — Week of Mar 3
-      4. what "Q2 Plan: Consolidation and Provider Breadth" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Determine if PR 579 complements or duplicates PR 565/#566
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 578 merges; PR 579 either merges or is clarified as a parallel effort to Dario Kestrel's backend work.
+    leaving   incident closed by hand-editing the schema and resubmitting; the batch path is now explicitly in scope for the pre-dispatch check and Dario Kestrel notes the online path was already assumed; it is settled that the team agrees a schema change should resend only the affected rows rather than discard everything
 

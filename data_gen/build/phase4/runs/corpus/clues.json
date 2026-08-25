@@ -1959,5 +1959,270 @@
     "context": [],
     "artifact": "Release notes: v0.1.20",
     "written_as": "engineering/release-notes-v0-1-20.md"
+  },
+  {
+    "clue": "t4.r2.L11",
+    "holder": "gideon",
+    "date": "2025-03-06",
+    "channel": "viewer",
+    "attempt": 1,
+    "said": true,
+    "quote": "When a docker task dies at container start, all the progress table gets is the task marked failed plus a container id",
+    "said_by": "Gideon Halloway",
+    "why": "All parts of the remark are stated plainly by Gideon across his 09:00 messages.",
+    "elements": [
+      {
+        "part": "a docker task dying at container start leaves only 'failed' plus a container id in the progress table",
+        "present": true,
+        "why": "Gideon states this directly at 09:00"
+      },
+      {
+        "part": "people screenshot that failure and send it to him",
+        "present": true,
+        "why": "Gideon says this at 09:00"
+      },
+      {
+        "part": "he has nothing to tell them when that happens",
+        "present": true,
+        "why": "Gideon says this at 09:00"
+      },
+      {
+        "part": "the rejection text needs to name the specific setting that was rejected",
+        "present": true,
+        "why": "Gideon says the text needs to name the setting, not just say something was rejected"
+      },
+      {
+        "part": "without that naming, it lands in his inbox instead",
+        "present": true,
+        "why": "Gideon states this explicitly at 09:00"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  gideon    When a docker task dies at container start, all the progress table gets is the task mark   <-- the clue",
+      "09:00  gideon    Whatever text comes back needs to name the setting that got rejected, not just say somet",
+      "09:00  gideon    Without that, it lands in my inbox instead."
+    ],
+    "repair": {
+      "attempts": 2,
+      "added": [
+        "People screenshot that failure and send it to me and I've got nothing to tell them.",
+        "Whatever text comes back needs to name the setting that got rejected, not just say something was rejected.",
+        "Without that, it lands in my inbox instead."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t2.r2.l7",
+    "holder": "dario",
+    "date": "2025-03-10",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Left a comment on the kluster PR: drop the set of model names you added and call `supports_structured_output` instead. That's what we edit when a new model lands, I'd rather not be grepping through scattered model strings again next time something like o3-mini ships.",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's 18:06 messages give the objection, the requested alternative, the reason it's the standing fix, and the concrete worry about scattered strings next time a new model ships.",
+    "elements": [
+      {
+        "part": "the reviewer left a comment on the kluster PR objecting to the inline set of model names added",
+        "present": true,
+        "why": "Dario says he left a comment asking them to drop the inline set of model names."
+      },
+      {
+        "part": "the reviewer wants the code to call supports_structured_output instead",
+        "present": true,
+        "why": "Dario states to call supports_structured_output instead."
+      },
+      {
+        "part": "supports_structured_output is the existing helper that is already updated when a new model lands",
+        "present": true,
+        "why": "Dario says 'That's what we edit when a new model lands.'"
+      },
+      {
+        "part": "the reviewer does not want to be grepping through scattered model strings again next time a new model like o3-mini ships",
+        "present": true,
+        "why": "Dario explicitly says he'd rather not be grepping through scattered model strings again next time something like o3-mini ships."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "16:05  dario     Anyone able to grab PR 565 or 566 before end of day?",
+      "16:24  konrad    @Emil, been through 575, looks clean to me. Still working through 571, want to make sure",
+      "18:06  dario     Left a comment on the kluster PR: drop the set of model names you added and call `suppor   <-- the clue",
+      "18:06  dario     That's what we edit when a new model lands, I'd rather not be grepping through scattered"
+    ]
+  },
+  {
+    "clue": "t4.r1.L1",
+    "holder": "konrad",
+    "date": "2025-03-10",
+    "channel": "cookbooks",
+    "wrote_into": "page:onboarding-nils",
+    "attempt": 1,
+    "said": true,
+    "quote": "The promoted line on this page is the only statement of which curator-sandbox build has actually been signed off. CI pushes a tag for every branch build and the registry sort order means nothing. If you need to know what is safe to run, read this page. Do not read the registry tag list.",
+    "said_by": "konrad",
+    "why": "The page plainly asserts this wiki page's promoted-build record is the sole authoritative source for signed-off sandbox builds, explicitly rejecting the registry as authoritative — the same substance as the target point, stated as fact by the author.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Onboarding: nils and theo",
+    "written_as": "onboarding/onboarding-nils-brandt-and-theo-marchetti.md"
+  },
+  {
+    "clue": "t1.r1.l_unhash_1",
+    "holder": "emil",
+    "date": "2025-03-11",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "SimpleStrat and RAFT both hit it, both build with create_model at runtime",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's consecutive messages give SimpleStrat, create_model at runtime, the lookup pass dying, the exact TypeError, dead at row zero, and traceback in thread.",
+    "elements": [
+      {
+        "part": "SimpleStrat builds its response model at runtime using pydantic create_model",
+        "present": true,
+        "why": "Emil says SimpleStrat and RAFT both build with create_model at runtime"
+      },
+      {
+        "part": "the lookup pass dies on it",
+        "present": true,
+        "why": "Emil says lookup pass dies on it"
+      },
+      {
+        "part": "the specific error is TypeError: unhashable type",
+        "present": true,
+        "why": "Emil states the exact error text"
+      },
+      {
+        "part": "the run is dead at row zero, before a single request goes out",
+        "present": true,
+        "why": "Emil states this explicitly"
+      },
+      {
+        "part": "the traceback appears in thread",
+        "present": true,
+        "why": "Emil says traceback in thread"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:39  dario     so do we need to decide today whether the check gets updated before PR 565 and 566 merge",
+      "11:46  emil      Went through the shipped blocks",
+      "11:47  emil      SimpleStrat and RAFT both hit it, both build with create_model at runtime   <-- the clue",
+      "11:47  emil      lookup pass dies on it with TypeError: unhashable type",
+      "11:47  emil      run is dead at row zero, before a single request goes out, traceback in thread"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "lookup pass dies on it with TypeError: unhashable type",
+        "run is dead at row zero, before a single request goes out, traceback in thread"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t2.r2.l4",
+    "holder": "emil",
+    "date": "2025-03-12",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "Model was in the support list, online run was clean, batch submission refused the schema, turned out the tuple in batch-mode's own file hadn't been touched since Januray",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's messages give all the specific facts: model in support list, clean online run, batch refusal, and the stale private tuple since January.",
+    "elements": [
+      {
+        "part": "lost most of yesterday to a batch mode issue",
+        "present": true,
+        "why": "Emil says the private tuple cost him most of yesterday"
+      },
+      {
+        "part": "the model was in the support list",
+        "present": true,
+        "why": "Emil says model was in the support list"
+      },
+      {
+        "part": "the online run was clean",
+        "present": true,
+        "why": "Emil says online run was clean"
+      },
+      {
+        "part": "batch submission refused the schema for the same config",
+        "present": true,
+        "why": "Emil says batch submission refused the schema"
+      },
+      {
+        "part": "the cause was a tuple of model names kept in batch-mode's own file",
+        "present": true,
+        "why": "Emil says the tuple in batch-mode's own file"
+      },
+      {
+        "part": "that file/tuple hadn't been touched since January",
+        "present": true,
+        "why": "Emil says the tuple hadn't been touched since January"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:36  nils      keeping a private copy caused a conflict on the openai side and cost a day",
+      "13:32  emil      That private tuple is what cost me most of yesterday",
+      "13:32  emil      Model was in the support list, online run was clean, batch submission refused the schema   <-- the clue",
+      "14:14  dario     Before we switch batch-mode to pull from the shared support list, do we know that list i",
+      "14:14  dario     Actually, answering my own question - the support list lives in provider-integrations an"
+    ]
+  },
+  {
+    "clue": "t1.r1.l_schema_3",
+    "holder": "gideon",
+    "date": "2025-03-12",
+    "channel": "incidents",
+    "attempt": 1,
+    "said": true,
+    "quote": "and that cost is for re-processing one extra field, not the real work",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's run of messages at 15:32 states both that full-cache nuking is why reruns aren't trusted and that this costs real money on a 200k set for one extra field.",
+    "elements": [
+      {
+        "part": "nuking the whole cache dir on any field tweak is the main reason reruns aren't trusted here",
+        "present": true,
+        "why": "Gideon states this directly as the reason nobody trusts reruns"
+      },
+      {
+        "part": "on a 200k set that's real money to reprocess for one extra field",
+        "present": true,
+        "why": "Gideon says 'On a 200k set that's real money' right after noting it's for reprocessing one extra field"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "15:32  gideon    Nuking the whole cache dir on any field tweak is why reruns aren't trusted here",
+      "15:32  gideon    this is the whole reason nobody trusts reruns here",
+      "15:32  gideon    and that cost is for re-processing one extra field, not the real work   <-- the clue",
+      "15:32  gideon    On a 200k set that's real money"
+    ],
+    "repair": {
+      "attempts": 2,
+      "added": [
+        "Nuking the whole cache dir on any field tweak is why reruns aren't trusted here",
+        "this is the whole reason nobody trusts reruns here",
+        "and that cost is for re-processing one extra field, not the real work"
+      ],
+      "rewrote": false
+    }
   }
 ]

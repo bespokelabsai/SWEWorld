@@ -1318,5 +1318,65 @@
     "done": true,
     "at": "2025-03-05T09:28:00+00:00",
     "date": "2025-03-05"
+  },
+  {
+    "kind": "doc",
+    "id": "design-ws-044-blocks-and-recipes",
+    "title": "WS-044: Blocks & Recipes (RAFT, SimpleStrat)",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "design",
+    "done": true,
+    "at": "2025-03-07T09:14:00+00:00",
+    "date": "2025-03-07"
+  },
+  {
+    "kind": "doc",
+    "id": "onboarding-nils",
+    "title": "Onboarding: nils and theo",
+    "by": "konrad",
+    "action": "write",
+    "to": "",
+    "doc_kind": "onboarding",
+    "done": true,
+    "at": "2025-03-10T09:14:00+00:00",
+    "date": "2025-03-10"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-03-03",
+    "title": "Weekly update: week of Mar 3",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-10T09:28:00+00:00",
+    "date": "2025-03-10"
+  },
+  {
+    "kind": "mail",
+    "id": "welcome-nils-2025-03-10",
+    "title": "Welcome nils (and theo)",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": false,
+    "at": "",
+    "date": "2025-03-10"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-03-10",
+    "title": "Weekly Notes — Week of Mar 10",
+    "by": "nils",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-03-12T09:14:00+00:00",
+    "date": "2025-03-12"
   }
 ]

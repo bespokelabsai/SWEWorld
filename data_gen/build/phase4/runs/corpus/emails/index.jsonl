@@ -336,3 +336,12 @@
 {"path": "nikolai@world.local/INBOX/0002-weekly-update-week-of-feb-24.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-03-03T09:28:00+00:00", "flags": []}
 {"path": "gideon@world.local/INBOX/0002-weekly-update-week-of-feb-24.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-03-03T09:28:00+00:00", "flags": []}
 {"path": "dermot@world.local/INBOX/0002-weekly-update-week-of-feb-24.eml", "mailbox": "dermot@world.local", "folder": "INBOX", "date": "2025-03-03T09:28:00+00:00", "flags": []}
+{"path": "konrad@world.local/Sent/0001-weekly-update-week-of-mar-3.eml", "mailbox": "konrad@world.local", "folder": "Sent", "date": "2025-03-10T09:28:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0001-weekly-update-week-of-mar-3.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-03-10T09:28:00+00:00", "flags": []}
+{"path": "emil@world.local/INBOX/0001-weekly-update-week-of-mar-3.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2025-03-10T09:28:00+00:00", "flags": []}
+{"path": "nikolai@world.local/INBOX/0001-weekly-update-week-of-mar-3.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-03-10T09:28:00+00:00", "flags": []}
+{"path": "nils@world.local/INBOX/0001-weekly-update-week-of-mar-3.eml", "mailbox": "nils@world.local", "folder": "INBOX", "date": "2025-03-10T09:28:00+00:00", "flags": []}
+{"path": "theo@world.local/INBOX/0001-weekly-update-week-of-mar-3.eml", "mailbox": "theo@world.local", "folder": "INBOX", "date": "2025-03-10T09:28:00+00:00", "flags": []}
+{"path": "konrad@world.local/Sent/0002-welcome-to-the-team.eml", "mailbox": "konrad@world.local", "folder": "Sent", "date": "2025-03-10T09:49:00+00:00", "flags": ["\\Seen"]}
+{"path": "nils@world.local/INBOX/0002-welcome-to-the-team.eml", "mailbox": "nils@world.local", "folder": "INBOX", "date": "2025-03-10T09:49:00+00:00", "flags": []}
+{"path": "theo@world.local/INBOX/0002-welcome-to-the-team.eml", "mailbox": "theo@world.local", "folder": "INBOX", "date": "2025-03-10T09:49:00+00:00", "flags": []}

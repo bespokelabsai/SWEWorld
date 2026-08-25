@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-108 of 110 obligations met.
+112 of 115 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -10,6 +10,7 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 |---|---|---|---|
 | 2024-12-17 | dario | send | v0.1.12 is out |
 | 2025-02-17 | gideon | send | 0.1.19 is out |
+| 2025-03-10 | konrad | send | Welcome nils (and theo) |
 
 ## Everything
 
@@ -125,3 +126,8 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-03-03 | konrad | write | 09:14 | Q2 Plan: Consolidation and Provider Breadth |
 | 2025-03-03 | konrad | send | 09:28 | Weekly update: week of Feb 24 |
 | 2025-03-05 | emil | write | 09:28 | Weekly Notes — Week of Mar 3 |
+| 2025-03-07 | emil | write | 09:14 | WS-044: Blocks & Recipes (RAFT, SimpleStrat) |
+| 2025-03-10 | konrad | write | 09:14 | Onboarding: nils and theo |
+| 2025-03-10 | konrad | send | 09:28 | Weekly update: week of Mar 3 |
+| 2025-03-10 | konrad | send | NO | Welcome nils (and theo) |
+| 2025-03-12 | nils | write | 09:14 | Weekly Notes — Week of Mar 10 |
