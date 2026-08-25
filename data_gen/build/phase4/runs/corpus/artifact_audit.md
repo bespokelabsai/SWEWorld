@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-59 of 60 obligations met.
+68 of 69 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -74,3 +74,12 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-01-07 | emil | write | 09:14 | Release notes: v0.1.14 |
 | 2025-01-07 | emil | send | 09:35 | v0.1.14 is out |
 | 2025-01-08 | dermot | write | 09:14 | Weekly sync notes: week of Jan 6 — v0.1.14 shipped |
+| 2025-01-13 | konrad | send | 09:07 | Weekly update: week of Jan 6 — v0.1.14 shipped |
+| 2025-01-13 | dario | write | 09:28 | Postmortem: release-and-ci revert on Jan 10 |
+| 2025-01-14 | dermot | write | 09:14 | Postmortem: cache hashing regression revert on Jan 13 |
+| 2025-01-14 | emil | write | 09:49 | Release notes: v0.1.15 |
+| 2025-01-14 | dermot | send | 09:28 | v0.1.15 is out |
+| 2025-01-15 | dermot | write | 09:28 | Release notes: v0.1.15.post1 |
+| 2025-01-15 | dermot | send | 09:07 | v0.1.15.post1 hotfix is out |
+| 2025-01-15 | dario | write | 09:56 | Weekly sync notes: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped |
+| 2025-01-16 | emil | write | 09:21 | Postmortem: v0.1.15.post1 hotfix |

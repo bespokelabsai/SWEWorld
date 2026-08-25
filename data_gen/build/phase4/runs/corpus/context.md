@@ -10,611 +10,37 @@ Worth keeping in mind while reading:
 
 
 ==============================================================================
-# 2025-01-03 — 1 conversation(s), 12 turns budgeted
+# 2025-01-10 — 4 conversation(s), 40 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 12 turns, 3 people
+## #code-review — 12 turns, 4 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: 18 PRs older than the era's median merge time; six of them from present team members need a decision to move or close
+Channel #code-review: Four PRs landed today across coverage, caching, and backend config; stale PRs need triage
 
-    Today is Friday 3 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 10 January 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: 18 PRs older than the era's median merge time; six of them from present team members need a decision to move or close
+    Why it is happening: Four PRs landed today across coverage, caching, and backend config; stale PRs need triage
     
     What it should get through:
-      1. Separate PRs that are blocked on reviews from those awaiting author rewrites   [Dario Kestrel must raise this]
-           - Dario flags that PR 78, PR 90, PR 228 have all been waiting since November/early December
-           - Gideon notes PR 161 and PR 163 need viewer work but he hasn't had cycles
-           - Konrad decides: PR 106 stays but can slip past this release
-      2. Triage SimpleLLM refactor blockers vs. nice-to-haves in the stale pile   [Dario Kestrel must raise this]
-           - Dario raises that PR 78 and PR 90 are about SimpleLLM folding and should unblock with Emil joining
-           - Konrad asks if they can merge after Emil lands or need pre-rebase
-           - Dario: we rebase them Monday, not waiting on content
+      1. Confirm 80% coverage floor is appropriate scope   [Emil Brandvold must raise this]
+           - Emil raises what PR 337 actually covers (core LLM, caching, request processing)
+           - Dermot asks if viewer and viewer-specific path should count
+           - lands on: core surfaces only, viewer has separate test path
+      2. Merge PR 335 (cache disable) and PR 338 (SimpleLLM backend default)   [Dermot Callaghan must raise this]
+           - Dermot: PR 335 unlocks testing with cache off; PR 338 fixes regression from factory refactor
+           - Emil: confirms integration tests pass with both changes
+           - lands on: both merge same-day
     
-    On the agenda: Which of the six stale PRs are still in scope for this era; What each one is blocked on and who can unblock it; Which ones can merge as-is and which need work
+    On the agenda: Four PRs merged today: test coverage, cache control, backend defaults, ruff fixes; Coverage floor discussion and what the 80% should cover; Stale PR triage — six PRs older than two weeks
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: Clear decision on which PRs merge next week (likely PR 78, PR 90, PR 228 after Emil joins Monday) and which get closed or bumped to 0.1.14. Gideon goes away knowing PR 161 and PR 163 are parked pending viewer refactor. Konrad confirms PR 106 scope for later.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 7 release(s) shipped, currently 0.1.13
-      - 143 changes merged to date
-
-    On the table
-      - Stratos Crunch plan: backend explosion incoming (Konrad Feltrin)
-      - 0.1.13 release notes (Konrad Feltrin)
-      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
-      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 50: Vary batch size based on request numbers
-      - issue 52: Support multiple samples per request
-      - issue 62: Support generation configuration for LLM
-      - issue 86: Retry when structured output fails
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-
-    DOES NOT EXIST YET (7 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - local-offline-inference
-      - telemetry
-      - — and 1185 function/class names and 151 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. ownership of bulk-llm-inference and request processing; knows what PR 78 and PR 90 are blocking
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Separate PRs that are blocked on reviews from those awaiting author rewrites   *** MUST RAISE ***
-      2. Triage SimpleLLM refactor blockers vs. nice-to-haves in the stale pile   *** MUST RAISE ***
-      3. what "Stratos Crunch plan: backend explosion incoming" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      4. what "0.1.13 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Separate PRs that are blocked on reviews from those awaiting author rewrites
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. dataset viewer context; can unblock PR 161 and PR 163 if they need viewer feedback
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Separate PRs that are blocked on reviews from those awaiting author rewrites
-      2. Triage SimpleLLM refactor blockers vs. nice-to-haves in the stale pile
-    goal        18 PRs older than the era's median merge time; six of them from present team members need a decision to move or close
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. founding context on the curation examples; can decide if PR 106 is still in scope
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Separate PRs that are blocked on reviews from those awaiting author rewrites
-      2. Triage SimpleLLM refactor blockers vs. nice-to-haves in the stale pile
-    goal        18 PRs older than the era's median merge time; six of them from present team members need a decision to move or close
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Clear decision on which PRs merge next week (likely PR 78, PR 90, PR 228 after Emil joins Monday) and which get closed or bumped to 0.1.14. Gideon goes away knowing PR 161 and PR 163 are parked pending viewer refactor. Konrad confirms PR 106 scope for later.
-
-
-==============================================================================
-# 2025-01-06 — 4 conversation(s), 47 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Nikolai landed two formatting/tooling PRs; Dario Kestrel requested changes on docstring PR; need to settle the migration path
-
-    Today is Monday 6 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Nikolai landed two formatting/tooling PRs; Dario Kestrel requested changes on docstring PR; need to settle the migration path
-    
-    What it should get through:
-      1. Approve or reject ruff migration and pre-commit setup   [Nikolai Berresford must raise this]
-           - Nikolai describes the Ruff migration benefits (speed, unified tooling)
-           - Dario pushes back on tool churn mid-release cycle
-           - Dermot breaks the tie: acceptable if it doesn't block 0.1.14 cut
-      2. Resolve docstring standardization and address review feedback   [Dario Kestrel must raise this]
-           - Dario outlines the CHANGES_REQUESTED on PR 308
-           - Nikolai or Dario Kestrel clarifies scope (batch processors only, or full codebase?)
-           - Decision: land it or defer past 0.1.14
-    
-    On the agenda: PR 302 and PR 303: switch from black to Ruff and pre-commit hooks; PR 308: docstring standardization to Google style
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: Nikolai knows whether to merge PR 302/#303 today or wait; PR 308 either gets approval or a clear deferral path
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 7 release(s) shipped, currently 0.1.13
-      - 146 changes merged to date
-
-    On the table
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1136 function/class names and 137 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Ruff formatter migration (replace black); pre-commit hook setup
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Approve or reject ruff migration and pre-commit setup   *** MUST RAISE ***
-      2. Resolve docstring standardization and address review feedback
-    goal        Approve or reject ruff migration and pre-commit setup
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Experience with the existing black/formatting workflow; feedback on docstring changes in PR 308
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Approve or reject ruff migration and pre-commit setup
-      2. Resolve docstring standardization and address review feedback   *** MUST RAISE ***
-    goal        Resolve docstring standardization and address review feedback
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release engineering perspective on tool churn and CI stability
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Approve or reject ruff migration and pre-commit setup
-      2. Resolve docstring standardization and address review feedback
-    goal        Nikolai landed two formatting/tooling PRs; Dario Kestrel requested changes on docstring PR; need to settle the migration path
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Nikolai knows whether to merge PR 302/#303 today or wait; PR 308 either gets approval or a clear deferral path
-
-
-------------------------------------------------------------------------------
-## #cookbooks — 10 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #cookbooks: Ilse landed 8 commits on vLLM examples/docs overnight; Dario writing WS-016 design doc today; Dermot hardening the release
-
-    Today is Monday 6 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Ilse landed 8 commits on vLLM examples/docs overnight; Dario writing WS-016 design doc today; Dermot hardening the release
-    
-    What it should get through:
-      1. Land Ilse Vandekerckhove's vLLM examples and integrate into main README   [Dario Kestrel must raise this]
-           - Ilse or Dario Kestrel summarizes what landed overnight (offline processor, examples, local model docs)
-           - Dario or Dermot Callaghan checks if tests pass and docs are complete
-           - Quick approval or request for fixes before main merge
-      2. Settle WS-016 design doc scope and timeline   [Dario Kestrel must raise this]
-           - Dario describes what the design doc covers and who it targets
-           - Dermot flags any conflicts with 0.1.14 hardening
-           - Decision: publish today or refine over the weekend
-      3. Clarify what README polish lands today vs. defers   [Dermot Callaghan must raise this]
-           - Ilse or Dario Kestrel lists the README commits (table of contents, add examples, add citation)
-           - Dermot gates on 0.1.14 release readiness
-           - Defer non-critical polish or fast-track if it's simple
-    
-    On the agenda: vLLM examples and docs landing in main; README and table of contents updates; WS-016 design doc scope and Jan 7 kickoff
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: vLLM examples integrated, WS-016 design doc clarity, and README polish either shipped or deferred past the release
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 7 release(s) shipped, currently 0.1.13
-      - 146 changes merged to date
-
-    On the table
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1136 function/class names and 137 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Ownership of the examples-cookbooks service; vision for the design doc covering the new workstream
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Land Ilse Vandekerckhove's vLLM examples and integrate into main README   *** MUST RAISE ***
-      2. Settle WS-016 design doc scope and timeline   *** MUST RAISE ***
-      3. Clarify what README polish lands today vs. defers
-      4. that the doc "WS-016 design: Examples & Reasoning-Dataset Cookbooks" is done, and where the others can find it   *** MUST RAISE ***
-    goal        Land Ilse Vandekerckhove's vLLM examples and integrate into main README
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release coordination perspective; knows which README/doc changes are blocking 0.1.14
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Land Ilse Vandekerckhove's vLLM examples and integrate into main README
-      2. Settle WS-016 design doc scope and timeline
-      3. Clarify what README polish lands today vs. defers   *** MUST RAISE ***
-      4. that the doc "WS-014 design: Release Engineering, CI & Test Suite" is done, and where the others can find it   *** MUST RAISE ***
-    goal        Clarify what README polish lands today vs. defers
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   vLLM examples integrated, WS-016 design doc clarity, and README polish either shipped or deferred past the release
-
-
-------------------------------------------------------------------------------
-## #engineering — 15 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: 10 commits landed over the weekend; 2 major merges (PR 299, PR 306) this morning; 6 new PRs opened; team needs to sync on priorities
-
-    Today is Monday 6 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 10 commits landed over the weekend; 2 major merges (PR 299, PR 306) this morning; 6 new PRs opened; team needs to sync on priorities
-    
-    What it should get through:
-      1. Acknowledge overnight work and unblock the week   [Dario Kestrel must raise this]
-           - Dario or Konrad Feltrin recaps PR 306 (Merge dev into main) and PR 243 (Anthropic batch refactor)
-           - Team confirms main is stable and ready for 0.1.14 branch
-           - Identify any hotfixes needed before release cut
-      2. Clarify vLLM integration and next steps   [Ilse Vandekerckhove must raise this]
-           - Ilse summarizes the 8 commits (offline processor, examples, tests, docs, dependency)
-           - Dario or Dermot Callaghan flags any missing coverage or edge cases
-           - Decide: merge to main today or stage for 0.1.14 specifically
-      3. Settle tooling and standardization path for the release   [Dermot Callaghan must raise this]
-           - Nikolai describes PR 302/#303 (Ruff migration, pre-commit)
-           - Dario notes the CHANGES_REQUESTED on PR 308 (docstring refactor)
-           - Dermot gates on 0.1.14: all three parallel, or defer some to 0.1.15
-      4. write up Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing   [Konrad Feltrin must raise this]
-           - Konrad Feltrin says they will write Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing — Setup notes and access checklist for Emil Brandvold joining the team.
-    
-    On the agenda: Overnight merges and what's unblocked; vLLM local inference status; Ruff and docstring standardization; 0.1.14 release readiness and timeline; Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team aligns on release timeline, priorities (vLLM, tooling, docs), and who owns what through Jan 7
-    
-    Do NOT wrap before about 10 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 7 release(s) shipped, currently 0.1.13
-      - 146 changes merged to date
-
-    On the table
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1136 function/class names and 137 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Context on overnight merges (PR 306: Merge dev into main); what's unblocked for the week
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Acknowledge overnight work and unblock the week   *** MUST RAISE ***
-      2. Clarify vLLM integration and next steps
-      3. Settle tooling and standardization path for the release
-      4. write up Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing
-    goal        Acknowledge overnight work and unblock the week
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Status on 0.1.14 release and the hardening workstream; what's blocking
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Acknowledge overnight work and unblock the week
-      2. Clarify vLLM integration and next steps
-      3. Settle tooling and standardization path for the release   *** MUST RAISE ***
-      4. write up Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing
-    goal        Settle tooling and standardization path for the release
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Ruff migration PRs and their status; what lands in 0.1.14 vs. 0.1.15
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Acknowledge overnight work and unblock the week
-      2. Clarify vLLM integration and next steps
-      3. Settle tooling and standardization path for the release
-      4. write up Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing
-    goal        10 commits landed over the weekend; 2 major merges (PR 299, PR 306) this morning; 6 new PRs opened; team needs to sync on priorities
-    available   around today
-
-  Ilse Vandekerckhove  (ilse)
-    role        Contributor, Local Inference Backends (vLLM). 8 commits landing overnight on vLLM; status of her ongoing work
-    owns        local-offline-inference
-    agenda
-      1. Acknowledge overnight work and unblock the week
-      2. Clarify vLLM integration and next steps   *** MUST RAISE ***
-      3. Settle tooling and standardization path for the release
-      4. write up Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing
-    goal        Clarify vLLM integration and next steps
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Founder perspective on sprint goals and team direction
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Acknowledge overnight work and unblock the week
-      2. Clarify vLLM integration and next steps
-      3. Settle tooling and standardization path for the release
-      4. write up Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing   *** MUST RAISE ***
-      5. that the doc "Onboarding: emil, Core Platform Engineer for Request Processing" is done, and where the others can find it   *** MUST RAISE ***
-      6. that the doc "Onboarding: ilse, vLLM local inference contributor" is done, and where the others can find it   *** MUST RAISE ***
-      7. that "Weekly update: week of Dec 30" has gone out, and what you asked in it   *** MUST RAISE ***
-      8. that "Welcome emil to the team" has gone out, and what you asked in it   *** MUST RAISE ***
-      9. that "Welcome ilse to the team" has gone out, and what you asked in it   *** MUST RAISE ***
-    goal        write up Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Team aligns on release timeline, priorities (vLLM, tooling, docs), and who owns what through Jan 7
-
-
-------------------------------------------------------------------------------
-## #pipeline — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Ilse landed vLLM offline processor code; Millrow Refactor Bot refactored docstrings and token counting; Dario Kestrel requested changes on PR 308
-
-    Today is Monday 6 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Ilse landed vLLM offline processor code; Millrow Refactor Bot refactored docstrings and token counting; Dario Kestrel requested changes on PR 308
-    
-    What it should get through:
-      1. Validate vLLM offline processor fits the provider-integrations pattern   [Ilse Vandekerckhove must raise this]
-           - Ilse walks through the offline request processor implementation
-           - Dario or Dermot Callaghan checks for conflicts with existing batch/async patterns
-           - Approve or request refactoring before merging to main
-      2. Clear blockers on provider-integrations docstring and token-counting work   [Dario Kestrel must raise this]
-           - Dario or Dermot Callaghan reviews PR 308 (docstring refactoring) and the token-counting PR (PR 307)
-           - Resolve CHANGES_REQUESTED and decide if they land in 0.1.14
-           - Fast-track or defer based on release timeline
-    
-    On the agenda: vLLM offline processor architecture and integration; Provider-integrations docstring refactoring and batch processor changes; Token counting unification across processors
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: vLLM processor approved for main; docstring/token-counting work either cleared or deferred; provider-integrations ready for release
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 7 release(s) shipped, currently 0.1.13
-      - 146 changes merged to date
-
-    On the table
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1136 function/class names and 137 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Ilse Vandekerckhove  (ilse)
-    role        Contributor, Local Inference Backends (vLLM). vLLM offline processor implementation and integration; edge cases and dependencies discovered
-    owns        local-offline-inference
-    agenda
-      1. Validate vLLM offline processor fits the provider-integrations pattern   *** MUST RAISE ***
-      2. Clear blockers on provider-integrations docstring and token-counting work
-    goal        Validate vLLM offline processor fits the provider-integrations pattern
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Deep context on the provider integration layer; knows what the batch processor refactors need
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Validate vLLM offline processor fits the provider-integrations pattern
-      2. Clear blockers on provider-integrations docstring and token-counting work   *** MUST RAISE ***
-    goal        Clear blockers on provider-integrations docstring and token-counting work
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release engineering view on provider integrations; knows what's safe to land in 0.1.14
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Validate vLLM offline processor fits the provider-integrations pattern
-      2. Clear blockers on provider-integrations docstring and token-counting work
-    goal        Ilse landed vLLM offline processor code; Millrow Refactor Bot refactored docstrings and token counting; Dario Kestrel requested changes on PR 308
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   vLLM processor approved for main; docstring/token-counting work either cleared or deferred; provider-integrations ready for release
-
-
-==============================================================================
-# 2025-01-07 — 4 conversation(s), 53 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #releases — 12 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #releases: v0.1.14 shipped overnight; release notes are due; next cycle's gating criteria need to land today
-
-    Today is Tuesday 7 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: v0.1.14 shipped overnight; release notes are due; next cycle's gating criteria need to land today
-    
-    What it should get through:
-      1. Emil finishes and ships release notes; team agrees they match the five PRs that merged   [Emil Brandvold must raise this]
-           - Emil posts draft notes; Dermot Callaghan flags coverage gaps; Dario Kestrel asks if README references are in yet
-           - Konrad notes docstrings are the big user-facing win; notes updated to lead with that
-           - Emil ships final version and posts announce; Nikolai Berresford confirms PR 318 epic reference is in
-      2. Team agrees v0.1.14 is the last release until coverage passes and integration tests exist   [Dermot Callaghan must raise this]
-           - Dermot explains why test file layout is now a blocker; shows which coverage gaps matter most
-           - Emil says PR 320 integration test setup is in; points to PR 318 as the tracking epic
-           - Dario agrees: nothing ships until we have baseline coverage numbers and at least one integration test passing
-      3. v0.1.15 gating: no feature lands until coverage threshold passes and PR 318 integration tests are green   [Nikolai Berresford must raise this]
-           - Nikolai proposes gating criteria; Dermot Callaghan says it's too strict, we need to ship the cache-dir feature
-           - Emil volunteers to write the integration test harness; Konrad Feltrin agrees that's the bottleneck
-    
-    On the agenda: Release notes narrative: what shipped, why it matters to users; Coverage and test suite state: are we ready to release faster?; Next release (v0.1.15) gating criteria and timeline
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: v0.1.14 release notes are final and shipped; team has agreed that v0.1.15 will not ship until PR 318 is at least partially green and coverage baseline is set
+    Wrap when: Coverage floor confirmed, all four PRs live in main, stale PR triage begun
     
     Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -625,149 +51,7 @@ Channel #releases: v0.1.14 shipped overnight; release notes are due; next cycle'
 
     Settled
       - 8 release(s) shipped, currently v0.1.14
-      - 151 changes merged to date
-
-    On the table
-      - Release notes: v0.1.14 (Emil Brandvold)
-      - 0.1.13 release notes (Konrad Feltrin)
-      - Stratos Crunch plan: backend explosion incoming (Konrad Feltrin)
-      - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - Weekly sync notes: week of Dec 30 — provider integrations (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1131 function/class names and 135 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. clarity on what shipped and why: docstrings, cache dir config, special tokens fix, test movement
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Emil finishes and ships release notes; team agrees they match the five PRs that merged   *** MUST RAISE ***
-      2. Team agrees v0.1.14 is the last release until coverage passes and integration tests exist
-      3. v0.1.15 gating: no feature lands until coverage threshold passes and PR 318 integration tests are green
-      4. that the doc "Release notes: v0.1.14" is done, and where the others can find it   *** MUST RAISE ***
-      5. that "v0.1.14 is out" has gone out, and what you asked in it   *** MUST RAISE ***
-      6. what "0.1.13 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      7. what "Stratos Crunch plan: backend explosion incoming" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Emil finishes and ships release notes; team agrees they match the five PRs that merged
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. release sequencing: we need coverage and CI hardened before the next cut
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Emil finishes and ships release notes; team agrees they match the five PRs that merged
-      2. Team agrees v0.1.14 is the last release until coverage passes and integration tests exist   *** MUST RAISE ***
-      3. v0.1.15 gating: no feature lands until coverage threshold passes and PR 318 integration tests are green
-      4. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      5. what "Weekly sync notes: week of Dec 30 — provider integrations" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Team agrees v0.1.14 is the last release until coverage passes and integration tests exist
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. big-picture: README and onboarding are due this week, release notes should explain how to get started
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Emil finishes and ships release notes; team agrees they match the five PRs that merged
-      2. Team agrees v0.1.14 is the last release until coverage passes and integration tests exist
-      3. v0.1.15 gating: no feature lands until coverage threshold passes and PR 318 integration tests are green
-    goal        v0.1.14 shipped overnight; release notes are due; next cycle's gating criteria need to land today
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. historical context: what broke the last two releases, what we should have caught
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Emil finishes and ships release notes; team agrees they match the five PRs that merged
-      2. Team agrees v0.1.14 is the last release until coverage passes and integration tests exist
-      3. v0.1.15 gating: no feature lands until coverage threshold passes and PR 318 integration tests are green
-    goal        v0.1.14 shipped overnight; release notes are due; next cycle's gating criteria need to land today
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. integration test status: PR 318 epic is opened, we can point to it as next milestone
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Emil finishes and ships release notes; team agrees they match the five PRs that merged
-      2. Team agrees v0.1.14 is the last release until coverage passes and integration tests exist
-      3. v0.1.15 gating: no feature lands until coverage threshold passes and PR 318 integration tests are green   *** MUST RAISE ***
-    goal        v0.1.15 gating: no feature lands until coverage threshold passes and PR 318 integration tests are green
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   v0.1.14 release notes are final and shipped; team has agreed that v0.1.15 will not ship until PR 318 is at least partially green and coverage baseline is set
-
-
-------------------------------------------------------------------------------
-## #code-review — 14 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: 9 PRs opened today; 15 PRs older than era median; PR 317 is blocking ws-012 and ws-015; factory refactor needs eyes before more code lands on top of it
-
-    Today is Tuesday 7 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 9 PRs opened today; 15 PRs older than era median; PR 317 is blocking ws-012 and ws-015; factory refactor needs eyes before more code lands on top of it
-    
-    What it should get through:
-      1. PR 317 approved or issues clearly listed; factory pattern is the shape going forward   [Emil Brandvold must raise this]
-           - Emil explains factory pattern, why SimpleLLM can't work without it, and why backend=None was the original bug
-           - Dario asks if this is user-visible; Emil Brandvold says no, it's internal config plumbing
-           - Dermot flags that docstring pass may have created the import cycle; team agrees to check test_db_schema.py imports
-      2. PR 320 integration test setup is approved; team knows what's tested and what's not yet   [Emil Brandvold must raise this]
-           - Emil posts PR 320: basic setup for running against a real backend
-           - Nikolai asks if it covers batch retries (PR 311); Emil Brandvold says no, that's phase 2
-           - Dario approves; points to PR 318 as the epic that should own the rest
-      3. Team commits to reviewing stale PRs in priority order; PR 106 unblocked or deprioritized   [Konrad Feltrin must raise this]
-           - Konrad says PR 106 (negotiation example) has been waiting 54 days; needs to know if factory pattern changes how examples are written
-           - Emil says examples don't change; they still call LLM(...); factory is internal
-           - Dario volunteers to review PR 106 as part of ws-016 cleanup this week
-    
-    On the agenda: Review PR 317: Factory pattern, backend auto-detect, env var base URL; Review PR 320: Integration test setup, what it covers and what's still missing; Unblock PR 106 and other stale PRs: what changed in the API?
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 317 and PR 320 have clear approval paths or blocking issues; PR 106 review is scheduled; team knows which changes are user-visible vs. internal
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 8 release(s) shipped, currently v0.1.14
-      - 151 changes merged to date
+      - 163 changes merged to date
 
     On the table
       - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
@@ -784,12 +68,12 @@ Channel #code-review: 9 PRs opened today; 15 PRs older than era median; PR 317 i
     Open questions
       - issue 48: ReadME documentation on batch
       - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
       - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
       - issue 93: [UI] Display status of the run
       - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
       - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
       - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
 
     DOES NOT EXIST YET (6 names)
       - agentic-curation
@@ -797,805 +81,51 @@ Channel #code-review: 9 PRs opened today; 15 PRs older than era median; PR 317 i
       - code-execution
       - finetuning
       - telemetry
-      - — and 1131 function/class names and 135 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 1073 function/class names and 119 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. the factory pattern fix and backend auto-detection; explains why SimpleLLM can't coexist with the new config path
+    role        Core Platform Engineer, Request Processing. context on integration test coverage changes and batch backend testing
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. PR 317 approved or issues clearly listed; factory pattern is the shape going forward   *** MUST RAISE ***
-      2. PR 320 integration test setup is approved; team knows what's tested and what's not yet   *** MUST RAISE ***
-      3. Team commits to reviewing stale PRs in priority order; PR 106 unblocked or deprioritized
-      4. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        PR 317 approved or issues clearly listed; factory pattern is the shape going forward
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. test file movement is done; docstring pass is done; can now see where circular imports are coming from
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. PR 317 approved or issues clearly listed; factory pattern is the shape going forward
-      2. PR 320 integration test setup is approved; team knows what's tested and what's not yet
-      3. Team commits to reviewing stale PRs in priority order; PR 106 unblocked or deprioritized
-    goal        9 PRs opened today; 15 PRs older than era median; PR 317 is blocking ws-012 and ws-015; factory refactor needs eyes before more code lands on top of it
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. perspective on whether factory pattern is user-facing or internal-only; README examples should reflect the right API
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. PR 317 approved or issues clearly listed; factory pattern is the shape going forward
-      2. PR 320 integration test setup is approved; team knows what's tested and what's not yet
-      3. Team commits to reviewing stale PRs in priority order; PR 106 unblocked or deprioritized
-    goal        9 PRs opened today; 15 PRs older than era median; PR 317 is blocking ws-012 and ws-015; factory refactor needs eyes before more code lands on top of it
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. has blocked PR PR 106 for 54 days waiting for examples; factory pattern might unblock it
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. PR 317 approved or issues clearly listed; factory pattern is the shape going forward
-      2. PR 320 integration test setup is approved; team knows what's tested and what's not yet
-      3. Team commits to reviewing stale PRs in priority order; PR 106 unblocked or deprioritized   *** MUST RAISE ***
-    goal        Team commits to reviewing stale PRs in priority order; PR 106 unblocked or deprioritized
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. batch retry error handling; can see if circular imports affect batch processor imports
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. PR 317 approved or issues clearly listed; factory pattern is the shape going forward
-      2. PR 320 integration test setup is approved; team knows what's tested and what's not yet
-      3. Team commits to reviewing stale PRs in priority order; PR 106 unblocked or deprioritized
-    goal        9 PRs opened today; 15 PRs older than era median; PR 317 is blocking ws-012 and ws-015; factory refactor needs eyes before more code lands on top of it
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 317 and PR 320 have clear approval paths or blocking issues; PR 106 review is scheduled; team knows which changes are user-visible vs. internal
-
-
-------------------------------------------------------------------------------
-## #engineering — 16 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Five PRs merged today; three workstreams kicking off or mid-flight; factory refactor is blocking multiple parallel streams
-
-    Today is Tuesday 7 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Five PRs merged today; three workstreams kicking off or mid-flight; factory refactor is blocking multiple parallel streams
-    
-    What it should get through:
-      1. PR 317 factory pattern is clear; team knows what SimpleLLM changes enable and what they block   [Emil Brandvold must raise this]
-           - Emil walks through why backend=None was broken and factory pattern fixes it
-           - Ilse asks if vLLM registration changes; Emil Brandvold says no, still the same entry point
-           - Dario confirms: public API is untouched, users call LLM(...) as always
-      2. ws-014, ws-015, ws-016 have clear scope and don't block each other; launch sequence is set   [Dermot Callaghan must raise this]
-           - Dermot: ws-014 (coverage) starts now, blocker for v0.1.15; won't ship until PR 318 is partly green
-           - Emil: ws-015 (throughput) can run in parallel, depends on factory pattern landing but not on coverage
-           - Dario: ws-016 (docs) is independent, can write CONTRIBUTING.md and README examples in parallel
-      3. v0.1.15 will not ship with vague CI or coverage; gating criteria locked in today   [Nikolai Berresford must raise this]
-           - Nikolai lists the blockers: PR 318 integration test coverage at least 2 passing, coverage threshold minimum 70%
-           - Dermot says 70% is achievable within two weeks if we focus
-           - Emil agrees; factory pattern and cache-dir land first, then coverage work, then v0.1.15
-    
-    On the agenda: Factory pattern integration: is PR 317 ready to land, and what does it unblock?; Three workstreams launching this week: ws-014 (coverage), ws-015 (throughput), ws-016 (docs and examples); What we're NOT shipping in v0.1.15: gating criteria and blockers
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Three workstreams are explicitly scoped and sequenced; factory pattern (PR 317) has clear approval path; v0.1.15 gating is locked in
-    
-    Do NOT wrap before about 11 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 8 release(s) shipped, currently v0.1.14
-      - 151 changes merged to date
-
-    On the table
-      - Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing (Konrad Feltrin)
-      - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
-      - Onboarding: Ilse Vandekerckhove, vLLM local inference contributor (Konrad Feltrin)
-      - Stratos Crunch plan: backend explosion incoming (Konrad Feltrin)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1131 function/class names and 135 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. factory pattern integration is done; backend auto-detect fix is in; PR 320 sets up the integration test harness
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. PR 317 factory pattern is clear; team knows what SimpleLLM changes enable and what they block   *** MUST RAISE ***
-      2. ws-014, ws-015, ws-016 have clear scope and don't block each other; launch sequence is set
-      3. v0.1.15 will not ship with vague CI or coverage; gating criteria locked in today
-      4. what "Onboarding: emil, Core Platform Engineer for Request Processing" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        PR 317 factory pattern is clear; team knows what SimpleLLM changes enable and what they block
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. test file movement (PR 323) is merged; docstring pass is done; can now measure coverage gaps
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. PR 317 factory pattern is clear; team knows what SimpleLLM changes enable and what they block
-      2. ws-014, ws-015, ws-016 have clear scope and don't block each other; launch sequence is set   *** MUST RAISE ***
-      3. v0.1.15 will not ship with vague CI or coverage; gating criteria locked in today
-      4. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      5. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      6. what "Onboarding: ilse, vLLM local inference contributor" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        ws-014, ws-015, ws-016 have clear scope and don't block each other; launch sequence is set
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. README and CONTRIBUTING.md are due this week; onboarding docs are fresh; can now write clear examples
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. PR 317 factory pattern is clear; team knows what SimpleLLM changes enable and what they block
-      2. ws-014, ws-015, ws-016 have clear scope and don't block each other; launch sequence is set
-      3. v0.1.15 will not ship with vague CI or coverage; gating criteria locked in today
-    goal        Five PRs merged today; three workstreams kicking off or mid-flight; factory refactor is blocking multiple parallel streams
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. batch retry error handling and schema validation are in; PR 318 epic is open
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. PR 317 factory pattern is clear; team knows what SimpleLLM changes enable and what they block
-      2. ws-014, ws-015, ws-016 have clear scope and don't block each other; launch sequence is set
-      3. v0.1.15 will not ship with vague CI or coverage; gating criteria locked in today   *** MUST RAISE ***
-      4. what "Stratos Crunch plan: backend explosion incoming" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        v0.1.15 will not ship with vague CI or coverage; gating criteria locked in today
-    available   around today
-
-  Ilse Vandekerckhove  (ilse)
-    role        Contributor, Local Inference Backends (vLLM). vLLM integration is nearly done; litellm merge is in; merge conflicts are resolved
-    owns        local-offline-inference
-    agenda
-      1. PR 317 factory pattern is clear; team knows what SimpleLLM changes enable and what they block
-      2. ws-014, ws-015, ws-016 have clear scope and don't block each other; launch sequence is set
-      3. v0.1.15 will not ship with vague CI or coverage; gating criteria locked in today
-    goal        Five PRs merged today; three workstreams kicking off or mid-flight; factory refactor is blocking multiple parallel streams
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Three workstreams are explicitly scoped and sequenced; factory pattern (PR 317) has clear approval path; v0.1.15 gating is locked in
-
-
-------------------------------------------------------------------------------
-## #pipeline — 11 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: PR 317 factory pattern is blocking ws-015; PR 298 vLLM is blocked for 2 days; throughput hardening workstream is kicking off
-
-    Today is Tuesday 7 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: PR 317 factory pattern is blocking ws-015; PR 298 vLLM is blocked for 2 days; throughput hardening workstream is kicking off
-    
-    What it should get through:
-      1. PR 317 factory pattern fix is clear; backend auto-detect will use correct config going forward   [Emil Brandvold must raise this]
-           - Emil: backend=None was being passed to wrong constructor path, factory pattern fixes it
-           - Dario: this was causing silent failures in provider auto-detection, now it's explicit
-           - Dermot: confirms this unblocks concurrency tuning because config path is now predictable
-      2. ws-015 has explicit scope: file handle cleanup, config stability, concurrency targets, and measurement plan   [Emil Brandvold must raise this]
-           - Emil proposes: start with file handle cleanup (safety), then concurrency tuning (throughput)
-           - Dermot: what's the target concurrency for online requests? Emil: match provider limits, start at 20 parallel
-           - Dario: how do we measure success? Emil: latency per request, tokens per second, cost per 1M tokens
-    
-    On the agenda: Backend auto-detect fix (PR 317) and why it matters for throughput; vLLM local inference (PR 298): merge conflict resolution and litellm integration; ws-015 scope: file handle cleanup, config paths, concurrency tuning, and measurement plan
-    
-    Out today: Gideon Halloway (no commit, review or comment 2025-01-07..2025-01-27) — their input is missing and people may say so
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: PR 317 factory pattern is clear; vLLM merge is unblocked; ws-015 has explicit scope and success metrics
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 8 release(s) shipped, currently v0.1.14
-      - 151 changes merged to date
-
-    On the table
-      - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1131 function/class names and 135 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. factory pattern resolves backend auto-detect config bug; explains why file handles need to be closed safely; PR 320 sets up the first integration test
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. PR 317 factory pattern fix is clear; backend auto-detect will use correct config going forward   *** MUST RAISE ***
-      2. ws-015 has explicit scope: file handle cleanup, config stability, concurrency targets, and measurement plan   *** MUST RAISE ***
+      1. Confirm 80% coverage floor is appropriate scope   *** MUST RAISE ***
+      2. Merge PR 335 (cache disable) and PR 338 (SimpleLLM backend default)
       3. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        PR 317 factory pattern fix is clear; backend auto-detect will use correct config going forward
+    goal        Confirm 80% coverage floor is appropriate scope
     available   around today
 
   Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. test file movement is done; docstring pass is in; can now measure where throughput is actually being lost
+    role        Founding Software Engineer — Core Pipeline & Release. cache disabling feature and SimpleLLM default backend fix
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. PR 317 factory pattern fix is clear; backend auto-detect will use correct config going forward
-      2. ws-015 has explicit scope: file handle cleanup, config stability, concurrency targets, and measurement plan
-    goal        PR 317 factory pattern is blocking ws-015; PR 298 vLLM is blocked for 2 days; throughput hardening workstream is kicking off
+      1. Confirm 80% coverage floor is appropriate scope
+      2. Merge PR 335 (cache disable) and PR 338 (SimpleLLM backend default)   *** MUST RAISE ***
+    goal        Merge PR 335 (cache disable) and PR 338 (SimpleLLM backend default)
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. has context on request lifecycle and where retries are actually happening; PR 295 batch retries are blocked and need unblocking
+    role        Core Engineer, Request Processing. request processing context
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. PR 317 factory pattern fix is clear; backend auto-detect will use correct config going forward
-      2. ws-015 has explicit scope: file handle cleanup, config stability, concurrency targets, and measurement plan
-    goal        PR 317 factory pattern is blocking ws-015; PR 298 vLLM is blocked for 2 days; throughput hardening workstream is kicking off
+      1. Confirm 80% coverage floor is appropriate scope
+      2. Merge PR 335 (cache disable) and PR 338 (SimpleLLM backend default)
+    goal        Four PRs landed today across coverage, caching, and backend config; stale PRs need triage
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. platform-level perspective
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Confirm 80% coverage floor is appropriate scope
+      2. Merge PR 335 (cache disable) and PR 338 (SimpleLLM backend default)
+    goal        Four PRs landed today across coverage, caching, and backend config; stale PRs need triage
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   PR 317 factory pattern is clear; vLLM merge is unblocked; ws-015 has explicit scope and success metrics
-
-
-==============================================================================
-# 2025-01-08 — 3 conversation(s), 30 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #engineering — 12 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Week of heavy CI/release work landed; team needs to see what held and what's still pending before the sprint focus shifts
-
-    Today is Wednesday 8 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Week of heavy CI/release work landed; team needs to see what held and what's still pending before the sprint focus shifts
-    
-    What it should get through:
-      1. Confirm v0.1.14 release is stable and no hotfixes needed   [Dermot Callaghan must raise this]
-           - Dermot raises any last-minute issues from the cutover
-           - Emil and Dario confirm their subsystems are stable
-           - Nikolai flags if Ruff migration broke anything downstream
-      2. Settle Ruff migration: is it final or do we roll back   [Nikolai Berresford must raise this]
-           - Nikolai walks through the pre-commit hook changes
-           - Dario or Emil raises any failures from test runs
-           - Group decides whether to keep or revert before next cutover
-      3. Local vLLM ready for next release or needs a soak period   [Ilse Vandekerckhove must raise this]
-           - Ilse confirms cuda memory release is solid
-           - Dermot or Emil flag any integration concerns
-           - Group agrees on next-release timeline for local-offline-inference
-    
-    On the agenda: v0.1.14 release wrapped — what stuck during the cutover; Ruff migration landed; black is gone — side effects or gaps; Local vLLM in main; stability check before next release; Three stale PRs still waiting; what's blocking them
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team has a clear picture of release health, Ruff is decided, and local vLLM's release timeline is set. Stale PRs either get a nudge or are deprioritized.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 8 release(s) shipped, currently v0.1.14
-      - 156 changes merged to date
-
-    On the table
-      - Weekly sync notes: week of Jan 6 — v0.1.14 shipped (Dermot Callaghan)
-      - notes-2025-01-06 (Dermot Callaghan)
-      - Release notes: v0.1.14 (Emil Brandvold)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1095 function/class names and 123 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Weekly sync notes covering v0.1.14 release, week's work summary, and what's next
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Confirm v0.1.14 release is stable and no hotfixes needed   *** MUST RAISE ***
-      2. Settle Ruff migration: is it final or do we roll back
-      3. Local vLLM ready for next release or needs a soak period
-      4. that the doc "Weekly sync notes: week of Jan 6 — v0.1.14 shipped" is done, and where the others can find it   *** MUST RAISE ***
-      5. what "Weekly sync notes: week of Jan 6 — v0.1.14 shipped" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      6. what "Release notes: v0.1.14" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm v0.1.14 release is stable and no hotfixes needed
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Release notes context; state of SimpleLLM refactor landing
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm v0.1.14 release is stable and no hotfixes needed
-      2. Settle Ruff migration: is it final or do we roll back
-      3. Local vLLM ready for next release or needs a soak period
-    goal        Week of heavy CI/release work landed; team needs to see what held and what's still pending before the sprint focus shifts
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Poetry.lock fix and its implications for CI stability
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm v0.1.14 release is stable and no hotfixes needed
-      2. Settle Ruff migration: is it final or do we roll back
-      3. Local vLLM ready for next release or needs a soak period
-    goal        Week of heavy CI/release work landed; team needs to see what held and what's still pending before the sprint focus shifts
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Ruff migration work; pre-commit hook simplifications
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Confirm v0.1.14 release is stable and no hotfixes needed
-      2. Settle Ruff migration: is it final or do we roll back   *** MUST RAISE ***
-      3. Local vLLM ready for next release or needs a soak period
-    goal        Settle Ruff migration: is it final or do we roll back
-    available   around today
-
-  Ilse Vandekerckhove  (ilse)
-    role        Contributor, Local Inference Backends (vLLM). Local vLLM feature now in main; cuda memory release fix
-    owns        local-offline-inference
-    agenda
-      1. Confirm v0.1.14 release is stable and no hotfixes needed
-      2. Settle Ruff migration: is it final or do we roll back
-      3. Local vLLM ready for next release or needs a soak period   *** MUST RAISE ***
-    goal        Local vLLM ready for next release or needs a soak period
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Team has a clear picture of release health, Ruff is decided, and local vLLM's release timeline is set. Stale PRs either get a nudge or are deprioritized.
-
-
-------------------------------------------------------------------------------
-## #code-review — 8 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Three PRs opened today need eyes; PR 324 is Millrow Refactor Bot's cache disable, PR 326 is dependency drift, PR 329 is vLLM loosening
-
-    Today is Wednesday 8 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three PRs opened today need eyes; PR 324 is Millrow Refactor Bot's cache disable, PR 326 is dependency drift, PR 329 is vLLM loosening
-    
-    What it should get through:
-      1. PR 326 approved and merged — poetry.lock drift stopped   [Dario Kestrel must raise this]
-           - Dario explains the drift and why it matters now
-           - Dermot or Emil spot-checks the lock changes
-           - Quick approval and merge
-      2. PR 329 approved if local-offline-inference stays unbroken   [Dermot Callaghan must raise this]
-           - Dermot walks through the version range rationale
-           - Emil or Ilse confirms local vLLM still runs
-           - Approval contingent on integration confidence
-      3. PR 324 cache disabling ready or needs iteration before next push   [Emil Brandvold must raise this]
-           - Emil or Millrow Refactor Bot presents the CURATOR_DISABLE_CACHE implementation
-           - Dario or Dermot raises any config or integration concerns
-           - Decision to merge or iterate
-    
-    On the agenda: PR 326: poetry.lock update rationale; PR 329: VLLM version relax scope and safety; PR 324: Cache disabling via env var — is it ready or needs rework
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 326 and PR 329 merge; PR 324 either merges or gets a clear rework backlog.
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 8 release(s) shipped, currently v0.1.14
-      - 156 changes merged to date
-
-    On the table
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1095 function/class names and 123 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Poetry.lock update reasoning and any implications for install stability
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. PR 326 approved and merged — poetry.lock drift stopped   *** MUST RAISE ***
-      2. PR 329 approved if local-offline-inference stays unbroken
-      3. PR 324 cache disabling ready or needs iteration before next push
-    goal        PR 326 approved and merged — poetry.lock drift stopped
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. VLLM version relax context — why loosening it now is safe
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. PR 326 approved and merged — poetry.lock drift stopped
-      2. PR 329 approved if local-offline-inference stays unbroken   *** MUST RAISE ***
-      3. PR 324 cache disabling ready or needs iteration before next push
-    goal        PR 329 approved if local-offline-inference stays unbroken
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. SimpleLLM refactor state and what PR PR 324 (cache disabling) unblocks
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. PR 326 approved and merged — poetry.lock drift stopped
-      2. PR 329 approved if local-offline-inference stays unbroken
-      3. PR 324 cache disabling ready or needs iteration before next push   *** MUST RAISE ***
-    goal        PR 324 cache disabling ready or needs iteration before next push
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 326 and PR 329 merge; PR 324 either merges or gets a clear rework backlog.
-
-
-------------------------------------------------------------------------------
-## #releases — 10 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #releases: Two merges today touch release-blocking areas; team needs to decide if next cut happens soon or waits
-
-    Today is Wednesday 8 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two merges today touch release-blocking areas; team needs to decide if next cut happens soon or waits
-    
-    What it should get through:
-      1. v0.1.14 postmortem settles any last-minute issues   [Dermot Callaghan must raise this]
-           - Dermot raises any cutover friction
-           - Emil, Dario, Nikolai confirm no hidden failures
-           - Decision: safe to cut 0.1.15 or hold
-      2. 0.1.15 timeline decided based on SimpleLLM and Ruff stability   [Dermot Callaghan must raise this]
-           - Emil signals SimpleLLM refactor stability
-           - Nikolai confirms Ruff CI is solid
-           - Group chooses: ship this week or wait
-      3. Ruff in CI is non-blocking or needs a guard for next release   [Nikolai Berresford must raise this]
-           - Nikolai flags any CI flakes from Ruff
-           - Dario or Emil spots any test failures tied to linting
-           - Decision to gate or permit next cut
-    
-    On the agenda: v0.1.14 postmortem: what failed or was close; Next release timing: 0.1.15 this week or soak into next week; Ruff migration stability: ready for release CI or needs buffer
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: v0.1.15 release timeline is set; Ruff CI is either cleared for release or flagged as needing a week to stabilize. Dependency stability confirmed.
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 8 release(s) shipped, currently v0.1.14
-      - 156 changes merged to date
-
-    On the table
-      - notes-2025-01-06 (Dermot Callaghan)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1095 function/class names and 123 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release readiness check; v0.1.14 postmortem; next version timeline
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. v0.1.14 postmortem settles any last-minute issues   *** MUST RAISE ***
-      2. 0.1.15 timeline decided based on SimpleLLM and Ruff stability   *** MUST RAISE ***
-      3. Ruff in CI is non-blocking or needs a guard for next release
-      4. what "Weekly sync notes: week of Jan 6 — v0.1.14 shipped" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        v0.1.14 postmortem settles any last-minute issues
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Dependency stability and whether poetry.lock alone was the issue
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. v0.1.14 postmortem settles any last-minute issues
-      2. 0.1.15 timeline decided based on SimpleLLM and Ruff stability
-      3. Ruff in CI is non-blocking or needs a guard for next release
-    goal        Two merges today touch release-blocking areas; team needs to decide if next cut happens soon or waits
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. SimpleLLM refactor landing state and any breaking-change implications for next release
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. v0.1.14 postmortem settles any last-minute issues
-      2. 0.1.15 timeline decided based on SimpleLLM and Ruff stability
-      3. Ruff in CI is non-blocking or needs a guard for next release
-    goal        Two merges today touch release-blocking areas; team needs to decide if next cut happens soon or waits
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Ruff linter in CI; potential test or build issues from the migration
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. v0.1.14 postmortem settles any last-minute issues
-      2. 0.1.15 timeline decided based on SimpleLLM and Ruff stability
-      3. Ruff in CI is non-blocking or needs a guard for next release   *** MUST RAISE ***
-    goal        Ruff in CI is non-blocking or needs a guard for next release
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   v0.1.15 release timeline is set; Ruff CI is either cleared for release or flagged as needing a week to stabilize. Dependency stability confirmed.
-
-
-==============================================================================
-# 2025-01-09 — 3 conversation(s), 30 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 8 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Two PRs merged today, one open with feedback; provider and batch work landing
-
-    Today is Thursday 9 January 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two PRs merged today, one open with feedback; provider and batch work landing
-    
-    What it should get through:
-      1. Merge PR 334 test overload   [Emil Brandvold must raise this]
-           - Emil Brandvold describes overloading backends in integration tests
-           - Dermot Callaghan asks about GPU mocking on CI
-           - Emil Brandvold confirms mock strategy, ready to merge
-      2. Confirm PR 330 circular import   [Petar Kovalenko must raise this]
-           - Petar Kovalenko walks through the import fix
-           - Dermot Callaghan notes approval already given
-           - group agrees it's safe
-    
-    On the agenda: PR 334 test overload status; PR 330 circular import verification; batch/provider integration readiness
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 334 merges today; PR 330 already approved and merged; batch/provider import cleanup complete
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 8 release(s) shipped, currently v0.1.14
-      - 159 changes merged to date
-
-    On the table
-      - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
-      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 48: ReadME documentation on batch
-      - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-
-    DOES NOT EXIST YET (6 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - telemetry
-      - — and 1054 function/class names and 110 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Factory pattern refactor, lazy imports, integration test overhaul
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Merge PR 334 test overload   *** MUST RAISE ***
-      2. Confirm PR 330 circular import
-      3. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Merge PR 334 test overload
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. CI and linting perspective
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Merge PR 334 test overload
-      2. Confirm PR 330 circular import
-    goal        Two PRs merged today, one open with feedback; provider and batch work landing
-    available   around today
-
-  Petar Kovalenko  (petar)
-    role        Engineer, Request-Processing Internals. circular import fix and batch processor knowledge
-    owns        (nothing specific)
-    agenda
-      1. Merge PR 334 test overload
-      2. Confirm PR 330 circular import   *** MUST RAISE ***
-    goal        Confirm PR 330 circular import
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   PR 334 merges today; PR 330 already approved and merged; batch/provider import cleanup complete
+    leaving   Coverage floor confirmed, all four PRs live in main, stale PR triage begun
 
 
 ------------------------------------------------------------------------------
@@ -1604,32 +134,28 @@ Channel #code-review: Two PRs merged today, one open with feedback; provider and
 
 ### 1. What the DIRECTOR is told
 
-Channel #engineering: Three PRs merged today, factory refactor and test overhaul complete, provider work stable
+Channel #engineering: Week landed multiple hardening changes; two releases planned; SimpleLLM refactor reached stability
 
-    Today is Thursday 9 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 10 January 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Three PRs merged today, factory refactor and test overhaul complete, provider work stable
+    Why it is happening: Week landed multiple hardening changes; two releases planned; SimpleLLM refactor reached stability
     
     What it should get through:
-      1. Factory pattern refactor settled   [Emil Brandvold must raise this]
-           - Emil Brandvold summarizes factory, env var, backend init fixes
-           - Dario Kestrel asks about config backward compat
-           - Emil Brandvold confirms no breaking changes for users
-      2. Integration test strategy clear   [Emil Brandvold must raise this]
-           - Emil Brandvold explains test overload across backends
-           - Dermot Callaghan notes GPU mocking is critical for CI
-           - group agrees coverage baseline
-      3. Release blockers identified   [Dermot Callaghan must raise this]
-           - Dermot Callaghan lists coverage gaps and ruff work
-           - Emil Brandvold notes lazy import PR close to done
-           - Dario Kestrel mentions no request processing blockers
+      1. Confirm SimpleLLM factory and backend-param split is stable   [Emil Brandvold must raise this]
+           - Emil: PR#334 added backend overload tests; PR 337 adds 80% coverage
+           - Dermot: notes PR 338 removes regression from earlier factory commit
+           - lands on: stable, ready to ship
+      2. Lock in release 0.1.15 blockers and target date   [Dermot Callaghan must raise this]
+           - Dermot: lists ruff/black, coverage floor, SimpleLLM defaults as done
+           - Emil: confirms integration tests exercise new backends
+           - lands on: 0.1.15 release candidate Monday
     
-    On the agenda: What landed: PR 317, PR 320, PR 330; In flight: PR 334, lazy import work; What's blocking next release
+    On the agenda: Week recap: 12 commits, 4 merged, coverage and ruff infrastructure in; SimpleLLM refactor stability — factory defaults and integration tests; Two releases target (0.1.15 next week) — blockers or go?
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Team clear on what shipped; next release (v0.1.15) blockers known; factory refactor considered stable
+    Wrap when: SimpleLLM refactor confirmed stable; 0.1.15 release candidate locked for Monday; hardening week complete
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1640,10 +166,122 @@ Channel #engineering: Three PRs merged today, factory refactor and test overhaul
 
     Settled
       - 8 release(s) shipped, currently v0.1.14
-      - 159 changes merged to date
+      - 163 changes merged to date
 
     On the table
-      - Weekly sync notes: week of Jan 6 — v0.1.14 shipped (Dermot Callaghan)
+      - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
+      - Release notes: v0.1.14 (Emil Brandvold)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
+      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
+      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 48: ReadME documentation on batch
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 1073 function/class names and 119 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. week's fix summary — cache control, backend defaults, ruff/black alignment
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Confirm SimpleLLM factory and backend-param split is stable
+      2. Lock in release 0.1.15 blockers and target date   *** MUST RAISE ***
+      3. what "Release notes: v0.1.14" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Lock in release 0.1.15 blockers and target date
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. SimpleLLM factory refactor progress and integration test overhaul
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm SimpleLLM factory and backend-param split is stable   *** MUST RAISE ***
+      2. Lock in release 0.1.15 blockers and target date
+      3. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm SimpleLLM factory and backend-param split is stable
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. request processing steady state
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm SimpleLLM factory and backend-param split is stable
+      2. Lock in release 0.1.15 blockers and target date
+    goal        Week landed multiple hardening changes; two releases planned; SimpleLLM refactor reached stability
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. platform-level view
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Confirm SimpleLLM factory and backend-param split is stable
+      2. Lock in release 0.1.15 blockers and target date
+    goal        Week landed multiple hardening changes; two releases planned; SimpleLLM refactor reached stability
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   SimpleLLM refactor confirmed stable; 0.1.15 release candidate locked for Monday; hardening week complete
+
+
+------------------------------------------------------------------------------
+## #incidents — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #incidents: Revert triggered by SimpleLLM backend-default regression; fix in PR 338
+
+    Today is Friday 10 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Revert triggered by SimpleLLM backend-default regression; fix in PR 338
+    
+    What it should get through:
+      1. Confirm revert root cause addressed by PR 338   [Dermot Callaghan must raise this]
+           - Dermot: factory refactor left backend=None off SimpleLLM
+           - Emil: integration tests caught it in batch backend overload test
+           - lands on: PR 338 fixes, revert can be undone after merge
+    
+    On the agenda: Revert commit 89a4146ac29c — what failed and when; Root cause: SimpleLLM default backend None expectation broken; Confirm PR 338 lands fix and unblocks next release
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: Root cause confirmed fixed; no blockers to release; revert reverted once PR 338 lands
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 8 release(s) shipped, currently v0.1.14
+      - 163 changes merged to date
+
+    On the table
       - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
       - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
       - PR 133: adding an env example file (Otto Brennan)
@@ -1658,12 +296,12 @@ Channel #engineering: Three PRs merged today, factory refactor and test overhaul
     Open questions
       - issue 48: ReadME documentation on batch
       - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
       - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
       - issue 93: [UI] Display status of the run
       - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
       - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
       - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
 
     DOES NOT EXIST YET (6 names)
       - agentic-curation
@@ -1671,92 +309,177 @@ Channel #engineering: Three PRs merged today, factory refactor and test overhaul
       - code-execution
       - finetuning
       - telemetry
-      - — and 1054 function/class names and 110 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 1073 function/class names and 119 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. factory pattern, lazy loading, config fixes, integration test strategy
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Factory pattern refactor settled   *** MUST RAISE ***
-      2. Integration test strategy clear   *** MUST RAISE ***
-      3. Release blockers identified
-      4. what "Weekly sync notes: week of Jan 6 — v0.1.14 shipped" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      5. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Factory pattern refactor settled
-    available   around today
-
   Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. CI/test perspective; release readiness view
+    role        Founding Software Engineer — Core Pipeline & Release. revert details and what caused it
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Factory pattern refactor settled
-      2. Integration test strategy clear
-      3. Release blockers identified   *** MUST RAISE ***
-    goal        Release blockers identified
+      1. Confirm revert root cause addressed by PR 338   *** MUST RAISE ***
+      2. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm revert root cause addressed by PR 338
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. regression detection from integration tests
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm revert root cause addressed by PR 338
+    goal        Revert triggered by SimpleLLM backend-default regression; fix in PR 338
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. request processing context
+    role        Core Engineer, Request Processing. impact assessment
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Factory pattern refactor settled
-      2. Integration test strategy clear
-      3. Release blockers identified
-    goal        Three PRs merged today, factory refactor and test overhaul complete, provider work stable
-    available   around today
-
-  Petar Kovalenko  (petar)
-    role        Engineer, Request-Processing Internals. batch processor details
-    owns        (nothing specific)
-    agenda
-      1. Factory pattern refactor settled
-      2. Integration test strategy clear
-      3. Release blockers identified
-    goal        Three PRs merged today, factory refactor and test overhaul complete, provider work stable
+      1. Confirm revert root cause addressed by PR 338
+    goal        Revert triggered by SimpleLLM backend-default regression; fix in PR 338
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Team clear on what shipped; next release (v0.1.15) blockers known; factory refactor considered stable
+    leaving   Root cause confirmed fixed; no blockers to release; revert reverted once PR 338 lands
 
 
 ------------------------------------------------------------------------------
-## #pipeline — 12 turns, 5 people
+## #pipeline — 10 turns, 3 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #pipeline: Five commits to online-request-processing and bulk-llm-inference; factory refactor and lazy loading active
+Channel #pipeline: Cache control and backend defaults merged; integration test coverage expanded to batch and resume paths
 
-    Today is Thursday 9 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 10 January 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Five commits to online-request-processing and bulk-llm-inference; factory refactor and lazy loading active
+    Why it is happening: Cache control and backend defaults merged; integration test coverage expanded to batch and resume paths
     
     What it should get through:
-      1. Config changes don't break online throughput   [Emil Brandvold must raise this]
-           - Emil Brandvold walks through factory pattern and config precedence
-           - Dario Kestrel asks about env var defaults
-           - Emil Brandvold confirms backward compat, no breaking changes
-      2. Integration tests cover all backends   [Emil Brandvold must raise this]
-           - Emil Brandvold describes PR 334 test overload approach
-           - Dermot Callaghan questions GPU mocking strategy
-           - Petar Kovalenko notes batch processor state
-      3. Lazy imports don't degrade startup   [Emil Brandvold must raise this]
-           - Emil Brandvold outlines what's lazy loaded and when
-           - Ilse Vandekerckhove confirms offline backends unaffected
-           - group satisfied with minimal import overhead
+      1. Cache disable feature ready for users   [Dermot Callaghan must raise this]
+           - Dermot: CURATOR_DISABLE_CACHE env var lands with PR 335
+           - Emil: integration tests cover cache-off path in PR 337
+           - lands on: feature ships with 0.1.15
+      2. Backend factory and defaults stable for all provider paths   [Emil Brandvold must raise this]
+           - Emil: batch backend overload tests in PR 334 confirm factory handling
+           - Dermot: PR 338 sets SimpleLLM backend=None by default
+           - lands on: all provider paths exercised in CI
     
-    On the agenda: Lazy import impact on startup; Config changes in online requests; Integration test backend mocking; Resume/retry stability
+    On the agenda: Cache disable feature (PR 335): testing without serialization; Backend selection and defaults (PR 338): SimpleLLM, factory, type-dict config; Integration test expansion: batch, resume, multi-backend overload (PR 334, PR 337)
     
     Out today: Gideon Halloway (no commit, review or comment 2025-01-07..2025-01-27) — their input is missing and people may say so
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Online request processing refactors complete and tested; no throughput regression; resume/retry path solid; lazy imports ready for production
+    Wrap when: Cache control live; backend factory stable across all provider integrations; batch and resume paths in CI
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 8 release(s) shipped, currently v0.1.14
+      - 163 changes merged to date
+
+    On the table
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
+      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
+      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 48: ReadME documentation on batch
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 1073 function/class names and 119 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. cache disable feature (PR 335), backend defaults fix (PR 338), integration test expansion
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Cache disable feature ready for users   *** MUST RAISE ***
+      2. Backend factory and defaults stable for all provider paths
+    goal        Cache disable feature ready for users
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. batch backend testing and SimpleLLM factory overload tests
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Cache disable feature ready for users
+      2. Backend factory and defaults stable for all provider paths   *** MUST RAISE ***
+    goal        Backend factory and defaults stable for all provider paths
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. request processing steady state
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Cache disable feature ready for users
+      2. Backend factory and defaults stable for all provider paths
+    goal        Cache control and backend defaults merged; integration test coverage expanded to batch and resume paths
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Cache control live; backend factory stable across all provider integrations; batch and resume paths in CI
+
+
+==============================================================================
+# 2025-01-13 — 3 conversation(s), 32 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 12 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Two major PRs opened today touch the core LLM interface; both need review before they can merge.
+
+    Today is Monday 13 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Two major PRs opened today touch the core LLM interface; both need review before they can merge.
+    
+    What it should get through:
+      1. Approve or request changes on PR PR 360 LLM interface   [Dario Kestrel must raise this]
+           - Dermot walks through the SimpleLLM removal and new factory method
+           - Dario flags backward compatibility concerns with example scripts
+           - Konrad asks about deprecation warnings for old callers
+      2. send Weekly update: week of Jan 6 — v0.1.14 shipped   [Konrad Feltrin must raise this]
+           - Konrad Feltrin says they will send Weekly update: week of Jan 6 — v0.1.14 shipped
+    
+    On the agenda: Review PR PR 360: Updated LLM class interface changes; Discuss fix_json check in PR PR 359 and config validation; Plan documentation updates for new interface; Weekly update: week of Jan 6 — v0.1.14 shipped
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: PR PR 360 receives approval or concrete change requests; PR PR 359 clarified for separate config-validation work; team agrees on deprecation messaging for SimpleLLM removal.
     
     Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1767,30 +490,31 @@ Channel #pipeline: Five commits to online-request-processing and bulk-llm-infere
 
     Settled
       - 8 release(s) shipped, currently v0.1.14
-      - 159 changes merged to date
+      - 175 changes merged to date
 
     On the table
-      - Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing (Konrad Feltrin)
       - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
+      - weekly-2025-01-06 (Konrad Feltrin)
       - PR 133: adding an env example file (Otto Brennan)
       - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
       - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
-      - PR 171: enhance GenericRequest test coverage (Otto Brennan)
-      - PR 173: Refactor Prompter to support class-based approach (Millrow Refactor Bot)
+      - PR 248: More graceful handling, pt 2 (Dermot Callaghan)
+      - PR 307: Unify token counting logic across processors (Millrow Refactor Bot)
+      - PR 359: Add fix_json check (Petar Kovalenko)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
 
     Open questions
-      - issue 48: ReadME documentation on batch
       - issue 52: Support multiple samples per request
-      - issue 88: Add a way to disable caching for curator
       - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
       - issue 93: [UI] Display status of the run
       - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
       - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
       - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 122: Prompter as a Class to inherit and define prompt and parse funcs 
 
     DOES NOT EXIST YET (6 names)
       - agentic-curation
@@ -1798,64 +522,1306 @@ Channel #pipeline: Five commits to online-request-processing and bulk-llm-infere
       - code-execution
       - finetuning
       - telemetry
-      - — and 1054 function/class names and 110 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 1000 function/class names and 110 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. lazy imports, config overhaul, integration test coverage
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. owns the bulk-llm-inference and examples-cookbooks services; authored most of the LLM class interface changes
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Config changes don't break online throughput   *** MUST RAISE ***
-      2. Integration tests cover all backends   *** MUST RAISE ***
-      3. Lazy imports don't degrade startup   *** MUST RAISE ***
-      4. what "Onboarding: emil, Core Platform Engineer for Request Processing" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      5. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Config changes don't break online throughput
+      1. Approve or request changes on PR PR 360 LLM interface
+      2. send Weekly update: week of Jan 6 — v0.1.14 shipped
+    goal        Two major PRs opened today touch the core LLM interface; both need review before they can merge.
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. cost estimation, backend swapping perspective
+    role        Core Engineer, Request Processing. perspective on backward compatibility and end-user impact; working on example cleanup
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Config changes don't break online throughput
-      2. Integration tests cover all backends
-      3. Lazy imports don't degrade startup
-    goal        Five commits to online-request-processing and bulk-llm-inference; factory refactor and lazy loading active
+      1. Approve or request changes on PR PR 360 LLM interface   *** MUST RAISE ***
+      2. send Weekly update: week of Jan 6 — v0.1.14 shipped
+      3. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      4. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Approve or request changes on PR PR 360 LLM interface
     available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. maintainer perspective on API stability
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Approve or request changes on PR PR 360 LLM interface
+      2. send Weekly update: week of Jan 6 — v0.1.14 shipped   *** MUST RAISE ***
+      3. that "Weekly update: week of Jan 6 — v0.1.14 shipped" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        send Weekly update: week of Jan 6 — v0.1.14 shipped
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. drove the original SimpleLLM folding work; understands the config refactor
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Approve or request changes on PR PR 360 LLM interface
+      2. send Weekly update: week of Jan 6 — v0.1.14 shipped
+    goal        Two major PRs opened today touch the core LLM interface; both need review before they can merge.
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   PR PR 360 receives approval or concrete change requests; PR PR 359 clarified for separate config-validation work; team agrees on deprecation messaging for SimpleLLM removal.
+
+
+------------------------------------------------------------------------------
+## #engineering — 10 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Major refactoring of the core LLM class landed; many commits today fixing call sites across examples and local inference.
+
+    Today is Monday 13 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Major refactoring of the core LLM class landed; many commits today fixing call sites across examples and local inference.
+    
+    What it should get through:
+      1. Confirm all example scripts comply with new LLM interface   [Dermot Callaghan must raise this]
+           - Dermot outlines the nine commits fixing examples
+           - Emil notes the backend-params split affects vLLM offline
+           - Dario asks if CONTRIBUTING.md needs update on new patterns
+    
+    On the agenda: Status on SimpleLLM removal and LLM interface refactor; Example script fixes landing today; Plan remaining cleanup work
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Team agrees all critical example fixes are in flight; remaining cleanup work is identified.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 8 release(s) shipped, currently v0.1.14
+      - 175 changes merged to date
+
+    On the table
+      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
+      - PR 248: More graceful handling, pt 2 (Dermot Callaghan)
+      - PR 307: Unify token counting logic across processors (Millrow Refactor Bot)
+      - PR 359: Add fix_json check (Petar Kovalenko)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 122: Prompter as a Class to inherit and define prompt and parse funcs 
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 1000 function/class names and 110 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
 
   Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. CI coverage strategy
+    role        Founding Software Engineer — Core Pipeline & Release. 9 commits today fixing examples and the LLM interface; hands-on knowledge of what broke
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Config changes don't break online throughput
-      2. Integration tests cover all backends
-      3. Lazy imports don't degrade startup
-    goal        Five commits to online-request-processing and bulk-llm-inference; factory refactor and lazy loading active
+      1. Confirm all example scripts comply with new LLM interface   *** MUST RAISE ***
+      2. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm all example scripts comply with new LLM interface
     available   around today
 
-  Petar Kovalenko  (petar)
-    role        Engineer, Request-Processing Internals. batch/retry details
-    owns        (nothing specific)
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. drove the SimpleLLM folding refactor; understands the backend-params split
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Config changes don't break online throughput
-      2. Integration tests cover all backends
-      3. Lazy imports don't degrade startup
-    goal        Five commits to online-request-processing and bulk-llm-inference; factory refactor and lazy loading active
+      1. Confirm all example scripts comply with new LLM interface
+    goal        Major refactoring of the core LLM class landed; many commits today fixing call sites across examples and local inference.
     available   around today
 
-  Ilse Vandekerckhove  (ilse)
-    role        Contributor, Local Inference Backends (vLLM). offline backend perspective
-    owns        local-offline-inference
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. working on docs and example cleanup for the same interface changes
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Config changes don't break online throughput
-      2. Integration tests cover all backends
-      3. Lazy imports don't degrade startup
-    goal        Five commits to online-request-processing and bulk-llm-inference; factory refactor and lazy loading active
+      1. Confirm all example scripts comply with new LLM interface
+    goal        Major refactoring of the core LLM class landed; many commits today fixing call sites across examples and local inference.
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Online request processing refactors complete and tested; no throughput regression; resume/retry path solid; lazy imports ready for production
+    leaving   Team agrees all critical example fixes are in flight; remaining cleanup work is identified.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 10 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: 8 commits touch bulk-llm-inference and 6 touch local-offline-inference; interface refactoring has cascading effects on processors.
+
+    Today is Monday 13 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: 8 commits touch bulk-llm-inference and 6 touch local-offline-inference; interface refactoring has cascading effects on processors.
+    
+    What it should get through:
+      1. Stabilize LLM interface for request processors   [Emil Brandvold must raise this]
+           - Emil explains the typed-dict and backend-params changes
+           - Dermot outlines the instance method fixes
+           - Dario asks if caching layer needs changes
+      2. Confirm vLLM offline processor fixes are sufficient   [Dermot Callaghan must raise this]
+           - Dermot walks through the instance method fix in vLLM caller
+           - Emil confirms backward compatibility
+           - Dario notes caching implications
+      3. write up Postmortem: release-and-ci revert on Jan 10   [Dario Kestrel must raise this]
+           - Dario Kestrel says they will write Postmortem: release-and-ci revert on Jan 10 — Explains the file revert on Jan 10 and how it was caught.
+    
+    On the agenda: LLM class interface stability and rollout; Offline processor fixes for vLLM; Progress on caching and typed-dict updates; Postmortem: release-and-ci revert on Jan 10
+    
+    Out today: Gideon Halloway (no commit, review or comment 2025-01-07..2025-01-27), Ilse Vandekerckhove (no commit, review or comment 2025-01-11..2025-01-27) — their input is missing and people may say so
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Team confirms LLM interface is ready for 0.1.15 work; offline processor fixes land without regression.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 8 release(s) shipped, currently v0.1.14
+      - 175 changes merged to date
+
+    On the table
+      - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
+      - Postmortem: release-and-ci revert on Jan 10 (Dario Kestrel)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
+      - PR 248: More graceful handling, pt 2 (Dermot Callaghan)
+      - PR 307: Unify token counting logic across processors (Millrow Refactor Bot)
+      - PR 359: Add fix_json check (Petar Kovalenko)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 122: Prompter as a Class to inherit and define prompt and parse funcs 
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 1000 function/class names and 110 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. author of the core refactoring; understands backward compatibility concerns
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Stabilize LLM interface for request processors   *** MUST RAISE ***
+      2. Confirm vLLM offline processor fixes are sufficient
+      3. write up Postmortem: release-and-ci revert on Jan 10
+      4. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Stabilize LLM interface for request processors
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 9 fixes to instance methods and offline processor
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Stabilize LLM interface for request processors
+      2. Confirm vLLM offline processor fixes are sufficient   *** MUST RAISE ***
+      3. write up Postmortem: release-and-ci revert on Jan 10
+    goal        Confirm vLLM offline processor fixes are sufficient
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. owns caching and online-request-processing; needs to verify interface stability
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Stabilize LLM interface for request processors
+      2. Confirm vLLM offline processor fixes are sufficient
+      3. write up Postmortem: release-and-ci revert on Jan 10   *** MUST RAISE ***
+      4. that the doc "Postmortem: release-and-ci revert on Jan 10" is done, and where the others can find it   *** MUST RAISE ***
+    goal        write up Postmortem: release-and-ci revert on Jan 10
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Team confirms LLM interface is ready for 0.1.15 work; offline processor fixes land without regression.
+
+
+==============================================================================
+# 2025-01-14 — 3 conversation(s), 32 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 12 turns, 5 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: v0.1.15 shipped with LLM interface changes and perf work; need quick sign-off on remaining PRs before moving on
+
+    Today is Tuesday 14 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: v0.1.15 shipped with LLM interface changes and perf work; need quick sign-off on remaining PRs before moving on
+    
+    What it should get through:
+      1. Confirm LLM interface refactor is backwards-compatible and ready   [Dermot Callaghan must raise this]
+           - Dermot posts the interface changes and what broke
+           - Konrad asks about caller expectations; Dario Kestrel flags the example updates
+           - Emil confirms lazy imports don't break the signature
+      2. Land config validation fixes without reverting   [Petar Kovalenko must raise this]
+           - Petar explains the fix_json PR and config bug
+           - Dermot asks if we need a follow-up test
+           - Emil confirms the lazy-import change doesn't interact with it
+      3. Signal that example updates are done and 0.1.15 is solid   [Dario Kestrel must raise this]
+           - Dario summarizes the venv and example fixes that landed
+           - Konrad approves the documentation
+           - Dermot confirms no blockers for the release
+    
+    On the agenda: LLM interface refactor impact on 0.1.15; Fix_json and config validation safety; Example script fixes from interface change; Documentation and contributing guide updates
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: All PRs approved; team confident 0.1.15 is stable and examples are up to date.
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 9 release(s) shipped, currently v0.1.15
+      - 181 changes merged to date
+
+    On the table
+      - Postmortem: cache hashing regression revert on Jan 13 (Dermot Callaghan)
+      - WS-014 design: Release Engineering, CI & Test Suite (Dermot Callaghan)
+      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
+      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
+      - PR 248: More graceful handling, pt 2 (Dermot Callaghan)
+      - PR 307: Unify token counting logic across processors (Millrow Refactor Bot)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 996 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Release sequencing and LLM interface stability
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Confirm LLM interface refactor is backwards-compatible and ready   *** MUST RAISE ***
+      2. Land config validation fixes without reverting
+      3. Signal that example updates are done and 0.1.15 is solid
+      4. the page you are writing, Postmortem: cache hashing regression revert on Jan 13, has to say this in your own words: For anyone new to this area: there is exactly one function that decides whether a row is reused or sent, and every processor calls it, online, batch and the local vLLM one.   *** MUST SETTLE (clue t1.r1.l_scope_3) ***
+         must contain literally: vLLM
+      5. that the doc "Postmortem: cache hashing regression revert on Jan 13" is done, and where the others can find it   *** MUST RAISE ***
+      6. what "WS-014 design: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      7. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm LLM interface refactor is backwards-compatible and ready
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Provider integration and performance changes
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm LLM interface refactor is backwards-compatible and ready
+      2. Land config validation fixes without reverting
+      3. Signal that example updates are done and 0.1.15 is solid
+    goal        v0.1.15 shipped with LLM interface changes and perf work; need quick sign-off on remaining PRs before moving on
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Design perspective on interface changes
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Confirm LLM interface refactor is backwards-compatible and ready
+      2. Land config validation fixes without reverting
+      3. Signal that example updates are done and 0.1.15 is solid
+    goal        v0.1.15 shipped with LLM interface changes and perf work; need quick sign-off on remaining PRs before moving on
+    available   around today
+
+  Petar Kovalenko  (petar)
+    role        Engineer, Request-Processing Internals. Config bug fixes and validation logic
+    owns        (nothing specific)
+    agenda
+      1. Confirm LLM interface refactor is backwards-compatible and ready
+      2. Land config validation fixes without reverting   *** MUST RAISE ***
+      3. Signal that example updates are done and 0.1.15 is solid
+    goal        Land config validation fixes without reverting
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Integration testing and example script fixes
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm LLM interface refactor is backwards-compatible and ready
+      2. Land config validation fixes without reverting
+      3. Signal that example updates are done and 0.1.15 is solid   *** MUST RAISE ***
+      4. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Signal that example updates are done and 0.1.15 is solid
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   All PRs approved; team confident 0.1.15 is stable and examples are up to date.
+
+
+------------------------------------------------------------------------------
+## #releases — 10 turns, 5 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #releases: v0.1.15 already shipped; need to finalize release notes and announce
+
+    Today is Tuesday 14 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: v0.1.15 already shipped; need to finalize release notes and announce
+    
+    What it should get through:
+      1. Release notes capture the real changes without overstating them   [Emil Brandvold must raise this]
+           - Emil drafts what shipped: LLM interface refactor, lazy imports, fix_json, docs
+           - Dermot asks if we mention the performance win
+           - Konrad checks that examples credit is there
+      2. Release announcement goes to the right people with the right timing   [Dermot Callaghan must raise this]
+           - Dermot proposes the recipients and timing
+           - Emil confirms
+           - Dario notes any caveats about the contributing guide change
+    
+    On the agenda: What's in v0.1.15 and why; Release notes accuracy; Announcement timing and recipients
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: Release notes finalized and announcement scheduled; v0.1.15 is officially out; it is settled that Dermot Callaghan got rows paired with the wrong answers because a resumed job's request set was smaller than the current one
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 9 release(s) shipped, currently v0.1.15
+      - 181 changes merged to date
+
+    On the table
+      - Release notes: v0.1.15 (Emil Brandvold)
+      - announce-v0-1-15 (Dermot Callaghan)
+      - announce-v0-1-15 (Dermot Callaghan)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
+      - PR 248: More graceful handling, pt 2 (Dermot Callaghan)
+      - PR 307: Unify token counting logic across processors (Millrow Refactor Bot)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 996 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Release engineering and publishing process
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Release notes capture the real changes without overstating them
+      2. Release announcement goes to the right people with the right timing   *** MUST RAISE ***
+      3. appending to the input dataset between restarts is a trap too. I added 200 rows to a 800 row set, restarted, resumed job came back with 800 results for 1000 requests and reassembly slotted them in by index. half the rows carried an answer to somebody else's question and it looked completely fine on inspection.   *** MUST SETTLE (clue t3.r2.l_pay_dermot) ***
+      4. that "v0.1.15 is out" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        Release announcement goes to the right people with the right timing
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. What shipped and the lazy-import perf win
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Release notes capture the real changes without overstating them   *** MUST RAISE ***
+      2. Release announcement goes to the right people with the right timing
+      3. that the doc "Release notes: v0.1.15" is done, and where the others can find it   *** MUST RAISE ***
+      4. what "v0.1.15 is out" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Release notes capture the real changes without overstating them
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Documentation state for the release
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Release notes capture the real changes without overstating them
+      2. Release announcement goes to the right people with the right timing
+    goal        v0.1.15 already shipped; need to finalize release notes and announce
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Release impact on examples and cookbooks
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Release notes capture the real changes without overstating them
+      2. Release announcement goes to the right people with the right timing
+    goal        v0.1.15 already shipped; need to finalize release notes and announce
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. CI and release stability
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Release notes capture the real changes without overstating them
+      2. Release announcement goes to the right people with the right timing
+    goal        v0.1.15 already shipped; need to finalize release notes and announce
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Release notes finalized and announcement scheduled; v0.1.15 is officially out; it is settled that Dermot Callaghan got rows paired with the wrong answers because a resumed job's request set was smaller than the current one; Dermot Callaghan got rows paired with the wrong answers because a resumed job's request set was smaller than the current one
+
+
+------------------------------------------------------------------------------
+## #cookbooks — 10 turns, 5 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #cookbooks: LLM interface refactored (ws-012); examples are now broken and need quick fixes (ws-016); both shipped today
+
+    Today is Tuesday 14 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: LLM interface refactored (ws-012); examples are now broken and need quick fixes (ws-016); both shipped today
+    
+    What it should get through:
+      1. Identify which examples are actually broken by the refactor   [Dario Kestrel must raise this]
+           - Dario lists which example scripts call the old interface
+           - Dermot explains what the new signature looks like
+           - Konrad asks if there's a migration path or if we just fix them
+      2. Examples are up to date and documented   [Dario Kestrel must raise this]
+           - Dario confirms the venv instructions and example updates are in PR 364
+           - Konrad approves the documentation
+           - Dermot notes the citation bump
+    
+    On the agenda: Interface changes and what examples need to do; Example script fixes that landed today; Citation and documentation updates; Blocking issues for cookbooks vs. just cleanup
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Examples working again and team confident in ws-016 progress; it is settled that Nikolai Berresford fixes the docker backend on the latest tag with no override
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 9 release(s) shipped, currently v0.1.15
+      - 181 changes merged to date
+
+    On the table
+      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 163: [curator-viewer] use getCacheDir helper function, add additional param for cache dir (Gideon Halloway)
+      - PR 248: More graceful handling, pt 2 (Dermot Callaghan)
+      - PR 307: Unify token counting logic across processors (Millrow Refactor Bot)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 996 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. What example scripts need to fix after interface change
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Identify which examples are actually broken by the refactor   *** MUST RAISE ***
+      2. Examples are up to date and documented   *** MUST RAISE ***
+      3. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Identify which examples are actually broken by the refactor
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Details of the interface change and what callers need to do
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Identify which examples are actually broken by the refactor
+      2. Examples are up to date and documented
+    goal        LLM interface refactored (ws-012); examples are now broken and need quick fixes (ws-016); both shipped today
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Design perspective on how examples should illustrate the interface
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Identify which examples are actually broken by the refactor
+      2. Examples are up to date and documented
+    goal        LLM interface refactored (ws-012); examples are now broken and need quick fixes (ws-016); both shipped today
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. What the refactored backend params look like
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Identify which examples are actually broken by the refactor
+      2. Examples are up to date and documented
+    goal        LLM interface refactored (ws-012); examples are now broken and need quick fixes (ws-016); both shipped today
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Release context
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Identify which examples are actually broken by the refactor
+      2. Examples are up to date and documented
+      3. On the docker backend I'm just going with bespokelabs/sandbox:latest for the image. The sandbox image gets rebuilt whenever we patch the runtime deps, and if we hardcode a version string in the executor then every dep bump needs a curator release to reach anyone. latest means users pull the fixed image on their next docker run and we do nothing. No knob for it either, one image, one tag, less surface.   *** MUST SETTLE (clue t4.r1.h1) ***
+    goal        Nikolai Berresford fixes the docker backend on the latest tag with no override
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Examples working again and team confident in ws-016 progress; it is settled that Nikolai Berresford fixes the docker backend on the latest tag with no override; Nikolai Berresford fixes the docker backend on the latest tag with no override
+
+
+==============================================================================
+# 2025-01-15 — 4 conversation(s), 36 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #releases — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #releases: v0.1.15.post1 shipped same-day as the fixes; team confirms it is live.
+
+    Today is Wednesday 15 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: v0.1.15.post1 shipped same-day as the fixes; team confirms it is live.
+    
+    What it should get through:
+      1. Release notes capture what changed and why   [Dermot Callaghan must raise this]
+           - Dermot summarizes the three commits
+           - Dario confirms the README change is user-facing enough to call out
+           - Emil nods on the cost fix
+    
+    On the agenda: Three quick fixes landed and tagged; Release notes written and ready
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: v0.1.15.post1 release notes are live; team has recorded what the patch fixed.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 10 release(s) shipped, currently v0.1.15.post1
+      - 184 changes merged to date
+
+    On the table
+      - Release notes: v0.1.15.post1 (Dermot Callaghan)
+      - Release notes: v0.1.15 (Emil Brandvold)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 996 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. The three fixes that went into v0.1.15.post1 and confidence they are minimal and safe
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Release notes capture what changed and why   *** MUST RAISE ***
+      2. that the doc "Release notes: v0.1.15.post1" is done, and where the others can find it   *** MUST RAISE ***
+      3. what "Release notes: v0.1.15" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Release notes capture what changed and why
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Context on whether the README fix is sufficient for users
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Release notes capture what changed and why
+    goal        v0.1.15.post1 shipped same-day as the fixes; team confirms it is live.
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Sign-off that cost calculation is now correct
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Release notes capture what changed and why
+    goal        v0.1.15.post1 shipped same-day as the fixes; team confirms it is live.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   v0.1.15.post1 release notes are live; team has recorded what the patch fixed.
+
+
+------------------------------------------------------------------------------
+## #code-review — 10 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Three PRs opened and merged same day; team is reviewing the quick fixes before release.
+
+    Today is Wednesday 15 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Three PRs opened and merged same day; team is reviewing the quick fixes before release.
+    
+    What it should get through:
+      1. Cost division by minutes instead of requests is correct   [Dermot Callaghan must raise this]
+           - Dermot explains the regression: was dividing by request count, not elapsed time
+           - Konrad confirms the fix is minimal and correct
+           - Emil signs off that it makes sense
+      2. README example matches the current LLM interface   [Dario Kestrel must raise this]
+           - Dario flags that the example was broken by the recent LLM class refactor
+           - Emil approves the fix
+           - Dermot confirms it now runs
+      3. Typo in first docs example is caught and fixed   [Dermot Callaghan must raise this]
+           - Dermot posts the fix
+           - Emil approves it
+    
+    On the agenda: Cost calculation fix for rate-per-minute; README example corrected; Docs typo in first example
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: Three PRs are reviewed, approved, and merged; the team knows what went wrong and what was fixed; it is settled that Konrad Feltrin rejects a caller-supplied docker image tag in backend_params
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 10 release(s) shipped, currently v0.1.15.post1
+      - 184 changes merged to date
+
+    On the table
+      - announce-v0-1-15-post1 (Dermot Callaghan)
+      - Weekly sync notes: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped (Dario Kestrel)
+      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 996 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Two bugfixes and the rationale for each; cost-per-minute calculation and typo in docs
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Cost division by minutes instead of requests is correct   *** MUST RAISE ***
+      2. README example matches the current LLM interface
+      3. Typo in first docs example is caught and fixed   *** MUST RAISE ***
+      4. that "v0.1.15.post1 hotfix is out" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        Cost division by minutes instead of requests is correct
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. The README update and context on what broke in the examples
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Cost division by minutes instead of requests is correct
+      2. README example matches the current LLM interface   *** MUST RAISE ***
+      3. Typo in first docs example is caught and fixed
+      4. that the doc "Weekly sync notes: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped" is done, and where the others can find it   *** MUST RAISE ***
+      5. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        README example matches the current LLM interface
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Approval on the docs fix
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Cost division by minutes instead of requests is correct
+      2. README example matches the current LLM interface
+      3. Typo in first docs example is caught and fixed
+    goal        Three PRs opened and merged same day; team is reviewing the quick fixes before release.
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Approval on the cost calculation fix
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Cost division by minutes instead of requests is correct
+      2. README example matches the current LLM interface
+      3. Typo in first docs example is caught and fixed
+      4. Re: adding an image override to backend_params for CodeExecutor. I'd rather not. The docker backend only works against our sandbox image anyway, the entrypoint and the mounted paths are ours, so pointing it at some arbitrary tag mostly gets you a confusing failure. Keep backend_params to concurrency and timeout and let the tag be whatever we ship as current.   *** MUST SETTLE (clue t4.r1.h2) ***
+    goal        Konrad Feltrin rejects a caller-supplied docker image tag in backend_params
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Three PRs are reviewed, approved, and merged; the team knows what went wrong and what was fixed; it is settled that Konrad Feltrin rejects a caller-supplied docker image tag in backend_params; Konrad Feltrin rejects a caller-supplied docker image tag in backend_params
+
+
+------------------------------------------------------------------------------
+## #engineering — 10 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: String of small fixes and version bump landed same-day; team syncs on what broke and what changed.
+
+    Today is Wednesday 15 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: String of small fixes and version bump landed same-day; team syncs on what broke and what changed.
+    
+    What it should get through:
+      1. Cost calculation regression is fixed and users are not overcharged   [Dermot Callaghan must raise this]
+           - Dermot explains the cost division bug
+           - Emil confirms it was caught by the online request processing tests
+           - Team nods that the fix is safe to ship same-day
+      2. README and example scripts are unbroken after LLM class refactor   [Dario Kestrel must raise this]
+           - Dario reports that the example scripts broke when the LLM class changed
+           - Dermot confirms the fix is simple: use instance method instead of class method
+           - Nikolai notes this is part of the examples cleanup work
+    
+    On the agenda: Four commits landed: cost fix, typo, version bump, docs; Examples work moving forward despite the LLM class break
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Team is aware of the hotfix bundle and the examples work is moving forward; no one is surprised by the fixes.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 10 release(s) shipped, currently v0.1.15.post1
+      - 184 changes merged to date
+
+    On the table
+      - WS-016 design: Examples & Reasoning-Dataset Cookbooks (Dario Kestrel)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 996 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Four commits: cost calculation fix, typo fix, version bump, docs example fix
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Cost calculation regression is fixed and users are not overcharged   *** MUST RAISE ***
+      2. README and example scripts are unbroken after LLM class refactor
+    goal        Cost calculation regression is fixed and users are not overcharged
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Context on the examples work and what examples broke with the LLM class refactor
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Cost calculation regression is fixed and users are not overcharged
+      2. README and example scripts are unbroken after LLM class refactor   *** MUST RAISE ***
+      3. what "WS-016 design: Examples & Reasoning-Dataset Cookbooks" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        README and example scripts are unbroken after LLM class refactor
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Observation that cost estimation needs better guards
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Cost calculation regression is fixed and users are not overcharged
+      2. README and example scripts are unbroken after LLM class refactor
+    goal        String of small fixes and version bump landed same-day; team syncs on what broke and what changed.
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Release-and-ci perspective on the version bump
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Cost calculation regression is fixed and users are not overcharged
+      2. README and example scripts are unbroken after LLM class refactor
+    goal        String of small fixes and version bump landed same-day; team syncs on what broke and what changed.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Team is aware of the hotfix bundle and the examples work is moving forward; no one is surprised by the fixes.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Cost calculation regression was caught and fixed same-day; batch job throughput work is ongoing.
+
+    Today is Wednesday 15 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Cost calculation regression was caught and fixed same-day; batch job throughput work is ongoing.
+    
+    What it should get through:
+      1. Cost per minute is now calculated correctly and doesn't regress again   [Dermot Callaghan must raise this]
+           - Dermot explains: was dividing by request count instead of elapsed time
+           - Emil reports the test suite caught it when running batch jobs
+           - Dario suggests adding a guard for models with no listed price
+    
+    On the agenda: Cost division by minutes is now correct; Progress bar tracking for batch jobs
+    
+    Meeting today: Weekly sync
+    
+    Out today: Gideon Halloway (no commit, review or comment 2025-01-07..2025-01-27) — their input is missing and people may say so
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Cost calculation fix is confirmed safe; team understands the regression and how it was caught.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 10 release(s) shipped, currently v0.1.15.post1
+      - 184 changes merged to date
+
+    On the table
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 996 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. The cost division regression and the fix
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Cost per minute is now calculated correctly and doesn't regress again   *** MUST RAISE ***
+    goal        Cost per minute is now calculated correctly and doesn't regress again
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Testing and validation of the cost calculation on real batch jobs
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Cost per minute is now calculated correctly and doesn't regress again
+    goal        Cost calculation regression was caught and fixed same-day; batch job throughput work is ongoing.
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. History of how cost estimation has broken before
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Cost per minute is now calculated correctly and doesn't regress again
+    goal        Cost calculation regression was caught and fixed same-day; batch job throughput work is ongoing.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Cost calculation fix is confirmed safe; team understands the regression and how it was caught.
+
+
+==============================================================================
+# 2025-01-16 — 2 conversation(s), 18 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 8 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: New PR needs eyes before merge; blocking SimpleLLM refactor work.
+
+    Today is Thursday 16 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: New PR needs eyes before merge; blocking SimpleLLM refactor work.
+    
+    What it should get through:
+      1. Approve messages input refactor approach   [Dermot Callaghan must raise this]
+           - Dario Kestrel outlines the helper-function split and why it matters for SimpleLLM
+           - Dermot Callaghan checks test coverage and queries the dataset conversion test
+           - Dario Kestrel addresses concerns or they agree it's ready
+    
+    On the agenda: Review PR PR 371: messages list input handling; Verify test coverage for dataset conversion; Check for SimpleLLM caller compatibility
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: PR PR 371 approved or with clear actionable feedback for revision.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 10 release(s) shipped, currently v0.1.15.post1
+      - 184 changes merged to date
+
+    On the table
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+      - PR 371: Allow lists of messages as simple input (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 994 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. the shape of the messages input changes and what SimpleLLM callers expect
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Approve messages input refactor approach
+    goal        New PR needs eyes before merge; blocking SimpleLLM refactor work.
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. perspective on multimodal prompt handling and the test coverage needed
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Approve messages input refactor approach   *** MUST RAISE ***
+    goal        Approve messages input refactor approach
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   PR PR 371 approved or with clear actionable feedback for revision.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 10 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Mid-flight refactor with multiple commits landing; config defaults and SimpleLLM compatibility at risk.
+
+    Today is Thursday 16 January 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Mid-flight refactor with multiple commits landing; config defaults and SimpleLLM compatibility at risk.
+    
+    What it should get through:
+      1. Map backend=None default impact across SimpleLLM callers   [Emil Brandvold must raise this]
+           - Emil Brandvold outlines what the factory split changed
+           - Dario Kestrel notes which callers are affected
+           - Dermot Callaghan raises the postmortem-2025-01-13 cache-hashing pattern and whether this repeats
+      2. Clarify messages input contract for downstream code   [Dario Kestrel must raise this]
+           - Dario Kestrel walks through the test case changes
+           - Emil Brandvold asks what the contract is now
+           - Dermot Callaghan flags any schema-validation issues
+    
+    On the agenda: Assess config-bug surface from backend-params split; Plan rollout of messages input changes; Identify what SimpleLLM callers need to change
+    
+    Out today: Gideon Halloway (no commit, review or comment 2025-01-07..2025-01-27) — their input is missing and people may say so
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Clear plan for what SimpleLLM callers must adjust; config defaults documented or fixed before wider rollout.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 10 release(s) shipped, currently v0.1.15.post1
+      - 184 changes merged to date
+
+    On the table
+      - Postmortem: cache hashing regression revert on Jan 13 (Dermot Callaghan)
+      - Postmortem: release-and-ci revert on Jan 10 (Dario Kestrel)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+      - PR 362: Fix_json adds curly braces (Ilse Vandekerckhove)
+      - PR 371: Allow lists of messages as simple input (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (6 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - telemetry
+      - — and 994 function/class names and 104 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. overall refactor direction and what the factory/typed-dict changes unblock
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Map backend=None default impact across SimpleLLM callers   *** MUST RAISE ***
+      2. Clarify messages input contract for downstream code
+      3. that the doc "Postmortem: v0.1.15.post1 hotfix" is done, and where the others can find it   *** MUST RAISE ***
+      4. what "Postmortem: cache hashing regression revert on Jan 13" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      5. what "Postmortem: release-and-ci revert on Jan 10" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Map backend=None default impact across SimpleLLM callers
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. the messages-input refactor and where it sits relative to other changes
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Map backend=None default impact across SimpleLLM callers
+      2. Clarify messages input contract for downstream code   *** MUST RAISE ***
+    goal        Clarify messages input contract for downstream code
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. postmortem context from recent reverts and what config defaults need care
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Map backend=None default impact across SimpleLLM callers
+      2. Clarify messages input contract for downstream code
+    goal        Mid-flight refactor with multiple commits landing; config defaults and SimpleLLM compatibility at risk.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Clear plan for what SimpleLLM callers must adjust; config defaults documented or fixed before wider rollout.
 

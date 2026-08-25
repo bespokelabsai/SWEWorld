@@ -1,0 +1,27 @@
+From: dermot@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, otto@world.local,
+ ilse@world.local
+Subject: v0.1.15 is out
+Date: Tue, 14 Jan 2025 09:28:00 +0000
+Message-ID: <178765590598.1896701.8178396045537004369@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.15 is now released.
+
+This build ships 181 merged changes across the Stratos Crunch milestone. The =
+headline work in this release is the backend expansion: batch-mode, bulk-llm-=
+inference, caching-and-resume, local-offline-inference, multimodal-prompts, o=
+nline-request-processing, and provider-integrations are all in flight and pro=
+gressing well. The curator-viewer and progress-and-cli surface is also moving.
+
+One thing worth flagging for anyone doing long runs: we found that appending =
+to the input dataset between restarts is a trap. I added 200 rows to an 800-r=
+ow set, restarted, and the resumed job came back with 800 results for 1000 re=
+quests, then reassembly slotted them in by index. Half the rows ended up carr=
+ying an answer to somebody else's question, and it looked completely fine on =
+inspection. If you are resuming a job, do not change the input dataset betwee=
+n runs.
+
+Release notes from Emil are in progress. Shout if anything looks off.

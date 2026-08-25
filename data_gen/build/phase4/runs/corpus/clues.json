@@ -429,5 +429,206 @@
       ],
       "rewrote": false
     }
+  },
+  {
+    "clue": "t3.r2.l_pay_dermot",
+    "holder": "dermot",
+    "date": "2025-01-14",
+    "channel": "releases",
+    "attempt": 1,
+    "said": true,
+    "quote": "\"v0.1.15 is out\" just went to the team. I also flagged in it that appending to the input dataset between restarts is a trap, I had 200 rows added to an 800-row set and the resumed job came back with 800 results for 1000 requests, reassembly slotted by index, and half the rows had somebody else's answer without any sign of it on inspection.",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 09:00 message states every element of the required remark: the trap framing, the 200-into-800 row numbers, the restart, the 800-results-for-1000-requests mismatch, index-based reassembly, half the rows getting someone else's answer, and it looking fine on inspection.",
+    "elements": [
+      {
+        "part": "appending to the input dataset between restarts is a trap",
+        "present": true,
+        "why": "Dermot states this explicitly."
+      },
+      {
+        "part": "200 rows were added to an 800-row set",
+        "present": true,
+        "why": "Dermot gives these exact numbers."
+      },
+      {
+        "part": "the job was restarted",
+        "present": true,
+        "why": "He says he added rows 'between restarts' and refers to 'the resumed job'."
+      },
+      {
+        "part": "the resumed job came back with 800 results for 1000 requests",
+        "present": true,
+        "why": "Stated verbatim by Dermot."
+      },
+      {
+        "part": "reassembly slotted the results in by index",
+        "present": true,
+        "why": "Dermot states this mechanism directly."
+      },
+      {
+        "part": "half the rows carried an answer to somebody else's question",
+        "present": true,
+        "why": "Dermot says half the rows had somebody else's answer."
+      },
+      {
+        "part": "it looked completely fine on inspection",
+        "present": true,
+        "why": "Dermot says this happened 'without any sign of it on inspection'."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  dermot    \"v0.1.15 is out\" just went to the team. I also flagged in it that appending to the input   <-- the clue",
+      "09:03  dermot    @emil where are the release notes for 0.1.15 at, and do they cover the caching-and-resum",
+      "09:16  nikolai   I'm around all day if you need me for anything on the release."
+    ]
+  },
+  {
+    "clue": "t4.r1.h1",
+    "holder": "nikolai",
+    "date": "2025-01-14",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "for code-execution, the docker backend is settled: I'm going with `bespokelabs/sandbox:latest` for the image, no hardcoded version string and no override knob / whenever we patch runtime deps the sandbox image gets rebuilt and users just pull it on their next docker run, no curator release required / one image, one tag, less surface to manage.",
+    "said_by": "Nikolai Berresford",
+    "why": "Nikolai's 15:54 messages state the image tag, the no-hardcode/no-knob decision, the rebuild-on-patch behavior, the release-avoidance rationale, and the one-image-one-tag summary.",
+    "elements": [
+      {
+        "part": "the docker backend image choice is bespokelabs/sandbox:latest",
+        "present": true,
+        "why": "stated directly at 15:54"
+      },
+      {
+        "part": "no hardcoded version string in the executor",
+        "present": true,
+        "why": "Nikolai says no hardcoded version string, no override knob"
+      },
+      {
+        "part": "hardcoding a version would make every runtime-dep patch require a curator release",
+        "present": true,
+        "why": "stated as the reason to avoid hardcoding, both at 09:49 and 15:54"
+      },
+      {
+        "part": "the sandbox image gets rebuilt when runtime deps are patched",
+        "present": true,
+        "why": "stated explicitly at 15:54"
+      },
+      {
+        "part": "using latest means users get the fixed image on their next docker run with no release needed",
+        "present": true,
+        "why": "stated explicitly at 15:54"
+      },
+      {
+        "part": "no override knob for the image tag",
+        "present": true,
+        "why": "stated explicitly at both 09:49 and 15:54"
+      },
+      {
+        "part": "rationale: one image, one tag, less surface to manage",
+        "present": true,
+        "why": "stated verbatim at 15:54"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "15:45  dario     Konrad, do you have that list yet of what's actually broken?",
+      "15:45  dario     Before I put the WS-016 draft together this afternoon, does anyone need something specif",
+      "15:54  nikolai   for code-execution, the docker backend is settled: I'm going with `bespokelabs/sandbox:l   <-- the clue",
+      "15:54  nikolai   whenever we patch runtime deps the sandbox image gets rebuilt and users just pull it on ",
+      "15:54  nikolai   one image, one tag, less surface to manage."
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "one image, one tag, less surface to manage."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r1.l_scope_3",
+    "holder": "dermot",
+    "date": "2025-01-14",
+    "channel": "code-review",
+    "wrote_into": "page:postmortem-2025-01-13",
+    "attempt": 1,
+    "said": true,
+    "quote": "The hash function for cache lookup is the single decision point for whether a row is reused or sent to the LLM. All three processors, online, batch, and the local vLLM one, call the same function.",
+    "said_by": "dermot",
+    "why": "The author states plainly that the reuse decision is centralized in one function shared by all processors, which is the same information as the target point.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "cache key"
+    ],
+    "context": [],
+    "artifact": "Postmortem: cache hashing regression revert on Jan 13",
+    "written_as": "onboarding/postmortem-cache-hashing-regression-revert-on-jan-13.md"
+  },
+  {
+    "clue": "t4.r1.h2",
+    "holder": "konrad",
+    "date": "2025-01-15",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Here's the thing on the image override for CodeExecutor backend_params, the docker backend only works against our sandbox image anyway, the entrypoint and mounted paths are all ours.",
+    "said_by": "Konrad Feltrin",
+    "why": "Konrad's 14:09-14:10 messages state the refusal, the reason (sandbox-only image, ours entrypoint/paths), the consequence (confusing failure), and what he wants instead (keep to concurrency/timeout, current tag).",
+    "elements": [
+      {
+        "part": "Konrad doesn't want to add a caller-supplied image override to backend_params",
+        "present": true,
+        "why": "He states \"I'd rather not add it\" about the image override."
+      },
+      {
+        "part": "The docker backend only works against our sandbox image",
+        "present": true,
+        "why": "He says \"the docker backend only works against our sandbox image anyway\"."
+      },
+      {
+        "part": "The entrypoint and mounted paths are ours",
+        "present": true,
+        "why": "He says \"the entrypoint and mounted paths are all ours\"."
+      },
+      {
+        "part": "Pointing it at an arbitrary tag mostly just gets a confusing failure",
+        "present": true,
+        "why": "He says \"pointing it at some arbitrary tag mostly just gets you a confusing failure\"."
+      },
+      {
+        "part": "backend_params should be kept to concurrency and timeout",
+        "present": true,
+        "why": "He says \"Keep backend_params to concurrency and timeout\"."
+      },
+      {
+        "part": "The tag should be whatever is shipped as current",
+        "present": true,
+        "why": "He says \"let the tag be whatever we ship as current\"."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:48  dario     For what it's worth, I already went through the README example and the example scripts, ",
+      "13:48  dario     So from my side that question is settled, nothing broke in the refactor.",
+      "14:09  konrad    Here's the thing on the image override for CodeExecutor backend_params, the docker backe   <-- the clue",
+      "14:09  konrad    pointing it at some arbitrary tag mostly just gets you a confusing failure",
+      "14:09  konrad    I'd rather not add it"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "pointing it at some arbitrary tag mostly just gets you a confusing failure"
+      ],
+      "rewrote": false
+    }
   }
 ]
