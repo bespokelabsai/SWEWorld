@@ -1,0 +1,19 @@
+From: dermot@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, ilse@world.local,
+ otto@world.local
+Subject: v0.1.17.post1 hotfix is out
+Date: Thu, 30 Jan 2025 09:28:00 +0000
+Message-ID: <178766345555.1938449.3644654225760341742@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.17.post1 is shipped.
+
+This hotfix covers four merged changes: PR 418, PR 422 (kluster.ai backend), =
+PR 424 (cost processor fixes), and PR 425 (version bump). Cost accounting is =
+now correct for litellm and external provider edge cases. Batch mode is live =
+and trustworthy.
+
+If you spot anything off in the release notes or cost figures, shout now =E2=
+=80=94 announcement goes out this morning.

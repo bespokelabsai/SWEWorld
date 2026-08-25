@@ -1,0 +1,21 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, gideon@world.local, otto@world.local,
+ ilse@world.local
+Subject: Weekly update: week of Jan 20 =?utf-8?b?4oCU?= v0.1.16 shipped
+Date: Mon, 27 Jan 2025 09:07:00 +0000
+Message-ID: <178766217421.1938449.16702858352296495788@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.16 is out. Main things from last week:
+
+- Shipped v0.1.16
+- PR 409 (remove tiktoken upper bound) is up, needs a look
+- PR 403 (Gemini batch processor) is open but blocked =E2=80=94 generation pa=
+rams aren't routing through the batch path correctly, and cost calc doesn't c=
+over all batch backends yet
+- PR 406 merged; batch work is still blocked on the param passing issue above
+
+If you're on the Gemini batch path, would appreciate eyes on how we're thread=
+ing generation params through. Nothing else blocking on my side today.

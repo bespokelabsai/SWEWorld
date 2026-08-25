@@ -1,0 +1,17 @@
+From: dermot@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, ilse@world.local,
+ otto@world.local
+Subject: v0.1.17 is out
+Date: Tue, 28 Jan 2025 09:35:00 +0000
+Message-ID: <178766256489.1938449.2376797950120810351@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Millrow v0.1.17 has shipped.
+
+Release notes are on the engineering wiki under "Release notes: v0.1.17".
+
+If you hit anything broken or unexpected against this version, please flag it=
+ today so we can decide whether it warrants a patch before we move on. Nothin=
+g known right now but I'd rather hear about it early.

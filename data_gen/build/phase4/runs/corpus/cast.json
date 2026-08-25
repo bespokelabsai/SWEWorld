@@ -264,6 +264,188 @@
         "project_context": null
       }
     },
+    "gideon": {
+      "core": {
+        "name": "Gideon Halloway",
+        "age": 38,
+        "gender": "Female",
+        "occupation": "software developer",
+        "personality": [
+          "curious",
+          "disciplined",
+          "high-energy",
+          "resilient"
+        ],
+        "background": "",
+        "strengths": [
+          "Python",
+          "Java",
+          "JavaScript/React",
+          "AWS",
+          "Azure",
+          "SQL"
+        ],
+        "gaps": [
+          "DevOps and infrastructure-as-code tooling (Terraform, Kubernetes)",
+          "frontend state management libraries when they drift from her core stack",
+          "remembering which deprecated APIs she swore she'd never use again",
+          "estimating timeline impact of her own over-commitment"
+        ],
+        "hobbies": [
+          "Tech meetups and conferences",
+          "Hosting dinner parties",
+          "Wine tasting",
+          "Hiking the C&O Canal Trail",
+          "Playing tennis",
+          "Traveling to European cultural festivals",
+          "Reading business and technology books",
+          "Urban photography",
+          "Mentoring underrepresented youth in tech",
+          "Yoga"
+        ],
+        "travel_habits": "Brittany Bradford plans trips with the precision of a product roadmap, favoring immersive cultural festivals such as Munich's Oktoberfest, the Venice Carnival, and the Lisbon Festas de Lisboa, while balancing weekend getaways to the Shenandoah Valley with occasional long-haul flights to historic cities like Prague and Istanbul, always allocating a budget line for experiential learning and photography.",
+        "dining_preferences": "Brittany Bradford enjoys experimenting in the kitchen as an avid home chef, mastering dishes like coq au vin with a drizzle of truffle oil, crafting a perfect sushi roll with smoked salmon and wasabi, and pairing each course with carefully selected wines such as a crisp Sauvignon Blanc or a robust Bordeaux, while their competitive nature drives them to host themed dinner parties that double as networking events.",
+        "spending_habits": "",
+        "other": [
+          "Brittany grew up in a middle\u2011class family in the Mid\u2011Atlantic region, where education, civic engagement, and professional achievement were highly valued. Her white American upbringing was shaped by the diverse cultural tapestry of Washington, D.C., exposing her to a wide range of perspectives and fostering an appreciation for networking and community involvement. Family traditions emphasized celebrating national holidays, supporting local charities, and encouraging higher education\u2014leading her to earn a business graduate degree at a regional university. This background instilled a pragmatic, methodical outlook, a respect for structured processes, and a strong affinity for collaborative yet competitive environments.",
+          "Brittany aims to transition into senior technology leadership within the next five years, targeting roles such as Director of Engineering or VP of Product at a mid\u2011size tech firm or a government\u2011focused startup. She wants to spearhead large\u2011scale, data\u2011driven projects that modernize public\u2011sector services, while championing inclusive hiring and mentorship programs for women and underrepresented groups in tech. She aspires to become a recognized speaker at national conferences, publish thought pieces on the intersection of technology, policy, and business strategy, and eventually launch her own consultancy focused on digital transformation for civic organizations. To support these ambitions, she plans to earn an executive MBA and a PMP certification, and to deepen her expertise in emerging cloud security and AI ethics."
+        ]
+      },
+      "voice": {
+        "cadence": "burst",
+        "formality": "casual",
+        "capitalization": "normal",
+        "punctuation": "inconsistent",
+        "vocabulary": "technical",
+        "typo_tendency": "frequent",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "agreeable",
+        "signature_words": [
+          "anyway",
+          "so like"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "warmth"
+        },
+        "hedge_words": [
+          "i think",
+          "uh",
+          "off the top of my head"
+        ],
+        "affirm_words": [
+          "yeah ok",
+          "for real"
+        ],
+        "question_style": "restate-guess"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
+    "ilse": {
+      "core": {
+        "name": "Ilse Vandekerckhove",
+        "age": 50,
+        "gender": "Male",
+        "occupation": "software developer",
+        "personality": [
+          "methodical",
+          "pragmatic",
+          "grounded",
+          "detail-oriented"
+        ],
+        "background": "",
+        "strengths": [
+          "Java",
+          "C#",
+          "Python",
+          ".NET",
+          "Spring",
+          "Angular"
+        ],
+        "gaps": [
+          "frontend state management libraries\u2014keeps forgetting which hook does what in React",
+          "deployment infrastructure and containerization\u2014Docker configs still trip him up",
+          "real-time systems and concurrency primitives beyond basic threading",
+          "keeping up with the latest JS framework churn"
+        ],
+        "hobbies": [
+          "Fly-fishing",
+          "Hiking",
+          "Camping",
+          "Woodworking",
+          "Gardening",
+          "Reading historical novels",
+          "Reading technology magazines",
+          "Chess",
+          "Volunteer computing instructor",
+          "Model railroading",
+          "Listening to classic rock and blues",
+          "Craft-beer tasting"
+        ],
+        "travel_habits": "Sean Buckley is a meticulous planner who prefers structured, nature\u2011focused trips, having already explored Yellowstone, Glacier, and Banff National Parks, and now dreams of hiking the Patagonia Torres del Paine circuit and the Scottish Highlands, arranging each itinerary months in advance while balancing a modest travel budget with his commitment to maintain work\u2011life equilibrium.",
+        "dining_preferences": "Sean Buckley is a competent home cook who transforms garden\u2011grown vegetables into roasted root medleys, grills fresh river trout with rosemary and lemon, prepares a hearty wild\u2011mushroom risotto, and pairs these dishes with craft\u2011beer selections from local breweries such as Great Divide and BridgePort, reflecting his love for rustic, flavorful meals.",
+        "spending_habits": "",
+        "other": [
+          "Sean\u2019s cultural background blends a Midwestern Irish\u2011American heritage with the rugged, community\u2011centered ethos of Montana\u2019s \u201cBig Sky\u201d country. Raised in a small town, he grew up valuing self\u2011reliance, neighborly cooperation, and a deep respect for nature. His family traditions include modest celebrations of Irish holidays like St. Patrick\u2019s Day, and a strong work ethic passed down through generations of labor\u2011focused parents. Since moving to Livingston, he has embraced the local culture of outdoor recreation, frontier hospitality, and a modest, pragmatic approach to life, while integrating his technical career into the region\u2019s growing digital economy.",
+          "Sean aims to transition into a lead software architect role within the next three to five years, focusing on building scalable, maintainable systems for his employer and local businesses. He seeks to obtain AWS Solutions Architect certification to broaden his cloud expertise and to mentor a small cohort of junior developers, fostering a culture of quality and predictability. Over the longer term, he envisions moving into a technical leadership position that balances architectural oversight with hands-on coding, while maintaining a stable work\u2011life balance that allows him to spend ample time outdoors. He also hopes to contribute to open\u2011source projects that emphasize reliability and to develop a community\u2011oriented tech workshop series in Livingston."
+        ]
+      },
+      "voice": {
+        "cadence": "burst",
+        "formality": "casual",
+        "capitalization": "normal",
+        "punctuation": "inconsistent",
+        "vocabulary": "technical",
+        "typo_tendency": "frequent",
+        "register": "native",
+        "reaction_style": "expressive",
+        "agreeableness": "neutral",
+        "signature_words": [
+          "that works",
+          "solid"
+        ],
+        "emoji_tendency": {
+          "frequency": "rare",
+          "preferred": [
+            "\ud83d\ude05"
+          ],
+          "trigger": "humor"
+        },
+        "hedge_words": [
+          "i guess",
+          "hold on",
+          "er"
+        ],
+        "affirm_words": [
+          "no doubt",
+          "gotcha"
+        ],
+        "question_style": "plain-what"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
     "konrad": {
       "core": {
         "name": "Konrad Feltrin",

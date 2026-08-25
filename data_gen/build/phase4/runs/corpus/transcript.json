@@ -103,6 +103,7 @@
         "dermot",
         "emil",
         "gideon",
+        "ilse",
         "konrad",
         "nikolai",
         "petar"
@@ -6970,6 +6971,413 @@
           "userId": "nikolai",
           "text": "I'll leave PR 387 open overnight then.",
           "ts": "2025-01-23T18:26:56.688068"
+        },
+        {
+          "userId": "nikolai",
+          "text": "looked over PR 402 this morning, the requirements.txt changes seem straigtforward but I'd feel better with another set of eyes before we merge, especially with PR 403 still in flight.",
+          "ts": "2025-01-24T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "does PR 402 add any new packages or is it just version pins?",
+          "ts": "2025-01-24T10:16:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "ok",
+          "ts": "2025-01-24T10:40:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll just pull PR 402 and check the diff myself, the description doesn't tell me much.",
+          "ts": "2025-01-24T10:40:48"
+        },
+        {
+          "userId": "emil",
+          "text": "While there are eyes on PRs, PR 403 could use a look too, specifically around how the batch processor hooks into the provider layer, want to make sure the interface design is solid before the weekend.",
+          "ts": "2025-01-24T12:45:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario, you probably should be the one to eyeball PR 403's provider layer interface, given you own that side.",
+          "ts": "2025-01-24T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "I can look at PR 403's provider layer but I'm not sure a review is the right move yet - the job ID surfacing question is still open as far as I know",
+          "ts": "2025-01-24T13:46:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we want to settle that first, or does Emil think the interface is locked enough to review as-is?",
+          "ts": "2025-01-24T13:46:52"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm around this afternoon, settle the job ID question first and then you can do a proper review of PR 403.",
+          "ts": "2025-01-24T14:00:52",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-01-24T14:01:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "what's actually undecided on the job ID, the schema or where it surfaces?",
+          "ts": "2025-01-24T14:01:17",
+          "threadParentTs": "2025-01-24T14:00:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 409 is merged and pr 403 is back in review, though I'm still not sorted on the parameter passing side for the batch processor.",
+          "ts": "2025-01-27T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil where are you on the param passing for PR 403?",
+          "ts": "2025-01-27T09:11:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "might be relevant to the param side, issue 42 covers optional batch_size as an input variable, which looks adjacent to what's blocking PR 403.",
+          "ts": "2025-01-27T09:38:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is issue 42 specifically about generation params like temperature and max_tokens, or just batch config like batch_size?",
+          "ts": "2025-01-27T11:15:48"
+        },
+        {
+          "userId": "konrad",
+          "text": "Feels like possibly a different category",
+          "ts": "2025-01-27T11:16:00"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad still not pinned down, you and Dario free tomorrow morning to go through it together?",
+          "ts": "2025-01-27T16:23:28"
+        },
+        {
+          "userId": "konrad",
+          "text": "Well, I'm around but I'm not sure a call gets us there if the gap isn't narrowed down first, maybe Emil takes another pass at it tonight or first thing and we sync after?",
+          "ts": "2025-01-27T16:51:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-01-27T17:29:28"
+        },
+        {
+          "userId": "emil",
+          "text": "fair. I'll dig into it first thing tomorrow.",
+          "ts": "2025-01-27T17:29:33",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Does PR 403 need anything else to clear review, or is param-passing the only thing still blocking it?",
+          "ts": "2025-01-27T17:30:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up Konrad's weekly, did that go to the whole team?",
+          "ts": "2025-01-27T18:25:17"
+        },
+        {
+          "userId": "emil",
+          "text": "It already calls out PR 403 and the cost calc gap",
+          "ts": "2025-01-27T18:25:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 is almost ready, just cleaning up the example outputs beofre I tag reviewers",
+          "ts": "2025-01-28T09:00:00"
+        },
+        {
+          "userId": "ilse",
+          "text": "Anyone know where PR 407 is at?",
+          "ts": "2025-01-28T09:19:00"
+        },
+        {
+          "userId": "ilse",
+          "text": "Trying to figure out if it's blocked on something or ready for eyes",
+          "ts": "2025-01-28T09:19:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Been menaing to check on that one too, just haven't gotten to it today",
+          "ts": "2025-01-28T16:19:08"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 407 is ready for eyes as far as I can tell, been sitting there for a bit waiting on a reviewer",
+          "ts": "2025-01-28T16:32:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Not blocked on anything on my end",
+          "ts": "2025-01-28T16:32:13"
+        },
+        {
+          "userId": "emil",
+          "text": "gotcha",
+          "ts": "2025-01-28T16:43:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone free to take a look at PR 411 this week?",
+          "ts": "2025-01-28T16:43:21"
+        },
+        {
+          "userId": "emil",
+          "text": "And PR 133 has been open a while, not sure if it still needs eyes or if Otto's deprioritized it",
+          "ts": "2025-01-28T16:43:26"
+        },
+        {
+          "userId": "dario",
+          "text": "I can take PR 411 if nobody else has grabbed it.",
+          "ts": "2025-01-28T16:53:26",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Also checked for the v0.1.15.post1 postmortem on the wiki and it isnt there yet, Emil.",
+          "ts": "2025-01-28T16:53:38"
+        },
+        {
+          "userId": "ilse",
+          "text": "So it just needs a reviewer assigned, not an actual review done yet?",
+          "ts": "2025-01-28T16:53:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-01-28T17:01:50"
+        },
+        {
+          "userId": "dario",
+          "text": "just needs someone assigned",
+          "ts": "2025-01-28T17:01:55"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly it's a pretty self-contained change if you're familiar with the verifier logic at all",
+          "ts": "2025-01-28T17:02:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 should be up first thing tomorrow",
+          "ts": "2025-01-28T17:19:07",
+          "reactions": [
+            {
+              "emoji": "✨",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 133 still doesn't have a reviewer - is Otto still looking for eyes on that, or has it slipped off the list?",
+          "ts": "2025-01-28T18:01:07"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually I take that back a bit, I said PR 407 just needed a reviewer assigned but nobody's actually stepped up for it yet.",
+          "ts": "2025-01-28T18:22:36.741684"
+        },
+        {
+          "userId": "dario",
+          "text": "So the path on that one is still not really clear going into tomorrow.",
+          "ts": "2025-01-28T18:22:48.741684"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Weekly sync notes for the jan 27 week are up on the engineering wiki, \"Weekly sync notes: week of Jan 27, v0.1.17 and v0.1.17.post1 shipped\", covers both releases, everything in flight, and the open issues.",
+          "ts": "2025-01-29T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold, what's the current state of PR 418, is it ready for review or are you still working through something on the gemini batch side?",
+          "ts": "2025-01-29T09:00:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is anyone planning to look at PR 419 today, or should we defer it?",
+          "ts": "2025-01-29T09:58:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone taken a look at PR 422 (kluster.ai backend) yet, or is that still waiting on someone?",
+          "ts": "2025-01-29T10:30:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Has PR 411 (ci: cache) had any review yet?",
+          "ts": "2025-01-29T10:49:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "that one touches CI so I want to make sure I look at it if nobody has",
+          "ts": "2025-01-29T10:49:35"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 418 is ready for review, touches batch-mode and provider-integrations.",
+          "ts": "2025-01-29T11:13:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I've looked at PR 422 a few times, but I'm not sure it's ready to land today - the config side still feels unsettled",
+          "ts": "2025-01-29T11:33:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we do one more pass and merge, or just hold it until that's clearer?",
+          "ts": "2025-01-29T11:33:39"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 418 is ready to go, just needs a review pass",
+          "ts": "2025-01-29T12:09:39"
+        },
+        {
+          "userId": "emil",
+          "text": "On PR 419 I'm on the fence, the klusterai refactor is solid but if SimpleLLM is still shifting I'd probably rather defer than land it and have to rebase immediately",
+          "ts": "2025-01-29T12:09:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "do we have any sense of when SimpleLLM is expected to settle, or is that still unclear?",
+          "ts": "2025-01-29T12:39:44"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, do you have any read on the SimpleLLM timeline?",
+          "ts": "2025-01-29T12:41:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold, is there anything specific in PR 418 I should focus on in the review, or is it a fairly contained change?",
+          "ts": "2025-01-29T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, I dunno on SimpleLLM honestly",
+          "ts": "2025-01-29T14:29:29"
+        },
+        {
+          "userId": "dario",
+          "text": "Want to do a quick call this afternoon to sort through 418, 419, and 422 together?",
+          "ts": "2025-01-29T14:29:34",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 425 version bump is in, needs a second set of eyes to confirm the release notes are accurate before we call v0.1.17.post1 ready",
+          "ts": "2025-01-30T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "touches release-and-ci, blocking the announcement",
+          "ts": "2025-01-30T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone looked at PR 424 yet, specifically whether the cost processor handles the litellm and external provider edge cases correctly?",
+          "ts": "2025-01-30T09:04:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario did the kluster.ai integration in PR 422 go through CI clean, no regressions?",
+          "ts": "2025-01-30T09:24:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "release notes for v0.1.17.post1 are up on the engineering wiki",
+          "ts": "2025-01-30T10:25:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "does that cover what we need for the announcement, or is anyone still waiting on something before we call PR 424 and 425 validated?",
+          "ts": "2025-01-30T10:25:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "welp",
+          "ts": "2025-01-30T11:08:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "taking silence as no objections, PR 424 and 425 I'm calling validated, open question on cost edge cases stays open",
+          "ts": "2025-01-30T11:08:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Did CI actually hit the litellm and external provider edge cases in PR 424, or is that still untested?",
+          "ts": "2025-01-30T11:40:32"
+        },
+        {
+          "userId": "dermot",
+          "text": "sorry, I meant to follow up on the PR 424 edge case question earlier, I'm not sure on the CI coverage either, still open from my side",
+          "ts": "2025-01-30T12:12:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "separately: the release notes for v0.1.17.post1 are up on the engineering wiki if anyone wants to check them before the announcement",
+          "ts": "2025-01-30T12:12:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Checked the release notes, PR 424 and 425 are both in there and my parts read correctly.",
+          "ts": "2025-01-30T12:47:21",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The notes already flag litellm edge case coverage as not fully confirmed - is that wording okay to go out with the announcement, or does it need tightening first?",
+          "ts": "2025-01-30T12:47:33",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -8466,6 +8874,292 @@
           "userId": "dario",
           "text": "I can do that, are we trying to fix them in the same session, or just get a list for tomorrow?",
           "ts": "2025-01-22T14:47:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "going through hte example scripts this morning, already found a couple of interface breaks, should have fixes in before end of day.",
+          "ts": "2025-01-24T09:00:00",
+          "reactions": [
+            {
+              "emoji": "🔧",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "which interfaces are throwing, is it the request processor api or something further upstream?",
+          "ts": "2025-01-24T09:28:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "still narrowing it down, I think it might be the request processor but not certian yet",
+          "ts": "2025-01-24T10:13:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario, you'd probably spot this faster than me since you own examples-cookbooks",
+          "ts": "2025-01-24T10:13:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the actual error output when it breaks, can you paste a stack trace?",
+          "ts": "2025-01-24T10:51:05"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward it not being the request processor, the examples barely scratch that surface",
+          "ts": "2025-01-24T11:37:11"
+        },
+        {
+          "userId": "dario",
+          "text": "Let me pull up the scripts directly and see what I'm actually looking at",
+          "ts": "2025-01-24T11:37:19"
+        },
+        {
+          "userId": "dario",
+          "text": "let me check",
+          "ts": "2025-01-24T11:37:59"
+        },
+        {
+          "userId": "nikolai",
+          "text": "still working through the scripts, haven't got a clean reproducible trace yet but getting there, should have something concrete to paste this afternoon.",
+          "ts": "2025-01-24T12:07:59"
+        },
+        {
+          "userId": "emil",
+          "text": "I have some interface changes on the provider side recently, are any of the breaks touching that layer?",
+          "ts": "2025-01-24T13:46:28"
+        },
+        {
+          "userId": "dario",
+          "text": "We still haven't pinned down which interface changes are actually breaking the examples - Nikolai's still looking but no trace yet.",
+          "ts": "2025-01-24T14:29:28"
+        },
+        {
+          "userId": "dario",
+          "text": "That needs to land today, I'll pull the scripts up myself this afternoon",
+          "ts": "2025-01-24T14:29:40"
+        },
+        {
+          "userId": "dario",
+          "text": "Once we have the list of broken examples, are we targeting same-day fixes so users aren't stuck over the weekend?",
+          "ts": "2025-01-24T14:37:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Same-day is the right goal, but if Dario doesn't have the full list until late afternoon, do we actually want to rush fixes out on a Friday or hold for Monday with something clean?",
+          "ts": "2025-01-24T15:19:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "same-day for me, I'll push the fixes once we have the list.",
+          "ts": "2025-01-24T15:54:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil has a point though - if the list isn't clean until late, do we actually have time to review the fixes properly before pushing, or are we just creating new risk?",
+          "ts": "2025-01-24T16:01:08"
+        },
+        {
+          "userId": "emil",
+          "text": "I can do a quick review pass on the fixes before they go out if that helps.",
+          "ts": "2025-01-24T16:44:39",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm around for the rest of the day if you need another review pass before anything goes out",
+          "ts": "2025-01-24T17:15:39",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "I've got fixes drafted for the scripts I found, just waiting on Dario's list to confirm I haven't missed anything before I push.",
+          "ts": "2025-01-24T17:38:39"
+        },
+        {
+          "userId": "dario",
+          "text": "Still going through the scripts on my end, should have the full list to Nikolai shortly.",
+          "ts": "2025-01-24T18:05:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "still here, ping me when the fixes are ready to review before they go out",
+          "ts": "2025-01-24T18:22:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 420 (push_to_hub override) is merged, but I haven't verified the push_to_hub example still runs cleanly against that change, want to get eyes on it this morning.",
+          "ts": "2025-01-29T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario Kestrel, do you know what changed in the klusterai factory refactor that would affect the examples?",
+          "ts": "2025-01-29T09:05:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I want to make sure I'm not missing anything beofre I check which ones need updating",
+          "ts": "2025-01-29T09:05:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Has anyone run the push_to_hub example against main since PR 420 went in?",
+          "ts": "2025-01-29T10:02:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is the push_to_hub example under examples-cookbooks, or does it live somewhere else in the repo?",
+          "ts": "2025-01-29T10:42:46"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 421 is the klusterai example refactor, that should cover what changed with the factory",
+          "ts": "2025-01-29T11:05:46",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Haven't verified push_to_hub against main since PR 420 merged yet, that's still on my list this afternoon",
+          "ts": "2025-01-29T11:05:51"
+        },
+        {
+          "userId": "emil",
+          "text": "I haven't checked the examples against the PR 419 factory changes yet, doing that this afternoon",
+          "ts": "2025-01-29T11:43:51"
+        },
+        {
+          "userId": "emil",
+          "text": "If PR 421 covers the klusterai side, the main thing left is whether anything in the examples hits the factory interface directly",
+          "ts": "2025-01-29T11:43:56"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth running a quick grep across the examples for the old factory pattern before the afternoon pass, that'd flag anything reaching the interface directly without having to check each one by hand.",
+          "ts": "2025-01-29T11:50:00",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Could knock out the push_to_hub check in the same pass since PR 420 is already merged.",
+          "ts": "2025-01-29T12:27:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "nice that PR 421 already covers the factory side, saves the afternoon pass a lot of ground.",
+          "ts": "2025-01-29T12:44:10"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario Kestrel, do you want to take the push_to_hub check this afternoon or should I just run it myself since it was my PR?",
+          "ts": "2025-01-29T12:44:31"
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, does the push_to_hub example use a specific HuggingFace dataset, or does it write to a throwaway one for testing?",
+          "ts": "2025-01-29T13:10:31"
+        },
+        {
+          "userId": "dario",
+          "text": "I can take the push_to_hub check, I'm around this afternoon.",
+          "ts": "2025-01-29T14:37:06"
+        },
+        {
+          "userId": "dario",
+          "text": "While I'm in there I'll also confirm the other factory-adjacent examples are covered, that part's still not fully closed.",
+          "ts": "2025-01-29T14:37:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "in case the token scoping comes up while you're running it: https://huggingface.co/docs/datasets/upload_dataset has the relevant push_to_hub params.",
+          "ts": "2025-01-29T14:58:18",
+          "unfurl": {
+            "title": "huggingface.co",
+            "url": "https://huggingface.co/docs/datasets/upload_dataset"
+          }
+        },
+        {
+          "userId": "emil",
+          "text": "PR 421 covers the klusterai example side, but PR 419 also touches the factory interface, so I'm not sure we're fully clear on that front yet.",
+          "ts": "2025-01-29T15:20:18"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm around this afternoon and can run the PR 419 factory check myself.",
+          "ts": "2025-01-29T15:20:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "good, that covers it then.",
+          "ts": "2025-01-29T15:34:46"
+        },
+        {
+          "userId": "dario",
+          "text": "I've got the push_to_hub check",
+          "ts": "2025-01-29T15:49:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Ran the factory interface check against the examples, nothing broke from the PR 419 changes",
+          "ts": "2025-01-29T16:01:46",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Should be clean on that side",
+          "ts": "2025-01-29T16:01:58"
+        },
+        {
+          "userId": "dario",
+          "text": "Still working through the push_to_hub check, I wouldn't call it fully clear yet.",
+          "ts": "2025-01-29T16:27:58"
+        },
+        {
+          "userId": "nikolai",
+          "text": "just waiting on Dario's push_to_hub result, then we should be done for today.",
+          "ts": "2025-01-29T16:42:58"
+        },
+        {
+          "userId": "dario",
+          "text": "push_to_hub ran clean against main, nothing broke from PR 420",
+          "ts": "2025-01-29T17:22:58",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Think that covers everything on the examples side for today",
+          "ts": "2025-01-29T17:23:03"
         }
       ],
       "projectSpec": {
@@ -14133,6 +14827,429 @@
           "userId": "emil",
           "text": "With the capacity guard in place, what's the next constraint we're likely to hit on the Anthropic online path?",
           "ts": "2025-01-23T15:37:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update for the week of Jan 20 just went out to the team",
+          "ts": "2025-01-27T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "v0.1.16 shipped, but PR 403 is still stuck, params aren't routing through the Gemini batch path and cost calc doesn't cover all batch backends yet",
+          "ts": "2025-01-27T09:00:05",
+          "reactions": [
+            {
+              "emoji": "🚢",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil for PR 403, are the generation params supposed to pass through as part of the request body on each batch item, or do they get set once at the job level?",
+          "ts": "2025-01-27T09:13:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does anyone know if the cost calc for batch is supposed to handle all backends with a single formula, or is each backend expected to provide its own cost estimate?",
+          "ts": "2025-01-27T10:21:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil did anyone validate PR 406 after it merged, or did it go in without a post-merge check?",
+          "ts": "2025-01-27T11:13:02"
+        },
+        {
+          "userId": "dario",
+          "text": "Params are going out from provider-integrations fine, they're just not making it into the batch entries in PR 403.",
+          "ts": "2025-01-27T16:38:00"
+        },
+        {
+          "userId": "emil",
+          "text": "gotcha",
+          "ts": "2025-01-27T18:28:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Read the weekly, it flags the param routing as needing eyes from my side but doesn't go further on cost calc scope",
+          "ts": "2025-01-27T18:28:51.765726"
+        },
+        {
+          "userId": "dario",
+          "text": "Is each batch backend expected to provide its own cost estimate, or is there supposed to be one shared formula?",
+          "ts": "2025-01-27T18:28:59.765726"
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.17 is wrapped on my end so I'm moving over to multimodal-prompts this morning, and the structured-output design questions are next on my list once I get a read on where that stands.",
+          "ts": "2025-01-28T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "what's the current state of structured-output design, is there an open doc or issue tracking it?",
+          "ts": "2025-01-28T09:43:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure of anything tracking it formally, I was planning to dig into the design implications this afternoon, that's on my list too.",
+          "ts": "2025-01-28T10:26:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold what's the actual scope of the serialization and metadata cleanup you flagged, is it contained to batch-mode or does it touch anything else?",
+          "ts": "2025-01-28T10:54:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Serialization cleanup is mostly contained to batch-mode, but there's some spillover into provider-integrations depending on how response objects get passed back",
+          "ts": "2025-01-28T11:11:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Metadata side is fully in batch-mode",
+          "ts": "2025-01-28T11:11:12"
+        },
+        {
+          "userId": "emil",
+          "text": "hmm",
+          "ts": "2025-01-28T16:58:16"
+        },
+        {
+          "userId": "emil",
+          "text": "has anyone written up the structured-output design implications anywhere, or is that still floating before we close out today?",
+          "ts": "2025-01-28T16:58:21"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dermot said this morning there was nothing formal tracking it yet, so it's probably still floating.",
+          "ts": "2025-01-28T17:32:21"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward at least getting the implications written down before we close today, but honestly I'm not sure we have enough to make a real design call yet.",
+          "ts": "2025-01-28T17:45:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Looked at the v0.1.17 release notes and there's nothing in there on batch-mode, the Gemini batch processor isn't mentioned at all.",
+          "ts": "2025-01-28T17:56:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Nobody's written up the structured-output design implications yet as far as I can tell.",
+          "ts": "2025-01-28T17:56:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we putting that on the 0.2 roadmap, or does someone own writing it up before we close today?",
+          "ts": "2025-01-28T17:56:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "I said I'd get to structured-output implications this afternoon, I'll write up what we know and flag it for the 0.2 roadmap before I'm done tonight",
+          "ts": "2025-01-28T18:06:50",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'd want to understand that provider-integrations spillover a bit better before we call Emil's scope done, honestly.",
+          "ts": "2025-01-28T18:19:50"
+        },
+        {
+          "userId": "emil",
+          "text": "fair",
+          "ts": "2025-01-28T18:27:14.829786"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 is almost ready to push, just tidying the last bits on the Prometheus judge example",
+          "ts": "2025-01-29T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario what's the shape you're thinking for the cost estimation API, is it something you call before submitting or does it inspect an existing run?",
+          "ts": "2025-01-29T09:06:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "Thinking about this a bit, so like if two dataset rows render to the same prompt text, does the cost estimate count both sends or just the one?",
+          "ts": "2025-01-29T09:59:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "Answering my own thing I think, at least from the caching side, if two rows hash to the same prompt we'd only store one entry anyway, so the estimate should reflect one send not two.",
+          "ts": "2025-01-29T11:01:10"
+        },
+        {
+          "userId": "dario",
+          "text": "Makes sense",
+          "ts": "2025-01-29T11:29:10",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "that's consistent with how the cache layer handles it.",
+          "ts": "2025-01-29T11:29:15"
+        },
+        {
+          "userId": "emil",
+          "text": "If the hash keys on prompt content alone then that tracks, but I saw RAFT last night emit the same byte-identical payload twice against two different chunk IDs, and both went out as separate requests and both got billed",
+          "ts": "2025-01-29T11:50:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Byte identical payload, I diffed them myself.",
+          "ts": "2025-01-29T11:50:02.666667"
+        },
+        {
+          "userId": "emil",
+          "text": "Second one should've come straight back off disk since we already had that exact answer.",
+          "ts": "2025-01-29T11:50:04.333334"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the key scoped to just the prompt text, or does it incorporate something row-level?",
+          "ts": "2025-01-29T11:50:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly the cost estimator probably needs to deduplicate on prompt content specifically, independent of whatever key the cache store is using",
+          "ts": "2025-01-29T12:32:06"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 is ready, pushing for review now",
+          "ts": "2025-01-29T12:54:06",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "For the cost estimate, does it need to account for rows already completed in a partial run, or does it just estimate the full dataset cold?",
+          "ts": "2025-01-29T13:33:06",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-29T13:40:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "Separately, cost is coming back wrong for non-OpenAI batch runs, it's not zero but it's consistently off from what the provider actually billed",
+          "ts": "2025-01-29T13:40:06"
+        },
+        {
+          "userId": "emil",
+          "text": "Probably both, but I'd guess resume-aware is the harder case, is that what you're asking about specifically?",
+          "ts": "2025-01-29T13:40:21",
+          "threadParentTs": "2025-01-29T13:33:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil's question is building on what I asked, so I should address it. But the instruction says to make this a \"Quick logistics update: Share your own availability.\" Hmm, my availability is \"around today\" - so I'm around. Emil asked if resume-aware is what I'm asking about specifically. I could briefly confirm and note I'm around to keep working through this today. Let me think - the instruction says to share my own availability. I'm around today. Maybe I can just note I'm around and can dig into the resume-aware case this afternoon if useful. But I also want to respond to Emil's question. Actually, the instruction says this message should be a logistics update about availability. I should separate that from answering Emil. But Emil's question builds directly on what I asked, so I'd naturally address it. The instruction says to stay consistent - I asked the question, Emil responded to me. Let me do a short logistics note that also briefly connects to Emil's thread, or just do the logistics note as its own thing. Around all afternoon if anyone wants to dig into the resume-aware semantics more",
+          "ts": "2025-01-29T14:25:21"
+        },
+        {
+          "userId": "emil",
+          "text": "For the resume case, is the question about what's already in the output, or what's in the cache?",
+          "ts": "2025-01-29T14:25:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "- *gemini batch params* fixed, cost accounting correct, batch mode is live\n- *kluster.ai* backend integrated, provider dispatch and cost accounting working\n- *WS-028 design: Release Engineering, CI & Test Suite, round two* is up on the engineering wiki, coverage floor, pre-commit, automated version bump, cost accounting gate",
+          "ts": "2025-01-30T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Gemini batch and Kluster landed on my end too, cost accounting is solid",
+          "ts": "2025-01-30T09:05:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 is still sitting in review, that's the one thing on my plate that hasn't moved yet today.",
+          "ts": "2025-01-30T09:05:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon is PR 161 blocking anything for the release, or is it independent?",
+          "ts": "2025-01-30T09:28:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "Independent, it won't hold up the release",
+          "ts": "2025-01-30T09:56:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "so with PR 161 clear of the release, has anyone had a chance to look at the WS-028 design on the engineering wiki, specifically the coverage floor number, I want to know if 80% feels right before we start wiring CI gates.",
+          "ts": "2025-01-30T10:32:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Separate thing: I'm seeing the CLI drop cost totals when a batch run finishes with partial failures, it just prints zero instead of the actual spend up to that point",
+          "ts": "2025-01-30T10:55:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Flagging in case it affects the cost accounting gate Dermot is building into WS-028",
+          "ts": "2025-01-30T10:55:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Looked at the release notes, batch mode and cost processor are both in there, PR 418 and 424 called out.",
+          "ts": "2025-01-30T11:47:24"
+        },
+        {
+          "userId": "emil",
+          "text": "The notes themselves flag litellm edge case coverage in PR 424 as an open question - is that landing in WS-028 or is it just waiting on production traffic?",
+          "ts": "2025-01-30T11:47:36"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, free this afternoon to walk through the WS-028 coverage floor and the cost accounting gate together?",
+          "ts": "2025-01-30T11:50:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Around this afternoon too if it helps to have the batch side in on that WS-028 call.",
+          "ts": "2025-01-30T13:00:09"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil joining works for me, @Dermot what time suits you?",
+          "ts": "2025-01-30T13:27:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the cost display bug I flagged tracked anywhere, or should I file an issue for it before the WS-028 call this afternoon?",
+          "ts": "2025-01-30T13:31:09"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider-integrations is clean post-merge, Kluster dispatch and cost accounting both confirmed working end to end.",
+          "ts": "2025-01-30T14:17:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm around later this afternoon, 4ish works for the call",
+          "ts": "2025-01-30T14:57:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil not sure on the litellm edge case yet, do we put it in WS-028 scope now, or wait to see if prod traffic actually surfaces it first?",
+          "ts": "2025-01-30T14:57:46"
+        },
+        {
+          "userId": "emil",
+          "text": "The release notes already flag the litellm edge case coverage as an open question.",
+          "ts": "2025-01-30T15:06:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "Nobody got back to me on the cost display bug so I'll file an issue for it now",
+          "ts": "2025-01-30T15:46:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Worth flagging in that issue whether the cost processor itself is returning zero or just the CLI display is wrong on partial failure - they're different roots.",
+          "ts": "2025-01-30T17:13:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "Good call",
+          "ts": "2025-01-30T17:35:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "I noted both cases in the issue",
+          "ts": "2025-01-30T17:35:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "Wrapping up for today, around tomorrow if anything needs a follow up",
+          "ts": "2025-01-30T17:35:35"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider-integrations side is wrapped for the day, I'll be on the call at 4.",
+          "ts": "2025-01-30T17:40:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Batch mode and cost accounting are wrapped on my end, Gemini params are correct and live",
+          "ts": "2025-01-30T17:42:35"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 411 CI cache work is still in flight but nothing blocking the release",
+          "ts": "2025-01-30T17:42:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "Are we actually cutting v0.1.17.post1 today or is that slipping to tomorrow?",
+          "ts": "2025-01-30T18:02:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Already out, Dermot cut it earlier this afternoon.",
+          "ts": "2025-01-30T18:14:58.976177",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "WS-028 design is on the engineering wiki, next cycle has a starting point.",
+          "ts": "2025-01-30T18:16:58.976177"
+        },
+        {
+          "userId": "gideon",
+          "text": "nice, good day",
+          "ts": "2025-01-30T18:23:58.976177",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 3
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -15157,6 +16274,109 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "dermot",
+          "text": "every time I run model sweep I end up exporting `CURATOR_DISABLE_CACHE=1` for the whole thing, which means the second and third models pay full price for prompts we already cached at the first. the flag is too blunt, reuse needs to be scoped per model, not switched off wholesale.",
+          "ts": "2025-01-30T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "is the cache key scoped per model at all right now, or is it purely content-based?",
+          "ts": "2025-01-30T09:16:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, you own caching-and-resume, do you know offhand whether there's any existing mechanism for per-model cache isolation, or is it all one flat keyspace right now?",
+          "ts": "2025-01-30T10:17:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "nobody got back to me on the cache key question, so leaving that for dario this afternoon",
+          "ts": "2025-01-30T11:05:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "separate thing: is there anyone running model sweeps regularly enough that the `CURATOR_DISABLE_CACHE=1` workaround is actually costing real money, or is it just me hitting it?",
+          "ts": "2025-01-30T11:05:44"
+        },
+        {
+          "userId": "dario",
+          "text": "Flat keyspace, no model scope at all right now",
+          "ts": "2025-01-30T11:32:44"
+        },
+        {
+          "userId": "dario",
+          "text": "And it bit me hard this week, burned most of yesterday on completions that weren't from the model I thought I was calling, because a cached response from an earlier run just silently satisfied the request",
+          "ts": "2025-01-30T11:32:52",
+          "reactions": [
+            {
+              "emoji": "😬",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "oof",
+          "ts": "2025-01-30T12:13:52",
+          "reactions": [
+            {
+              "emoji": "😬",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "that's a rough way to lose a day",
+          "ts": "2025-01-30T12:14:04"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure \"disable the cache for model sweeps\" is good enough to leave as the guidance - someone who doesn't know to set the flag just loses money silently. Are we attaching the keying fix to the cache_stats work, or does this need its own issue?",
+          "ts": "2025-01-30T12:53:51",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean against a separate issue, it's really the same root as cache_stats, opening another one just splits the work",
+          "ts": "2025-01-30T12:57:51"
+        },
+        {
+          "userId": "dario",
+          "text": "Does the cache_stats work have an open issue I can attach this to, or is it only in someone's head right now?",
+          "ts": "2025-01-30T12:58:15"
+        },
+        {
+          "userId": "dario",
+          "text": "Is CURATOR_DISABLE_CACHE=1 already set on the nightly, or does someone still need to wire that in?",
+          "ts": "2025-01-30T14:10:15"
+        },
+        {
+          "userId": "emil",
+          "text": "Nightly already has it wired in:\n```yaml\nenv:\n CURATOR_DISABLE_CACHE: \"1\"\n```",
+          "ts": "2025-01-30T14:53:15"
+        },
+        {
+          "userId": "emil",
+          "text": "That only covers the nightly though, not users running their own model sweeps.",
+          "ts": "2025-01-30T14:53:43"
+        },
+        {
+          "userId": "dario",
+          "text": "On my end, I'm folding the per-model keying gap into the cache_stats work rather than opening a separate fix, the nightly flag handles the immediate exposure, and the actual key scoping needs to happen there anyway",
+          "ts": "2025-01-30T15:43:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "i'm not entirely sure folding it into cache_stats is the right call if that work isn't imminent, the nightly flag protects the CI run but anyone doing their own sweep today is still silently burning money on the wrong model's cache",
+          "ts": "2025-01-30T16:24:20"
         }
       ],
       "projectSpec": {
@@ -19157,6 +20377,240 @@
           "userId": "emil",
           "text": "Still working through it, haven't confirmed yet. If the None is handled cleanly on the caller side, that's the last gate.",
           "ts": "2025-01-21T18:28:56.480050"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 403 is coming along, the Gemini batch processor core is done, and I'm working through the provider layer hookups this morning to make sure the interface lines up with how bulk-llm-inference expects things.",
+          "ts": "2025-01-24T09:00:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Does the interface Emil's hooking into expect a sync call or async from the provider layer side?",
+          "ts": "2025-01-24T11:03:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Async on the Gemini side, you submit a batch job, get back a job ID, then poll for completion",
+          "ts": "2025-01-24T11:22:00"
+        },
+        {
+          "userId": "emil",
+          "text": "The Gemini batch API docs cover the full lifecycle if it helps: ai.google.dev has the reference under the Batch section",
+          "ts": "2025-01-24T11:22:08"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold can you make sure PR 403 surfaces the job ID back to the caller in some way, rather than keeping it internal to the batch processor? I want to check how that fits with caching-and-resume before we sign off on it.",
+          "ts": "2025-01-24T11:35:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Does caching-and-resume expect the job ID from the submit call's return value, or does it need to pull it from somewhere else?",
+          "ts": "2025-01-24T12:09:08"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, does caching-and-resume need the job ID to survive a process restart, or is it only needed for the lifetime of a single run?",
+          "ts": "2025-01-24T12:09:38"
+        },
+        {
+          "userId": "emil",
+          "text": "Is there already a pattern in caching-and-resume for writing async job IDs to the cache layer, or does PR 403 need to define that interface?",
+          "ts": "2025-01-24T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, you around this afternoon to take a look at PR 403?",
+          "ts": "2025-01-24T13:41:00",
+          "replyCount": 5,
+          "replyLastTs": "2025-01-24T14:42:44"
+        },
+        {
+          "userId": "dario",
+          "text": "I can look but I'm not sure I can sign off on the caching integration until I know how the job ID surfaces, that was the question I raised earlier",
+          "ts": "2025-01-24T13:41:12",
+          "threadParentTs": "2025-01-24T13:41:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Is the job ID returned directly from the submit call, or does the batch processor hold onto it internally?",
+          "ts": "2025-01-24T13:53:32",
+          "threadParentTs": "2025-01-24T13:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Returns directly from submit:\n```python\nresult = await processor.submit(batch)\n# result.job_id\n```",
+          "ts": "2025-01-24T14:07:01",
+          "threadParentTs": "2025-01-24T13:41:00"
+        },
+        {
+          "userId": "dario",
+          "text": "ok good, that works for caching-and-resume then",
+          "ts": "2025-01-24T14:35:01",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-01-24T13:41:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Do you want me to go ahead and review the provider layer side now, or are there still open design questions I should wait on first?",
+          "ts": "2025-01-24T14:42:44",
+          "threadParentTs": "2025-01-24T13:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Go ahead and review the provider layer side now, the job ID interface is settled enough.",
+          "ts": "2025-01-24T15:23:02",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Going through the provider layer side of PR 403 now, should have feedback before end of day",
+          "ts": "2025-01-24T15:54:02"
+        },
+        {
+          "userId": "dario",
+          "text": "Also digging into the 7 commits that touched provider-integrations and bulk-llm-inference today, want to make sure nothing in there conflicts with what PR 403 is expecting from the provider layer",
+          "ts": "2025-01-24T15:54:24"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 403 is holding at ready-for-review while Dario goes through it",
+          "ts": "2025-01-24T16:39:24"
+        },
+        {
+          "userId": "emil",
+          "text": "My end of the provider layer changes is done",
+          "ts": "2025-01-24T16:39:36",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-24T16:40:07"
+        },
+        {
+          "userId": "dario",
+          "text": "Still going through it - I want to make sure those 7 commits to provider-integrations don't create any conflicts with what you've landed before I sign off",
+          "ts": "2025-01-24T16:40:07",
+          "threadParentTs": "2025-01-24T16:39:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Went through the 7 commits, nothing in provider-integrations or bulk-llm-inference looks like it conflicts with PR 403's interface",
+          "ts": "2025-01-24T16:40:34",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Provider layer side looks clean from my end",
+          "ts": "2025-01-24T16:40:42",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 403 is mostly through, the Gemini batch processor itself is wired up, but generation params aren't making it into the batch path yet",
+          "ts": "2025-01-27T09:00:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Where's it breaking, is the params not getting passed into the batch request at all, or are they going in and just getting dropped before the actual call?",
+          "ts": "2025-01-27T11:19:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually, in the Gemini batch path, when are the generation params supposed to get serialized into each batch entry, at submission time or when PR 403 builds the request?",
+          "ts": "2025-01-27T11:19:13",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-27T16:19:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Good question, I haven't gotten far enough in to answer that yet. Will dig into it tomorrow morning.",
+          "ts": "2025-01-27T16:19:13",
+          "threadParentTs": "2025-01-27T11:19:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, if we're touching the batch path anyway, I'm pretty sure the cost calc only accounts for OpenAI batch right now, not Gemini.",
+          "ts": "2025-01-27T16:19:32"
+        },
+        {
+          "userId": "dario",
+          "text": "Read Konrad's weekly just now, it's got both the param-passing block and the cost calc gap already flagged",
+          "ts": "2025-01-27T16:34:32",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "On the cost calc thing Emil mentioned, is it just Gemini that's unaccounted for or are there other batch backends with the same gap?",
+          "ts": "2025-01-27T16:34:40"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 is mostly done, just cleaning up the last bits before I push for review.",
+          "ts": "2025-01-29T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil does PR 418 actually pass generation params through end-to-end on the Gemini batch path, or is that still being wired up?",
+          "ts": "2025-01-29T09:00:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, have you noticed cost coming back wrong for non-OpenAI batch runs?",
+          "ts": "2025-01-29T09:53:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "For non-OpenAI batch runs, does cost get tracked in provider-integrations or does it come back through batch-mode?",
+          "ts": "2025-01-29T10:14:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is there already an issue open for cost being off on non-OpenAI batch, or should I file one?",
+          "ts": "2025-01-29T11:04:13"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon yes, PR 418 wires it through end-to-end, params go in at the batch submission level and land correctly in the Gemini request, I traced the flow when I wrote the test.",
+          "ts": "2025-01-29T11:47:07",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, cost calc is coming back wrong for non-OpenAI batch runs and I think it touches your side too.",
+          "ts": "2025-01-29T11:54:21"
+        },
+        {
+          "userId": "emil",
+          "text": "What's coming back wrong, is the total off, or is it returning zero?",
+          "ts": "2025-01-29T12:35:21"
         }
       ],
       "projectSpec": {
@@ -21035,6 +22489,251 @@
           "userId": "emil",
           "text": "Haven't closed the TBD yet - I need to pull up PR 378 to confirm the exact config key before I update the page.",
           "ts": "2025-01-21T18:25:42.718276"
+        },
+        {
+          "userId": "dermot",
+          "text": "release notes for v0.1.17 are up on the wiki, \"Release notes: v0.1.17\" in the engineering collection",
+          "ts": "2025-01-28T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "- announcement mail \"v0.1.17 is out\" is sent to the team\n- asked them to flag anything broken today if they find it\n- release notes are up on the wiki",
+          "ts": "2025-01-28T09:00:23"
+        },
+        {
+          "userId": "nikolai",
+          "text": "CI looks clean on v0.1.17, nothing flagged on my end, so we're good there. Dermot, nice work getting notes and the announcement out so fast.",
+          "ts": "2025-01-28T09:45:09",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "good to hear. sitting on replies to the announcement, and if nothing comes back we're clear.",
+          "ts": "2025-01-28T10:33:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll keep an eye on CI through the afternoon in case anything surfaces from the replies.",
+          "ts": "2025-01-28T10:58:58"
+        },
+        {
+          "userId": "emil",
+          "text": "Dermot, the batch-mode work isn't in there, specifically the Gemini batch processor and tiktoken changes",
+          "ts": "2025-01-28T16:50:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that intentional, or did it just not make it in yet?",
+          "ts": "2025-01-28T16:50:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, did those actually merge for 0.1.17, or are they still in progress? I wasn't sure if they'd landed in time for this cut.",
+          "ts": "2025-01-28T17:18:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "also pulled up \"Release notes: v0.1.16\" just now and it doesn't exist yet, whoever owes that one, it still needs writing",
+          "ts": "2025-01-28T17:19:06"
+        },
+        {
+          "userId": "emil",
+          "text": "Both merged, they're in this cut",
+          "ts": "2025-01-28T17:59:06"
+        },
+        {
+          "userId": "emil",
+          "text": "The notes still need a batch-mode section before we can call that page done",
+          "ts": "2025-01-28T17:59:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "ci came back clean and nothing hit from the announcement, so 0.1.17 ships clean.",
+          "ts": "2025-01-28T18:28:18",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, can you put the batch-mode section in the release notes, or do you want me to draft it from what you've shared today?",
+          "ts": "2025-01-28T18:28:23"
+        },
+        {
+          "userId": "dermot",
+          "text": "sent the hotfix mail to the team, PR 418, 422, 424, 425 all called out, cost accounting and batch mode confirmed",
+          "ts": "2025-01-30T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "shout if the release notes need a correction before the announcement goes out",
+          "ts": "2025-01-30T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "are the release notes for v0.1.17.post1 written up anywhere yet, or is that still outstanding?",
+          "ts": "2025-01-30T09:11:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2025-01-30T10:13:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own question, the release notes page for v0.1.17.post1 isn't on the wiki yet",
+          "ts": "2025-01-30T10:13:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone have changelog notes from PR 418, 422, 424, or 425 I can pull from to draft it?",
+          "ts": "2025-01-30T10:13:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "i'm treating v0.1.17.post1 as approved and ready to deploy, if anyone has a hold, speak now.",
+          "ts": "2025-01-30T10:46:58"
+        },
+        {
+          "userId": "emil",
+          "text": "No hold from me, cost accounting is confirmed",
+          "ts": "2025-01-30T11:13:58"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot since the release notes aren't up yet, I can give you the changelog lines for PR 424 and 425 if that helps get them drafted",
+          "ts": "2025-01-30T11:14:03"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil is covering 424 and 425, does that leave you needing the notes from PR 418 and 422 as well, or do you have those already?",
+          "ts": "2025-01-30T11:37:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "actually, ignore my earlier ask, I drafted the release notes this morning and they're already on the engineering wiki",
+          "ts": "2025-01-30T12:05:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure I've got PR 418's details right though, so @Dario a quick look from you would help",
+          "ts": "2025-01-30T12:06:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "also: the hotfix mail went to the team this morning, asked everyone to shout if cost figures look wrong before the announcement goes out",
+          "ts": "2025-01-30T12:06:08"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 418 is the Gemini batch fix, that's mine, not Dario's - do you want me to look at the entry and confirm it's accurate?",
+          "ts": "2025-01-30T12:41:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-30T13:02:53"
+        },
+        {
+          "userId": "emil",
+          "text": "ok",
+          "ts": "2025-01-30T13:02:45"
+        },
+        {
+          "userId": "emil",
+          "text": "answering my own question - entry reads correctly, no corrections needed.",
+          "ts": "2025-01-30T13:02:53",
+          "threadParentTs": "2025-01-30T12:41:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Kluster.ai is in, cost accounting is solid, release notes confirmed, feels good to have all of that land in one shot.",
+          "ts": "2025-01-30T14:12:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.17.post1 is out.",
+          "ts": "2025-01-30T14:54:16",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Did the litellm edge case in PR 424 get resolved before this shipped, or is that still flagged open in the notes?",
+          "ts": "2025-01-30T15:38:16"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot is the litellm edge case shipping as a known open question, or did that get resolved before the tag went out?",
+          "ts": "2025-01-30T15:45:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario shipping as a known open question, it's flagged in the release notes. that said, the WS-028 design already has a parametrised cost test suite across all providers planned, closing the litellm edge case there rather than patching it post-release might be the cleaner move.",
+          "ts": "2025-01-30T16:28:31"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not entirely comfortable shipping cost accounting with a known gap and calling it a WS-028 problem.",
+          "ts": "2025-01-30T17:09:31",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-30T17:18:22"
+        },
+        {
+          "userId": "emil",
+          "text": "- *Gemini batch params* corrected and live (PR 418)\n- *Cost accounting* confirmed honest for the cases we could verify (PR 424)\n- litellm edge case still open, flagged in release notes, targeting WS-028",
+          "ts": "2025-01-30T17:17:42"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure that's the wrong call, the gap is flagged, it's not silent.",
+          "ts": "2025-01-30T17:18:22",
+          "threadParentTs": "2025-01-30T17:09:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Fair enough, but does \"flagged in release notes\" actually reach anyone who hits it, or do they just see wrong numbers and file a bug?",
+          "ts": "2025-01-30T17:54:22"
+        },
+        {
+          "userId": "dario",
+          "text": "For context, when the litellm lookup fails the user just sees this with no indication anything's wrong:\n\n```\ntotal_cost: $0.0000\n```\n\nEmil's point lands, that's not a release-notes-will-catch-it failure mode.",
+          "ts": "2025-01-30T18:11:30.429059",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2025-01-30T18:20:30.429059"
+        },
+        {
+          "userId": "dermot",
+          "text": "that changes it for me",
+          "ts": "2025-01-30T18:20:42.429059"
+        },
+        {
+          "userId": "dermot",
+          "text": "so do we pull the release, or do we ship a follow-on patch before the announcement goes out?",
+          "ts": "2025-01-30T18:20:47.429059"
+        },
+        {
+          "userId": "emil",
+          "text": "I wouldn't pull over this - the failure shows up as a visible zero, not a silent wrong number.",
+          "ts": "2025-01-30T18:25:47.429059"
         }
       ],
       "projectSpec": {

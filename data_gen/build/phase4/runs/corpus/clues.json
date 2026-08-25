@@ -650,5 +650,99 @@
     "context": [],
     "artifact": "Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped",
     "written_as": "Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped"
+  },
+  {
+    "clue": "t1.r1.l_prompt_3",
+    "holder": "emil",
+    "date": "2025-01-29",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "If the hash keys on prompt content alone then that tracks, but I saw RAFT last night emit the same byte-identical payload twice against two different chunk IDs, and both went out as separate requests and both got billed",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's run of messages at 11:50 states each part of the planted remark: the RAFT duplicate emission across two chunk ids, the byte-identical payload he diffed, both sent as separate requests, both billed, and his expectation that the second should have hit cache.",
+    "elements": [
+      {
+        "part": "RAFT emitted the same question against two different chunk ids last night",
+        "present": true,
+        "why": "Emil says RAFT emitted the same byte-identical payload twice against two different chunk IDs"
+      },
+      {
+        "part": "the payload was byte identical",
+        "present": true,
+        "why": "Emil states it was byte identical and that he diffed them"
+      },
+      {
+        "part": "he diffed them himself",
+        "present": true,
+        "why": "Emil says 'Byte identical payload, I diffed them myself'"
+      },
+      {
+        "part": "both went out as separate requests",
+        "present": true,
+        "why": "Emil says both went out as separate requests"
+      },
+      {
+        "part": "both got billed",
+        "present": true,
+        "why": "Emil says both got billed"
+      },
+      {
+        "part": "the second one should have come back off disk since they already had that exact answer",
+        "present": true,
+        "why": "Emil says the second one should've come straight back off disk since they already had that exact answer"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:29  dario     Makes sense",
+      "11:29  dario     that's consistent with how the cache layer handles it.",
+      "11:50  emil      If the hash keys on prompt content alone then that tracks, but I saw RAFT last night emi   <-- the clue",
+      "11:50  emil      Byte identical payload, I diffed them myself.",
+      "11:50  emil      Second one should've come straight back off disk since we already had that exact answer."
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "Byte identical payload, I diffed them myself.",
+        "Second one should've come straight back off disk since we already had that exact answer."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r1.l_model_2",
+    "holder": "dermot",
+    "date": "2025-01-30",
+    "channel": "incidents",
+    "attempt": 1,
+    "said": true,
+    "quote": "every time I run model sweep I end up exporting `CURATOR_DISABLE_CACHE=1` for the whole thing, which means the second and third models pay full price for prompts we already cached at the first. the flag is too blunt, reuse needs to be scoped per model, not switched off wholesale.",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 09:00 message gives both the behavior (exporting the flag for the whole sweep) and its cost (later models repay for already-cached prompts).",
+    "elements": [
+      {
+        "part": "when running a model sweep, they export CURATOR_DISABLE_CACHE=1 for the whole thing",
+        "present": true,
+        "why": "Dermot states this directly at 09:00"
+      },
+      {
+        "part": "as a result, the second and third models pay full price for prompts already cached at the first model",
+        "present": true,
+        "why": "Dermot states this as the consequence in the same message"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "cache key"
+    ],
+    "context": [
+      "09:00  dermot    every time I run model sweep I end up exporting `CURATOR_DISABLE_CACHE=1` for the whole    <-- the clue",
+      "09:16  dermot    is the cache key scoped per model at all right now, or is it purely content-based?",
+      "10:17  dermot    @Dario, you own caching-and-resume, do you know offhand whether there's any existing mec"
+    ]
   }
 ]
