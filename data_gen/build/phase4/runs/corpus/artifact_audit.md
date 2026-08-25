@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-38 of 38 obligations met.
+43 of 43 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -46,3 +46,8 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-12-06 | dario | send | 09:35 | v0.1.11 is out |
 | 2024-12-09 | konrad | send | 09:28 | Weekly update: week of Dec 2 |
 | 2024-12-09 | dermot | write | 09:14 | Bulk LLM Inference: next-phase design |
+| 2024-12-11 | dario | write | 09:42 | Weekly notes: week of Dec 9 - two reverts |
+| 2024-12-11 | dermot | write | 09:14 | Postmortem: Dec 10 revert of batch auto-delete |
+| 2024-12-16 | dario | write | 09:49 | Runbook: handling curator.LLM incidents |
+| 2024-12-16 | konrad | write | 09:14 | Postmortem: Dec 13 revert of batch context-manager refactor (PR #254) |
+| 2024-12-16 | konrad | send | 09:28 | Weekly update: week of Dec 9 |

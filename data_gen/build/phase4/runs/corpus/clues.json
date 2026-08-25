@@ -221,5 +221,106 @@
     "context": [],
     "artifact": "Bulk LLM Inference: next-phase design",
     "written_as": "engineering/bulk-llm-inference-next-phase-design.md"
+  },
+  {
+    "clue": "t2.r2.l9",
+    "holder": "gideon",
+    "date": "2024-12-10",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "Let's keep any tidying pointed at the model capability data, which is where the actual tickets come from, and leave the limits alone.",
+    "said_by": "Gideon Halloway",
+    "why": "Across his 16:59 and 17:00 messages Gideon states every element: duplication, being fine with it, env-overridable, no tickets, capability data as the real ticket source, and wanting tidying pointed there instead of at the limits.",
+    "elements": [
+      {
+        "part": "per-provider rate limit defaults are duplicated all over",
+        "present": true,
+        "why": "Gideon says 'The rate-limit defaults are duplicated all over the place'"
+      },
+      {
+        "part": "Gideon is fine with that duplication",
+        "present": true,
+        "why": "he says 'I'm honestly fine with it'"
+      },
+      {
+        "part": "they're env-overridable",
+        "present": true,
+        "why": "stated directly, 'they're env-overridable'"
+      },
+      {
+        "part": "nobody has ever filed a ticket about them",
+        "present": true,
+        "why": "stated directly, 'nobody has ever filed a ticket about them'"
+      },
+      {
+        "part": "model capability data is what generates the tickets",
+        "present": true,
+        "why": "he says 'model capability data, which is where the actual tickets come from'"
+      },
+      {
+        "part": "tidying should be pointed at model capability data instead",
+        "present": true,
+        "why": "he says 'Let's keep any tidying pointed at the model capability data'"
+      },
+      {
+        "part": "the rate-limit defaults should be left alone",
+        "present": true,
+        "why": "he says 'leave the limits alone'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "16:32  dermot    so the interface question doesn't have a doc behind it, which means I need to get that w",
+      "16:59  gideon    The rate-limit defaults are duplicated all over the place and I'm honestly fine with it,",
+      "17:00  gideon    Let's keep any tidying pointed at the model capability data, which is where the actual t   <-- the clue",
+      "17:02  dario     Actually, I think I had the sequencing backwards earlier - PR 234 and PR 243 don't need ",
+      "17:02  dario     So the remaining question is just when the removal gets scoped, which is separate from u"
+    ]
+  },
+  {
+    "clue": "t1.r2.L14",
+    "holder": "dermot",
+    "date": "2024-12-11",
+    "channel": "code-review",
+    "wrote_into": "page:postmortem-2024-12-10",
+    "attempt": 1,
+    "said": false,
+    "quote": "The counters are correct and useful. They measure exactly what the summary table reports, requests out to the provider and responses back on disk. That is the right thing to count.",
+    "said_by": "dermot",
+    "why": "The document affirms requests-to-backend as a meaningful counted figure, but the counters it defends are requests sent and responses received on disk, not 'local hits' — that concept never appears.",
+    "missing": [
+      "any mention of 'local hits' as a meaningful figure"
+    ],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Postmortem: Dec 10 revert of batch auto-delete",
+    "written_as": "onboarding/postmortem-dec-10-revert-of-batch-auto-delete.md"
+  },
+  {
+    "clue": "t1.r1.l_prompt_2",
+    "holder": "dario",
+    "date": "2024-12-16",
+    "channel": "code-review",
+    "wrote_into": "page:runbook-bulk-llm-inference",
+    "attempt": 1,
+    "said": false,
+    "quote": "",
+    "said_by": "dario",
+    "why": "The page covers retries, timeouts, and cache key/metadata behavior, but never discusses input fields, unread state, or a rule against them causing resends.",
+    "missing": [
+      "that the issue concerns unread input fields",
+      "that unread input fields must not cause resends"
+    ],
+    "missing_verbatim": [],
+    "leaked": [
+      "cache key"
+    ],
+    "context": [],
+    "artifact": "Runbook: handling curator.LLM incidents",
+    "written_as": "engineering/runbook-handling-curator-llm-incidents.md"
   }
 ]

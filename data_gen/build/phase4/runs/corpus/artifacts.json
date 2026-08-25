@@ -454,5 +454,65 @@
     "done": true,
     "at": "2024-12-09T09:14:00+00:00",
     "date": "2024-12-09"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2024-12-09",
+    "title": "Weekly notes: week of Dec 9 - two reverts",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2024-12-11T09:42:00+00:00",
+    "date": "2024-12-11"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2024-12-10",
+    "title": "Postmortem: Dec 10 revert of batch auto-delete",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "postmortem",
+    "done": true,
+    "at": "2024-12-11T09:14:00+00:00",
+    "date": "2024-12-11"
+  },
+  {
+    "kind": "doc",
+    "id": "runbook-bulk-llm-inference",
+    "title": "Runbook: handling curator.LLM incidents",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "runbook",
+    "done": true,
+    "at": "2024-12-16T09:49:00+00:00",
+    "date": "2024-12-16"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2024-12-13",
+    "title": "Postmortem: Dec 13 revert of batch context-manager refactor (PR #254)",
+    "by": "konrad",
+    "action": "write",
+    "to": "",
+    "doc_kind": "postmortem",
+    "done": true,
+    "at": "2024-12-16T09:14:00+00:00",
+    "date": "2024-12-16"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2024-12-09",
+    "title": "Weekly update: week of Dec 9",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-12-16T09:28:00+00:00",
+    "date": "2024-12-16"
   }
 ]

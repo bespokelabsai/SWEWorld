@@ -1,0 +1,39 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, gideon@world.local,
+ dermot@world.local, otto@world.local
+Subject: Weekly update: week of Dec 9
+Date: Mon, 16 Dec 2024 09:28:00 +0000
+Message-ID: <178764535560.1827306.16935637423319683425@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all, quick recap of the week of Dec 9.
+
+**What shipped / merged**
+- Several PRs landed across batch-mode, caching-and-resume, and curator-viewe=
+r. We're holding at v0.1.11 while the recent reverts stabilize.
+
+**What got reverted**
+This was a rough week for batch-mode stability:
+- Dec 10: batch auto-delete logic reverted (Dermot is writing that postmortem)
+- Dec 13: batch context-manager refactor (PR 254) reverted same day it merged=
+ =E2=80=94 re-init on context manager entry dropped pre-configured state, and=
+ there was a concurrent teardown race under parallel runs. I've written up th=
+e postmortem on this one; it's on the wiki.
+
+**In flight**
+PR 78, 90, 106, 133, 161, and 163 are all open. None of these are blocking a =
+release right now but a few are getting close to review-ready.
+
+**One question for everyone**
+Given the two batch reverts in one week, I want to make sure we're aligned on=
+ what "ready to merge" means for anything that touches batch-mode or shared p=
+rocessor state going forward. Do we want to add an explicit concurrent-teardo=
+wn test as a gate before anything in that area lands, or is that too heavy fo=
+r the current milestone? Would be good to settle this before 0.1.12 scope get=
+s locked.
+
+Let me know if I missed anything.
+
+Konrad
