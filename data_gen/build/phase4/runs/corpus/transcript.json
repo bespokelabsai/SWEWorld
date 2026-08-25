@@ -8803,6 +8803,599 @@
           "userId": "dario",
           "text": "Batch counting being confirmed clean takes one thing off my list on that side",
           "ts": "2025-02-13T15:40:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 493 is ready for another look, revamp to the CLI progress bar UI, touches progress-and-cli only and not blocking a release but it's been sitting a while.",
+          "ts": "2025-02-14T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "what changed from the last version? I want to make sure I'm looking at the right parts.",
+          "ts": "2025-02-14T09:06:00",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-14T09:27:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "Main change is the render logic, the old version just did a flat bar, now it layers in per-row status. So the part to look at is the update call:\n\n```python\n# before\nbar.update(1)\n\n# after\nbar.update(1, status=row_status, label=f\"{completed}/{total}\")\n```\n\nrest is mostly wiring that through the callers.",
+          "ts": "2025-02-14T09:06:29",
+          "threadParentTs": "2025-02-14T09:06:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, is it just me or is this friday morning moving at half speed, I've read the same paragraph three times already.",
+          "ts": "2025-02-14T09:27:29"
+        },
+        {
+          "userId": "konrad",
+          "text": "so the `row_status` coming in there, is that already resolved to a string or still a raw enum?",
+          "ts": "2025-02-14T09:27:56",
+          "threadParentTs": "2025-02-14T09:06:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "already resolved to a string before it gets to the bar, the enum conversion happens upstream of the display layer.",
+          "ts": "2025-02-14T09:39:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "Might be worth having at least one test that passes a bad string through that path",
+          "ts": "2025-02-14T10:12:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah ok, I'll add that.",
+          "ts": "2025-02-14T10:13:14",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai, where does PR 495 stand",
+          "ts": "2025-02-14T10:38:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 495 is ready for review, teh enhancements and tests are all done, it just needs eyes on it. Also, while people are looking, PR 502 is a telemetry config change that's similarly ready and I'd like to land it today if someone can spare a look.",
+          "ts": "2025-02-14T11:12:14"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 is also sitting out there and I want to make sure it doesn't get lost. It's blocked on issue 52 (multiple samples per request) being settled, so until that's decided it can't really move forward.",
+          "ts": "2025-02-14T11:23:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good to have PR 468 confirmed as blocked on issue 52 rather than just floating, at least we know exactly what it's waiting on now.",
+          "ts": "2025-02-14T11:33:14",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 495 and PR 502 are both sitting open, code-execution enhancements and the telemetry config change",
+          "ts": "2025-02-17T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "neither has moved in a few days so i want to at least figure out what's blocking beofre the week gets away from us",
+          "ts": "2025-02-17T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Release notes: 0.1.19 is up on the wiki, engineering/release-notes-0-1-19.",
+          "ts": "2025-02-17T09:29:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai is PR 495 waiting on a review or is something else holding it?",
+          "ts": "2025-02-17T09:29:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 495 is waiting on review, nothing blocking on my end, code-execution side, tests are in. PR 502 is in the same spot, just needs eyes.",
+          "ts": "2025-02-17T10:09:22",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-17T10:49:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 502 is a telemetry config change",
+          "ts": "2025-02-17T10:09:43"
+        },
+        {
+          "userId": "priya",
+          "text": "PR 468 is in the same spot, n samples in generation params, no review yet either.",
+          "ts": "2025-02-17T10:19:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take a look at PR 495 today.",
+          "ts": "2025-02-17T10:49:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-02-17T10:09:22"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take PR 502 today",
+          "ts": "2025-02-17T11:24:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 still needs a reviewer though, nothing else holding it up",
+          "ts": "2025-02-17T11:24:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, the weekly sync notes for the pickler regression week aren't on the wiki yet, not sure who's on that.",
+          "ts": "2025-02-17T11:24:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "That's on me, just sent the weekly update mail out to the team covering the pickler regression",
+          "ts": "2025-02-17T11:40:24",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "The mail mainly flagged that the regression looks tied to issue 124, the inspect(func) cache invalidation thing, so if anyone's actively looking at that it'd be worth looping in before it causes more trouble downstream",
+          "ts": "2025-02-17T11:40:51"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 468 still doesn't have a reviewer and it's been sitting a while",
+          "ts": "2025-02-17T14:20:13"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 509 is also unreviewed, that's the litellm update on Emil's side",
+          "ts": "2025-02-17T14:20:52"
+        },
+        {
+          "userId": "emil",
+          "text": "Both PR 468 and PR 509 are sitting clean on my end, just need eyes.",
+          "ts": "2025-02-17T14:56:52"
+        },
+        {
+          "userId": "emil",
+          "text": "Just read Konrad's mail, the weekly update flags the pickler regression as tied to issue 124, the inspect(func) cache invalidation problem, and notes I've been tracking it.",
+          "ts": "2025-02-17T14:57:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone actually looked at issue 124 more closely since then, or is it still sitting open?",
+          "ts": "2025-02-17T14:57:21"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 still doesn't have anyone on it and the day's almost done.",
+          "ts": "2025-02-17T15:22:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Can anyone take it this afternoon, or is it going to tomorrow?",
+          "ts": "2025-02-17T15:22:33",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-17T15:22:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can try but I've already got 495, might not land until tomorrow",
+          "ts": "2025-02-17T15:22:56",
+          "threadParentTs": "2025-02-17T15:22:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Did anyone add the function-calling fix and the provider attribution to the release notes at engineering/release-notes-0-1-19, or are those still missing?",
+          "ts": "2025-02-17T15:23:10"
+        },
+        {
+          "userId": "nikolai",
+          "text": "just pulled up engineering/release-notes-0-1-19, the function-calling fix and provider attribution aren't in there yet, so Priya and Emil's pieces are still missing.",
+          "ts": "2025-02-17T15:48:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "Updated engineering/release-notes-0-1-19 with Priya's function-calling fix and Emil's provider attribution - release notes are complete now.",
+          "ts": "2025-02-17T16:27:10",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, not sure the cost tracking changes got their own callout, or is that folded into the request handling section?",
+          "ts": "2025-02-17T16:36:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 516 is ready for review, it's the rich hyperlink for the curator viewer and it's pretty self-contained, just touches progress-and-cli",
+          "ts": "2025-02-18T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "does the link need anything from the curator-viewer side to resolve, or is everything it needs already in progress-and-cli?",
+          "ts": "2025-02-18T09:43:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Everything it needs is in progress-and-cli, nothing required from curator-viewer.",
+          "ts": "2025-02-18T10:10:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Separately, PR 495 has test coverage gaps that i haven't been able to get eyes on yet, and it's holding up the code executor work.",
+          "ts": "2025-02-18T10:18:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 515 sounds like it's in good shape to merge, really glad the error summarization is finally getting across the line.",
+          "ts": "2025-02-18T11:24:53",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 515 touches online-request-processing and is unblocking error summarization in online mode",
+          "ts": "2025-02-18T11:32:53"
+        },
+        {
+          "userId": "emil",
+          "text": "Can someone take a look when they get a chance?",
+          "ts": "2025-02-18T11:33:05"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll take a look at 515, it's my code anyway",
+          "ts": "2025-02-18T12:15:52"
+        },
+        {
+          "userId": "nikolai",
+          "text": "is anyone picking up PR 516 this afternoon, or is that still waiting on eyes?",
+          "ts": "2025-02-18T12:52:52",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-18T13:45:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not sure Dario reviewing 515 alone is the right call given it's his own subsystem, would be good to have a second set of eyes on it",
+          "ts": "2025-02-18T13:23:52"
+        },
+        {
+          "userId": "dario",
+          "text": "it's Emil's PR, not mine, I just own the subsystem it touches",
+          "ts": "2025-02-18T13:44:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "still waiting, yeah",
+          "ts": "2025-02-18T13:45:23",
+          "threadParentTs": "2025-02-18T12:52:52"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take PR 516 if someone has a second look at PR 515.",
+          "ts": "2025-02-18T14:29:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Going to take PR 516 regardless, but is PR 515 getting that second reviewer today or not?",
+          "ts": "2025-02-18T15:21:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take a second look at PR 515 if that's what gets both of them across the line today.",
+          "ts": "2025-02-18T16:05:22",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 516 (rich hyperlink, curator-viewer surface) is still in CHANGES_REQUESTED, would really love eyes on it today",
+          "ts": "2025-02-19T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also the weekly sync notes for the week of Feb 17 are up on the wiki if anyone needs the 0.1.19 rundown",
+          "ts": "2025-02-19T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 518 touches logging across all services",
+          "ts": "2025-02-19T09:11:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does it touch the progress-and-cli surface at all?",
+          "ts": "2025-02-19T09:24:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "that summary table work in pr 516 came out clean, nice.",
+          "ts": "2025-02-19T09:52:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Does that get it off CHANGES_REQUESTED, or is there still something you need changed?",
+          "ts": "2025-02-19T10:15:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "let me pull it up",
+          "ts": "2025-02-19T10:21:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "Was the changes-requested tied to a specific comment, or more of a general concern about the approach?",
+          "ts": "2025-02-19T11:06:09"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 518 is up and waiting on review, touches the custom logger in batch-mode and online-request-processing mainly",
+          "ts": "2025-02-19T11:34:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Would be good to get eyes on it today so we can land it",
+          "ts": "2025-02-19T11:34:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel, can you take a pass at PR 518 today?",
+          "ts": "2025-02-19T11:39:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "it touches online-request-processing on your end and Emil needs eyes before end of day",
+          "ts": "2025-02-19T11:39:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the sync notes, 518 shows in review with no blockers declared as of that meeting.",
+          "ts": "2025-02-19T12:03:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Anything I should be addressing on it at this point, or is it just waiting on eyes?",
+          "ts": "2025-02-19T12:03:30"
+        },
+        {
+          "userId": "dermot",
+          "text": "I asked @Dario Kestrel to take a pass at it this afternoon, so it's waiting on him at the moment",
+          "ts": "2025-02-19T12:35:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "I still have open questions about how 518 interacts with the progress-and-cli surface, I wouldn't call it blocker-free on my end yet",
+          "ts": "2025-02-19T13:02:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil does 518 touch the progress bar rendering at all, or is it strictly the logger routing?",
+          "ts": "2025-02-19T13:02:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone posted feedback on PR 516 yet, or is it still just sitting on the original CHANGES_REQUESTED?",
+          "ts": "2025-02-19T13:53:54"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon 518 is strictly logger routing, doesn't touch progress bar rendering",
+          "ts": "2025-02-19T14:35:54"
+        },
+        {
+          "userId": "emil",
+          "text": "If you're seeing a potential interaction with the progress-and-cli surface, you'd know that better than I would - can you pull up the PR and flag the specific thing that's worrying you?",
+          "ts": "2025-02-19T14:36:06"
+        },
+        {
+          "userId": "gideon",
+          "text": "Got it, I'll pull it up this afternoon and see if there's anything concrete to flag",
+          "ts": "2025-02-19T14:42:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 516 is still sitting on my original changes-requested, I haven't cleared it yet, so it's not just \"sitting\", it's actually waiting on me to re-review.",
+          "ts": "2025-02-19T15:03:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll clear pr 516 today, and pr 518 needs Dario's pass before it can land.",
+          "ts": "2025-02-19T15:33:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "516 is ready to merge on my end whenever Dermot's cleared it",
+          "ts": "2025-02-19T16:10:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll pull up 518 now and see if there's actually something concrete to flag.",
+          "ts": "2025-02-19T16:19:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "almost through 516, should have it cleared shortly.",
+          "ts": "2025-02-19T16:54:33",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Ready to merge as soon as it clears.",
+          "ts": "2025-02-19T17:23:33"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario can you get to 518 tonight, or is that a tomorrow item?",
+          "ts": "2025-02-19T18:03:33"
+        },
+        {
+          "userId": "emil",
+          "text": "516 looks like it's landing tonight",
+          "ts": "2025-02-19T18:03:41"
+        },
+        {
+          "userId": "emil",
+          "text": "518 is waiting on Dario and I'm guessing that one slips to tomorrow",
+          "ts": "2025-02-19T18:03:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "516 merged.",
+          "ts": "2025-02-19T18:28:46",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 530 and PR 509 are both ready to merge, been sitting there since yesterday waiting on approvals",
+          "ts": "2025-02-20T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "They're meant to land together as the telemetry fix so please don't merge one without the other",
+          "ts": "2025-02-20T09:00:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 495 is still in review and PR 502 is waiting on that",
+          "ts": "2025-02-20T09:13:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 530 touches telemetry so I'll take a look this morning and approve if it looks right on my end.",
+          "ts": "2025-02-20T09:13:29",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai Berresford, who has eyes on PR 509, given the two need to land together?",
+          "ts": "2025-02-20T09:51:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I don't think PR 509 has a reviewer picked up yet, that's the gap.",
+          "ts": "2025-02-20T10:36:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "ugh",
+          "ts": "2025-02-20T10:54:29",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "ok I'll track down a reviewer for 509.",
+          "ts": "2025-02-20T10:54:41"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 520 (push to viewer) is also sitting in review if anyone has capacity today, trying to figure out if it can land this week or if it's a next-week thing.",
+          "ts": "2025-02-20T11:03:41"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 509 still doesn't have a reviewer confirmed, right?",
+          "ts": "2025-02-20T11:28:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we actually closing both today or should we just plan on tomorrow?",
+          "ts": "2025-02-20T11:28:54"
+        },
+        {
+          "userId": "dermot",
+          "text": "issue 93 has the viewer status tasks tracked if it helps scope what pr 520 is actually unblocking.",
+          "ts": "2025-02-20T11:40:54",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "If the reviewer checks PR 520 against issue 93 directly, that's probably the cleanest way to decide whether it lands today or holds.",
+          "ts": "2025-02-20T12:32:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "nice call on issue 93, @Dermot Callaghan, that's actually a clean way to scope it",
+          "ts": "2025-02-20T13:00:17",
+          "reactions": [
+            {
+              "emoji": "👏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Did anyone actually pick up PR 509 for review yet?",
+          "ts": "2025-02-20T13:12:53"
         }
       ],
       "projectSpec": {
@@ -18163,6 +18756,750 @@
           "userId": "nikolai",
           "text": "@Dario Kestrel, once you're through the cookbooks, could we do a quick check before end of day to confirm the examples side is actually closed out?",
           "ts": "2025-02-13T15:11:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost estimation bug is up as PR 504, touches online-request-processing, want to figure out if that's a release blocker or we kick it to v0.1.19.",
+          "ts": "2025-02-14T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Did the batch client refactor end up covering all provider paths, or are there gaps still?",
+          "ts": "2025-02-14T09:03:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "multimodal path is showing unexpected behavior since the refactor, image inputs are not processing same way as before",
+          "ts": "2025-02-14T09:12:52",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-14T11:35:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is it all image inputs or specific formats?",
+          "ts": "2025-02-14T10:16:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "I've been cross-referencing the anthropic vision docs on image content block types, there's more variation in what gets accepted than I expected",
+          "ts": "2025-02-14T10:50:59"
+        },
+        {
+          "userId": "gideon",
+          "text": "Separate thing I want to settle before end of day: when we skip a pending batch job on resume, can we log the reason at INFO, not just the id at DEBUG? \"resumed 1 pending batch job\" with nothing explaining what didn't match is how I lost an afternoon last month.",
+          "ts": "2025-02-14T11:26:59",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Fair point, that's a frustrating way to lose time.",
+          "ts": "2025-02-14T11:34:59"
+        },
+        {
+          "userId": "emil",
+          "text": "Are they failing outright or just behaving differently?",
+          "ts": "2025-02-14T11:35:22",
+          "threadParentTs": "2025-02-14T09:12:52"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure this is actually a refactor regression, the batch client changes didn't go near the multimodal path.",
+          "ts": "2025-02-14T11:36:03"
+        },
+        {
+          "userId": "emil",
+          "text": "From my side the batch client refactor looks solid across the provider paths I've tested",
+          "ts": "2025-02-14T12:03:03"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone actually seen a failure on a specific backend, or are we good to call it stable?",
+          "ts": "2025-02-14T12:03:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "I haven't verified the multimodal path since the refactor",
+          "ts": "2025-02-14T12:19:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, can we do a quick sync this afternoon on it",
+          "ts": "2025-02-14T12:19:23"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, where does PR 504 stand, is the cost bug scoped to online-request-processing only?",
+          "ts": "2025-02-14T12:32:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil that's my PR actually, not Dario's. And I said it looks isolated to online-request-processing but I haven't ruled out the batch path, I haven't dug into it fully",
+          "ts": "2025-02-14T13:04:23",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-14T13:04:37"
+        },
+        {
+          "userId": "dario",
+          "text": "You planning to check the batch path before we classify it, or is that after the fact?",
+          "ts": "2025-02-14T13:04:37",
+          "threadParentTs": "2025-02-14T13:04:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can't check the batch path without Emil's help, I don't own that side",
+          "ts": "2025-02-14T13:18:37",
+          "replyCount": 3,
+          "replyLastTs": "2025-02-14T13:52:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, is that something you can pair on this afternoon?",
+          "ts": "2025-02-14T13:19:21",
+          "threadParentTs": "2025-02-14T13:18:37"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, still good for that sync this afternoon, whenever works for you",
+          "ts": "2025-02-14T13:51:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-02-14T13:51:41",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-02-14T13:18:37"
+        },
+        {
+          "userId": "emil",
+          "text": "I can do that. Is this a quick look or are you expecting we need a couple hours?",
+          "ts": "2025-02-14T13:52:01",
+          "threadParentTs": "2025-02-14T13:18:37"
+        },
+        {
+          "userId": "dario",
+          "text": "The cost bug in PR 504 is in my code, and from what I can reproduce it's staying in online-request-processing, not hitting the batch path.",
+          "ts": "2025-02-14T14:11:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Nice, that narrows it down a lot.",
+          "ts": "2025-02-14T14:40:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario since it's yours, can you take the fix and say whether it blocks release or goes to v0.1.19?",
+          "ts": "2025-02-14T15:24:01"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah, I'll look at it now and report back before end of day.",
+          "ts": "2025-02-14T16:03:01",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Went through the batch path with Gideon earlier, nothing in there is touched by the cost bug. Refactor looks solid on that side too.",
+          "ts": "2025-02-14T16:30:01",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "batch path clean and providers stable, solid end to the week",
+          "ts": "2025-02-14T17:01:01",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, can you give the multimodal path a look monday, I wasn't able to confirm it's clean today",
+          "ts": "2025-02-14T17:01:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "Glad it's Friday, this week felt about twice as long as it actually was",
+          "ts": "2025-02-14T17:40:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "calling it for the weekend, back monday",
+          "ts": "2025-02-14T18:18:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario still waiting on the classification for PR 504, do we have enough to call it before the weekend or is that slipping to Monday?",
+          "ts": "2025-02-14T18:26:04.812326"
+        },
+        {
+          "userId": "dario",
+          "text": "Looked at PR 504, the bug is isolated and not touching any critical path",
+          "ts": "2025-02-14T18:28:04.812326",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Also on the resume skip logging Gideon flagged earlier, that sits in caching-and-resume so I'll pick that up, noting the reason at INFO rather than just the job id at DEBUG",
+          "ts": "2025-02-14T18:28:21.812326",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "- progress bar revamp is merged, cost tracking and request handling fixes are in too\n- 0.1.19 shipped and the announcement went out this morning\n- trying to figure out what actually needs to move next week, multi-sample support feels like the obvious candidate",
+          "ts": "2025-02-17T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Are we actually prioritizing multi-sample support next week, or do we want to clear Nikolai's PRs first?",
+          "ts": "2025-02-17T09:31:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 514 is basically done on my end, just the README cleanup to drop the kluster.ai promo, no blockers there.",
+          "ts": "2025-02-17T09:54:50"
+        },
+        {
+          "userId": "priya",
+          "text": "@Nikolai, are PR 495 and PR 502 blocked on anything, or just waiting for review?",
+          "ts": "2025-02-17T09:59:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "i think multi-sample is murkier than issue 52 makes it look, not sure we're actually ready to commit to it yet",
+          "ts": "2025-02-17T10:38:34"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 509 is basically ready, PR 468 still has a few things to sort",
+          "ts": "2025-02-17T10:53:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the release notes just now and the request handling fixes are all in there, looks solid",
+          "ts": "2025-02-17T10:53:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "For next week I'd push for multi-sample and provider cost maps running in parallel.",
+          "ts": "2025-02-17T10:53:44"
+        },
+        {
+          "userId": "dario",
+          "text": "+1 on parallel, honestly",
+          "ts": "2025-02-17T11:27:44",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "priya",
+          "text": "I can take a look at PR 502 this afternoon.",
+          "ts": "2025-02-17T11:57:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Is issue 52 the full picture on multi-sample, or is there design work that hasn't been written down yet?",
+          "ts": "2025-02-17T12:07:44"
+        },
+        {
+          "userId": "priya",
+          "text": "Getting to PR 502 now, should have notes on it before end of day.",
+          "ts": "2025-02-17T13:38:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "- *PR 516* up for review, rich hyperlink for the curator viewer, pretty contained change to progress-and-cli\n- also been keeping an eye on PR 515, the error summarization in online mode looks good to me",
+          "ts": "2025-02-18T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "README grooming is done, so that's off the plate",
+          "ts": "2025-02-18T09:33:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Was thinking examples-cookbooks is probably next for cleanup but haven't scoped it yet",
+          "ts": "2025-02-18T09:33:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 495 and 502 are both sitting in review. 495 still has some test coverage gaps I'd like someone to look at beofre it moves forward.",
+          "ts": "2025-02-18T10:06:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai Berresford what areas are the coverage gaps in for PR 495, is it the executor paths or more on the test harness side?",
+          "ts": "2025-02-18T10:40:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "mostly the executor paths, the test harness side is covered, it's the actual execution branches that are thin. @Emil Brandvold, if you have a moment this afternoon to look at PR 495, that would help a lot.",
+          "ts": "2025-02-18T11:20:12"
+        },
+        {
+          "userId": "dario",
+          "text": "good progress on 495, hope Emil can get eyes on it this afternoon",
+          "ts": "2025-02-18T11:50:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Worth noting Emil is also actively on PR 468, so if he's going to get to PR 495 this afternoon it might be a tight squeeze.",
+          "ts": "2025-02-18T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "oh",
+          "ts": "2025-02-18T11:52:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "just pulled up the 0.1.19 release notes, the function-calling example fix is in there so my part's covered",
+          "ts": "2025-02-18T11:52:16",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I can get to one of them this afternoon, not both",
+          "ts": "2025-02-18T12:35:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Does PR 495 take priority over 468, or should someone else take the executor coverage gaps?",
+          "ts": "2025-02-18T12:35:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not sure 468 should be the one to slip though, is there anyone else who could get eyes on the executor paths in PR 495?",
+          "ts": "2025-02-18T12:45:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario Kestrel, do you have any capacity to look at the executor paths in PR 495 this afternoon, or are you already stretched?",
+          "ts": "2025-02-18T12:58:09"
+        },
+        {
+          "userId": "dario",
+          "text": "I can take a look at PR 495 this afternoon, that's not a problem",
+          "ts": "2025-02-18T13:49:30",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "The bigger question for me is what's actually gating 468 at this point, is it still tangled up in issue 52 or just waiting on review time?",
+          "ts": "2025-02-18T13:49:38"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 is still waiting on issue 52 to get a resolution, that's the actual gate",
+          "ts": "2025-02-18T14:10:38"
+        },
+        {
+          "userId": "emil",
+          "text": "That one needs a team decision, not just review time",
+          "ts": "2025-02-18T14:10:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "So are we actually going to schedule a decision on issue 52 this week, or is PR 468 just going to sit there?",
+          "ts": "2025-02-18T14:39:50"
+        },
+        {
+          "userId": "dario",
+          "text": "We've got two things sitting: issue 52 needs a team decision before 468 can move, and PR 495 is gated on coverage in the executor paths",
+          "ts": "2025-02-18T14:58:50"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil can you own getting the issue 52 decision scheduled this week?",
+          "ts": "2025-02-18T14:58:55"
+        },
+        {
+          "userId": "dario",
+          "text": "That's the actual unblock",
+          "ts": "2025-02-18T14:59:00"
+        },
+        {
+          "userId": "emil",
+          "text": "I can set something up, but who actually needs to be in the room to close issue 52, is that the whole team or a subset?",
+          "ts": "2025-02-18T15:16:00",
+          "replyCount": 3,
+          "replyLastTs": "2025-02-18T16:08:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Honestly I'm not sure a subset works here, issue 52 has implications for how we handle samples across the board",
+          "ts": "2025-02-18T15:16:08",
+          "threadParentTs": "2025-02-18T15:16:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "+1",
+          "ts": "2025-02-18T15:16:30",
+          "threadParentTs": "2025-02-18T15:16:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 515 and PR 516 are both ready to land today if someone can get final eyes on 516.",
+          "ts": "2025-02-18T15:45:38"
+        },
+        {
+          "userId": "gideon",
+          "text": "Emil is taking PR 516 and I'm doing a second look at PR 515, both should be done by end of day.",
+          "ts": "2025-02-18T16:07:58"
+        },
+        {
+          "userId": "nikolai",
+          "text": "does \"whole team\" mean everyone, or just the people actively touching the samples work?",
+          "ts": "2025-02-18T16:08:35",
+          "threadParentTs": "2025-02-18T15:16:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "has Dario had a chance to look at the executor paths in PR 495 yet?",
+          "ts": "2025-02-18T16:09:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'd count myself in for that one, I touch enough of the online path that samples handling matters to me.",
+          "ts": "2025-02-18T16:51:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Nikolai asked if I'd looked at PR 495 yet",
+          "ts": "2025-02-18T17:22:36"
+        },
+        {
+          "userId": "dario",
+          "text": "I should answer that directly",
+          "ts": "2025-02-18T17:22:41"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm in for the issue 52 call too, samples handling touches online-request-processing which I own PR 495 executor paths, I got partway through this afternoon, not done yet",
+          "ts": "2025-02-18T17:22:49"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel are you going to finish the PR 495 review today or is that first thing tomorrow?",
+          "ts": "2025-02-18T17:29:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Probably spills into tomorrow, I got through most of the executor paths but didn't finish",
+          "ts": "2025-02-18T17:39:49"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll have a full read by end of morning",
+          "ts": "2025-02-18T17:39:54"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 515 looks good on my end too, no issues with the online-request-processing side.",
+          "ts": "2025-02-18T17:40:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 515 and 516 are both merged",
+          "ts": "2025-02-18T18:21:27",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "- *PR 516* (rich hyperlink, curator-viewer surface) is in CHANGES_REQUESTED, trying to get that closed today\n- Digging through the cache key structure in caching-and-resume and hit something that needs a conversation before we build any row counting on top of it",
+          "ts": "2025-02-19T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "added source_url to the input set purely for provenance and the entire 40k run went back out to the api",
+          "ts": "2025-02-19T09:18:31",
+          "reactions": [
+            {
+              "emoji": "😬",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "prompt() does not even read source_url. entire 40k run went back out to the api and I got billed again for it.",
+          "ts": "2025-02-19T09:18:32.666667"
+        },
+        {
+          "userId": "dermot",
+          "text": "I did not touch a single prompt.",
+          "ts": "2025-02-19T09:18:34.333334"
+        },
+        {
+          "userId": "dermot",
+          "text": "should the cache key only cover what prompt() actually reads?",
+          "ts": "2025-02-19T09:18:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah, current key hashes the whole input row:\n\n```python\nkey = _hash(prompt_func_source, row)\n```",
+          "ts": "2025-02-19T09:45:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can look at what it would take to scope the key to just the rendered payload, I own that layer.",
+          "ts": "2025-02-19T10:22:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "so does the rendered payload include only the columns prompt() actually touches, or is that still the whole row?",
+          "ts": "2025-02-19T10:32:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "Actually I was being sloppy, when I said \"rendered payload\" I meant hashing what prompt() produces as output, not trying to figure out which input columns it reads",
+          "ts": "2025-02-19T11:14:46"
+        },
+        {
+          "userId": "dario",
+          "text": "When you say hash what prompt() produces, you mean the messages/text it returns, or the full request body after generation params get folded in?",
+          "ts": "2025-02-19T11:19:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "oh",
+          "ts": "2025-02-19T11:29:00",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Around this afternoon if anyone wants to talk through it before EOD.",
+          "ts": "2025-02-19T11:50:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "progress-and-cli is in a good spot this week, got the main progress bar rendering cleaned up and the telemetry pieces are staged and waiting on review",
+          "ts": "2025-02-20T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pretty solid week overall honestly",
+          "ts": "2025-02-20T09:00:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone have a rough count of what actually shipped this week across services?",
+          "ts": "2025-02-20T09:05:51"
+        },
+        {
+          "userId": "nikolai",
+          "text": "From my side:\n- code-execution: PR 495 is in review, docker/async timeout changes are in there\n- telemetry: PR 502 up for review, config changes only\n- neither merged yet, hoping to close them out today or tomorrow",
+          "ts": "2025-02-20T09:19:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "On my end, PR 530 and PR 509 are both staged and waiting on review, they need to land together",
+          "ts": "2025-02-20T09:43:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress-and-cli cleanup is done",
+          "ts": "2025-02-20T09:44:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "+1",
+          "ts": "2025-02-20T10:03:56"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference has been stable, no changes this week that need calling out",
+          "ts": "2025-02-20T10:39:56"
+        },
+        {
+          "userId": "dermot",
+          "text": "main thing on my end is PR 530 and PR 509 sitting in review, those need to land together as the telemetry fix",
+          "ts": "2025-02-20T10:40:01"
+        },
+        {
+          "userId": "emil",
+          "text": "gotcha, so 530 and 509 are Dermot's to own?",
+          "ts": "2025-02-20T10:50:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "- those are mine, not Dermot's, he was probably just relaying from earlier\n- Nikolai is reviewing PR 530 this morning, I'm still tracking someone down for PR 509\n- also want to get eyes on the viewer UX epic direction as a group before end of day, there's some open shape there",
+          "ts": "2025-02-20T11:07:45"
+        },
+        {
+          "userId": "emil",
+          "text": "On my end, PR 518 and PR 520 are both in review and sitting tight",
+          "ts": "2025-02-20T11:39:45"
+        },
+        {
+          "userId": "emil",
+          "text": "If we're deciding which stale PR gets attention next, PR 468 has been sitting the longest on my side",
+          "ts": "2025-02-20T11:39:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Gideon Halloway can you add me as reviewer on PR 509 as well, since I'm already looking at PR 530?",
+          "ts": "2025-02-20T11:53:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Solid week when you lay it all out, hyperlinks, litellm bump, and the telemetry fix all in the same stretch.",
+          "ts": "2025-02-20T12:41:00",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai Berresford on it, adding you to PR 509 now",
+          "ts": "2025-02-20T13:16:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also, who has the clearest picture of where the viewer UX epic stands right now?",
+          "ts": "2025-02-20T13:17:06"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think the viewer epic is basically the cluster of open issues (92, 93, 94, 105), is there more scope mapped out somewhere that isn't just the backlog?",
+          "ts": "2025-02-20T13:31:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is PR 468 the stale one we're prioritizing next, or is something else higher up?",
+          "ts": "2025-02-20T14:09:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "We still haven't landed on the viewer UX epic direction.",
+          "ts": "2025-02-20T14:37:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does anyone have a sense of what's actually scoped beyond the open issues, or are we treating those issues as the whole epic?",
+          "ts": "2025-02-20T14:37:46"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 is n samples in generation params, been sitting without a reviewer for a while, that's the one I'd move on next from my side.",
+          "ts": "2025-02-20T15:13:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure the open issues are the whole epic, are we treating issue 92, 93, 94, 105 as the full scope or is someone holding more shape on this that hasn't landed anywhere?",
+          "ts": "2025-02-20T15:34:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "same, I think the same question",
+          "ts": "2025-02-20T15:35:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "If anyone has more scope on the viewer epic beyond those four issues it's probably Dario, since he owns curator-viewer.",
+          "ts": "2025-02-20T16:04:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel do we treat the four open issues as the whole viewer epic, or is there more scope you're holding that hasn't been written down anywhere?",
+          "ts": "2025-02-20T16:32:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 509 still doesn't have a confirmed merge, and we're running out of day, Nikolai was reviewing but I haven't seen an approval come through yet.",
+          "ts": "2025-02-20T17:06:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still working through PR 509, should have an approval in within the next few minutes.",
+          "ts": "2025-02-20T17:47:02",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "viewer epic scope is still unresolved, Dario hasn't come back on it.",
+          "ts": "2025-02-20T18:18:02"
         }
       ],
       "projectSpec": {
@@ -18274,7 +19611,9 @@
         "emil",
         "gideon",
         "konrad",
-        "petar"
+        "nikolai",
+        "petar",
+        "priya"
       ],
       "messages": [
         {
@@ -18695,6 +20034,136 @@
           "userId": "dario",
           "text": "Putting the draft up without a settled return type - the path resolution is the part that needs eyes, and that review doesn't depend on the shape of what we return",
           "ts": "2025-02-13T14:17:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "Sent the 0.1.19 announcement mail this morning, main changes are the progress bar revamp and the online request/cost tracking fixes",
+          "ts": "2025-02-17T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📢",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "If you haven't upgraded yet, worth doing",
+          "ts": "2025-02-17T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good stuff, thanks Gideon",
+          "ts": "2025-02-17T09:17:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "For anyone who missed the mail, we shipped 0.1.19 overnight and the upgrade is worth it, the progress and cost tracking changes alone make it a meaningful one",
+          "ts": "2025-02-17T09:17:10"
+        },
+        {
+          "userId": "priya",
+          "text": "Also fixed a function-calling example bug that was tripping people up, that's in 0.1.19 too if anyone ran into it.",
+          "ts": "2025-02-17T09:25:10"
+        },
+        {
+          "userId": "nikolai",
+          "text": "cost tracking changes are on the telemetry side if anyone has questions about that piece.",
+          "ts": "2025-02-17T10:04:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "oh nice",
+          "ts": "2025-02-17T10:33:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "I didn't have the function-calling fix in my notes",
+          "ts": "2025-02-17T10:33:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "- *0.1.19 is live*, the announcement mail went out this morning\n- *Release notes* on the wiki at engineering/release-notes-0-1-19\n- Progress bar, online request handling fixes, and cost tracking are the main changes; no breaking anything",
+          "ts": "2025-02-17T10:42:59"
+        },
+        {
+          "userId": "dario",
+          "text": "The online request handling fixes are solid on my end, that was the main thing I had in flight and it's all in 0.1.19",
+          "ts": "2025-02-17T11:16:53",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Provider attribution fixes are in there too, that was my piece, so that side is clean.",
+          "ts": "2025-02-17T11:29:53",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Good to have it confirmed across the board",
+          "ts": "2025-02-17T13:29:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "0.1.19 is solid - progress bar, online request handling, cost tracking, provider attribution all in",
+          "ts": "2025-02-17T13:29:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Upgrade if you haven't yet",
+          "ts": "2025-02-17T13:29:24"
+        },
+        {
+          "userId": "priya",
+          "text": "Function-calling fix is in there too, mentioned it this morning but worth noting for the record.",
+          "ts": "2025-02-17T13:34:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "Good to have that on the record. Full picture for 0.1.19:\n- *Progress bar* revamp with better ETA and cache hit display\n- *Online request handling* and cost tracking fixes\n- *Provider attribution* fixes (Emil)\n- Function-calling example bug fixed (Priya)",
+          "ts": "2025-02-17T14:14:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "Opened the release notes - my part is covered (progress bar revamp, request handling fixes)",
+          "ts": "2025-02-17T14:14:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Priya's function-calling fix and Emil's provider attribution aren't in there though",
+          "ts": "2025-02-17T14:14:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "Should I add those or does one of you want to update it?",
+          "ts": "2025-02-17T14:14:58"
+        },
+        {
+          "userId": "nikolai",
+          "text": "cost tracking is solid on my end too, the telemetry side is all confirmed in 0.1.19.",
+          "ts": "2025-02-17T14:25:58",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -25202,6 +26671,646 @@
           "userId": "gideon",
           "text": "I'm around tonight if you need another set of eyes on the accounting path, @Dermot.",
           "ts": "2025-02-13T18:24:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "- bulk-llm-inference is stable from my end, no provider path failures in the overnight logs\n- multimodal side looks clean, batch submissions coming through normally, nothing flagged",
+          "ts": "2025-02-14T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "caching-and-resume looks stable on my end too",
+          "ts": "2025-02-14T09:32:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 504 is up for the cost estimation bug, that's what I want to get eyes on today",
+          "ts": "2025-02-14T09:32:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "is the cost bug in PR 504 isolated to online-request-processing, or does it affect the batch path too",
+          "ts": "2025-02-14T09:39:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "From what I can see it's in online-request-processing, I haven't traced it into the batch path but Emil would know better on that side",
+          "ts": "2025-02-14T10:22:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "did the vllm offline test fix get proper coverage, or is it still at risk of slipping",
+          "ts": "2025-02-14T11:07:15"
+        },
+        {
+          "userId": "emil",
+          "text": "hmm",
+          "ts": "2025-02-14T11:39:35"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure that fix has solid coverage yet actually.",
+          "ts": "2025-02-14T11:39:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's missing from the test coverage on the vllm fix",
+          "ts": "2025-02-14T12:10:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'd like that sorted this afternoon, not left for next week",
+          "ts": "2025-02-14T12:10:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "local-offline-inference hardcodes its own model name list, that's what told a vllm user their model can't do schema-constrained output when the same model works fine over the api",
+          "ts": "2025-02-14T12:21:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "I've found three files now carrying the same model strings independently, that list should not be duplicated across the codebase",
+          "ts": "2025-02-14T12:21:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Provider paths look clean from my side after the batch client changes",
+          "ts": "2025-02-14T12:41:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The hardcoded model list in local-offline-inference is what's blocking me from calling the offline path fully confirmed",
+          "ts": "2025-02-14T12:41:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "is the hardcoded list in local-offline-inference the same one that's in the other two files, or are they actually diverged?",
+          "ts": "2025-02-14T13:16:12",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-14T14:09:42"
+        },
+        {
+          "userId": "dario",
+          "text": "From my side, all seven provider-integration changes are in and online-request-processing is clean, no regressions I can find after the batch client refactor",
+          "ts": "2025-02-14T13:45:12",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Still want to confirm the cost bug in PR 504 is isolated before we call it done",
+          "ts": "2025-02-14T13:45:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "Around this afternoon if anyone wants to dig into PR 504 scope together",
+          "ts": "2025-02-14T14:08:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "seven provider integrations clean is solid, Dario.",
+          "ts": "2025-02-14T14:09:03",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure",
+          "ts": "2025-02-14T14:09:30",
+          "threadParentTs": "2025-02-14T13:16:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "I haven't done a direct comparison",
+          "ts": "2025-02-14T14:09:42",
+          "threadParentTs": "2025-02-14T13:16:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Online request handling and cost tracking fixes are all in",
+          "ts": "2025-02-17T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "One thing I keep running into: before a re-run, people want to know how much is already on disk, and right now the only way to find out is to start the run and watch the cache hits go by on the progress bar, which is too late to actually decide anything",
+          "ts": "2025-02-17T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does anyone actually know what's on disk before kicking off a re-run, or is everyone just starting it and watching the hit counter?",
+          "ts": "2025-02-17T09:34:37"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone gotten an actual user request for a pre-run cache coverage check, or is this just something we keep hitting ourselves?",
+          "ts": "2025-02-17T10:35:37"
+        },
+        {
+          "userId": "dario",
+          "text": "Got at least one user report on this. Someone asked why they couldn't see how many rows were cached before deciding whether to re-run a job, so this isn't just internal friction",
+          "ts": "2025-02-17T11:12:37",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure this warrants a whole separate command vs. just a flag you can pass before committing to a run",
+          "ts": "2025-02-17T11:12:55"
+        },
+        {
+          "userId": "dario",
+          "text": "Is this something we want to scope out this week, or does it go in the backlog?",
+          "ts": "2025-02-17T11:13:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "that settles the user need question at least",
+          "ts": "2025-02-17T11:21:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "The cache hit count is already computable before the first request goes out, it just isn't surfaced anywhere in the startup output",
+          "ts": "2025-02-17T11:21:19"
+        },
+        {
+          "userId": "dario",
+          "text": "oh that's actually straightforward then",
+          "ts": "2025-02-17T11:50:00",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward filing it before we lose the thread, but honestly I'm not sure \"just print it at startup\" is the whole answer, the format question alone is probably worth thinking about. Do we want to open something or just let it sit?",
+          "ts": "2025-02-17T11:50:25"
+        },
+        {
+          "userId": "dario",
+          "text": "Answering my own question I guess, filing it makes sense just to have it written down",
+          "ts": "2025-02-17T12:26:25"
+        },
+        {
+          "userId": "dario",
+          "text": "Where does the cache state actually live at startup, is it read from disk before any requests are dispatched or is it lazy?",
+          "ts": "2025-02-17T12:26:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cache state is read from disk at job init, before any requests go out.",
+          "ts": "2025-02-17T13:03:33"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon where does the issue filing stand, did you open something or is that still pending?",
+          "ts": "2025-02-17T13:15:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Haven't filed anything yet, I thought you were picking that up since you were the one who mentioned it",
+          "ts": "2025-02-17T13:21:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Happy to open it if not, just say the word",
+          "ts": "2025-02-17T13:21:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario go ahead and file it if you want, I'll add the caching details once it's up",
+          "ts": "2025-02-17T13:35:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Go ahead and file it, do you have enough on the cache read side to write it up or do you need anything from me?",
+          "ts": "2025-02-17T14:17:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "I've got enough to write it up, I'll file it.",
+          "ts": "2025-02-17T14:21:50",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Good to get this confirmed: the only way to know how much is already on disk right now is to kick off the run and watch the hit counter go by, which is already too late to make a decision",
+          "ts": "2025-02-17T14:22:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "User report makes it real",
+          "ts": "2025-02-17T14:22:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "- been looking at the error summarization in online mode, the logic in PR 515 looks sound to me\n- want to make sure the provider example updates in PR 509 aren't going to break any integration tests before that lands",
+          "ts": "2025-02-18T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "cost-map refactoring is nearly done on my end, just want to double-check the interaction with caching-and-resume before I call it clean.",
+          "ts": "2025-02-18T09:03:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the cost-map shape itself changing, or just how it's populated?",
+          "ts": "2025-02-18T10:16:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "just the population, shape isn't changing",
+          "ts": "2025-02-18T10:51:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "how's 516 coming along?",
+          "ts": "2025-02-18T10:51:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "It's up in code-review if you want to take a look, pretty contained.",
+          "ts": "2025-02-18T11:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "fair",
+          "ts": "2025-02-18T12:10:00"
+        },
+        {
+          "userId": "dario",
+          "text": "shape stable means caching doesn't care",
+          "ts": "2025-02-18T12:10:12"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 515 is good on my end too, error summarization logic in online mode is validated. On PR 509, the provider example updates are additive, nothing that should touch integration test contracts.",
+          "ts": "2025-02-18T12:30:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "sounds good all round, 515 can land.",
+          "ts": "2025-02-18T12:39:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "nice, 515 cleared and the provider updates won't touch integration contracts. solid",
+          "ts": "2025-02-18T13:06:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Also just pulled up the 0.1.19 release notes, the online request handling section is in there covering the cost accounting and token attribution fixes, so the pipeline side is covered.",
+          "ts": "2025-02-18T13:06:05",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-18T15:02:20"
+        },
+        {
+          "userId": "dario",
+          "text": "does that section cover the cost-map refactoring or just the earlier fixes?",
+          "ts": "2025-02-18T15:02:20",
+          "threadParentTs": "2025-02-18T13:06:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Just the earlier fixes, cost-map isn't in there yet",
+          "ts": "2025-02-18T15:41:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dermot can you confirm there are no contract breaks before that one lands?",
+          "ts": "2025-02-18T15:41:28"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, does the population change touch anything caching-and-resume reads off the cost map, or is the read interface staying the same?",
+          "ts": "2025-02-18T16:04:28",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-18T18:24:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "The 0.1.19 release notes have the online request handling fixes on record, but the cost-map work is going to need its own entry in the next release.",
+          "ts": "2025-02-18T16:49:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "not ready to confirm, @Dario what does caching-and-resume actually read off it?",
+          "ts": "2025-02-18T17:07:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "found issue 209 from a while back, the missing-cost path in litellm is exactly what the population changes touch.",
+          "ts": "2025-02-18T17:07:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "classic end-of-day surfacing, issue 209 really waited for the best moment",
+          "ts": "2025-02-18T18:23:36",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "read interface is the same, I'm not not sure the population path is fully isolated though",
+          "ts": "2025-02-18T18:24:13",
+          "threadParentTs": "2025-02-18T16:04:28"
+        },
+        {
+          "userId": "emil",
+          "text": "The missing-cost path in litellm doesn't fail loudly, it silently returns zero, and that's exactly what issue 209 is tracking.",
+          "ts": "2025-02-18T18:28:21.796832",
+          "replyCount": 3,
+          "replyLastTs": "2025-02-18T18:29:53.796832"
+        },
+        {
+          "userId": "dario",
+          "text": "so caching could be reading a zero and treating it as valid cost data?",
+          "ts": "2025-02-18T18:29:06.796832",
+          "threadParentTs": "2025-02-18T18:28:21.796832"
+        },
+        {
+          "userId": "dario",
+          "text": "does litellm return None or actual 0 there?",
+          "ts": "2025-02-18T18:29:16.796832",
+          "threadParentTs": "2025-02-18T18:28:21.796832"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not sure caching can distinguish a real zero from a missing cost if litellm returns actual 0, that's not a safe assumption on our end.",
+          "ts": "2025-02-18T18:29:53.796832",
+          "threadParentTs": "2025-02-18T18:28:21.796832"
+        },
+        {
+          "userId": "dario",
+          "text": "does Dermot's refactoring handle the zero-cost case or is that still open?",
+          "ts": "2025-02-18T18:29:58.284179"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress bar side is stable on my end",
+          "ts": "2025-02-19T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still want to confirm PR 518's logger handles concurrent requests and retries cleanly, has anyone stress tested that path yet?",
+          "ts": "2025-02-19T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does PR 518 write errors directly to stderr or does it route through the logger?",
+          "ts": "2025-02-19T09:27:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does PR 518 log each retry attempt separately or just the terminal failure?",
+          "ts": "2025-02-19T10:10:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does PR 518 buffer errors until the run finishes, or emit them as they happen?",
+          "ts": "2025-02-19T10:25:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone stress-tested the current progress display against a run with a high error rate?",
+          "ts": "2025-02-19T11:17:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Let me check the PR.",
+          "ts": "2025-02-19T12:05:33"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 518 routes errors through the custom logger rather than stderr directly, and it logs each retry attempt separately rather than buffering to the end",
+          "ts": "2025-02-19T12:15:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I also pulled up the sync notes from the 17th and 518 is marked in review with no blockers declared, which is still accurate on my end",
+          "ts": "2025-02-19T12:15:48"
+        },
+        {
+          "userId": "emil",
+          "text": "The concurrent request path is the part I'm not confident we've actually stress tested though, so I'd want someone to sanity check that before we call it safe for release",
+          "ts": "2025-02-19T12:15:53",
+          "reactions": [
+            {
+              "emoji": "⚠️",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Are we comfortable calling the logger changes safe for release without someone actually running a concurrent stress test on the retry path, or does that need to happen first?",
+          "ts": "2025-02-19T14:41:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Haven't validated the concurrent path in online-request-processing against PR 518 yet, specifically what happens when a retry fires mid-write to the logger",
+          "ts": "2025-02-19T15:01:48",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-19T15:02:03"
+        },
+        {
+          "userId": "dario",
+          "text": "That's the part I'm not comfortable signing off on",
+          "ts": "2025-02-19T15:01:53"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure \"no blockers declared\" in the sync notes from the 17th actually covers what we're talking about, concurrent retry behavior might not have been in scope for that review at all",
+          "ts": "2025-02-19T15:02:03",
+          "threadParentTs": "2025-02-19T15:01:48"
+        },
+        {
+          "userId": "emil",
+          "text": "What would it take to actually validate that concurrent retry path?",
+          "ts": "2025-02-19T16:08:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still haven't validated the error summary format against the progress bar, no one's actually run that combination.",
+          "ts": "2025-02-19T16:41:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil can you check what the retry error output looks like when the bar is active?",
+          "ts": "2025-02-19T16:41:40"
+        },
+        {
+          "userId": "gideon",
+          "text": "Online request processing side looks stable after the progress bar polish, nothing obviously broken on my end",
+          "ts": "2025-02-20T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Wanted to make sure nobody's seen anything weird from the pipeline layer since those changes went in",
+          "ts": "2025-02-20T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference looks clean on my end too, no regressions I can see from the recent merges",
+          "ts": "2025-02-20T09:26:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Good to hear",
+          "ts": "2025-02-20T09:32:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone notice anything off with resume or caching behavior specifically, or was it just the rendering layer that got touched?",
+          "ts": "2025-02-20T09:32:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel, you holding up okay with the caching side, anything flagged from your end?",
+          "ts": "2025-02-20T10:05:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone seen any weird retry behavior on the online request processing side since the recent changes?",
+          "ts": "2025-02-20T10:58:30"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon Halloway, have time this afternoon to run through the telemetry changes and what they touch on the curator side?",
+          "ts": "2025-02-20T11:23:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "I was hoping to use this afternoon for the viewer epic thing, so maybe not the best slot, is there something specific you're worried about that isn't covered in the PR itself?",
+          "ts": "2025-02-20T11:29:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-20T11:47:51"
+        },
+        {
+          "userId": "emil",
+          "text": "It's more about confirming the telemetry side landed cleanly on the curator home, not really a PR question.",
+          "ts": "2025-02-20T11:47:51",
+          "threadParentTs": "2025-02-20T11:29:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Did the telemetry changes touch anything on the curator home side, or was that isolated to the config layer?",
+          "ts": "2025-02-20T12:37:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Still not sure if we have eyes on whether that landed cleanly there.",
+          "ts": "2025-02-20T12:37:37"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 530 and PR 509 are config layer only from my side, anything on the curator home I'd defer to @Dario Kestrel",
+          "ts": "2025-02-20T13:07:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone actually seen a regression in retry behavior, or is it looking clean across the board?",
+          "ts": "2025-02-20T13:20:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "Nothing weird on my end with retries, so I think we're clean there",
+          "ts": "2025-02-20T13:50:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone checked whether cost accounting is behaving right after the recent changes?",
+          "ts": "2025-02-20T13:50:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Nothing off on the provider-integrations side for cost accounting",
+          "ts": "2025-02-20T14:09:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Still need @Dario Kestrel to confirm the online-request-processing end, then I think we can close out the pipeline check",
+          "ts": "2025-02-20T14:09:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference is clean, nothing off on my end with retries or cost accounting there.",
+          "ts": "2025-02-20T14:20:53",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Has batch-mode been checked too, or is that not in scope for this pass?",
+          "ts": "2025-02-20T14:41:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Batch-mode hasn't had any changes this week",
+          "ts": "2025-02-20T15:18:45"
         }
       ],
       "projectSpec": {
@@ -27741,6 +29850,7 @@
       "memberIds": [
         "dario",
         "dermot",
+        "emil",
         "gideon",
         "konrad"
       ],
@@ -27864,6 +29974,197 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 516 is still in CHANGES_REQUESTED, the rich hyperlink and summary table changes are done on my end",
+          "ts": "2025-02-19T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also want to figure out where PR 518's logger output sits relative to the progress bar before either one lands",
+          "ts": "2025-02-19T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure logger output above vs. below the progress bar is settled, does anyone have a preference before both those prs try to merge?",
+          "ts": "2025-02-19T09:14:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "Around all morning if anyone wants to sort the layout question before those PRs try to merge",
+          "ts": "2025-02-19T09:40:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "three coffees in and still not fully awake, wednesday has that quality",
+          "ts": "2025-02-19T10:08:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still need to nail down logger output above vs. below the bar, can we call it without Emil or does he need to be in the room first?",
+          "ts": "2025-02-19T10:18:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not sure PR 516 needs to wait on the logger layout question, can those land independently, or are they actually coupled?",
+          "ts": "2025-02-19T11:11:13"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm around, 516 can go without waiting on the layout question.",
+          "ts": "2025-02-19T11:40:12",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel, PR 516 has been in CHANGES_REQUESTED for a day and Gideon's addressed the summary table side. Can you take a pass at it this afternoon and clear it, or say what still needs to change?",
+          "ts": "2025-02-19T12:11:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "for the logger layout, is the question just where the output sits relative to the progress bar, or is there also a formatting question?",
+          "ts": "2025-02-19T12:38:52",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-19T14:45:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "Not sure it's just positioning, whether the logger writes inside or outside the Rich Live context is also part of it.",
+          "ts": "2025-02-19T13:58:16",
+          "threadParentTs": "2025-02-19T12:38:52"
+        },
+        {
+          "userId": "emil",
+          "text": "So there are actually two separate questions here, the positioning and the Live context boundary?",
+          "ts": "2025-02-19T14:45:50",
+          "threadParentTs": "2025-02-19T12:38:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "going through pr 516 now, will clear or leave specific comments before end of day",
+          "ts": "2025-02-19T15:25:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "The Live context question kind of answers the positioning one",
+          "ts": "2025-02-19T16:04:50",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-19T16:16:05"
+        },
+        {
+          "userId": "emil",
+          "text": "So the logger should write outside the Live context, and that settles where it sits?",
+          "ts": "2025-02-19T16:05:24",
+          "threadParentTs": "2025-02-19T16:04:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "pretty much",
+          "ts": "2025-02-19T16:16:05",
+          "threadParentTs": "2025-02-19T16:04:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "Waiting on Dermot's pass for 516, and logger-outside-Live-context settles the layout question as far as I'm concerned",
+          "ts": "2025-02-19T16:24:00"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get the logger update into PR 518 before end of day.",
+          "ts": "2025-02-19T16:57:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Dermot's almost done with 516, looks like it'll land today",
+          "ts": "2025-02-19T17:29:01",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "End-of-run summary table is mostly wired up, but I keep hitting the same thing, we show `cached: 12,403` and the first question anyone's going to ask is \"out of what.\" We have hit_rate already so I think we should just print it as a percentage right next to the count.",
+          "ts": "2025-02-20T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "a bare count doesn't tell you if a rerun is cheap, that's the whole reason I want it.",
+          "ts": "2025-02-20T09:00:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "What does hit_rate actually return right now, a float between 0 and 1 or something else?",
+          "ts": "2025-02-20T09:34:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok answering my own question, hit_rate's return shape isn't consistent, which is why I can't just drop it into the table.",
+          "ts": "2025-02-20T09:58:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "- end-of-run table is mostly done but holding on the hit_rate return shape issue I flagged earlier\n- once that's sorted I can wire in the percentage display alongside the raw count\n- deferring the table wiring for now until that's fixed",
+          "ts": "2025-02-20T11:04:10"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 520 is still in review, holding on feedback there",
+          "ts": "2025-02-20T11:31:27"
+        },
+        {
+          "userId": "emil",
+          "text": "On the table question, +1 to the fractional hit_rate, the summary table is where most users are actually going to read these numbers, so showing a bare count without context is going to confuse people",
+          "ts": "2025-02-20T11:31:35",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "+1",
+          "ts": "2025-02-20T11:50:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure a percentage alone gets us there, if total request count isn't somewhere in that table, \"45%\" doesn't tell you much.",
+          "ts": "2025-02-20T12:27:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-20T13:26:39"
+        },
+        {
+          "userId": "emil",
+          "text": "fair",
+          "ts": "2025-02-20T12:47:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "so you mean both, like `cached: 12,403 (45%)`?",
+          "ts": "2025-02-20T13:26:39",
+          "threadParentTs": "2025-02-20T12:27:00"
         }
       ],
       "projectSpec": {

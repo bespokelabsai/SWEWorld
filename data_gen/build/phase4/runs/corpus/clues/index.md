@@ -1,12 +1,12 @@
 # Phase 4: every planted clue, and whether its information landed
 
-22 of 25 carried.
+27 of 30 carried.
 
 A clue is a fact the corpus has to teach. It does not have to be worded the way it was planted — the persona saying it has their own vocabulary — but the information has to be there, or the requirement it serves becomes unrecoverable and the task unscoreable. Each row links to the line that carried it, in the conversation around it.
 
-**4 clue(s) leaked giveaway language.** Those landed, but state the hidden requirement plainly enough to make the task trivial — a worse outcome than a miss, because a miss is visible in this table and a leak is not.
+**5 clue(s) leaked giveaway language.** Those landed, but state the hidden requirement plainly enough to make the task trivial — a worse outcome than a miss, because a miss is visible in this table and a leak is not.
 
-**12 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
+**14 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
 
 | clue | task | holder | said by | date | where | kind | carried | leaked | repaired | attempt |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -35,3 +35,8 @@ A clue is a fact the corpus has to teach. It does not have to be worded the way 
 | [t2.r1.L8](t2.r1.L8.md) | t2 | dermot | — | 2025-02-07 | #pipeline | chat | yes | — | — | 1 |
 | [t4.r1.L7](t4.r1.L7.md) | t4 | dermot | — | 2025-02-11 | #cookbooks | chat | yes | — | +1 msg | 1 |
 | [t1.r2.L1](t1.r2.L1.md) | t1 | dario | — | 2025-02-13 | #general | chat | yes | — | — | 1 |
+| [t2.r2.l5](t2.r2.l5.md) | t2 | dermot | — | 2025-02-14 | #pipeline | chat | yes | — | — | 1 |
+| [t3.r2.l_beh_gideon](t3.r2.l_beh_gideon.md) | t3 | gideon | — | 2025-02-14 | #engineering | chat | yes | — | — | 1 |
+| [t1.r2.L13](t1.r2.L13.md) | t1 | gideon | — | 2025-02-17 | #pipeline | chat | yes | — | — | 1 |
+| [t1.r1.l_prompt_1](t1.r1.l_prompt_1.md) | t1 | dermot | — | 2025-02-19 | #engineering | chat | yes | cache key | +2 msg | 1 |
+| [t1.r1.l_stats_1](t1.r1.l_stats_1.md) | t1 | gideon | — | 2025-02-20 | #viewer | chat | yes | — | +1 msg | 1 |

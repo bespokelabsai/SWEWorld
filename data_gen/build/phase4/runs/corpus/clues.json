@@ -1195,5 +1195,258 @@
       "11:26  dario     Turns out I've had `CURATOR_CACHE_DIR=/mnt/scratch/curator-cache` in my shell profile si",
       "12:01  emil      Yeah"
     ]
+  },
+  {
+    "clue": "t3.r2.l_beh_gideon",
+    "holder": "gideon",
+    "date": "2025-02-14",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "Separate thing I want to settle before end of day: when we skip a pending batch job on resume, can we log the reason at INFO, not just the id at DEBUG? \"resumed 1 pending batch job\" with nothing explaining what didn't match is how I lost an afternoon last month.",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 11:26 message states the current DEBUG-only id logging, quotes the unhelpful line, gives the personal cost, and asks for an INFO-level reason on the skip line — all elements of the request are present.",
+    "elements": [
+      {
+        "part": "the situation is reusing (or not reusing) a pending/stored batch job on resume",
+        "present": true,
+        "why": "Gideon says 'when we skip a pending batch job on resume'"
+      },
+      {
+        "part": "currently only the job id is logged, at DEBUG level",
+        "present": true,
+        "why": "Gideon says 'not just the id at DEBUG'"
+      },
+      {
+        "part": "the message 'resumed 1 pending batch job' gives no reason for what didn't match",
+        "present": true,
+        "why": "Gideon quotes exactly this phrase and says it has 'nothing explaining what didn't match'"
+      },
+      {
+        "part": "this caused Gideon to lose an afternoon last month",
+        "present": true,
+        "why": "Gideon states 'is how I lost an afternoon last month'"
+      },
+      {
+        "part": "what should happen instead: log the reason at INFO level on the skip line",
+        "present": true,
+        "why": "Gideon explicitly asks 'can we log the reason at INFO, not just the id at DEBUG'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:16  gideon    Is it all image inputs or specific formats?",
+      "10:50  dermot    I've been cross-referencing the anthropic vision docs on image content block types, ther",
+      "11:26  gideon    Separate thing I want to settle before end of day: when we skip a pending batch job on r   <-- the clue",
+      "11:34  emil      Fair point, that's a frustrating way to lose time.",
+      "11:35  emil      Are they failing outright or just behaving differently?"
+    ]
+  },
+  {
+    "clue": "t2.r2.l5",
+    "holder": "dermot",
+    "date": "2025-02-14",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "local-offline-inference hardcodes its own model name list, that's what told a vllm user their model can't do schema-constrained output when the same model works fine over the api",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's two consecutive messages give the symptom, the contrast with the API path, the root cause, the count of duplicated files, and the objection that it shouldn't be duplicated.",
+    "elements": [
+      {
+        "part": "a vLLM run told a user their model can't do schema-constrained output",
+        "present": true,
+        "why": "Dermot: '...that's what told a vllm user their model can't do schema-constrained output'"
+      },
+      {
+        "part": "the same model works fine over the API",
+        "present": true,
+        "why": "Dermot: '...when the same model works fine over the api'"
+      },
+      {
+        "part": "the cause is local-offline hardcoding its own model name list",
+        "present": true,
+        "why": "Dermot: 'local-offline-inference hardcodes its own model name list'"
+      },
+      {
+        "part": "this is the third file found carrying the same model strings",
+        "present": true,
+        "why": "Dermot: 'I've found three files now carrying the same model strings independently'"
+      },
+      {
+        "part": "that list should not be duplicated across the codebase",
+        "present": true,
+        "why": "Dermot states the normative view: 'that list should not be duplicated across the codebase'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:10  dermot    what's missing from the test coverage on the vllm fix",
+      "12:10  dermot    I'd like that sorted this afternoon, not left for next week",
+      "12:21  dermot    local-offline-inference hardcodes its own model name list, that's what told a vllm user    <-- the clue",
+      "12:21  dermot    I've found three files now carrying the same model strings independently, that list shou",
+      "12:41  emil      Provider paths look clean from my side after the batch client changes"
+    ]
+  },
+  {
+    "clue": "t1.r2.L13",
+    "holder": "gideon",
+    "date": "2025-02-17",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "One thing I keep running into: before a re-run, people want to know how much is already on disk, and right now the only way to find out is to start the run and watch the cache hits go by on the progress bar, which is too late to actually decide anything",
+    "said_by": "Gideon Halloway",
+    "why": "All parts of the remark are stated plainly by Gideon, reinforced again at 14:22",
+    "elements": [
+      {
+        "part": "people keep asking the same question before a re-run",
+        "present": true,
+        "why": "Gideon says people want to know this before a re-run, framed as a recurring ask"
+      },
+      {
+        "part": "the question is how much of this is already on disk",
+        "present": true,
+        "why": "Gideon states this directly at 09:00 and again at 14:22"
+      },
+      {
+        "part": "right now the only way to answer it is to run the thing",
+        "present": true,
+        "why": "Gideon says you have to kick off the run to find out"
+      },
+      {
+        "part": "and watch the hit counter go by on the progress bar",
+        "present": true,
+        "why": "Gideon names the hit counter on the progress bar as the only visibility"
+      },
+      {
+        "part": "which is too late to decide anything",
+        "present": true,
+        "why": "Gideon says this is already too late to make a decision, at both 09:00 and 14:22"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  gideon    Online request handling and cost tracking fixes are all in",
+      "09:00  gideon    One thing I keep running into: before a re-run, people want to know how much is already    <-- the clue",
+      "09:34  gideon    Does anyone actually know what's on disk before kicking off a re-run, or is everyone jus",
+      "10:35  gideon    Has anyone gotten an actual user request for a pre-run cache coverage check, or is this "
+    ]
+  },
+  {
+    "clue": "t1.r1.l_prompt_1",
+    "holder": "dermot",
+    "date": "2025-02-19",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "added source_url to the input set purely for provenance and the entire 40k run went back out to the api",
+    "said_by": "Dermot Callaghan",
+    "why": "All parts of the heads-up—the column addition, its provenance purpose, prompt() not reading it, the 40k re-run, the billing, and that no prompt was touched—are stated plainly by Dermot Callaghan across his 09:18 messages.",
+    "elements": [
+      {
+        "part": "a source_url column was added to the input set",
+        "present": true,
+        "why": "Dermot states this directly at 09:18"
+      },
+      {
+        "part": "it was added purely for provenance",
+        "present": true,
+        "why": "Dermot says \"added source_url ... purely for provenance\""
+      },
+      {
+        "part": "prompt() does not read source_url",
+        "present": true,
+        "why": "Dermot says prompt() does not even read source_url"
+      },
+      {
+        "part": "the entire 40k run went back out to the API",
+        "present": true,
+        "why": "stated explicitly, and repeated"
+      },
+      {
+        "part": "he was billed again for it",
+        "present": true,
+        "why": "Dermot says \"I got billed again for it\""
+      },
+      {
+        "part": "he did not touch a single prompt",
+        "present": true,
+        "why": "stated verbatim by Dermot"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "cache key"
+    ],
+    "context": [
+      "09:00  gideon    - *PR 516* (rich hyperlink, curator-viewer surface) is in CHANGES_REQUESTED, trying to g",
+      "09:18  dermot    added source_url to the input set purely for provenance and the entire 40k run went back   <-- the clue",
+      "09:18  dermot    prompt() does not even read source_url. entire 40k run went back out to the api and I go",
+      "09:18  dermot    I did not touch a single prompt."
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "prompt() does not even read source_url. entire 40k run went back out to the api and I got billed again for it.",
+        "I did not touch a single prompt."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r1.l_stats_1",
+    "holder": "gideon",
+    "date": "2025-02-20",
+    "channel": "viewer",
+    "attempt": 1,
+    "said": true,
+    "quote": "End-of-run summary table is mostly wired up, but I keep hitting the same thing, we show `cached: 12,403` and the first question anyone's going to ask is \"out of what.\" We have hit_rate already so I think we should just print it as a percentage right next to the count.",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 09:00 messages give the current bare-count behavior, the 'out of what' problem, why it matters (cheap rerun), and the ask for a percentage.",
+    "elements": [
+      {
+        "part": "the end-of-run table currently shows a bare count like cached: 12,403",
+        "present": true,
+        "why": "Gideon states the table shows cached: 12,403"
+      },
+      {
+        "part": "the first thing every user asks is 'out of what'",
+        "present": true,
+        "why": "Gideon says the first question anyone's going to ask is 'out of what'"
+      },
+      {
+        "part": "a bare count doesn't tell you whether a rerun is cheap",
+        "present": true,
+        "why": "Gideon says a bare count doesn't tell you if a rerun is cheap"
+      },
+      {
+        "part": "he wants hit_rate printed as a percentage next to the count",
+        "present": true,
+        "why": "Gideon says he thinks they should print it as a percentage right next to the count"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  gideon    End-of-run summary table is mostly wired up, but I keep hitting the same thing, we show    <-- the clue",
+      "09:00  gideon    a bare count doesn't tell you if a rerun is cheap, that's the whole reason I want it.",
+      "09:34  gideon    What does hit_rate actually return right now, a float between 0 and 1 or something else?"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "a bare count doesn't tell you if a rerun is cheap, that's the whole reason I want it."
+      ],
+      "rewrote": false
+    }
   }
 ]

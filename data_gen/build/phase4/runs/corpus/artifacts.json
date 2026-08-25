@@ -1126,5 +1126,53 @@
     "done": true,
     "at": "2025-02-12T09:21:00+00:00",
     "date": "2025-02-12"
+  },
+  {
+    "kind": "doc",
+    "id": "release-0-1-19",
+    "title": "Release notes: 0.1.19",
+    "by": "gideon",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-02-17T09:28:00+00:00",
+    "date": "2025-02-17"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-02-10",
+    "title": "Weekly update: week of Feb 10 — pickler regression",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-02-17T09:49:00+00:00",
+    "date": "2025-02-17"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-0-1-19",
+    "title": "0.1.19 is out",
+    "by": "gideon",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": false,
+    "at": "",
+    "date": "2025-02-17"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-02-17",
+    "title": "Weekly sync notes: week of Feb 17 — 0.1.19 shipped",
+    "by": "gideon",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-02-19T09:14:00+00:00",
+    "date": "2025-02-19"
   }
 ]
