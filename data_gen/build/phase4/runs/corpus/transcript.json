@@ -12926,6 +12926,545 @@
           "userId": "nikolai",
           "text": "With Konrad on PR 583 and the queue also picking up PR 565, PR 612, and PR 615 this afternoon, where does PR 600 land in all that?",
           "ts": "2025-04-03T14:42:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 is ready for review, touches code-execution, not blocking a release but it does gate the next chunk of work in the workstream. Also want to confirm PR 619 got merged, anyone know if that landed?",
+          "ts": "2025-04-04T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 600 is sitting in review, not blocking anything but I'd like to get it cleared",
+          "ts": "2025-04-04T09:15:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also looked up PR 619 and couldn't tell from what came back whether it actually merged",
+          "ts": "2025-04-04T09:15:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I can see PR 619 (remove split from card template) but I can't tell from what comes back whether it's actually merged. Anyone have direct visibility into the repo state?",
+          "ts": "2025-04-04T09:46:37"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm around all day if we can get someone with repo access to confirm.",
+          "ts": "2025-04-04T10:26:37"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Who's got direct repo access right now that can just look up whether PR 619 is closed/merged?",
+          "ts": "2025-04-04T10:59:37"
+        },
+        {
+          "userId": "dario",
+          "text": "Same, I pulled it up and can't tell the state from what comes back",
+          "ts": "2025-04-04T11:34:37"
+        },
+        {
+          "userId": "dario",
+          "text": "Not clear to me whether PR 565 or PR 579 should move first since they're both OpenAI-related. Does anyone have a view on ordering?",
+          "ts": "2025-04-04T11:41:42"
+        },
+        {
+          "userId": "emil",
+          "text": "Around all afternoon if someone with repo access can confirm 619.",
+          "ts": "2025-04-04T11:45:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Can someone add me to the repo so I can just check this directly?",
+          "ts": "2025-04-04T12:48:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still no confirmation on PR 619 - anyone able to pin down whether it actually merged before the afternoon's gone?",
+          "ts": "2025-04-04T12:54:17"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai whoever manages repo access should be able to sort that, do you know who handles it on this team?",
+          "ts": "2025-04-04T14:31:54"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno, I'd have assumed Emil or whoever set up the repo originally, does anyone know who actually owns access on this?",
+          "ts": "2025-04-04T15:01:54"
+        },
+        {
+          "userId": "emil",
+          "text": "Looked it up, same result as everyone else - title and description but no state.",
+          "ts": "2025-04-04T15:37:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "If nobody can read the PR state, could we just check whether the change itself is already in the codebase?",
+          "ts": "2025-04-04T15:56:54",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 614 is up for review, fixes multiple bugs in batch cancellation and touches batch-mode. not blocking a release but I'd like to get it landed this week",
+          "ts": "2025-04-07T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "has PR 621 gone up for review yet? want to make sure the finish reason fix gets eyes before it gets buried.",
+          "ts": "2025-04-07T10:52:10"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 621 is up, finish reason fix in batch-mode, pretty contained change. Would be good to get eyes on it this afternoon if anyone has bandwidth.",
+          "ts": "2025-04-07T11:18:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Read the weekly notes, ws-055 design is up in the wiki and there are open questions on the stub provider and E2E creds that still need owners before tomorrow's kickoff.",
+          "ts": "2025-04-07T11:33:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 614 still hasn't had eyes on it, probably a wednesday thing at this point.",
+          "ts": "2025-04-07T12:15:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone taking a look at PR 621 this afternoon, or is that also sliding to Wednesday?",
+          "ts": "2025-04-07T12:25:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can look at PR 621 this afternoon.",
+          "ts": "2025-04-07T12:39:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Appreciate it, finish reason mapping in batch-mode, nothing else touched.",
+          "ts": "2025-04-07T13:19:00",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 is up, adds a flag to disable the metadata db in code-execution. Nothing blocking on my end, just needs eyes before the next cycle.",
+          "ts": "2025-04-08T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone know if PR 579 and PR 615 are clear to go in the next release, or are there still open questions on either of them?",
+          "ts": "2025-04-08T09:04:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 579 and 615 are both on my list to clear before the release, I'm actively checking on those",
+          "ts": "2025-04-08T09:43:43"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is the KlusterAI config confirmed in place?",
+          "ts": "2025-04-08T09:48:43"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Trying to work out if PR 622 is clear to move",
+          "ts": "2025-04-08T09:48:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 622 is blocked on issue 616, the default rate limit config needs updating for the KlusterAI models before it can move.",
+          "ts": "2025-04-08T09:50:51"
+        },
+        {
+          "userId": "nikolai",
+          "text": "oh, right",
+          "ts": "2025-04-08T10:29:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is anyone picking up the rate limit config fix for issue 616, or is that still unassigned?",
+          "ts": "2025-04-08T10:56:51"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 579 and PR 615 still need a confirmed green before we wrap today.",
+          "ts": "2025-04-08T11:01:51"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon, flag me as soon as you've cleared both.",
+          "ts": "2025-04-08T11:01:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Before this closes out, wanted to flag: PR 468, PR 583, and PR 614 are still in flight and I don't have a clear read on what's actually holding each of them.",
+          "ts": "2025-04-08T11:03:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone know if there are active blockers on those three, or are they just waiting on review time?",
+          "ts": "2025-04-08T11:04:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Checked WS-055 just now and it's not in the tracker yet",
+          "ts": "2025-04-08T11:36:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 622 is still sitting on issue 616.",
+          "ts": "2025-04-08T12:05:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is that getting assigned to anyone today?",
+          "ts": "2025-04-08T12:05:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure it gets resolved today if nobody's stepped up to issue 616 by now.",
+          "ts": "2025-04-08T12:17:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does PR 615 have any overlap with the batch cancellation changes in PR 614, or are they hitting different code paths?",
+          "ts": "2025-04-08T12:56:19"
+        },
+        {
+          "userId": "dario",
+          "text": "If nobody's on issue 616 by end of afternoon, might be cleaner to just formally defer PR 622 to next cycle rather than leave it as ambiguously blocked",
+          "ts": "2025-04-08T13:38:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the issue 616 fix scoped to just the config file, or is there more to it?",
+          "ts": "2025-04-08T13:59:19"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, got a few minutes late this afternoon to talk through where PR 468 is?",
+          "ts": "2025-04-08T14:44:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Gideon, want to grab 15 minutes this afternoon to sort out issue 616 before we have to defer it?",
+          "ts": "2025-04-08T15:17:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 on my end is just waiting on review, no active blocker.",
+          "ts": "2025-04-08T15:17:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "Yeah, free now if you are.",
+          "ts": "2025-04-08T15:36:51",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai still around, or should we push to tomorrow?",
+          "ts": "2025-04-08T15:37:35"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario yeah, free this afternoon.",
+          "ts": "2025-04-08T15:44:35"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 579 and PR 615 are the last unconfirmed - need those before we can wrap.",
+          "ts": "2025-04-08T15:45:01",
+          "replyCount": 2,
+          "replyLastTs": "2025-04-08T16:37:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "So you mean waiting on my signoff specifically, not just any reviewer?",
+          "ts": "2025-04-08T15:45:44",
+          "threadParentTs": "2025-04-08T15:45:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "gotcha, pinging you now",
+          "ts": "2025-04-08T15:46:22",
+          "reactions": [
+            {
+              "emoji": "🔔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai I can take a look at PR 583 this afternoon if it's still sitting without a reviewer.",
+          "ts": "2025-04-08T16:11:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Gideon still here, jumping on now.",
+          "ts": "2025-04-08T16:37:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Shouldn't any reviewer be enough, or is there something specific to Gideon's area on those?",
+          "ts": "2025-04-08T16:37:57",
+          "threadParentTs": "2025-04-08T15:45:01"
+        },
+        {
+          "userId": "emil",
+          "text": "- PR 621 is ready for review when there's bandwidth, touches the gemini batch finish reason path\n- PR 468 still has some open threads, not blocking the release cycle",
+          "ts": "2025-04-08T17:13:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil are both clean enough to close today, or is something still open on one of them?",
+          "ts": "2025-04-08T17:14:10"
+        },
+        {
+          "userId": "emil",
+          "text": "Still here, but that's Gideon's call - I haven't gotten his read on either of them yet.",
+          "ts": "2025-04-08T17:19:10"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Around for another hour or so if Gideon gets back.",
+          "ts": "2025-04-08T17:58:10"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still waiting on Gideon's read from our sync on issue 616",
+          "ts": "2025-04-08T18:10:17"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 614 is similarly stuck waiting on Gideon",
+          "ts": "2025-04-08T18:25:02.194630"
+        },
+        {
+          "userId": "dermot",
+          "text": "weekly notes for the week of apr 7 are up on the engineering wiki (engineering/weekly-notes-week-of-apr-7.md)",
+          "ts": "2025-04-09T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 614 batch cancellation is also up for review if anyone has a moment, touches batch-mode",
+          "ts": "2025-04-09T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "is PR 583 waiting on something specific or has it just fallen through the cracks? it's been open over a month",
+          "ts": "2025-04-09T09:00:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- *PR 583* no active blocker, just needs review. touches code-execution, adds a param to disable the metadata db. would appreicate eyes on it today if anyone has a few minutes\n- will look at PR 614 this morning\n- PR 621 also still needs a reviewer if Emil hasn't sorted that out",
+          "ts": "2025-04-09T09:41:29",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "for PR 621, does Emil need to assign a reviewer or can anyone just take it?",
+          "ts": "2025-04-09T10:20:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the target release for PR 614, is it going into v0.1.23.post2?",
+          "ts": "2025-04-09T10:51:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone can grab it.",
+          "ts": "2025-04-09T15:41:23",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 621 also touches batch-mode, so I'm assuming same target as 614, v0.1.23.post2?",
+          "ts": "2025-04-09T15:41:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah",
+          "ts": "2025-04-09T16:18:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "both lined up for v0.1.23.post2",
+          "ts": "2025-04-09T16:18:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "WS-055 is up in the wiki - read through it just now, stub provider has no owner yet and that's the blocker before CI design can move.",
+          "ts": "2025-04-09T16:18:41"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 621 still needs a reviewer before it can close out",
+          "ts": "2025-04-09T17:15:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, I can't find WS-050 written up anywhere - batch mode scope isn't documented, at least not somewhere I can see it",
+          "ts": "2025-04-09T17:15:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 core change, if anyone wants to take a look:\n```python\ndisable_metadata_db: bool = False\n```",
+          "ts": "2025-04-09T17:50:32"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 583 has been open 33 days, are we merging it into v0.1.23.post2 alongside 614 and 621, or explicitly deferring it?",
+          "ts": "2025-04-09T18:23:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Deferring it if nobody picks it up tonight.",
+          "ts": "2025-04-09T18:26:39.265800"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 621 still doesn't have a reviewer - anyone able to grab it before we close out tonight?",
+          "ts": "2025-04-09T18:28:04.114713"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 621 is up for eyes if anyone has a minute, it's the finish_reason fix in online-request-processing, not blocking a release but I'd like to get it in today. PR 624 goes along with it, log noise reduction in the same area.",
+          "ts": "2025-04-10T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "anyone had eyes on PR 614 yet?",
+          "ts": "2025-04-10T09:05:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 621 came together nicer than I expected, the finish_reason diff is pretty tight if anyone gets a chance to look",
+          "ts": "2025-04-10T09:33:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "those clean diffs are a good way to start a thursday.",
+          "ts": "2025-04-10T10:13:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 621 and PR 624 are both up if you get a minute, @Dermot",
+          "ts": "2025-04-10T10:36:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "also I went looking for a WS-050 doc and I'm not finding one, @Emil is that coming or is it somewhere I'm not looking?",
+          "ts": "2025-04-10T10:36:05"
+        },
+        {
+          "userId": "dario",
+          "text": "+1",
+          "ts": "2025-04-10T10:47:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "That doc isn't up yet, @Gideon - been heads-down in the batch implemenation itself and it slipped",
+          "ts": "2025-04-10T11:31:05"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get something on the wiki this afternoon",
+          "ts": "2025-04-10T11:31:17"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 621 and PR 624 are both ready to go, no blockers - hoping to get them closed out today if anyone has a few minutes.",
+          "ts": "2025-04-10T15:05:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 614 still hasn't had any eyes on it today",
+          "ts": "2025-04-10T15:25:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "is anyone able to get to it before end of day, or do we carry it to tomorrow?",
+          "ts": "2025-04-10T15:25:13"
+        },
+        {
+          "userId": "emil",
+          "text": "- PR 621 and PR 624 are both up and ready, no blockers\n- I can take a look at PR 614 this afternoon if nobody else has it",
+          "ts": "2025-04-10T15:46:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Can someone add me as a reviewer on PR 614?",
+          "ts": "2025-04-10T16:24:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 624 still needs an approver before end of day, though Dario has an open question on the viewer side that I don't think is fully resolved yet.",
+          "ts": "2025-04-10T16:57:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 614, did it actually get into review or did something get stuck?",
+          "ts": "2025-04-10T18:17:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Thought Emil was picking it up this afternoon",
+          "ts": "2025-04-10T18:17:53"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 614 is the batch cancellation fix if anyone's got a few minutes tonight, it's sitting there unreviewed.",
+          "ts": "2025-04-10T18:22:14.807583"
         }
       ],
       "projectSpec": {
@@ -26408,6 +26947,783 @@
           "userId": "dario",
           "text": "Are any of the queued PRs actually design-blocked, or is it all just review bandwidth at this point?",
           "ts": "2025-04-03T14:47:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "KlusterAI card cleanup is done on my end, template looks solid",
+          "ts": "2025-04-04T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Wanting to move onto llama4 next but need to figure out what the scope and deps look like before I start",
+          "ts": "2025-04-04T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "klusterai looking solid then",
+          "ts": "2025-04-04T09:30:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "from the bulk-llm-inference side, llama4 scope is mostly param mapping and getting the model registered with the right provider, but I'd need to see what kluster is exposing on their end before I can say how much work that actually is",
+          "ts": "2025-04-04T09:30:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do we have any docs from KlusterAI on what they're actually exposing for llama4, or is that still TBD on their end?",
+          "ts": "2025-04-04T09:44:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "same blocker on my end - I can scope the param mapping side in bulk-llm-inference but the klusterai api surface is the thing I can't pin down until we have something from them",
+          "ts": "2025-04-04T10:03:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "same",
+          "ts": "2025-04-04T10:39:17"
+        },
+        {
+          "userId": "dario",
+          "text": "Does anyone have a timeline on when KlusterAI is expected to share their llama4 API docs?",
+          "ts": "2025-04-04T10:58:17"
+        },
+        {
+          "userId": "dario",
+          "text": "If there's a shared channel or inbox where KlusterAI sends updates, can someone loop me in?",
+          "ts": "2025-04-04T10:58:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario free this afternoon for a quick sync on llama4 scope?",
+          "ts": "2025-04-04T11:00:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Setting the KlusterAI docs question aside for a sec - what parts of the llama4 scope can we actually nail down now, and what's genuinely blocked until we hear from them?",
+          "ts": "2025-04-04T11:10:46"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 619 state isn't coming through on the issue tracker, I can't tell if it's merged from what I can pull up",
+          "ts": "2025-04-04T11:36:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "we could spec out the param mapping and model registration side now independently and just leave the provider surface as a gap to fill when klusterai docs land.",
+          "ts": "2025-04-04T12:09:46",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "We could probably define the interface that the provider surface needs to satisfy ahead of time, so when the KlusterAI docs do come through we're checking against a spec rather than starting from zero",
+          "ts": "2025-04-04T12:44:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Has anyone had a chance to look over the KlusterAI card template yet, or is that still waiting on eyes?",
+          "ts": "2025-04-04T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, not sure how useful the interface spec is without knowing what KlusterAI is actually exposing - we might just be guessing at the shape.",
+          "ts": "2025-04-04T13:36:00"
+        },
+        {
+          "userId": "dario",
+          "text": "What parts of the llama4 scope are we confident we can nail down on our end regardless of what KlusterAI sends back?",
+          "ts": "2025-04-04T13:36:37"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually, thinking through it myself - from the bulk-llm-inference side I can at least start on model registration and the generation param mapping, those don't depend on what KlusterAI exposes",
+          "ts": "2025-04-04T14:29:37"
+        },
+        {
+          "userId": "dario",
+          "text": "The piece I genuinely can't touch yet is anything about their specific API surface or auth shape",
+          "ts": "2025-04-04T14:29:49"
+        },
+        {
+          "userId": "nikolai",
+          "text": "From the code-execution side, the execution harness doesn't care what model name comes in",
+          "ts": "2025-04-04T14:49:49"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Looks like llama4 scope is clear enough to move on - param mapping and model registration can start now, and the provider surface piece stays parked until KlusterAI shares their docs.",
+          "ts": "2025-04-04T14:50:27",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "ws-053 is wrapped on my end, KlusterAI model list is updated and the llama4 aditions are in there too. PR 622 looks clean, just needs a review when someone has a minute.",
+          "ts": "2025-04-07T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "is the llama4 addition the only new thing in PR 622 or did you pull in other model updates alongside it?",
+          "ts": "2025-04-07T09:07:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "KlusterAI list update is in there too, not just llama4. Also PR 583 is failing in CI, was green locally so something's off.",
+          "ts": "2025-04-07T09:23:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the error in CI on PR 583, which job is it failing on?",
+          "ts": "2025-04-07T09:48:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-07T09:48:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "integration job:\n```\nFAILED tests/test_runner.py::test_no_metadata_db - AssertionError: db file present when disable_metadata_db=True\n```",
+          "ts": "2025-04-07T09:48:16",
+          "threadParentTs": "2025-04-07T09:48:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "is that test new in PR 583 or was it already in the suite?",
+          "ts": "2025-04-07T09:54:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "let me check",
+          "ts": "2025-04-07T09:54:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone free to take a look at PR 622 in the meantime? It's just the KlusterAI list update and the llama4 additions, pretty self-contained.",
+          "ts": "2025-04-07T10:26:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll take a look at PR 622 this afternoon, nice clean scope",
+          "ts": "2025-04-07T11:10:44",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "on ws-055, what's blocking the kickoff at this point?",
+          "ts": "2025-04-07T11:10:49"
+        },
+        {
+          "userId": "emil",
+          "text": "On ws-050, are we actually done with the Gemini batch fixes, or is there still a third bug we haven't closed out?",
+          "ts": "2025-04-07T11:29:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "recording the cache layout for the ws-055 doc: fingerprint hashes the prompt function, model name, generation params and dataset. one directory per fingerprint under the cache root, requests and responses in it. CURATOR_DISABLE_CACHE bypasses that directory cleanly.\n```\n# cache root\n└── <fingerprint>/\n ├── requests.jsonl\n └── responses.jsonl\n```\n||| the rule is: anything a rerun depends on must be captured in the fingerprint. we haven't been consistent about applying that to newer state.",
+          "ts": "2025-04-07T11:43:49"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the wiki looking for a ws-050 page and there's nothing there",
+          "ts": "2025-04-07T12:26:49"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that written up somewhere else, or does it not exist yet?",
+          "ts": "2025-04-07T12:26:57"
+        },
+        {
+          "userId": "dermot",
+          "text": "read the weekly update - Konrad has ws-055 listed with the design posted and kickoff the following day",
+          "ts": "2025-04-07T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "it flags open questions on the stub provider and E2E creds still needing owners",
+          "ts": "2025-04-07T12:39:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "those aren't assigned yet.",
+          "ts": "2025-04-07T12:39:24"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-055 design is up on the wiki: engineering/ws-055-release-engineering-ci-test-suite.md",
+          "ts": "2025-04-07T12:40:04"
+        },
+        {
+          "userId": "dermot",
+          "text": "who's taking the stub provider and E2E creds questions before we can start?",
+          "ts": "2025-04-07T12:40:12"
+        },
+        {
+          "userId": "emil",
+          "text": "- ws-050 is still open on my side, raised the Gemini bug question earlier and haven't had an answer yet\n- checked the wiki and there's no ws-050 spec page up either\n- can take a look at PR 622 this afternoon if nobody else has",
+          "ts": "2025-04-07T12:41:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Once those owners are sorted, how soon does ws-055 actually kick off?",
+          "ts": "2025-04-07T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is close, just finishing up edge cases in the openai client before its ready for review. On ws-050 I'm with Emil, not actually sure we've closed it out either.",
+          "ts": "2025-04-07T13:06:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil, on ws-050 is there a specific bug you think is still open, or more just not sure we've actually closed it out?",
+          "ts": "2025-04-07T13:06:21"
+        },
+        {
+          "userId": "dario",
+          "text": "Dermot, did you get a chance to look at PR 622 yet?",
+          "ts": "2025-04-07T14:15:21"
+        },
+        {
+          "userId": "emil",
+          "text": "More the second thing",
+          "ts": "2025-04-07T14:42:21"
+        },
+        {
+          "userId": "emil",
+          "text": "I don't have a specific bug in hand, just not confident we actually swept all the Gemini batch paths before moving on",
+          "ts": "2025-04-07T14:42:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do we have a written list of the Gemini batch scenarios we're supposed to cover, or is that part of what's missing?",
+          "ts": "2025-04-07T14:42:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 is failing on the shared metadata fixture now too, not just `test_no_metadata_db`",
+          "ts": "2025-04-07T14:43:06"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, do you know if we ever wrote down which Gemini batch scenarios were in scope for the sweep, or was that never documented?",
+          "ts": "2025-04-07T15:11:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario not yet, I'll pull it up now",
+          "ts": "2025-04-07T15:49:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai timing depends on those two questions getting owners - are you in a position to take either one?",
+          "ts": "2025-04-07T15:49:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still on the PR 583 fixture issue. I can take the E2E creds question for ws-055.",
+          "ts": "2025-04-07T16:08:14"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is basicaly done, putting it up for review before end of day",
+          "ts": "2025-04-07T16:44:14",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, I don't think the Gemini batch scenarios were ever written down, but I'd have to check to be sure",
+          "ts": "2025-04-07T16:44:26"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll dig through the ws-050 history and see if there's anything on the Gemini scenarios.",
+          "ts": "2025-04-07T16:44:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "anyone in a position to take the stub provider question for ws-055?",
+          "ts": "2025-04-07T16:59:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can take the stub provider piece for ws-055. has anyone sketched out what it needs to do, or is that starting from scratch?",
+          "ts": "2025-04-07T17:00:13"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is up for review.",
+          "ts": "2025-04-07T17:27:13",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, if nothing turns up in the history, do we have enough to call ws-050 closed or does that leave it open?",
+          "ts": "2025-04-07T18:04:13"
+        },
+        {
+          "userId": "emil",
+          "text": "I own the code, I'll go through the ws-050 history myself and check which Gemini paths we actually covered.",
+          "ts": "2025-04-07T18:04:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "the fingerprint rule in the ws-055 doc: anything a rerun depends on has to be in the fingerprint, not just the four inputs we currently hash",
+          "ts": "2025-04-07T18:24:42.187976"
+        },
+        {
+          "userId": "dermot",
+          "text": "CURATOR_DISABLE_CACHE bypasses the directory cleanly but we haven't been consistent applying that to newer state",
+          "ts": "2025-04-07T18:24:50.187976"
+        },
+        {
+          "userId": "dermot",
+          "text": "both ws-055 blockers are owned - Nikolai has E2E creds, I've got stub provider",
+          "ts": "2025-04-07T18:25:35.187976",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "we're good to kick off",
+          "ts": "2025-04-07T18:25:43.187976",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "failed_requests.jsonl is wired up on my end",
+          "ts": "2025-04-08T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Not totally sure the current field layout is what anyone downstream actually needs for debugging batch failures though",
+          "ts": "2025-04-08T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai what fields does it have right now?",
+          "ts": "2025-04-08T09:03:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Each line looks roughly like this:\n\n```json\n{\"row_idx\": 14, \"error\": \"RateLimitError\", \"provider\": \"openai\", \"model\": \"gpt-4o\", \"attempt\": 2}\n```",
+          "ts": "2025-04-08T09:13:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "no request id or timestamp?",
+          "ts": "2025-04-08T10:21:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "are the deepseek, llama4, and openai additions all targeting the same release?",
+          "ts": "2025-04-08T10:30:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "fair, good catch",
+          "ts": "2025-04-08T10:58:38",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Are we adding timestamp and request_id before this ships, or punting that to a follow-up?",
+          "ts": "2025-04-08T11:33:38"
+        },
+        {
+          "userId": "dario",
+          "text": "Separate from the jsonl fields question, I think we need to confirm the DeepSeek and OpenAI integrations aren't touching anything that would step on the rate-limit work before this goes out, especially given the header anomalies Emil and Dermot flagged in pipeline.",
+          "ts": "2025-04-08T11:50:00"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-055 isn't in the tracker - went looking and found nothing there",
+          "ts": "2025-04-08T12:05:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Has Dermot filed it somewhere else, or is it still outstanding?",
+          "ts": "2025-04-08T12:05:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-055 is on the wiki, not the tracker. I just pulled it up - still mostly design notes, no owner on the stub provider or e2e credentials, and the release process section isn't decided yet",
+          "ts": "2025-04-08T12:39:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Sounds like it's mostly a placeholder",
+          "ts": "2025-04-08T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the CI pipeline piece part of what's still undecided?",
+          "ts": "2025-04-08T12:41:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Punting timestamp and request_id to a follow-up",
+          "ts": "2025-04-08T12:51:00",
+          "reactions": [
+            {
+              "emoji": "✋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, can you keep that on the list so it doesn't get lost?",
+          "ts": "2025-04-08T12:51:12"
+        },
+        {
+          "userId": "dario",
+          "text": "Did anyone actually check the DeepSeek integration against the rate-limit layer specifically, or is that still open from this morning?",
+          "ts": "2025-04-08T13:42:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Got it, I'll track the follow-up",
+          "ts": "2025-04-08T14:08:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the current schema enough to trace a batch failure without the timestamp, or are we going to hit a wall on debugging until that lands?",
+          "ts": "2025-04-08T14:08:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "are we planning to stage the three provider additions or ship them all at once?",
+          "ts": "2025-04-08T14:38:35"
+        },
+        {
+          "userId": "dario",
+          "text": "- Rate-limit path check for DeepSeek and OpenAI still open on my end, not fully closed out yet\n- The absent headers Emil flagged are the main thing I'm tracking for potential conflicts\n- Nothing that screams collision so far, but I want to see the registry result before calling it clean",
+          "ts": "2025-04-08T14:46:35"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd be a bit cautious about shipping all three at once with the DeepSeek header issue still not sorted",
+          "ts": "2025-04-08T14:47:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "so do we hold deepseek and ship the other two, or block all three?",
+          "ts": "2025-04-08T15:11:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Syncing with Emil this afternoon on whether the retry layer handles the absent DeepSeek headers cleanly, that check isn't done yet.",
+          "ts": "2025-04-08T15:21:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "that's going to land before end of day?",
+          "ts": "2025-04-08T16:07:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up WS-055 - the release process section is all TBD and the stub provider and e2e credentials have no owner",
+          "ts": "2025-04-08T16:42:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Just getting into the sync with Emil now, should have a read on the DeepSeek/rate-limit question before we wrap today",
+          "ts": "2025-04-08T17:07:48"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 614 is ready for review on my end",
+          "ts": "2025-04-08T17:25:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Without timestamp and request_id, the current schema is going to be pretty useles for tracing which requests failed and when in any real batch.",
+          "ts": "2025-04-08T17:52:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I think I was too quick to punt timestamp and request_id, the schema's not really useful without them",
+          "ts": "2025-04-08T18:05:50",
+          "reactions": [
+            {
+              "emoji": "💯",
+              "count": 1
+            }
+          ],
+          "replyCount": 3,
+          "replyLastTs": "2025-04-08T18:14:06"
+        },
+        {
+          "userId": "emil",
+          "text": "Good to walk it back, but adding them tonight feels rushed.",
+          "ts": "2025-04-08T18:06:19",
+          "threadParentTs": "2025-04-08T18:05:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "They're two fields, that's not really a night's work.",
+          "ts": "2025-04-08T18:13:56",
+          "threadParentTs": "2025-04-08T18:05:50"
+        },
+        {
+          "userId": "emil",
+          "text": "The fields aren't the work, figuring out what goes in them is.",
+          "ts": "2025-04-08T18:14:06",
+          "threadParentTs": "2025-04-08T18:05:50"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, can you put together a quick spec on what timestamp and request_id should actually contain before those go in?",
+          "ts": "2025-04-08T18:14:20",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-08T18:15:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Yeah, I'll put something together",
+          "ts": "2025-04-08T18:15:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-08T18:14:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not comfortable calling the DeepSeek integration clean yet with the header issue still untraced, so do we hold it or are we accepting the uncertainty and shipping anyway?",
+          "ts": "2025-04-08T18:27:58.711230"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually, answering my own question, I'd lean toward holding DeepSeek and shipping OpenAI and llama4 separately until the header issue is traced",
+          "ts": "2025-04-08T18:28:33.711230"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 614 batch cancellation is done, 8 commits covering the main bugs and the test failures that came with them. I'm reasonably confident it's clean but I'd like someone to take a look and confirm there's nothing deeper hiding in the state machine",
+          "ts": "2025-04-09T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I don't see WS-050 written up anywhere in the wiki",
+          "ts": "2025-04-09T09:05:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, has the batch mode scope been documented somewhere, or is it still in your head?",
+          "ts": "2025-04-09T09:05:51"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone besides me looked at the batch state machine recently?",
+          "ts": "2025-04-09T10:25:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "I want a second opinion on whether the cancellation fixes in PR 614 are actually complete or if we're papering over something deeper",
+          "ts": "2025-04-09T10:25:27"
+        },
+        {
+          "userId": "dermot",
+          "text": "for the batch cancellation fixes in PR 614, is there a potential race if a cancel request comes in while the status-polling loop is mid-flight? I've been looking at it but I'm not sure that case is handled",
+          "ts": "2025-04-09T15:43:31"
+        },
+        {
+          "userId": "emil",
+          "text": "That race condition is a real concern.",
+          "ts": "2025-04-09T16:13:31",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Emil, when you say it's a real concern, do you mean it's unhandled in the current PR 614, or just that the scenario is possible in general?",
+          "ts": "2025-04-09T16:45:31"
+        },
+        {
+          "userId": "emil",
+          "text": "I haven't read through PR 614 closely enough to say which - I'd need to pull it up before I could tell you if it's covered or just a scenario Dermot flagged.",
+          "ts": "2025-04-09T17:12:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "to be clear, I raised the race condition as something I was unsure about, not something I know is handled in PR 614",
+          "ts": "2025-04-09T17:45:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'd need someone to walk through it with me to say either way",
+          "ts": "2025-04-09T17:45:39"
+        },
+        {
+          "userId": "emil",
+          "text": "I can go through it with you. Probably a tomorrow morning thing at this point, but I'll pull up the state machine tonight if I get a chance.",
+          "ts": "2025-04-09T18:13:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "So you haven't actually read the PR yet, just flagging the scenario as plausible?",
+          "ts": "2025-04-09T18:14:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 614 is moving, I've got the batch cancellation fixes in review and I'm hoping to close it out this afternoon.",
+          "ts": "2025-04-10T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "So it's purely waiting on review at this point, nothing still being reworked?",
+          "ts": "2025-04-10T09:17:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah",
+          "ts": "2025-04-10T09:17:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "code is done, just needs review",
+          "ts": "2025-04-10T09:27:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, the gemini batch fix, is that one problem or two separate things being addressed?",
+          "ts": "2025-04-10T09:45:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "actually I'm not sure PR 614 closes this afternoon if nobody's had a look at it yet.",
+          "ts": "2025-04-10T10:26:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "is there an assigned reviewer on PR 614 or is it just open for whoever has time?",
+          "ts": "2025-04-10T10:54:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Sorry, just catching up - two seperate things",
+          "ts": "2025-04-10T14:54:09"
+        },
+        {
+          "userId": "emil",
+          "text": "The finish_reason shape was a bug on its own; the log noise is a separate cleanup that surfaced while I was in there",
+          "ts": "2025-04-10T14:54:14"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 614 - does it actually have a reviewer assigned yet?",
+          "ts": "2025-04-10T15:16:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Because if not it's not landing today.",
+          "ts": "2025-04-10T15:16:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Still not clear whether PR 624's log cleanup is only hitting the noisy per-request lines or whether it's also removing anything we'd want to see on a failure",
+          "ts": "2025-04-10T15:29:48"
+        },
+        {
+          "userId": "dario",
+          "text": "If nobody's verified that, I'd hold off on merging it today.",
+          "ts": "2025-04-10T15:30:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Went to look up WS-050 and it's not on the wiki - is that doc written anywhere, or is it just not there yet?",
+          "ts": "2025-04-10T16:22:30"
+        },
+        {
+          "userId": "emil",
+          "text": "oh, answering my own question on WS-050 - it's in the weekly notes, in flight, no blocker this week, and Dermot has a note to check in with me tomorrow on the merge window.",
+          "ts": "2025-04-10T16:31:49"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 583 is flagged at day 33 without a reviewer in there - is anyone picking that up?",
+          "ts": "2025-04-10T16:31:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, you offered to look at PR 614 this afternoon, can you take it?",
+          "ts": "2025-04-10T18:21:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Can someone add me as a reviewer on PR 621 and PR 624? They're both touching online-request-processing and I'd like to have eyes on them before they close",
+          "ts": "2025-04-10T18:24:30.714732"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 624 is still sitting without a confirmed sign-off on the failure logging question, so it's basically blocked on that before it can land.",
+          "ts": "2025-04-10T18:24:45.714732"
         }
       ],
       "projectSpec": {
@@ -27396,6 +28712,202 @@
           "userId": "dario",
           "text": "Konrad's on it.",
           "ts": "2025-03-10T18:26:21.703767"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-055 design is coming along, should have it posted this afternoon",
+          "ts": "2025-04-07T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "weekend was clean, three merges in with no incidents",
+          "ts": "2025-04-07T09:00:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-055 design is in the engineering wiki, would appreciate eyes on it before we kick off tomorrow.",
+          "ts": "2025-04-07T09:47:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pulled up the ws-055 design, looks solid. @Emil and @Nikolai, worth a read before tomorrow, there are a couple open questions in there about the stub provider and E2E creds that probably need an owner",
+          "ts": "2025-04-07T10:20:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update for the week of Mar 31 is out",
+          "ts": "2025-04-07T10:30:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "WS-055 design is in the engineering wiki, read it before tomorrow, there are open questions on the stub provider and E2E creds that need owners",
+          "ts": "2025-04-07T10:31:06"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Will take a look before lunch.",
+          "ts": "2025-04-07T10:51:06"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 still in review, no blockers. Worth flagging for the weekend assessment though: a cost accounting issue surfaced on resume over the weekend and we're looking at it in pipeline, looks scoped to a model mismatch on resume but I want to nail that down before I'd call things fully clean from my side.",
+          "ts": "2025-04-07T11:48:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "oh, good to know before we close out the weekend assessment, flag when you've nailed down the scope",
+          "ts": "2025-04-07T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good shape going into the week, Dario's item aside",
+          "ts": "2025-04-07T11:52:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "read the weekly update, ws-055 is covered from my side, no issues with how it's described",
+          "ts": "2025-04-07T12:46:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "the stub provider and e2e creds still have no owners in there, who's taking those before tomorrow?",
+          "ts": "2025-04-07T12:46:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly for Mar 31 is at https://millrow.internal/mail/weekly-2025-03-31 if anyone hasn't pulled it up.",
+          "ts": "2025-04-07T13:17:43",
+          "unfurl": {
+            "title": "millrow.internal",
+            "url": "https://millrow.internal/mail/weekly-2025-03-31"
+          }
+        },
+        {
+          "userId": "konrad",
+          "text": "The stub provider and E2E creds question in there is the same one Dermot just raised, that still needs owners before we kick off tomorrow.",
+          "ts": "2025-04-07T13:17:55"
+        },
+        {
+          "userId": "dario",
+          "text": "Still pinning down the scope on that resume cost issue, should have something more concrete this afternoon.",
+          "ts": "2025-04-07T14:01:55"
+        },
+        {
+          "userId": "dario",
+          "text": "Otherwise are we calling the weekend clean, or is there anything else still open?",
+          "ts": "2025-04-07T14:02:07"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Konrad the stub provider and e2e creds for ws-055 still don't have owners, can that get settled before end of day?",
+          "ts": "2025-04-07T14:28:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not calling it clean until Dario's scope check lands, personally.",
+          "ts": "2025-04-07T14:43:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Nothing flagged on my services over the weekend, online-request-processing and bulk-llm-inference both came through clean",
+          "ts": "2025-04-07T15:07:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Around this afternoon if the stub provider / E2E creds question needs to be worked through before tomorrow.",
+          "ts": "2025-04-07T15:39:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Scope check done on that resume issue, it's isolated to model mismatch on resume, nothing else",
+          "ts": "2025-04-07T15:48:36",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is still in review, no blockers on my end",
+          "ts": "2025-04-07T16:00:04"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekend's clean.",
+          "ts": "2025-04-07T16:12:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Stub provider and E2E creds still don't have owners, @Nikolai, you said you're around this afternoon, are you picking those up or should we split them?",
+          "ts": "2025-04-07T16:40:04",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-07T17:06:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-055 is up in the wiki and the team has seen it, but kickoff tomorrow isn't fully unblocked until the stub provider and e2e creds questions have owners",
+          "ts": "2025-04-07T17:06:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll take both, will post before I'm done for the day.",
+          "ts": "2025-04-07T17:06:29",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-07T16:40:04"
+        },
+        {
+          "userId": "dermot",
+          "text": "that clears it",
+          "ts": "2025-04-07T17:42:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-055 design is in the engineering wiki, weekend came through clean, and nikolai has the stub provider and e2e creds sorted before end of day",
+          "ts": "2025-04-07T17:42:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "we're good to kick off tomorrow",
+          "ts": "2025-04-07T17:42:49",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Dario's resume cost issue is still tracked, fyi, scoped but not resolved",
+          "ts": "2025-04-07T17:47:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "Nikolai hasn't posted on the stub provider and creds yet though, not sure I'd call it fully cleared.",
+          "ts": "2025-04-07T18:17:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Resume cost scope is locked down and I'll have the fix up tomorrow",
+          "ts": "2025-04-07T18:22:08.562712"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is still in reveiw on my end",
+          "ts": "2025-04-07T18:22:16.562712"
         }
       ],
       "projectSpec": {
@@ -29157,6 +30669,119 @@
           "userId": "gideon",
           "text": "On a 200k set that's real money",
           "ts": "2025-03-12T15:32:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 614 is nearly through, just wrapping up the last edge cases on batch cancellation",
+          "ts": "2025-04-09T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "should have it ready to merge this afternoon",
+          "ts": "2025-04-09T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "did anyone notice the provider spend for last night's cookbook run was unusually high?",
+          "ts": "2025-04-09T09:00:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "if a batch has already been submitted to the provider, is there a way to cancel it from our side?",
+          "ts": "2025-04-09T09:18:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know if the nightly cookbook run submitted two batches last night?",
+          "ts": "2025-04-09T10:18:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm seeing double the expected provider spend and I think it may have been restarted by hand after a crash",
+          "ts": "2025-04-09T10:18:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2025-04-09T10:29:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own question - dug into the logs this morning and confirmed it",
+          "ts": "2025-04-09T10:29:49",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "the run crashed overnight, was restarted by hand, and the restart submitted a full second batch",
+          "ts": "2025-04-09T10:29:57"
+        },
+        {
+          "userId": "dermot",
+          "text": "if the cache dir is unwritable, does the run just die with no record of what it already sent to the provider?",
+          "ts": "2025-04-09T11:27:57"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah, that's the exact issue I was trying to describe from this morning's help thread. Someone had CURATOR_CACHE_DIR on a volume with 0 bytes free, and the submit went through fine. Provider already had their 40k requests queued and billing",
+          "ts": "2025-04-09T11:41:57"
+        },
+        {
+          "userId": "dario",
+          "text": "The OSError came out of the cache write, not the API client, so the run died with no local record and they just got a traceback",
+          "ts": "2025-04-09T11:42:09"
+        },
+        {
+          "userId": "dario",
+          "text": "Paid for the batch, nothing to show for it",
+          "ts": "2025-04-09T11:42:17"
+        },
+        {
+          "userId": "emil",
+          "text": "I can cancel the duplicate batch.",
+          "ts": "2025-04-09T12:11:17",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the batch IDs from last night's logs. Canceling the duplicate now, should be done in a few minutes.",
+          "ts": "2025-04-09T12:11:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold does a cancel stop billing on what's already queued, or are those 40k requests already charged?",
+          "ts": "2025-04-09T12:39:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Duplicate batch cancelled",
+          "ts": "2025-04-09T12:41:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "On the billing question, I'm not sure, that's probably going to vary by provider and whether they'd processed those requests before the cancel went through",
+          "ts": "2025-04-09T12:41:12"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel is there anything in caching-and-resume right now that catches an unwritable CURATOR_CACHE_DIR before the batch gets submitted?",
+          "ts": "2025-04-09T12:41:28"
         }
       ],
       "projectSpec": {
@@ -38416,6 +40041,623 @@
           "userId": "dario",
           "text": "Has anyone written Dermot's ordering down anywhere, or is it still just sitting in this thread?",
           "ts": "2025-04-03T16:18:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 619 is up and looks clean from the batch cancellation side. still not entirely sure it won't touch cache invalidation or resume",
+          "ts": "2025-04-04T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario do we hold pr 619 until you've had a chance to check the resume and cache invalidation paths, or are you comfortable that the split removal doesn't reach any of that? I'm not entirely sure we can assume they're isolated",
+          "ts": "2025-04-04T09:00:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know if the split logic that pr 619 removes was part of the key used for cache lookups?",
+          "ts": "2025-04-04T09:43:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "is there any test coverage in pr 619 for the resume path, or is that the gap we'd need to check before merging?",
+          "ts": "2025-04-04T10:06:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "just pulled up pr 619 - the change is removing split from the card template output",
+          "ts": "2025-04-04T11:08:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "is the card template output part of anything that feeds into the cache key or resume logic?",
+          "ts": "2025-04-04T11:08:20"
+        },
+        {
+          "userId": "dario",
+          "text": "The cache key and resume tracking both key off input parameters, not output fields like split, so removing it from the card template shouldn't invalidate anything on that side",
+          "ts": "2025-04-04T11:47:30"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd say PR 619 is safe from a caching-and-resume standpoint",
+          "ts": "2025-04-04T11:47:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "- *PR 614* merged over the weekend, no incidents reported\n- want to confirm the gemini batch changes don't regress cost tracking or retry logic before we call it closed",
+          "ts": "2025-04-07T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Did the fix touch cost accounting at all, or was it purely on the retry and cancellation paths?",
+          "ts": "2025-04-07T09:44:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Actually, separate thing: when a job resumes, does the cost counter pull the model from the original submission or from whatever's in the config at resume time?",
+          "ts": "2025-04-07T09:44:11",
+          "replyCount": 2,
+          "replyLastTs": "2025-04-07T10:44:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "sorry, just caught this - not certain on that one, the resume logic is dario's side",
+          "ts": "2025-04-07T10:44:11",
+          "threadParentTs": "2025-04-07T09:44:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "worth flagging though, a model mismatch on resume could do real damage to cost tracking",
+          "ts": "2025-04-07T10:44:19",
+          "threadParentTs": "2025-04-07T09:44:11"
+        },
+        {
+          "userId": "emil",
+          "text": "From what I can see on the batch-mode side, PR 614's changes don't go anywhere near cost accounting, it's the cancellation and state-tracking paths only, so I'm not worried about regression there",
+          "ts": "2025-04-07T11:14:19",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Gideon, that model-mismatch-on-resume question is the part worth pinning down before we close, have you actually seen that produce a wrong number?",
+          "ts": "2025-04-07T11:14:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah",
+          "ts": "2025-04-07T11:29:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "saw it come out about 10x off on a resume this weekend",
+          "ts": "2025-04-07T11:29:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "and the responses come back priced at whatever model it was actually submitted with, not the resumed one",
+          "ts": "2025-04-07T11:29:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "we are going to get an issue filed about that number",
+          "ts": "2025-04-07T11:29:38.666667"
+        },
+        {
+          "userId": "gideon",
+          "text": "and i have nothing good to say about it",
+          "ts": "2025-04-07T11:29:45.333334"
+        },
+        {
+          "userId": "gideon",
+          "text": "got nothing good to say about that number",
+          "ts": "2025-04-07T11:29:52"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah that's on me - the resume path picks up whatever model is in config at that point, not locking to the original submission",
+          "ts": "2025-04-07T11:43:12"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario can you file that as a separate issue?",
+          "ts": "2025-04-07T12:17:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Read through the weekly notes and nothing in there flags a third batch issue",
+          "ts": "2025-04-07T12:32:49"
+        },
+        {
+          "userId": "emil",
+          "text": "Given the model-lock bug is Dario's to file separately, are we calling the sweep done, or does someone think we need another pass first?",
+          "ts": "2025-04-07T12:33:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon that 10x thing catch you on a live job over the weekend?",
+          "ts": "2025-04-07T14:25:47",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-07T14:28:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Is there a specific path anyone wants checked before we call the sweep closed, or are we good with the two PRs?",
+          "ts": "2025-04-07T14:27:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "Yeah, live job. And good on Dario for just calling the model-lock thing out directly, that made it easy to pin down",
+          "ts": "2025-04-07T14:28:24",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-07T14:25:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Good with the two PRs from what I've seen, has anyone actually spot-checked the retry logic, or are we assuming it's clean?",
+          "ts": "2025-04-07T14:51:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, answering my own question, PR 614 was cancellation paths only, retry logic shouldn't be touched.",
+          "ts": "2025-04-07T14:51:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Read through the weekly notes and there's nothing in there about the batch audit, is this thread the record, or is it captured somewhere else?",
+          "ts": "2025-04-07T14:51:44"
+        },
+        {
+          "userId": "dario",
+          "text": "The model-lock bug: on resume, cost tracking reads from whatever model is in config at that point instead of locking to the original submission model. Gideon's 10x matches that exactly if the two models are in different pricing tiers. Filing it separately.",
+          "ts": "2025-04-07T15:53:38",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-04-07T15:54:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "that tracks exactly with what I saw",
+          "ts": "2025-04-07T15:54:19",
+          "threadParentTs": "2025-04-07T15:53:38"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone want to give PR 621 a quick look before it merges? Feels like that's the last gate before we close the sweep.",
+          "ts": "2025-04-07T16:03:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "Taking a look at PR 621 now",
+          "ts": "2025-04-07T16:30:19"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth flagging: the model-lock issue isn't Gemini-specific, the resume path has the same problem for any provider if the config model changes between runs",
+          "ts": "2025-04-07T16:37:19"
+        },
+        {
+          "userId": "dario",
+          "text": "Scoped enough to fix in one place, but it's not limited to the batch audit",
+          "ts": "2025-04-07T16:37:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 621 looks fine from my side, nothing that touches cost accounting or retry logic.",
+          "ts": "2025-04-07T16:57:27",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 621 has Gideon's signoff, good to merge, or do we need another set of eyes first?",
+          "ts": "2025-04-07T17:10:27"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 614 is mostly through, I've got the main batch cancellaton fixes in place and just want to confirm the failed_requests.jsonl shape is right before I call it ready for review",
+          "ts": "2025-04-08T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario does failed_requests.jsonl get read back on a resume pass, or is it only written to at the end?",
+          "ts": "2025-04-08T09:00:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "Batch cancellation fixes finally clearing is a good way to start the week",
+          "ts": "2025-04-08T09:36:39",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone seen the rate limit headers coming back from deepseek behaving oddly?",
+          "ts": "2025-04-08T10:17:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "anyone know if the llama4 model ids could collide with anything in the openai or deepseek registry?",
+          "ts": "2025-04-08T10:27:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil can you do a quick check on the llama4 model ids against the OpenAI and DeepSeek entries in the registry?",
+          "ts": "2025-04-08T11:00:09"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll check the llama4 ids against the registry this afternoon.",
+          "ts": "2025-04-08T11:21:09",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "And Dermot, yeah - I've been seeing some inconsistent behavior from the DeepSeek rate limit headers too, worth comparing notes on that.",
+          "ts": "2025-04-08T11:21:17"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, honestly I'd lean toward write-only at completion, but I'm not fully sure we've settled whether the resume pass should be consulting it at all.",
+          "ts": "2025-04-08T11:37:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-04-08T11:39:17"
+        },
+        {
+          "userId": "dario",
+          "text": "On the DeepSeek rate limit headers, are the values coming back wrong or just absent in some responses?",
+          "ts": "2025-04-08T11:54:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Absent on certain responses, not wrong values - they just don't show up at all on some calls.",
+          "ts": "2025-04-08T12:12:54"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-055 has the e2e provider credentail question still open for CI - no owner and nothing decided yet",
+          "ts": "2025-04-08T12:41:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "with deepseek and llama4 both landing, which provider are we targeting for the nightly smoke run?",
+          "ts": "2025-04-08T12:41:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil still need the registry result back here this afternoon to close out the provider paths today.",
+          "ts": "2025-04-08T13:00:07"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, are you getting enough runway this afternoon to close out both the registry check and the header issue, or is one of them going to slip?",
+          "ts": "2025-04-08T13:45:47"
+        },
+        {
+          "userId": "emil",
+          "text": "- Registry check on the llama4 ids against OpenAI and DeepSeek still in progress, results before end of day\n- DeepSeek header issue: headers absent on some calls, not yet narrowed down to whether it's endpoint or model-specific",
+          "ts": "2025-04-08T14:13:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "do absent rate limit headers from deepseek affect the retry logic at all, or does that layer degrade gracefully?",
+          "ts": "2025-04-08T14:40:43"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, want to grab 15 min before end of day to go through the DeepSeek header behavior together?",
+          "ts": "2025-04-08T15:06:43"
+        },
+        {
+          "userId": "dario",
+          "text": "I want to check whether the retry layer handles absent headers cleanly before we call it",
+          "ts": "2025-04-08T15:06:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Dario, yeah - let's do it, ping me when you're free.",
+          "ts": "2025-04-08T15:51:55",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario when you're done with Emil, can you confirm whether the resume pass should be reading failed_requests.jsonl?",
+          "ts": "2025-04-08T16:00:55",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-08T16:15:59"
+        },
+        {
+          "userId": "dario",
+          "text": "You mean read it to skip already-failed rows, or something else?",
+          "ts": "2025-04-08T16:15:59",
+          "threadParentTs": "2025-04-08T16:00:55"
+        },
+        {
+          "userId": "dario",
+          "text": "Can't fully sign off on the retry/DeepSeek header question until I've done the sync with Emil, and that's still pending.",
+          "ts": "2025-04-08T16:16:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah",
+          "ts": "2025-04-08T16:16:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "skip already-failed rows on retry",
+          "ts": "2025-04-08T16:17:01"
+        },
+        {
+          "userId": "dario",
+          "text": "Ok, checking now whether the resume pass is actually wired to read from it",
+          "ts": "2025-04-08T17:12:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still waiting on Emil's registry result to close out the provider paths on my end",
+          "ts": "2025-04-08T17:31:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "landed 8 commits on bulk-llm-inference and the provider integration side this morning",
+          "ts": "2025-04-09T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I want someone to sanity check that the backend changes don't quietly break any of the existing providers before we go further",
+          "ts": "2025-04-09T09:00:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "On the observability side, I've been validating that the rate limit and cost accounting surfaces cleanly through online-request-processing. Nothing alarming so far but I want to finish a pass before signing off on the provider changes Dermot landed",
+          "ts": "2025-04-09T09:15:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also been looking at the caching-and-resume side and haven't hit any surprises yet",
+          "ts": "2025-04-09T09:15:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "Gideon, is your pass covering the batch submission path as well, or just online requests and caching so far?",
+          "ts": "2025-04-09T09:36:15",
+          "replyCount": 2,
+          "replyLastTs": "2025-04-09T14:36:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "Sorry, missed this",
+          "ts": "2025-04-09T14:36:15",
+          "threadParentTs": "2025-04-09T09:36:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "Mostly online requests and caching so far, batch submission path I haven't gotten to yet",
+          "ts": "2025-04-09T14:36:20",
+          "threadParentTs": "2025-04-09T09:36:15"
+        },
+        {
+          "userId": "dario",
+          "text": "makes sense",
+          "ts": "2025-04-09T15:11:20"
+        },
+        {
+          "userId": "dario",
+          "text": "batch submission is the one path I'd want covered before we say the provider changes are clean",
+          "ts": "2025-04-09T15:11:32"
+        },
+        {
+          "userId": "emil",
+          "text": "When someone gets to the batch submission path, can you also check the full gemini batch response shape, not just whether it runs?",
+          "ts": "2025-04-09T15:31:32"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 621 fixes the finish reason gap but I'm honestly not certain that's the only thing off in that response",
+          "ts": "2025-04-09T15:31:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "Gideon, can you take the batch submission path and check the full gemini response shape while you're at it?",
+          "ts": "2025-04-09T15:36:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "Emil, WS-050 isn't written up anywhere I can find - is the batch mode scope documented somewhere or not yet?",
+          "ts": "2025-04-09T15:36:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, got a few minutes before end of day to walk me through what else might be off in the gemini batch response?",
+          "ts": "2025-04-09T15:39:49"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-050 isn't written up anywhere I can find either, same as you",
+          "ts": "2025-04-09T15:56:49"
+        },
+        {
+          "userId": "emil",
+          "text": "Do we actually need that doc before we can call batch mode scope settled, or can it come later?",
+          "ts": "2025-04-09T15:57:01"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon yeah, a few minutes works, let me know where.",
+          "ts": "2025-04-09T15:57:06"
+        },
+        {
+          "userId": "gideon",
+          "text": "DM'd you",
+          "ts": "2025-04-09T16:27:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Committed a couple of examples today for the new provider coverage, including qwq. I want to make sure someone's actually run those against the live backends before we call the provider changes clean, not just that they parse correctly",
+          "ts": "2025-04-09T17:06:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can run the new examples against live backends now if that's what closes it out.",
+          "ts": "2025-04-09T17:50:06",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "That works, yeah",
+          "ts": "2025-04-09T18:21:13"
+        },
+        {
+          "userId": "dario",
+          "text": "The qwq example is the one I'm least sure about since it's the newest addition, so if you hit anything unexpected there flag it",
+          "ts": "2025-04-09T18:21:21"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-050 isn't written up anywhere I can find - went looking and there's nothing there.",
+          "ts": "2025-04-09T18:26:02.384616"
+        },
+        {
+          "userId": "emil",
+          "text": "Who's supposed to be owning that doc, or has it just not happened yet?",
+          "ts": "2025-04-09T18:26:07.384616"
+        },
+        {
+          "userId": "gideon",
+          "text": "online-request-processing is stable, but I've been seeing some odd rate limit behavior from DeepSeek that I want to get eyes on at some point today",
+          "ts": "2025-04-10T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "does DeepSeek even send retry-after or x-ratelimit headers when it throttles, or are we just getting a bare 429?",
+          "ts": "2025-04-10T09:35:48"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold might be the right person on the deepseek header question, given he's been in the batch layer",
+          "ts": "2025-04-10T10:20:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, have you seen what headers DeepSeek actually sends back on a 429?",
+          "ts": "2025-04-10T10:49:19"
+        },
+        {
+          "userId": "emil",
+          "text": "From what I've seen in the batch layer, mostly bare 429s from DeepSeek - I haven't caught them sending x-ratelimit or retry-after headers back.",
+          "ts": "2025-04-10T11:38:16",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Separate thing on PR 624, does the log removal touch anything we're using to track rate limit headroom, or is it strictly the noisier per-request lines?",
+          "ts": "2025-04-10T11:50:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Gemini batch fix is in review (PR 621) - the finish_reason shape change is the main thing, and I want to make sure we're explicit that it doesn't break anything at the request layer contract before it goes in.",
+          "ts": "2025-04-10T15:11:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "I pulled up the Weekly Notes, issues 207 and 233 are both noted as no progress this week, so those are still open",
+          "ts": "2025-04-10T15:33:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, PR 624 is meant to be strictly the per-request noise, but do you know if rate limit headroom tracking runs through that same log path or somewhere separate?",
+          "ts": "2025-04-10T15:33:18",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-10T17:11:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Went to check WS-050 and that page doesn't exist yet - it's mine to write, and nothing about the batch mode spec for the request layer is documented anywhere right now.",
+          "ts": "2025-04-10T16:17:40"
+        },
+        {
+          "userId": "dario",
+          "text": "Somehow the last hour of Thursday is always when everything surfaces at once",
+          "ts": "2025-04-10T16:59:40",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Does \"per-request noise\" include any of the header logging, or is it strictly the response body lines?",
+          "ts": "2025-04-10T17:11:26",
+          "threadParentTs": "2025-04-10T15:33:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone confirmed the rate limit header logging is outside PR 624's scope, or is that still open going into tomorrow?",
+          "ts": "2025-04-10T17:30:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "Header logging question on PR 624 is still open, I'll check the actual diff tonight and confirm whether it touches any of that before it moves.",
+          "ts": "2025-04-10T18:15:26"
         }
       ],
       "projectSpec": {
@@ -42559,6 +44801,122 @@
           "userId": "emil",
           "text": "What does the progress display currently show if you reconnect to a run that's already mid-flight?",
           "ts": "2025-04-03T11:46:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress-and-cli is in good shape, but there's a log noise reduction change (PR 624) I want to land today and I need to confirm we're not quietly dropping anything the progress bars or the run summary rely on before it goes in.",
+          "ts": "2025-04-10T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "does batch mode surface finish_reason the same way in the run summary as online requests, or does it come through differently?",
+          "ts": "2025-04-10T09:38:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "is the run summary pulling from the same event stream as the progress bars, or are those separate?",
+          "ts": "2025-04-10T10:41:20"
+        },
+        {
+          "userId": "dario",
+          "text": "On the curator-viewer side I've been looking at what PR 624 actually touches and I'm honestly not sure yet whether anything the progress bar relies on gets dropped, that's the thing I want to nail down before this lands",
+          "ts": "2025-04-10T11:18:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Batch mode finish_reason comes through differently - it's embedded per-response inside the batch result, not the same path as online requests. PR 621 is the fix for the shape issue there, still waiting on review.",
+          "ts": "2025-04-10T14:59:01",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Once PR 621 lands, does the viewer need any changes to handle batch mode finish_reason, or does it just flow through?",
+          "ts": "2025-04-10T15:19:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Went to pull up WS-050 to see if it said anything about the viewer side - that page doesn't exist yet, I still owe it.",
+          "ts": "2025-04-10T16:13:39"
+        },
+        {
+          "userId": "emil",
+          "text": "On my earlier question about finish_reason, I think once PR 621 lands it's handled upstream and the viewer just picks it up without needing changes - does that track?",
+          "ts": "2025-04-10T16:13:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "If PR 621 handles finish_reason upstream, progress-and-cli is clean on that, no changes needed on my end",
+          "ts": "2025-04-10T16:35:51",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 624 is still unsettled though, Dario's still working out what the progress bar actually depends on before it can land.",
+          "ts": "2025-04-10T16:35:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Still looking at the curator-viewer side to map out what the progress bars actually read from before I can sign off on PR 624, haven't confirmed it's clean yet.",
+          "ts": "2025-04-10T17:07:10"
+        },
+        {
+          "userId": "dario",
+          "text": "Been tracing through the curator-viewer side most of the afternoon and so far nothing in the progress bar path looks like it's the same lines PR 624 is removing, but I'm not ready to call it clean yet.",
+          "ts": "2025-04-10T17:18:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "Nothing on my end in progress-and-cli suggests the bars are reading from those log lines, but I'm holding on Dario's call before PR 624 goes anywhere",
+          "ts": "2025-04-10T17:32:31"
+        },
+        {
+          "userId": "dario",
+          "text": "I've gotten through the curator-viewer path and nothing I've found reads from the lines PR 624 is targeting",
+          "ts": "2025-04-10T17:37:31",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Dario's pass covers the viewer side, but I still haven't confirmed the header logging question - do we hold PR 624 until I check that, or is this enough to go on?",
+          "ts": "2025-04-10T18:25:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, can you share what log lines the progress bar path actually reads from?",
+          "ts": "2025-04-10T18:25:52",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-10T18:28:15.714732"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd lean toward holding it, I don't think my pass on the viewer side covers what you're asking about the header logging.",
+          "ts": "2025-04-10T18:28:15.714732",
+          "threadParentTs": "2025-04-10T18:25:52"
+        },
+        {
+          "userId": "dario",
+          "text": "I've traced through the curator-viewer progress bar path and nothing there is reading from the lines PR 624 targets, so that part is clean",
+          "ts": "2025-04-10T18:28:53.714732"
+        },
+        {
+          "userId": "dario",
+          "text": "The header logging question is still open, and that's the thing keeping me from giving a full sign-off",
+          "ts": "2025-04-10T18:28:58.714732"
         }
       ],
       "projectSpec": {

@@ -382,3 +382,9 @@
 {"path": "nikolai@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
 {"path": "nils@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "nils@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
 {"path": "theo@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "theo@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
+{"path": "konrad@world.local/Sent/0001-weekly-update-week-of-mar-31.eml", "mailbox": "konrad@world.local", "folder": "Sent", "date": "2025-04-07T09:35:00+00:00", "flags": ["\\Seen"]}
+{"path": "emil@world.local/INBOX/0001-weekly-update-week-of-mar-31.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2025-04-07T09:35:00+00:00", "flags": []}
+{"path": "dario@world.local/INBOX/0001-weekly-update-week-of-mar-31.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-04-07T09:35:00+00:00", "flags": []}
+{"path": "dermot@world.local/INBOX/0001-weekly-update-week-of-mar-31.eml", "mailbox": "dermot@world.local", "folder": "INBOX", "date": "2025-04-07T09:35:00+00:00", "flags": []}
+{"path": "nikolai@world.local/INBOX/0001-weekly-update-week-of-mar-31.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-04-07T09:35:00+00:00", "flags": []}
+{"path": "gideon@world.local/INBOX/0001-weekly-update-week-of-mar-31.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-04-07T09:35:00+00:00", "flags": []}
