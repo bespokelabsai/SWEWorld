@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-22 of 22 obligations met.
+26 of 26 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -30,3 +30,7 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-11-18 | dario | write | 10:03 | v0.1.9 release notes |
 | 2024-11-18 | dario | send | 09:42 | v0.1.9 is out |
 | 2024-11-18 | konrad | send | 09:21 | Weekly update: week of Nov 11 |
+| 2024-11-19 | dario | write | 09:14 | v0.1.9.post1 release notes |
+| 2024-11-19 | dario | send | 09:28 | v0.1.9.post1 hotfix is out |
+| 2024-11-20 | gideon | write | 09:14 | Weekly notes: week of Nov 18 - v0.1.9.post1 out |
+| 2024-11-20 | gideon | write | 09:35 | Postmortem: Nov 19 hotfix (v0.1.9.post1) |

@@ -1838,6 +1838,429 @@
           "userId": "dario",
           "text": "Still no response on the LiteLLM question - are we calling that one tomorrow?",
           "ts": "2024-11-18T18:29:19.366365"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 149 is up and ready for review, it covers viewer distribution and run timing/logging, mostly touching the observability side of the pipeline",
+          "ts": "2024-11-19T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Not blocking a release right now, but I'd like to get it merged before the week gets away from us",
+          "ts": "2024-11-19T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "While we're on reviews, can someone take a look at PR 106 when they get a chance?",
+          "ts": "2024-11-19T09:16:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "It's the text message summarizing example, touches examples-cookbooks, not blocking anything but it's been sitting for a bit",
+          "ts": "2024-11-19T09:16:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "worth noting pr 106 and pr 130 both touch examples-cookbooks, if they're both close it's easier to clear them together this week than let them drift another cycle.",
+          "ts": "2024-11-19T09:46:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the plan to clear both PR 106 and PR 130 this week, or is one of them likely to slip to next?",
+          "ts": "2024-11-19T10:21:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "both if we can get eyes on them this week",
+          "ts": "2024-11-19T10:53:17"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 are both sitting in the queue too, PR 78 is the vLLM example, PR 90 is the cache disable arg for Prompter, neither is blocking anything but both could use eyes this week",
+          "ts": "2024-11-19T11:35:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "+1 on clearing both this week",
+          "ts": "2024-11-19T11:52:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "is anyone picking up PR 149 today, or does it need someone assigned?",
+          "ts": "2024-11-19T12:26:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still needs someone, here's roughly the kind of thing in there if it helps scope the ask:\n\n```python\nt_start = time.monotonic()\nresults = process_batch(requests)\nelapsed = time.monotonic() - t_start\nlogger.info(\"elapsed=%.2fs n=%d cached=%d\", elapsed, len(results), cached_count)\n```\n\nTiming and distribution logging, nothing structurally heavy, but I'd rather not self-merge it.",
+          "ts": "2024-11-19T12:43:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is in the same spot, no reviewer picked up yet",
+          "ts": "2024-11-19T13:27:00"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 are still sitting without reviewers on my end too, same situation.",
+          "ts": "2024-11-19T14:11:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "So we've got PR 106, 130, 149 all without reviewers still, are any of these realistically landing this week or are we looking at next week for the examples ones?",
+          "ts": "2024-11-19T14:14:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Weekly notes for Nov 18 are up on the wiki (\"Weekly notes: week of Nov 18 - v0.1.9.post1 out\")",
+          "ts": "2024-11-20T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Covers what landed, PR status, and the open questions carrying into next week",
+          "ts": "2024-11-20T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dermot Callaghan where does PR 130 stand on your end?",
+          "ts": "2024-11-20T09:44:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "wednesday mornings hit different when the coffee hasn't kicked in yet",
+          "ts": "2024-11-20T09:44:17",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Postmortem for the Nov 19 hotfix is up on the wiki (\"Postmortem: Nov 19 hotfix (v0.1.9.post1)\") if anyone wants the writeup.",
+          "ts": "2024-11-20T10:06:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 130 still has no reviewers, I'm not sure we're going to get eyes on it before the week closes, do we just push it to next week?",
+          "ts": "2024-11-20T10:38:17"
+        },
+        {
+          "userId": "dario",
+          "text": "fair enough",
+          "ts": "2024-11-20T11:04:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 159 (cost/token logging, request pipeline) needs eyes, targeting v0.1.10 and would love to get it landed today.",
+          "ts": "2024-11-20T11:29:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also PR 156 (aiohttp security bump), low-touch, just needs CI to pass and someone to merge.",
+          "ts": "2024-11-20T11:29:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "I keep telling myself I'll take a proper lunch break and then somehow it's 2pm and I've had a coffee and half a biscuit",
+          "ts": "2024-11-20T12:12:20",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "anyone free to look at PR 130 (examples-cookbooks) this afternoon?",
+          "ts": "2024-11-20T12:20:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 159 is still waiting on a reviewer, hoping to get it in today if someone has a few minutes this afternoon.",
+          "ts": "2024-11-20T12:55:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, do we just push PR 130 to next week and get PR 159 in today instead?",
+          "ts": "2024-11-20T13:36:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 159 and PR 167 are merged",
+          "ts": "2024-11-21T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "dill pickling is in alongside the linting cleanup, and I want to confirm serialization held up before anyone cuts the next release",
+          "ts": "2024-11-21T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "linting is solid on my end, PR 168 is clean and nothing in the pipeline touched, but I still need to run the serialization check on dill before I can say with confidence nothing broke.",
+          "ts": "2024-11-21T09:17:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "also want to nail down which of the open PRs are actually blocking the next release cut before we move to cut, not entirely sure PR 141 needs to land first",
+          "ts": "2024-11-21T09:17:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel can you weigh in on whether PR 141 needs to land before we cut 0.1.12? Dermot and I both need to know before we greenlight the release, and you're the one closest to that work",
+          "ts": "2024-11-21T09:30:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dermot, want to run the serialization check together?",
+          "ts": "2024-11-21T09:53:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm free this morning if you want to do it now",
+          "ts": "2024-11-21T09:53:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah, let's do it",
+          "ts": "2024-11-21T10:08:18",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "you posting results here after, or just going to confirm it's good informally?",
+          "ts": "2024-11-21T10:36:18"
+        },
+        {
+          "userId": "dario",
+          "text": "sorry, only just saw Konrad's ping - PR 141 doesn't need to land before we cut 0.1.12",
+          "ts": "2024-11-21T14:36:18",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "still trying to nail down wheher PR 78 or PR 90 are actually blocking the cut, haven't fully sorted that out yet",
+          "ts": "2024-11-21T14:36:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel can you add me as a reviewer on PR 78 and PR 90?",
+          "ts": "2024-11-21T14:56:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can take a look and help figure out which one, if either, actually needs to land before the cut",
+          "ts": "2024-11-21T14:56:38"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah",
+          "ts": "2024-11-21T15:16:38"
+        },
+        {
+          "userId": "dario",
+          "text": "adding you to both - also hit somethign odd with the dill serialization check, haven't confirmed yet whether it's isolated to my setup or something in PR 90 itself",
+          "ts": "2024-11-21T15:16:50",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-21T15:17:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "did it error out or just return something unexpected?",
+          "ts": "2024-11-21T15:17:28",
+          "threadParentTs": "2024-11-21T15:16:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "pulled up the weekly notes - PR 159 is still listed as in progress, which is stale now that it's merged.",
+          "ts": "2024-11-21T15:17:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "do we want to drop a note there, or just leave it since it's last week's anyway?",
+          "ts": "2024-11-21T15:18:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "pr 141 is up if anyone has bandwith, LiteLLM plus instructor as a structured output backend for curator",
+          "ts": "2024-11-22T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Touches the provider integrations layer, not blocking a release but I'd like eyes on it before we cut v0.1.10",
+          "ts": "2024-11-22T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone free to take PR 141 this morning?",
+          "ts": "2024-11-22T09:00:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 171 also just opened, so we've got a fair stack building up before v0.1.10.",
+          "ts": "2024-11-22T09:14:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "honestly, do we have a clear picture of which ones are actually blocking v0.1.10 versus which can slide?",
+          "ts": "2024-11-22T09:26:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 39 is good to go on my end, just needs a reviewer to take a look.",
+          "ts": "2024-11-22T09:52:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "fair enough on 39",
+          "ts": "2024-11-22T10:15:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone have a read on PR 133 yet?",
+          "ts": "2024-11-22T10:15:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "wondering if what Otto's adding actually closes a real gap or is more defensive coverage",
+          "ts": "2024-11-22T10:15:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone actually pulled PR 133 yet, or are we just going off the description?",
+          "ts": "2024-11-22T10:37:36"
+        },
+        {
+          "userId": "dario",
+          "text": "sorry, just caught up on this - haven't actually pulled PR 133 yet so I can't say whether it's real gaps or defensive either",
+          "ts": "2024-11-22T11:37:36"
+        },
+        {
+          "userId": "dario",
+          "text": "and yeah on Gideon's question, do we have an actual list of what's blcoking v0.1.10 versus what can slide to v0.1.13? feels like that should get sorted before we cut",
+          "ts": "2024-11-22T11:37:44",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Does Emil have that tracked anywhere, or is it just in people's heads right now?",
+          "ts": "2024-11-22T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Otto what's PR 133 filling in that wasn't there before?",
+          "ts": "2024-11-22T11:52:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 141 is still waiting on review if anyone has bandwidth this morning, it's the LiteLLM+instructor backend for structured output.",
+          "ts": "2024-11-23T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 39 and PR 106 are both still sitting open on my end with no movement, and PR 39 has been in the queue long enough that I'd really like to get it closed out or at least get some real feedback on it today",
+          "ts": "2024-11-23T09:02:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 39, is that a pure hygiene fix, or does it touch anything that needs careful eyes?",
+          "ts": "2024-11-23T10:21:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Just docstrings and minor cleanup, nothing that touches behavior",
+          "ts": "2024-11-23T10:58:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Glad someone's taking a look",
+          "ts": "2024-11-23T10:58:24",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 are both ready for eyes if anyone has a gap this afternoon, PR 78 is the vLLM example for online-request-processing and PR 90 adds the cache-disable argument to Prompter, neither should be a heavy lift.",
+          "ts": "2024-11-23T11:42:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "good timing, I wanted to get eyes on both of those this afternoon anyway",
+          "ts": "2024-11-23T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Before I dig into PR 78, does the vLLM example need an actual running vLLM instance to validate it, or is there a way to check it without one?",
+          "ts": "2024-11-23T11:52:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "For PR 90, is the cache-disable flag meant to be set once at the Prompter level or can it be toggled per-request?",
+          "ts": "2024-11-23T13:04:41"
+        },
+        {
+          "userId": "dario",
+          "text": "Both PRs getting eyes this afternoon, good to finally see these moving",
+          "ts": "2024-11-23T13:21:41",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Weird working a Saturday and somehow having more PRs in flight than any weekday this week",
+          "ts": "2024-11-23T13:37:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 141 is still open if anyone has capacity this afternoon, LiteLLM+instructor backend for structured output.",
+          "ts": "2024-11-23T13:46:32"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, if you have any capacity left after PR 78 and PR 90, PR 141 could use eyes too",
+          "ts": "2024-11-23T14:18:32"
         }
       ],
       "projectSpec": {
@@ -4844,6 +5267,264 @@
           "userId": "gideon",
           "text": "@Otto how are you doing with the install UX, anything you need from anyone before tomorrow?",
           "ts": "2024-11-18T18:29:16.785579"
+        },
+        {
+          "userId": "gideon",
+          "text": "Landed a batch of commits on logging, timing, and viewer distribution this morning, and PR 149 is up in code-review if anyone has cycles",
+          "ts": "2024-11-19T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also wanted to check in on v0.1.9.post1 at some point today, just to make sure I'm clear on waht that hotfix actually covered",
+          "ts": "2024-11-19T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 130 is wrapped on my end, examples side is clear for today",
+          "ts": "2024-11-19T09:39:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "On my end, PR 149 is sitting in code-review and I'm starting to look at some cache fingerprint behavior that I want to understand better before touching anything there.",
+          "ts": "2024-11-19T09:45:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 130 is ready to go, waiting on a review pass before it merges",
+          "ts": "2024-11-19T10:29:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "Actually, on v0.1.9.post1, I'm not sure if that was a tight targeted fix or if other things went in alongside it",
+          "ts": "2024-11-19T11:10:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone know offhand?",
+          "ts": "2024-11-19T11:11:07"
+        },
+        {
+          "userId": "dario",
+          "text": "oh",
+          "ts": "2024-11-19T11:33:07"
+        },
+        {
+          "userId": "dario",
+          "text": "I've been sitting on some questions about fingerprint behavior and prompt_func myself, good timing",
+          "ts": "2024-11-19T11:33:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "- pr 130 still waiting on a review pass, ready on my end\n- not sure on the full scope of v0.1.9.post1 yet, I'd like to get clarity on that this afternoon",
+          "ts": "2024-11-19T12:32:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario Kestrel what are you seeing with prompt_func specifically, is it a variable capture issue or something in how the fingerprint gets computed?",
+          "ts": "2024-11-19T12:48:24",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-19T14:17:29"
+        },
+        {
+          "userId": "konrad",
+          "text": "So here's the thing, I've been noticing what looks like unexpected cache misses when running through some of the examples, getting recomputations I wouldn't have expected",
+          "ts": "2024-11-19T13:32:19"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure yet - I'm seeing the fingerprint come out different for what looks like the same prompt_func across calls where I'd expect a cache hit.",
+          "ts": "2024-11-19T14:17:29",
+          "threadParentTs": "2024-11-19T12:48:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Something like this is what I'm hitting, same function, two different fingerprints:\n\n```python\nf = lambda row: row[\"text\"]\nprint(cache_key(f)) # 'abc123'\nprint(cache_key(f)) # 'def456' <- shouldn't differ\n```\n\nWondering if it's hashing the object identity rather than the actual source.",
+          "ts": "2024-11-19T14:18:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Sounds like the same root cause as what Konrad is seeing, @Dario Kestrel probably owns the investigation, and it'd be worth confirming whether Konrad's misses trace back to that same fingerprint behavior before assuming they're separate issues.",
+          "ts": "2024-11-19T15:00:00",
+          "replyCount": 2,
+          "replyLastTs": "2024-11-19T15:01:11"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward not assuming they're the same thing yet, Konrad's misses might not have anything to do with fingerprinting",
+          "ts": "2024-11-19T15:00:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "Yeah",
+          "ts": "2024-11-19T15:01:03",
+          "threadParentTs": "2024-11-19T15:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm not sure either, what I'm seeing is probably something different, I'd have to dig in more before assuming it's the same thing",
+          "ts": "2024-11-19T15:01:11",
+          "threadParentTs": "2024-11-19T15:00:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Logging the raw fingerprint before every cache lookup would probably make both cases a lot easier to trace.",
+          "ts": "2024-11-19T15:17:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "On my end the viewer timing work is wrapped and PR 149 is just waiting on review",
+          "ts": "2024-11-19T15:29:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still haven't gotten a clear answer on v0.1.9.post1 scope, would like to know before end of day if anyone has that picture",
+          "ts": "2024-11-19T15:29:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 130 is still sitting ready on my end",
+          "ts": "2024-11-19T15:31:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon Halloway on post1 scope, I read the announcement - it was a targeted caching fix, no api changes, nothing else went in alongside it",
+          "ts": "2024-11-19T15:31:31",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "The logging idea is solid, Dario, raw fingerprint on every lookup would cut the guesswork considerably.",
+          "ts": "2024-11-19T15:53:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Taking the fingerprint investigation on my end, I'll add the lookup logging and report back once I have something concrete to show.",
+          "ts": "2024-11-19T16:05:31",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm still not sure the fingerprint thing actually explains what I'm seeing, probably worth keeping them as separate investigations for now until there's something concrete.",
+          "ts": "2024-11-19T16:32:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "Good to know on post1, that's the confirmation I needed. PR 149 is still sitting without a reviewer, that's the one thing outstanding on my end.",
+          "ts": "2024-11-19T16:37:31"
+        },
+        {
+          "userId": "konrad",
+          "text": "same, PR 106 is in the same spot",
+          "ts": "2024-11-19T16:42:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 130 is the same, ready and no reviewer yet",
+          "ts": "2024-11-19T16:44:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "Sounds like PR 149, PR 106, and PR 130 are all in the same boat, if anyone has capacity before the day's out, any one of those would be a good use of it.",
+          "ts": "2024-11-19T17:04:31",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "- *PR 39* wrapped, just needs final review pass\n- *PR 106* ready, no reviewer yet, same as the others\n- cache miss thing still open on my end, not sure if it connects to the fingerprint issue or not",
+          "ts": "2024-11-19T17:07:31"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward getting the fingerprint logging in before we decide they're separate, hard to say without actually seeing the values",
+          "ts": "2024-11-19T17:29:31"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 are still in the queue on my end, no movement yet today on either.",
+          "ts": "2024-11-19T17:29:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Same on my end, PR 149 still hasn't moved, will carry it into tomorrow.",
+          "ts": "2024-11-19T18:12:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Revert is in and the old backend looks clean on my end",
+          "ts": "2024-11-23T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "pretty confident we're production-ready again, but happy to do another pass if anyone wants to confirm before releases move forward",
+          "ts": "2024-11-23T09:00:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold releases still clear to go?",
+          "ts": "2024-11-23T09:24:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "can someone take a quick look at PR 141 before releases move forward, just to make sure we're comfortable with where that stands after the revert",
+          "ts": "2024-11-23T09:24:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, how are you holding up with all this on a Saturday?",
+          "ts": "2024-11-23T11:26:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure we should be calling it clean without someone actually understanding what broke in the async path, not just that the revert worked",
+          "ts": "2024-11-23T11:45:58",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "so do we hold releases until someone actually digs into what went wrong, or do we proceed and treat this as a known unknown for now",
+          "ts": "2024-11-23T11:46:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon Halloway what was actually failing with the async path, were you seeing errors or just behavior that was off",
+          "ts": "2024-11-23T12:02:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "was the async change part of PR 141 or something separate from it",
+          "ts": "2024-11-23T12:37:29"
         }
       ],
       "projectSpec": {
@@ -5167,6 +5848,7 @@
       "memberIds": [
         "dario",
         "dermot",
+        "gideon",
         "konrad"
       ],
       "messages": [
@@ -5332,6 +6014,74 @@
           "userId": "konrad",
           "text": "I'd rather hold it open than close with something that only works if everyone remembers to do it",
           "ts": "2024-11-12T18:24:03.840476"
+        },
+        {
+          "userId": "gideon",
+          "text": "Revert merged, old backend is stable again on my end",
+          "ts": "2024-11-23T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "ready to close this out if nobody's seeing anything weird still",
+          "ts": "2024-11-23T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold where do things stand on your end with releases before we close this?",
+          "ts": "2024-11-23T09:05:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dermot, I've been trying to get confirmation that provider-integrations wasn't in scope for the revert and Dario hasn't responded yet.",
+          "ts": "2024-11-23T11:19:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider-integrations wasn't in the revert scope",
+          "ts": "2024-11-23T11:50:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Still tracking down the token logging gap before I can clear this.",
+          "ts": "2024-11-23T13:00:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "caching-and-resume is clean on my end, no token usage issues visible from what I checked.",
+          "ts": "2024-11-23T13:39:22"
+        },
+        {
+          "userId": "dario",
+          "text": "Good, so the gap is isolated to the provider-integrations fallback path, still working through it on my end.",
+          "ts": "2024-11-23T13:52:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "revert is merged and my side checks out. Ready to call this incident closed.",
+          "ts": "2024-11-23T14:09:22",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the token logging gap a hold on releases, or are we proceeding while Dario works through it?",
+          "ts": "2024-11-23T14:09:34"
         }
       ],
       "projectSpec": {
@@ -6119,6 +6869,154 @@
           "userId": "gideon",
           "text": "I don't think the expected behavior for batch=True cache is written down anywhere, so the spec for issue 33 probably needs to come from @Dario before anyone can implement it.",
           "ts": "2024-11-14T12:44:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 149 (time logging) is merged and I have PR 159 (cost/token logging) up for review, both targeting v0.1.10.",
+          "ts": "2024-11-20T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "before we land PR 159, has anyone confirmed the cost tracking doesn't break cache invalidation?",
+          "ts": "2024-11-20T09:46:46",
+          "replyCount": 2,
+          "replyLastTs": "2024-11-20T10:41:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "Around this morning if we need to sync on anything before end of day.",
+          "ts": "2024-11-20T10:21:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "My read is that it only touches the response path, not the cache key, you're thinking it affects something else?",
+          "ts": "2024-11-20T10:22:31",
+          "threadParentTs": "2024-11-20T09:46:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah that tracks, good",
+          "ts": "2024-11-20T10:41:25",
+          "threadParentTs": "2024-11-20T09:46:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "and PR 149 landing clean this morning was a nice one",
+          "ts": "2024-11-20T10:41:30",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 149 is in and PR 159 is up for review now, both targeting v0.1.10",
+          "ts": "2024-11-20T11:36:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "Good to have the cache question settled before we merge",
+          "ts": "2024-11-20T11:36:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll take a look at PR 159 this afternoon",
+          "ts": "2024-11-20T12:15:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "pulled up PR 159, the relevant bit looks like this:\n\n```python\nusage = response.usage\nself.logger.info(\"tokens=%d cost=%.4f\", usage.total_tokens, usage.total_cost)\n```\n\nreads from the response only, nothing touching the cache key. looks safe to me.",
+          "ts": "2024-11-20T12:26:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Appreciate you actually pulling it up, Dermot, that's exactly the confirmation I needed on that.",
+          "ts": "2024-11-20T12:57:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "online request processing is back on the pre-revert code and holding steady",
+          "ts": "2024-11-23T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "I've checked caching and resume behavior and nothing looks degraded",
+          "ts": "2024-11-23T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "has anyone done a sanity check on the provider backends since the revert went in?",
+          "ts": "2024-11-23T09:03:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, was provider-integrations in scope for what got reverted, or is it untouched?",
+          "ts": "2024-11-23T10:15:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "is there anyone else who can speak to the provider-integrations side if Dario's not around today?",
+          "ts": "2024-11-23T11:12:42"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider-integrations wasn't directly in the revert scope",
+          "ts": "2024-11-23T11:25:42"
+        },
+        {
+          "userId": "dario",
+          "text": "Ran through the provider backend paths and there's one route through the fallback that's not logging token usage correctly after the revert",
+          "ts": "2024-11-23T11:48:26"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon, did your check on caching and resume cover the token usage path at all, or just the caching behavior?",
+          "ts": "2024-11-23T12:52:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "my check was caching behavior only, not the token usage path specifically",
+          "ts": "2024-11-23T13:29:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "That fallback issue sounds like it's still open",
+          "ts": "2024-11-23T13:29:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2024-11-23T13:31:31"
+        },
+        {
+          "userId": "dario",
+          "text": "still open on my end",
+          "ts": "2024-11-23T13:31:36"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm around this afternoon if someone wants to dig into it together",
+          "ts": "2024-11-23T13:31:48",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -6493,6 +7391,214 @@
           "userId": "dario",
           "text": "Honestly still waiting on Emil, so the draft isn't finalized yet",
           "ts": "2024-11-18T18:29:28.254703"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 39 is basically done on my end, just waiting on a final review pass before it goes in",
+          "ts": "2024-11-19T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is close too but I want to make sure it's not holding up the notes for v0.1.9.post1",
+          "ts": "2024-11-19T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 130 is ready on my end, release notes and announcement are the main thing I'm watching this morning",
+          "ts": "2024-11-19T09:18:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario are the v0.1.9.post1 release notes ready to lock, or still being drafted?",
+          "ts": "2024-11-19T09:51:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "announcement for v0.1.9.post1 hasn't come through yet, inbox is empty on my end.",
+          "ts": "2024-11-19T10:22:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario same here, has the announcement gone out yet or still pending?",
+          "ts": "2024-11-19T10:41:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Notes are up, v0.1.9.post1 release notes is in the engineering collection on the wiki.",
+          "ts": "2024-11-19T11:05:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 106 and PR 39 aren't in scope for post1 at all, I don't think we should be treating those as blockers here.",
+          "ts": "2024-11-19T11:05:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Sent the v0.1.9.post1 announcement to the team. Anyone need anything else from me before we call this locked?",
+          "ts": "2024-11-19T11:42:32",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Also just checked, v0.1.9 release notes isn't on the wiki yet, only the post1 page is there. Does anyone have that draft, or has it not been written yet?",
+          "ts": "2024-11-19T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Announcement for the hotfix went out to the team earlier, asked everyone to flag if anything looked off",
+          "ts": "2024-11-19T12:22:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone heard back, or is it quiet on your end?",
+          "ts": "2024-11-19T12:22:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "quiet on my end so far",
+          "ts": "2024-11-19T12:36:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, do you have a window this afternoon to sort out the v0.1.9 notes gap?",
+          "ts": "2024-11-19T12:36:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "was the announcement sent to external users, or just the internal team?",
+          "ts": "2024-11-19T12:36:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2024-11-19T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own question, the announcement went to the internal team",
+          "ts": "2024-11-19T12:39:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "does it need to go to external users as well, or is that a separate step?",
+          "ts": "2024-11-19T12:39:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "is there anything that needs to happen to formally call post1 locked, or does the notes being up count as the sign-off?",
+          "ts": "2024-11-19T12:57:17",
+          "replyCount": 3,
+          "replyLastTs": "2024-11-19T15:56:02"
+        },
+        {
+          "userId": "dario",
+          "text": "Just opened the post1 release notes and my part is covered, it's got the cache matching fix, explains the impact, and confirms it's a drop-in for v0.1.9",
+          "ts": "2024-11-19T15:20:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Still not sure on the external users question, I don't know if that's a separate step we owe or if internal is the full scope",
+          "ts": "2024-11-19T15:20:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does someone need to explicitly approve the notes, or is \"notes are up and quiet from the team\" enough to call it done?",
+          "ts": "2024-11-19T15:20:35",
+          "threadParentTs": "2024-11-19T12:57:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Also does \"locked\" mean we're not taking any more changes, or just that the notes are final?",
+          "ts": "2024-11-19T15:21:01",
+          "threadParentTs": "2024-11-19T12:57:17"
+        },
+        {
+          "userId": "dario",
+          "text": "Notes are sitting in the engineering collection on the wiki (v0.1.9.post1 release notes) if anyone wants to check scope, that's the current state of what's covered",
+          "ts": "2024-11-19T15:36:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "So notes up plus no objections is the sign-off, no explicit approval needed?",
+          "ts": "2024-11-19T15:56:02",
+          "threadParentTs": "2024-11-19T12:57:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "And does \"locked\" cover just the notes or the codebase too?",
+          "ts": "2024-11-19T15:56:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "the release notes cover scope clearly, worth a read if the locked question is still open - v0.1.9.post1 release notes in the engineering collection on the wiki",
+          "ts": "2024-11-19T16:17:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone confirmed whether the announcement needs to go to external users, or is internal team the full scope for post1?",
+          "ts": "2024-11-19T16:47:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still no answer on the external announcement question and we're almost out of day, that's the one thing I can't call settled from my end.",
+          "ts": "2024-11-19T16:47:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Does the external announcement need to go out tonight, or can that wait until we have a clearer answer on scope?",
+          "ts": "2024-11-19T17:10:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not sure waiting on that answer is the right call at this point, it's already late.",
+          "ts": "2024-11-19T17:24:59"
+        },
+        {
+          "userId": "konrad",
+          "text": "So do we just send it to external users tonight and sort out the scope question tomorrow, or hold it?",
+          "ts": "2024-11-19T17:49:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "nobody has confirmed who owns the external announcement decision, that's what's actually stuck",
+          "ts": "2024-11-19T17:56:59"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd hold it, sending to external users tonight without knowing who owns that call seems like the wrong move",
+          "ts": "2024-11-19T18:01:59"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario can you track down who owns that call first thing tomorrow so we're not sitting on it?",
+          "ts": "2024-11-19T18:13:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2024-11-19T18:17:59",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'll find out who owns it and get back to the channel tomorrow morning",
+          "ts": "2024-11-19T18:18:07"
         }
       ],
       "projectSpec": {
