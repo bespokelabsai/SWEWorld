@@ -22,6 +22,24 @@ These scripts read that shape off the repository instead.
 Stage 0 is the only thing that talks to GitHub or walks raw history; stages 1 and 2
 read its record.
 
+**There are two chains here, numbered differently on purpose.** The *stages*
+above read the real repository and answer what is true. The *phases* below build
+the synthetic company on top of that record and answer what gets said. They are
+separate numbering schemes — stage 1 is `build_episodes.py`, phase 1 is
+`phase1_company_grounding.py`, and they are not related.
+
+| Phase | Script | Output | Answers |
+|---|---|---|---|
+| 1 | `phase1_company_grounding.py` | `build/company_grounding.json`, `data/identities.yaml`, `data/channels.yaml` | who works here, what they own |
+| 2a | `phase2_timeline.py` | `build/timeline.json` | the project state on each day |
+| 2b | `phase2_workstreams.py` | `build/workstreams.json`, `build/artifacts.json` | threads of work, and the documents and mail they produce |
+| 2c | `phase2_days.py` | `build/days/state/*.json`, `build/days/specs/*.json` | what each day knew, and one conversation spec per channel |
+| 3 | `phase3_plant.py` | `build/clues.json`, `build/phase3_plant.md`, rewrites `days/specs/` | requirements nobody ever states, hidden as scattered remarks |
+| 4 | `phase4_simulate.py` | `build/phase4/runs/<run>/` | the specs, finally, as messages people actually sent |
+
+Phase 2a is arithmetic over the mined record — no model, no network, and the
+same bytes every run. Everything else calls one.
+
 ## Running it on another repository
 
 Point `--repo` at any git checkout. Nothing is hardcoded to curator: the layout is
@@ -57,8 +75,8 @@ everything else works — history, episodes, subsystems, hotspots, ownership,
 patterns, the full Stage 0 record — but you get no symbol diffs and a thinner
 `configuration` section.
 
-None of them writes `data/`. They produce the ground truth a later generation
-step consumes.
+None of the *stages* writes `data/`. They produce the ground truth the phases
+consume, and only phase 1 and phase 4 write anything the world ingests.
 
 ## Running them
 
@@ -75,6 +93,34 @@ python3 data_gen/make_report.py
 key at all; `--no-refresh` rebuilds from the cache without calling anything.
 All three default to `--repo curator` at the repository root and full history;
 `--since` / `--until` / `--rev` narrow it.
+
+Then the phases, in order, each reading the last:
+
+```bash
+python3 data_gen/phase1_company_grounding.py
+python3 data_gen/phase2_timeline.py
+python3 data_gen/phase2_workstreams.py
+python3 data_gen/phase2_days.py
+python3 data_gen/phase3_plant.py --pick t1,t12,t23,t40 --backend sdk --auth api-key
+python3 data_gen/phase4_simulate.py --day-count 3
+```
+
+Phases 3 and 4 take `--dry-run`, which does the work and writes nothing. Use it
+first on both: phase 3 rewrites *every* file in `build/days/specs/`, not only
+the days it plants into, and phase 4 is the one that costs hours. The earlier
+phases have no dry run — `--no-refresh` rebuilds them from cache without a
+socket, and phase 1 takes `--no-emit-world-data` to leave `data/` alone.
+
+**Which key.** Phases 1-3 are one-shot calls and belong on the API key
+(`--backend sdk --auth api-key`); the CLI backend cold-starts a session per call
+and turns minutes into an hour. Phase 4 is the exception and splits: the persona
+turns run on `CLAUDE_CODE_OAUTH_TOKEN`, and only its one-shots — the director,
+the landing judge, the clue judge — go over the API key. It resolves that split
+itself, before anything imports the engine.
+
+Every LLM response is cached in `cache/llm/`, keyed by model, effort, both
+prompts and the output schema. Re-running a phase after a crash costs nothing
+for the work already done, and `--no-refresh` will not open a socket.
 
 ### Why `build_episodes.py` needs a GitHub token
 
@@ -224,10 +270,81 @@ in a plain clone, so such an episode reports `commits_in_clone: 1` alongside
 `commits_on_branch: 6` from the API, and names the gap in `provenance_gaps`.
 Nothing is inferred to paper over a missing fact, and `stats` totals every gap.
 
+## `clues.json` — phase 3
+
+The one artifact worth reading before touching phase 3, because its vocabulary
+is used unexplained everywhere downstream.
+
+A **task** states a feature openly and hides one or more **requirements** that
+appear nowhere in the corpus as a rule. Each requirement breaks into up to five
+atomic **facts** — `rule`, `scope`, `exclusions_or_crossover`,
+`failure_behavior`, `observability`. A fact nothing carries is a fact the corpus
+cannot teach, which makes the task unscoreable, so that fails the run.
+
+Each requirement is decomposed into a tree: **subconclusions** a reader has to
+establish, and under each of them the **leaves** — the individual remarks that
+imply it. A leaf names the person holding it, which of the facts it `covers`,
+and any identifiers that must appear `verbatim`. A **herring** is a decision the
+team really made and later reversed, planted strictly *before* the clue that
+overturns it, so reading in date order recovers the reversal and reading one
+conversation does not.
+
+Placement then gives each leaf a **carrier** — an existing conversation, a wiki
+page, a page comment, a mail message. Nothing is invented to hold a clue except
+by `seat_arc`, which builds the feature's ordinary design discussion, and
+`make_room`, which adds one conversation when a remark otherwise has nowhere it
+could have been said.
+
+What has to be true before it plants, and what each check asks:
+
+```
+clues (together)  ->  subconclusion  ->  requirement
+```
+
+* the clues under a subconclusion **together** reach it, and **no single one**
+  closes it alone — a conclusion one remark hands over is a search, not a
+  reasoning task
+* the subconclusions **together** give the whole requirement
+* the requirement is recoverable from the clues end to end, read closed-book,
+  best of three, **with the herrings in the room** — that is the corpus an agent
+  actually meets
+* no leaf restates the requirement's own wording, and the leaves span at least
+  two sources, three weeks and two channels
+
+A requirement that fails is re-decomposed and told the specific defect, up to
+`--plant-tries`. The run still fails if it never passes: a task nobody can score
+that ships looking like one they can is the failure this is all built to
+prevent.
+
+`--pick t1,t12` names tasks by id; `--limit N` takes the first N of the 60 in
+`input/tasks.json`. Read `build/phase3_plant.md` rather than the JSON — same
+content, laid out as the trees, the coverage matrix, and every planted line in
+the order an agent reading forward would meet it.
+
+## Phase 4, and how the corpus reaches `data/`
+
+Phase 4 hands each conversation spec to the `bespoke_user` engine and lets the
+people in it talk. Runs are self-contained under `build/phase4/runs/<name>/`,
+with `latest` pointing at the newest; `cast.json` deliberately lives one level
+up, shared, because it holds each person's voice and redrawing it per run would
+make one person sound like two across the corpus.
+
+Every planted clue is then checked against what was actually said. The wording is
+the persona's own — that is the point of simulating rather than scripting — but
+the information has to be there, and a channel-day that dropped one is run again,
+told what was missing.
+
+`--install` copies the result into `data/`, which is the only point where any of
+this becomes something the world ingests. Phase 1 is the other writer, and owns
+`data/identities.yaml` and `data/channels.yaml`.
+
 ## Files
 
 ```
 repolib.py       git access, identity merging, change classification,
                  subsystem mapping, Python symbol diffing, a TOML subset reader
 github_api.py    cached, rate-limit-aware, resumable REST client
+worldapps.py     the wiki, mail and forge as tools a persona can reach, writing
+                 the ingest schemas directly rather than a private format
+phase4_render.py the engine's transcript in the shape the chat ingest reads
 ```

@@ -1503,6 +1503,19 @@ class LLM:
         if message.stop_reason == "refusal":
             details = getattr(message, "stop_details", None)
             raise Refused(f"{label}: refused ({getattr(details, 'category', 'unknown')})")
+        # A cap reached mid-object is unterminated JSON, and `json.loads` reports
+        # that as a column number — which sent a 25-minute plant to a traceback
+        # that named neither the call nor the cause. The cap is the cause, it is
+        # knowable here, and one retry with real headroom fixes the common case
+        # (a model that wrote a longer `why` than the caller budgeted for).
+        if message.stop_reason == "max_tokens":
+            warn(f"{label}: hit the {max_tokens}-token cap mid-answer; "
+                 f"retrying once at {max_tokens * 3}")
+            message = self._send_sdk(system, prompt, schema, max_tokens * 3)
+            if message.stop_reason == "max_tokens":
+                raise RuntimeError(
+                    f"{label}: the answer does not fit in {max_tokens * 3} "
+                    "tokens. Raise max_tokens, or ask for a shorter answer.")
         text = next((b.text for b in message.content if b.type == "text"), None)
         if text is None:
             raise RuntimeError(f"{label}: no text block in the response")
@@ -1513,7 +1526,12 @@ class LLM:
             self.stats["cache_read_tokens"] += (
                 getattr(message.usage, "cache_read_input_tokens", 0) or 0)
             self.stats["output_tokens"] += message.usage.output_tokens
-        return json.loads(text)
+        try:
+            return json.loads(text)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"{label}: the model did not return usable JSON ({exc}). "
+                f"First 200 characters: {text[:200]!r}") from exc
 
     def cost(self) -> float:
         return (self.stats["input_tokens"] / 1e6 * COST_PER_MTOK_IN

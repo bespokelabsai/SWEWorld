@@ -65,6 +65,15 @@ DEFAULT_FORGE_PLAN = rl.DEFAULT_BUILD_DIR / "forge_plan.json"
 FACT_FIELDS = ("rule", "scope", "exclusions_or_crossover", "failure_behavior",
                "observability")
 
+# A `settles` clause that reports its holder ASKING instead of stating what the
+# room concluded. Matched on the clause phase 3 writes ABOUT the remark, never
+# on the remark itself — a clue whose text is a question is fine and often the
+# most natural way to drop one; it is the summary of what it settles that has
+# to be a conclusion, because that is what a conversation is measured against.
+ASKS_RATHER_THAN_SETTLES = re.compile(
+    r"\b(asks?|asking|wonders?|wondering|queries|querying|unsure|unclear)\b",
+    re.I)
+
 # A constraint gets settled in a room where work is argued about. A remark that
 # only ever surfaced in the social or announcement channel would read as
 # arbitrary, and no amount of good placement rescues it.
@@ -72,6 +81,22 @@ DELIBERATION = {"deliberation", "troubleshooting", "coordination"}
 
 # Spread. Below these a requirement is recoverable from one sitting.
 MIN_SOURCES, MIN_WEEKS, MIN_CHANNELS = 2, 3, 2
+
+# What one person says in one go. Measured on a corpus that came out at a median
+# of three sentences and 51 words: those leaves read as a paragraph of analysis,
+# and the extra sentences were reliably where the conclusion the reader was meant
+# to derive had been written down for them.
+MAX_SENTENCES, MAX_WORDS = 2, 30
+
+# The joins a remark uses to reach its own conclusion. Length alone misses this:
+# "got a 429 with slots free, which means the token side throttles independently,
+# so we watch both" is one sentence and 27 words and still hands the reader the
+# answer. What gives it away is the hinge — the clause after it is the inference
+# somebody else was supposed to make.
+CONCLUDES = re.compile(
+    r"\b(which means|so we (?:need|have|should|must)|therefore|"
+    r"the fix is|the answer is|so the rule|which is why we (?:need|should|must)|"
+    r"meaning we|so anything that)\b", re.I)
 
 SOURCES = ("slack", "notion", "email", "github")
 
@@ -88,13 +113,42 @@ def load(path: Path, what: str) -> dict:
     return json.loads(text)
 
 
+def pick_tasks(tasks: list[dict], pick: str | None, limit: int | None) -> list[dict]:
+    """The tasks to plant, chosen rather than inherited.
+
+    `--limit` takes the first N, which is how a 60-task file came to be
+    represented by whichever five happened to sit at the top — all of them
+    slack+notion+email, none of them slack-only, one of them carrying all five
+    fact fields. That is not a sample of anything.
+
+    `--pick t1,t12,t23,t40` names them instead, using the same 1-based `t{n}`
+    ids the rest of the run prints, so what you read in the report is what you
+    type on the command line.
+    """
+    if not pick:
+        return tasks[:limit] if limit else tasks
+    wanted, out = [], []
+    for raw in pick.split(","):
+        name = raw.strip().lower().lstrip("t")
+        if not name.isdigit():
+            rl.fail(f"--pick takes task ids like t1,t12 — {raw.strip()!r} is not one")
+        n = int(name)
+        if not 1 <= n <= len(tasks):
+            rl.fail(f"--pick names t{n}, but the tasks file holds {len(tasks)}")
+        if n in wanted:
+            continue                      # asked for twice; plant it once
+        wanted.append(n)
+        out.append(tasks[n - 1])
+    return out
+
+
 class Corpus:
     """The world as it stands, and every place a clue could be dropped into it."""
 
     def __init__(self, args):
         raw = load(args.tasks, "add the tasks to plant")
         tasks = raw["tasks"] if isinstance(raw, dict) else raw
-        self.tasks = tasks[:args.limit] if args.limit else tasks
+        self.tasks = pick_tasks(tasks, getattr(args, "pick", None), args.limit)
 
         # The tasks file names the sources; this narrows them without editing
         # it. A source is only usable once something actually renders into it,
@@ -357,18 +411,43 @@ _STRS = {"type": "array", "items": {"type": "string"}}
 
 def tree_schema(people: list[str], facts: list[str], sources: list[str]) -> dict:
     return _obj({
+        # No `minItems` here, however much it belongs: the structured-output API
+        # accepts only 0 or 1 for it and rejects the whole request otherwise,
+        # which fails every tree in the run at once with a schema error that
+        # names the constraint rather than the call. The floor is enforced in
+        # `normalise_tree` instead, where it costs nothing and can explain
+        # itself.
         "subconclusions": {"type": "array", "items": _obj({
             "id": _STR,
             "text": {**_STR, "description": "one component of the requirement, "
-                                            "stated as a claim"},
+                                            "stated as a claim. Reaching ALL of "
+                                            "them, and nothing else, must give a "
+                                            "reader the whole requirement"},
             "commonsense": {**_STR, "description": "the single inference a reader "
                                                    "supplies to reach this from its "
                                                    "leaves. Nobody ever says it."},
         })},
         "leaves": {"type": "array", "items": _obj({
             "id": _STR,
-            "text": {**_STR, "description": "the oblique remark, in this person's "
-                                            "voice, as they would drop it"},
+            "text": {**_STR, "description": "the oblique remark, in this "
+                                            "person's voice. ONE sentence, two "
+                                            "at the absolute most, under 30 "
+                                            "words. ONE observation: what they "
+                                            "saw, or what it cost them, or what "
+                                            "they want — not all three. Never "
+                                            "the conclusion its subconclusion "
+                                            "states"},
+            # Asked for, and then checked. A model that has to name what its own
+            # remark leaves unresolved cannot write a remark that leaves nothing
+            # unresolved — the field is unanswerable for a leaf that closes its
+            # own subconclusion, and the act of filling it in is what stops one
+            # being written. Cheaper and more reliable than catching it after.
+            "leaves_open": {**_STR, "description": "what a reader still CANNOT "
+                                                   "conclude from this remark "
+                                                   "alone, and must get from a "
+                                                   "sibling remark. If this is "
+                                                   "empty or trivial the remark "
+                                                   "is too complete — narrow it"},
             "settles": {**_STR, "description": "the same point as one short "
                                                "third-person clause: 'the team "
                                                "agrees X'"},
@@ -394,7 +473,8 @@ def herring_schema(people: list[str]) -> dict:
     return _obj({"herrings": {"type": "array", "items": _obj({
         "id": _STR,
         "text": {**_STR, "description": "the remark, in this person's voice, as "
-                                        "they would drop it at the time"},
+                                        "they would drop it at the time. One "
+                                        "sentence, two at most, under 30 words"},
         "settles": {**_STR, "description": "one short third-person clause"},
         "holder": {"type": "string", "enum": people or ["none"]},
         "forbidden_terms": {**_STRS, "description": "language that would reveal "
@@ -465,6 +545,32 @@ Rules you must hold to:
 * Every leaf is something a specific person would actually say, in a room they are in,
   about work they own. Refer to people by the persona ids you are given and nobody else.
 * A leaf carries at most two parts of the requirement. More and it stops being a remark.
+* ONE SENTENCE. Two at the very most, and under thirty words. This is the rule that makes
+  the rest of them work. A remark that runs to three or four sentences is not one remark —
+  it is a complaint, its diagnosis and its proposed fix stapled together, and stapling them
+  is exactly how a leaf ends up closing its own subconclusion. Say the one thing this person
+  noticed and STOP. If you find yourself writing "and so" or "which means" or "the fix is",
+  the sentence after it belongs to somebody else, on another day, in another room.
+    GOOD  "Got a 429 with request slots still free."                          (10 words)
+    GOOD  "Second run today that came back instant and gave me the old model's answers."
+    BAD   "Got a 429 with slots free, which means the token side throttles independently,
+           so we need to be watching both budgets and not just the request count."
+  Prefer more leaves, each smaller, over fewer leaves that each say a lot. Four short
+  remarks from four people beat two long ones from two.
+* THE RULE THAT DECIDES WHETHER THIS WORKS. Every subconclusion must need AT LEAST TWO of
+  its leaves before a reader can reach it. Take any single leaf under a subconclusion, show
+  it to a reader on its own, and they must NOT be able to conclude that subconclusion — they
+  should get part of the picture and have to find the rest. Write each leaf as one person's
+  partial view: what they saw, what it cost them, what they think should happen about THEIR
+  piece. Never write a leaf that closes its own subconclusion; that leaf makes every other
+  leaf under it decorative and turns the task into a search for one message.
+  Concretely, for a subconclusion like "the limiter must count tokens as well as requests":
+    GOOD  "got a 429 with request slots still free"        (one person, one symptom)
+    GOOD  "we blew the token ceiling on the poet stage"    (another person, another symptom)
+    BAD   "429s come from tokens not requests, so we have to track both"   (closes it alone)
+* The subconclusions together must ADD UP to the requirement — a reader who reaches all of
+  them, and nothing else, has the whole of it. Nothing may be left to a leap nobody's
+  remarks support.
 * `verbatim` names identifiers a reader must reproduce exactly — an environment variable, a
   method name. If you list one, the leaf's own text must contain it literally.
 * Write plainly, in the register of a working engineer typing quickly. No literary flourish,
@@ -475,6 +581,22 @@ Rules you must hold to:
   describe how it currently works teach a reader that it is intended, and the requirement
   then reconstructs backwards: the reader concludes the present behaviour is the rule.
   Describing the behaviour is not enough. Someone has to mind.
+* When the requirement ENUMERATES several things — "derived from A, B, C and D", "applies
+  to X and Y but not Z" — somebody has to mind about EACH ONE SEPARATELY. Take them one
+  at a time, in different leaves, and attach the complaint to that specific element: "we
+  key on the row, so swapping the model hands you back the old answer — that cost me an
+  afternoon" is what carries `model`. This is the case that fails most often and it fails
+  silently: four leaves that each calmly describe one element being absent do not add up
+  to "all four must be present". They add up to the opposite, and a reader takes them as
+  four deliberate exclusions. One leaf listing all four at once is no better — that is a
+  specification, and nobody talks that way.
+* Minding is half of it. Somebody also has to say what should happen INSTEAD, at least
+  once for each part of the requirement — not as a decision announced, but the way people
+  land on things: "so just skip the row and carry on, it is an estimate", "then it should
+  fail loudly rather than sit there". A run of leaves that only complain teaches a reader
+  that the current behaviour is bad and leaves them guessing between three fixes, which is
+  no better than not knowing there was a problem. Complaint says something is wrong;
+  the requirement is what is right. Both have to be somewhere.
 """
 
 
@@ -490,12 +612,40 @@ def stage_system(corpus: Corpus) -> str:
     }, ensure_ascii=False, separators=(",", ":"))
 
 
+def scrub_dashes(text: str) -> str:
+    """Punctuation a person typing quickly into a chat box does not produce.
+
+    Deliberately local rather than borrowed from `bespoke_user`: importing that
+    package resolves authentication the moment it is touched, and phase 3 must
+    not care how phase 4 authenticates.
+
+    An em dash becomes a comma where it reads as an aside and a colon where it
+    introduces; both are what the keyboard actually offers. The typographic
+    quotes and ellipsis go the same way for the same reason.
+    """
+    for bad, good in ((" \u2014 ", ", "), (" \u2014", ","), ("\u2014 ", ", "),
+                      ("\u2014", ", "),
+                      ("\u2013", "-"), ("\u2026", "..."),
+                      ("\u2018", "'"), ("\u2019", "'"),
+                      ("\u201c", '"'), ("\u201d", '"')):
+        text = text.replace(bad, good)
+    return text
+
+
 def facts_of(requirement: dict) -> list[str]:
     return [f for f in FACT_FIELDS if requirement.get(f)]
 
 
 def stage_tree(llm: rl.LLM, system: str, corpus: Corpus, task: dict,
-               req: dict, req_id: str) -> dict:
+               req: dict, req_id: str, guidance: str = "", attempt: int = 1) -> dict:
+    """Decompose one requirement into subconclusions and the remarks that imply them.
+
+    `guidance` is what the previous attempt got wrong, named. It goes in the
+    SYSTEM block rather than the prompt because it amends the rules of the job
+    rather than the job itself, and it is the only thing that makes attempt two
+    different from attempt one — a bare re-run is the same tree with different
+    adjectives.
+    """
     facts = facts_of(req["requirement"])
     sources = req.get("fragmentation_sources") or ["slack"]
     services = corpus.services_named(f"{task['title']} {task['description']}")
@@ -512,16 +662,26 @@ def stage_tree(llm: rl.LLM, system: str, corpus: Corpus, task: dict,
         "remark was made: `slack` a channel, `notion` the wiki, `email` internal mail, "
         "`github` a pull request or issue. Use more than one; a requirement recoverable from "
         "one place is not hidden.\n\n"
-        "Aim for two to four leaves per subconclusion, and give each to somebody who owns "
-        "that ground. Each person below lists the sources they can be quoted in — a "
+        "Two to four leaves per subconclusion, NEVER one, and give each to somebody who "
+        "owns that ground. Each person below lists the sources they can be quoted in — a "
         "leaf whose holder cannot be quoted in its source has nowhere to go and is "
         "thrown away, so pair them.\n\n"
+        "Before you write each leaf, decide what that ONE person saw, and write only "
+        "that, in ONE SENTENCE under thirty words. A remark that ends by saying what "
+        "should therefore happen has closed its own subconclusion and wasted every "
+        "sibling under it — and the second and third sentences are where that ending "
+        "always creeps in, so do not write them. Fill in `leaves_open` "
+        "honestly: if you cannot name something substantial the reader still has to get "
+        "from a sibling, the remark is too complete and you must narrow it before "
+        "moving on. Two people reporting different symptoms of one problem is the shape "
+        "you are aiming for; one person diagnosing it is the shape to avoid.\n\n"
         "WHO COULD KNOW THIS\n"
         + json.dumps(roster, ensure_ascii=False, separators=(",", ":"))
     )
-    out = llm.complete(system=system, prompt=prompt,
+    out = llm.complete(system=system + guidance, prompt=prompt,
                        schema=tree_schema([r["id"] for r in roster], facts, sources),
-                       label=f"tree:{req_id}", max_tokens=12000)
+                       label=f"tree:{req_id}" + (f":try{attempt}" if attempt > 1 else ""),
+                       max_tokens=12000)
     return normalise_tree(out, req_id, facts, corpus)
 
 
@@ -542,21 +702,41 @@ def normalise_tree(out: dict, req_id: str, facts: list[str], corpus: Corpus) -> 
             notes.append(f"dropped a leaf: {holder!r} is not a person here")
             continue
         covers = [c for c in (leaf.get("covers") or []) if c in facts][:2]
-        text = (leaf.get("text") or "").strip()
+        # Scrubbed HERE, not at the transcript. A leaf's text is the only model
+        # output in this pipeline that reaches a persona as something to say,
+        # and an em dash in a chat message is a tell no amount of good voice
+        # work recovers from. Every other prose path scrubs on the way out; this
+        # one has to scrub on the way in, because by the time it is a message it
+        # is the persona's own words and nobody is checking them for punctuation.
+        text = scrub_dashes((leaf.get("text") or "").strip())
         verbatim = [v for v in (leaf.get("verbatim") or []) if v and v in text]
         missing = [v for v in (leaf.get("verbatim") or []) if v not in text]
         if missing:
             notes.append(f"{req_id}.{leaf.get('id')}: claimed verbatim "
                          f"{', '.join(missing)} but the text does not contain it")
+        settles = (leaf.get("settles") or "").strip()
+        # The schema asks for a conclusion — "the same point as one short
+        # third-person clause" — and nothing ever checked that it got one. A
+        # `settles` that describes its holder ASKING something is not a point a
+        # conversation can land: phase 4 plants it as must-settle, the engine
+        # pushes the persona to assert a question, and the channel-day is re-run
+        # to its retry cap having been asked for something that does not exist.
+        # Two of this corpus's clues are exactly that, and both cost three paid
+        # attempts before anyone looked at why.
+        if settles and ASKS_RATHER_THAN_SETTLES.search(settles):
+            notes.append(f"{req_id}.{leaf.get('id')}: `settles` describes asking "
+                         f"rather than concluding ({settles[:60]!r}) — nothing "
+                         "can discharge it")
         leaves.append({
             "id": f"{req_id}.{(leaf.get('id') or f'l{i + 1}').strip()}",
             "text": text,
-            "settles": (leaf.get("settles") or "").strip() or text,
+            "settles": settles or text,
             "holder": holder,
             "source": (leaf.get("source") or "slack").strip(),
             "subconclusion": (leaf.get("subconclusion") or "").strip(),
             "covers": covers,
             "commonsense": (leaf.get("commonsense") or "").strip(),
+            "leaves_open": (leaf.get("leaves_open") or "").strip(),
             "verbatim": verbatim,
             "forbidden_terms": [t for t in (leaf.get("forbidden_terms") or [])
                                 if isinstance(t, str)],
@@ -565,6 +745,36 @@ def normalise_tree(out: dict, req_id: str, facts: list[str], corpus: Corpus) -> 
         })
         if leaves[-1]["subconclusion"] not in known:
             leaves[-1]["subconclusion"] = subs[0]["id"] if subs else ""
+
+    # Free structural checks, before any model is asked anything. A
+    # subconclusion one remark carries alone is a search task rather than a
+    # reasoning one, and a leaf that cannot name what it leaves open is a leaf
+    # that leaves nothing open. Both are visible in the JSON, so neither should
+    # cost a judge call to discover.
+    for sub in subs:
+        mine = [x for x in leaves if x["subconclusion"] == sub["id"]]
+        if len(mine) < 2:
+            notes.append(f"{req_id}: `{sub['id']}` rests on {len(mine)} remark(s) "
+                         "— one person carrying a whole conclusion is not hidden")
+    for leaf in leaves:
+        if not leaf.get("leaves_open"):
+            notes.append(f"{leaf['id']}: names nothing it leaves for a sibling "
+                         "remark to supply, which is what a complete remark "
+                         "looks like")
+        # Length is the cheapest predictor of a leaf that closes its own
+        # subconclusion, and the only one that costs nothing to check. Three
+        # sentences is a complaint, its diagnosis and its fix stapled together;
+        # the last of those is what the reader was supposed to work out.
+        n = len([x for x in re.split(r"(?<=[.!?])\s+", leaf["text"].strip()) if x])
+        if n > MAX_SENTENCES or len(leaf["text"].split()) > MAX_WORDS:
+            notes.append(f"{leaf['id']}: {n} sentence(s), "
+                         f"{len(leaf['text'].split())} words — a remark this "
+                         "long is carrying more than one person's observation")
+        hinge = CONCLUDES.search(leaf["text"])
+        if hinge:
+            notes.append(f"{leaf['id']}: says {hinge.group(0)!r} and then draws "
+                         "the conclusion itself — that clause is the reader's "
+                         "job, and belongs in somebody else's remark")
     return {"subconclusions": subs, "leaves": leaves, "notes": notes}
 
 
@@ -706,6 +916,15 @@ def seat_arc(corpus: Corpus, task: dict, task_id: str, beats: list[dict],
             members = set(corpus.channels[channel]["members"])
             for offset in range(len(days)):
                 date = days[(i * step + offset) % len(days)]
+                # One conversation per channel per day. A channel that already
+                # has a conversation that day is a channel these people are
+                # already in: a second one is not a second discussion, it is
+                # the same room talking to itself twice, and downstream it is
+                # two conversations wearing one name — which collided into a
+                # single stream with duplicate message ids.
+                if any(x["channel"] == channel
+                       for x in corpus.specs[date]["specs"]):
+                    continue
                 here = [p for p in want
                         if p in members and corpus.present(p, date)]
                 if len(here) >= 2:
@@ -946,8 +1165,152 @@ def spread_problems(placed: list[dict], declared: list[str]) -> list[str]:
     return problems
 
 
+PLACE_SCHEMA = _obj({"placements": {"type": "array", "items": _obj({
+    "leaf": {**_STR, "description": "the leaf id"},
+    "carrier": {**_STR, "description": "the key of the conversation it belongs in, "
+                                       "copied exactly from its candidate list"},
+    "why": {**_STR, "description": "one sentence: what about this room, on this "
+                                   "day, makes the remark land naturally"},
+})}})
+
+
+def describe(carrier: dict) -> str:
+    return (f"  `{carrier['key']}` {carrier['date']} {carrier['room']} — "
+            f"{(carrier.get('about') or '')[:110]}")
+
+
+def choose_slots(llm: rl.LLM, corpus: Corpus, task: dict, req_id: str,
+                 leaves: list[dict], carriers: list[dict], used: set[str],
+                 window: tuple[str, str]) -> dict:
+    """Which conversation each remark belongs in — a judgement, asked for.
+
+    The candidates are filtered by arithmetic: right source, right person, in
+    the room, present that day, nothing planted there yet. Which of THOSE is the
+    place the remark would actually have been made is not arithmetic, and the
+    ranking that stood in for it optimises spread — so it reliably produced
+    clues that were well distributed and topically arbitrary. Well distributed
+    and arbitrary is what synthetic reads like.
+
+    Returns {leaf id: {"key", "why"}}. Advisory: `place` still enforces every
+    hard constraint and still falls back to its own ranking, so a model that
+    picks a taken seat or invents a key costs nothing. The `why` is kept and
+    printed in the report, because "why this room" is the question a person
+    reviewing the corpus for realism is actually asking.
+    """
+    described, listed = [], 0
+    for leaf in leaves:
+        options = candidates(corpus, leaf, carriers, used, window)
+        if len(options) < 2:
+            continue                      # no judgement to make
+        listed += 1
+        described.append(
+            f'**{leaf["id"]}** — {leaf["holder"]}, {leaf["source"]}: "{leaf["text"]}"')
+        described += [describe(o) for o in options[:30]]
+        described.append("")
+    if not listed:
+        return {}
+
+    try:
+        out = llm.complete(
+            system="You decide where a remark belongs. You output strict JSON "
+                   "and nothing else.",
+            prompt=("These colleagues are working on:\n\n"
+                    f"{task['title']}: {task['description']}\n\n"
+                    "Each remark below is something one of them is going to say "
+                    "in passing. Under it are the conversations they were "
+                    "actually in where they could have said it. Pick the one "
+                    "where it would land most naturally — where the room is "
+                    "already on that subject, or where what they say answers "
+                    "something the conversation is already chewing on.\n\n"
+                    "Prefer a room where the remark is a contribution to what is "
+                    "being discussed over one where it arrives from nowhere. "
+                    "Spread matters too: these remarks belong to one hidden "
+                    "requirement, and if they all land in one room in one week a "
+                    "reader gets the whole thing in a sitting. Where two rooms "
+                    "fit equally, take the one further from the others.\n\n"
+                    f"{chr(10).join(described)}\n"
+                    "Answer for every remark listed. Copy carrier keys exactly."),
+            schema=PLACE_SCHEMA, label=f"place:{req_id}", max_tokens=6000)
+    except Exception as exc:                # noqa: BLE001
+        rl.warn(f"place:{req_id}: {exc} — falling back to ranked placement")
+        return {}
+
+    by_id = {leaf["id"]: leaf for leaf in leaves}
+    valid = {c["key"] for c in carriers}
+    chosen = {}
+    for row in out.get("placements") or []:
+        lid, key = (row.get("leaf") or "").strip(), (row.get("carrier") or "").strip()
+        if lid in by_id and key in valid and key not in used:
+            chosen[lid] = {"key": key, "why": (row.get("why") or "").strip()}
+    return chosen
+
+
+def make_room(corpus: Corpus, leaf: dict, window: tuple, before: str = "") -> dict | None:
+    """Add one design conversation so this remark has somewhere it could be said.
+
+    Returns the carrier for it, or None when the calendar genuinely has no day.
+
+    The room is ordinary: the same shape `seat_arc` writes, in a channel the
+    holder is actually in, on a day they are actually present, with two
+    colleagues who share the room. What makes it not arbitrary is its ending —
+    the conversation exists because this point had nowhere to be made, so the
+    point IS its ending, and the outcome says so in words `resolution_of` reads
+    as landing. An outcome that hedged here would produce the exact trap this
+    pipeline just fixed: a room built to settle something, told to leave it open.
+
+    `before` bounds it for a reversed decision, which has to precede the clue
+    that overturns it; the search then runs backwards, taking the latest day it
+    can, because a decision reversed a week later reads as a team changing its
+    mind and one reversed six months later reads as two unrelated worlds.
+    """
+    rooms = [c for c in corpus.company["channels"]
+             if leaf["holder"] in (c.get("members") or [])
+             and c["name"] in corpus.channels]
+    days = sorted(d for d in corpus.specs
+                  if window[0] <= d <= window[1] and (not before or d < before)
+                  and corpus.days.get(d, {}).get("is_weekend") is False)
+    for channel in rooms:
+        members = [m for m in channel.get("members") or [] if m != leaf["holder"]]
+        for date in (reversed(days) if before else days):
+            # The one-conversation-per-channel-per-day rule the arc already
+            # keeps: a room that is busy is a room these people are already in.
+            if any(x["channel"] == channel["name"]
+                   for x in corpus.specs[date]["specs"]):
+                continue
+            if not corpus.present(leaf["holder"], date):
+                continue
+            here = [m for m in members if corpus.present(m, date)][:2]
+            if not here:
+                continue
+            specs = corpus.specs[date]["specs"]
+            specs.append({
+                "date": date, "channel": channel["name"],
+                "channel_name": corpus.channels[channel["name"]]["display_name"],
+                "purpose_class": "deliberation",
+                "purpose": f"working through part of the {leaf['source']} design",
+                "reason": f"{leaf['holder']} and the others work a piece of this "
+                          "through while it is still open",
+                "expected_outcome": f"it is settled that {leaf.get('settles') or leaf['text']}",
+                "agenda": [], "subjects": [],
+                "participants": [{"id": p,
+                                  "label": corpus.people[p]["synthetic"]["display_name"],
+                                  "why": "works on this", "brings": "", "wants": ""}
+                                 for p in [leaf["holder"]] + here],
+                "goals": [], "meetings": [], "event_ids": [], "referenced_objects": [],
+                "must_not_mention": [], "absent_owners": [], "stand_in": None,
+                "norms": {}, "role": "deliberation", "max_turns": 14,
+                "planted_arc": leaf.get("requirement", "made"),
+            })
+            return {"key": f"spec|{date}|{channel['name']}|{len(specs) - 1}",
+                    "source": "slack", "date": date, "channel": channel["name"],
+                    "room": f"#{channel['name']}", "index": len(specs) - 1,
+                    "who": [leaf["holder"]] + here, "about": leaf.get("settles", ""),
+                    "made": True}
+    return None
+
+
 def place(corpus: Corpus, leaves: list[dict], carriers: list[dict], used: set[str],
-          mix: float, window: tuple[str, str]) -> list[str]:
+          mix: float, window: tuple[str, str], chosen: dict | None = None) -> list[str]:
     """Give each leaf a carrier, chasing spread rather than the best single fit.
 
     Taking each leaf's highest-scoring carrier looks right and is wrong: the
@@ -958,6 +1321,7 @@ def place(corpus: Corpus, leaves: list[dict], carriers: list[dict], used: set[st
     something it is audited against afterwards.
     """
     notes = []
+    chosen = chosen or {}
     want_explicit = round(len(leaves) * mix)
     taken_explicit = 0
     weeks: set[str] = set()
@@ -993,6 +1357,44 @@ def place(corpus: Corpus, leaves: list[dict], carriers: list[dict], used: set[st
             # make that subconclusion easier than intended.
             options = candidates(corpus, leaf, carriers, used)
             forced = True
+        pick = chosen.get(leaf["id"])
+        if pick:
+            fit = next((o for o in options if o["key"] == pick["key"]), None)
+            if fit:
+                # The judged seat, kept only because it is still one of THIS
+                # leaf's live options — the model saw the candidate list before
+                # any of its siblings were seated, so by now its choice may be
+                # taken. Falling through to the ranking is the correct answer
+                # then, not an error.
+                used.add(fit["key"])
+                leaf["slot"] = {**{k: fit[k] for k in
+                                   ("key", "source", "date", "channel", "room", "index")},
+                                "class": fit["class"], "score": fit["score"],
+                                "forced": False, "why": pick.get("why", "")}
+                weeks.add(week_of(fit["date"]))
+                rooms.add(fit["room"])
+                by_sub[leaf["subconclusion"]].add(fit["room"])
+                when_sub[(leaf["subconclusion"], fit["room"])].append(
+                    dt.date.fromisoformat(fit["date"]))
+                taken_explicit += fit["class"] == "explicit"
+                continue
+        if not options and leaf["source"] == "slack":
+            # Nowhere at all. Rather than drop the clue, add one more ordinary
+            # design conversation that seats its holder — which is what a team
+            # with something unresolved actually does, and what the arc stage
+            # already builds by the dozen.
+            #
+            # Dropping it is the expensive alternative, not the safe one: a leaf
+            # with no slot is a fact nothing carries, which fails the run and
+            # sends the whole requirement back for a re-plant that will land in
+            # the same crowded calendar. A room made here costs one conversation.
+            made = make_room(corpus, leaf, window)
+            if made:
+                notes.append(f"{leaf['id']}: no room seated {leaf['holder']} in "
+                             f"{leaf['source']}, so a design conversation was "
+                             f"added in #{made['channel']} on {made['date']}")
+                carriers.append(made)
+                options = [made]
         if not options:
             held = corpus.capacity.get(leaf["holder"], {}).get(leaf["source"], 0)
             why = (f"{leaf['holder']} has no {leaf['source']} of their own at all"
@@ -1085,27 +1487,33 @@ def place_herrings(corpus: Corpus, herrings: list[dict], leaves: list[dict],
 # =============================================================================
 # Prove it is solvable
 # =============================================================================
-def stage_solvability(llm: rl.LLM, system: str, task: dict, req: dict, req_id: str,
-                      leaves: list[dict], herrings: list[dict],
-                      rounds: int = 3) -> dict:
-    """Hand the clues back with the answer removed, and see what comes out.
+def prove_solvable(llm: rl.LLM, task: dict, requirement: dict, req_id: str,
+                   remarks: list[dict], rounds: int = 3,
+                   label: str = "clues") -> dict:
+    """Can this requirement be rebuilt from these remarks alone?
 
-    A tree that looks decomposed is not the same as one an agent can invert, and
-    there is no way to tell which you have by reading it. The reconstruction is
-    given only what a reader would encounter; the grading is a separate call,
-    because a grader that has already seen the answer will agree with itself.
+    The proof, separated from where the remarks came from. Phase 3 asks it of
+    the clue text it just wrote; phase 4 asks it of what the personas actually
+    said, which is the same question about a corpus that now exists — and the
+    difference between the two answers is precisely the risk that rewording in
+    a persona's own voice quietly costs a fact.
+
+    A `remark` is `{"text", "holder", "date", "room"}` and nothing else, so
+    neither caller has to translate into the other's vocabulary.
+
+    The reconstruction is given only what a reader would encounter; the grading
+    is a separate call, because a grader that has already seen the answer will
+    agree with itself.
     """
-    facts = facts_of(req["requirement"])
+    facts = facts_of(requirement)
 
-    def attempt(items: list[dict], label: str, seed: int = 0) -> dict:
-        shown = sorted([i for i in items if i.get("slot")],
-                       key=lambda i: i["slot"]["date"])
-        if not shown:
+    def attempt(seed: int = 0) -> dict:
+        if not remarks:
             return {"reconstruction": None, "recovered": [], "missed": facts,
                     "notes": "nothing was placed"}
         transcript = "\n".join(
-            f"- {i['slot']['date']} · {i['holder']} · {i['slot']['room']}: "
-            f"\"{i['text']}\"" for i in shown)
+            f"- {r.get('date', '')} · {r.get('holder', '')} · {r.get('room', '')}: "
+            f"\"{r['text']}\"" for r in remarks)
         # Each round reads the same remarks with a different question in front of
         # it. Identical prompts would be one cached answer three times, which
         # votes on nothing.
@@ -1132,7 +1540,7 @@ def stage_solvability(llm: rl.LLM, system: str, task: dict, req: dict, req_id: s
             system="You grade a reconstruction against the requirement it was meant to "
                    "recover. You output strict JSON and nothing else.",
             prompt=("THE TRUE REQUIREMENT\n"
-                    + json.dumps(req["requirement"], ensure_ascii=False, indent=1)
+                    + json.dumps(requirement, ensure_ascii=False, indent=1)
                     + "\n\nWHAT WAS RECONSTRUCTED FROM THE CLUES ALONE\n"
                     + json.dumps(guess, ensure_ascii=False, indent=1)
                     + "\n\nWhich parts of the true requirement does the reconstruction "
@@ -1151,36 +1559,480 @@ def stage_solvability(llm: rl.LLM, system: str, task: dict, req: dict, req_id: s
                 "missed": graded.get("missed") or [],
                 "notes": graded.get("notes") or ""}
 
-    def vote(items: list[dict], label: str, times: int = 0) -> dict:
-        """Best of three, because one reading is not a measurement.
+    # Best of three, because one reading is not a measurement. The same tree
+    # passed this gate on one run and failed it on the next with the clues
+    # untouched — the reconstruction lists a dozen constraints and which ones it
+    # bothers to state varies. Taking a majority makes the verdict a property of
+    # the corpus rather than of one sampling; a part that comes back in two
+    # readings out of three is genuinely there, and one that never comes back is
+    # genuinely missing.
+    # The rounds are independent readings that vote at the end — nothing in one
+    # informs another, so running them in sequence just makes a proof three
+    # times as deep as it needs to be. This is the largest call count in the
+    # stage (two calls a round, every round, every requirement).
+    with ThreadPoolExecutor(max_workers=max(1, rounds)) as pool:
+        tries = list(pool.map(attempt, range(rounds)))
+    tally: Counter = Counter()
+    for one in tries:
+        tally.update(set(one["recovered"]))
+    need = rounds // 2 + 1
+    recovered = sorted(f for f, n in tally.items() if n >= need)
+    best = max(tries, key=lambda t: len(t["recovered"]))
+    return {**best, "recovered": recovered,
+            "missed": [f for f in facts if f not in recovered],
+            "rounds": rounds,
+            "votes": {f: tally.get(f, 0) for f in facts},
+            "unsteady": sorted(f for f, n in tally.items() if 0 < n < rounds)}
 
-        The same tree passed this gate on one run and failed it on the next with
-        the clues untouched — the reconstruction lists a dozen constraints and
-        which ones it bothers to state varies. Taking a majority makes the
-        verdict a property of the corpus rather than of one sampling; a part
-        that comes back in two readings out of three is genuinely there, and one
-        that never comes back is genuinely missing.
-        """
-        times = times or rounds
-        tries = [attempt(items, label, seed) for seed in range(times)]
-        tally: Counter = Counter()
-        for one in tries:
-            tally.update(set(one["recovered"]))
-        need = times // 2 + 1
-        recovered = sorted(f for f, n in tally.items() if n >= need)
-        best = max(tries, key=lambda t: len(t["recovered"]))
-        return {**best, "recovered": recovered,
-                "missed": [f for f in facts if f not in recovered],
-                "rounds": times,
-                "votes": {f: tally.get(f, 0) for f in facts},
-                "unsteady": sorted(f for f, n in tally.items() if 0 < n < times)}
 
-    out = {"clues_only": vote(leaves, "clues")}
+def alone_schema(ids: list[str]) -> dict:
+    return _obj({
+        "together_reaches": {
+            "type": "boolean",
+            "description": "reading ALL of these remarks together, does a "
+                           "competent engineer arrive at the conclusion?"},
+        "still_missing": {**_STR, "description": "if not, what a reader is left "
+                                                 "unable to conclude. Empty if "
+                                                 "they do reach it."},
+        "sufficient_alone": {
+            "type": "array", "items": {"type": "string", "enum": ids or ["none"]},
+            "description": "ids of remarks that, read on their own with nothing "
+                           "else, already establish the conclusion. Usually empty."},
+        "why": {**_STR, "description": "one sentence, at most 30 words"},
+    })
+
+
+def not_fragmented(llm: rl.LLM, task: dict, tree: dict, req_id: str) -> list[str]:
+    """Subconclusions a single remark closes by itself.
+
+    The check that decides whether this is a reasoning task or a search task,
+    and it belongs at the SUBCONCLUSION, not at the requirement. A leaf is
+    supposed to carry its fact — phase 3 fails the run when nothing carries one
+    — so asking "does this leaf establish the requirement's rule" punishes a
+    leaf for doing its job, and the answer for any well-aimed remark is yes.
+
+    The real property is narrower and is the one that makes the corpus worth
+    reading: reaching an intermediate conclusion should take more than one
+    person's remark. Two people each reporting their own half is a reader
+    combining evidence. One person stating the conclusion is a reader running
+    grep, and every other leaf under that subconclusion becomes decoration.
+
+    One call per subconclusion rather than one per leaf: the judge sees the
+    remarks together, which is both cheaper and better calibrated — "does this
+    one close it" is a question about a remark's standing among its siblings.
+    """
+    # One call per subconclusion, and they are INDEPENDENT — each reads one
+    # subconclusion and its own leaves, claims nothing, and writes nothing. Run
+    # serially they were 79s apiece and the single longest stage in the plant,
+    # for answers that cost two cents each; the wall clock and the money were in
+    # completely different places.
+    subs = list(tree.get("subconclusions") or [])
+    with ThreadPoolExecutor(max_workers=min(8, max(1, len(subs)))) as pool:
+        found = list(pool.map(lambda sub: _one_subconclusion(llm, task, tree, req_id, sub),
+                              subs))
+    return [x for group in found for x in group]
+
+
+def _one_subconclusion(llm, task, tree, req_id, sub) -> list[str]:
+    """Whether one subconclusion is reachable from its leaves, and only from all of them."""
+    # The single-pass loop is a shim so the `continue`s below still read as
+    # "this subconclusion is done, move on" now that the caller loops instead.
+    problems = []
+    for _ in (1,):
+        mine = [l for l in (tree.get("leaves") or [])
+                if l.get("subconclusion") == sub.get("id")]
+        if len(mine) < 2:
+            problems.append(f"{sub.get('id')} rests on {len(mine)} remark(s); a "
+                            "conclusion one person can hand over is not hidden")
+            continue
+        listing = "\n".join(f'  [{l["id"]}] {l.get("holder", "")}: "{l.get("text", "")}"'
+                             for l in mine)
+        try:
+            out = llm.complete(
+                system="You judge which remarks are enough on their own. You "
+                       "output strict JSON and nothing else.",
+                prompt=("Colleagues are building this:\n\n"
+                        f"{task['title']}: {task['description']}\n\n"
+                        "Between them, these remarks are meant to lead a reader "
+                        "to one conclusion:\n\n"
+                        f"    {sub.get('text', '')}\n\n"
+                        f"THE REMARKS\n{listing}\n\n"
+                        "Answer two things.\n\n"
+                        "FIRST: reading ALL of them together, does a competent "
+                        "engineer actually arrive at that conclusion? If not, "
+                        "say what is still missing. These remarks are the only "
+                        "evidence for it anywhere in the corpus, so a reader who "
+                        "cannot get there from them cannot get there at all.\n\n"
+                        "SECOND: which of them, read completely alone with none "
+                        "of the others, would ALREADY be enough for a competent "
+                        "engineer to reach that conclusion and act on it?\n\n"
+                        "A remark is NOT enough on its own when it reports one "
+                        "person's symptom, one incident, one measurement, or one "
+                        "opinion about part of the picture — even if a sharp "
+                        "reader could guess the rest. Guessing the rest is the "
+                        "work this corpus exists to demand. A remark IS enough "
+                        "when it states the conclusion itself, or states it in "
+                        "different words, so nothing is left to combine. Most "
+                        "lists are empty; return the ids only where you are sure."),
+                schema=alone_schema([l["id"] for l in mine]),
+                label=f"alone:{req_id}:{sub.get('id')}", max_tokens=2000)
+        except Exception as exc:            # noqa: BLE001
+            rl.warn(f"alone:{req_id}:{sub.get('id')}: {exc} — treating the "
+                    "subconclusion as properly fragmented")
+            continue
+        if not out.get("together_reaches"):
+            problems.append(
+                f"`{sub.get('id')}` is not reachable from its own {len(mine)} "
+                f"remark(s) even taken together: "
+                f"{(out.get('still_missing') or out.get('why') or '')[:130]}")
+        for bad in out.get("sufficient_alone") or []:
+            problems.append(f"{bad} closes `{sub.get('id')}` on its own, so the "
+                            f"other {len(mine) - 1} remark(s) under it are "
+                            f"decoration: {out.get('why', '')[:100]}")
+    return problems
+
+
+def tree_adds_up(llm: rl.LLM, task: dict, requirement: dict, req_id: str,
+                 tree: dict, rounds: int = 1) -> list[str]:
+    """Parts of the requirement the subconclusions do not reach even when all are had.
+
+    Structural, and cheap. The leaves can be perfect and the corpus still fail
+    to teach the requirement, because what the leaves build to is the
+    subconclusions — if those do not themselves add up, the reader arrives
+    somewhere short of the answer having done everything right.
+
+    Reuses the same closed-book reconstruct-and-grade as the clue proof, with
+    the subconclusion texts standing in as the remarks, so "add up to" means the
+    same thing here as everywhere else.
+    """
+    remarks = [{"text": sub.get("text", ""), "holder": "", "date": "", "room": ""}
+               for sub in (tree.get("subconclusions") or []) if sub.get("text")]
+    if not remarks:
+        return ["the tree has no subconclusions"]
+    proof = prove_solvable(llm, task, requirement, req_id, remarks, rounds, "tree")
+    return [f"the subconclusions do not add up to `{f}` — a reader could reach "
+            "every one of them and still not have it" for f in proof["missed"]]
+
+
+def guidance_for(requirement: dict, missed: list[str], easy: list[str]) -> str:
+    """What to tell the next attempt, in the register the BRIEF already speaks.
+
+    Named defects only. "Try again" regenerates the same tree with different
+    wording; naming the fact nobody minded about is what makes the second
+    attempt different from the first.
+    """
+    lines = ["", "WHAT WENT WRONG LAST TIME — fix exactly this, change nothing else:"]
+    for fact in missed:
+        stated = (requirement or {}).get(fact) or fact
+        lines.append(
+            f"* Nothing in the last set made anybody MIND about `{fact}`, so a "
+            f"reader could not recover it: {stated} — add a remark where "
+            "somebody hits that case and is annoyed by it, and another where "
+            "somebody says what should happen instead. Do NOT state the rule. "
+            "A person complaining about the specific thing that bit them is "
+            "what carries a requirement; a person announcing a policy is what "
+            "ruins it.")
+    for problem in easy:
+        if "not reachable from its own" in problem:
+            lines.append(
+                f"* {problem}. Its remarks are too vague or too few — a reader "
+                "gets a subject but no conclusion. Add or sharpen a remark so "
+                "that the pieces, put together, force that conclusion. Still "
+                "one person's partial view each; the point is that the halves "
+                "now MEET.")
+        elif "do not add up" in problem:
+            lines.append(
+                f"* {problem}. Add a subconclusion for the missing part, with "
+                "its own remarks, rather than stretching an existing one.")
+        elif "rests on" in problem:
+            lines.append(
+                f"* {problem}. Give it a second remark from a different person "
+                "who saw a different symptom of the same thing.")
+        else:
+            lines.append(
+                f"* {problem}. Rewrite that remark so it reports only what ONE "
+                "person saw — their symptom, their measurement, their half of "
+                "it — and move what it concludes into what the reader has to "
+                "work out by combining it with the others. Do not delete the "
+                "remark; narrow it.")
+    return "\n".join(lines) + "\n"
+
+
+def as_remarks(items: list[dict]) -> list[dict]:
+    """Placed leaves in the shape `prove_solvable` reads, oldest first."""
+    return [{"text": i["text"], "holder": i.get("holder", ""),
+             "date": i["slot"]["date"], "room": i["slot"].get("room", "")}
+            for i in sorted([i for i in items if i.get("slot")],
+                            key=lambda i: i["slot"]["date"])]
+
+
+def stage_solvability(llm: rl.LLM, system: str, task: dict, req: dict, req_id: str,
+                      leaves: list[dict], herrings: list[dict],
+                      rounds: int = 3) -> dict:
+    """Hand the clues back with the answer removed, and see what comes out.
+
+    A tree that looks decomposed is not the same as one an agent can invert, and
+    there is no way to tell which you have by reading it.
+    """
+    out = {"clues_only": prove_solvable(llm, task, req["requirement"], req_id,
+                                        as_remarks(leaves), rounds, "clues")}
     if herrings:
-        # One reading. This one is a difficulty dial that gets reported, not a
-        # gate that stops the run, so it does not need to be voted on.
-        out["with_herrings"] = vote(leaves + herrings, "herrings", times=1)
+        # Voted, not sampled once, because this is now the gate rather than a
+        # difficulty read-out. The corpus an agent actually meets HAS the
+        # reversed decision in it, so "recoverable" measured without it is not
+        # a measurement of anything anybody will ever read. A fact that comes
+        # back clean and dies once the herring is present is the distractor
+        # working too well, and that is a different defect from a fact nothing
+        # carries — reported apart, because they are fixed differently.
+        out["with_herrings"] = prove_solvable(
+            llm, task, req["requirement"], req_id,
+            as_remarks(leaves + herrings), rounds, "herrings")
     return out
+
+
+def gate(proof: dict, requirement: dict) -> tuple[list[str], list[str]]:
+    """(facts nothing carries, facts the herrings took away).
+
+    Split because the fix differs. A fact missing from BOTH readings was never
+    planted well enough — the tree needs another remark. A fact present in the
+    clues and absent once the reversal is in the room is a fragmentation
+    problem: the herring is louder than the clue that overturns it, and the
+    clue needs to be more specific, not more explicit.
+    """
+    facts = facts_of(requirement)
+    clean = set((proof.get("clues_only") or {}).get("recovered") or [])
+    with_h = proof.get("with_herrings")
+    if not with_h:
+        return [f for f in facts if f not in clean], []
+    survived = set(with_h.get("recovered") or [])
+    never = [f for f in facts if f not in clean and f not in survived]
+    drowned = [f for f in facts if f in clean and f not in survived]
+    return never, drowned
+
+
+# =============================================================================
+# Fixing what the gates caught
+# =============================================================================
+def slots_of(tree: dict, herrings: list[dict] | None) -> set[str]:
+    """Carrier keys this requirement currently holds.
+
+    Placement is first-come and `used` is shared, so re-placing a requirement
+    without handing its old seats back would have the new leaves compete with
+    the ones they replace — and lose, since the old ones are already in `used`.
+    """
+    return {x["slot"]["key"]
+            for x in (tree.get("leaves") or []) + (herrings or [])
+            if x.get("slot")}
+
+
+def check_gates(llm, task, req, rid, tree, herring, solvability) -> tuple:
+    """(never carried, drowned by the herrings, handed over by one remark)."""
+    never, drowned = gate(solvability.get(rid) or {}, req["requirement"])
+    # Two structural checks beside the recoverability one. `not_fragmented` asks
+    # whether reaching a subconclusion takes more than one remark; `tree_adds_up`
+    # asks whether reaching all of them is enough. Together they are the shape of
+    # the reasoning, which the clue proof alone cannot see: a tree can be
+    # perfectly recoverable and still be one message plus decoration.
+    easy = (not_fragmented(llm, task, tree, rid)
+            + tree_adds_up(llm, task, req["requirement"], rid, tree))
+    return never, drowned, easy
+
+
+NARROW_SCHEMA = _obj({
+    "text": {**_STR, "description": "the rewritten remark, same person, same "
+                                    "incident, minus the conclusion"},
+})
+
+
+def flagged_leaves(easy: list[str]) -> set[str]:
+    """The leaf ids a too-easy gate named, out of its own message."""
+    return {p.split()[0] for p in easy if " closes " in p}
+
+
+def repair_leaves(llm: rl.LLM, task: dict, rid: str, tree: dict,
+                  easy: list[str], attempt: int = 1) -> tuple[list[str], list[str]]:
+    """Narrow only the leaves a gate named, and leave everything else alone.
+
+    A full re-plant is the wrong tool for this defect and an expensive one. The
+    tree is sound: every subconclusion is reachable, the facts are all carried,
+    the placement is judged and seated. What is wrong is that one remark under a
+    subconclusion ends by saying what should therefore happen, which makes its
+    siblings decoration. That is a sentence to delete, not a tree to rewrite —
+    and rewriting the tree disturbs six good subconclusions to fix one bad leaf,
+    which is how a requirement burns three attempts getting worse in different
+    places each time.
+
+    Only `text` changes. The holder, the source, the subconclusion, the facts it
+    covers and — crucially — the carrier it was seated in are all untouched, so
+    nothing has to be placed again.
+
+    Returns (ids rewritten, ids refused to protect a required identifier). The
+    second matters: "nothing could be narrowed" and "nothing was ALLOWED to be
+    narrowed" look identical from the outside and mean opposite things, and only
+    the first is a reason to reach for a bigger tool.
+    """
+    by_sub = {sub["id"]: sub for sub in tree.get("subconclusions") or []}
+    by_id = {leaf["id"]: leaf for leaf in tree.get("leaves") or []}
+    done, protected = [], []
+    for lid in sorted(flagged_leaves(easy)):
+        leaf = by_id.get(lid)
+        if not leaf:
+            continue
+        sub = by_sub.get(leaf.get("subconclusion"), {})
+        siblings = [l for l in tree["leaves"]
+                    if l.get("subconclusion") == leaf.get("subconclusion")
+                    and l["id"] != lid]
+        try:
+            out = llm.complete(
+                system="You rewrite one remark so it says less. You output "
+                       "strict JSON and nothing else.",
+                prompt=("Colleagues are building this:\n\n"
+                        f"{task['title']}: {task['description']}\n\n"
+                        "Between them, these remarks are meant to lead a reader "
+                        f"to conclude:\n\n    {sub.get('text', '')}\n\n"
+                        f"THE REMARK TO NARROW ({leaf.get('holder', '')})\n"
+                        f'    "{leaf.get("text", "")}"\n\n'
+                        "WHAT THE OTHERS ALREADY SAY\n"
+                        + "\n".join(f'    {l.get("holder","")}: "{l.get("text","")}"'
+                                     for l in siblings) + "\n\n"
+                        "The problem: read on its own, this remark ALREADY gives "
+                        "a reader the conclusion, so the others add nothing and "
+                        "there is no reasoning left to do.\n\n"
+                        "Rewrite it so it reports only what THIS person saw — "
+                        "their incident, their measurement, their irritation — "
+                        "and stops there. Cut the part that generalises, "
+                        "diagnoses, or says what should therefore happen; that "
+                        "is what the reader is supposed to work out by combining "
+                        "it with the others. Keep the same voice, the same "
+                        "specifics, and any identifier it names. Do not make it "
+                        "vague — a narrower remark is not a woollier one, it is "
+                        "a more concrete one that simply stops earlier."
+                        + (f"\n\nThese names MUST survive verbatim, exactly as "
+                           f"written: {', '.join(leaf['verbatim'])}. A rewrite "
+                           "that loses one is rejected, so keep them in the "
+                           "sentence even as you cut the conclusion."
+                           if leaf.get("verbatim") else "")),
+                # The attempt is in the key: without it a retry replays the same
+                # rejected rewrite out of cache and fails identically forever.
+                schema=NARROW_SCHEMA, max_tokens=1200,
+                label=f"narrow:{lid}" + (f":try{attempt}" if attempt > 1 else ""))
+        except Exception as exc:            # noqa: BLE001
+            rl.warn(f"narrow:{lid}: {exc} — left as it was")
+            continue
+        new = scrub_dashes((out.get("text") or "").strip())
+        # A rewrite that dropped a required identifier is worse than the leaf it
+        # replaces: the gate it fixes is cosmetic next to a name the corpus can
+        # no longer teach.
+        lost = [v for v in leaf.get("verbatim") or [] if v not in new]
+        if not new or lost:
+            rl.warn(f"narrow:{lid}: rewrite dropped {', '.join(lost) or 'everything'}"
+                    " — left as it was")
+            if lost:
+                protected.append(lid)
+            continue
+        leaf["text"] = new
+        done.append(lid)
+    return done, protected
+
+
+def repair(llm, system, corpus, args, rid, task, req, trees, herrings,
+           carriers, used, clues_at, herrings_at, solvability) -> list[dict]:
+    """Re-decompose and re-place one requirement until its gates pass.
+
+    Bounded, and deliberately not a search. Each attempt is told what the last
+    one got wrong — which fact nobody minded about, or which leaf was doing the
+    whole job alone — because a bare re-run is the same tree with different
+    adjectives and would burn the budget proving it.
+
+    The arc is left alone. `seat_arc` built the conversations that carry this
+    haystack and they are sound; what failed is the clues, so the clues are
+    what get rewritten. Nothing has been written into the corpus at this point
+    — `write_into` runs at the very end off `trees` — so replacing a tree is
+    just replacing a dict.
+
+    Returns the history, for the report: giving up quietly is how an
+    unscoreable task ships.
+    """
+    history = []
+    for attempt in range(2, args.plant_tries + 1):
+        never, drowned, easy = check_gates(llm, task, req, rid, trees[rid],
+                                           herrings.get(rid), solvability)
+        if not (never or drowned or easy):
+            break
+        history.append({"attempt": attempt - 1, "never": never,
+                        "drowned": drowned, "easy": easy})
+        for gap in never:
+            rl.warn(f"{rid}: nothing carries `{gap}`")
+        for gap in drowned:
+            rl.warn(f"{rid}: `{gap}` survives the clues but not the reversed "
+                    "decision sitting next to them")
+        for problem in easy:
+            rl.warn(f"{rid}: {problem}")
+        # A leaf that says too much is narrowed where it stands. A fact nothing
+        # carries needs new remarks, and only that needs the tree rewritten —
+        # the two defects are opposite, and using the heavy tool on the light
+        # one is what made a requirement worse in six new places while fixing
+        # two old ones.
+        if easy and not (never or drowned):
+            fixed, protected = repair_leaves(llm, task, rid, trees[rid], easy,
+                                             attempt)
+            rl.info(f"{rid}: narrowed {len(fixed)} leaf/leaves in place "
+                    f"({', '.join(fixed) or 'none'}); placement untouched")
+            if fixed:
+                # Nothing moved, so nothing is re-placed and nothing is
+                # re-proved yet — `check_gates` at the top of the next turn
+                # re-reads the subconclusions these leaves belong to.
+                continue
+            if protected:
+                # Refused, not stuck. The rewrite would have dropped a name the
+                # corpus has to teach, and a full re-plant is the WRONG answer
+                # to that: it rewrites every good leaf too, and is likelier to
+                # lose the identifier than the narrowing that just declined to.
+                # Keep the leaf, report it, stop spending on this requirement.
+                rl.warn(f"{rid}: {', '.join(protected)} says too much but cannot "
+                        "be narrowed without losing a required name — kept as "
+                        "written, and reported")
+                break
+            rl.warn(f"{rid}: no leaf could be narrowed; falling back to a "
+                    "full re-plant")
+
+        rl.info(f"{rid}: re-planting, attempt {attempt}/{args.plant_tries}")
+
+        used -= slots_of(trees[rid], herrings.get(rid))
+        guidance = guidance_for(req["requirement"], never + drowned, easy)
+        try:
+            trees[rid] = stage_tree(llm, system, corpus, task, req, rid,
+                                    guidance=guidance, attempt=attempt)
+        except Exception as exc:                # noqa: BLE001
+            rl.warn(f"{rid}: re-plant failed ({exc}); keeping the last tree")
+            break
+        redo = choose_slots(llm, corpus, task, rid, trees[rid]["leaves"],
+                            carriers, used, clues_at[rid.split(".")[0]])
+        for note in place(corpus, trees[rid]["leaves"], carriers, used, args.mix,
+                          clues_at[rid.split(".")[0]], redo):
+            rl.warn(note)
+        for note in place_herrings(corpus, herrings.get(rid, []),
+                                   trees[rid]["leaves"], carriers, used,
+                                   herrings_at[rid.split(".")[0]]):
+            rl.warn(note)
+        solvability[rid] = stage_solvability(llm, system, task, req, rid,
+                                             trees[rid]["leaves"],
+                                             herrings.get(rid, []), args.rounds)
+    else:
+        # Out of attempts, or never given any (`--plant-tries 1` asks for a
+        # single pass and no repair, which is the right setting once the
+        # expensive proving is already cached and you only want the verdict).
+        # Recorded either way, never smoothed over: the alternative to a hard
+        # failure here is a task nobody can score, shipped looking exactly like
+        # one they can.
+        never, drowned, easy = check_gates(llm, task, req, rid, trees[rid],
+                                           herrings.get(rid), solvability)
+        if never or drowned or easy:
+            history.append({"attempt": args.plant_tries, "never": never,
+                            "drowned": drowned, "easy": easy,
+                            "gave_up": args.plant_tries > 1,
+                            "not_retried": args.plant_tries <= 1})
+    return history
 
 
 # =============================================================================
@@ -1209,6 +2061,31 @@ def forge_payload(items: list[dict]) -> dict:
             "comments": [{"number": int(n), "planted": v} for n, v in sorted(out.items())]}
 
 
+def settle_outcome(spec: dict, item: dict) -> None:
+    """Say, in the conversation's own plan, that the planted point gets settled.
+
+    Phase 2 writes an outcome describing where a conversation leaves things, and
+    for a deliberation that is often "still open" — which is honest, and was
+    written before anybody knew a clue would land here. Phase 4 reads that prose
+    to decide whether the thread should close, so a clue dropped into it puts the
+    holder under two instructions at once: settle this, and leave it hanging.
+
+    Phase 4 now forces such a channel to land regardless. This keeps the corpus
+    itself honest about why — the plan for the conversation should say the thing
+    it is now carrying gets said, so a person reading the report is not left
+    wondering why a thread whose outcome is "goes quiet" resolved.
+    """
+    settles = (item.get("settles") or "").strip()
+    if not settles:
+        return
+    outcome = (spec.get("expected_outcome") or "").strip()
+    if settles.lower() in outcome.lower():
+        return
+    spec["expected_outcome"] = (
+        f"{outcome.rstrip('.')}; it is settled that {settles}" if outcome
+        else f"it is settled that {settles}")
+
+
 def write_into(corpus: Corpus, items: list[dict]) -> None:
     """Attach each placed clue to the thing that carries it."""
     docs = {d["id"]: d for d in corpus.artifacts["docs"]}
@@ -1222,6 +2099,7 @@ def write_into(corpus: Corpus, items: list[dict]) -> None:
         if parts[0] == "spec":
             spec = corpus.specs[parts[1]]["specs"][slot["index"]]
             spec.setdefault("planted", []).append(planted_entry(item))
+            settle_outcome(spec, item)
         elif parts[0] == "doc":
             docs[parts[1]].setdefault("planted", []).append(planted_entry(item))
         elif parts[0] == "comment":
@@ -1244,17 +2122,48 @@ def report(ledger: dict) -> str:
              for c in r["clues"]]
     reqs = [r for t in ledger["tasks"] for r in t["requirements"]]
     placed = [c for c in clues if c.get("carrier")]
-    unsolved = [r for r in reqs
-                if r.get("solvability", {}).get("clues_only", {}).get("missed")]
+    broken = [r for r in reqs if any((r.get("gates") or {}).values())]
+    replanted = [r for r in reqs if r.get("replants")]
 
     L = ["# The tasks, and where their clues are hidden", "",
          f"{len(ledger['tasks'])} task(s) · {len(reqs)} hidden requirement(s) · "
          f"{len([c for c in clues if c['kind'] == 'clue'])} clue(s) · "
          f"{len([c for c in clues if c['kind'] == 'herring'])} reversed decision(s) · "
          f"{len(placed)}/{len(clues)} placed", ""]
-    if unsolved:
-        L += [f"**{len(unsolved)} requirement(s) are not recoverable from what was "
-              "planted.** Those are marked below and the run failed.", ""]
+    if broken:
+        L += [f"**{len(broken)} requirement(s) did not pass their gates.** Those "
+              "are marked below and the run failed.", ""]
+    if replanted:
+        L += [f"{len(replanted)} requirement(s) needed re-planting before they "
+              "passed; what each was told to fix is recorded under it.", ""]
+
+    L += ["## Why these tasks", "",
+          "Chosen rather than inherited — the tasks file holds 60 and the run "
+          "used to take whichever five sat at the top, which is not a sample of "
+          "anything. These span different KINDS of hidden requirement, checked "
+          "by reading the requirement text rather than by trusting the `T` "
+          "codes, which appear in the tasks file but are defined nowhere in "
+          "this repository.", "",
+          "| requirement | sources | facts it has | reversed | clues |",
+          "|---|---|---|---|---|"]
+    for task in ledger["tasks"]:
+        for req in task["requirements"]:
+            got = [k for k, v in (req.get("requirement") or {}).items() if v]
+            mine = [c for c in req["clues"] if c["kind"] == "clue"]
+            L.append(f"| {req['req_id']} — {task['title'][:40]} "
+                     f"| {', '.join(req.get('fragmentation_sources') or []) or '—'} "
+                     f"| {len(got)} ({', '.join(got)}) "
+                     f"| {'yes' if req.get('earlier_reversed_version') else 'no'} "
+                     f"| {len(mine)} |")
+    L += ["",
+          "**How a requirement earns its place here.** It has to be recoverable "
+          "from the clues *with the reversed decision sitting among them* — the "
+          "corpus an agent actually reads has the distractor in it, so "
+          "recoverable-without-it measures nothing. And no single remark may "
+          "hand a fact over on its own: a fact one line establishes was "
+          "published, not hidden. Both gates are checked below, and a "
+          "requirement that failed either was re-planted and told exactly what "
+          "was wrong.", ""]
     L += [
         "Each task states a feature openly. What it does not state is the "
         "requirement below it, which appears nowhere in the corpus as a rule — only "
@@ -1330,13 +2239,40 @@ def report(ledger: dict) -> str:
                       "> " + only["reconstruction"].replace("\n", " "), ""]
             with_h = solve.get("with_herrings")
             if with_h and with_h.get("reconstruction"):
-                fooled = set(with_h.get("missed") or []) - set(missed)
-                L += ["**Reading the reversed decision too:** "
-                      + ("the reversal still comes through"
-                         if not fooled else
-                         f"the herring costs `{'`, `'.join(sorted(fooled))}` — it is "
-                         "doing too much work, or lands too close to the clue"), "",
+                gates = req.get("gates") or {}
+                drowned = gates.get("drowned") or []
+                votes = with_h.get("votes") or {}
+                L += ["**With the reversed decision in the room — the corpus as an "
+                      "agent actually meets it.** "
+                      + ("Every part still comes through."
+                         if not drowned else
+                         f"`{'`, `'.join(drowned)}` survives the clues but NOT the "
+                         "reversal beside them — the herring is louder than the "
+                         "clue that overturns it."),
+                      "",
+                      "    " + ", ".join(f"{f}: {n}/{with_h.get('rounds', 1)}"
+                                         for f, n in votes.items()), "",
                       "> " + with_h["reconstruction"].replace("\n", " "), ""]
+            easy = (req.get("gates") or {}).get("too_easy") or []
+            L += ["**Does any single remark give it away?** "
+                  + ("No — every part needs more than one line."
+                     if not easy else
+                     "**Yes**, which makes this part of the task trivial:"), ""]
+            L += [f"- {x}" for x in easy] + ([""] if easy else [])
+            for n, past in enumerate(req.get("replants") or [], 1):
+                if past.get("not_retried"):
+                    L += ["> Gates failed and no re-plant was asked for "
+                          "(`--plant-tries 1`). The clues are as first written.", ""]
+                    continue
+                if past.get("gave_up"):
+                    L += [f"> Re-planted {n - 1} time(s) and still failing. "
+                          "Left as it is rather than made easier to force a pass.", ""]
+                    continue
+                told = (past.get("never") or []) + (past.get("drowned") or [])
+                L += [f"> Re-plant {n}: " + (
+                    f"nothing carried `{'`, `'.join(told)}`. " if told else "")
+                    + ("; ".join(past.get("easy") or [])[:150] if past.get("easy")
+                       else "") , ""]
 
             # -- the clues, in encounter order -------------------------------
             rows = sorted(req["clues"],
@@ -1344,17 +2280,19 @@ def report(ledger: dict) -> str:
                                          c["clue_id"]))
             L += ["**Every planted line, in the order an agent reading forward "
                   "meets it**", "",
-                  "| date | where | who | | covers | placement | what they say |",
-                  "|---|---|---|---|---|---|---|"]
+                  "| date | where | who | | covers | placement | what they say "
+                  "| why this room |",
+                  "|---|---|---|---|---|---|---|---|"]
             for clue in rows:
                 where = clue.get("carrier") or {}
                 room = where.get("room") or clue["source"]
                 kind = "↩︎ reversal" if clue["kind"] == "herring" else "clue"
                 text = clue["text"].replace("|", "\\|").replace("\n", " ")
+                why = (where.get("why") or "").replace("|", "\\|") or "—"
                 L.append(f"| {where.get('date') or '**unplaced**'} | "
                          f"{room} | {clue['holder']} | {kind} | "
                          f"{', '.join(clue['covers']) or '—'} | "
-                         f"{where.get('class', '—')} | {text} |")
+                         f"{where.get('class', '—')} | {text} | {why} |")
             L.append("")
 
             if placed_here := [c for c in rows if c.get("carrier")]:
@@ -1387,6 +2325,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--limit", type=int, default=5,
                         help="how many tasks to plant (default: the first 5)")
+    parser.add_argument("--pick", default=None,
+                        help="plant THESE tasks by id (t1,t12,t23,t40), rather "
+                             "than the first --limit of them. The ids are the "
+                             "ones the report prints.")
     parser.add_argument("--arc-from", default=None,
                         help="start of the window the feature gets designed in "
                              "(default: late in the team-active stretch)")
@@ -1409,12 +2351,22 @@ def main(argv: list[str] | None = None) -> int:
                         choices=["low", "medium", "high", "xhigh", "max"])
     parser.add_argument("--backend", default="auto", choices=["auto", "cli", "sdk"])
     parser.add_argument("--auth", default="auto", choices=["auto", "oauth", "api-key"])
+    parser.add_argument("--plant-tries", type=int, default=3,
+                        help="how many times a requirement may be re-decomposed "
+                             "when it comes back unsolvable or too easy. Each "
+                             "attempt is told what the last one got wrong.")
     parser.add_argument("--rounds", type=int, default=3,
                         help="how many independent readings vote on whether a "
                              "requirement is recoverable. One reading is not a "
                              "measurement: the same tree has both passed and "
                              "failed on a single sample.")
-    parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--workers", type=int, default=8,
+                        help="requirements decomposed, proved and re-planted at "
+                             "once. These are API calls, not work this machine "
+                             "does — it sits near idle at any setting — so the "
+                             "ceiling is the provider's rate limit, not the box. "
+                             "Placement stays serial whatever this says: it "
+                             "claims seats from one shared calendar.")
     parser.add_argument("--no-refresh", action="store_true")
     parser.add_argument("--dry-run", action="store_true",
                         help="decompose, place, prove and report; write no corpus")
@@ -1493,6 +2445,14 @@ def main(argv: list[str] | None = None) -> int:
             failed = True
         for note in tree["notes"]:
             rl.warn(f"{rid}: {note}")
+            # Most notes are repairs already made — a dropped leaf, a claimed
+            # verbatim that was filtered out — and the tree is sound without
+            # them. A `settles` that cannot be settled is different in kind:
+            # the clue ships unwinnable, and phase 4 pays three re-runs per
+            # occurrence to rediscover that.
+            if any(x in note for x in ("describes asking", "rests on",
+                                       "leaves for a sibling")):
+                failed = True
         for problem in giveaways(req, tree["leaves"]):
             rl.warn(f"{rid}: {problem}")
             failed = True
@@ -1538,14 +2498,17 @@ def main(argv: list[str] | None = None) -> int:
     for rid, task, req in jobs:
         if rid not in trees:
             continue
+        chosen = choose_slots(llm, corpus, task, rid, trees[rid]["leaves"],
+                              carriers, used, clues_at[rid.split(".")[0]])
         for note in place(corpus, trees[rid]["leaves"], carriers, used, args.mix,
-                          clues_at[rid.split(".")[0]]):
+                          clues_at[rid.split(".")[0]], chosen):
             rl.warn(note)
         for note in place_herrings(corpus, herrings.get(rid, []),
                                    trees[rid]["leaves"], carriers, used,
                                    herrings_at[rid.split(".")[0]]):
             rl.warn(note)
         placed = [x for x in trees[rid]["leaves"] if x.get("slot")]
+        judged = sum(1 for x in placed if x["slot"].get("why"))
         problems = spread_problems(placed, req.get("fragmentation_sources") or [])
         for problem in problems:
             if "forced" in problem:
@@ -1556,6 +2519,7 @@ def main(argv: list[str] | None = None) -> int:
         classes = Counter(x["slot"]["class"] for x in placed)
         rl.ok(f"{rid}: {len(placed)}/{len(trees[rid]['leaves'])} clues placed "
               f"({classes['explicit']} explicit, {classes['passing']} in passing), "
+              f"{judged} seated on topical fit, "
               f"{len([h for h in herrings.get(rid, []) if h.get('slot')])} herring(s)")
 
     rl.heading("Proving it is solvable")
@@ -1571,19 +2535,60 @@ def main(argv: list[str] | None = None) -> int:
                 solvability[rid] = future.result()
             except Exception as exc:            # noqa: BLE001
                 rl.warn(f"{rid}: {exc}")
-    for rid, result in sorted(solvability.items()):
-        found = result["clues_only"]
-        missed, shaky = found["missed"], found.get("unsteady") or []
-        if missed:
-            rl.warn(f"{rid}: not recoverable — {', '.join(missed)} did not come back "
-                    f"in a majority of {found.get('rounds', 1)} readings "
-                    + str(found.get("votes")))
+    # -- fix what it caught, then judge ------------------------------------
+    # Serial, and only for what failed. Attempt one runs in the pool above
+    # because most requirements pass it; a repair re-places, and placement
+    # shares one `used` set, so two repairs at once would race for the same
+    # seats.
+    rl.heading("Fixing what the gates caught")
+    repairs: dict[str, list[dict]] = {}
+    for rid, task, req in jobs:
+        if rid not in trees:
+            continue
+        repairs[rid] = repair(llm, system, corpus, args, rid, task, req, trees,
+                              herrings, carriers, used, clues_at, herrings_at,
+                              solvability)
+    if not trees:
+        rl.warn("no tree survived decomposition — there is nothing to gate, and "
+                "the 'passed' lines below would be vacuous")
+    elif not any(repairs.values()):
+        rl.ok(f"all {len(trees)} requirement(s) passed first time; nothing to "
+              "re-plant")
+
+    rl.heading("The verdict")
+    final_never: dict[str, list] = {}
+    final_drowned: dict[str, list] = {}
+    final_easy: dict[str, list] = {}
+    for rid, task, req in jobs:
+        if rid not in trees:
+            continue
+        result = solvability.get(rid) or {}
+        found = result.get("clues_only") or {}
+        never, drowned, easy = check_gates(llm, task, req, rid, trees[rid],
+                                           herrings.get(rid), solvability)
+        final_never[rid], final_drowned[rid], final_easy[rid] = never, drowned, easy
+        tries = len(repairs.get(rid) or [])
+        after = f" after {tries} re-plant(s)" if tries else ""
+        if never:
+            rl.warn(f"{rid}: not recoverable — nothing carries "
+                    f"{', '.join(never)}{after} " + str(found.get("votes")))
             failed = True
-        elif shaky:
-            rl.info(f"{rid}: recoverable, but {', '.join(shaky)} came back in only "
-                    f"some readings — thinly carried")
+        elif drowned:
+            rl.warn(f"{rid}: {', '.join(drowned)} recoverable from the clues but "
+                    f"NOT with the reversed decision in the room{after} — the "
+                    "herring is louder than the clue that overturns it")
+            failed = True
+        elif easy:
+            for problem in easy:
+                rl.warn(f"{rid}: {problem}{after}")
+            failed = True
+        elif found.get("unsteady"):
+            rl.info(f"{rid}: recoverable{after}, but "
+                    f"{', '.join(found['unsteady'])} came back in only some "
+                    "readings — thinly carried")
         else:
-            rl.ok(f"{rid}: recoverable from the clues alone, every reading")
+            rl.ok(f"{rid}: recoverable with the herrings present, every "
+                  f"reading, and no single remark gives it away{after}")
 
     ledger = {"schema_version": SCHEMA_VERSION, "generated_at": rl.now_iso(),
               "generator": "data_gen/phase3_plant.py", "tasks": []}
@@ -1620,17 +2625,38 @@ def main(argv: list[str] | None = None) -> int:
                 "earlier_reversed_version": req.get("earlier_reversed_version"),
                 "subconclusions": tree["subconclusions"],
                 "solvability": solvability.get(rid, {}),
+                # What the gates said at the end, and what it took to get there.
+                # Kept in the ledger rather than only in the log, because "this
+                # requirement needed two re-plants" is a fact about how fragile
+                # it is, and the next person to touch it should not have to find
+                # that in a terminal scrollback.
+                "gates": {"never": final_never.get(rid) or [],
+                          "drowned": final_drowned.get(rid) or [],
+                          "too_easy": final_easy.get(rid) or []},
+                "replants": repairs.get(rid) or [],
                 "clues": rows,
             })
         ledger["tasks"].append(entry)
 
     rl.heading("Writing")
     args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(report(ledger), encoding="utf-8")
-    rl.ok(f"{args.report}")
+    # The LEDGER first, and the report second inside a guard. Everything
+    # expensive is already paid for by the time this runs — an hour of
+    # generation and every model call it took — and the ledger is the machine
+    # readable record of all of it. Formatting that record for a human is the
+    # one step here that can fail on a key some requirement happens not to
+    # have, and it used to run FIRST, so a `KeyError` in a markdown table threw
+    # the whole run away.
     size = rl.write_json(args.clues, ledger)
     total = sum(len(r["clues"]) for t in ledger["tasks"] for r in t["requirements"])
     rl.ok(f"{args.clues} ({rl.human_bytes(size)}) — {total} clue(s) to track")
+    try:
+        args.report.write_text(report(ledger), encoding="utf-8")
+        rl.ok(f"{args.report}")
+    except Exception as exc:                    # noqa: BLE001
+        rl.warn(f"the report could not be written ({exc}) — {args.clues} holds "
+                "everything it would have said, and re-running replays from "
+                "cache for nothing")
 
     if args.dry_run:
         rl.warn("--dry-run: the corpus was not touched")
