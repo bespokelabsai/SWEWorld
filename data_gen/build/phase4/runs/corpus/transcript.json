@@ -4091,11 +4091,6 @@
         },
         {
           "userId": "dario",
-          "text": "A record pointing at a batch we haven't confirmed anything about is just a landmine for the next run.",
-          "ts": "2024-12-20T11:50:01.666667"
-        },
-        {
-          "userId": "dario",
           "text": "Same place we write the reassembled results, so it's one write path not two.",
           "ts": "2024-12-20T11:50:03.333334"
         },
@@ -4103,6 +4098,11 @@
           "userId": "dario",
           "text": "No entry is better than one pointing at a batch we haven't confirmed anything about",
           "ts": "2024-12-20T11:50:05"
+        },
+        {
+          "userId": "dario",
+          "text": "A record pointing at a batch we haven't confirmed anything about is just a landmine for the next run.",
+          "ts": "2024-12-20T11:5ok so 0:01.666667"
         },
         {
           "userId": "dario",
@@ -11513,6 +11513,608 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "nils",
+          "text": "PR 584 is up, Mistral batch processor with integration tests, touches batch-mode and provider-integrations",
+          "ts": "2025-03-20T09:00:00"
+        },
+        {
+          "userId": "nils",
+          "text": "not blocking a release but it's the last piece for Mistral support so would like to get it merged today if anyone can take a look",
+          "ts": "2025-03-20T09:00:12"
+        },
+        {
+          "userId": "nils",
+          "text": "should this go to Emil for review since batch-mode is his, or is anyone with context on the batch backend fine?",
+          "ts": "2025-03-20T09:00:56"
+        },
+        {
+          "userId": "nils",
+          "text": "oh",
+          "ts": "2025-03-20T11:49:06"
+        },
+        {
+          "userId": "nils",
+          "text": "answering my own question, Dermot picked it up in #engineering",
+          "ts": "2025-03-20T11:49:18"
+        },
+        {
+          "userId": "nils",
+          "text": "does PR 584 need to wait on the sequencing call about PR 565, 566, and 579, or can it land independently?",
+          "ts": "2025-03-20T11:49:30"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 584 can land independently, it's not coupled to the other three.",
+          "ts": "2025-03-20T15:21:27",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Nils, are your review comments on PR 584 all addressed, or are there still open threads before this can merge?",
+          "ts": "2025-03-20T15:51:36"
+        },
+        {
+          "userId": "nils",
+          "text": "- PR 584 comments are all addressed, good to merge from my side\n- WS-047 still has nothing written, I'll carry that into tomorow",
+          "ts": "2025-03-20T16:30:36",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "does anyone else need to sign off on PR 584 before it merges, or is Nils's approval enough?",
+          "ts": "2025-03-20T16:34:36"
+        },
+        {
+          "userId": "emil",
+          "text": "I can do a quick pass on PR 584 right now, it touches batch-mode so I should have eyes on it anyway.",
+          "ts": "2025-03-20T17:10:36",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "WS-047 has nothing in the tracker or wiki, no ticket, no page",
+          "ts": "2025-03-20T17:42:36"
+        },
+        {
+          "userId": "nils",
+          "text": "should the spec live as a wiki page or a proper ticket?",
+          "ts": "2025-03-20T17:42:48"
+        },
+        {
+          "userId": "nils",
+          "text": "PR 584 is ready for review - Mistral batch processor, touches batch-mode and provider-integrations",
+          "ts": "2025-03-21T09:00:00"
+        },
+        {
+          "userId": "nils",
+          "text": "Not blocking release",
+          "ts": "2025-03-21T09:00:08"
+        },
+        {
+          "userId": "nils",
+          "text": "also bundles a small cost lookup fix I had been sitting on",
+          "ts": "2025-03-21T09:00:16"
+        },
+        {
+          "userId": "nils",
+          "text": "@Emil, what's the actual scope of PR 585 - does the retry logic fold into the batch path, or is it meant to stay separate?",
+          "ts": "2025-03-21T09:00:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "Mistral's batch API reference has the quota and status-polling details if it helps with the review: docs.mistral.ai/api/#tag/batch",
+          "ts": "2025-03-21T11:04:03",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "Not sure there's enough runway today for a proper review - are we targeting PR 584 this week or pushing to next?",
+          "ts": "2025-03-21T11:23:03"
+        },
+        {
+          "userId": "dario",
+          "text": "fair enough",
+          "ts": "2025-03-21T11:37:03"
+        },
+        {
+          "userId": "nils",
+          "text": "WS-047 doesn't seem to exist as issue yet - not sure who's putting that together.",
+          "ts": "2025-03-21T11:46:00"
+        },
+        {
+          "userId": "nils",
+          "text": "@Emil, on PR 584 - are we deferring to next week, or is there still time to get eyes on it this afternoon?",
+          "ts": "2025-03-21T11:46:05"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 585 - retry is meant to stay separate from the batch path, I just haven't locked the scope down yet.",
+          "ts": "2025-03-21T16:46:05"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 584, let's push to next week, there's no runway today.",
+          "ts": "2025-03-21T16:46:10",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "I looked for WS-047 and there's no issue filed for it yet",
+          "ts": "2025-03-21T16:54:10"
+        },
+        {
+          "userId": "nils",
+          "text": "Worth creating one, or is the workstream entry enough for now?",
+          "ts": "2025-03-21T16:54:18"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-044 doesn't exist as a doc anywhere, I checked earlier.",
+          "ts": "2025-03-21T17:01:18"
+        },
+        {
+          "userId": "emil",
+          "text": "Blocks and recipes scope isn't written up yet, that's on me.",
+          "ts": "2025-03-21T17:01:30"
+        },
+        {
+          "userId": "dario",
+          "text": "Before the week ends, what's the plan for PR 565 and PR 566 - are they getting superseded by PR 579, or do all three need separate reviews?",
+          "ts": "2025-03-21T17:31:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- PR 583 is up and ready for review, touches the metadata db disable param in code-execution\n- gemini example and colab display fixes are in there too, feeling good about both",
+          "ts": "2025-03-24T09:00:00"
+        },
+        {
+          "userId": "nils",
+          "text": "PR 584 is up too, Mistral batch request processor, touches batch-mode and provider-integrations",
+          "ts": "2025-03-24T09:18:00"
+        },
+        {
+          "userId": "nils",
+          "text": "Not blocking a release but would be good to get eyes on it today",
+          "ts": "2025-03-24T09:18:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai the gemini example and colab fixes, are those separate from PR 583 or bundled in?",
+          "ts": "2025-03-24T09:46:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot bundled in PR 583. You got time to take a look this morning before lunch?",
+          "ts": "2025-03-24T10:24:12",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-24T10:24:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "so the gemini and colab fixes are in the same pr as the metadata db param?",
+          "ts": "2025-03-24T10:24:40",
+          "threadParentTs": "2025-03-24T10:24:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-03-24T11:31:23"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 584 touches batch-mode and provider-integrations, both mine, so I'll take a look this afternoon",
+          "ts": "2025-03-24T12:21:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Can someone grab PR 579 in the meantime?",
+          "ts": "2025-03-24T12:21:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the gemini example fix in PR 583 or did that land in a separate PR?",
+          "ts": "2025-03-24T12:47:12"
+        },
+        {
+          "userId": "nils",
+          "text": "Thanks for grabbing PR 584, Emil, appreciate it",
+          "ts": "2025-03-24T13:18:12"
+        },
+        {
+          "userId": "nils",
+          "text": "@Nikolai does the metadata db disable param in PR 583 affect anything in batch-mode, or are they fully independent?",
+          "ts": "2025-03-24T13:18:31"
+        },
+        {
+          "userId": "nils",
+          "text": "Actually, answering my own question, looking at it, PR 583 and 584 touch separate parts, so they should be independent",
+          "ts": "2025-03-24T14:24:31"
+        },
+        {
+          "userId": "nils",
+          "text": "@Emil any sense of when you might get to PR 584?",
+          "ts": "2025-03-24T14:24:36"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nils I'm on PR 584 now, should have feedback to you by end of day.",
+          "ts": "2025-03-24T15:03:36",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "appreciate it Emil.",
+          "ts": "2025-03-24T15:46:36"
+        },
+        {
+          "userId": "nils",
+          "text": "PR 583 still hasn't got eyes, anyone free to pick it up today?",
+          "ts": "2025-03-24T15:46:48"
+        },
+        {
+          "userId": "nils",
+          "text": "Both 583 and 584 need to land to unblock the Mistral batch and metadata db features",
+          "ts": "2025-03-24T15:47:00"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 584 is clean, Nils, good implementation. Still need someone to take PR 583 and confirm the gemini example and colab fixes actually hold before we call the day done.",
+          "ts": "2025-03-24T15:59:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "CI on PR 583 is flagging something in the colab display check that wasn't showing up locally, taking a look now before anyone picks it up for review.",
+          "ts": "2025-03-24T16:09:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "CI issue on PR 583 was a false positive, the colab check is green now. Ready for review if anyone can grab it before EOD.",
+          "ts": "2025-03-24T16:23:06",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll take PR 583, want to confirm the gemini and colab fixes are solid anyway",
+          "ts": "2025-03-24T17:07:06",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "- PR 583 CI is green, Dermot has it\n- metadata db param, gemini example, and colab fixes are all in there, should be straightforward",
+          "ts": "2025-03-24T17:09:06"
+        },
+        {
+          "userId": "nils",
+          "text": "PR 584 is up and implements the Mistral batch processor, touches provider-integrations",
+          "ts": "2025-03-25T09:00:00"
+        },
+        {
+          "userId": "nils",
+          "text": "Happy to get eyes on it today if anyone has a moment, not blocking a release but I'd like it not to sit much longer",
+          "ts": "2025-03-25T09:00:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 is in review too, adds the param to disable the metadata db, just touches code-execution",
+          "ts": "2025-03-25T09:06:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Neither is blocking a release from my side",
+          "ts": "2025-03-25T09:06:13"
+        },
+        {
+          "userId": "nils",
+          "text": "With PR 584, 585, and 579 all in flight right now, I'm not sure we have a clear picture of what actually lands before the next release. Is someone making that call, or are we just merging whatever's ready?",
+          "ts": "2025-03-25T09:34:13"
+        },
+        {
+          "userId": "nils",
+          "text": "went looking for WS-047 and couldn't find it anywhere, wiki or issues",
+          "ts": "2025-03-25T09:41:18"
+        },
+        {
+          "userId": "nils",
+          "text": "Has that actually been set up yet?",
+          "ts": "2025-03-25T09:41:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "huh, dunno on WS-047, that's Nils' own workstream so he'd know better than me",
+          "ts": "2025-03-25T09:50:30"
+        },
+        {
+          "userId": "nils",
+          "text": "right",
+          "ts": "2025-03-25T10:22:30"
+        },
+        {
+          "userId": "nils",
+          "text": "except I looked and there's genuinely nothing there yet",
+          "ts": "2025-03-25T10:22:35"
+        },
+        {
+          "userId": "nils",
+          "text": "Do I own writing that from scratch, or is there a spec somewhere I've missed?",
+          "ts": "2025-03-25T10:22:47"
+        },
+        {
+          "userId": "nils",
+          "text": "hm",
+          "ts": "2025-03-25T10:57:47"
+        },
+        {
+          "userId": "nils",
+          "text": "also looked for the onboarding workstream for me and Theo, nothing there either",
+          "ts": "2025-03-25T10:57:59"
+        },
+        {
+          "userId": "emil",
+          "text": "On PR 585 and 579, are we targeting those for the next release or deferring?",
+          "ts": "2025-03-25T13:03:47"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 468 and PR 565 haven't seen any review activity in a while",
+          "ts": "2025-03-25T13:34:33"
+        },
+        {
+          "userId": "nils",
+          "text": "are PR 468 and PR 565 getting explicitly deferred, or just left sitting open?",
+          "ts": "2025-03-25T14:18:33"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 is mine and it's been sitting with no review",
+          "ts": "2025-03-25T14:22:33"
+        },
+        {
+          "userId": "emil",
+          "text": "If it's not getting in before the next release, I'd rather defer it explicitly than have it clutter the queue",
+          "ts": "2025-03-25T14:22:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Searched for WS-047 in the issues and didn't find anything there either.",
+          "ts": "2025-03-25T14:35:06"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nils, is that on you to write it up from scratch, or is someone handing you a scope?",
+          "ts": "2025-03-25T14:35:14"
+        },
+        {
+          "userId": "nils",
+          "text": "@Emil nobody handed me a scope for WS-047",
+          "ts": "2025-03-25T15:03:14"
+        },
+        {
+          "userId": "dario",
+          "text": "Same question for PR 565, who's making the call on that one?",
+          "ts": "2025-03-25T15:11:14"
+        },
+        {
+          "userId": "dario",
+          "text": "oh wait",
+          "ts": "2025-03-25T15:11:49"
+        },
+        {
+          "userId": "dario",
+          "text": "that's mine. I'd lean toward deferring it for now but I'm not sure if anyone's actually waiting on the openai backend.",
+          "ts": "2025-03-25T15:11:54"
+        },
+        {
+          "userId": "nils",
+          "text": "not waiting on it from my side, defer sounds right",
+          "ts": "2025-03-25T15:37:54"
+        },
+        {
+          "userId": "nils",
+          "text": "now that 468 and 565 are getting deferred, are 584, 585, and 579 all targeting the next release, or is someone deferring one of those too?",
+          "ts": "2025-03-25T15:38:13"
+        },
+        {
+          "userId": "emil",
+          "text": "585 is targeting the next release from my end",
+          "ts": "2025-03-25T15:59:13"
+        },
+        {
+          "userId": "emil",
+          "text": "For 579, I'll defer it unless someone needs the DeepSeek backend before then - shout if that changes",
+          "ts": "2025-03-25T15:59:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So 584 and 585 are the two targeting next release, everything else is either deferred or not blocking. 584 still needs actual review eyes though, Nils asked this morning and I don't think anyone's picked it up yet",
+          "ts": "2025-03-25T16:03:18",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "if anyone can get eyes on PR 584 before end of day, great - if not, can we name it for tomorrow so it doesn't just drift?",
+          "ts": "2025-03-25T16:48:52",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly Notes, Week of Mar 24 is up on the wiki. The sandbox image section is probably the part most relevant here, v0.1.6 is superseded, v0.1.8 is candidate only and blocked on the pytest collection regression, so don't promote it until that's sorted.",
+          "ts": "2025-03-26T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is PR 604 blocking anything downstream, or is it safe to let it sit a bit longer while we sort out the stale queue?",
+          "ts": "2025-03-26T09:05:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Went to pull up WS-047 and it's not on the wiki yet, @Nils, is that page still in progress?",
+          "ts": "2025-03-26T10:18:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Of the open PRs right now, which ones are people actually expecting to land this week vs which are just sitting?",
+          "ts": "2025-03-26T10:26:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ok",
+          "ts": "2025-03-26T10:26:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "answering my own question about PR 604, pulled it up and it's fixing a prompt()/parse() input shape mismatch, pretty contained. Anyone have eyes on it today?",
+          "ts": "2025-03-26T10:51:00"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, want to block 20 minutes this afternoon and go through the stale queue together?",
+          "ts": "2025-03-26T12:13:09",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The weekly notes flag PR 579 and PR 565 as overlapping and that needs a decision before either lands",
+          "ts": "2025-03-26T12:13:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Is anything in the stale queue actually blocking a release right now, or is it all backlog?",
+          "ts": "2025-03-26T12:56:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 579 and PR 585 both feel like natural next-sprint candidates to me, they're the ones with the most surface area still open.",
+          "ts": "2025-03-26T13:26:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "v0.1.5 and v0.1.6 are both superseded, v0.1.6 because the glibc mismatch broke the C toolchain tests",
+          "ts": "2025-03-26T13:40:04"
+        },
+        {
+          "userId": "konrad",
+          "text": "v0.1.8 built 12 Mar is candidate only, blocked on the pytest collection regression, do not promote it until that's fixed",
+          "ts": "2025-03-26T13:40:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Older lines are archived in the weekly notes",
+          "ts": "2025-03-26T13:40:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Good to have the v0.1.8 blocker documented, that one wasn't on my radar.",
+          "ts": "2025-03-26T14:25:03",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "With 579 and 585 pushed to next sprint, are 583, 590, and 604 the ones we're actually targeting to land this week?",
+          "ts": "2025-03-26T14:25:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 604 is definitely on my list for this week, same with 583 and 590",
+          "ts": "2025-03-26T14:49:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still haven't gotten a clear answer on whether merging 604 unblocks anything downstream, does anyone know?",
+          "ts": "2025-03-26T14:49:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the weekly notes - the PR 579 and PR 565 overlap is flagged as unresolved, no call on whether they move together or stay independent.",
+          "ts": "2025-03-26T15:10:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Still up for that sync if you've got 20 minutes today, @Konrad, that's the one I need a decision on before anything moves.",
+          "ts": "2025-03-26T15:10:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "Works for me this afternoon, just ping me",
+          "ts": "2025-03-26T15:44:45",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "WS-047 still isn't on the wiki, is Nils getting to that today or is it a tomorrow thing?",
+          "ts": "2025-03-26T15:44:53"
         }
       ],
       "projectSpec": {
@@ -13980,6 +14582,417 @@
           "userId": "emil",
           "text": "Is the fix to the check going to be a separate PR, or are we folding it into one of the open ones?",
           "ts": "2025-03-11T13:36:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "- PR 596 is up, covers the examples reorganization and citation fixes\n- still working through the examples table structure, want to land that today\n- Mistral batch example is next once 596 is confirmed",
+          "ts": "2025-03-20T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "for the examples table, I'm not totally sure it should live inside PR 596 itself, feels like it might belong somewhere more permanent so it doesn't get buried once the PR closes",
+          "ts": "2025-03-20T09:00:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "is that the right call or does everyone want it in the PR for now?",
+          "ts": "2025-03-20T09:00:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "does the Mistral batch example need its own verifier, or does it share with the other batch examples?",
+          "ts": "2025-03-20T09:17:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "has anyone had a chance to look at PR 596 yet?",
+          "ts": "2025-03-20T10:13:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "drafting the examples table columns, this is what I have so far:\n\n```\n| name | task | provider | batch | verifier |\n```\n\nnot sure if we need a \"modality\" column or if that's covered by task",
+          "ts": "2025-03-20T11:23:32"
+        },
+        {
+          "userId": "dario",
+          "text": "modality might be worth having, task alone won't cover multimodal stuff cleanly",
+          "ts": "2025-03-20T11:27:32",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I'm a bit on the fence about the modality column honestly, if task is already specific enough (like \"text-to-text classification\" vs \"image captioning\"), it feels redundant, but if task stays high-level then yeah you probably need it",
+          "ts": "2025-03-20T11:56:32"
+        },
+        {
+          "userId": "emil",
+          "text": "What's the plan for task granularity?",
+          "ts": "2025-03-20T11:56:37"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, thinking about it myself, if task stays high-level, modality is probably necessary",
+          "ts": "2025-03-20T11:57:06"
+        },
+        {
+          "userId": "emil",
+          "text": "Separate question: if the examples table doesn't go in PR 596, where does it actually live?",
+          "ts": "2025-03-20T11:57:18"
+        },
+        {
+          "userId": "emil",
+          "text": "Wiki page, or somewhere in the repo itself?",
+          "ts": "2025-03-20T11:57:23"
+        },
+        {
+          "userId": "emil",
+          "text": "For the Mistral batch example, is there an existing one in the corpus I should model it after, or are we starting from scratch on the pattern?",
+          "ts": "2025-03-20T12:28:23"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad is PR 596 ready for review or still in draft?",
+          "ts": "2025-03-20T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, it's mostly ready but I'm holding off marking it reviewable until we settle where the examples table lives, that's the one open piece that might change what's in the PR",
+          "ts": "2025-03-20T12:45:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "also want to get Mistral batch added to the corpus this afternoon, is there an existing batch example I should model the structure after, or is this the first one?",
+          "ts": "2025-03-20T12:45:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "if the table ends up on the wiki, which collection does it go in?",
+          "ts": "2025-03-20T13:17:42",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-20T14:17:42"
+        },
+        {
+          "userId": "dario",
+          "text": "sorry, got pulled away. I'd say engineering, that's where the rest of the corpus documentation would sit",
+          "ts": "2025-03-20T14:17:42",
+          "threadParentTs": "2025-03-20T13:17:42"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, Dario's confirmed engineering collection for the wiki, so can you go ahead and set that up this afternoon so we can get PR 596 marked ready?",
+          "ts": "2025-03-20T14:36:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "we haven't actually settled the column structure yet though, modality is still unresolved and task granularity too",
+          "ts": "2025-03-20T14:56:42"
+        },
+        {
+          "userId": "dario",
+          "text": "can we just call the modality question now?",
+          "ts": "2025-03-20T15:14:42"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward including it, but either way we need to commit if we want this done today",
+          "ts": "2025-03-20T15:14:54",
+          "replyCount": 2,
+          "replyLastTs": "2025-03-20T15:15:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm not sure including it is the right call if task ends up specific enough, we might just be adding a column we have to maintain for no real gain",
+          "ts": "2025-03-20T15:15:35",
+          "threadParentTs": "2025-03-20T15:14:54"
+        },
+        {
+          "userId": "emil",
+          "text": "The problem is we still haven't pinned down how specific task gets, and that's what drives whether modality is redundant or not.",
+          "ts": "2025-03-20T15:15:57",
+          "threadParentTs": "2025-03-20T15:14:54"
+        },
+        {
+          "userId": "dario",
+          "text": "so can we just pick a task granularity level and move on?",
+          "ts": "2025-03-20T15:48:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario can you just propose a granularity level so we have something concrete to react to?",
+          "ts": "2025-03-20T16:25:57",
+          "replyCount": 4,
+          "replyLastTs": "2025-03-20T16:41:47"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly I'd lean toward keeping task high-level and adding modality, but that's a guess, not a strong opinion",
+          "ts": "2025-03-20T16:26:31",
+          "threadParentTs": "2025-03-20T16:25:57"
+        },
+        {
+          "userId": "dario",
+          "text": "I dunno, keeping task high-level just means modality becomes load-bearing and we'll have to get it right",
+          "ts": "2025-03-20T16:27:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "yeah that's my worry too, a vague modality column is worse than no column",
+          "ts": "2025-03-20T16:27:22",
+          "threadParentTs": "2025-03-20T16:25:57"
+        },
+        {
+          "userId": "dario",
+          "text": "so maybe the right answer is specific task and no modality column, not the other way around",
+          "ts": "2025-03-20T16:28:04",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-03-20T16:25:57"
+        },
+        {
+          "userId": "dario",
+          "text": "fair enough",
+          "ts": "2025-03-20T16:41:47",
+          "threadParentTs": "2025-03-20T16:25:57"
+        },
+        {
+          "userId": "emil",
+          "text": "If we're going specific task, do we have a shared sense of what that looks like in practice, or is Konrad going to have to make judgment calls row by row?",
+          "ts": "2025-03-20T17:17:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll make the judgment calls on the first pass, @Dario, can you sanity check the task labels once I've got a few rows in?",
+          "ts": "2025-03-20T17:46:30"
+        },
+        {
+          "userId": "emil",
+          "text": "I can add the Mistral batch row once PR 584 merges, probably tonight or tomorrow morning.",
+          "ts": "2025-03-20T18:09:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Draft row for the Mistral batch entry once the table is live:\n\n```\n| mistral-batch-qa | question-answering | mistral | yes | batch-verifier |\n```",
+          "ts": "2025-03-20T18:09:42",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, yeah I can sanity check the labels, ping me when you've got a few rows down.",
+          "ts": "2025-03-20T18:25:08.916245"
+        },
+        {
+          "userId": "konrad",
+          "text": "Merged the examples table docs earlier this morning, so I now have a clearer picture of what's in the corpus. Going to spend some time today looking at whether the current categories still make sense or if we need to add or collapse a few before we treat this as settled.",
+          "ts": "2025-03-21T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What does the category breakdown actually look like now, I haven't gotten to the merged doc yet.",
+          "ts": "2025-03-21T09:42:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Some of the categories feel like they're starting to overlap now that there's more content in there, which might be the thing to address before we call it done",
+          "ts": "2025-03-21T10:06:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Which ones are overlapping?",
+          "ts": "2025-03-21T10:49:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Going to be in meetings until after lunch, I'll pull up the doc this afternoon and point at the specific ones",
+          "ts": "2025-03-21T10:57:00"
+        },
+        {
+          "userId": "emil",
+          "text": "While the category cleanup is open, has anyone actually called where the SimpleStrat example goes?",
+          "ts": "2025-03-21T11:32:00"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure that's landed yet",
+          "ts": "2025-03-21T11:32:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Also worth flagging before this wraps up - we still haven't confirmed the examples actually pass the CI harness.",
+          "ts": "2025-03-21T11:37:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I tried pulling up WS-047 just now and couldn't find it as a tracked issue anywhere, so I dunno if that workstream covers our piece or if there's a gap",
+          "ts": "2025-03-21T11:37:13"
+        },
+        {
+          "userId": "emil",
+          "text": "I pulled up WS-044 and there's no page for it on the wiki, nothing I can find.",
+          "ts": "2025-03-21T11:50:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Is it documented somewhere else, or has it jsut not been written up yet?",
+          "ts": "2025-03-21T11:50:25"
+        },
+        {
+          "userId": "dario",
+          "text": "Might be worth deciding where SimpleStrat lands before collapsing any categories, since that could affect which ones still make sense.",
+          "ts": "2025-03-21T12:10:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What are the candidate slots for SimpleStrat at this point, is there a shortlist anywhere?",
+          "ts": "2025-03-21T12:14:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Ready for the weekend, not gonna lie.",
+          "ts": "2025-03-21T16:54:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "Can someone take a quick look at the examples table before we wrap, I want to make a call on the categories today or at least leave one clear gap note for Monday",
+          "ts": "2025-03-21T17:14:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "So here's the thing, I'm not sure we need to wait on SimpleStrat to clean up the overlapping categories, those feel like separate calls to me",
+          "ts": "2025-03-21T17:14:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we just close what's clearly redundant now and handle SimpleStrat's slot independently?",
+          "ts": "2025-03-21T17:14:56"
+        },
+        {
+          "userId": "emil",
+          "text": "+1.",
+          "ts": "2025-03-21T17:49:56",
+          "reactions": [
+            {
+              "emoji": "+1",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "SimpleStrat goes in examples/ if we're splitting the calls, I don't think it needs its own category.",
+          "ts": "2025-03-21T17:50:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-21T17:50:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "No tag at all, just flat in there?",
+          "ts": "2025-03-21T17:50:47",
+          "threadParentTs": "2025-03-21T17:50:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "WS-047 doesn't exist anywhere I can find, no issue, no wiki page",
+          "ts": "2025-03-21T18:06:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So the CI harness coverage for examples is still an open gap as far as I can tell, and I'd rather not leave that untracked going into the weekend even if it's just a one-liner on the Monday list.",
+          "ts": "2025-03-21T18:06:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "Let's just leave it at this: SimpleStrat goes flat into examples/ no tag, categories cleanup carries to Monday with the overlaps I flagged, and I'll put the CI harness gap on the list now so it's tracked and not floating.",
+          "ts": "2025-03-21T18:18:32.279131",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "- examples table reorganization is wrapped up, new tutorial is in too\n- want to get eyes on the table structure at some point today, mainly to confirm it actually helps people find what they need\n- also need to double-check examples are still wired into release-test coverage, didjt touch that but want to verify it held",
+          "ts": "2025-03-24T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I was going to check the ci wiring this morning too",
+          "ts": "2025-03-24T09:31:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "once the table structure is signed off I also have the mistral batch example ready to slot in",
+          "ts": "2025-03-24T09:31:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dermot what naming are you thinking for the Mistral batch example, is it following the same pattern as the existing provider ones?",
+          "ts": "2025-03-24T09:56:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-24T11:28:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah, same pattern as the existing provider ones. that table reorganization looks solid by the way.",
+          "ts": "2025-03-24T11:28:47",
+          "threadParentTs": "2025-03-24T09:56:08"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot where did you land on the CI wiring check?",
+          "ts": "2025-03-24T12:16:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "let me check",
+          "ts": "2025-03-24T12:47:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dermot glad it looks solid, though I'm also wondering, does the structure actually make it easy to find an example if you have a specific use case in mind, or are there gaps you noticed?",
+          "ts": "2025-03-24T12:52:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "So once Dermot's Mistral batch example lands, are openai, deepseek, and mistral all covered in the table, or are there other providers we'd expect to see there too?",
+          "ts": "2025-03-24T12:52:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dermot did the CI check come back clean?",
+          "ts": "2025-03-24T13:49:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "- ci wiring is clean, examples are still covered in release tests\n- table structure looks good for discovery, I didn't spot obvious gaps\n- mistral batch example is ready, naming follows the existing provider pattern",
+          "ts": "2025-03-24T14:34:01",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -23665,6 +24678,489 @@
           "text": "I think that step needs an explicit owner, not just assuming it gets picked up because the postmortem is technically still open.",
           "ts": "2025-03-19T18:29:59.069959",
           "threadParentTs": "2025-03-19T18:24:04.324805"
+        },
+        {
+          "userId": "nils",
+          "text": "PR 584 is up, mistral batch processor with integration tests.",
+          "ts": "2025-03-20T09:00:00"
+        },
+        {
+          "userId": "nils",
+          "text": "Would appreciate reviewer today if anyone has time",
+          "ts": "2025-03-20T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "- *v0.1.21* is out and stable\n- *release notes* are on me, getting those up today\n- PR 584 I can take a look this morning",
+          "ts": "2025-03-20T09:27:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "good that Dermot's on PR 584, but with PR 565, 566, and 579 all touching provider backends at the same time, do we want to sequence those or are we ok letting them all land as reviewed?",
+          "ts": "2025-03-20T11:29:10"
+        },
+        {
+          "userId": "nils",
+          "text": "WS-047 has nothing in the tracker or wiki, no ticket or page.",
+          "ts": "2025-03-20T11:46:00"
+        },
+        {
+          "userId": "nils",
+          "text": "I own it so I'll get something written up this afternoon",
+          "ts": "2025-03-20T11:46:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Konrad's question about sequencing the provider PRs is a good one and genuinely open to the room. I own PR 579 which is one of those three, so I have a stake in this. But the move is reaction-only. Let me just react to what's here. The most recent thing from Nils about WS-047 is that he'll write it up. That's a resolution to a gap. I could react to that, or to Dermot's update on v0.1.21 being stable (which is something I wanted to confirm). Dermot confirmed v0.1.21 is stable - that's one of my goals. I should react to that positively. gotcha on 0.1.21",
+          "ts": "2025-03-20T14:43:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "on the provider PRs, is the call to land them as reviewed one by one, or do we want to wait and merge them together to keep the conflict surface smaller?",
+          "ts": "2025-03-20T15:06:53"
+        },
+        {
+          "userId": "nils",
+          "text": "@Dermot, how's PR 584 looking from your end?",
+          "ts": "2025-03-20T15:29:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "- PR 584, gone through most of it, leaving inline commnets, nothing blocking so far\n- release notes page for 0.1.21 doesn't exist on the wiki yet, that's on me to write, will get it up today",
+          "ts": "2025-03-20T15:42:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "so do we want to make a call on PR 565, 566, and 579 today, or are we ok just letting those land whenever they're approved?",
+          "ts": "2025-03-20T16:31:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.21 relase notes page is up (engineering/v0-1-21-release-notes), still needs the changelog entries from the bump filled in.",
+          "ts": "2025-03-20T17:09:53",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "WS-047 still has nothing written, didjt get to it this afternoon",
+          "ts": "2025-03-20T17:46:53"
+        },
+        {
+          "userId": "nils",
+          "text": "is there a template for workstream specs, or do I just start from scratch?",
+          "ts": "2025-03-20T17:46:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "v0.1.21 is confirmed stable and the release notes page is up, good shape to end the day on that front.",
+          "ts": "2025-03-20T18:24:58",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "release notes are at engineering/v0-1-21-release-notes",
+          "ts": "2025-03-20T18:26:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost estimation revamp is mostly shaped up on my end",
+          "ts": "2025-03-24T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Colab display fixes are wrapped too",
+          "ts": "2025-03-24T09:00:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Sent the weekly update, it should be in everyone's inbox",
+          "ts": "2025-03-24T09:19:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon on the cost revamp, is the pricing/cost table staying separate from the consolidation work or is that getting pulled in?",
+          "ts": "2025-03-24T09:19:16"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pricing/cost table stays separate, it's not part of the consolidation.",
+          "ts": "2025-03-24T09:41:16"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone have thoughts on the cost estimation revamp direction before I go further with it?",
+          "ts": "2025-03-24T09:41:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Separate works for me on the pricing table. I'll take a look at the cost estimation direction and get back to you this morning",
+          "ts": "2025-03-24T10:00:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone taken a look at the examples table yet and whether it covers what you'd expect to find there?",
+          "ts": "2025-03-24T10:00:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "haven't looked at it yet",
+          "ts": "2025-03-24T10:31:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "Glanced at the examples table, there are some gaps that seem like they'd be easy to miss. Is that expected or are we still filling things in?",
+          "ts": "2025-03-24T10:48:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost estimation design is in a good place to walk through",
+          "ts": "2025-03-24T10:49:14"
+        },
+        {
+          "userId": "gideon",
+          "text": "Waiting to hear back from Konrad, but I'm free this afternoon if a sync makes more sense",
+          "ts": "2025-03-24T10:49:19"
+        },
+        {
+          "userId": "emil",
+          "text": "- *PR 579* (openai/deepseek) is up, touches provider-integrations, asked for eyes in code-review\n- *PR 584* (Mistral batch) I'm reviewing this afternoon, also touches my area\n- still want to align on provider example patterns before the day closes",
+          "ts": "2025-03-24T13:04:23",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon what kind of gaps did you notice, anything specific missing or more of a coverage thing across use cases?",
+          "ts": "2025-03-24T13:06:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad more of a coverage thing, it reads better if you already know what provider you want than if you're trying to discover what's possible.",
+          "ts": "2025-03-24T13:51:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Do we have a settled pattern for how new provider examples should be named and structured, or is that still being figured out as we go?",
+          "ts": "2025-03-24T15:10:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Pricing comes down from litellm and changes weekly, half of it is per-region.",
+          "ts": "2025-03-24T15:10:23",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-24T15:23:07"
+        },
+        {
+          "userId": "emil",
+          "text": "Not keen on folding it into the same place either",
+          "ts": "2025-03-24T15:10:27"
+        },
+        {
+          "userId": "emil",
+          "text": "Keep the cost table where it is",
+          "ts": "2025-03-24T15:10:31"
+        },
+        {
+          "userId": "emil",
+          "text": "If it lives next to capability data someone will start hand-editing prices and we'll have a mess",
+          "ts": "2025-03-24T15:10:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon yeah that tracks, and it's the thing I still don't have a clean answer on - the table works fine if you already know your provider but doesn't really help if you're trying to browse by what you want to do",
+          "ts": "2025-03-24T15:22:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "That part's still not resolved",
+          "ts": "2025-03-24T15:22:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm around this afternoon if you want to do the cost estimation walkthrough",
+          "ts": "2025-03-24T15:22:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "so does litellm actually cover deepseek and the mistral batch stuff too, I'm not totally sure all the providers we're adding are in there",
+          "ts": "2025-03-24T15:23:07",
+          "threadParentTs": "2025-03-24T15:10:23"
+        },
+        {
+          "userId": "nikolai",
+          "text": "the batch API specifically, or the regular mistral endpoints too?",
+          "ts": "2025-03-24T16:16:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost estimation is ready to walk through, @Konrad, if you've still got a few minutes before end of day",
+          "ts": "2025-03-24T16:57:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon still here, though I'm a little unsure there's enough time to do it properly now - do we try to fit it in or just pick it up first thing tomorrow?",
+          "ts": "2025-03-24T17:41:53",
+          "replyCount": 2,
+          "replyLastTs": "2025-03-24T17:42:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "fair",
+          "ts": "2025-03-24T17:41:58",
+          "threadParentTs": "2025-03-24T17:41:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "let's just pick it up tomorrow",
+          "ts": "2025-03-24T17:42:18",
+          "threadParentTs": "2025-03-24T17:41:53"
+        },
+        {
+          "userId": "emil",
+          "text": "On the provider example pattern question I raised earlier, are we settling on the same naming convention Dermot used for Mistral, or is that still up in the air?",
+          "ts": "2025-03-24T18:29:15.680644"
+        },
+        {
+          "userId": "emil",
+          "text": "Can someone share a link to the examples table?",
+          "ts": "2025-03-24T18:29:55.680644"
+        },
+        {
+          "userId": "emil",
+          "text": "I want to look at the structure myself and see if the naming pattern question answers itself",
+          "ts": "2025-03-24T18:30:00.680644"
+        },
+        {
+          "userId": "dermot",
+          "text": "examples-cookbooks is mostly caught up after the sprint",
+          "ts": "2025-03-25T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "still need to do pass on bulk-llm-inference once PR 565 settles",
+          "ts": "2025-03-25T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "one thing I'm not entirely sure about, dario's sketch leans on the caching-and-resume fingerprint for the reuse lookup",
+          "ts": "2025-03-25T09:00:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not convinced that's the right fit for this",
+          "ts": "2025-03-25T09:00:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario what does the fingerprint actually hash?",
+          "ts": "2025-03-25T09:54:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "where did dario write up that sketch, I don't think I've seen it",
+          "ts": "2025-03-25T10:46:49"
+        },
+        {
+          "userId": "dario",
+          "text": "oh, Dermot's asking me directly",
+          "ts": "2025-03-25T11:30:49"
+        },
+        {
+          "userId": "dario",
+          "text": "it hashes the prompt text, model, and generation params together",
+          "ts": "2025-03-25T11:30:57"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure that fingerprint is the right thing for reuse lookup",
+          "ts": "2025-03-25T12:11:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the call to use the fingerprint as-is, or do we want a dedicated tracker for reuse?",
+          "ts": "2025-03-25T12:35:57"
+        },
+        {
+          "userId": "emil",
+          "text": "One thing for whoever touches the reuse pass: batch submission builds its jsonl off the same lookup as the online path. When the online path stopped re-sending duplicates last month, the batch path quietly stopped too. Is that already factored into Dario's sketch, or is it going to need explicit handling?",
+          "ts": "2025-03-25T12:36:41",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah, batch and online go through the same reuse lookup, that's not changing. I'll read through what the fingerprint actually hashes this afternoon and report back beofre end of day.",
+          "ts": "2025-03-25T12:39:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "When you've got the read on the fingerprint, are you dropping it here or in #pipeline?",
+          "ts": "2025-03-25T12:53:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-03-25T13:26:00"
+        },
+        {
+          "userId": "dario",
+          "text": "that's already in the sketch, Emil.",
+          "ts": "2025-03-25T13:26:08"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot do you know where to find it in caching-and-resume or do you want me to point you at the right spot?",
+          "ts": "2025-03-25T13:26:37"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot have you had a chance to look at the fingerprint code yet, or still getting to it?",
+          "ts": "2025-03-25T14:05:37"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, if it'd help to talk through the fingerprint question once you've had a look, I'm around this afternoon.",
+          "ts": "2025-03-25T14:27:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly Notes, Week of Mar 24 is up on the wiki, sandbox image release log is in there if anyone needs it",
+          "ts": "2025-03-26T09:00:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Still want to cross-check what WS-047 actually covers before I close out my part",
+          "ts": "2025-03-26T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Going through the stale PR queue this morning, trying to get a clearer picture of what actually needs to land before we close the sprint vs what can roll.",
+          "ts": "2025-03-26T09:09:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "WS-047 still doesn't have a page up, so my part of the milestone review is sitting open until that lands.",
+          "ts": "2025-03-26T10:22:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly notes are filed. Now trying to get a clearer read on the input handling fix before I close out the milestone review, still not totally sure how far the scope extends",
+          "ts": "2025-03-26T10:40:23"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nils, where does the Mistral batch backend sit, is that still landing today?",
+          "ts": "2025-03-26T12:00:59",
+          "replyCount": 2,
+          "replyLastTs": "2025-03-26T13:34:53"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 590 is ready to go, just the logger propagate fix",
+          "ts": "2025-03-26T12:49:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 585 is still in progress on the retry/batch side, so that one's not landing today",
+          "ts": "2025-03-26T12:49:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is that the same as PR 585 or something separate?",
+          "ts": "2025-03-26T12:49:39",
+          "threadParentTs": "2025-03-26T12:00:59"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is Mistral batch even in scope this sprint, or was it always next?",
+          "ts": "2025-03-26T13:34:53",
+          "threadParentTs": "2025-03-26T12:00:59"
+        },
+        {
+          "userId": "konrad",
+          "text": "So this is Dario's piece, not batch-mode?",
+          "ts": "2025-03-26T13:47:06"
+        },
+        {
+          "userId": "konrad",
+          "text": "WS-047 still doesn't have a wiki page, I went looking for it and it's just not there yet",
+          "ts": "2025-03-26T14:46:06"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nils, when are you putting that together?",
+          "ts": "2025-03-26T14:46:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still no answer on the Mistral batch backend, is that actually landing this week or is it slipping?",
+          "ts": "2025-03-26T15:37:18"
         }
       ],
       "projectSpec": {
@@ -25135,6 +26631,122 @@
           "userId": "gideon",
           "text": "Monday works, can we make sure all three rejection cases are in one place before then so we're not reconstructing them?",
           "ts": "2025-02-28T16:41:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "Got the capability check into bulk-llm-inference, cleaning up online-request-processing this morning",
+          "ts": "2025-03-26T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Got a report that the capability check is blocking someone running against their own OpenAI-compatible server, even though their server actually handles the schema fine",
+          "ts": "2025-03-26T09:00:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "that's the unknown-capability case biting us already. if we don't know what the server supports, we can't safely block on it.",
+          "ts": "2025-03-26T09:36:25",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-26T09:36:40"
+        },
+        {
+          "userId": "gideon",
+          "text": "so the check is hard-blocking even when it just can't tell?",
+          "ts": "2025-03-26T09:36:40",
+          "threadParentTs": "2025-03-26T09:36:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "for what it's worth, I've had a try/except wrapped around that call since the friday cut, just to get the demo dataset through",
+          "ts": "2025-03-26T10:08:40",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "done locally, on my own branch, not shipped anywhere",
+          "ts": "2025-03-26T10:08:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "I haven't shipped it and I haven't deleted it either, which tells you something about where we are",
+          "ts": "2025-03-26T10:08:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "I doubt I'm the only one",
+          "ts": "2025-03-26T10:09:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario Kestrel is the unknown-capability handling called out anywhere on PR 565?",
+          "ts": "2025-03-26T10:32:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "+1, that's the thing to nail down.",
+          "ts": "2025-03-26T10:50:01"
+        },
+        {
+          "userId": "dario",
+          "text": "Nothing about unknown-capability handling on that PR, it's pretty bare",
+          "ts": "2025-03-26T10:54:01"
+        },
+        {
+          "userId": "dario",
+          "text": "But before I write anything up, is the check actively returning \"not supported\" against their server, or is it throwing and we're treating that as a block?",
+          "ts": "2025-03-26T10:54:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "Either way that's the open question, @Dario Kestrel, can you write it up on PR 565 before the next release window?",
+          "ts": "2025-03-26T11:28:13"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-03-26T11:48:13",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'll get it on the PR this afternoon",
+          "ts": "2025-03-26T11:48:18",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Worth noting explicitly: right now the check hard-blocks on the unknown-capability case, which is why people are already wrapping it in try/except just to get runs through",
+          "ts": "2025-03-26T11:48:26"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-03-26T12:02:26"
+        },
+        {
+          "userId": "dermot",
+          "text": "might be worth defaulting to passthrough on unknown capability rather than hard-blocking",
+          "ts": "2025-03-26T12:02:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel will the writeup include a proposed direction on fail-open vs fail-closed, or is that still open when it goes on the PR?",
+          "ts": "2025-03-26T12:11:53"
         }
       ],
       "projectSpec": {
@@ -34344,6 +35956,587 @@
               "count": 2
             }
           ]
+        },
+        {
+          "userId": "nils",
+          "text": "Cost lookup fix is in for Mistral backend - corrected how the pricing tier gets resolved",
+          "ts": "2025-03-21T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "VCR integration test for Mistral batch is still in flight, should have first pass ready this afternoon",
+          "ts": "2025-03-21T09:00:05"
+        },
+        {
+          "userId": "nils",
+          "text": "Does anyone know off the top of their head what Mistral charges for batch vs standard requests - want to double check the lookup is pulling the right rates",
+          "ts": "2025-03-21T09:08:19"
+        },
+        {
+          "userId": "nils",
+          "text": "Are VCR-style recorded tests being used anywhere for the provider backends currently?",
+          "ts": "2025-03-21T09:20:19"
+        },
+        {
+          "userId": "nils",
+          "text": "Does WS-047 actually say anything about CI setup for backend integrations, or is that still undefined?",
+          "ts": "2025-03-21T11:28:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Mistral's batch pricing is at https://docs.mistral.ai/platform/pricing/ - batch runs at half the online rate for most tiers, so the lookup should reflect that discount.",
+          "ts": "2025-03-21T11:56:32",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "unfurl": {
+            "title": "docs.mistral.ai",
+            "url": "https://docs.mistral.ai/platform/pricing/"
+          }
+        },
+        {
+          "userId": "emil",
+          "text": "Did the cost fix get tested against an actual Mistral batch response, or just against the pricing table directly?",
+          "ts": "2025-03-21T11:56:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil had a 40k-row anthropic batch run die on reboot this morning, and re-running the script kicked off a fresh batch instead of reattaching to the first one",
+          "ts": "2025-03-24T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "both are now sitting on the provider side",
+          "ts": "2025-03-24T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the batch job id come back in the response at submission time, or is it only held in memory during the run?",
+          "ts": "2025-03-24T09:48:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "is there a way to query the provider for active batch jobs, or does any recovery path have to start from a job id we already hold?",
+          "ts": "2025-03-24T10:19:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the current implementation write the batch id anywhere after submission, or is it just held in memory?",
+          "ts": "2025-03-24T11:21:44"
+        },
+        {
+          "userId": "dario",
+          "text": "Same thing happened to me yesterday actually",
+          "ts": "2025-03-24T11:50:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, does batch-mode write the job id anywhere after submission, or is it just held in memory?",
+          "ts": "2025-03-24T11:50:05"
+        },
+        {
+          "userId": "emil",
+          "text": "let me check",
+          "ts": "2025-03-24T12:25:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Checked batch-mode. The job id comes back at submission time but we're only holding it in memory, nothing gets written to disk",
+          "ts": "2025-03-24T12:54:09"
+        },
+        {
+          "userId": "dario",
+          "text": "that tracks",
+          "ts": "2025-03-24T13:37:09"
+        },
+        {
+          "userId": "dario",
+          "text": "If we write the batch id to disk at submission time, a restart has something to reattach to instead of firing off a second batch.",
+          "ts": "2025-03-24T13:44:14",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Writing the id to disk is the right call, but where does that file live?",
+          "ts": "2025-03-24T14:04:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Is it per-run, per-dataset, something else?",
+          "ts": "2025-03-24T14:04:19"
+        },
+        {
+          "userId": "dario",
+          "text": "Those are good questions, I'll sketch it out and bring something back to the group",
+          "ts": "2025-03-24T14:35:19"
+        },
+        {
+          "userId": "emil",
+          "text": "In the meantime I cancelled the duplicate batch manually on the provider side",
+          "ts": "2025-03-24T16:01:56",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "the metadata db might be a natural home for that id",
+          "ts": "2025-03-24T16:23:56"
+        },
+        {
+          "userId": "dario",
+          "text": "Lost a 12hr anthropic batch yesterday when my ssh session died and took the python process with it",
+          "ts": "2025-03-24T17:03:56"
+        },
+        {
+          "userId": "dario",
+          "text": "The id only ever existed inside that process",
+          "ts": "2025-03-24T17:04:04"
+        },
+        {
+          "userId": "dario",
+          "text": "Spent this morning reading batch ids off the provider console and pasting one into a scratch script to pull the results down - that's fine for me once, absolutely not something I'd tell a user to do",
+          "ts": "2025-03-24T17:04:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure the metadata db is the right home for this either",
+          "ts": "2025-03-24T17:13:09"
+        },
+        {
+          "userId": "emil",
+          "text": "If the job id lives in the metadata db and someone disables it (which PR 583 explicitly allows), they've lost resume on restart with no warning.",
+          "ts": "2025-03-24T17:32:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "so the metadata db can't be the only place it lives if we're allowing it to be disabled",
+          "ts": "2025-03-24T18:17:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Right, and a flat file or something outside the metadata db gets complicated fast if we want it to be per-run and not just a single-slot thing.",
+          "ts": "2025-03-24T18:28:09"
+        },
+        {
+          "userId": "nils",
+          "text": "Mistral batch processor is up in PR 584. I did pull out some of the Mistral-specific tests as part of the refactor, and I want to make sure we're not leaving a gap in provider coverage before that lands",
+          "ts": "2025-03-25T09:00:00"
+        },
+        {
+          "userId": "nils",
+          "text": "Does anyone know what tests actually got removed in the Gemini example refactor? I want to make sure we're not already thin on provider coverage beofre I drop the Mistral ones too.",
+          "ts": "2025-03-25T09:39:10"
+        },
+        {
+          "userId": "nils",
+          "text": "what does PR 585 actually change on the retry side - does it cover batch submissions or just online requests?",
+          "ts": "2025-03-25T10:19:10"
+        },
+        {
+          "userId": "nils",
+          "text": "does the batch test suite cover providers generically or is each test provider-specific?",
+          "ts": "2025-03-25T10:53:10"
+        },
+        {
+          "userId": "emil",
+          "text": "I went through the Gemini example refactor and the tests that got pulled were tied to the example setup, not the core provider path, so coverage should still hold.",
+          "ts": "2025-03-25T12:42:58",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I pulled up WS-047 and it doesn't seem to exist yet as an issue",
+          "ts": "2025-03-25T12:56:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that still on Nils to open, or did it land somewhere else?",
+          "ts": "2025-03-25T12:56:42"
+        },
+        {
+          "userId": "nils",
+          "text": "good to know on Gemini. the Mistral tests I'm planning to drop look like this - all fixture-based, nothing hitting a real endpoint:\n\n```python\ndef test_mistral_batch_request_format(mock_client):\n # validates request shaping against a fixture, not live\n ...\n```\n\nsame situation as what you described",
+          "ts": "2025-03-25T13:12:42"
+        },
+        {
+          "userId": "dario",
+          "text": "fair enough",
+          "ts": "2025-03-25T14:10:45"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-047 doesn't show up anywhere in the issues",
+          "ts": "2025-03-25T14:48:45"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nils, is that still getting written, or has it stalled?",
+          "ts": "2025-03-25T14:48:53"
+        },
+        {
+          "userId": "nils",
+          "text": "hasn't stalled, I just have no scope to work from. I'll write it up from scratch this afternoon, but someone should shout if it needs to match something specific",
+          "ts": "2025-03-25T15:09:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Does anyone actually know what it was originally supposed to cover, or is Nils genuinely starting from a blank slate here?",
+          "ts": "2025-03-25T15:52:46"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider-integrations test coverage is still solid after those fixture removals, nothing hitting a real endpoint got pulled.",
+          "ts": "2025-03-25T16:08:46",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nils",
+          "text": "good on the coverage - I'll go ahead and drop the Mistral fixture tests from provider-integrations",
+          "ts": "2025-03-25T16:44:46"
+        },
+        {
+          "userId": "nils",
+          "text": "That's the last open question on my side for this PR",
+          "ts": "2025-03-25T16:44:51"
+        },
+        {
+          "userId": "emil",
+          "text": "Is fixture coverage enough to sign off on 584, or does anyone want an integration pass before it merges?",
+          "ts": "2025-03-25T16:49:51"
+        },
+        {
+          "userId": "dario",
+          "text": "makes sense",
+          "ts": "2025-03-25T16:54:51"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nils, do you want someone to review 584 before end of day, or is it ready to merge once the fixture tests are dropped?",
+          "ts": "2025-03-25T17:29:51"
+        },
+        {
+          "userId": "nils",
+          "text": "review before merge, yes - implementation hasn't had eyes yet",
+          "ts": "2025-03-25T17:31:51"
+        },
+        {
+          "userId": "nils",
+          "text": "anyone able to take a look at PR 584 first thing tomorrow?",
+          "ts": "2025-03-25T17:32:04"
+        },
+        {
+          "userId": "dario",
+          "text": "I can take a look at 584 tomorrow, it's in my area anyway.",
+          "ts": "2025-03-25T17:45:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Are we all in agreement that provider test coverage is still solid after the Gemini example cleanup and now the Mistral fixture removals?",
+          "ts": "2025-03-25T18:20:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, Dario already confirmed coverage is solid earlier in this thread",
+          "ts": "2025-03-25T18:20:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that enough to green-light 584 once the fixture tests are out, or do we want a second opinion first?",
+          "ts": "2025-03-25T18:20:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "Been going through the Mistral batch cost processing side this morning, want to make sure usage is actually being extracted right from batch responses before we call that done",
+          "ts": "2025-03-26T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does Mistral return usage data per result in batch, or is it aggregated at the top level of the response?",
+          "ts": "2025-03-26T09:00:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone know if PR 604 touches the cost tracking path at all?",
+          "ts": "2025-03-26T09:35:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok answering my own question on PR 604, looked it up myself, it's about input format between prompt() and parse(), doesn't look like it's near cost tracking at all",
+          "ts": "2025-03-26T10:05:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "has anyone seen WS-047 actually written up somewhere? I can't find it in the issues",
+          "ts": "2025-03-26T10:05:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is there a test for Mistral batch cost tracking anywhere, or is that still a gap?",
+          "ts": "2025-03-26T10:47:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Something nastier on the resume side: I rewrote the prompt function, ctrl-C'd, reran, and got completions for the old prompts back with zero complaint. The request jsonl on disk was already the new version, the job on the provider side was the old one, and nobody compared the two.",
+          "ts": "2025-03-26T11:10:33"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward calling that a correctness bug, not just a resume edge case. You're getting completions back that don't match what you asked",
+          "ts": "2025-03-26T11:38:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone done more than a quick pass on PR 604 to confirm it's not touching the caching or cost tracking path?",
+          "ts": "2025-03-26T11:56:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Ok",
+          "ts": "2025-03-26T12:05:59"
+        },
+        {
+          "userId": "emil",
+          "text": "looked it up myself - PR 604 is just removing `__internal_prompt` from what parse() sees",
+          "ts": "2025-03-26T12:06:11"
+        },
+        {
+          "userId": "emil",
+          "text": "Cost tracking path looks clear, but I'm not sure that key was never factoring into cache key computation",
+          "ts": "2025-03-26T12:06:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Ok",
+          "ts": "2025-03-26T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "I think I've got it on the cache question - `__internal_prompt` is already stripped before prompt() runs, so it was never making it into cache key computation",
+          "ts": "2025-03-26T12:41:05"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 604 just cleans up the parse() side",
+          "ts": "2025-03-26T12:41:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "still haven't gotten a clear answer on the Mistral batch cost processing, the usage extraction question from this morning just sat there",
+          "ts": "2025-03-26T13:02:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone free for 20 minutes this afternoon to go through it with me?",
+          "ts": "2025-03-26T13:02:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "looked for WS-047 in the issues and can't find it anywhere, is that still on @Nils to write up?",
+          "ts": "2025-03-26T13:02:26"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil's analysis on the cache key looks right to me",
+          "ts": "2025-03-26T13:07:26",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I went back through bulk-llm-inference and the stripping happens upstream, so PR 604 shoudl be clean on the caching side",
+          "ts": "2025-03-26T13:07:31",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-26T13:08:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "upstream of the cache key computation specifically, or just upstream of prompt()?",
+          "ts": "2025-03-26T13:08:12",
+          "threadParentTs": "2025-03-26T13:07:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Upstream of the cache key, the stripping happens before the request gets normalized for caching",
+          "ts": "2025-03-26T13:43:12"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure we should be treating Mistral batch cost tracking as settled - that usage extraction question Gideon raised this morning was never actually answered.",
+          "ts": "2025-03-26T14:18:12",
+          "replyCount": 3,
+          "replyLastTs": "2025-03-26T14:19:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah",
+          "ts": "2025-03-26T14:18:28",
+          "threadParentTs": "2025-03-26T14:18:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "still no answer on how Mistral structures usage in batch responses so I genuinely can't say the extraction is correct",
+          "ts": "2025-03-26T14:18:33",
+          "threadParentTs": "2025-03-26T14:18:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "so is usage in each individual result or only at the job level?",
+          "ts": "2025-03-26T14:19:04",
+          "threadParentTs": "2025-03-26T14:18:12"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, that one's probably on you since you own batch-mode",
+          "ts": "2025-03-26T14:25:04"
+        },
+        {
+          "userId": "dario",
+          "text": "The Mistral API docs should say whether usage comes back per result or aggregated at the job level",
+          "ts": "2025-03-26T14:25:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Haven't confirmed how Mistral structures batch usage on my end either, so cost extraction is unverified. Need to pull up their docs before I can give you a real answer.",
+          "ts": "2025-03-26T14:30:16"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll look at the extraction side in bulk-llm-inference while Emil checks the docs",
+          "ts": "2025-03-26T14:45:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Got it, on the docs side now.",
+          "ts": "2025-03-26T15:15:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Checking the docs will tell us the shape, but I'm not sure it actually confirms the extraction code is handling it right.",
+          "ts": "2025-03-26T15:15:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "no VCR fixture for Mistral batch means I can't actually verify the extraction code is right, just read it",
+          "ts": "2025-03-26T15:18:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "do we call the VCR integration test deferred for now and ship what we have on cost tracking, or is that too risky to leave unverified?",
+          "ts": "2025-03-26T15:19:31"
+        },
+        {
+          "userId": "dario",
+          "text": "The extraction in bulk-llm-inference is doing something like this right now:\n\n```python\nusage = result.get(\"usage\", {})\nprompt_tokens = usage.get(\"prompt_tokens\", 0)\ncompletion_tokens = usage.get(\"completion_tokens\", 0)\n```\n\nIf Mistral puts usage at the job level instead of per result, that `.get(\"usage\")` is just going to return empty every time.",
+          "ts": "2025-03-26T15:39:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "that silently returns 0 if usage isn't where it expects it",
+          "ts": "2025-03-26T16:06:31",
+          "replyCount": 2,
+          "replyLastTs": "2025-03-26T16:07:07"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure shipping with that zero fallback counts as cost tracking actually being in place.",
+          "ts": "2025-03-26T16:06:54",
+          "threadParentTs": "2025-03-26T16:06:31"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm still not comfortable calling it \"in place\" while the main verification gap is just deferred.",
+          "ts": "2025-03-26T16:07:07",
+          "threadParentTs": "2025-03-26T16:06:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, I'd lean toward marking the VCR test as deferred rather than calling cost tracking done with a silent zero fallback",
+          "ts": "2025-03-26T16:28:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "so who's actually fixing the extraction before we call it done?",
+          "ts": "2025-03-26T16:55:07"
+        },
+        {
+          "userId": "emil",
+          "text": "If usage comes back at the job level instead of per result, distributing it across individual results is a meaningfully different problem than just changing where we look.",
+          "ts": "2025-03-26T17:17:07"
+        },
+        {
+          "userId": "dario",
+          "text": "We could store job-level usage and divide evenly across results as a stopgap until we have a fixture to test against",
+          "ts": "2025-03-26T17:37:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "want to sync on this tomorrow morning?",
+          "ts": "2025-03-26T18:11:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "not going to land the stopgap approach in chat tonight",
+          "ts": "2025-03-26T18:11:15"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 604 is clean on caching, good to merge from my side.",
+          "ts": "2025-03-26T18:23:15",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Are we calling Mistral batch cost tracking \"in place\" for now with the VCR test deferred, or are we waiting on the fix before we ship anything?",
+          "ts": "2025-03-26T18:23:34"
         }
       ],
       "projectSpec": {
@@ -37422,6 +39615,105 @@
           "userId": "dermot",
           "text": "@Emil, is CI passing on both fixes enough to close that item, or is there more expected?",
           "ts": "2025-03-19T11:49:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "validator pr is in good shape, the two open questions are what's holding it, not merging before those are settled so it won't make thursday's cut",
+          "ts": "2025-03-24T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure we can close both open questions before thursday, so the question is whether to hold the validator pr out of this cut entirely or try to rush a call on the offline behaviour in the next day or so",
+          "ts": "2025-03-24T09:35:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the current behaviour when the validator runs offline, does it warn and continue or does it hard fail?",
+          "ts": "2025-03-24T09:53:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know off the top of their head whether the current validator behaviour on offline is warn-and-continue or hard fail?",
+          "ts": "2025-03-24T11:08:52"
+        },
+        {
+          "userId": "dario",
+          "text": "Good news on PR 565, openai backend is basically done on my end",
+          "ts": "2025-03-24T11:41:52",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd lean hard failure there, warn-and-continue on a validator just means bad data slips through quietly",
+          "ts": "2025-03-24T11:42:07"
+        },
+        {
+          "userId": "dario",
+          "text": "Is there actually time to settle that and get the fix in before Thursday, or are we just holding it out of this cut?",
+          "ts": "2025-03-24T11:42:15"
+        },
+        {
+          "userId": "emil",
+          "text": "+1 on Dario's take",
+          "ts": "2025-03-24T12:11:15",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The warn-and-continue flavour is actually worse than it sounds. Some backends will log a warning that the format can't be honoured and just carry on, so you get a green run, a full parquet, and every row is an unparsed string you don't find out about until two days later. I'd rather it blow up on line one. Can we just call it: hard failure, hold the PR out of Thursday, and revisit once the offline behaviour is settled?",
+          "ts": "2025-03-24T12:11:37",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah",
+          "ts": "2025-03-24T12:39:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "agreed. hard failure, hold it out of thursday's cut, revisit once the offline behaviour is settled",
+          "ts": "2025-03-24T12:39:49",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Good. Validator PR stays out of Thursday, someone picks up the offline behaviour question, then it comes back for the next cut.",
+          "ts": "2025-03-24T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Who owns the offline behaviour question now, is that on Dermot or is it still open?",
+          "ts": "2025-03-24T12:57:15"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is ready for review and should be good for Thursday's cut, PR 566 is close behind and I'd lean toward trying to get both in together if the timing works",
+          "ts": "2025-03-24T13:41:48"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil the offline behaviour question isn't mine to own, not sure where that landed, who picked it up?",
+          "ts": "2025-03-24T14:26:48"
         }
       ],
       "projectSpec": {
