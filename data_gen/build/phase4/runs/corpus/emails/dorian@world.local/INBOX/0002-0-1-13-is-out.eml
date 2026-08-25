@@ -1,0 +1,18 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, otto@world.local,
+ dermot@world.local, priya@world.local, nolan@world.local, theo@world.local,
+ tobias@world.local, tomas@world.local, tomasz@world.local, petar@world.local,
+ rafael@world.local, rasmus@world.local, nikolai@world.local, nils@world.local,
+ dorian@world.local, devraj@world.local, julian@world.local, bram@world.local,
+ ilse@world.local
+Subject: 0.1.13 is out
+Date: Mon, 23 Dec 2024 09:28:00 +0000
+Message-ID: <178764826979.1848256.8433970372293814423@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Millrow 0.1.13 is live. Headline is o1 model support coming out of bulk-llm-i=
+nference, along with a cache dir helper in curator-viewer, a disable-cache ar=
+gument for Prompter, and the usual round of fixes. Full notes are on the wiki=
+ under engineering/0-1-13-release-notes. Let us know if anything looks off.

@@ -514,5 +514,77 @@
     "done": true,
     "at": "2024-12-16T09:28:00+00:00",
     "date": "2024-12-16"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-12",
+    "title": "v0.1.12 release notes",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2024-12-17T09:14:00+00:00",
+    "date": "2024-12-17"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-12",
+    "title": "v0.1.12 is out",
+    "by": "dario",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": false,
+    "at": "",
+    "date": "2024-12-17"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2024-12-16",
+    "title": "Weekly notes: week of Dec 16 - v0.1.12 out",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2024-12-18T09:14:00+00:00",
+    "date": "2024-12-18"
+  },
+  {
+    "kind": "doc",
+    "id": "release-0-1-13",
+    "title": "0.1.13 release notes",
+    "by": "konrad",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2024-12-23T09:14:00+00:00",
+    "date": "2024-12-23"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-0-1-13",
+    "title": "0.1.13 is out",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-12-23T09:28:00+00:00",
+    "date": "2024-12-23"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2024-12-16",
+    "title": "Weekly update: week of Dec 16",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-12-23T09:42:00+00:00",
+    "date": "2024-12-23"
   }
 ]

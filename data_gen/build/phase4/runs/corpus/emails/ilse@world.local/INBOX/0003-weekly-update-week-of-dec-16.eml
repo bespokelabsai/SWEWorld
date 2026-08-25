@@ -1,0 +1,27 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, otto@world.local,
+ dermot@world.local, priya@world.local, nolan@world.local, theo@world.local,
+ tobias@world.local, tomas@world.local, tomasz@world.local, petar@world.local,
+ rafael@world.local, rasmus@world.local, nikolai@world.local, nils@world.local,
+ dorian@world.local, devraj@world.local, julian@world.local, bram@world.local,
+ ilse@world.local
+Subject: Weekly update: week of Dec 16
+Date: Mon, 23 Dec 2024 09:42:00 +0000
+Message-ID: <178764828803.1848256.3101980501067237925@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Quick week-of-Dec-16 roundup.
+
+0.1.13 shipped. Headline is o1 model support out of bulk-llm-inference. Also =
+in: cache dir helper in curator-viewer, disable-cache argument for Prompter, =
+and a vLLM example for OpenAIOnlineParallelProcessor. Full notes on the wiki =
+under engineering/0-1-13-release-notes.
+
+In flight: PR 161 (Prometheus LLM judge eval example), PR 163 (curator-viewer=
+ cache dir), PR 133 (env example file), PR 106 (text summarization example). =
+v0.1.12 release notes still owed from Dario =E2=80=94 if those are ready, sho=
+ut and I'll fold them in.
+
+Anything I missed, reply here.

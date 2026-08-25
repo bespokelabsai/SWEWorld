@@ -322,5 +322,56 @@
     "context": [],
     "artifact": "Runbook: handling curator.LLM incidents",
     "written_as": "engineering/runbook-handling-curator-llm-incidents.md"
+  },
+  {
+    "clue": "t3.r1.h1",
+    "holder": "dario",
+    "date": "2024-12-20",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "On batch id persistence: we write the id to the cache dir on terminal status, not before",
+    "said_by": "Dario Kestrel",
+    "why": "All elements are stated across Dario's consecutive messages at 11:50.",
+    "elements": [
+      {
+        "part": "the batch job id is written to the cache directory only once the batch reaches completed/terminal status",
+        "present": true,
+        "why": "Dario states the write happens on terminal status, not before."
+      },
+      {
+        "part": "an entry pointing at an unconfirmed batch is a landmine for the next run",
+        "present": true,
+        "why": "Dario says exactly this."
+      },
+      {
+        "part": "no entry is preferable to an untrustworthy entry",
+        "present": true,
+        "why": "Dario states this directly."
+      },
+      {
+        "part": "the id write happens at the same place as the reassembled results write, i.e. one write path",
+        "present": true,
+        "why": "Dario says it's the same place, one write path not two."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:19  dario     Separately, do the new issues that came in have owners yet?",
+      "11:19  dario     Want to get those triaged before the weekend",
+      "11:50  dario     On batch id persistence: we write the id to the cache dir on terminal status, not before   <-- the clue",
+      "11:50  dario     A record pointing at a batch we haven't confirmed anything about is just a landmine for ",
+      "11:50  dario     Same place we write the reassembled results, so it's one write path not two."
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "A record pointing at a batch we haven't confirmed anything about is just a landmine for the next run.",
+        "Same place we write the reassembled results, so it's one write path not two."
+      ],
+      "rewrote": false
+    }
   }
 ]

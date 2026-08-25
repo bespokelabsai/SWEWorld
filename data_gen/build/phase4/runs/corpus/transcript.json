@@ -3875,6 +3875,316 @@
           "userId": "konrad",
           "text": "Bulk LLM Inference next-phase design isn't on the wiki yet, Dermot said earlier today it's his to write.",
           "ts": "2024-12-16T18:29:39.010760"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is in good shape, I've got the text-message summarization example done and it's sitting ready for review if someone can take a look today",
+          "ts": "2024-12-18T09:00:00",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "is Dario the natural reviewer for that, given he owns examples-cookbooks?",
+          "ts": "2024-12-18T09:27:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "He's already got PR 78 and PR 90 sitting open",
+          "ts": "2024-12-18T09:27:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "are PR 161 and PR 163 expected to land beofre the next release, or is there flexibility on timing?",
+          "ts": "2024-12-18T09:35:28"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is sitting ready if anyone other than Dario wants to take it, it touches examples-cookbooks and is not blocking a release",
+          "ts": "2024-12-18T09:46:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone able to pick it up today, or are we looking at tomorrow?",
+          "ts": "2024-12-18T17:28:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Weekly notes for the week of Dec 16 are up on the wiki, engineering/weekly-notes-week-of-dec-16-v0-1-12-out",
+          "ts": "2024-12-18T18:11:49",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and PR 90 have been sitting for a while",
+          "ts": "2024-12-18T18:30:05.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we pulling those forward before v0.1.13, or are we explicitly deferring them?",
+          "ts": "2024-12-18T18:30:13.003255"
+        },
+        {
+          "userId": "gideon",
+          "text": "read through the notes - 161 and 163 are listed but there's nothing that actually clarifies scope for either of them",
+          "ts": "2024-12-18T18:30:14.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Runbook for curator.LLM incidents isn't on the wiki yet, still on my list to write",
+          "ts": "2024-12-18T18:30:35.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Is that blocking anything before v0.1.13?",
+          "ts": "2024-12-18T18:30:40.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Bulk llm inference next-phase design still isn't written up, checked the wiki and nothing's there.",
+          "ts": "2024-12-18T18:30:50.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Does that hold up any of the PRs in the current queue, or can we move them forward independently?",
+          "ts": "2024-12-18T18:30:55.003255"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 281 is up if anyone has a minute today, it's catching the catch-all Exception for litellm errors since litellm doesn't throw specifics, plus pins the version",
+          "ts": "2024-12-20T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Touches the error handling in examples-cookbooks, not blocking a release but I'd like to get it in today",
+          "ts": "2024-12-20T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "is the catch scoped to just the litellm call or does it wrap the whole request cycle?",
+          "ts": "2024-12-20T09:15:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Just the litellm call, not the whole cycle",
+          "ts": "2024-12-20T09:35:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "If that looks good to you I'd like to get it merged today",
+          "ts": "2024-12-20T09:35:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "Scoping it to just the litellm call is exactly right, that's a clean boundary and I think the handling is sufficient. Ship it.",
+          "ts": "2024-12-20T09:46:20",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Thanks. Do I need a second approval or can I merge on your +1?",
+          "ts": "2024-12-20T10:03:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "One is enough for a change this focused",
+          "ts": "2024-12-20T10:40:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "Go ahead and merge",
+          "ts": "2024-12-20T10:40:25"
+        },
+        {
+          "userId": "dario",
+          "text": "Scoping it to just the litellm call makes sense to me, that's the right boundary, I already have a +1 on it too",
+          "ts": "2024-12-20T11:19:25"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad what's the version pin, exact version or a floor?",
+          "ts": "2024-12-20T11:19:30"
+        },
+        {
+          "userId": "dario",
+          "text": "Separately, do the new issues that came in have owners yet?",
+          "ts": "2024-12-20T11:19:39"
+        },
+        {
+          "userId": "dario",
+          "text": "Want to get those triaged before the weekend",
+          "ts": "2024-12-20T11:19:51"
+        },
+        {
+          "userId": "dario",
+          "text": "On batch id persistence: we write the id to the cache dir on terminal status, not before",
+          "ts": "2024-12-20T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "A record pointing at a batch we haven't confirmed anything about is just a landmine for the next run.",
+          "ts": "2024-12-20T11:50:01.666667"
+        },
+        {
+          "userId": "dario",
+          "text": "Same place we write the reassembled results, so it's one write path not two.",
+          "ts": "2024-12-20T11:50:03.333334"
+        },
+        {
+          "userId": "dario",
+          "text": "No entry is better than one pointing at a batch we haven't confirmed anything about",
+          "ts": "2024-12-20T11:50:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Looked for the bulk LLM inference next-phase design doc and couldn't find it anywhere",
+          "ts": "2024-12-20T12:16:05"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, is it written up yet?",
+          "ts": "2024-12-20T12:16:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "Worth deciding what progress-and-cli displays in the window before the batch reaches terminal status, since that's exactly when the id doesn't exist yet.",
+          "ts": "2024-12-20T12:44:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "It's an exact pin, though I'm not totally confident that's the right call for litellm specifically",
+          "ts": "2024-12-20T13:17:10"
+        },
+        {
+          "userId": "dario",
+          "text": "The curator.LLM incidents runbook isn't written yet, that's still on my list",
+          "ts": "2024-12-20T13:54:10"
+        },
+        {
+          "userId": "dario",
+          "text": "What scenarios should it cover?",
+          "ts": "2024-12-20T13:54:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, separately, do you have 15 minutes this afternoon to run through the new issues?",
+          "ts": "2024-12-20T14:21:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Want to get owners assigned before the weekend",
+          "ts": "2024-12-20T14:21:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "The scenario where litellm throws and progress tracking loses visibility is probaly the right one to lead with in that runbook.",
+          "ts": "2024-12-20T15:04:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still need a call on the litellm version pin, keep it exact or swap to a floor before we merge?",
+          "ts": "2024-12-20T15:11:27"
+        },
+        {
+          "userId": "dario",
+          "text": "Yep",
+          "ts": "2024-12-20T15:51:27"
+        },
+        {
+          "userId": "dario",
+          "text": "free now if you want to jump on.",
+          "ts": "2024-12-20T15:51:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Classic end of week scramble :grin:",
+          "ts": "2024-12-20T16:13:35",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "jumping on now",
+          "ts": "2024-12-20T16:13:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "haha fair enough",
+          "ts": "2024-12-20T16:16:43",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Honestly not sure an exact pin is the right call for litellm, a floor feels safer for something that patches this freqeuntly.",
+          "ts": "2024-12-20T16:17:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sold on the floor either",
+          "ts": "2024-12-20T16:46:20"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, it's your call",
+          "ts": "2024-12-20T16:46:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we getting PRs 278 through 283 scoped for next sprint today, or is that slipping to Monday?",
+          "ts": "2024-12-20T16:46:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "Going with a floor, updating the PR now",
+          "ts": "2024-12-20T17:01:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "And scoping today, not slipping.",
+          "ts": "2024-12-20T17:01:58"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad ready to merge once you push the floor change?",
+          "ts": "2024-12-20T17:40:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "Pushing now, then it's yours to merge",
+          "ts": "2024-12-20T18:01:58"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd want to take a quick look at the floor change before I merge it. Should I just go ahead, or does anyone else want to eyeball it first?",
+          "ts": "2024-12-20T18:15:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "Just go ahead, it's a version pin change, not new logic.",
+          "ts": "2024-12-20T18:17:58"
         }
       ],
       "projectSpec": {
@@ -8547,6 +8857,240 @@
           "userId": "konrad",
           "text": "@Gideon how are you holding up after the end-of-run retry postmortem?",
           "ts": "2024-12-16T18:28:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "- PR 106 (text-message summarization example) is up and ready, posted in code-review this morning if anyone has bandwidth\n- Going through Dario's recent commits to see if the tracker/factory changes affect anything in the examples surface, didjt get through all of it yet\n- Petar onboarding is moving, we're walking through request-processing internals today",
+          "ts": "2024-12-18T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario once you've been through the tracker and factory changes, do the SimpleLLM callers still work without modification?",
+          "ts": "2024-12-18T09:08:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we have test coverage on the abstract method changes, or is that still a gap before merge?",
+          "ts": "2024-12-18T09:08:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "+1 on the test coverage question, that's the part I was also trying to figure out from the commits",
+          "ts": "2024-12-18T09:13:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario were the tracker updates added alongside any new tests, or is that still to come?",
+          "ts": "2024-12-18T10:18:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "So the examples might actually be a decent canary for this, they call into the API surface directly without any knowledge of internals, so if the factory or abstract method signatures shifted in a visible way, running through them would surface it pretty quickly.",
+          "ts": "2024-12-18T10:52:33",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Tracker and abstract method updates are in on my side",
+          "ts": "2024-12-18T18:00:15"
+        },
+        {
+          "userId": "dario",
+          "text": "SimpleLLM callers look okay on the public surface from what I've gone through, but I haven't verified every caller yet so I wouldn't call it clean",
+          "ts": "2024-12-18T18:00:27"
+        },
+        {
+          "userId": "dario",
+          "text": "Test coverage is still a gap, nothing new was added alongside the tracker updates. That's the thing I'd want closed before merge.",
+          "ts": "2024-12-18T18:00:32",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Pulled up the wiki to find the bulk llm inference next-phase design doc, nothing's there yet",
+          "ts": "2024-12-18T18:29:52.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot Callaghan, is it written up somewhere else?",
+          "ts": "2024-12-18T18:30:04.003255"
+        },
+        {
+          "userId": "dermot",
+          "text": "not written up yet, I'm still working through it",
+          "ts": "2024-12-18T18:30:16.003255"
+        },
+        {
+          "userId": "dermot",
+          "text": "and on the design risk side, I haven't gone through it properly either, Dario, beyond the test gap, are there places in the abstract method changes you'd be nervous about going into merge?",
+          "ts": "2024-12-18T18:30:24.003255",
+          "replyCount": 2,
+          "replyLastTs": "2024-12-18T18:31:02.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Checked the wiki for the Petar onboarding doc, it's not there yet",
+          "ts": "2024-12-18T18:30:29.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad Feltrin, that one's still open on your end",
+          "ts": "2024-12-18T18:30:37.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward saying the abstract method signature shift is the part I'm not confident about, any subclass that doesn't know about the change could silently break.",
+          "ts": "2024-12-18T18:30:42.003255",
+          "threadParentTs": "2024-12-18T18:30:24.003255"
+        },
+        {
+          "userId": "dermot",
+          "text": "so do we block merge on that, or do we go in with the gap and add coverage after?",
+          "ts": "2024-12-18T18:30:50.003255"
+        },
+        {
+          "userId": "konrad",
+          "text": "Actually I probably overstated that earlier, examples wouldn't reliably catch a silent subclass break, that's a different kind of gap",
+          "ts": "2024-12-18T18:31:02.003255",
+          "threadParentTs": "2024-12-18T18:30:24.003255"
+        },
+        {
+          "userId": "dermot",
+          "text": "i mean, not entirely sure \"add it after\" holds if the break is silent, that's the kind of thing you don't notice until something downstream is already wrong",
+          "ts": "2024-12-18T18:31:14.003255",
+          "reactions": [
+            {
+              "emoji": "⚠️",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "going through examples-cookbooks this morning after dario's config commits",
+          "ts": "2024-12-19T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "want to make sure integration tests are still clean before I call the batch processor work done",
+          "ts": "2024-12-19T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario did the config split need any changes on the examples side, or should they still work as is?",
+          "ts": "2024-12-19T09:00:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own question a bit, the examples are probably fine structurally, but I'm not sure which of dario's commits is actually the config split",
+          "ts": "2024-12-19T09:18:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "is that part of PR 90 or a separate change?",
+          "ts": "2024-12-19T09:18:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario are the SimpleLLM callers expected to be backward compatible after the config changes, or do they need updates too?",
+          "ts": "2024-12-19T09:47:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario free for a quick sync this afternoon on the config changes?",
+          "ts": "2024-12-19T11:01:58"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah, afternoon's fine for me",
+          "ts": "2024-12-19T11:09:58",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "and I do want to confirm the batch processor fixes are fully wrapped before we call it done, so the sync timing works out well",
+          "ts": "2024-12-19T11:10:03"
+        },
+        {
+          "userId": "dario",
+          "text": "On the integration tests for examples-cookbooks, are those coming back clean so far or are you still running through them?",
+          "ts": "2024-12-19T11:10:43"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot is the bulk LLM inference next-phase design written up anywhere?",
+          "ts": "2024-12-19T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "I couldn't find it on the wiki",
+          "ts": "2024-12-19T11:50:08"
+        },
+        {
+          "userId": "dario",
+          "text": "The curator.LLM incidents runbook isn't on the wiki yet, that one's on me. Anyone have notes from past incidents I can pull from for it?",
+          "ts": "2024-12-19T12:58:08"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 90 is still open on my end, nothing blocking it. Waiting on the integration test picture before we move to merge",
+          "ts": "2024-12-19T13:16:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Also have PR 78 up for the vLLM example, that one's been in review for a bit and could use another look if anyone has bandwidth this afternoon",
+          "ts": "2024-12-19T13:39:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "still running through the examples-cookbooks integration tests",
+          "ts": "2024-12-19T14:13:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk inference design isn't on the wiki yet, still working it up",
+          "ts": "2024-12-19T14:13:13"
+        },
+        {
+          "userId": "dario",
+          "text": "Is the sync still on this afternoon, or do you want to wait until the test results are in first?",
+          "ts": "2024-12-19T14:24:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "nearly through the tests, let's sync now",
+          "ts": "2024-12-19T14:53:13"
+        },
+        {
+          "userId": "dario",
+          "text": "Ready. Config side is clean on my end, nothing blocking from the provider integrations.",
+          "ts": "2024-12-19T15:17:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "examples-cookbooks tests are looking clean, nothing blocking on my end",
+          "ts": "2024-12-19T15:44:13",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -11917,6 +12461,111 @@
           "userId": "gideon",
           "text": "For context, the wiki draft frames validation against a real run as a follow-up item, not a condition on the plan itself",
           "ts": "2024-12-16T18:22:12.496591"
+        },
+        {
+          "userId": "dermot",
+          "text": "- *bulk-llm-inference next-phase design*: draft is mostly together, main shape is clear\n- still working through how the tracker abstraction holds up across batch and online, not entirely sure it does yet\n- config refactor is the other open piece, need to verify provider backends survive it before I'd call this ready to hand off",
+          "ts": "2024-12-18T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "progress-and-cli is moving along on my end, but I have the same concern on the tracker honestly - I'm not confident it holds cleanly for both batch and online without some adjustment on the progress reporting side.",
+          "ts": "2024-12-18T09:29:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario is the config factory question separate from the tracker, or are they tied together in how they handle the two modes?",
+          "ts": "2024-12-18T10:14:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "does caching-and-resume thread through at the request-processor handoff, or does each side manage it independently?",
+          "ts": "2024-12-18T10:21:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "sorry, been heads down all day - progress reporting is holding up on my end with the refactor, and provider stability looks fine from what I can see on the progress-and-cli side.",
+          "ts": "2024-12-18T17:21:03",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure they're fully decoupled",
+          "ts": "2024-12-18T17:52:03"
+        },
+        {
+          "userId": "dario",
+          "text": "My read is the config factory is upstream of the tracker, but I don't know if they end up sharing any state at the point where the mode is decided",
+          "ts": "2024-12-18T17:52:15"
+        },
+        {
+          "userId": "dario",
+          "text": "Is the coupling you're worried about at that handoff, or somewhere earlier in the setup?",
+          "ts": "2024-12-18T17:52:23"
+        },
+        {
+          "userId": "dermot",
+          "text": "at the handoff, that's where I'm not sure either",
+          "ts": "2024-12-18T18:29:23"
+        },
+        {
+          "userId": "dario",
+          "text": "So at the handoff, does caching-and-resume get its own reference from each side, or is the assumption that the request-processor passes it through?",
+          "ts": "2024-12-18T18:29:47.037009"
+        },
+        {
+          "userId": "dermot",
+          "text": "that's exactly the question, I don't know which assumption the current code makes",
+          "ts": "2024-12-18T18:29:57.344367",
+          "replyCount": 1,
+          "replyLastTs": "2024-12-18T18:30:14.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd assumed each side manages it independently, but I haven't traced it at the handoff. Same read?",
+          "ts": "2024-12-18T18:30:14.003255",
+          "threadParentTs": "2024-12-18T18:29:57.344367"
+        },
+        {
+          "userId": "dermot",
+          "text": "same read, I also pulled up the runbook to check my part of it, it's not there yet",
+          "ts": "2024-12-18T18:30:22.003255"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario can we get 30 min tomorrow to trace the caching and resume handoff properly, I don't want to leave that unvalidated",
+          "ts": "2024-12-18T18:30:27.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Have the provider backends been verified through the config refactor yet, or is that still open?",
+          "ts": "2024-12-18T18:30:35.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "Tomorrow works for the caching handoff trace, @Dermot Callaghan.",
+          "ts": "2024-12-18T18:30:43.003255",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Bulk llm inference next-phase design isn't on the wiki.",
+          "ts": "2024-12-18T18:30:51.003255"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot Callaghan, is it written up somewhere else, or is that still coming?",
+          "ts": "2024-12-18T18:30:59.003255"
         }
       ],
       "projectSpec": {
@@ -12952,6 +13601,160 @@
           "userId": "dario",
           "text": "Does any of that affect what we're locking in 0.1.12, or is it clean?",
           "ts": "2024-12-16T14:38:46"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is nearly done on my end, just have a couple small things to clean up in the summarization example beofre I'd push it for review",
+          "ts": "2024-12-17T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel are the release notes for 0.1.12 done yet, or still being worked on?",
+          "ts": "2024-12-17T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do the release notes go on the wiki, or is there another place they're supposed to land?",
+          "ts": "2024-12-17T09:15:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does anyone know if Dario's planning to send the announce mail today, or is that still blocked on the notes?",
+          "ts": "2024-12-17T09:28:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there a CHANGELOG in the repo that needs updating as part of this, or is that handled separately from the release notes?",
+          "ts": "2024-12-17T09:46:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Did the GitHub release get notes attached when the tag went up, or is that still todo?",
+          "ts": "2024-12-17T10:02:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "I've been assuming the release notes and the announce mail are two separate things, but maybe the announcment is basically the release notes?",
+          "ts": "2024-12-17T10:56:12"
+        },
+        {
+          "userId": "dario",
+          "text": "Release notes are done, just posted them to the wiki as v0.1.12 Release Notes (engineering/v0-1-12-release-notes.md), covers all 8 PRs that shipped.",
+          "ts": "2024-12-17T11:23:12",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Release notes capture what shipped; the announce mail goes out separately, those are two different things",
+          "ts": "2024-12-17T11:23:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Announce mail is out",
+          "ts": "2024-12-17T11:23:37",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, do the GitHub release notes need to go on the tag separately, or is the wiki page enough?",
+          "ts": "2024-12-17T11:23:42"
+        },
+        {
+          "userId": "dario",
+          "text": "The Dec 4 postmortem isn't on the wiki yet, @Gideon, is that still being written?",
+          "ts": "2024-12-17T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Announce mail went out to everyone earlier, asked them to flag anything that looks off or missing from the release notes",
+          "ts": "2024-12-17T12:04:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Did it land for folks?",
+          "ts": "2024-12-17T12:04:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "0.1.13 release notes are up on the wiki (engineering/0-1-13-release-notes). Big headline is o1 model support, plus the cache dir helper in curator-viewer and the disable-cache arg for Prompter.",
+          "ts": "2024-12-23T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "the o1 support came out of bulk-llm-inference, glad that made the headline",
+          "ts": "2024-12-23T09:44:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "think the announce still needs to go out though",
+          "ts": "2024-12-23T09:44:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Announce is out, just sent the \"0.1.13 is out\" mail to the whole team with the wiki link and the o1 headline.",
+          "ts": "2024-12-23T10:04:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "good, 0.1.13 is wrapped up then",
+          "ts": "2024-12-23T10:10:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update for Dec 16 is out",
+          "ts": "2024-12-23T10:14:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "I asked about the v0.1.12 notes in it, but I just pulled them up and they're actually already on the wiki",
+          "ts": "2024-12-23T10:14:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "So that's on me, I shouldn't have flagged them as outstanding",
+          "ts": "2024-12-23T10:14:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure they're finalized though, they're still showing as in progress",
+          "ts": "2024-12-23T10:31:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "0.1.13 is fully out, notes are on the wiki and the announce is done. clean release.",
+          "ts": "2024-12-23T10:31:28",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Yep",
+          "ts": "2024-12-23T10:38:28"
+        },
+        {
+          "userId": "konrad",
+          "text": "good start to the week",
+          "ts": "2024-12-23T10:38:40"
         }
       ],
       "projectSpec": {
