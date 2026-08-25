@@ -1,0 +1,1030 @@
+{
+  "schema_version": 1,
+  "date": "2025-07-10",
+  "weekday": "Thu",
+  "phase_id": "lights-left-on-dormancy",
+  "specs": [
+    {
+      "date": "2025-07-10",
+      "channel": "code-review",
+      "channel_name": "#code-review",
+      "role": "cross_cutting",
+      "purpose": "Version tag reference merge",
+      "purpose_class": "coordination",
+      "norms": {
+        "belongs_here": "the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.",
+        "not_here": "routine work on one service, which belongs in the team channel that owns it."
+      },
+      "event_ids": [
+        "ep-3ee171082905"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "release-v0-1-25",
+          "title": "v0.1.25 Release Notes",
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "plan-lights-left-on-dormancy",
+          "title": "Winding down to maintenance mode after v0.1.26",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 8,
+      "must_not_mention": {
+        "entity_count": 290,
+        "services": [],
+        "prs_above": 696
+      },
+      "participants": [
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; opened or merged #696; driving Add version tag reference in lib",
+          "brings": "the change itself and context on why the version tag reference belongs in lib",
+          "wants": "to get this merged and have stale PRs on the radar"
+        },
+        {
+          "id": "konrad",
+          "label": "Konrad Feltrin",
+          "why": "reviewed today",
+          "brings": "a second set of eyes and maintainer judgment on the reference implementation",
+          "wants": "to make sure the merge is clean before it lands"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Check PR #696 is ready to ship",
+        "Review the stale PR backlog and triage it"
+      ],
+      "reason": "One PR merged today, four stale ones waiting; quick thumbs-up and backlog check.",
+      "goals": [
+        {
+          "goal": "Confirm #696 merge is correct",
+          "owner": "emil",
+          "agenda_item": "Check PR #696 is ready to ship",
+          "beats": [
+            "emil notes the change is doc-only",
+            "konrad acknowledges the approval"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-25"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Establish what to do with 653, 675, 690, 693",
+          "owner": "konrad",
+          "agenda_item": "Review the stale PR backlog and triage it",
+          "beats": [
+            "konrad lists which ones are actually blocking",
+            "emil marks what he can pick up next"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "plan-lights-left-on-dormancy"
+            }
+          ],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "#696 merged with confidence; agreement on next stale PR to tackle."
+    },
+    {
+      "date": "2025-07-10",
+      "channel": "engineering",
+      "channel_name": "#engineering",
+      "role": "team",
+      "purpose": "Version tag reference work",
+      "purpose_class": "coordination",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ep-3ee171082905"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "notes-2025-07-07",
+          "title": "Weekly sync notes: week of Jul 7 (bulk LLM inference)",
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "plan-lights-left-on-dormancy",
+          "title": "Winding down to maintenance mode after v0.1.26",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 10,
+      "must_not_mention": {
+        "entity_count": 290,
+        "services": [],
+        "prs_above": 696
+      },
+      "participants": [
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; opened or merged #696; owns work in this area; driving Add version tag reference in lib",
+          "brings": "the implementation and knowledge of where the tag reference fits",
+          "wants": "to move fast through kickoff and land this today"
+        },
+        {
+          "id": "konrad",
+          "label": "Konrad Feltrin",
+          "why": "reviewed today",
+          "brings": "historical context and maintainer perspective on what stays in sync",
+          "wants": "to understand if this is a one-off or part of a larger refactor"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Review the version tag reference change",
+        "Assess impact on the five affected services"
+      ],
+      "reason": "Quick doc-only kickoff to add version tag reference; two services touched, merged same day.",
+      "goals": [
+        {
+          "goal": "Confirm version tag reference is correct and maintainable",
+          "owner": "emil",
+          "agenda_item": "Review the version tag reference change",
+          "beats": [
+            "emil explains what the tag reference does and why now",
+            "konrad asks about sync burden",
+            "they agree it is a one-time fix"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "notes-2025-07-07"
+            },
+            {
+              "kind": "doc",
+              "id": "plan-lights-left-on-dormancy"
+            }
+          ],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "Both agree the change is correct; no hidden maintenance burden discovered."
+    },
+    {
+      "date": "2025-07-10",
+      "channel": "viewer",
+      "channel_name": "#viewer",
+      "role": "team",
+      "purpose": "Version tag curator-viewer",
+      "purpose_class": "status",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ep-3ee171082905"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "notes-2025-07-07",
+          "title": "Weekly sync notes: week of Jul 7 (bulk LLM inference)",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 6,
+      "must_not_mention": {
+        "entity_count": 290,
+        "services": [],
+        "prs_above": 696
+      },
+      "participants": [
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; opened or merged #696; owns curator-viewer",
+          "brings": "the specific change to curator-viewer and where the version tag appears in the UI",
+          "wants": "to confirm the viewer surface looks right with the tag in place"
+        },
+        {
+          "id": "konrad",
+          "label": "Konrad Feltrin",
+          "why": "reviewed today",
+          "brings": "end-user perspective and concern for viewer UX",
+          "wants": "to see how the tag surfaces to users"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Check how version tag appears in viewer surface",
+        "Verify no display regressions"
+      ],
+      "reason": "Version tag reference touches curator-viewer surface; quick visual check before landing.",
+      "goals": [
+        {
+          "goal": "Confirm viewer display of version tag is clean",
+          "owner": "emil",
+          "agenda_item": "Check how version tag appears in viewer surface",
+          "beats": [
+            "emil shows the tag in the UI",
+            "konrad checks for alignment and clarity"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "notes-2025-07-07"
+            }
+          ],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "Version tag displays cleanly in viewer; no UX issues found."
+    }
+  ],
+  "people": [
+    {
+      "id": "dario",
+      "label": "Dario Kestrel",
+      "seniority": "senior",
+      "title": "Core Engineer, Request Processing",
+      "available": false,
+      "state": "absent",
+      "reason": "no commit, review or comment 2025-05-27..2025-10-20",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "online-request-processing"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": []
+      }
+    },
+    {
+      "id": "dermot",
+      "label": "Dermot Callaghan",
+      "seniority": "senior",
+      "title": "Founding Software Engineer — Core Pipeline & Release",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-06-26",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "bulk-llm-inference",
+          "multimodal-prompts"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": []
+      }
+    },
+    {
+      "id": "emil",
+      "label": "Emil Brandvold",
+      "seniority": "senior",
+      "title": "Core Platform Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "Add version tag reference in lib",
+      "driving": [
+        "ws-078-bulk-llm-inference"
+      ],
+      "blocked_on": [
+        "#690 waiting 27d",
+        "#693 waiting 14d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 2,
+        "reviews": 0,
+        "comments": 1
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "viewer"
+      ],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "release-and-ci",
+          "online-request-processing",
+          "provider-integrations"
+        ],
+        "prs": [
+          "#696"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": []
+      }
+    },
+    {
+      "id": "gideon",
+      "label": "Gideon Halloway",
+      "seniority": "senior",
+      "title": "Core Engineer — Dataset Viewer & Run Observability",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-05-06",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "online-request-processing",
+          "progress-and-cli",
+          "bulk-llm-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "cookbooks",
+          "releases"
+        ]
+      }
+    },
+    {
+      "id": "ilse",
+      "label": "Ilse Vandekerckhove",
+      "seniority": "contractor",
+      "title": "Contributor, Local Inference Backends (vLLM)",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-28",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "local-offline-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "konrad",
+      "label": "Konrad Feltrin",
+      "seniority": "founder",
+      "title": "Founding Maintainer, Curation Platform",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 1,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "viewer"
+      ],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "code-execution",
+          "finetuning"
+        ],
+        "prs": [
+          "#696"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "pipeline"
+        ]
+      }
+    },
+    {
+      "id": "nikolai",
+      "label": "Nikolai Berresford",
+      "seniority": "senior",
+      "title": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
+      "available": false,
+      "state": "absent",
+      "reason": "no commit, review or comment 2025-06-26..2026-01-21",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "code-execution",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "nils",
+      "label": "Nils Brandt",
+      "seniority": "contractor",
+      "title": "Batch Backend Engineer (short-term contract)",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-03-25",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "batch-mode",
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "otto",
+      "label": "Otto Brennan",
+      "seniority": "contractor",
+      "title": "Contributor — Install UX & README Polish",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2024-11-26",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "code-review",
+          "incidents",
+          "pipeline",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "petar",
+      "label": "Petar Kovalenko",
+      "seniority": "mid",
+      "title": "Engineer, Request-Processing Internals",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-14",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "cookbooks",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "priya",
+      "label": "Priya Vandersloot",
+      "seniority": "mid",
+      "title": "Software Engineer, LLM Interface",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-02-17",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "multimodal-prompts",
+          "release-and-ci"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "theo",
+      "label": "Theo Marchetti",
+      "seniority": "contractor",
+      "title": "Provider Examples Contributor (Mistral Batch)",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-03-31",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [],
+        "channels": [
+          "code-review",
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    }
+  ]
+}

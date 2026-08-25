@@ -1,0 +1,1276 @@
+{
+  "schema_version": 1,
+  "date": "2025-01-06",
+  "weekday": "Mon",
+  "phase_id": "stratos-crunch",
+  "specs": [
+    {
+      "date": "2025-01-06",
+      "channel": "code-review",
+      "channel_name": "#code-review",
+      "role": "cross_cutting",
+      "purpose": "Ruff migration and docstring fixes",
+      "purpose_class": "deliberation",
+      "norms": {
+        "belongs_here": "the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.",
+        "not_here": "routine work on one service, which belongs in the team channel that owns it."
+      },
+      "event_ids": [],
+      "subjects": [],
+      "referenced_objects": [],
+      "meetings": [],
+      "max_turns": 12,
+      "must_not_mention": {
+        "entity_count": 1273,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "prs_above": 308
+      },
+      "participants": [
+        {
+          "id": "nikolai",
+          "label": "Nikolai Berresford",
+          "why": "committed to this today; opened or merged #302; opened or merged #303",
+          "brings": "Ruff formatter migration (replace black); pre-commit hook setup",
+          "wants": "Approval on the two PRs and signal whether the team is ready to switch"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "committed to this today; reviewed today",
+          "brings": "Experience with the existing black/formatting workflow; feedback on docstring changes in #308",
+          "wants": "To settle whether Ruff is the path forward and unblock the docstring standardization"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "reviewed today; driving January Hardening",
+          "brings": "Release engineering perspective on tool churn and CI stability",
+          "wants": "Clarity on whether #302 and #303 block the 0.1.14 release"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "#302 and #303: switch from black to Ruff and pre-commit hooks",
+        "#308: docstring standardization to Google style"
+      ],
+      "reason": "Nikolai landed two formatting/tooling PRs; dario requested changes on docstring PR; need to settle the migration path",
+      "goals": [
+        {
+          "goal": "Approve or reject ruff migration and pre-commit setup",
+          "owner": "nikolai",
+          "agenda_item": "#302 and #303: switch from black to Ruff and pre-commit hooks",
+          "beats": [
+            "Nikolai describes the Ruff migration benefits (speed, unified tooling)",
+            "Dario pushes back on tool churn mid-release cycle",
+            "Dermot breaks the tie: acceptable if it doesn't block 0.1.14 cut"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Resolve docstring standardization and address review feedback",
+          "owner": "dario",
+          "agenda_item": "#308: docstring standardization to Google style",
+          "beats": [
+            "Dario outlines the CHANGES_REQUESTED on #308",
+            "Nikolai or dario clarifies scope (batch processors only, or full codebase?)",
+            "Decision: land it or defer past 0.1.14"
+          ],
+          "reads": [],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "Nikolai knows whether to merge #302/#303 today or wait; #308 either gets approval or a clear deferral path"
+    },
+    {
+      "date": "2025-01-06",
+      "channel": "cookbooks",
+      "channel_name": "#cookbooks",
+      "role": "team",
+      "purpose": "Examples and README polish ahead of 0.1.14",
+      "purpose_class": "coordination",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ep-df0e78a9fe73",
+        "design-ws-016-examples-cookbooks"
+      ],
+      "subjects": [],
+      "referenced_objects": [],
+      "meetings": [],
+      "max_turns": 10,
+      "must_not_mention": {
+        "entity_count": 1273,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "prs_above": 308
+      },
+      "participants": [
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "committed to this today; owns examples-cookbooks, release-and-ci; writing WS-016 design today",
+          "brings": "Ownership of the examples-cookbooks service; vision for the design doc covering the new workstream",
+          "wants": "Feedback on scope and timeline for WS-016 examples/cookbooks kickoff on Jan 7"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "reviewed today; owns examples-cookbooks, release-and-ci; driving January Hardening",
+          "brings": "Release coordination perspective; knows which README/doc changes are blocking 0.1.14",
+          "wants": "Clarity on what lands today vs. what defers to the Jan 7 workstream"
+        }
+      ],
+      "absent_owners": [
+        {
+          "id": "emil",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-01-07"
+        },
+        {
+          "id": "priya",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-01-15"
+        }
+      ],
+      "stand_in": true,
+      "agenda": [
+        "vLLM examples and docs landing in main",
+        "README and table of contents updates",
+        "WS-016 design doc scope and Jan 7 kickoff"
+      ],
+      "reason": "Ilse landed 8 commits on vLLM examples/docs overnight; Dario writing WS-016 design doc today; Dermot hardening the release",
+      "goals": [
+        {
+          "goal": "Land ilse's vLLM examples and integrate into main README",
+          "owner": "dario",
+          "agenda_item": "vLLM examples and docs landing in main",
+          "beats": [
+            "Ilse or dario summarizes what landed overnight (offline processor, examples, local model docs)",
+            "Dario or dermot checks if tests pass and docs are complete",
+            "Quick approval or request for fixes before main merge"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "design-ws-016-examples-cookbooks"
+            }
+          ]
+        },
+        {
+          "goal": "Settle WS-016 design doc scope and timeline",
+          "owner": "dario",
+          "agenda_item": "WS-016 design doc scope and Jan 7 kickoff",
+          "beats": [
+            "Dario describes what the design doc covers and who it targets",
+            "Dermot flags any conflicts with 0.1.14 hardening",
+            "Decision: publish today or refine over the weekend"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Clarify what README polish lands today vs. defers",
+          "owner": "dermot",
+          "agenda_item": "README and table of contents updates",
+          "beats": [
+            "Ilse or dario lists the README commits (table of contents, add examples, add citation)",
+            "Dermot gates on 0.1.14 release readiness",
+            "Defer non-critical polish or fast-track if it's simple"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "design-ws-014-release-and-ci"
+            }
+          ]
+        }
+      ],
+      "expected_outcome": "vLLM examples integrated, WS-016 design doc clarity, and README polish either shipped or deferred past the release"
+    },
+    {
+      "date": "2025-01-06",
+      "channel": "engineering",
+      "channel_name": "#engineering",
+      "role": "team",
+      "purpose": "Monday standup and sprint recap",
+      "purpose_class": "status",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ep-df0e78a9fe73",
+        "ep-130fd0ec7e37"
+      ],
+      "subjects": [],
+      "referenced_objects": [],
+      "meetings": [],
+      "max_turns": 15,
+      "must_not_mention": {
+        "entity_count": 1273,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "prs_above": 308
+      },
+      "participants": [
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "committed to this today; owns work in this area; working on it",
+          "brings": "Context on overnight merges (#306: Merge dev into main); what's unblocked for the week",
+          "wants": "To hear from ilse on what's next, and from dermot on the release timeline"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "reviewed today; owns work in this area; driving January Hardening",
+          "brings": "Status on 0.1.14 release and the hardening workstream; what's blocking",
+          "wants": "Team signal on priorities: ruff migration vs. docstring fixes vs. vLLM examples"
+        },
+        {
+          "id": "nikolai",
+          "label": "Nikolai Berresford",
+          "why": "committed to this today; opened or merged #302; opened or merged #303",
+          "brings": "Ruff migration PRs and their status; what lands in 0.1.14 vs. 0.1.15",
+          "wants": "Signal on whether formatting is a blocker or parallel track"
+        },
+        {
+          "id": "ilse",
+          "label": "Ilse Vandekerckhove",
+          "why": "committed to this today",
+          "brings": "8 commits landing overnight on vLLM; status of her ongoing work",
+          "wants": "Feedback on what to prioritize next (tests, docs, edge cases)"
+        },
+        {
+          "id": "konrad",
+          "label": "Konrad Feltrin",
+          "why": "reviewed today",
+          "brings": "Founder perspective on sprint goals and team direction",
+          "wants": "Nothing; listening and steering"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Overnight merges and what's unblocked",
+        "vLLM local inference status",
+        "Ruff and docstring standardization",
+        "0.1.14 release readiness and timeline",
+        "Onboarding: emil, Core Platform Engineer for Request Processing"
+      ],
+      "reason": "10 commits landed over the weekend; 2 major merges (#299, #306) this morning; 6 new PRs opened; team needs to sync on priorities",
+      "goals": [
+        {
+          "goal": "Acknowledge overnight work and unblock the week",
+          "owner": "dario",
+          "agenda_item": "Overnight merges and what's unblocked",
+          "beats": [
+            "Dario or konrad recaps #306 (Merge dev into main) and #243 (Anthropic batch refactor)",
+            "Team confirms main is stable and ready for 0.1.14 branch",
+            "Identify any hotfixes needed before release cut"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Clarify vLLM integration and next steps",
+          "owner": "ilse",
+          "agenda_item": "vLLM local inference status",
+          "beats": [
+            "Ilse summarizes the 8 commits (offline processor, examples, tests, docs, dependency)",
+            "Dario or dermot flags any missing coverage or edge cases",
+            "Decide: merge to main today or stage for 0.1.14 specifically"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Settle tooling and standardization path for the release",
+          "owner": "dermot",
+          "agenda_item": "Ruff and docstring standardization",
+          "beats": [
+            "Nikolai describes #302/#303 (Ruff migration, pre-commit)",
+            "Dario notes the CHANGES_REQUESTED on #308 (docstring refactor)",
+            "Dermot gates on 0.1.14: all three parallel, or defer some to 0.1.15"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "write up Onboarding: emil, Core Platform Engineer for Request Processing",
+          "owner": "konrad",
+          "agenda_item": "Onboarding: emil, Core Platform Engineer for Request Processing",
+          "beats": [
+            "konrad says they will write Onboarding: emil, Core Platform Engineer for Request Processing — Setup notes and access checklist for emil joining the team."
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "onboarding-emil"
+            },
+            {
+              "kind": "doc",
+              "id": "onboarding-ilse"
+            },
+            {
+              "kind": "mail",
+              "id": "weekly-2024-12-30"
+            },
+            {
+              "kind": "mail",
+              "id": "welcome-emil-2025-01-06"
+            },
+            {
+              "kind": "mail",
+              "id": "welcome-ilse-2025-01-06"
+            }
+          ]
+        }
+      ],
+      "expected_outcome": "Team aligns on release timeline, priorities (vLLM, tooling, docs), and who owns what through Jan 7"
+    },
+    {
+      "date": "2025-01-06",
+      "channel": "pipeline",
+      "channel_name": "#pipeline",
+      "role": "team",
+      "purpose": "vLLM and provider integration status",
+      "purpose_class": "status",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [],
+      "subjects": [],
+      "referenced_objects": [],
+      "meetings": [],
+      "max_turns": 10,
+      "must_not_mention": {
+        "entity_count": 1273,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "prs_above": 308
+      },
+      "participants": [
+        {
+          "id": "ilse",
+          "label": "Ilse Vandekerckhove",
+          "why": "committed to this today",
+          "brings": "vLLM offline processor implementation and integration; edge cases and dependencies discovered",
+          "wants": "Feedback on the architecture and whether it fits the existing provider-integrations pattern"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "reviewed today; owns bulk-llm-inference, provider-integrations; working on it",
+          "brings": "Deep context on the provider integration layer; knows what the batch processor refactors need",
+          "wants": "To validate ilse's approach and flag any conflicts with ongoing docstring/batch work"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "reviewed today; owns bulk-llm-inference, provider-integrations",
+          "brings": "Release engineering view on provider integrations; knows what's safe to land in 0.1.14",
+          "wants": "Clarity on whether vLLM work is ready for release or experimental"
+        }
+      ],
+      "absent_owners": [
+        {
+          "id": "emil",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-01-07"
+        },
+        {
+          "id": "nils",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-03-10"
+        },
+        {
+          "id": "theo",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-03-30"
+        }
+      ],
+      "stand_in": true,
+      "agenda": [
+        "vLLM offline processor architecture and integration",
+        "Provider-integrations docstring refactoring and batch processor changes",
+        "Token counting unification across processors"
+      ],
+      "reason": "Ilse landed vLLM offline processor code; automation refactored docstrings and token counting; dario requested changes on #308",
+      "goals": [
+        {
+          "goal": "Validate vLLM offline processor fits the provider-integrations pattern",
+          "owner": "ilse",
+          "agenda_item": "vLLM offline processor architecture and integration",
+          "beats": [
+            "Ilse walks through the offline request processor implementation",
+            "Dario or dermot checks for conflicts with existing batch/async patterns",
+            "Approve or request refactoring before merging to main"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Clear blockers on provider-integrations docstring and token-counting work",
+          "owner": "dario",
+          "agenda_item": "Provider-integrations docstring refactoring and batch processor changes",
+          "beats": [
+            "Dario or dermot reviews #308 (docstring refactoring) and the token-counting PR (#307)",
+            "Resolve CHANGES_REQUESTED and decide if they land in 0.1.14",
+            "Fast-track or defer based on release timeline"
+          ],
+          "reads": [],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "vLLM processor approved for main; docstring/token-counting work either cleared or deferred; provider-integrations ready for release"
+    }
+  ],
+  "people": [
+    {
+      "id": "dario",
+      "label": "Dario Kestrel",
+      "seniority": "senior",
+      "title": "Core Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Folding SimpleLLM into the LLM Core",
+      "driving": [],
+      "blocked_on": [
+        "#295 waiting 8d"
+      ],
+      "recently_completed": [],
+      "writing_today": [
+        "design-ws-016-examples-cookbooks"
+      ],
+      "did_today": {
+        "commits": 3,
+        "reviews": 4,
+        "comments": 28
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "online-request-processing"
+        ],
+        "prs": [
+          "#299",
+          "#306",
+          "#308"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "dermot",
+      "label": "Dermot Callaghan",
+      "seniority": "senior",
+      "title": "Founding Software Engineer — Core Pipeline & Release",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "January Hardening: Coverage, Ruff, Two Releases",
+      "driving": [
+        "ws-014-release-and-ci"
+      ],
+      "blocked_on": [
+        "#248 waiting 25d"
+      ],
+      "recently_completed": [],
+      "writing_today": [
+        "design-ws-014-release-and-ci"
+      ],
+      "did_today": {
+        "commits": 0,
+        "reviews": 1,
+        "comments": 2
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "bulk-llm-inference",
+          "multimodal-prompts"
+        ],
+        "prs": [
+          "#299",
+          "#306"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "emil",
+      "label": "Emil Brandvold",
+      "seniority": "senior",
+      "title": "Core Platform Engineer, Request Processing",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-01-07",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "release-and-ci",
+          "online-request-processing",
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "gideon",
+      "label": "Gideon Halloway",
+      "seniority": "senior",
+      "title": "Core Engineer — Dataset Viewer & Run Observability",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [
+        "#161 waiting 47d",
+        "#163 waiting 46d",
+        "#241 waiting 27d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 1
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "online-request-processing",
+          "progress-and-cli",
+          "bulk-llm-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases"
+        ]
+      }
+    },
+    {
+      "id": "ilse",
+      "label": "Ilse Vandekerckhove",
+      "seniority": "contractor",
+      "title": "Contributor, Local Inference Backends (vLLM)",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [
+        "#298 waiting 1d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 3,
+        "reviews": 0,
+        "comments": 1
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [
+        "engineering",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "local-offline-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "konrad",
+      "label": "Konrad Feltrin",
+      "seniority": "founder",
+      "title": "Founding Maintainer, Curation Platform",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [
+        "#106 waiting 53d"
+      ],
+      "recently_completed": [
+        "Merge dev into main: v0.1.13"
+      ],
+      "writing_today": [
+        "onboarding-emil",
+        "onboarding-ilse"
+      ],
+      "did_today": {
+        "commits": 0,
+        "reviews": 1,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "engineering"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "code-execution",
+          "finetuning"
+        ],
+        "prs": [
+          "#306"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "pipeline"
+        ]
+      }
+    },
+    {
+      "id": "nikolai",
+      "label": "Nikolai Berresford",
+      "seniority": "senior",
+      "title": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 2,
+        "reviews": 0,
+        "comments": 2
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "code-execution",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "prs": [
+          "#302",
+          "#303"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "nils",
+      "label": "Nils Brandt",
+      "seniority": "contractor",
+      "title": "Batch Backend Engineer (short-term contract)",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-10",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "batch-mode",
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "otto",
+      "label": "Otto Brennan",
+      "seniority": "contractor",
+      "title": "Contributor — Install UX & README Polish",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2024-11-26",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "code-review",
+          "incidents",
+          "pipeline",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "petar",
+      "label": "Petar Kovalenko",
+      "seniority": "mid",
+      "title": "Engineer, Request-Processing Internals",
+      "available": false,
+      "state": "absent",
+      "reason": "no commit, review or comment 2024-12-17..2025-01-07",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "priya",
+      "label": "Priya Vandersloot",
+      "seniority": "mid",
+      "title": "Software Engineer, LLM Interface",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-01-15",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "multimodal-prompts",
+          "release-and-ci"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "theo",
+      "label": "Theo Marchetti",
+      "seniority": "contractor",
+      "title": "Provider Examples Contributor (Mistral Batch)",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-30",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "code-review",
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    }
+  ]
+}

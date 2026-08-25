@@ -1,0 +1,1305 @@
+{
+  "schema_version": 1,
+  "date": "2025-01-30",
+  "weekday": "Thu",
+  "phase_id": "stratos-crunch",
+  "specs": [
+    {
+      "date": "2025-01-30",
+      "channel": "code-review",
+      "channel_name": "#code-review",
+      "role": "cross_cutting",
+      "purpose": "PR review checkpoints",
+      "purpose_class": "deliberation",
+      "norms": {
+        "belongs_here": "the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.",
+        "not_here": "routine work on one service, which belongs in the team channel that owns it."
+      },
+      "event_ids": [
+        "ep-20dbdc4681a8",
+        "ep-7a1b95d82150",
+        "ep-9f37792dd381"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "release-v0-1-17-post1",
+          "title": null,
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "release-v0-1-17-post1",
+          "title": "Release notes: v0.1.17.post1",
+          "status": "planned"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 8,
+      "must_not_mention": {
+        "entity_count": 882,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "prs_above": 425
+      },
+      "participants": [
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "committed to this today; reviewed today; opened or merged #425; working on it; driving January Hardening: Coverage, Ruff, Two Releases",
+          "brings": "Release process rigor and cost accounting context from #425 bump",
+          "wants": "Sign-off on version bump completeness"
+        },
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; reviewed today; opened or merged #424; opened or merged #418; has a pull request waiting; driving Folding SimpleLLM into the LLM Core; working on it; driving Gemini Batch Processor Push",
+          "brings": "Cost processor implementation and Gemini batch fix details",
+          "wants": "Approval on #424 cost processor logic"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "opened or merged #422; has a pull request waiting; working on it; driving README, CONTRIBUTING.md, and Stratos Example Cleanup; driving Provider Breadth Sprint: Kluster.ai and Cost Accounting",
+          "brings": "Kluster.ai backend integration context from #422",
+          "wants": "Checkpoint on provider breadth sprint progress"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Review #424 cost processor for litellm/external providers",
+        "Validate #425 version bump and release readiness",
+        "Kluster.ai backend (#422) integration status"
+      ],
+      "reason": "Four PRs merged today across cost accounting, provider integrations, and release engineering need final checkpoint",
+      "goals": [
+        {
+          "goal": "Confirm #424 cost processor handles litellm and external provider edge cases correctly",
+          "owner": "emil",
+          "agenda_item": "Review #424 cost processor for litellm/external providers",
+          "beats": [
+            "Emil describes cost processor implementation; dermot flags litellm vs external provider divergence",
+            "Dermot pushes back on how external provider fallback is calculated; Emil walks through the logic",
+            "Decision: approved with cost accounting consistent across both paths"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-17-post1"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Ensure #425 version bump is complete and release notes accurate",
+          "owner": "dermot",
+          "agenda_item": "Validate #425 version bump and release readiness",
+          "beats": [
+            "Dermot walks through changelog for v0.1.17.post1 covering four merged items",
+            "Emil confirms PR #418 Gemini params fix is included; gideon confirms cost display bugfix is there",
+            "Sign-off: release notes complete"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-17-post1"
+            }
+          ]
+        },
+        {
+          "goal": "Kluster.ai backend integration merged without regressions",
+          "owner": "dario",
+          "agenda_item": "Kluster.ai backend (#422) integration status",
+          "beats": [
+            "Dario confirms #422 merged cleanly; dermot noted COMMENTED state suggests review feedback addressed",
+            "Group confirms no fallout in provider dispatch code",
+            "Status: landed, no action needed"
+          ],
+          "reads": [],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "All three PRs validated; v0.1.17.post1 release ready to announce"
+    },
+    {
+      "date": "2025-01-30",
+      "channel": "releases",
+      "channel_name": "#releases",
+      "role": "cross_cutting",
+      "purpose": "Hotfix release coordination",
+      "purpose_class": "coordination",
+      "norms": {
+        "belongs_here": "the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.",
+        "not_here": "routine work on one service, which belongs in the team channel that owns it."
+      },
+      "event_ids": [
+        "ep-7a1b95d82150",
+        "ep-73986c85390c",
+        "ep-fc5214f8420c",
+        "ep-20dbdc4681a8"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "release-v0-1-17-post1",
+          "title": null,
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "release-v0-1-17-post1",
+          "title": null,
+          "status": "written"
+        },
+        {
+          "kind": "mail",
+          "id": "announce-v0-1-17-post1",
+          "title": null,
+          "status": "planned"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 6,
+      "must_not_mention": {
+        "entity_count": 882,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "prs_above": 425
+      },
+      "participants": [
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "committed to this today; reviewed today; opened or merged #425; working on it; driving January Hardening: Coverage, Ruff, Two Releases",
+          "brings": "Release engineering ownership and changelog authorship",
+          "wants": "Final checkpoint on v0.1.17.post1 completeness and deployment"
+        },
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; reviewed today; opened or merged #424; opened or merged #418; driving Folding SimpleLLM into the LLM Core; working on it; driving Gemini Batch Processor Push",
+          "brings": "Context on cost processor merge and Gemini batch fix; test coverage confirmation",
+          "wants": "Confirmation release is deployable"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "opened or merged #422; working on it; driving README, CONTRIBUTING.md, and Stratos Example Cleanup; driving Provider Breadth Sprint: Kluster.ai and Cost Accounting",
+          "brings": "Kluster.ai backend validation; provider integration stability",
+          "wants": "Visibility on release timing"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Confirm all four merged items in v0.1.17.post1 are tested",
+        "Verify cost accounting fixes are complete before shipping",
+        "Greenlight deployment of hotfix"
+      ],
+      "reason": "v0.1.17.post1 hotfix released; post-merge checkpoint and deployment signoff needed",
+      "goals": [
+        {
+          "goal": "All four merged changes (#418, #422, #424, #425) are in release and have test coverage",
+          "owner": "dermot",
+          "agenda_item": "Confirm all four merged items in v0.1.17.post1 are tested",
+          "beats": [
+            "Dermot walks through what landed: Gemini params fix, Kluster backend, cost processor, version bump",
+            "Emil confirms #418 and #424 cost/batch tests pass; dario confirms #422 provider dispatch tests clean",
+            "Decision: release is test-covered"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-17-post1"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Cost accounting honesty verified before shipping to users",
+          "owner": "emil",
+          "agenda_item": "Verify cost accounting fixes are complete before shipping",
+          "beats": [
+            "Gideon's cost display bugfix (#no-pr) and emil's cost processor (#424) must be in sync",
+            "Emil confirms: cost processor handles OpenAI batch 50% discount correctly; display shows accurate totals",
+            "Status: cost fixes are complete"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-17-post1"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Release approved for immediate deployment",
+          "owner": "dermot",
+          "agenda_item": "Greenlight deployment of hotfix",
+          "beats": [
+            "Dermot proposes shipping now; no blockers or known issues flagged",
+            "Group agrees: v0.1.17.post1 ready",
+            "Decision: deploy"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "mail",
+              "id": "announce-v0-1-17-post1"
+            }
+          ]
+        }
+      ],
+      "expected_outcome": "v0.1.17.post1 deployed; announcement posted to team"
+    },
+    {
+      "date": "2025-01-30",
+      "channel": "engineering",
+      "channel_name": "#engineering",
+      "role": "team",
+      "purpose": "Landing sprint work",
+      "purpose_class": "status",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ep-73986c85390c",
+        "ep-fc5214f8420c",
+        "ep-20dbdc4681a8",
+        "ep-9f37792dd381",
+        "ep-7a1b95d82150"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "release-v0-1-17-post1",
+          "title": null,
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "release-v0-1-17-post1",
+          "title": null,
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "design-ws-028-release-and-ci",
+          "title": "WS-028 design: Release Engineering, CI & Test Suite, round two",
+          "status": "planned"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 10,
+      "must_not_mention": {
+        "entity_count": 882,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "prs_above": 425
+      },
+      "participants": [
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; reviewed today; opened or merged #424; opened or merged #418; owns work in this area; driving Folding SimpleLLM into the LLM Core; working on it; driving Gemini Batch Processor Push",
+          "brings": "Batch mode and cost processor implementation details; quick-landing pattern from Gemini Batch Processor Push",
+          "wants": "Visibility on what's shipped and next blockers"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "committed to this today; reviewed today; opened or merged #425; owns work in this area; working on it; driving January Hardening: Coverage, Ruff, Two Releases",
+          "brings": "Release rigor checkpoint; version bump and coverage status",
+          "wants": "Readout on test coverage floor and pre-commit hooks"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "opened or merged #422; owns work in this area; working on it; driving README, CONTRIBUTING.md, and Stratos Example Cleanup; driving Provider Breadth Sprint: Kluster.ai and Cost Accounting",
+          "brings": "Provider breadth sprint momentum; Kluster.ai integration outcome",
+          "wants": "Status on what's working and what's next in provider integrations"
+        },
+        {
+          "id": "gideon",
+          "label": "Gideon Halloway",
+          "why": "committed to this today; working on it",
+          "brings": "Cost display bugfix and CLI metrics precision observations",
+          "wants": "Confirmation cost numbers are now trustworthy"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Gemini batch and cost accounting fixes are live",
+        "Kluster.ai provider backend integrated",
+        "v0.1.17.post1 hotfix shipped; what's in the next release cycle"
+      ],
+      "reason": "Four merges across batch mode, cost accounting, provider integrations and release engineering landed same-day; team checkpoint on what's live and next",
+      "goals": [
+        {
+          "goal": "Gemini batch generation params and cost accounting now correct; batch mode live and trustworthy",
+          "owner": "emil",
+          "agenda_item": "Gemini batch and cost accounting fixes are live",
+          "beats": [
+            "Emil: PR #418 fixes generation params passing in Gemini batch API calls",
+            "Gideon: cost display bugfix (#fc5214f) lands; only OpenAI models get 50% batch discount",
+            "Team: batch mode is now usable end-to-end with honest cost numbers"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-17-post1"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Kluster.ai backend integrated; provider dispatch and cost accounting working",
+          "owner": "dario",
+          "agenda_item": "Kluster.ai provider backend integrated",
+          "beats": [
+            "Dario: PR #422 integrates Kluster.ai backend; dispatch chain updated",
+            "Emil: cost processor handles Kluster.ai pricing correctly (PR #424)",
+            "Status: Kluster.ai live and costed accurately"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-17-post1"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Release and CI hardening checkpoint; coverage floor, pre-commit, next cycle clear",
+          "owner": "dermot",
+          "agenda_item": "v0.1.17.post1 hotfix shipped; what's in the next release cycle",
+          "beats": [
+            "Dermot: coverage floor enforced, pre-commit hooks live, Anthropic integration tests in",
+            "Emil design doc (WS-028) going out today for next cycle",
+            "Group: Jan hardening is complete; ready for planned work in Feb"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "design-ws-028-release-and-ci"
+            }
+          ]
+        }
+      ],
+      "expected_outcome": "Team synced on Gemini/cost/Kluster landing; v0.1.17.post1 out; next workstream (WS-028) visibility clear"
+    },
+    {
+      "date": "2025-01-30",
+      "channel": "incidents",
+      "channel_name": "Incidents",
+      "purpose_class": "deliberation",
+      "purpose": "A stale-cache bite in a cookbook rerun turns into the reason this work matters",
+      "reason": "dario burned most of a day on completions that were not from the model he thought he was calling",
+      "expected_outcome": "No fix lands; the nightly keeps its flag, and the keying question gets attached to the cache_stats() work as the underlying cause; it is settled that the team agrees reuse must be scoped per model rather than switched off wholesale",
+      "agenda": [
+        "dario reports rerunning the reannotation example against a different model and getting yesterday's completions back verbatim, and only noticing because the run finished in four seconds",
+        "emil says the nightly job has been setting CURATOR_DISABLE_CACHE for weeks specifically to dodge this, which means the nightly pays full price every single night and he is not happy about it",
+        "dermot pushes back on the shrug: an entry that came from a different request should not have matched at all, and says that is the thing to fix rather than the flag"
+      ],
+      "subjects": [
+        "CURATOR_DISABLE_CACHE",
+        "reannotation example",
+        "cache_stats()",
+        "nightly job"
+      ],
+      "participants": [
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        }
+      ],
+      "goals": [],
+      "meetings": [],
+      "event_ids": [],
+      "referenced_objects": [],
+      "must_not_mention": [],
+      "absent_owners": [],
+      "stand_in": null,
+      "norms": {},
+      "role": "deliberation",
+      "max_turns": 14,
+      "planted_arc": "t1",
+      "planted": [
+        {
+          "clue": "t1.r1.l_model_2",
+          "kind": "clue",
+          "holder": "dermot",
+          "text": "Every time I run a model sweep I end up exporting CURATOR_DISABLE_CACHE=1 for the whole thing, which then means the second and third models pay full price for the prompts I already have at that model.",
+          "settles": "the team agrees reuse must be scoped per model rather than switched off wholesale",
+          "verbatim": [
+            "CURATOR_DISABLE_CACHE=1"
+          ],
+          "forbidden_terms": [
+            "cache key",
+            "model_name is part of",
+            "keyed on"
+          ],
+          "requirement": "t1.r1",
+          "covers": [
+            "rule"
+          ]
+        }
+      ]
+    }
+  ],
+  "people": [
+    {
+      "id": "dario",
+      "label": "Dario Kestrel",
+      "seniority": "senior",
+      "title": "Core Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "README, CONTRIBUTING.md, and Stratos Example Cleanup",
+      "driving": [
+        "ws-016-examples-cookbooks",
+        "ws-022-provider-integrations"
+      ],
+      "blocked_on": [
+        "#407 waiting 5d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "releases"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "online-request-processing"
+        ],
+        "prs": [
+          "#422"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "dermot",
+      "label": "Dermot Callaghan",
+      "seniority": "senior",
+      "title": "Founding Software Engineer — Core Pipeline & Release",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "January Hardening: Coverage, Ruff, Two Releases",
+      "driving": [
+        "ws-014-release-and-ci"
+      ],
+      "blocked_on": [],
+      "recently_completed": [
+        "R1 completions object support"
+      ],
+      "writing_today": [
+        "release-v0-1-17-post1"
+      ],
+      "did_today": {
+        "commits": 2,
+        "reviews": 6,
+        "comments": 8
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "releases"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "bulk-llm-inference",
+          "multimodal-prompts"
+        ],
+        "prs": [
+          "#407",
+          "#418",
+          "#422",
+          "#424",
+          "#425"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "emil",
+      "label": "Emil Brandvold",
+      "seniority": "senior",
+      "title": "Core Platform Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "Folding SimpleLLM into the LLM Core",
+      "driving": [
+        "ws-012-bulk-llm-inference",
+        "ws-021-batch-mode"
+      ],
+      "blocked_on": [
+        "#411 waiting 2d"
+      ],
+      "recently_completed": [
+        "January throughput hardening for online requests"
+      ],
+      "writing_today": [
+        "design-ws-028-release-and-ci"
+      ],
+      "did_today": {
+        "commits": 2,
+        "reviews": 2,
+        "comments": 2
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "releases"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "release-and-ci",
+          "online-request-processing",
+          "provider-integrations"
+        ],
+        "prs": [
+          "#418",
+          "#424",
+          "#425"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "gideon",
+      "label": "Gideon Halloway",
+      "seniority": "senior",
+      "title": "Core Engineer — Dataset Viewer & Run Observability",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Gemini Batch Processor Push",
+      "driving": [],
+      "blocked_on": [
+        "#161 waiting 71d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 2,
+        "reviews": 0,
+        "comments": 1
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "viewer"
+      ],
+      "speaking_in": [
+        "engineering"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "online-request-processing",
+          "progress-and-cli",
+          "bulk-llm-inference"
+        ],
+        "prs": [],
+        "issues": [
+          "#423"
+        ]
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases"
+        ]
+      }
+    },
+    {
+      "id": "ilse",
+      "label": "Ilse Vandekerckhove",
+      "seniority": "contractor",
+      "title": "Contributor, Local Inference Backends (vLLM)",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-28",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "local-offline-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "konrad",
+      "label": "Konrad Feltrin",
+      "seniority": "founder",
+      "title": "Founding Maintainer, Curation Platform",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "code-execution",
+          "finetuning"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "pipeline"
+        ]
+      }
+    },
+    {
+      "id": "nikolai",
+      "label": "Nikolai Berresford",
+      "seniority": "senior",
+      "title": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on README, CONTRIBUTING.md, and Stratos Example Cleanup",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 2,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "code-execution",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "nils",
+      "label": "Nils Brandt",
+      "seniority": "contractor",
+      "title": "Batch Backend Engineer (short-term contract)",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-10",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "batch-mode",
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "otto",
+      "label": "Otto Brennan",
+      "seniority": "contractor",
+      "title": "Contributor — Install UX & README Polish",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2024-11-26",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "code-review",
+          "incidents",
+          "pipeline",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "petar",
+      "label": "Petar Kovalenko",
+      "seniority": "mid",
+      "title": "Engineer, Request-Processing Internals",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-14",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "priya",
+      "label": "Priya Vandersloot",
+      "seniority": "mid",
+      "title": "Software Engineer, LLM Interface",
+      "available": false,
+      "state": "absent",
+      "reason": "no commit, review or comment 2025-01-16..2025-02-03",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "multimodal-prompts",
+          "release-and-ci"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "theo",
+      "label": "Theo Marchetti",
+      "seniority": "contractor",
+      "title": "Provider Examples Contributor (Mistral Batch)",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-30",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci"
+        ],
+        "owns": [
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "code-execution",
+          "finetuning",
+          "telemetry"
+        ],
+        "channels": [
+          "code-review",
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    }
+  ]
+}

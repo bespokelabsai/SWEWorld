@@ -1,0 +1,1153 @@
+{
+  "schema_version": 1,
+  "date": "2025-03-17",
+  "weekday": "Mon",
+  "phase_id": "consolidation-provider-breadth",
+  "specs": [
+    {
+      "date": "2025-03-17",
+      "channel": "pipeline",
+      "channel_name": "#pipeline",
+      "role": "team",
+      "purpose": "Mistral batch integration",
+      "purpose_class": "coordination",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ws-041-bulk-llm-inference"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "plan-consolidation-provider-breadth",
+          "title": "Q2 Plan: Consolidation and Provider Breadth",
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "release-v0-1-20",
+          "title": "Release notes: v0.1.20",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 12,
+      "must_not_mention": {
+        "entity_count": 432,
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "prs_above": 0
+      },
+      "participants": [
+        {
+          "id": "nils",
+          "label": "Nils Brandt",
+          "why": "committed to this today",
+          "brings": "Four commits on Mistral batch: client refactor, token usage parsing, integration tests",
+          "wants": "Review and merge path for #584"
+        },
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "reviewed today; owns batch-mode, provider-integrations",
+          "brings": "Understanding of batch processor patterns and token cost accounting",
+          "wants": "Clarity on integration test coverage and response parsing approach"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "owns batch-mode, provider-integrations",
+          "brings": "Context on provider abstraction and cost processor design",
+          "wants": "Assurance the approach scales to other batch providers"
+        }
+      ],
+      "absent_owners": [
+        {
+          "id": "theo",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-03-30"
+        }
+      ],
+      "stand_in": true,
+      "agenda": [
+        "Review Mistral client refactor and async/await changes",
+        "Token usage extraction and _TokenUsage instance creation",
+        "Integration test coverage and batch request flow"
+      ],
+      "reason": "Nils landed four commits on Mistral batch processing over the weekend; the team needs to assess fit and unblock #584",
+      "goals": [
+        {
+          "goal": "Confirm Mistral batch client architecture fits the provider abstraction",
+          "owner": "nils",
+          "agenda_item": "Review Mistral client refactor and async/await changes",
+          "beats": [
+            "Nils walks through the sync wrapper and _download_and_load_output parsing",
+            "Emil raises any concern about response format consistency across providers",
+            "Dario confirms this pattern holds for deepseek/openai batch modes"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "plan-consolidation-provider-breadth"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Validate token usage tracking for cost accounting",
+          "owner": "emil",
+          "agenda_item": "Token usage extraction and _TokenUsage instance creation",
+          "beats": [
+            "Nils explains the response structure and extraction logic",
+            "Emil checks whether the _TokenUsage instance matches existing cost processor contracts",
+            "Team agrees on any schema normalization needed"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Clear path to merge #584 or identify blockers",
+          "owner": "nils",
+          "agenda_item": "Integration test coverage and batch request flow",
+          "beats": [
+            "Nils describes test coverage: what the integration tests exercise",
+            "Emil or Dario flag any gaps against the batch workflow",
+            "Team decides whether this lands as-is or needs another pass"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-20"
+            }
+          ],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "Nils has a clear understanding of what needs adjustment before #584 can merge, or confirmation that it is ready for review cycle."
+    },
+    {
+      "date": "2025-03-17",
+      "channel": "code-review",
+      "channel_name": "#code-review",
+      "role": "cross_cutting",
+      "purpose": "Clearing stale PR queue",
+      "purpose_class": "coordination",
+      "norms": {
+        "belongs_here": "the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.",
+        "not_here": "routine work on one service, which belongs in the team channel that owns it."
+      },
+      "event_ids": [],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "mail",
+          "id": "weekly-2025-03-10",
+          "title": null,
+          "status": "planned"
+        },
+        {
+          "kind": "doc",
+          "id": "release-v0-1-20",
+          "title": "Release notes: v0.1.20",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 14,
+      "must_not_mention": {
+        "entity_count": 432,
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "prs_above": 0
+      },
+      "participants": [
+        {
+          "id": "konrad",
+          "label": "Konrad Feltrin",
+          "why": "reviewed today; opened or merged #592; driving Hardening curator.LLM's Input Handling",
+          "brings": "Ownership of landing cleanup work; sight into validation refactoring",
+          "wants": "Confirmation that #592 comments are addressed"
+        },
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "reviewed today; has a pull request waiting; working on it",
+          "brings": "Active work on #579, #585, #586; understands blocker patterns",
+          "wants": "Path forward on multi-turn openai/deepseek integration"
+        },
+        {
+          "id": "nils",
+          "label": "Nils Brandt",
+          "why": "committed to this today",
+          "brings": "Fresh batch mode work; knows where provider integration sits",
+          "wants": "Understanding of which reviews block him"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "has a pull request waiting",
+          "brings": "Context on #565, #566 openai/deepseek API layers",
+          "wants": "Clarity on review status and merge readiness"
+        },
+        {
+          "id": "gideon",
+          "label": "Gideon Halloway",
+          "why": "has a pull request waiting",
+          "brings": "#581 environment variable work",
+          "wants": "Whether this is low-priority or blocked on something else"
+        },
+        {
+          "id": "nikolai",
+          "label": "Nikolai Berresford",
+          "why": "has a pull request waiting",
+          "brings": "#583 metadata db parameter",
+          "wants": "Review status"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "#592 cleanup work: validation refactoring status",
+        "Openai/deepseek integration blockers: #565, #566, #579, #585",
+        "Environment and config PRs: #581, #583"
+      ],
+      "reason": "10 PRs are older than the era median merge time (6.6h); queue management and unblocking is the agenda",
+      "goals": [
+        {
+          "goal": "Confirm #592 cleanup is ready to merge or flag final concerns",
+          "owner": "konrad",
+          "agenda_item": "#592 cleanup work: validation refactoring status",
+          "beats": [
+            "Konrad summarizes the refactoring scope and emil's approval",
+            "Emil confirms comments are satisfied or raises outstanding concern",
+            "Konrad decides on merge or final pass"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "mail",
+              "id": "weekly-2025-03-10"
+            }
+          ]
+        },
+        {
+          "goal": "Map blockers for #565, #566, #579, #585 openai/deepseek work",
+          "owner": "emil",
+          "agenda_item": "Openai/deepseek integration blockers: #565, #566, #579, #585",
+          "beats": [
+            "Emil describes the three-PR dependency: dario's #565/#566, then emil's #579 and #585",
+            "Dario signals blockers or readiness on his PRs",
+            "Emil flags whether #586 token-usage fix blocks the chain"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Triage low-priority config PRs for next action",
+          "owner": "nikolai",
+          "agenda_item": "Environment and config PRs: #581, #583",
+          "beats": [
+            "Gideon and nikolai each explain their PR scope",
+            "Team agrees whether these land before the release cut or after",
+            "Any blockers named"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-20"
+            }
+          ],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "Clear picture of which PRs are ready to merge, which are blocked, and which can be deferred past the release cut."
+    },
+    {
+      "date": "2025-03-17",
+      "channel": "engineering",
+      "channel_name": "Engineering",
+      "purpose_class": "deliberation",
+      "purpose": "Check-in that goes nowhere: where do the capability rules come from",
+      "reason": "standing check-in on the feature while emil is out; the question of the rule source has not moved since the draft",
+      "expected_outcome": "nothing decided, dario to check litellm's capability helpers before the next round of the PR; it is settled that the team agrees the support table must match gpt-4o family names by pattern, not by exact key",
+      "agenda": [
+        "dermot asks whether we are maintaining our own table of which model takes which construct, and nobody wants to own that table",
+        "gideon says the one thing he is sure of is that finding out by asking the provider is not an option, because a run that has to make a call to learn whether it may make calls is going to be the next help thread",
+        "dario says he will look at what litellm already exposes for this and report back"
+      ],
+      "subjects": [
+        "litellm",
+        "supports_response_schema",
+        "provider-integrations",
+        "model capability table"
+      ],
+      "participants": [
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "gideon",
+          "label": "Gideon Halloway",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        }
+      ],
+      "goals": [],
+      "meetings": [],
+      "event_ids": [],
+      "referenced_objects": [],
+      "must_not_mention": [],
+      "absent_owners": [],
+      "stand_in": null,
+      "norms": {},
+      "role": "deliberation",
+      "max_turns": 14,
+      "planted_arc": "t2",
+      "planted": [
+        {
+          "clue": "t2.r1.L2",
+          "kind": "clue",
+          "holder": "gideon",
+          "text": "someone in help pasted a run on gpt-4o-2024-08-06 where our capability lookup came back false, so they got shunted onto the plain text path. the map only had the bare `gpt-4o` key in it. providers keep bolting dates onto these names, exact-key lookups are never going to survive that",
+          "settles": "the team agrees the support table must match gpt-4o family names by pattern, not by exact key",
+          "verbatim": [
+            "gpt-4o-2024-08-06"
+          ],
+          "forbidden_terms": [
+            "response_format",
+            "fail early",
+            "ValueError"
+          ],
+          "requirement": "t2.r1",
+          "covers": [
+            "rule"
+          ]
+        }
+      ]
+    }
+  ],
+  "people": [
+    {
+      "id": "dario",
+      "label": "Dario Kestrel",
+      "seniority": "senior",
+      "title": "Core Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [
+        "#565 waiting 15d",
+        "#566 waiting 15d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 2
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "online-request-processing"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "dermot",
+      "label": "Dermot Callaghan",
+      "seniority": "senior",
+      "title": "Founding Software Engineer — Core Pipeline & Release",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Hardening curator.LLM's Input Handling",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 1,
+        "comments": 3
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "bulk-llm-inference",
+          "multimodal-prompts"
+        ],
+        "prs": [
+          "#586"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "emil",
+      "label": "Emil Brandvold",
+      "seniority": "senior",
+      "title": "Core Platform Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Hardening curator.LLM's Input Handling",
+      "driving": [],
+      "blocked_on": [
+        "#468 waiting 38d",
+        "#579 waiting 12d",
+        "#585 waiting 6d"
+      ],
+      "recently_completed": [
+        "Make process_response Mandatory in create_dataset",
+        "Gemini rate limits and token-usage field fixes",
+        "Cost Processor Cleanup: Drop modelkwargs"
+      ],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 1,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "release-and-ci",
+          "online-request-processing",
+          "provider-integrations"
+        ],
+        "prs": [
+          "#592"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "gideon",
+      "label": "Gideon Halloway",
+      "seniority": "senior",
+      "title": "Core Engineer — Dataset Viewer & Run Observability",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [
+        "#581 waiting 11d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "online-request-processing",
+          "progress-and-cli",
+          "bulk-llm-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases"
+        ]
+      }
+    },
+    {
+      "id": "ilse",
+      "label": "Ilse Vandekerckhove",
+      "seniority": "contractor",
+      "title": "Contributor, Local Inference Backends (vLLM)",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-28",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "local-offline-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "konrad",
+      "label": "Konrad Feltrin",
+      "seniority": "founder",
+      "title": "Founding Maintainer, Curation Platform",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "Hardening curator.LLM's Input Handling",
+      "driving": [
+        "ws-041-bulk-llm-inference"
+      ],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 1,
+        "comments": 1
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "code-execution",
+          "finetuning"
+        ],
+        "prs": [
+          "#592"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "pipeline"
+        ]
+      }
+    },
+    {
+      "id": "nikolai",
+      "label": "Nikolai Berresford",
+      "seniority": "senior",
+      "title": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [
+        "#583 waiting 10d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [
+        "code-review"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "code-execution",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "nils",
+      "label": "Nils Brandt",
+      "seniority": "contractor",
+      "title": "Batch Backend Engineer (short-term contract)",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [
+        "#584 waiting 6d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 4,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [
+        "code-review",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "batch-mode",
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "otto",
+      "label": "Otto Brennan",
+      "seniority": "contractor",
+      "title": "Contributor — Install UX & README Polish",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2024-11-26",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "code-review",
+          "incidents",
+          "pipeline",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "petar",
+      "label": "Petar Kovalenko",
+      "seniority": "mid",
+      "title": "Engineer, Request-Processing Internals",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-14",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "priya",
+      "label": "Priya Vandersloot",
+      "seniority": "mid",
+      "title": "Software Engineer, LLM Interface",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-02-17",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "multimodal-prompts",
+          "release-and-ci"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "theo",
+      "label": "Theo Marchetti",
+      "seniority": "contractor",
+      "title": "Provider Examples Contributor (Mistral Batch)",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-30",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "finetuning"
+        ],
+        "channels": [
+          "code-review",
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    }
+  ]
+}

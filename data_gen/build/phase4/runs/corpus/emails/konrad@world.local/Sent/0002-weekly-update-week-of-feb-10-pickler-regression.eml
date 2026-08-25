@@ -1,0 +1,24 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, nikolai@world.local,
+ gideon@world.local, priya@world.local
+Subject: Weekly update: week of Feb 10 =?utf-8?b?4oCU?= pickler regression
+Date: Mon, 17 Feb 2025 09:49:00 +0000
+Message-ID: <178767266458.2014360.16647351902353724792@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Quick sync from the week of Feb 10.
+
+Main thing worth flagging: pickler regression that surfaced during Emil's wor=
+k. The short version is that cache invalidation is triggering more than it sh=
+ould =E2=80=94 looks connected to the known issue where inspect(func) is sens=
+itive to comments and whitespace (issue 124). Emil has been tracking it; wort=
+h keeping an eye on as we move into the next release cycle.
+
+Rest of the week was steady. Milestone work is in motion across batch-mode, l=
+ocal-offline-inference, and multimodal-prompts. No other blockers to call out.
+
+Reply if anything here needs more context.
+
+Konrad

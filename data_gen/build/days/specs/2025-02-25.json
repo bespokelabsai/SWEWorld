@@ -1,0 +1,1262 @@
+{
+  "schema_version": 1,
+  "date": "2025-02-25",
+  "weekday": "Tue",
+  "phase_id": "stratos-crunch",
+  "specs": [
+    {
+      "date": "2025-02-25",
+      "channel": "code-review",
+      "channel_name": "#code-review",
+      "role": "cross_cutting",
+      "purpose": "Session ID and Tag Fixes",
+      "purpose_class": "deliberation",
+      "norms": {
+        "belongs_here": "the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.",
+        "not_here": "routine work on one service, which belongs in the team channel that owns it."
+      },
+      "event_ids": [
+        "ws-034-bulk-llm-inference"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "design-ws-033-code-execution",
+          "title": "WS-033 design: Code Execution & Verifiers",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 10,
+      "must_not_mention": {
+        "entity_count": 589,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "prs_above": 0
+      },
+      "participants": [
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; reviewed today; has a pull request waiting",
+          "brings": "Four commits on session ID and metadata handling across request processing and caching",
+          "wants": "Eyes on PR 533 (resume/hosted curator viewer) and validation of the metadata schema changes"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "committed to this today; reviewed today",
+          "brings": "The curator tag fix (commit 924692c) that touches the same LLM interface surface",
+          "wants": "Confirmation that the tag fix doesn't conflict with session ID work"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "reviewed today; owns work in this area",
+          "brings": "Fresh perspective on whether the schema validation approach in metadatadb is sound",
+          "wants": "Nothing; supporting the push"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Session ID threading through request processor and resume flow",
+        "Curator tag fix and LLM interface consistency",
+        "Metadata schema validation in metadatadb"
+      ],
+      "reason": "Five commits landed today touching core request processing, caching, and viewer integration; two PRs (533, 536) are under active review and older PRs (468, 532) need movement.",
+      "goals": [
+        {
+          "goal": "Confirm PR 533 (resume/hosted curator viewer) is ready to land or needs rework",
+          "owner": "emil",
+          "agenda_item": "Session ID threading through request processor and resume flow",
+          "beats": [
+            "Emil outlines the four commits adding session ID tracking across the run lifecycle",
+            "Dario flags whether the tag fix in 539 creates any conflicts with the metadata surface",
+            "Decision: either merge 533 or identify what's blocking it"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "design-ws-033-code-execution"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Resolve curator tag fix without breaking the viewer integration",
+          "owner": "dario",
+          "agenda_item": "Curator tag fix and LLM interface consistency",
+          "beats": [
+            "Dario explains what broke in the tag and why commit 924692c fixes it",
+            "Emil confirms session ID work doesn't touch the same code paths",
+            "Either 539 lands now or gets deferred after 533"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Validate that metadatadb schema changes don't create downstream friction",
+          "owner": "emil",
+          "agenda_item": "Metadata schema validation in metadatadb",
+          "beats": [
+            "Emil walks through the schema validation logic in commit 557bbcff",
+            "Dermot offers feedback on whether this approach matches the rest of the validation pattern",
+            "Consensus on whether this is ready or needs another pass"
+          ],
+          "reads": [],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "PR 533 either lands or gets a clear list of blockers; PR 539 lands or defers cleanly; the team agrees the metadata schema changes are sound."
+    },
+    {
+      "date": "2025-02-25",
+      "channel": "engineering",
+      "channel_name": "#engineering",
+      "role": "team",
+      "purpose": "Request Processing and Provider Status",
+      "purpose_class": "status",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ws-025-provider-integrations",
+        "ws-026-online-request-processing",
+        "ws-028-release-and-ci",
+        "ws-034-bulk-llm-inference"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "design-ws-033-code-execution",
+          "title": "WS-033 design: Code Execution & Verifiers",
+          "status": "written"
+        },
+        {
+          "kind": "doc",
+          "id": "release-0-1-19",
+          "title": "Release notes: 0.1.19",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 12,
+      "must_not_mention": {
+        "entity_count": 589,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "prs_above": 0
+      },
+      "participants": [
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; reviewed today; owns work in this area",
+          "brings": "Four commits on session ID, request processing internals, and metadatadb; driving three active workstreams in provider integrations, online request processing, and release/CI",
+          "wants": "Visibility on whether the team sees friction or quick wins in the current direction"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "committed to this today; reviewed today; owns work in this area",
+          "brings": "The curator tag fix and three review comments on PR 536 (Claude 3.7 Reasoning)",
+          "wants": "To unblock PR 536 and understand if there are other pain points in the LLM interface"
+        },
+        {
+          "id": "nikolai",
+          "label": "Nikolai Berresford",
+          "why": "owns work in this area",
+          "brings": "Perspective on code execution hardening (ws-033) and overlap with the session ID / resume work",
+          "wants": "To flag if any of the request processor changes affect how code execution tracks state"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "reviewed today; owns work in this area",
+          "brings": "One review comment on PR 533; context on cookbooks and multimodal prompt handling",
+          "wants": "To understand the session ID work and whether it enables the resume flow for long-running jobs"
+        }
+      ],
+      "absent_owners": [],
+      "stand_in": false,
+      "agenda": [
+        "Session ID and resume flow progress",
+        "Curator tag fix and LLM interface status",
+        "Claude 3.7 reasoning PR (536) and any blocking feedback",
+        "How request processor changes affect downstream services"
+      ],
+      "reason": "Five commits landed today; four workstreams are mid-flight; two PRs older than the merge median (468, 532) need attention; one day-old PR (533) needs momentum.",
+      "goals": [
+        {
+          "goal": "Confirm Emil's session ID and request processor work is unblocking the resume flow",
+          "owner": "emil",
+          "agenda_item": "Session ID and resume flow progress",
+          "beats": [
+            "Emil summarizes the commits: session ID in metadata, request processor update for hosted curator, metadatadb schema validation",
+            "Dario and Nikolai flag any cross-service concerns",
+            "Team agrees this is the right direction or identifies what to change"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "design-ws-033-code-execution"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Land or defer PR 536 (Claude 3.7 Reasoning) without further back-and-forth",
+          "owner": "dario",
+          "agenda_item": "Claude 3.7 reasoning PR (536) and any blocking feedback",
+          "beats": [
+            "Dario explains the three review comments he posted on 536",
+            "Team decides if it's a blocker for release or can ship after 0.1.19",
+            "If blocker: what is the fix; if not: merge or defer"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "release-0-1-19"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Understand if the request processor changes create work for other teams",
+          "owner": "emil",
+          "agenda_item": "How request processor changes affect downstream services",
+          "beats": [
+            "Emil notes which services are touched by the commits (bulk-llm-inference, provider-integrations, online-request-processing)",
+            "Nikolai and Gideon (if involved) flag any observability or executor concerns",
+            "Decision: no surprises or identify what needs follow-up"
+          ],
+          "reads": [],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "Team has a shared picture of what the four commits do, knows whether PR 536 is in the way, and agrees there are no hidden cross-service issues."
+    },
+    {
+      "date": "2025-02-25",
+      "channel": "pipeline",
+      "channel_name": "#pipeline",
+      "role": "team",
+      "purpose": "Request Processing and Provider Backend Moves",
+      "purpose_class": "status",
+      "norms": {
+        "belongs_here": "day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.",
+        "not_here": "a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel."
+      },
+      "event_ids": [
+        "ws-025-provider-integrations",
+        "ws-026-online-request-processing",
+        "ws-034-bulk-llm-inference"
+      ],
+      "subjects": [],
+      "referenced_objects": [
+        {
+          "kind": "doc",
+          "id": "design-ws-033-code-execution",
+          "title": "WS-033 design: Code Execution & Verifiers",
+          "status": "written"
+        }
+      ],
+      "meetings": [],
+      "max_turns": 14,
+      "must_not_mention": {
+        "entity_count": 589,
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "prs_above": 0
+      },
+      "participants": [
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "committed to this today; reviewed today; owns bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations",
+          "brings": "Four commits on session ID tracking, request processor refactoring for hosted curator, and metadatadb schema validation; driving provider-integrations, online-request-processing, and release-and-ci workstreams",
+          "wants": "Confidence that the request processor refactoring is solid and doesn't break batch mode or provider backends"
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "committed to this today; reviewed today; owns bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations",
+          "brings": "The curator tag fix; three comments on PR 536 (Claude 3.7 Reasoning) touching the LLM interface",
+          "wants": "To understand if there are any issues with the metadata changes and whether batch response file handling is working"
+        },
+        {
+          "id": "gideon",
+          "label": "Gideon Halloway",
+          "why": "owns bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations",
+          "brings": "Observer perspective on whether the progress bar upload feature (noted in ws-034) is working as expected",
+          "wants": "Visibility into whether the session ID and resume work enables better observability"
+        },
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "reviewed today; owns bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations",
+          "brings": "One comment on PR 533; context from recent work on multimodal and batch handling",
+          "wants": "To confirm the request processor changes don't create new edge cases in batch mode or provider handling"
+        }
+      ],
+      "absent_owners": [
+        {
+          "id": "nils",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-03-10"
+        },
+        {
+          "id": "theo",
+          "state": "not-yet-joined",
+          "reason": "first active 2025-03-30"
+        }
+      ],
+      "stand_in": true,
+      "agenda": [
+        "Session ID and request processor refactoring for hosted curator",
+        "Batch response file handling and async method updates",
+        "Provider backend status (Azure, inference.net)",
+        "Metadata and cost map tracking"
+      ],
+      "reason": "Five commits to core pipeline services today (bulk-llm-inference, online-request-processing, caching-and-resume, provider-integrations); ws-025 and ws-026 are mid-flight; PR 532 (batch response file async) is four days old and stale.",
+      "goals": [
+        {
+          "goal": "Validate the request processor refactoring for hosted curator doesn't break existing run lifecycle",
+          "owner": "emil",
+          "agenda_item": "Session ID and request processor refactoring for hosted curator",
+          "beats": [
+            "Emil walks through commit d0c3445 (update request processor for prev run hosted curator) and the metadatadb schema change",
+            "Dario confirms the LLM interface surface is unaffected by the session ID metadata",
+            "Gideon confirms observability (progress bar, cost tracking) still works correctly"
+          ],
+          "reads": [
+            {
+              "kind": "doc",
+              "id": "design-ws-033-code-execution"
+            }
+          ],
+          "writes": []
+        },
+        {
+          "goal": "Unblock PR 532 (batch response file async) or understand what it's waiting on",
+          "owner": "emil",
+          "agenda_item": "Batch response file handling and async method updates",
+          "beats": [
+            "Emil or Dario flags whether 532 is part of the current push or waiting on something else",
+            "Team decides: merge this week or defer; it has been four days without movement",
+            "If merge: quick review; if defer: document the dependency"
+          ],
+          "reads": [],
+          "writes": []
+        },
+        {
+          "goal": "Confirm provider backend integrations (Azure, inference.net) are tracking correctly with cost maps",
+          "owner": "emil",
+          "agenda_item": "Provider backend status (Azure, inference.net)",
+          "beats": [
+            "Emil notes the issue opened today (Issue 538: Azure OpenAI + Batch API support)",
+            "Team assesses: is this blocking anything or is it groundwork for later",
+            "Quick decision on priority: now, after this release, or backlog"
+          ],
+          "reads": [],
+          "writes": []
+        }
+      ],
+      "expected_outcome": "Request processor refactoring is validated; PR 532 has a clear path forward; team agrees on the priority of Azure OpenAI support (Issue 538)."
+    },
+    {
+      "date": "2025-02-25",
+      "channel": "releases",
+      "channel_name": "Releases",
+      "purpose_class": "deliberation",
+      "purpose": "Release scoping: what is allowed in this week's bump",
+      "reason": "Weekly tag is Thursday and dario wants to know whether to rush the PR",
+      "expected_outcome": "Method provisionally allowed in this cut, keying change pushed to the next one, dario's objection noted and not answered; it is settled that the team agrees first-time users hit a traceback before any run exists",
+      "agenda": [
+        "dermot says a reporting method landing on its own is fine, but anything that changes how entries are matched invalidates every user's cache directory and needs a loud changelog line and its own week",
+        "emil drafts the changelog wording for cache_stats() and asks for a docs sentence covering what the method reports when caching is switched off",
+        "dario asks whether the two can really ship separately given the numbers will be wrong until the matching is fixed; not resolved"
+      ],
+      "subjects": [
+        "version bump",
+        "changelog",
+        "cache_stats()",
+        "CURATOR_DISABLE_CACHE",
+        "docs"
+      ],
+      "participants": [
+        {
+          "id": "dermot",
+          "label": "Dermot Callaghan",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "emil",
+          "label": "Emil Brandvold",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "dario",
+          "label": "Dario Kestrel",
+          "why": "works on this",
+          "brings": "",
+          "wants": ""
+        }
+      ],
+      "goals": [],
+      "meetings": [],
+      "event_ids": [],
+      "referenced_objects": [],
+      "must_not_mention": [],
+      "absent_owners": [],
+      "stand_in": null,
+      "norms": {},
+      "role": "deliberation",
+      "max_turns": 14,
+      "planted_arc": "t1",
+      "planted": [
+        {
+          "clue": "t1.r2.L8",
+          "kind": "clue",
+          "holder": "emil",
+          "text": "same shape in the onboarding notebook. Cell two of the quickstart asks how much the run will cost, user has never generated anything, they get a traceback and file an issue saying curator is broken on their machine. Three of those in the last two weeks and all three were day-one installs.",
+          "settles": "the team agrees first-time users hit a traceback before any run exists",
+          "verbatim": [],
+          "forbidden_terms": [
+            "cache_stats",
+            "zeroed"
+          ],
+          "requirement": "t1.r2",
+          "covers": [
+            "failure_behavior"
+          ]
+        }
+      ]
+    }
+  ],
+  "people": [
+    {
+      "id": "dario",
+      "label": "Dario Kestrel",
+      "seniority": "senior",
+      "title": "Core Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Provider Grab-Bag: inference.net and Cost Maps",
+      "driving": [],
+      "blocked_on": [
+        "#536 waiting 1d"
+      ],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 1,
+        "reviews": 3,
+        "comments": 5
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "online-request-processing"
+        ],
+        "prs": [
+          "#536"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "dermot",
+      "label": "Dermot Callaghan",
+      "seniority": "senior",
+      "title": "Founding Software Engineer — Core Pipeline & Release",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Multimodal Prompts, Rate Limits, Rich CLI",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 1,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "bulk-llm-inference",
+          "multimodal-prompts"
+        ],
+        "prs": [
+          "#533"
+        ],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "emil",
+      "label": "Emil Brandvold",
+      "seniority": "senior",
+      "title": "Core Platform Engineer, Request Processing",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "Provider Grab-Bag: inference.net and Cost Maps",
+      "driving": [
+        "ws-025-provider-integrations",
+        "ws-026-online-request-processing",
+        "ws-028-release-and-ci",
+        "ws-034-bulk-llm-inference"
+      ],
+      "blocked_on": [
+        "#468 waiting 18d",
+        "#532 waiting 4d",
+        "#533 waiting 1d"
+      ],
+      "recently_completed": [
+        "Multimodal support and cost-map hardening",
+        "Batch Backend Stabilization Sprint",
+        "Fix telemetry random-id crash"
+      ],
+      "writing_today": [],
+      "did_today": {
+        "commits": 4,
+        "reviews": 1,
+        "comments": 4
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [
+        "code-review",
+        "engineering",
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "release-and-ci",
+          "online-request-processing",
+          "provider-integrations"
+        ],
+        "prs": [
+          "#536"
+        ],
+        "issues": [
+          "#538"
+        ]
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": []
+      }
+    },
+    {
+      "id": "gideon",
+      "label": "Gideon Halloway",
+      "seniority": "senior",
+      "title": "Core Engineer — Dataset Viewer & Run Observability",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Provider Grab-Bag: inference.net and Cost Maps",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random",
+        "viewer"
+      ],
+      "speaking_in": [
+        "pipeline"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "online-request-processing",
+          "progress-and-cli",
+          "bulk-llm-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases"
+        ]
+      }
+    },
+    {
+      "id": "ilse",
+      "label": "Ilse Vandekerckhove",
+      "seniority": "contractor",
+      "title": "Contributor, Local Inference Backends (vLLM)",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-28",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "local-offline-inference"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "konrad",
+      "label": "Konrad Feltrin",
+      "seniority": "founder",
+      "title": "Founding Maintainer, Curation Platform",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "helping on Code Executor Hardening",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [
+        "README Grooming and Provider Link Cleanup"
+      ],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases",
+        "viewer"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "examples-cookbooks",
+          "code-execution",
+          "finetuning"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "pipeline"
+        ]
+      }
+    },
+    {
+      "id": "nikolai",
+      "label": "Nikolai Berresford",
+      "seniority": "senior",
+      "title": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
+      "available": true,
+      "state": "present",
+      "reason": "",
+      "working_on": "Code Executor Hardening",
+      "driving": [
+        "ws-033-code-execution"
+      ],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [
+        "engineering"
+      ],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "code-execution",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "nils",
+      "label": "Nils Brandt",
+      "seniority": "contractor",
+      "title": "Batch Backend Engineer (short-term contract)",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-10",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "batch-mode",
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "otto",
+      "label": "Otto Brennan",
+      "seniority": "contractor",
+      "title": "Contributor — Install UX & README Polish",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2024-11-26",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "cookbooks",
+        "engineering",
+        "general",
+        "help",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "code-review",
+          "incidents",
+          "pipeline",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "petar",
+      "label": "Petar Kovalenko",
+      "seniority": "mid",
+      "title": "Engineer, Request-Processing Internals",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-01-14",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "incidents",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "releases",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "priya",
+      "label": "Priya Vandersloot",
+      "seniority": "mid",
+      "title": "Software Engineer, LLM Interface",
+      "available": false,
+      "state": "departed",
+      "reason": "last active 2025-02-17",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "code-review",
+        "engineering",
+        "general",
+        "help",
+        "random",
+        "releases"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "multimodal-prompts",
+          "release-and-ci"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "cookbooks",
+          "incidents",
+          "pipeline",
+          "viewer"
+        ]
+      }
+    },
+    {
+      "id": "theo",
+      "label": "Theo Marchetti",
+      "seniority": "contractor",
+      "title": "Provider Examples Contributor (Mistral Batch)",
+      "available": false,
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-30",
+      "working_on": "nothing scheduled",
+      "driving": [],
+      "blocked_on": [],
+      "recently_completed": [],
+      "writing_today": [],
+      "did_today": {
+        "commits": 0,
+        "reviews": 0,
+        "comments": 0
+      },
+      "channels": [
+        "engineering",
+        "general",
+        "help",
+        "pipeline",
+        "random"
+      ],
+      "speaking_in": [],
+      "knows": {
+        "services": [
+          "batch-mode",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "examples-cookbooks",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "release-and-ci",
+          "telemetry"
+        ],
+        "owns": [
+          "provider-integrations"
+        ],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
+          "agentic-curation",
+          "blocks-and-recipes",
+          "finetuning"
+        ],
+        "channels": [
+          "code-review",
+          "cookbooks",
+          "incidents",
+          "releases",
+          "viewer"
+        ]
+      }
+    }
+  ]
+}
