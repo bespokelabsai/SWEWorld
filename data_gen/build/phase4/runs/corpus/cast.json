@@ -353,99 +353,6 @@
         "project_context": null
       }
     },
-    "ilse": {
-      "core": {
-        "name": "Ilse Vandekerckhove",
-        "age": 50,
-        "gender": "Male",
-        "occupation": "software developer",
-        "personality": [
-          "methodical",
-          "pragmatic",
-          "grounded",
-          "detail-oriented"
-        ],
-        "background": "",
-        "strengths": [
-          "Java",
-          "C#",
-          "Python",
-          ".NET",
-          "Spring",
-          "Angular"
-        ],
-        "gaps": [
-          "frontend state management libraries\u2014keeps forgetting which hook does what in React",
-          "deployment infrastructure and containerization\u2014Docker configs still trip him up",
-          "real-time systems and concurrency primitives beyond basic threading",
-          "keeping up with the latest JS framework churn"
-        ],
-        "hobbies": [
-          "Fly-fishing",
-          "Hiking",
-          "Camping",
-          "Woodworking",
-          "Gardening",
-          "Reading historical novels",
-          "Reading technology magazines",
-          "Chess",
-          "Volunteer computing instructor",
-          "Model railroading",
-          "Listening to classic rock and blues",
-          "Craft-beer tasting"
-        ],
-        "travel_habits": "Sean Buckley is a meticulous planner who prefers structured, nature\u2011focused trips, having already explored Yellowstone, Glacier, and Banff National Parks, and now dreams of hiking the Patagonia Torres del Paine circuit and the Scottish Highlands, arranging each itinerary months in advance while balancing a modest travel budget with his commitment to maintain work\u2011life equilibrium.",
-        "dining_preferences": "Sean Buckley is a competent home cook who transforms garden\u2011grown vegetables into roasted root medleys, grills fresh river trout with rosemary and lemon, prepares a hearty wild\u2011mushroom risotto, and pairs these dishes with craft\u2011beer selections from local breweries such as Great Divide and BridgePort, reflecting his love for rustic, flavorful meals.",
-        "spending_habits": "",
-        "other": [
-          "Sean\u2019s cultural background blends a Midwestern Irish\u2011American heritage with the rugged, community\u2011centered ethos of Montana\u2019s \u201cBig Sky\u201d country. Raised in a small town, he grew up valuing self\u2011reliance, neighborly cooperation, and a deep respect for nature. His family traditions include modest celebrations of Irish holidays like St. Patrick\u2019s Day, and a strong work ethic passed down through generations of labor\u2011focused parents. Since moving to Livingston, he has embraced the local culture of outdoor recreation, frontier hospitality, and a modest, pragmatic approach to life, while integrating his technical career into the region\u2019s growing digital economy.",
-          "Sean aims to transition into a lead software architect role within the next three to five years, focusing on building scalable, maintainable systems for his employer and local businesses. He seeks to obtain AWS Solutions Architect certification to broaden his cloud expertise and to mentor a small cohort of junior developers, fostering a culture of quality and predictability. Over the longer term, he envisions moving into a technical leadership position that balances architectural oversight with hands-on coding, while maintaining a stable work\u2011life balance that allows him to spend ample time outdoors. He also hopes to contribute to open\u2011source projects that emphasize reliability and to develop a community\u2011oriented tech workshop series in Livingston."
-        ]
-      },
-      "voice": {
-        "cadence": "burst",
-        "formality": "casual",
-        "capitalization": "normal",
-        "punctuation": "inconsistent",
-        "vocabulary": "technical",
-        "typo_tendency": "frequent",
-        "register": "native",
-        "reaction_style": "expressive",
-        "agreeableness": "neutral",
-        "signature_words": [
-          "that works",
-          "solid"
-        ],
-        "emoji_tendency": {
-          "frequency": "rare",
-          "preferred": [
-            "\ud83d\ude05"
-          ],
-          "trigger": "humor"
-        },
-        "hedge_words": [
-          "i guess",
-          "hold on",
-          "er"
-        ],
-        "affirm_words": [
-          "no doubt",
-          "gotcha"
-        ],
-        "question_style": "plain-what"
-      },
-      "identity": {
-        "situation_type": "casual",
-        "goal": "just chatting",
-        "emotional_state": {
-          "label": "calm",
-          "intensity": 0.2,
-          "source": "exogenous"
-        },
-        "project_spec": null,
-        "project_context": null
-      }
-    },
     "konrad": {
       "core": {
         "name": "Konrad Feltrin",
@@ -611,6 +518,94 @@
           "mhm"
         ],
         "question_style": "plain-what"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
+    "priya": {
+      "core": {
+        "name": "Priya Vandersloot",
+        "age": 53,
+        "gender": "Female",
+        "occupation": "software developer",
+        "personality": [
+          "methodical",
+          "warm",
+          "conscientious",
+          "community-minded"
+        ],
+        "background": "",
+        "strengths": [
+          "Python",
+          "Java",
+          "JavaScript",
+          "C#",
+          "SQL",
+          "React"
+        ],
+        "gaps": [
+          "keeping up with the latest framework releases and trends",
+          "optimizing for performance at scale without guidance",
+          "navigating DevOps and infrastructure concerns",
+          "making quick decisions under tight deadline pressure"
+        ],
+        "hobbies": [
+          "Gardening",
+          "Reading historical fiction",
+          "Yoga",
+          "Mindfulness meditation",
+          "Volunteering at after\u2011school coding clubs",
+          "Knitting",
+          "Crossword puzzles",
+          "Cooking Italian cuisine",
+          "Walking in local parks"
+        ],
+        "travel_habits": "Kimberly Dimarco curates travel plans with the precision of their code, favoring meticulously planned itineraries that include culinary trips to the Amalfi Coast, cultural tours of Kyoto\u2019s temples, and annual family road trips to New England\u2019s fall foliage, while balancing budget constraints and a desire for meaningful experiences.",
+        "dining_preferences": "Kimberly Dimarco delights in preparing Italian\u2011inspired dishes such as fresh basil pesto pasta, roasted vegetable bruschetta, and slow\u2011cooked ragu, using herbs harvested from their own garden, and while their cooking skill is high, they occasionally over\u2011season in an attempt to perfect flavor, treating each meal as a comforting communal ritual.",
+        "spending_habits": "",
+        "other": [
+          "Kimberly comes from an Italian\u2011American family that settled in the suburbs of New Jersey in the 1960s. Family gatherings often featured homemade pasta, olive oil\u2011based salads, and lively storytelling, instilling a strong appreciation for food, tradition, and communal bonds. Raised in Montclair, a culturally diverse town, she was exposed to a mix of artistic, academic, and progressive influences that shaped her inclusive outlook. While she identifies as white and acknowledges her Italian heritage, she also values the broader American ethos of individualism and merit\u2011based achievement, which guided her pursuit of a STEM education and a career in software development. Her upbringing emphasized education, discipline, and kindness, values that continue to inform both her professional demeanor and personal interactions.",
+          "Kimberly aims to transition into a senior technical leadership role, such as a Lead Architect or Engineering Manager, where she can shape development processes, mentor a diverse team, and champion structured, sustainable software practices. She is keen on building a formal mentorship program within her organization to nurture junior talent and foster a supportive, inclusive culture. Over the next five years, she plans to deepen her expertise in cloud-native architectures and secure software design, positioning herself as a go\u2011to expert for high\u2011stakes, reliability\u2011critical projects. Additionally, she seeks a better work\u2011life balance that allows her to allocate regular time for stress\u2011relief activities and community volunteering, aligning her professional growth with personal well\u2011being."
+        ]
+      },
+      "voice": {
+        "cadence": "considered",
+        "formality": "semi-formal",
+        "capitalization": "normal",
+        "punctuation": "standard",
+        "vocabulary": "clipped/terse",
+        "typo_tendency": "light",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "agreeable",
+        "signature_words": [
+          "let me think through that",
+          "good catch"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "never"
+        },
+        "hedge_words": [
+          "i guess",
+          "not entirely sure",
+          "i think"
+        ],
+        "affirm_words": [
+          "gotcha",
+          "yup"
+        ],
+        "question_style": "blunt-direct"
       },
       "identity": {
         "situation_type": "casual",

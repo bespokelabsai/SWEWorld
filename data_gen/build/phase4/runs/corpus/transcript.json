@@ -90,6 +90,16 @@
       "presence": "active",
       "personality": "Research Platform Engineer — Code Execution & Data-Generation Recipes; owns code-execution, release-and-ci, telemetry",
       "personaId": "9932c06bd0864adaa080b8a5386d788c"
+    },
+    {
+      "id": "priya",
+      "name": "Priya Vandersloot",
+      "title": "Software Engineer, LLM Interface",
+      "persona": "Software Engineer, LLM Interface",
+      "avatarColor": "#B33771",
+      "presence": "active",
+      "personality": "Software Engineer, LLM Interface; owns multimodal-prompts, release-and-ci",
+      "personaId": "9932c06bd0864adaa080b8a5386d788c"
     }
   ],
   "channels": [
@@ -106,7 +116,8 @@
         "ilse",
         "konrad",
         "nikolai",
-        "petar"
+        "petar",
+        "priya"
       ],
       "messages": [
         {
@@ -7378,6 +7389,770 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 428 and pr 429 are both in",
+          "ts": "2025-01-31T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "cost-handling fixes on the core llm interface, closes out the consolidation debt",
+          "ts": "2025-01-31T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "anyone had chance to look at pr 428 or 429 yet?",
+          "ts": "2025-01-31T09:00:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "want to confirm the cost interface is clean after the consolidation, no side effects",
+          "ts": "2025-01-31T09:00:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Haven't looked at them yet but I was planning to this morning, confirming the cost interface is clean is on my list",
+          "ts": "2025-01-31T09:28:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Will pull them up now",
+          "ts": "2025-01-31T09:28:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha, appreciate it",
+          "ts": "2025-01-31T09:53:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does either of them touch the executor interface, or is it all on the LLM side?",
+          "ts": "2025-01-31T10:18:57"
+        },
+        {
+          "userId": "dermot",
+          "text": "all llm side, no executor touch",
+          "ts": "2025-01-31T10:57:57"
+        },
+        {
+          "userId": "emil",
+          "text": "While you're in review mode, PR 427 (multimodal prompts) could use a second set of eyes too",
+          "ts": "2025-01-31T11:04:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Touches the core request path and I want to land it or get specific feedback before EOD",
+          "ts": "2025-01-31T11:05:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Friday and we're doing three reviews before noon, very us.",
+          "ts": "2025-01-31T11:27:02"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, PR 427, does it go through the existing request path or does it add a new one alongside?",
+          "ts": "2025-01-31T11:40:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Existing path, not a new one alongside.",
+          "ts": "2025-01-31T12:16:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, WS-028 isn't on the wiki yet, I was hoping it'd settle my part of the CI picture but there's nothing there to read.",
+          "ts": "2025-01-31T12:16:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the SimpleLLM consolidation piece what you're checking against, or something else?",
+          "ts": "2025-01-31T12:26:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot, Emil's waiting on WS-028 to land on the wiki before he can check PR 427 against the CI picture.",
+          "ts": "2025-01-31T12:47:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, does PR 427 have test coverage for the non-multimodal case, or just the new path?",
+          "ts": "2025-01-31T12:47:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot, did the cost method signature change in PR 428 or 429, or is it all internal restructuring?",
+          "ts": "2025-01-31T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-01-31T13:36:00"
+        },
+        {
+          "userId": "dario",
+          "text": "the SimpleLLM consolidation",
+          "ts": "2025-01-31T13:36:08"
+        },
+        {
+          "userId": "dario",
+          "text": "And PR 427 references PR 413 and PR 412 as precursors if you want the background on what it's building on",
+          "ts": "2025-01-31T13:36:16"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, for PR 427, what happens on the request path if the provider doesn't support multimodal inputs, is that handled in the PR or left to the caller?",
+          "ts": "2025-01-31T16:03:25.920056"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario provider fallback for non-multimodal inputs isn't in PR 427, it's left to the caller",
+          "ts": "2025-01-31T16:48:25.920056"
+        },
+        {
+          "userId": "emil",
+          "text": "If that needs to be handled before merge, I need to know now",
+          "ts": "2025-01-31T16:48:37.920056",
+          "replyCount": 3,
+          "replyLastTs": "2025-01-31T17:38:48.920056"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly I'd lean toward handling it before merge, anyone else have a view?",
+          "ts": "2025-01-31T16:48:50.920056",
+          "threadParentTs": "2025-01-31T16:48:37.920056"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil can you add it today or does that push to next week?",
+          "ts": "2025-01-31T16:49:29.920056",
+          "threadParentTs": "2025-01-31T16:48:37.920056"
+        },
+        {
+          "userId": "dermot",
+          "text": "all internal restructuring in 428 and 429, signature didn't change. I'll get WS-028 on the wiki before I'm done for the day",
+          "ts": "2025-01-31T17:29:29.920056",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "is a clean error raise enough, or are we expecting actual fallback logic?",
+          "ts": "2025-01-31T17:38:48.920056",
+          "threadParentTs": "2025-01-31T16:48:37.920056"
+        },
+        {
+          "userId": "emil",
+          "text": "Clean error raise, and I can have it in today.",
+          "ts": "2025-01-31T18:27:18.920056",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 438 is up and touching the general refactor layer, not blocking a release but I'd like to get eyes on it this morning if anyone has a slot",
+          "ts": "2025-02-03T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 439 (anon telemetry, nikolai's) is also fresh and could use a first pass today",
+          "ts": "2025-02-03T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update for the week of Jan 27 is out by email, covers the two releases plus all the in-flight PRs including 438 and 439 and a couple of the still-open issues.",
+          "ts": "2025-02-03T09:27:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "if anyone has 20 minutes, pr 438 (general refactor) could use a first proper read-through today",
+          "ts": "2025-02-03T10:21:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "Already left a few notes on PR 438 earlier this morning, happy to do a fuller pass too. On my end, examples-cookbooks is holding steady, mainly watching how PR 427 (multimodal) lands before I push anything new there",
+          "ts": "2025-02-03T10:23:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'd double check on examples-cookbooks, that one is mine to watch",
+          "ts": "2025-02-03T10:54:20"
+        },
+        {
+          "userId": "emil",
+          "text": "hmm, I thought examples-cookbooks was Dario's?",
+          "ts": "2025-02-03T12:08:59"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 438 (general refactor) still needs a reviewer, not blocking a release but I'd like to get it merged this week.",
+          "ts": "2025-02-03T12:47:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update went out by email this morning if you missed it - I called out PR 430 as still blocked and flagged issue 52 and 94 as open questions with no answers yet",
+          "ts": "2025-02-03T13:00:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, any progress on the OpenRouter thing?",
+          "ts": "2025-02-03T13:00:32"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 430 is still on my plate",
+          "ts": "2025-02-03T13:48:41"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone actually committed to reviewing 438 today?",
+          "ts": "2025-02-03T13:48:46"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, you mentioned a fuller pass on PR 438 earlier, can you lock that in before EOD?",
+          "ts": "2025-02-03T16:17:48",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-03T17:00:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "Already dropped notes on it this morning - you need a formal approval on top of that, or is that enough to move it?",
+          "ts": "2025-02-03T16:18:02",
+          "threadParentTs": "2025-02-03T16:17:48"
+        },
+        {
+          "userId": "dario",
+          "text": "- *PR 438* (general refactor): I can do the formal approval pass today if Konrad's notes aren't enough on thier own\n- *PR 430* (OpenRouter examples): still in progress, not blocking anyone else",
+          "ts": "2025-02-03T17:00:02",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Dario's got the approval pass, I'll defer to him on that",
+          "ts": "2025-02-03T17:00:20",
+          "threadParentTs": "2025-02-03T16:17:48"
+        },
+        {
+          "userId": "konrad",
+          "text": "My notes on PR 438 are in, so that's with Dario now",
+          "ts": "2025-02-03T17:00:54"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 439 still needs a first pass as far as I can tell - anyone had a chance to look at it yet?",
+          "ts": "2025-02-03T17:01:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Working through 438 now.",
+          "ts": "2025-02-03T17:33:06"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai I can take a first pass on PR 439 tomorrow morning if nobody gets to it before then.",
+          "ts": "2025-02-03T17:47:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Went through 438, looks clean to me",
+          "ts": "2025-02-03T18:25:06",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold, it's yours to merge when you're ready",
+          "ts": "2025-02-03T18:25:11"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 439 merged this morning, telemetry and dataclass changes are in",
+          "ts": "2025-02-04T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Now keeping an eye on whether the merges from today stay clean before we call them stable",
+          "ts": "2025-02-04T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good to see those in",
+          "ts": "2025-02-04T09:11:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we know yet if PR 411 and PR 430 are in the same monitoring window or are those being tracked separately?",
+          "ts": "2025-02-04T09:11:13"
+        },
+        {
+          "userId": "priya",
+          "text": "PR 430 is probably worth treating separately from the merge monitoring - it's been open a few days with no movement and needs an actual call on whether to defer it.",
+          "ts": "2025-02-04T10:42:34"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 411 is still open so it's not in that merge monitoring window, it still needs eyes",
+          "ts": "2025-02-04T12:03:54"
+        },
+        {
+          "userId": "emil",
+          "text": "The three merges from this morning are looking clean so far, nothing that seems to need a quick follow-up",
+          "ts": "2025-02-04T12:04:06",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "For PR 362 and PR 411, we should figure out if we're pushing them through or deferring - both have been sitting",
+          "ts": "2025-02-04T13:43:33"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 411 is mine and just needs a reviewer; not sure where PR 362 stands on Ilse's side",
+          "ts": "2025-02-04T13:43:38"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 430 still doesn't have a clear call on it.",
+          "ts": "2025-02-04T14:14:38"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we officially deferring it, or is there still a window to push it through this week?",
+          "ts": "2025-02-04T14:14:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Half the providers hand you back a batch object that's failed or expired within a minute of submit.",
+          "ts": "2025-02-04T14:25:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Writing the id at completion, not on submit - if it's on disk any earlier, every rerun goes and polls a dead job.",
+          "ts": "2025-02-04T14:25:51"
+        },
+        {
+          "userId": "emil",
+          "text": "Completion's the only point where the id actually means anything.",
+          "ts": "2025-02-04T14:26:11"
+        },
+        {
+          "userId": "dario",
+          "text": "Confirmed from the caching side, there are stale batch ids on disk from submissions that never completed cleanly, and reruns are trying to poll them",
+          "ts": "2025-02-04T15:59:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel is PR 430 blocked on a review or is there something in the code itself that still needs work before it's ready for eyes?",
+          "ts": "2025-02-04T16:40:17",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-04T17:34:45"
+        },
+        {
+          "userId": "dario",
+          "text": "Code's in decent shape, not a review block - we're leaning defer on timing while OpenRouter's reasoning support stabilizes",
+          "ts": "2025-02-04T16:58:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 411 needs a reviewer and I can take that since it's CI, PR 362 just needs a word from Ilse on where it stands.",
+          "ts": "2025-02-04T17:01:17"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 430 still doesn't have a clear owner for the defer decision, it's just kind of floating.",
+          "ts": "2025-02-04T17:34:17"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually, I think I own this one, I'll just call it deferred and pick it back up when OpenRouter's reasoning support is more settled",
+          "ts": "2025-02-04T17:34:45",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-02-04T16:40:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "good call",
+          "ts": "2025-02-04T17:40:45",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Three merges from this morning are still clean, nothing that needed a follow-up",
+          "ts": "2025-02-04T17:59:45",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 411 is in Nikolai's queue now",
+          "ts": "2025-02-04T17:59:50"
+        },
+        {
+          "userId": "priya",
+          "text": "Multimodal side looks stable, nothing flagged from the merges today.",
+          "ts": "2025-02-04T18:25:50"
+        },
+        {
+          "userId": "priya",
+          "text": "PR 443 is up, generation_params per row. Touches the LLM interface layer, not blocking a release but I'd like eyes on the approach before it sits much longer.",
+          "ts": "2025-02-05T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- *PR 449*: version bump and litellm fix is up, ready for review, not blocking current release but I want it through beofre we cut the next one.\n- *PR 445*: flagged as ready on my end, still unclear to me whether the multimodal surface coverage is considered complete or if there's more to come from Emil.",
+          "ts": "2025-02-05T09:31:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "has anyone picked up PR 445 for review yet, or is it still waiting?",
+          "ts": "2025-02-05T09:44:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Sorry, just saw this, PR 445 is on my list, I haven't picked it up yet but I can take a look this morning.",
+          "ts": "2025-02-05T10:44:35",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 445 is ready on my end, surface coverage is complete for now",
+          "ts": "2025-02-05T11:06:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Konrad, appreciate you picking it up",
+          "ts": "2025-02-05T11:06:40",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "gotcha, thanks",
+          "ts": "2025-02-05T11:06:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure I'd call it complete until the cost map is validated across providers, that part still feels unconfirmed to me.",
+          "ts": "2025-02-05T11:07:06"
+        },
+        {
+          "userId": "konrad",
+          "text": "fair point actually",
+          "ts": "2025-02-05T11:39:06"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 isn't on the wiki yet, so that's on Dermot still.",
+          "ts": "2025-02-05T11:39:39"
+        },
+        {
+          "userId": "emil",
+          "text": "On the cost map, I'd want to see it validated against at least OpenAI and Anthropic before we call this done, that part isn't confirmed from my side.",
+          "ts": "2025-02-05T11:39:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "the cost map piece is deferred then, not done, that's the part I'm still unsure about",
+          "ts": "2025-02-05T11:40:01"
+        },
+        {
+          "userId": "nikolai",
+          "text": "(also, the v0.1.17.post1 release notes page isn't on the wiki, in case whoever owes it hasn't seen that yet.)",
+          "ts": "2025-02-05T11:40:09"
+        },
+        {
+          "userId": "priya",
+          "text": "If the cost map piece is deferred anyway, we could just file it as a follow-on issue and merge PR 445 as-is rather than holding the whole thing.",
+          "ts": "2025-02-05T11:42:09",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-05T14:46:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "so here's the thing, I'm not sure that's a great pattern, cost visibility feels like it should be confirmed before we ship multimodal, not after. a follow-on issue for that kind of gap tends to sit for a while",
+          "ts": "2025-02-05T11:42:25",
+          "threadParentTs": "2025-02-05T11:42:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "the secondary providers are the gap, so \"merging as-is\" means we ship with unknown cost behavior for anything outside openai and anthropic, and users won't know the numbers are unreliable.",
+          "ts": "2025-02-05T14:46:37",
+          "threadParentTs": "2025-02-05T11:42:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'd want a clear warning surfaced to users before that ships, not just an open issue",
+          "ts": "2025-02-05T14:47:16"
+        },
+        {
+          "userId": "emil",
+          "text": "If we surface an explicit warning for providers where cost estimates aren't validated yet, does that clear the path to merge PR 445?",
+          "ts": "2025-02-05T15:20:32",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Cost map gap is the only open item on my end, the litellm surface coverage is done.",
+          "ts": "2025-02-05T15:20:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 449 still doesn't have a reviewer and it needs to land today if we're not stalling the release train.",
+          "ts": "2025-02-05T15:56:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot Callaghan, you're across the release side, could you take a look before end of day?",
+          "ts": "2025-02-05T15:56:52"
+        },
+        {
+          "userId": "priya",
+          "text": "Is PR 443 deferred at this point, or does the design still need a call before anyone can review it?",
+          "ts": "2025-02-05T16:15:52"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 still isn't on the wiki, Dermot said it'd be up by end of day but it's not there yet",
+          "ts": "2025-02-05T16:49:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- PR 449 (pyproject.toml / litellm bump) is ready for review, pretty small change\n- just merged hotfix PR 461 and readme PR 462 this morning\n- still need eyes on PR 457, PR 459, PR 460 before end of day if we want thoes in this release",
+          "ts": "2025-02-06T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 457 is good to go, just needs eyes.",
+          "ts": "2025-02-06T10:18:22",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 459 and PR 460, what do they touch and who owns them?",
+          "ts": "2025-02-06T10:44:22"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 459 and PR 460 are mine",
+          "ts": "2025-02-06T10:49:22"
+        },
+        {
+          "userId": "emil",
+          "text": "They touch multimodal-prompts and batch-mode respectively, both in flight this milestone",
+          "ts": "2025-02-06T10:49:27"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 460 is mine, not Emil's, it's the debug cost retrieval logging change in online-request-processing. Did the numbers get mixed up somewhere?",
+          "ts": "2025-02-06T11:15:27"
+        },
+        {
+          "userId": "dario",
+          "text": "ok I'll sort the 460 numbering offline, not a blocker",
+          "ts": "2025-02-06T11:24:44"
+        },
+        {
+          "userId": "dario",
+          "text": "while we're here though, what's the call on PR 362 and PR 430, next release or just push them to backlog?",
+          "ts": "2025-02-06T11:24:56"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure backlog is the right call for PR 362, it's been sitting long enough already.",
+          "ts": "2025-02-06T12:05:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, WS-028 still isn't on the wiki, anyone know if Dermot's posted it yet or if it's still being drafted?",
+          "ts": "2025-02-06T12:18:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I already checked the wiki this morning, WS-028 isn't up yet",
+          "ts": "2025-02-06T12:20:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "There's a weekly sync notes page from the week of Feb 3 but that's it",
+          "ts": "2025-02-06T12:20:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario is PR 430 something you want in this release, or are you ok pushing it?",
+          "ts": "2025-02-06T13:00:58"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon I'm fine pushing PR 430 to next release",
+          "ts": "2025-02-06T13:23:58"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth a quick sync this afternoon to settle PR 362 at the same time, given Emil's point about it sitting too long already?",
+          "ts": "2025-02-06T13:24:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "Works for me",
+          "ts": "2025-02-06T13:34:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does @Emil need to be in on it?",
+          "ts": "2025-02-06T13:34:18"
+        },
+        {
+          "userId": "dario",
+          "text": "So for PR 362, if not backlog, are we calling it next release?",
+          "ts": "2025-02-06T14:15:18"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 430 I'm already targeting next release on my end",
+          "ts": "2025-02-06T14:15:26"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 457, PR 459, PR 460, have those had eyes yet today, or are they still waiting?",
+          "ts": "2025-02-06T14:50:26"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon any movement on PR 457 today?",
+          "ts": "2025-02-06T15:40:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 457 is ready, still waiting on eyes",
+          "ts": "2025-02-06T15:51:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "Rich error log fix in progress-and-cli, it's blocking nothing but I'd like it in today's release",
+          "ts": "2025-02-06T15:51:16"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 459 and PR 460 are in the same boat, multimodal-prompts and batch-mode, still need a reviewer.",
+          "ts": "2025-02-06T17:08:58"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 457, PR 459, PR 460 are all still waiting, who actually has capacity to review them before end of day?",
+          "ts": "2025-02-06T17:48:58"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take PR 457 if someone else picks up 459 and 460.",
+          "ts": "2025-02-06T17:54:58",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-02-06T17:55:13"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward not having Emil review PR 459 if it's his own, does that mean we still need someone for both 459 and 460?",
+          "ts": "2025-02-06T17:55:13",
+          "threadParentTs": "2025-02-06T17:54:58"
+        },
+        {
+          "userId": "dario",
+          "text": "So who actually owns PR 460 at this point, is that still open?",
+          "ts": "2025-02-06T17:55:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can take PR 459 since it touches multimodal-prompts",
+          "ts": "2025-02-06T18:07:52",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "so: Emil on PR 457, me on PR 459, still need someone for PR 460",
+          "ts": "2025-02-06T18:07:57"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 still isn't on the wiki, checked earlier today and it's not there.",
+          "ts": "2025-02-06T18:17:46.708982"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, when does that land?",
+          "ts": "2025-02-06T18:17:58.708982"
         }
       ],
       "projectSpec": {
@@ -9251,7 +10026,8 @@
         "konrad",
         "nikolai",
         "otto",
-        "petar"
+        "petar",
+        "priya"
       ],
       "messages": [
         {
@@ -15250,6 +16026,571 @@
               "count": 3
             }
           ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Wrote up the postmortem for the v0.1.17.post1 hotfix on the wiki, \"Postmortem: v0.1.17.post1 hotfix\" under postmortems. Short version: the executor method rename drifted from what the caller expected, rows dropped silently, same-day fix. Worth a read before we do the next release.",
+          "ts": "2025-01-31T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 428 and 429 consolidate the cost interface to single call path, partly for exactly that reason, fewer places for a rename to go unnoticed.",
+          "ts": "2025-01-31T09:37:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Are we still targeting PR 427 to land this week, or is that moving to v0.1.18?",
+          "ts": "2025-01-31T10:15:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Did the executor rename cause any breakage on your end, or did it land cleanly across the board?",
+          "ts": "2025-01-31T10:22:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "cost consolidation is done on my end, pr 428 and pr 429 both in",
+          "ts": "2025-01-31T11:04:18",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "executor rename didnt touch anything I own, all llm side",
+          "ts": "2025-01-31T11:04:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Clean on my end too.",
+          "ts": "2025-01-31T12:19:04",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 427, are we landing it this week or punting to v0.1.18?",
+          "ts": "2025-01-31T12:31:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "simplellm consolidation is done, interface is clean on my end",
+          "ts": "2025-01-31T12:39:00"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 isn't on the wiki yet, Dermot, when is it going up, and does it cover the CI picture for my part?",
+          "ts": "2025-01-31T12:41:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "sorry, was away for a bit, good to hear the executor rename landed clean on all sides, that confirms what i needed.",
+          "ts": "2025-01-31T15:26:30.920056"
+        },
+        {
+          "userId": "emil",
+          "text": "Still waiting on a call for PR 427, this week or v0.1.18?",
+          "ts": "2025-01-31T15:31:30.920056"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm around for the next hour or so if someone wants to go through PR 427 and make the call before we're done for the week.",
+          "ts": "2025-01-31T15:58:30.920056",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario I'm around",
+          "ts": "2025-01-31T16:00:30.920056"
+        },
+        {
+          "userId": "emil",
+          "text": "Does it need review before we can make the call, or can we decide now based on where it sits?",
+          "ts": "2025-01-31T16:00:38.920056"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 428 and 429 are confirmed clean, no regressions on the cost interface.",
+          "ts": "2025-01-31T16:11:38.920056",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, WS-028 still isn't on the wiki, is that going up today, or is it carrying to next week?",
+          "ts": "2025-01-31T16:54:10.920056"
+        },
+        {
+          "userId": "dario",
+          "text": "Nikolai's postmortem on the wiki (Postmortem: v0.1.17.post1 hotfix) is worth having in front of you for the PR 427 call if you haven't read it yet",
+          "ts": "2025-01-31T17:32:10.920056",
+          "replyCount": 2,
+          "replyLastTs": "2025-01-31T17:32:39.920056"
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, which part are you thinking applies to 427 specifically?",
+          "ts": "2025-01-31T17:32:20.920056",
+          "threadParentTs": "2025-01-31T17:32:10.920056"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly, I hadn't read it yet when I posted that, I was going on what Nikolai summarized earlier. ignore it",
+          "ts": "2025-01-31T17:32:39.920056",
+          "threadParentTs": "2025-01-31T17:32:10.920056"
+        },
+        {
+          "userId": "emil",
+          "text": "It's end of day Friday, can we just make the call on PR 427 now, land it or defer it to v0.1.18?",
+          "ts": "2025-01-31T17:36:39.920056"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 427 has no defined behavior when a non-multimodal provider receives multimodal input, so right now it's a silent failure path",
+          "ts": "2025-01-31T18:05:39.920056",
+          "reactions": [
+            {
+              "emoji": "⚠️",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "That's the specific thing that needs to land before I'd be comfortable merging it",
+          "ts": "2025-01-31T18:05:47.920056"
+        },
+        {
+          "userId": "emil",
+          "text": "Got it, I'll handle the provider fallback and get it back to you for another look.",
+          "ts": "2025-01-31T18:24:47.920056",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "verifiers-for-code landed over the weekend, and PR 439 (anon telemetry) is open if anyone wants to take a look before I start in on multimodal scoping.",
+          "ts": "2025-02-03T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Fixed the kluster online example over the weekend, and progress-and-cli is in decent shape heading into the week",
+          "ts": "2025-02-03T09:36:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Gideon Halloway quick question while I'm scoping multimodal: does the progress display currently know anything about prompt type, or does it just track row counts regardless?",
+          "ts": "2025-02-03T10:10:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Just row counts right now, no prompt type awareness at all",
+          "ts": "2025-02-03T10:15:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll need to know what Emil's multimodal shape looks like before I can figure out what changes on my end",
+          "ts": "2025-02-03T10:15:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold what does the data shape look like for multimodal prompts in PR 427, image URLs or base64 or both?",
+          "ts": "2025-02-03T10:58:05"
+        },
+        {
+          "userId": "emil",
+          "text": "both, depending on the provider",
+          "ts": "2025-02-03T11:42:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Handover email to Emil just went out, \"Handing off request-processing core and provider backends.\" Covers where bulk-llm-inference, caching-and-resume, online-request-processing, and provider-integrations actually stand, known gaps (togetherai/klusterai defaults, issue 124, issue 52), and what I'd sequence first",
+          "ts": "2025-02-03T11:47:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Ended by asking if he wants a sync call",
+          "ts": "2025-02-03T11:47:13"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold, lmk if anything in there needs clarifying",
+          "ts": "2025-02-03T11:47:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Got it, I'll read through it this afternoon.",
+          "ts": "2025-02-03T11:50:21"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel I'm around all day if you want a quick sync, just send an invite.",
+          "ts": "2025-02-03T11:50:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Also want to get execution order figured out before EOD on WS-026/WS-027, multimodal vs cost-map defaults",
+          "ts": "2025-02-03T11:50:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Anthropic's vision docs spell out exactly when they want base64 vs URL and the size limits: https://docs.anthropic.com/en/docs/build-with-claude/vision",
+          "ts": "2025-02-03T11:50:52",
+          "unfurl": {
+            "title": "docs.anthropic.com",
+            "url": "https://docs.anthropic.com/en/docs/build-with-claude/vision"
+          }
+        },
+        {
+          "userId": "emil",
+          "text": "Worth a read before we finalize the multimodal shape in PR 427",
+          "ts": "2025-02-03T11:51:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "just pulled up Konrad's weekly recap, and PR 439 is listed as needing a first pass, does anyone have bandwidth to take a look at the telemetry PR this week?",
+          "ts": "2025-02-03T11:53:04"
+        },
+        {
+          "userId": "emil",
+          "text": "verifiers-for-code landing cleanly over the weekend was a good get.",
+          "ts": "2025-02-03T12:04:04",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Thanks. @Emil Brandvold, on WS-026/WS-027, do you have a preference on order, multimodal first or cost-map defaults first?",
+          "ts": "2025-02-03T12:49:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Konrad's weekly also calls out issue 52 and issue 94 as worth syncing on this week.",
+          "ts": "2025-02-03T12:49:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "anyone taking those, or are they just sitting open again?",
+          "ts": "2025-02-03T12:49:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "One thing I noticed while fixing the kluster example over the weekend: if a run gets interrupted right after a batch submits but before the response lands, progress-and-cli drops that count, so the final total comes out short.",
+          "ts": "2025-02-03T13:31:34"
+        },
+        {
+          "userId": "dario",
+          "text": "Handover's out and Emil has it",
+          "ts": "2025-02-03T13:42:34"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold are you good from the email, or do you want to pull up that sync before you start in on it?",
+          "ts": "2025-02-03T13:42:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Cost-map defaults first, then multimodal.",
+          "ts": "2025-02-03T16:11:11"
+        },
+        {
+          "userId": "dario",
+          "text": "The handover email covers the four services' current state, the known gaps on togetherai/klusterai defaults and issues 124 and 52, and what I'd sequence first",
+          "ts": "2025-02-03T16:54:41"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold, does that cover what you need, or is there a gap I should fill before I'm fully off it?",
+          "ts": "2025-02-03T16:54:49"
+        },
+        {
+          "userId": "emil",
+          "text": "Just read through it, @Dario Kestrel, that's enough to get started, no sync needed",
+          "ts": "2025-02-03T17:30:49"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll work through the togetherai and klusterai defaults first, then figure out sequencing on multimodal once PR 438 is through",
+          "ts": "2025-02-03T17:30:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario Kestrel can you forward me the handover email? Want to see the multimodal sequencing notes before I figure out what changes on my end.",
+          "ts": "2025-02-03T18:13:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Telemetry PR merged this morning, dataclass changes are in. Keeping an eye on things through the morning to make sure nothing needs a quick follow-up.",
+          "ts": "2025-02-04T09:00:00"
+        },
+        {
+          "userId": "priya",
+          "text": "Good to hear. Did the dataclass changes touch anything in multimodal-prompts, or was that isolated to telemetry?",
+          "ts": "2025-02-04T09:17:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Isolated to telemetry, didn't touch multimodal-prompts.",
+          "ts": "2025-02-04T09:52:00"
+        },
+        {
+          "userId": "priya",
+          "text": "Did the CI run clean on the multimodal tests after the merge, or is that still pending?",
+          "ts": "2025-02-04T10:08:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Actually, i want to be careful here, I can speak to my changes being isolated, but the multimodal CI results aren't something I have visibility into",
+          "ts": "2025-02-04T10:15:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That's really Emil's area",
+          "ts": "2025-02-04T10:15:05"
+        },
+        {
+          "userId": "priya",
+          "text": "gotcha, I'll check with Emil.",
+          "ts": "2025-02-04T10:36:05"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 430 is stuck waiting on OpenRouter's reasoning model support to stabilize, so I'm not sure if we merge it now or defer until that's clearer",
+          "ts": "2025-02-04T11:10:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Multimodal test fixture hardening looks clean, CI came back green on all those paths so I'm not seeing anything that needs a quick follow-up there",
+          "ts": "2025-02-04T11:27:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "On PR 430, if OpenRouter's reasoning support is still shifting I'd lean toward deferring rather than merging something that's likely to need rework",
+          "ts": "2025-02-04T11:27:17",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-04T11:27:29"
+        },
+        {
+          "userId": "dario",
+          "text": "Fair enough, but do we have a line for when we'd actually pick it back up, or is defer just indefinite at this point?",
+          "ts": "2025-02-04T11:27:29",
+          "threadParentTs": "2025-02-04T11:27:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Cost-map hardening path is clear, generation_params per row is locked in and the validator is covering it. On PR 430, defer until OpenRouter's reasoning support is stable enough to actually test against - that's the trigger, not an open-ended hold.",
+          "ts": "2025-02-04T12:01:29",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Went to pull up the WS-028 design and it's not on the wiki yet.",
+          "ts": "2025-02-04T12:09:16"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, is that still being written, or did I miss where it lives?",
+          "ts": "2025-02-04T12:09:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Assuming WS-028 is just not drafted yet since Dermot hasn't come back on it",
+          "ts": "2025-02-04T12:47:20"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, is the handover doc for request-processing core anywhere I can pull up, or is that still in progress too?",
+          "ts": "2025-02-04T12:47:32"
+        },
+        {
+          "userId": "priya",
+          "text": "PR 443 is open with the per-row generation_params implementation, and I'd like to get the design validated before it goes stale",
+          "ts": "2025-02-05T09:00:00"
+        },
+        {
+          "userId": "priya",
+          "text": "Happy to walk through the approach with anyone this morning if there are questions",
+          "ts": "2025-02-05T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Priya Vandersloot when there are params set at both the top level and per row, does the row-level override completely or is there a merge?",
+          "ts": "2025-02-05T09:37:08"
+        },
+        {
+          "userId": "priya",
+          "text": "Row-level overrides completely right now, but I'd actually like @Dario Kestrel to weigh in on whether a merge makes more sense there before this lands.",
+          "ts": "2025-02-05T10:08:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the per-row params include max_tokens or is it scoped to sampling settings only?",
+          "ts": "2025-02-05T10:22:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "if it ends up as merge rather than full override, that also sidesteps the issue where a caller has to repeat shared defaults on every row that only wants to tweak one thing.",
+          "ts": "2025-02-05T10:54:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Weekly sync notes for the week of Feb 3 are up on the wiki, \"Weekly sync notes: week of Feb 3, v0.1.18 and v0.1.18.post4 shipped.\" Covers the two releases, what's in flight, and the open items carrying into next sprint.",
+          "ts": "2025-02-05T11:11:08"
+        },
+        {
+          "userId": "priya",
+          "text": "Sampling params only right now",
+          "ts": "2025-02-05T11:28:08"
+        },
+        {
+          "userId": "priya",
+          "text": "@Dario Kestrel, should max_tokens be in scope for per-row or do we keep it narrow?",
+          "ts": "2025-02-05T11:28:16"
+        },
+        {
+          "userId": "dario",
+          "text": "@Priya I'd put max_tokens in scope, honestly",
+          "ts": "2025-02-05T14:21:06"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold what does PR 445 cover on the multimodal surface - is this the full picture or are there gaps still out of scope?",
+          "ts": "2025-02-05T14:33:21"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel PR 445 covers image inputs through the litellm path, so text plus image for anything litellm routes",
+          "ts": "2025-02-05T14:55:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Are there providers or request paths that don't go through litellm that we need to account for before calling coverage complete?",
+          "ts": "2025-02-05T14:55:33"
+        },
+        {
+          "userId": "priya",
+          "text": "@Dario Kestrel, since you're already in this area, any chance you had eyes on PR 443 overall?",
+          "ts": "2025-02-05T14:58:33"
+        },
+        {
+          "userId": "priya",
+          "text": "The approach still hasn't been validated or deferred and I'd like a clear path before end of day.",
+          "ts": "2025-02-05T14:58:41"
+        },
+        {
+          "userId": "emil",
+          "text": "We shipped two post-releases against v0.1.18 this week, are we planning to keep that cadence or are we consolidating into fewer, larger cuts going forward?",
+          "ts": "2025-02-05T15:17:19"
+        },
+        {
+          "userId": "emil",
+          "text": "The weekly notes are up, multimodal surface sign-off is flagged there as not formally assigned",
+          "ts": "2025-02-05T15:22:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Is anyone actually owning that call, or is it just floating?",
+          "ts": "2025-02-05T15:22:59"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the postmortem, Nikolai flagged that the CI piece needs whoever owns the pipeline config to spec it out, and that's me. @Nikolai Berresford do you have test cases drafted already or is that not started yet?",
+          "ts": "2025-02-05T16:43:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold not started, I'm waiting on the pipeline config spec from you before I can scope those.",
+          "ts": "2025-02-05T17:19:36"
+        },
+        {
+          "userId": "dario",
+          "text": "@Priya PR 443 is validated on my end - the override approach is fine and max_tokens should be in scope",
+          "ts": "2025-02-05T18:02:36",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "priya",
+          "text": "Not entirely sure on override vs merge - is that actually settled, or should we revisit before I update the implementation?",
+          "ts": "2025-02-05T18:02:55"
+        },
+        {
+          "userId": "dario",
+          "text": "override is settled for this PR - the merge question is worth a follow-up issue but doesn't need to hold this back",
+          "ts": "2025-02-05T18:12:55"
+        },
+        {
+          "userId": "nikolai",
+          "text": "so PR 443 path is: Priya adds max_tokens, then it's ready to land, merge question goes to a follow-on issue.",
+          "ts": "2025-02-05T18:24:32.968161",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Priya the max_tokens addition is a small change - you're already clear on the scope of that, right?",
+          "ts": "2025-02-05T18:25:11.968161"
         }
       ],
       "projectSpec": {
@@ -15776,6 +17117,220 @@
       }
     },
     {
+      "id": "help",
+      "name": "help",
+      "topic": "Ask why a run, a test or a backend is misbehaving. Paste the traceback, the model name and the command you ran.",
+      "isPrivate": false,
+      "memberIds": [
+        "dario",
+        "dermot"
+      ],
+      "messages": [
+        {
+          "userId": "dermot",
+          "text": "got a user report this morning: they ran a second pass with different sampling settings and got back identical data",
+          "ts": "2025-02-05T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "looks like the resume path may be ignoring the new params entirely",
+          "ts": "2025-02-05T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the resume path re-read the request params on continuation, or does it use what it cached from the first run?",
+          "ts": "2025-02-05T11:14:09"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah this is exactly what I ran into too",
+          "ts": "2025-02-05T11:17:09",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "bumped temperature and max_tokens for an ablation, restarted, and it just resumed the earlier job like nothing changed",
+          "ts": "2025-02-05T11:17:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "so this isn't user error, it's a real bug and nobody owns a fix yet.",
+          "ts": "2025-02-05T12:00:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-02-05T12:00:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the user's report say whether they were using the batch path or online requests?",
+          "ts": "2025-02-05T12:17:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel when you hit this, was that on resume specifically or also on a clean run with different settings?",
+          "ts": "2025-02-05T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know if the seed is factored into the cache key at all?",
+          "ts": "2025-02-05T13:52:00"
+        },
+        {
+          "userId": "dario",
+          "text": "nice call on landing it as a genuine bug",
+          "ts": "2025-02-05T14:18:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "mine was resume specifically - same prompts, I bumped temperature and max_tokens for an ablation, restarted, and it just picked up the old run with the original settings",
+          "ts": "2025-02-05T14:18:08"
+        },
+        {
+          "userId": "dario",
+          "text": "and both arms ended up on identical settings since it just resumed the old ones",
+          "ts": "2025-02-05T14:18:28"
+        },
+        {
+          "userId": "dario",
+          "text": "also wondering if the batch path is even part of this, i don't think it reads the request body at all on resume - is that a separate bug or the same one?",
+          "ts": "2025-02-05T14:26:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I was treating batch and online as the same case when I asked about it earlier, I don't actually know that they behave the same way on resume.",
+          "ts": "2025-02-05T14:42:00"
+        },
+        {
+          "userId": "dario",
+          "text": "the batch path probably never even parses the request body, so it wouldn't see updated params regardless",
+          "ts": "2025-02-05T14:48:00"
+        }
+      ],
+      "projectSpec": {
+        "name": "Millrow",
+        "one_line": "A million rows of synthetic training data, and the receipts for every one.",
+        "milestone": "Stratos Crunch: Backend Explosion and Loosened Process",
+        "components": [
+          {
+            "name": "batch-mode",
+            "owner": "Emil Brandvold",
+            "status": "in flight"
+          },
+          {
+            "name": "bulk-llm-inference",
+            "owner": "Dario Kestrel",
+            "status": "in flight"
+          },
+          {
+            "name": "caching-and-resume",
+            "owner": "Dario Kestrel",
+            "status": "in flight"
+          },
+          {
+            "name": "code-execution",
+            "owner": "Nikolai Berresford",
+            "status": "in flight"
+          },
+          {
+            "name": "curator-viewer",
+            "owner": "Dario Kestrel",
+            "status": "in flight"
+          },
+          {
+            "name": "examples-cookbooks",
+            "owner": "Dario Kestrel",
+            "status": "in flight"
+          },
+          {
+            "name": "local-offline-inference",
+            "owner": "Emil Brandvold",
+            "status": "in flight"
+          },
+          {
+            "name": "multimodal-prompts",
+            "owner": "Emil Brandvold",
+            "status": "in flight"
+          },
+          {
+            "name": "online-request-processing",
+            "owner": "Dario Kestrel",
+            "status": "in flight"
+          },
+          {
+            "name": "progress-and-cli",
+            "owner": "Gideon Halloway",
+            "status": "in flight"
+          }
+        ],
+        "ground_truth": {
+          "completed": [
+            "13 release(s) shipped, currently v0.1.17.post1",
+            "226 changes merged to date"
+          ],
+          "in_progress": [
+            {
+              "what": "PR 362: Fix_json adds curly braces",
+              "who": "Ilse Vandekerckhove"
+            },
+            {
+              "what": "PR 430: Reasoning with OpenRouter examples",
+              "who": "Dario Kestrel"
+            },
+            {
+              "what": "PR 443: feat: added generation_params per row",
+              "who": "Priya Vandersloot"
+            },
+            {
+              "what": "PR 445: Feat/multimodal/litellm",
+              "who": "Emil Brandvold"
+            },
+            {
+              "what": "PR 449: bump pyproject.toml and fix litellm version",
+              "who": "Nikolai Berresford"
+            }
+          ],
+          "not_started": [
+            "agentic-curation",
+            "blocks-and-recipes",
+            "finetuning"
+          ],
+          "decisions": [
+            "House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after."
+          ],
+          "known_unknowns": [
+            "issue 52: Support multiple samples per request",
+            "issue 92: [UI] Detail View support better JSON / markdown etc file extension views",
+            "issue 93: [UI] Display status of the run",
+            "issue 94: metadata.db updates run status (enum), run progress (percentage), etc",
+            "issue 102: Clarify that we must return a dictionary without Pydantic objects for each row",
+            "issue 105: Distribution graph is skewed for data viewer ",
+            "issue 121: Should we handle pydantic to dict and back for the user when adding to a row? ",
+            "issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates"
+          ],
+          "forbidden": [
+            "agentic-curation",
+            "blocks-and-recipes",
+            "finetuning",
+            "— and 686 function/class names and 55 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: max_tokens."
+          ]
+        },
+        "resources": []
+      }
+    },
+    {
       "id": "incidents",
       "name": "incidents",
       "topic": "Things broken right now: red main, a provider returning garbage mid-run, a release that needs pulling. State impact, claim it, post the fix.",
@@ -15785,7 +17340,8 @@
         "dermot",
         "emil",
         "gideon",
-        "konrad"
+        "konrad",
+        "nikolai"
       ],
       "messages": [
         {
@@ -16377,6 +17933,101 @@
           "userId": "dermot",
           "text": "i'm not entirely sure folding it into cache_stats is the right call if that work isn't imminent, the nightly flag protects the CI run but anyone doing their own sweep today is still silently burning money on the wrong model's cache",
           "ts": "2025-01-30T16:24:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 461 got reverted after merge and I'm still trying to understand what the actual root cause was",
+          "ts": "2025-02-06T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I know what the fix did, but not yet why it caused a problem downstream",
+          "ts": "2025-02-06T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "so when you say \"caused a problem downstream\", which service was it hitting?",
+          "ts": "2025-02-06T09:39:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "that's actually part of what I'm still trying to work out, i don't have that detail yet.",
+          "ts": "2025-02-06T09:50:12",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-06T09:50:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "how long until you have that detail?",
+          "ts": "2025-02-06T09:50:39",
+          "threadParentTs": "2025-02-06T09:50:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "hopefully this afternoon, still tracing it",
+          "ts": "2025-02-06T09:59:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "also I went looking for the WS-028 doc on the wiki just now and it's not there yet, so I don't know if that design covers the CI piece or not",
+          "ts": "2025-02-06T09:59:51"
+        },
+        {
+          "userId": "nikolai",
+          "text": "either way I'd like us to decide by this afternoon whether we're re-landing the fix today or deferring it to the next patch",
+          "ts": "2025-02-06T09:59:56",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha, this afternoon then.",
+          "ts": "2025-02-06T10:49:31"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot any idea when WS-028 will actually be on the wiki?",
+          "ts": "2025-02-06T11:24:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Nikolai's question about the CI piece is exactly what I was wondering too",
+          "ts": "2025-02-06T11:24:43"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai want to sync this afternoon before you make the re-land vs defer call?",
+          "ts": "2025-02-06T11:36:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I approved the original PR and I'd like to understand what actually went wrong before that decision",
+          "ts": "2025-02-06T11:36:51"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 is also still not on the wiki, so that CI piece is unresolved too, worth looping Dermot into that sync if you can.",
+          "ts": "2025-02-06T12:10:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Nikolai, do you have enough on the root cause yet to make the re-land vs defer call?",
+          "ts": "2025-02-06T12:23:40"
+        },
+        {
+          "userId": "emil",
+          "text": "We need that settled before end of day one way or the other.",
+          "ts": "2025-02-06T12:23:45"
         }
       ],
       "projectSpec": {
@@ -20611,6 +22262,654 @@
           "userId": "emil",
           "text": "What's coming back wrong, is the total off, or is it returning zero?",
           "ts": "2025-01-29T12:35:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 435 and pr 437 are merged, so the token estimation fix and cost-map defaults are in. I want to validate today that the output cost prediction is actually landing correctly before we move on to multimodal wiring",
+          "ts": "2025-02-03T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "What are you planning to run against to validate the output side?",
+          "ts": "2025-02-03T09:40:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "When a new model gets added, is there a written-down checklist for updating the support list and the price entry, or is it just tribal knowledge at this point?",
+          "ts": "2025-02-03T09:41:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "it's tribal right now, and that's probably why the support list slips when a new model lands",
+          "ts": "2025-02-03T10:14:37"
+        },
+        {
+          "userId": "gideon",
+          "text": "Yeah for real. Can we just make updating the support list step one, like a hard requirement before a model is considered added?",
+          "ts": "2025-02-03T10:19:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure \"hard requirement before it's considered added\" is quite what I meant, I was more thinking routine written step, not a gate that blocks everything",
+          "ts": "2025-02-03T10:43:37"
+        },
+        {
+          "userId": "emil",
+          "text": "For multimodal in the online path, I'm assuming we start with image serialization at the pipeline layer before it hits the request loop.",
+          "ts": "2025-02-03T11:56:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that the right entry point, or should each provider backend own its own serialization since URL vs base64 varies per provider anyway?",
+          "ts": "2025-02-03T11:57:00"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 design doesn't exist yet as far as I can tell, no wiki page, no issue",
+          "ts": "2025-02-03T11:57:11"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot Callaghan is that doc still incoming?",
+          "ts": "2025-02-03T11:57:16",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-03T11:57:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "still drafting, I'll get it onto the wiki this afternoon. current outline:\n\n```\nWS-028: Release Engineering, CI & Test Suite — Round 2\n- ci hardening: cache, matrix, offline runner\n- release process documentation\n- test coverage targets\n```",
+          "ts": "2025-02-03T11:57:50",
+          "threadParentTs": "2025-02-03T11:57:16"
+        },
+        {
+          "userId": "emil",
+          "text": "The CI hardening piece overlaps with PR 411",
+          "ts": "2025-02-03T12:41:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that meant to subsume what's already in flight, or is PR 411 still tracked separately?",
+          "ts": "2025-02-03T12:42:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "I get the distinction, but the routine hasn't actually changed in months - it's always been list update, price entry, smoke run against a two-field pydantic model - and step one keeps slipping anyway",
+          "ts": "2025-02-03T13:12:02"
+        },
+        {
+          "userId": "dario",
+          "text": "Cost-map defaults are in with PR 437 merged, but togetherai and klusterai rate-limit defaults are still incomplete on my end, so those are the two I'd flag during validation",
+          "ts": "2025-02-03T13:32:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "For kluster specifically, are the rate-limit defaults missing entirely or just set to something wrong?",
+          "ts": "2025-02-03T14:05:02",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-03T17:06:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Noted on togetherai and klusterai",
+          "ts": "2025-02-03T16:05:02"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll work through those gaps once I'm through Dario's handover doc this afternoon",
+          "ts": "2025-02-03T16:05:10"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot Callaghan did you actually run validation on the output cost prediction after PR 435 merged, or is that still pending?",
+          "ts": "2025-02-03T16:05:23"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly didn't expect to get both PR 435 and 437 merged in the same day, that's a better result than I was planning for.",
+          "ts": "2025-02-03T16:47:23",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd have to pull it up, I said \"incomplete\" but I'm not sure if the entry is missing entirely or just set to the wrong value",
+          "ts": "2025-02-03T17:06:31",
+          "threadParentTs": "2025-02-03T14:05:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "still pending, I haven't run it yet",
+          "ts": "2025-02-03T17:29:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm around for another hour so I can do it now before I wrap up",
+          "ts": "2025-02-03T17:29:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "running it now.",
+          "ts": "2025-02-03T17:30:02",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Kluster fix is in on my end, curious what Dermot's run shows.",
+          "ts": "2025-02-03T18:18:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress on progress-and-cli is solid, bulk inference pipeline tests are passing",
+          "ts": "2025-02-04T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Turning attention to request-processing coverage around the new multimodal surface this morning",
+          "ts": "2025-02-04T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "good timing, I had the same thing on my list this morning",
+          "ts": "2025-02-04T09:08:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "which paths are you planning to cover first, the image input routes or the mixed modality ones?",
+          "ts": "2025-02-04T09:08:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "image routes first, I think, since those touch the most existing paths",
+          "ts": "2025-02-04T09:39:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "are the existing text-only request paths included in that sweep, or is it scoped strictly to the new image routes?",
+          "ts": "2025-02-04T10:14:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "I wouldn't scope it that narrowly, the text-only paths need to be in there too.",
+          "ts": "2025-02-04T10:26:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "on the cost accounting side, do we have a settled pattern yet for how generation_params gets attached per row?",
+          "ts": "2025-02-04T10:32:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "Not settled, that's actually one I've been sitting on",
+          "ts": "2025-02-04T11:16:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think we need to lock it in before the cost-map validation work goes any further",
+          "ts": "2025-02-04T11:16:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Have we explicitly verified the multimodal changes don't regress any of the existing request-processing paths, or is that still something Gideon's sweep is working toward?",
+          "ts": "2025-02-04T11:30:21"
+        },
+        {
+          "userId": "emil",
+          "text": "If it's the latter I'd want that as a hard checkpoint before we call this stable.",
+          "ts": "2025-02-04T11:30:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Think Gideon's answer on scope covers my regression question",
+          "ts": "2025-02-04T12:06:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we settled on generation_params per row as the cost accounting pattern, or is that still open?",
+          "ts": "2025-02-04T12:06:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Oh",
+          "ts": "2025-02-04T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Gideon already answered the generation_params question - not settled",
+          "ts": "2025-02-04T12:41:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Does the config validator handle non-standard provider backends, or is there still a gap there?",
+          "ts": "2025-02-04T12:41:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Checked the wiki for the handover doc on request-processing core and provider backends - it's not there yet.",
+          "ts": "2025-02-04T13:39:17"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, is that still being written, or is it somewhere else?",
+          "ts": "2025-02-04T13:39:25"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil still being written, not posted yet, so it's not there.",
+          "ts": "2025-02-04T14:02:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Got it. @Dermot, the WS-028 design isn't on the wiki either - still being written?",
+          "ts": "2025-02-04T14:20:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil yeah, still being written",
+          "ts": "2025-02-04T14:35:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "nice call on that checkpoint, gideon's scope covering both the image routes and the text-only paths is exactly what I needed to see",
+          "ts": "2025-02-04T14:35:33",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "On generation_params, someone needs to make a call today",
+          "ts": "2025-02-04T15:20:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Do we attach it at the row level or does it stay at the request level?",
+          "ts": "2025-02-04T15:20:45",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-04T16:05:07"
+        },
+        {
+          "userId": "dario",
+          "text": "Multimodal scope confirmed covering both image routes and text-only paths, that's the right call and a solid checkpoint",
+          "ts": "2025-02-04T15:52:45",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-028 is still being drafted, and I haven't closed the config validator gap for non-standard backends yet, both carrying into tomorrow",
+          "ts": "2025-02-04T16:03:45"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean row-level, but honestly I'm not sure that's settled enough to call it yet, does anyone have a strong view on this?",
+          "ts": "2025-02-04T16:04:28",
+          "threadParentTs": "2025-02-04T15:20:45"
+        },
+        {
+          "userId": "dario",
+          "text": "If nobody calls it by end of day it's just going to carry into tomorrow unresolved again",
+          "ts": "2025-02-04T16:04:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Row level for me too.",
+          "ts": "2025-02-04T16:05:07",
+          "threadParentTs": "2025-02-04T15:20:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Sounds like there's enough agreement to just call it row-level. @Dario, can you make that the official call so it doesn't slip to tomorrow?",
+          "ts": "2025-02-04T16:05:33"
+        },
+        {
+          "userId": "dario",
+          "text": "generation_params attaches at the row level, that's the call.",
+          "ts": "2025-02-04T17:01:09",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Provider integration side looks clean, no regressions from the multimodal or cost-map changes on my end",
+          "ts": "2025-02-04T17:22:09",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Config validator gap for non-standard backends is still open and carrying into tomorrow",
+          "ts": "2025-02-04T17:22:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "multimodal-prompts and bulk-llm-inference both look clean, no regressions on my end.",
+          "ts": "2025-02-04T17:47:21",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Same on request-processing, no regressions on my end from the multimodal changes.",
+          "ts": "2025-02-04T18:25:21",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 445 cost map is wired up across the main providers, and fixture caching is in",
+          "ts": "2025-02-05T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "want eyes on whether the invalidation logic holds when a multimodal fixture changes mid-run",
+          "ts": "2025-02-05T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "how's the cache key computed when a multimodal fixture changes?",
+          "ts": "2025-02-05T09:39:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Going to pull up the invalidation logic in caching-and-resume myself and check how the keys are built for multimodal fixtures, will report back.",
+          "ts": "2025-02-05T09:39:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "i've spot-checked the cost map against openai and anthropic by hand, both look right",
+          "ts": "2025-02-05T11:17:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "still not confident about the other providers in pr 445 and haven't had a second set of eyes on those yet",
+          "ts": "2025-02-05T11:17:19"
+        },
+        {
+          "userId": "dario",
+          "text": "fair, the secondary providers are the ones I'd want a second look at before we call it done",
+          "ts": "2025-02-05T11:25:19"
+        },
+        {
+          "userId": "dario",
+          "text": "- on my end in caching-and-resume, the key currently hashes the prompt text and model params but I haven't verified it covers multimodal fixture content itself\n- if an image or audio fixture swaps out mid-run the key won't change and we'd resume with stale cached responses\n- want to make sure that's explicitly handled before we call the invalidation story done",
+          "ts": "2025-02-05T11:25:35"
+        },
+        {
+          "userId": "emil",
+          "text": "The cost map is spot-checked for OpenAI and Anthropic, but the secondary providers in PR 445 haven't had a second set of eyes yet, which ones are still unvalidated?",
+          "ts": "2025-02-05T11:58:35"
+        },
+        {
+          "userId": "emil",
+          "text": "On the default tag question: I think the right call is a fixed literal in the source, you change it by editing that line and putting up a PR. No runtime env lookup, no floating alias. If the container layer picks up a new version, it's because we explicitly shipped it, not because something resolved at startup.",
+          "ts": "2025-02-05T11:59:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "- I've manually checked openai and anthropic, both look right\n- anything beyond those two in pr 445 I haven't touched yet\n- not sure what else is in scope on Emil's side, I'd need to know which providers are wired up to know what's left",
+          "ts": "2025-02-05T13:54:54"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 isn't on the wiki yet, I pulled it up and there's nothing there, so that's still on Dermot.",
+          "ts": "2025-02-05T14:05:54"
+        },
+        {
+          "userId": "emil",
+          "text": "Does anyone know if Dermot has a draft somewhere, or is it just not started?",
+          "ts": "2025-02-05T14:06:02"
+        },
+        {
+          "userId": "dario",
+          "text": "cache invalidation against multimodal fixture changes isn't confirmed yet - the key hashes prompt text and model params but I haven't verified it covers fixture content",
+          "ts": "2025-02-05T14:42:02"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, you got 15 min this afternoon to walk through whether that's actually a gap?",
+          "ts": "2025-02-05T14:42:14"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the progress bar pulling accurate cost and token counts for multimodal rows yet, or is that still an open check?",
+          "ts": "2025-02-05T15:04:14"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario yeah, I'm around this afternoon.",
+          "ts": "2025-02-05T15:15:14"
+        },
+        {
+          "userId": "gideon",
+          "text": "The progress bar reads cost data from whatever the cache returns, right, there's no separate path for multimodal token counts?",
+          "ts": "2025-02-05T15:23:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "WS-028 isn't started yet, I'll have it on the wiki by end of day.",
+          "ts": "2025-02-05T15:31:14",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil still need to nail down the fixture key question before we can call cache invalidation safe - free now?",
+          "ts": "2025-02-05T16:01:14"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario free now",
+          "ts": "2025-02-05T16:39:14"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon your question about the progress bar might be connected to this, worth joining if you can",
+          "ts": "2025-02-05T16:39:22"
+        },
+        {
+          "userId": "dario",
+          "text": "good, jumping in now - nice that we're actually closing this out before end of day",
+          "ts": "2025-02-05T16:44:22",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Jumping in. @Dermot, can you take a pass at the secondary providers in PR 445 before we wrap today?",
+          "ts": "2025-02-05T17:22:22",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-05T18:06:45"
+        },
+        {
+          "userId": "dario",
+          "text": "I can take a couple of the secondary providers if Dermot needs a hand",
+          "ts": "2025-02-05T18:06:45",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-02-05T17:22:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure what's in scope, I don't know which secondary providers are actually wired up in pr 445.",
+          "ts": "2025-02-05T18:24:16.221958"
+        },
+        {
+          "userId": "gideon",
+          "text": "caching-and-resume is in decent shape. Hit something in the cache layer I want to flag today though",
+          "ts": "2025-02-06T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil when a row's schema can't be hashed, does batch-mode skip it or still send it?",
+          "ts": "2025-02-06T09:00:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "Do unhashable-schema rows show up anywhere in the output, or are they just silently dropped?",
+          "ts": "2025-02-06T10:11:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok",
+          "ts": "2025-02-06T10:35:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "answering my own question for the cache layer at least - they drop silently right now",
+          "ts": "2025-02-06T10:35:37"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does local-offline-inference do the same, @Emil?",
+          "ts": "2025-02-06T10:35:49"
+        },
+        {
+          "userId": "dario",
+          "text": "that shouldn't be silent, that's a bug",
+          "ts": "2025-02-06T11:21:45",
+          "reactions": [
+            {
+              "emoji": "🐛",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "I think it's more than just a logging fix though - should those rows go to the backend and show up as sends?",
+          "ts": "2025-02-06T11:29:00"
+        },
+        {
+          "userId": "emil",
+          "text": "+1",
+          "ts": "2025-02-06T12:03:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "For batch-mode, is the expected behavior to skip unhashable-schema rows or send them through?",
+          "ts": "2025-02-06T12:14:27"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, I can answer my own question on batch-mode, it drops them silently too, same as the cache layer",
+          "ts": "2025-02-06T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Does the same fix apply there, send them through and report as sends?",
+          "ts": "2025-02-06T12:41:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah, same fix. here's what the drop looks like on my end:\n\n```python\nexcept TypeError:\n continue # unhashable schema, row silently dropped, never sent\n```",
+          "ts": "2025-02-06T12:54:05",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Sending them through feels right to me, but I'm not sure \"report as sends\" covers it cleanly, if the schema can't be hashed, the cache was bypassed, and the caller has no way of knowing that",
+          "ts": "2025-02-06T13:01:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually, does anyone know what's actually triggering the TypeError in practice, is it a specific schema shape, or is it any dict with mutable values?",
+          "ts": "2025-02-06T13:01:18",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-06T13:04:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah, any unhashable type in the schema, lists are the most common. That bypass observability gap you hit on is real",
+          "ts": "2025-02-06T13:04:21",
+          "threadParentTs": "2025-02-06T13:01:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Completely silent, or does it at least show up somewhere in debug logs?",
+          "ts": "2025-02-06T13:34:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Completely silent. And I get that a fly-built schema is never going to be reusable, that's fine, but being worse off than someone who never had a cache at all isn't",
+          "ts": "2025-02-06T14:11:08",
+          "reactions": [
+            {
+              "emoji": "💯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Those rows should just go to the provider and show up as sends",
+          "ts": "2025-02-06T14:11:13"
         }
       ],
       "projectSpec": {
@@ -22734,6 +25033,211 @@
           "userId": "emil",
           "text": "I wouldn't pull over this - the failure shows up as a visible zero, not a silent wrong number.",
           "ts": "2025-01-30T18:25:47.429059"
+        },
+        {
+          "userId": "nikolai",
+          "text": "v0.1.18 is tagged but we have a wrinkle: PR 461 got reverted after merge, so the announcement will need to be careful about what we say shipped. @Emil Brandvold we still need release notes from you today.",
+          "ts": "2025-02-06T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "What was in PR 461?",
+          "ts": "2025-02-06T09:38:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Emil's going to need to know what to leave out of the notes",
+          "ts": "2025-02-06T09:38:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 461 was a prompt formatter fix, but it was reverted after merge, so it shouldn't appear in the notes at all",
+          "ts": "2025-02-06T10:18:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Nothing from that landed in v0.1.18",
+          "ts": "2025-02-06T10:18:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, are you already across the revert?",
+          "ts": "2025-02-06T10:33:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "Just want to make sure the announcement wording is lined up with what actually shipped",
+          "ts": "2025-02-06T10:33:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold can you confirm you're on the release notes today, given everything that's happened with the revert?",
+          "ts": "2025-02-06T10:42:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes for v0.1.18 are up on the wiki (engineering/release-notes-v0-1-18.md)",
+          "ts": "2025-02-06T11:27:12",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 461 is out of the notes entirely since the revert means nothing from it landed",
+          "ts": "2025-02-06T11:27:24"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad yes, across it. Just sent the v0.1.18 announcement, does the wording on the PR 461 revert read clearly, or is there anything you'd want added before people start asking questions?",
+          "ts": "2025-02-06T11:43:24",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-06T12:48:00"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-028 isn't on the wiki yet, I just checked and it's not there",
+          "ts": "2025-02-06T12:47:22"
+        },
+        {
+          "userId": "konrad",
+          "text": "Haven't pulled it up yet, does it name the revert explicitly or just leave those changes out?",
+          "ts": "2025-02-06T12:47:45",
+          "threadParentTs": "2025-02-06T11:43:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wording looks fine, the revert is named and the follow-on patch is mentioned. Does that patch have a version target yet or is that still TBD?",
+          "ts": "2025-02-06T12:48:00",
+          "threadParentTs": "2025-02-06T11:43:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "around this afternoon if anyone needs to sync on what goes into the follow-on patch.",
+          "ts": "2025-02-06T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai do you already have a version in mind for the follow-on patch, or is that something we'd nail down in the sync this afternoon?",
+          "ts": "2025-02-06T13:29:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can join that sync this afternoon if it helps to have examples/code-execution represented",
+          "ts": "2025-02-06T13:38:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone set a time for the sync yet, or is it still being figured out?",
+          "ts": "2025-02-06T14:06:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "no version nailed down yet, free in an hour if that works for everyone?",
+          "ts": "2025-02-06T14:12:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Probably worth looping @Dermot in on that sync too given WS-028 is still outstanding.",
+          "ts": "2025-02-06T14:30:00"
+        },
+        {
+          "userId": "dario",
+          "text": "an hour works for me",
+          "ts": "2025-02-06T15:01:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "+1 on looping Dermot, and can someone share the announce email once it's been sent?",
+          "ts": "2025-02-06T15:26:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "i want to make sure I've seen the final wording on the revert before the sync",
+          "ts": "2025-02-06T15:26:08"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm around, an hour from now works for me too.",
+          "ts": "2025-02-06T15:32:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I sent the announcement earlier today, @Nikolai, does the wording on the revert read clearly enough for the sync, or should I adjust anything before then?",
+          "ts": "2025-02-06T16:11:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "wording reads fine to me, it's clear and accurate",
+          "ts": "2025-02-06T16:16:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "you good for the sync?",
+          "ts": "2025-02-06T16:16:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good for the sync, examples side looks fine in the notes",
+          "ts": "2025-02-06T16:36:16",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Good for the sync. Release notes are up on the wiki (engineering/release-notes-v0-1-18.md) if anyone wants to cross-check before we jump on.",
+          "ts": "2025-02-06T17:02:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "Anyone want to give the release notes a quick read before we jump on?",
+          "ts": "2025-02-06T17:31:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "Especially the next-patch section",
+          "ts": "2025-02-06T17:31:24"
+        },
+        {
+          "userId": "emil",
+          "text": "- Release notes are up at engineering/release-notes-v0-1-18.md, I wrote them this morning\n- Next-patch section flags the prompt formatter root cause as top priority and calls out PR 362 and PR 430 as next-release targets\n- Happy to update the wording if anything needs adjusting after the sync",
+          "ts": "2025-02-06T18:00:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "v0.1.18 is out, notes are up, announcement sent.",
+          "ts": "2025-02-06T18:25:14",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {

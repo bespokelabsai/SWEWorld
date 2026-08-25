@@ -744,5 +744,250 @@
       "09:16  dermot    is the cache key scoped per model at all right now, or is it purely content-based?",
       "10:17  dermot    @Dario, you own caching-and-resume, do you know offhand whether there's any existing mec"
     ]
+  },
+  {
+    "clue": "t2.r2.l3",
+    "holder": "gideon",
+    "date": "2025-02-03",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "I get the distinction, but the routine hasn't actually changed in months - it's always been list update, price entry, smoke run against a two-field pydantic model - and step one keeps slipping anyway",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 13:12 message gives the full routine and names step one as the one that slips.",
+    "elements": [
+      {
+        "part": "the new-model routine (support list, price entry, smoke run) hasn't changed in months",
+        "present": true,
+        "why": "Gideon states the routine hasn't changed in months and lists the same three steps"
+      },
+      {
+        "part": "the routine is: model name into the support list",
+        "present": true,
+        "why": "Gideon's list includes list update"
+      },
+      {
+        "part": "the routine includes price entry",
+        "present": true,
+        "why": "Gideon's list includes price entry"
+      },
+      {
+        "part": "the routine includes one smoke run against a two-field pydantic model",
+        "present": true,
+        "why": "Gideon names this exact step"
+      },
+      {
+        "part": "step one (the support list update) is the step people actually forget",
+        "present": true,
+        "why": "Gideon says step one keeps slipping anyway, and Dermot earlier says the support list slips when a new model lands"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:41  emil      The CI hardening piece overlaps with PR 411",
+      "12:42  emil      Is that meant to subsume what's already in flight, or is PR 411 still tracked separately",
+      "13:12  gideon    I get the distinction, but the routine hasn't actually changed in months - it's always b   <-- the clue",
+      "13:32  dario     Cost-map defaults are in with PR 437 merged, but togetherai and klusterai rate-limit def",
+      "14:05  gideon    For kluster specifically, are the rate-limit defaults missing entirely or just set to so"
+    ]
+  },
+  {
+    "clue": "t3.r1.h2",
+    "holder": "emil",
+    "date": "2025-02-04",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Writing the id at completion, not on submit - if it's on disk any earlier, every rerun goes and polls a dead job.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil Brandvold's 14:25-14:26 messages cover the provider failure behavior, the rerun-polling consequence, and the completion-only rationale.",
+    "elements": [
+      {
+        "part": "agreement to write the batch id at completion",
+        "present": true,
+        "why": "Emil states the id gets written at completion, not submit"
+      },
+      {
+        "part": "half the providers return a batch object that goes to failed or expired within a minute of submit",
+        "present": true,
+        "why": "Emil says this directly"
+      },
+      {
+        "part": "if the id is already on disk earlier, reruns will poll a dead job",
+        "present": true,
+        "why": "Emil says every rerun goes and polls a dead job if it's on disk any earlier"
+      },
+      {
+        "part": "completion is the only point where the id actually means anything",
+        "present": true,
+        "why": "Emil says this almost verbatim"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "14:14  dario     Are we officially deferring it, or is there still a window to push it through this week?",
+      "14:25  emil      Half the providers hand you back a batch object that's failed or expired within a minute",
+      "14:25  emil      Writing the id at completion, not on submit - if it's on disk any earlier, every rerun g   <-- the clue",
+      "14:26  emil      Completion's the only point where the id actually means anything.",
+      "15:59  dario     Confirmed from the caching side, there are stale batch ids on disk from submissions that"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "Completion's the only point where the id actually means anything."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t4.r1.L10",
+    "holder": "emil",
+    "date": "2025-02-05",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "On the default tag question: I think the right call is a fixed literal in the source, you change it by editing that line and putting up a PR. No runtime env lookup, no floating alias. If the container layer picks up a new version, it's because we explicitly shipped it, not because something resolved at startup.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 11:59 message states all parts: fixed literal tag, changed by deliberate PR edit, no env lookup, no floating alias, and deliberate shipping.",
+    "elements": [
+      {
+        "part": "the default must be a fixed literal tag in the source",
+        "present": true,
+        "why": "Emil says the right call is a fixed literal in the source"
+      },
+      {
+        "part": "it changes only when someone deliberately edits that line and puts up a PR",
+        "present": true,
+        "why": "Emil says you change it by editing that line and putting up a PR"
+      },
+      {
+        "part": "rules out a floating alias",
+        "present": true,
+        "why": "Emil explicitly says no floating alias"
+      },
+      {
+        "part": "rules out runtime env lookup",
+        "present": true,
+        "why": "Emil explicitly says no runtime env lookup"
+      },
+      {
+        "part": "if the container layer gets a new version it's because it was explicitly shipped, not resolved at startup",
+        "present": true,
+        "why": "Emil states this directly"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "wiki"
+    ],
+    "context": [
+      "11:25  dario     - on my end in caching-and-resume, the key currently hashes the prompt text and model pa",
+      "11:58  emil      The cost map is spot-checked for OpenAI and Anthropic, but the secondary providers in PR",
+      "11:59  emil      On the default tag question: I think the right call is a fixed literal in the source, yo   <-- the clue",
+      "13:54  dermot    - I've manually checked openai and anthropic, both look right\n- anything beyond those tw",
+      "14:05  emil      WS-028 isn't on the wiki yet, I pulled it up and there's nothing there, so that's still "
+    ]
+  },
+  {
+    "clue": "t3.r2.l_pay_dario",
+    "holder": "dario",
+    "date": "2025-02-05",
+    "channel": "help",
+    "attempt": 1,
+    "said": true,
+    "quote": "mine was resume specifically - same prompts, I bumped temperature and max_tokens for an ablation, restarted, and it just picked up the old run with the original settings",
+    "said_by": "Dario Kestrel",
+    "why": "Dario states the ablation change was sampling params on the same prompts, that resume ignored them producing identical settings on both arms, and separately notes the batch path likely never parses request bodies at all.",
+    "elements": [
+      {
+        "part": "changes were sampling parameters (temperature and max_tokens), not the prompt text",
+        "present": true,
+        "why": "Dario says 'same prompts, I bumped temperature and max_tokens for an ablation'"
+      },
+      {
+        "part": "he restarted the run",
+        "present": true,
+        "why": "he says 'restarted'"
+      },
+      {
+        "part": "it resumed the earlier job instead of applying the new settings",
+        "present": true,
+        "why": "he says it 'just picked up the old run with the original settings'"
+      },
+      {
+        "part": "as a result both arms of his ablation ended up with identical settings",
+        "present": true,
+        "why": "he says 'both arms ended up on identical settings since it just resumed the old ones'"
+      },
+      {
+        "part": "the batch path never even parses the request body",
+        "present": true,
+        "why": "he says 'the batch path probably never even parses the request body, so it wouldn't see updated params regardless'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:52  dermot    does anyone know if the seed is factored into the cache key at all?",
+      "14:18  dario     nice call on landing it as a genuine bug",
+      "14:18  dario     mine was resume specifically - same prompts, I bumped temperature and max_tokens for an    <-- the clue",
+      "14:18  dario     and both arms ended up on identical settings since it just resumed the old ones",
+      "14:26  dario     also wondering if the batch path is even part of this, i don't think it reads the reques"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "and both arms ended up on identical settings since it just resumed the old ones"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r1.l_unhash_3",
+    "holder": "gideon",
+    "date": "2025-02-06",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "And I get that a fly-built schema is never going to be reusable, that's fine, but being worse off than someone who never had a cache at all isn't / Those rows should just go to the provider and show up as sends",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 14:11 messages give the full point: fine with non-reuse, not fine with being worse off than no cache, rows should go to provider and show as sends.",
+    "elements": [
+      {
+        "part": "a schema built on the fly is never going to be reusable, and that's fine",
+        "present": true,
+        "why": "Gideon says he's fine that a fly-built schema is never going to be reusable"
+      },
+      {
+        "part": "what's not fine is being worse off than someone who never had a cache at all",
+        "present": true,
+        "why": "Gideon says being worse off than someone who never had a cache at all isn't fine"
+      },
+      {
+        "part": "those rows should go to the provider",
+        "present": true,
+        "why": "Gideon says those rows should just go to the provider"
+      },
+      {
+        "part": "those rows should show up in the sent column / as sends",
+        "present": true,
+        "why": "Gideon says they should show up as sends"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:04  gideon    yeah, any unhashable type in the schema, lists are the most common. That bypass observab",
+      "13:34  dario     Completely silent, or does it at least show up somewhere in debug logs?",
+      "14:11  gideon    Completely silent. And I get that a fly-built schema is never going to be reusable, that   <-- the clue",
+      "14:11  gideon    Those rows should just go to the provider and show up as sends"
+    ]
   }
 ]

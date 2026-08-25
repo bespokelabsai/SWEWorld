@@ -958,5 +958,77 @@
     "done": true,
     "at": "2025-01-30T09:14:00+00:00",
     "date": "2025-01-30"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2025-01-30",
+    "title": "Postmortem: v0.1.17.post1 hotfix",
+    "by": "nikolai",
+    "action": "write",
+    "to": "",
+    "doc_kind": "postmortem",
+    "done": true,
+    "at": "2025-01-31T09:14:00+00:00",
+    "date": "2025-01-31"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-01-27",
+    "title": "Weekly update: week of Jan 27 — v0.1.17 and v0.1.17.post1 shipped",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-02-03T09:07:00+00:00",
+    "date": "2025-02-03"
+  },
+  {
+    "kind": "mail",
+    "id": "handover-request-processing-core-and-provider-bac",
+    "title": "Handing off request-processing core and provider backends",
+    "by": "dario",
+    "action": "send",
+    "to": "",
+    "doc_kind": "handover",
+    "done": true,
+    "at": "2025-02-03T09:21:00+00:00",
+    "date": "2025-02-03"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-02-03",
+    "title": "Weekly sync notes: week of Feb 3 — v0.1.18 and v0.1.18.post4 shipped",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-02-05T09:14:00+00:00",
+    "date": "2025-02-05"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-18",
+    "title": "Release notes: v0.1.18",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-02-06T09:14:00+00:00",
+    "date": "2025-02-06"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-18",
+    "title": "v0.1.18 is out",
+    "by": "dario",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-02-06T09:28:00+00:00",
+    "date": "2025-02-06"
   }
 ]
