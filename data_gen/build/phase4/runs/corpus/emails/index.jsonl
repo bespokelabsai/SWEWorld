@@ -368,3 +368,17 @@
 {"path": "nikolai@world.local/INBOX/0001-weekly-update-week-of-mar-17.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-03-24T09:07:00+00:00", "flags": []}
 {"path": "nils@world.local/INBOX/0001-weekly-update-week-of-mar-17.eml", "mailbox": "nils@world.local", "folder": "INBOX", "date": "2025-03-24T09:07:00+00:00", "flags": []}
 {"path": "gideon@world.local/INBOX/0001-weekly-update-week-of-mar-17.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-03-24T09:07:00+00:00", "flags": []}
+{"path": "konrad@world.local/Sent/0001-weekly-update-week-of-mar-24.eml", "mailbox": "konrad@world.local", "folder": "Sent", "date": "2025-03-31T09:14:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0001-weekly-update-week-of-mar-24.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-03-31T09:14:00+00:00", "flags": []}
+{"path": "emil@world.local/INBOX/0001-weekly-update-week-of-mar-24.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2025-03-31T09:14:00+00:00", "flags": []}
+{"path": "nikolai@world.local/INBOX/0001-weekly-update-week-of-mar-24.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-03-31T09:14:00+00:00", "flags": []}
+{"path": "nils@world.local/INBOX/0001-weekly-update-week-of-mar-24.eml", "mailbox": "nils@world.local", "folder": "INBOX", "date": "2025-03-31T09:14:00+00:00", "flags": []}
+{"path": "theo@world.local/INBOX/0001-weekly-update-week-of-mar-24.eml", "mailbox": "theo@world.local", "folder": "INBOX", "date": "2025-03-31T09:14:00+00:00", "flags": []}
+{"path": "dermot@world.local/INBOX/0001-weekly-update-week-of-mar-24.eml", "mailbox": "dermot@world.local", "folder": "INBOX", "date": "2025-03-31T09:14:00+00:00", "flags": []}
+{"path": "emil@world.local/Sent/0002-v0-1-22-is-out.eml", "mailbox": "emil@world.local", "folder": "Sent", "date": "2025-03-31T09:56:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
+{"path": "dermot@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "dermot@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
+{"path": "konrad@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "konrad@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
+{"path": "nikolai@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
+{"path": "nils@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "nils@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}
+{"path": "theo@world.local/INBOX/0002-v0-1-22-is-out.eml", "mailbox": "theo@world.local", "folder": "INBOX", "date": "2025-03-31T09:56:00+00:00", "flags": []}

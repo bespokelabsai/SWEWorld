@@ -110,6 +110,16 @@
       "presence": "active",
       "personality": "Batch Backend Engineer (short-term contract); owns batch-mode, provider-integrations",
       "personaId": "255a519d8d6e4460b3beeab84c08be55"
+    },
+    {
+      "id": "theo",
+      "name": "Theo Marchetti",
+      "title": "Provider Examples Contributor (Mistral Batch)",
+      "persona": "Provider Examples Contributor (Mistral Batch)",
+      "avatarColor": "#3C8C5C",
+      "presence": "active",
+      "personality": "Provider Examples Contributor (Mistral Batch); owns provider-integrations",
+      "personaId": "9932c06bd0864adaa080b8a5386d788c"
     }
   ],
   "channels": [
@@ -12115,6 +12125,807 @@
           "userId": "konrad",
           "text": "WS-047 still isn't on the wiki, is Nils getting to that today or is it a tomorrow thing?",
           "ts": "2025-03-26T15:44:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 605 is done on my end, viewer deletion with scope checks intact",
+          "ts": "2025-03-27T09:00:00",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Wanted to get eyes on it today if anyone has a moment",
+          "ts": "2025-03-27T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "also have PR 606 up if anyone can take a look, authentication flow in bulk-llm-inference",
+          "ts": "2025-03-27T09:13:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "not blocking release but I'd like to get both cleared today if possible",
+          "ts": "2025-03-27T09:13:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "Caching-and-resume is stable, mostyl cleanup at this point",
+          "ts": "2025-03-27T09:25:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "Been looking at the backlog, 468 and 565 have been sitting a while without movement",
+          "ts": "2025-03-27T09:25:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "+1 on that, 468 especially",
+          "ts": "2025-03-27T10:39:46"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 606 is my auth flow work, touches provider-integrations, would like eyes on it today if anyone has bandwidth after lunch.",
+          "ts": "2025-03-27T12:15:28"
+        },
+        {
+          "userId": "emil",
+          "text": "hmm",
+          "ts": "2025-03-27T12:15:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm around this afternoon if someone wants to swap reviews on 605 and 606.",
+          "ts": "2025-03-27T12:36:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "so 606 is Emil's?",
+          "ts": "2025-03-27T12:55:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "I thought Dermot opened it",
+          "ts": "2025-03-27T12:55:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wait, Dermot said he had PR 606 up earlier this morning",
+          "ts": "2025-03-27T13:15:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "are these the same PR or two different ones?",
+          "ts": "2025-03-27T13:56:33",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-27T13:59:25"
+        },
+        {
+          "userId": "emil",
+          "text": "606 is mine",
+          "ts": "2025-03-27T13:58:33"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot that swap idea is solid, works for me",
+          "ts": "2025-03-27T13:58:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "I may have had the wrong number, I'd have to check which one is actually mine",
+          "ts": "2025-03-27T13:59:25",
+          "threadParentTs": "2025-03-27T13:56:33"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 606 is up and ready on my end, auth flow in provider-integrations. PR 605 is also open if anyone gets to it.",
+          "ts": "2025-03-27T14:36:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone actually gotten to PR 606 yet, or is it still waiting?",
+          "ts": "2025-03-27T15:19:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dermot did you ever track down which number was yours?",
+          "ts": "2025-03-27T15:53:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can take a look at PR 606 before end of day if nobody else has gotten to it.",
+          "ts": "2025-03-27T15:54:01",
+          "replyCount": 2,
+          "replyLastTs": "2025-03-27T16:03:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Do you have context on the auth flow, or do you want a quick summary first?",
+          "ts": "2025-03-27T15:54:39",
+          "threadParentTs": "2025-03-27T15:54:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "a quick summary would help, I don't have much context on it",
+          "ts": "2025-03-27T15:54:57"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 606 adds the auth flow in provider-integrations, covers how we handle credentials coming in before requests hit the backend",
+          "ts": "2025-03-27T16:02:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Not blocking release, but it's new surface area so I wanted another set of eyes on it",
+          "ts": "2025-03-27T16:03:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "So credentials come in before the request, not as part of it?",
+          "ts": "2025-03-27T16:03:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Not exactly, it's more that credentials are validated as part of the request handling, not handed off from somewhere upstream.",
+          "ts": "2025-03-27T16:03:47",
+          "threadParentTs": "2025-03-27T15:54:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone picking up PR 605?",
+          "ts": "2025-03-27T16:42:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "found it, different number from 606. mine is the bulk-llm-inference side, basically how the client picks up credentials:\n\n```python\ndef _build_client(self, api_key=None):\n key = api_key or os.environ.get(\"ANTHROPIC_API_KEY\")\n if not key:\n raise ValueError(\"no api key provided\")\n return anthropic.Anthropic(api_key=key)\n```",
+          "ts": "2025-03-27T17:21:47",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-27T17:22:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there any fallback besides the env var, or just those two?",
+          "ts": "2025-03-27T17:22:32",
+          "threadParentTs": "2025-03-27T17:21:47"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon PR 605 is yours if you want it, straight viewer deletion, all the context is in the PR.",
+          "ts": "2025-03-27T17:35:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "Yeah I can take PR 605",
+          "ts": "2025-03-27T17:39:32",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Caching-and-resume is mostly wrapped up on my end so I've got some headroom",
+          "ts": "2025-03-27T17:39:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "Got through PR 606, left some comments in there, nothing blocking but a couple of things worth a look. PR 605 still needs eyes if Gideon hasn't gotten to it yet",
+          "ts": "2025-03-27T18:20:44",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "going through 605 now",
+          "ts": "2025-03-27T18:23:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 565 and the openai client work are in decent shape, I've got the retry logic in pr 585 under review and a few questions on the simplestrat recipe in pr 598 before I can sign off on either.",
+          "ts": "2025-03-31T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel did you push a new revision to pr 565 over the weekend, I'm seeing something about a moved hook and a bypass option?",
+          "ts": "2025-03-31T09:00:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold have you had a look at the latest on pr 565 yet?",
+          "ts": "2025-03-31T09:38:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the cache directory get created automatically or does it need to exist first?",
+          "ts": "2025-03-31T09:56:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "in pr 598, is the simplestrat recipe intended to replace the existing strategy or does it sit alongside?",
+          "ts": "2025-03-31T10:20:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "for pr 583, if the metadata db param is disabled does it skip schema init entirely or just skip writes?",
+          "ts": "2025-03-31T10:50:43"
+        },
+        {
+          "userId": "emil",
+          "text": "not yet, pulling it up now",
+          "ts": "2025-03-31T11:18:43"
+        },
+        {
+          "userId": "dario",
+          "text": "It needs to exist first, and that's actually the thing I wanted to flag",
+          "ts": "2025-03-31T11:51:43"
+        },
+        {
+          "userId": "dario",
+          "text": "Fresh CI container, nothing has ever run in it, pre-flight estimate step threw a FileNotFoundError on the cache dir",
+          "ts": "2025-03-31T11:51:48"
+        },
+        {
+          "userId": "dario",
+          "text": "I put a mkdir -p in the workflow to unblock it, but I hate that because now the estimate step is the thing that creates the cache Second time this month",
+          "ts": "2025-03-31T11:51:56"
+        },
+        {
+          "userId": "emil",
+          "text": "The mkdir in the workflow is the wrong home for that, if the code expects a cache dir it should create it on first use, not lean on whatever CI step happens to run early enough to set it up.",
+          "ts": "2025-03-31T12:34:56",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Looked at the revision, moving the hook I can live with, but I'm less sure about the bypass",
+          "ts": "2025-03-31T12:54:38"
+        },
+        {
+          "userId": "emil",
+          "text": "Whatever we name that param is going to tell users a lot about when they're supposed to use it, and right now it doesn't",
+          "ts": "2025-03-31T12:54:46"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold do you want to land on the bypass naming before this closes today, or leave it open?",
+          "ts": "2025-03-31T14:07:32"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll land on it today, give me a bit to look at the options and I'll have something by end of afternoon.",
+          "ts": "2025-03-31T14:17:32",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Worth thinking about whether the name signals \"for debugging\" vs \"a legitimate production option\" - those would probably land differently for users",
+          "ts": "2025-03-31T14:35:32"
+        },
+        {
+          "userId": "dario",
+          "text": "Fixing the cache dir creation at the code level and landing the bypass naming in the same pass would be cleaner than two separate PRs.",
+          "ts": "2025-03-31T15:07:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 612 is up for review, that's the gemini batch fix touching batch-mode",
+          "ts": "2025-04-01T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not blocking release but I'd like to get it in today if anyone has few minutes",
+          "ts": "2025-04-01T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does the fix in PR 612 cover other batch providers as well, or is it gemini-specific?",
+          "ts": "2025-04-01T09:00:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take a look at PR 612 this morning, Konrad.",
+          "ts": "2025-04-01T09:43:18",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, is WS-050 tracked anywhere?",
+          "ts": "2025-04-01T09:47:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can't seem to find it in the issues",
+          "ts": "2025-04-01T09:47:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "same",
+          "ts": "2025-04-01T10:45:45"
+        },
+        {
+          "userId": "emil",
+          "text": "I just checked, WS-050 isn't filed as an issue anywhere I can find.",
+          "ts": "2025-04-01T11:27:14"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 612 is gemini-specific as far as I can tell, though I haven't confirmed whether the same parts key issue exists in other providers.",
+          "ts": "2025-04-01T11:42:09"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil do you have a sense of what specifically broke in gemini, was it the retry logic that came in with PR 585, or something in how gemini returns batch status?",
+          "ts": "2025-04-01T11:50:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Not the retry logic, that part landed fine",
+          "ts": "2025-04-01T12:18:09"
+        },
+        {
+          "userId": "emil",
+          "text": "It's in how gemini returns the parts key in batch status responses",
+          "ts": "2025-04-01T12:18:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Want to grab 15 minutes after lunch to walk through it?",
+          "ts": "2025-04-01T12:18:22"
+        },
+        {
+          "userId": "emil",
+          "text": "Gideon, did you get a chance to look at PR 612 yet?",
+          "ts": "2025-04-01T12:18:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Does someone need to file WS-050, or is there another place it's being tracked?",
+          "ts": "2025-04-01T12:41:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pulled it up, will go through it properly after lunch.",
+          "ts": "2025-04-01T12:46:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, do you know if any of the other batch providers have that same parts key behavior?",
+          "ts": "2025-04-01T13:17:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-01T14:05:39"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-04-01T13:31:00"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm around, works for me",
+          "ts": "2025-04-01T13:31:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Emil, does PR 612 guard specifically against the missing `parts` key, or does it do a broader restructure of the candidates parsing?",
+          "ts": "2025-04-01T13:53:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Works for me, I'll track you down after lunch Dario.",
+          "ts": "2025-04-01T14:05:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure yet - which providers are you thinking?",
+          "ts": "2025-04-01T14:05:39",
+          "threadParentTs": "2025-04-01T13:17:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm on PR 612 now, should have feedback by end of day",
+          "ts": "2025-04-01T14:24:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "I don't really know which ones do, that was sort of what I was trying to find out",
+          "ts": "2025-04-01T15:04:39"
+        },
+        {
+          "userId": "emil",
+          "text": "The parts key behavior for other batch providers is still an open question on my end, flagging it as a follow-on from PR 612.",
+          "ts": "2025-04-01T15:49:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Probably worth filing that follow-on as an issue before it gets buried.",
+          "ts": "2025-04-01T16:14:39",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-01T16:15:09"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll file it.",
+          "ts": "2025-04-01T16:15:09",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-01T16:14:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Around for another hour or so if Gideon's review comes back before EOD.",
+          "ts": "2025-04-01T16:15:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "Gemini batch examples in examples-cookbooks are broken too, same underlying issue",
+          "ts": "2025-04-01T16:44:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "Well, if PR 612 merges today the examples are still broken, not sure that's the right state to leave it in",
+          "ts": "2025-04-01T16:45:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not sure the examples should hold up PR 612 though, broken batch is worse than stale docs",
+          "ts": "2025-04-01T17:25:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not totally sold on merging before the examples are fixed.",
+          "ts": "2025-04-01T17:35:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Emil, can the examples fix go into PR 612 before it merges or is that a separate follow-on?",
+          "ts": "2025-04-01T17:35:59"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 612 just has the batch-mode fix, the examples are in examples-cookbooks",
+          "ts": "2025-04-01T17:39:59"
+        },
+        {
+          "userId": "emil",
+          "text": "Cleaner as a follow-on from there rather than folding into my PR at this point",
+          "ts": "2025-04-01T17:40:07"
+        },
+        {
+          "userId": "emil",
+          "text": "Are you planning to fix the examples yourself, or are you asking me to?",
+          "ts": "2025-04-01T17:40:38"
+        },
+        {
+          "userId": "dario",
+          "text": "I've got the examples, that's on me",
+          "ts": "2025-04-01T18:24:38",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Emil, go ahead and merge 612 once Gideon signs off",
+          "ts": "2025-04-01T18:24:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 614 is up, cancellation fix in bulk-llm-inference. its blocking batch testing so I'd appreciate eyes on it today",
+          "ts": "2025-04-02T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is PR 615 connected to this or a separate bug entirely?",
+          "ts": "2025-04-02T09:20:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-02T09:20:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "I might have oversimplified it - I'm not entirely sure pr 615 isn't touching the same root cause. I'd need to look more carefully before I could say they're definitely separate.",
+          "ts": "2025-04-02T09:20:44",
+          "threadParentTs": "2025-04-02T09:20:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "I pulled up WS-050 just now",
+          "ts": "2025-04-02T10:02:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nothing in there about the examples side of batch, so I'm not sure if that's coming in a separate doc somewhere or just not written yet?",
+          "ts": "2025-04-02T10:02:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "Haven't started on batch examples yet. Was going to wait until the API shape settles a bit more before writing anything up.",
+          "ts": "2025-04-02T10:03:30"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone had a chance to look at PR 614 yet?",
+          "ts": "2025-04-02T11:25:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Weekly Notes, Week of Mar 31 are up: engineering/weekly-notes-week-of-mar-31.md",
+          "ts": "2025-04-02T11:57:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Worth flagging one thing in there, the pending job ID is keyed off the dataset only, no backend distinction, so the plain openai path and an azure deployment of the same model land in the same slot",
+          "ts": "2025-04-02T11:57:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Moved a cookbook to azure last week and the restart polled a job the openai endpoint doesn't own",
+          "ts": "2025-04-02T11:57:44"
+        },
+        {
+          "userId": "emil",
+          "text": "related annoyance: the pending job id gets parked in the run dir keyed off the dataset only, no backend distinction",
+          "ts": "2025-04-02T11:58:04"
+        },
+        {
+          "userId": "emil",
+          "text": "moved a cookbook to azure last week, the restart polled a job the openai endpoint doesn't own, sat in a 404 retry loop for twenty minutes before giving up and wiping the dir by hand",
+          "ts": "2025-04-02T11:58:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Does the job ID scoping fix belong in PR 615 or should it go in its own PR?",
+          "ts": "2025-04-02T12:11:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "sorry, been in a call - so the 404 loop was the job id not scoped per backend, that's separate from what PR 614 fixes.",
+          "ts": "2025-04-02T15:11:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "So PR 615 wasn't touching the backend scoping at all then?",
+          "ts": "2025-04-02T15:44:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 614 is separate from the scoping issue, that much is settled now.",
+          "ts": "2025-04-02T15:44:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does PR 615 touch the backend scoping at all, or is that a third fix going somewhere new?",
+          "ts": "2025-04-02T15:44:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "WS-050 doesn't say anything about the examples side",
+          "ts": "2025-04-02T16:07:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is that in scope for this milestone or coming after?",
+          "ts": "2025-04-02T16:07:58"
+        },
+        {
+          "userId": "emil",
+          "text": "Haven't had a chance to check PR 615's scope since this morning, I'll look at it and report back.",
+          "ts": "2025-04-02T16:10:10"
+        },
+        {
+          "userId": "emil",
+          "text": "Is PR 614 ready to merge or does it still need another pass?",
+          "ts": "2025-04-02T16:10:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Who's reviewing PR 614, does it have someone on it yet?",
+          "ts": "2025-04-02T16:34:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Does PR 614 need to land today or is tomorrow fine?",
+          "ts": "2025-04-02T17:02:30"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 614 is ready from my side, I haven't heard that anyone's reviewed it yet. I'd like to get it in today if we can, it's blocking batch testing",
+          "ts": "2025-04-02T17:38:30",
+          "replyCount": 3,
+          "replyLastTs": "2025-04-02T17:40:19"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is Dario looking at it or does it still need someone to pick it up?",
+          "ts": "2025-04-02T17:39:12",
+          "threadParentTs": "2025-04-02T17:38:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "Or should I just take a look at it?",
+          "ts": "2025-04-02T17:39:43",
+          "threadParentTs": "2025-04-02T17:38:30"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll take it.",
+          "ts": "2025-04-02T17:40:19",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-02T17:38:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is that Dario?",
+          "ts": "2025-04-02T17:40:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "- *Root cause confirmed:* job ID not scoped per backend",
+          "ts": "2025-04-02T17:40:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "Konrad, was that you?",
+          "ts": "2025-04-02T17:40:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "That wasn't me, I thought someone else had grabbed it",
+          "ts": "2025-04-02T18:08:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario are you on PR 614?",
+          "ts": "2025-04-02T18:09:03"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm around for another hour or so if someone needs a second set of eyes on PR 614.",
+          "ts": "2025-04-02T18:09:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "konrad, go ahead and take it if you're around.",
+          "ts": "2025-04-02T18:26:25",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 612 is good to go on my end, the Gemini batch parts fix looks clean and I didjt spot any obvious gaps in the test coverage.",
+          "ts": "2025-04-03T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does PR 612 have a test that specifically exercises the missing parts key, or is the coverage more general?",
+          "ts": "2025-04-03T09:33:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-03T09:52:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What's actually holding up PR 565 at this point, is it waiting on a review or is there something in the implementation that's not settled?",
+          "ts": "2025-04-03T09:33:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel, Nikolai's question on PR 565 is worth answering if you have a moment, whether it's waiting on review or there's something design-side that's not settled yet",
+          "ts": "2025-04-03T09:51:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "So it's testing the path where the key is absent, not just the happy path?",
+          "ts": "2025-04-03T09:52:04",
+          "threadParentTs": "2025-04-03T09:33:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 is ready for a look if anyone has bandwidth, it's in code-execution, adding a param to disable the metadata db for cases where you're running multiple CodeExecutor instances concurrently",
+          "ts": "2025-04-03T10:25:04"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can take a look at PR 583.",
+          "ts": "2025-04-03T11:07:04"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is done on my end, nothing design-side open as far as I can tell",
+          "ts": "2025-04-03T12:08:18",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Just needs a review pass, so if anyone has bandwith this afternoon I can walk through the implementation",
+          "ts": "2025-04-03T12:08:30"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 612 does test the absent-key path specifically, that's the whole point of the fix, so it's not just happy-path coverage. I also have PR 615 out that still needs a review pass before it can merge, also in the batch area if anyone has bandwidth this afternoon.",
+          "ts": "2025-04-03T13:07:03",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil what's PR 615 touching exactly, is it in the same area as 612 or something different?",
+          "ts": "2025-04-03T13:57:38"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 615 is in provider-integrations, different area from the Gemini batch fix in PR 612.",
+          "ts": "2025-04-03T14:25:38"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad can you help sort the review queue this afternoon, PR 565 has been sitting",
+          "ts": "2025-04-03T14:40:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "With Konrad on PR 583 and the queue also picking up PR 565, PR 612, and PR 615 this afternoon, where does PR 600 land in all that?",
+          "ts": "2025-04-03T14:42:38"
         }
       ],
       "projectSpec": {
@@ -14993,6 +15804,149 @@
               "count": 2
             }
           ]
+        },
+        {
+          "userId": "konrad",
+          "text": "SimpleStrat recipe merged, so I want to make sure the example actually runs end to end and that the shape lines up with RAFT before we cut the next release",
+          "ts": "2025-04-03T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Haven't confirmed CI is exercising it yet either",
+          "ts": "2025-04-03T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'm on the CI side of this, haven't confirmed the recipe gets exercised yet but I'm looking at it this morning.",
+          "ts": "2025-04-03T09:37:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Looked for WS-047 in the wiki and there's no page for it yet. @Nils, has that spec been written up anywhere?",
+          "ts": "2025-04-03T09:37:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai if it's not covered, could you open a PR to add it?",
+          "ts": "2025-04-03T10:09:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll handle the end-to-end run on the example itself and confirm the shape is right",
+          "ts": "2025-04-03T10:09:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "sounds good, I'll open one",
+          "ts": "2025-04-03T10:46:53"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad when you say the shape lines up with RAFT, are you checking against the distractor format specifically or just the overall generation structure?",
+          "ts": "2025-04-03T12:52:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "I was checking overall generation structure, but if there's a distractor format spec somewhere I should be checking against that too, do you have it handy?",
+          "ts": "2025-04-03T13:14:33"
+        },
+        {
+          "userId": "dario",
+          "text": "Pointed CodeExecutor at a custom image to stop pip installing pandas per task, and the generated solution just rewrote the input CSV sitting in the mounted dir, original gone",
+          "ts": "2025-04-03T14:54:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Lost the whole afternoon to it.",
+          "ts": "2025-04-03T14:54:07.666667"
+        },
+        {
+          "userId": "dario",
+          "text": "Original CSV's gone too, no backup.",
+          "ts": "2025-04-03T14:54:09.333334"
+        },
+        {
+          "userId": "dario",
+          "text": "Same script errors on write with the stock image",
+          "ts": "2025-04-03T14:54:11"
+        },
+        {
+          "userId": "emil",
+          "text": "Has the SimpleStrat example been confirmed runnable yet, or is that still on Konrad's list for this afternoon?",
+          "ts": "2025-04-03T14:58:11"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The workspace mount write behavior Dario described is consistent with how CodeExecutor works, writable with a custom image, errors with the stock one",
+          "ts": "2025-04-03T15:22:11"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll get the CI PR up before end of day",
+          "ts": "2025-04-03T15:22:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up WS-050 - it covers the batch mode design pretty thoroughly, the submit/poll/fetch cycle and where state needs to be written. Is there a cookbook example planned for batch mode, or is that out of scope for this milestone?",
+          "ts": "2025-04-03T16:05:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Around for the rest of the afternoon if anything comes up.",
+          "ts": "2025-04-03T16:13:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Did Konrad get back on the SimpleStrat run yet, or is that still coming?",
+          "ts": "2025-04-03T16:24:14"
+        },
+        {
+          "userId": "dario",
+          "text": "Has the CI PR gone up yet?",
+          "ts": "2025-04-03T16:50:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "Example runs clean end to end",
+          "ts": "2025-04-03T17:32:14",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "For the distractor format question I was asking about earlier, I ended up cross-checking against the original RAFT paper (the domain-specific RAG one, not the RLHF one), it's pretty explicit about how distractors are constructed and the shape holds up",
+          "ts": "2025-04-03T17:32:19",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "CI PR isn't up yet, still on it",
+          "ts": "2025-04-03T18:04:19"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai any chance that goes up tonight or is it a tomorrow thing?",
+          "ts": "2025-04-03T18:13:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Tonight.",
+          "ts": "2025-04-03T18:21:25.818352",
+          "reactions": [
+            {
+              "emoji": "💪",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -15086,7 +16040,8 @@
         "nils",
         "otto",
         "petar",
-        "priya"
+        "priya",
+        "theo"
       ],
       "messages": [
         {
@@ -25161,6 +26116,298 @@
           "userId": "konrad",
           "text": "Still no answer on the Mistral batch backend, is that actually landing this week or is it slipping?",
           "ts": "2025-03-26T15:37:18"
+        },
+        {
+          "userId": "theo",
+          "text": "Mistral batch authentication is live and the provider itself is in good shape i believe so that's one less thing on the list for this milestone",
+          "ts": "2025-03-31T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Sent the weekly update just now",
+          "ts": "2025-03-31T09:35:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@dermot are the release notes landing today or still in progress?",
+          "ts": "2025-03-31T09:35:08"
+        },
+        {
+          "userId": "theo",
+          "text": "@Dario Kestrel can you take a look at the examples and make sure they reflect what Mistral batch looks like now",
+          "ts": "2025-03-31T11:05:24"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-050: Batch Mode (50%-Cost Async Batch APIs) is up on the engineering wiki. The main thing I wanted settled before this milestone closes: went through every batch ticket from the last two months, and every failure died while waiting on the provider, laptop lid, CI runner hitting its six-hour cap, OOM killer, one power cut. Nobody has ever managed to die inside the submit call itself, that thing returns in about 200ms. The risk is entirely in the poll window, and resume has to be built around persisted job IDs because of it. That's the design position, it's in the doc now.",
+          "ts": "2025-03-31T11:27:24",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Examples are current for v0.1.22, Mistral batch included",
+          "ts": "2025-03-31T11:32:24"
+        },
+        {
+          "userId": "dario",
+          "text": "nice",
+          "ts": "2025-03-31T12:05:24",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Konrad beat me to it",
+          "ts": "2025-03-31T12:05:32"
+        },
+        {
+          "userId": "emil",
+          "text": "v0.1.22 Release Notes are up on the engineering wiki. Auth is now required on every provider backend, that's the main breaking change, and it's in the notes.",
+          "ts": "2025-03-31T12:47:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "@emil is the announcement going out this afternoon too?",
+          "ts": "2025-03-31T13:24:21"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure \"auth is now required\" is clear enough on its own - someone upgrading without credentials set up needs to know what they'll actually hit",
+          "ts": "2025-03-31T14:01:21"
+        },
+        {
+          "userId": "theo",
+          "text": "still no sign of WS-047 anywhere i've looked, is that tracked somewhere outside the issue tracker or just not written up yet",
+          "ts": "2025-03-31T14:46:21"
+        },
+        {
+          "userId": "emil",
+          "text": "@konrad announcement went out earlier today.",
+          "ts": "2025-03-31T14:55:21"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot Callaghan can you take a final look at PR 565 before end of day?",
+          "ts": "2025-03-31T15:10:21"
+        },
+        {
+          "userId": "dario",
+          "text": "Once PR 565 gets a sign-off, that's the last thing I'm waiting on to call the provider side of this milestone done.",
+          "ts": "2025-03-31T15:11:00"
+        },
+        {
+          "userId": "emil",
+          "text": "If someone has credentials for some providers but not others, they're going to get provider-specific errors at request time rather than a clear upfront failure, a preflight credential check at initialization would catch that earlier.",
+          "ts": "2025-03-31T15:54:00"
+        },
+        {
+          "userId": "theo",
+          "text": "for Mistral batch the api key gets checked at submission so a missing credential surfaces pretty early at least on that provider",
+          "ts": "2025-03-31T16:00:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure a preflight check at init is the right place for it, credentials can be valid at startup and revoked by the time a request goes out",
+          "ts": "2025-03-31T16:36:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good. Examples, auth, and Mistral batch all current on my end so I'm done here.",
+          "ts": "2025-03-31T17:16:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Dario's point is fair, the preflight idea was more of a thought than a proposal.",
+          "ts": "2025-03-31T17:59:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 614 has the cancellation fix for bulk-llm-inference. want to know if theres anything else outstanding on batch before we think about release.",
+          "ts": "2025-04-02T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil are the gemini batch issues resolved or still ongoing?",
+          "ts": "2025-04-02T09:25:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "trying to get a read on whether there's more work there before we think about release",
+          "ts": "2025-04-02T09:25:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil are the v0.1.22 release notes up yet?",
+          "ts": "2025-04-02T10:03:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "I haven't been able to find them",
+          "ts": "2025-04-02T10:03:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone actually run batch cancellation end to end recently and verified it's clean?",
+          "ts": "2025-04-02T11:14:31"
+        },
+        {
+          "userId": "emil",
+          "text": "let me check on the gemini side",
+          "ts": "2025-04-02T11:27:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure PR 614 alone is enough to call cancellation clean, we haven't actually run it end to end as far as I know",
+          "ts": "2025-04-02T11:42:31",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Opened WS-050 earlier today. It doesn't touch cancellation at all, it's all submit/poll/resume path and retry",
+          "ts": "2025-04-02T11:54:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Stepping out for lunch, back this afternoon.",
+          "ts": "2025-04-02T12:02:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario what would it take to actually verify it end to end?",
+          "ts": "2025-04-02T12:30:22"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, if you have a few minutes this afternoon I'd like to get a read on the Gemini batch situation before we say anything about release readiness.",
+          "ts": "2025-04-02T12:32:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "nobody's actually verified batch cancellation end to end since PR 614 went in, as far as I know.",
+          "ts": "2025-04-02T15:15:48",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "is that something we're treating as a release blocker or not?",
+          "ts": "2025-04-02T15:16:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "just pulled the v0.1.22 release notes - examples are covered, but PR 614 isn't in there, it'll be next release",
+          "ts": "2025-04-02T15:16:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "does that mean we're holding the batch cancellation question until after 614 merges?",
+          "ts": "2025-04-02T15:16:14"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure we can say batch is ready for release without knowing where the Gemini issues landed, still no answer on whether those are resolved or still ongoing.",
+          "ts": "2025-04-02T16:01:14"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 600 is ready, it's the env flag to disable the rich CLI output so users in plain terminals or CI pipelines aren't fighting with it",
+          "ts": "2025-04-03T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Just waiting on a review pass before we merge",
+          "ts": "2025-04-03T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "- SimpleStrat recipe is merged, it gives users a low-friction path to RAFT-style generation without having to wire up the full recipe scaffolding themselves\n- still need to confirm the example actually runs clean end to end\n- also not sure CI is picking it up yet, want to nail that down before the next release",
+          "ts": "2025-04-03T09:19:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Not sure we should be coupling PR 600 to the CI question on SimpleStrat, they're pretty independent changes - does it make sense to let the env-disable-rich-cli go through separately, or do we want to hold everything until CI is sorted?",
+          "ts": "2025-04-03T09:41:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 583 is also sitting in the queue, that's the param to disable the metadata db",
+          "ts": "2025-04-03T09:52:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Running through the SimpleStrat example now to confirm it's actually runnable and the shape lines up with RAFT, should have a clearer picture this afternoon",
+          "ts": "2025-04-03T10:36:08"
+        },
+        {
+          "userId": "dario",
+          "text": "+1 on letting PR 600 go through separately",
+          "ts": "2025-04-03T11:56:52",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up WS-050 this afternoon and it does cover my part: the key design call is that the job ID has to be persisted before we enter the poll loop",
+          "ts": "2025-04-03T12:47:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario circling back on PR 565, can you flag by end of day whether it's waiting on a review pass or if there's still something design-side that needs to settle first?",
+          "ts": "2025-04-03T12:57:16"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 600 still needs a review pass before it can go in, and the CLI demo depends on it - can anyone grab it this afternoon?",
+          "ts": "2025-04-03T13:54:01"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 isn't design-blocked, nothing open on my end, but I'd lean toward saying the whole current batch is basically stacked waiting on review bandwidth at this point",
+          "ts": "2025-04-03T14:04:01"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 612 has Konrad's review and I think it's ready to go. PR 579 is still in progress on my end so it's not in the review queue yet.",
+          "ts": "2025-04-03T14:30:03"
+        },
+        {
+          "userId": "dario",
+          "text": "Are any of the queued PRs actually design-blocked, or is it all just review bandwidth at this point?",
+          "ts": "2025-04-03T14:47:22"
         }
       ],
       "projectSpec": {
@@ -26747,6 +27994,134 @@
           "userId": "dermot",
           "text": "@Dario Kestrel will the writeup include a proposed direction on fail-open vs fail-closed, or is that still open when it goes on the PR?",
           "ts": "2025-03-26T12:11:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "- caching-and-resume is stable, mostly cleanup left at this point\n- got a forum user who ran the same RAFT verifier script twice, two weeks apart, different pass counts, identical code\n- run log showed a different image digets the second time, executor is resolving to `latest`",
+          "ts": "2025-03-27T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone know if the executor image version is configurable, or does it always resolve to `latest` at runtime?",
+          "ts": "2025-03-27T09:30:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai where does the executor image version get set, is it pinned anywhere?",
+          "ts": "2025-03-27T10:03:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the image digest in the run log supposed to differ between runs?",
+          "ts": "2025-03-27T10:14:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Do we handle 404s from the provider in online-request-processing, or does the run just fail out?",
+          "ts": "2025-03-27T10:34:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok answering my own question, 404 from the provder isn't handled at all",
+          "ts": "2025-03-27T10:54:12",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Do other providers even return 404 in that case or something different?",
+          "ts": "2025-03-27T10:54:20"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah",
+          "ts": "2025-03-27T11:31:42",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "404 path is just unhandled on my end",
+          "ts": "2025-03-27T11:31:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we know what OpenAI returns if a batch id has expired or been cleaned up on their side, is it also a 404 or something else?",
+          "ts": "2025-03-27T11:32:28"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon when the run was stuck at 0/12000, was there anything in the logs or did it just hang silently?",
+          "ts": "2025-03-27T11:50:00",
+          "replyCount": 2,
+          "replyLastTs": "2025-03-27T16:46:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Is there any way for users to pin the executor image version right now, or is it always resolved at runtime?",
+          "ts": "2025-03-27T13:03:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai can you confirm whether the executor image version is pinnable? Dario's asking the same thing now",
+          "ts": "2025-03-27T13:59:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is there any way to tell which image digest was actually pulled for a given run after it completes, or is that just gone?",
+          "ts": "2025-03-27T14:00:18"
+        },
+        {
+          "userId": "dario",
+          "text": "around this afternoon if Nikolai or anyone wants to dig into this",
+          "ts": "2025-03-27T14:44:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not sure that's the same thing, the forum case I was tracking was two completed runs with different results, not a hung run",
+          "ts": "2025-03-27T14:44:45",
+          "threadParentTs": "2025-03-27T11:50:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "this is what the user shared from their logs:\n```\n[run 1] executor digest: sha256:a8d2f1...\n[run 2] executor digest: sha256:c390be...\n```",
+          "ts": "2025-03-27T16:46:48",
+          "reactions": [
+            {
+              "emoji": "🚨",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-03-27T11:50:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Forum user ran the same RAFT verifier script two weeks apart, got different pass counts, code was identical",
+          "ts": "2025-03-27T17:24:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "Run log showed a different image digest the second time",
+          "ts": "2025-03-27T17:24:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "We're resolving to `latest` and handing that to users as reproducible",
+          "ts": "2025-03-27T17:25:01",
+          "reactions": [
+            {
+              "emoji": "⚠️",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -27907,7 +29282,8 @@
         "gideon",
         "ilse",
         "nils",
-        "petar"
+        "petar",
+        "theo"
       ],
       "messages": [
         {
@@ -36537,6 +37913,509 @@
           "userId": "emil",
           "text": "Are we calling Mistral batch cost tracking \"in place\" for now with the VCR test deferred, or are we waiting on the fix before we ship anything?",
           "ts": "2025-03-26T18:23:34"
+        },
+        {
+          "userId": "theo",
+          "text": "Mistral batch is live on my end and tested against the provider so that should be in good shape for this milestone I believe one thing I want to make sure we have it right on is whether the auth flow touches anything in online request processing or the retry and resume paths",
+          "ts": "2025-03-31T09:00:00"
+        },
+        {
+          "userId": "theo",
+          "text": "does the auth flow for the Mistral provider go through anything in online-request-processing or does it stay entirely on the provider side @Dario Kestrel",
+          "ts": "2025-03-31T09:05:31"
+        },
+        {
+          "userId": "theo",
+          "text": "does WS-047 say anything about provider coverage or is that out of scope for that workstream",
+          "ts": "2025-03-31T10:14:31"
+        },
+        {
+          "userId": "theo",
+          "text": "went to pull up WS-047 and honestly i couldnt find it anywhere @Nils Brandt is that doc written up yet or still in progress",
+          "ts": "2025-03-31T11:00:31"
+        },
+        {
+          "userId": "emil",
+          "text": "- *Auth flow*: live and verified, it stays on the provider side and doesn't touch online request processing, retry, or resume\n- *Mistral batch*: first-class provider, tested end to end\n- *PR 585* (retry/batch): in progress, nothing in the resume path changed",
+          "ts": "2025-03-31T11:11:31",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Confirmed on my end too, resume and retry are untouched by the auth changes, I went through online-request-processing specifically and the auth path stays provider-side the whole way.",
+          "ts": "2025-03-31T11:31:31"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel can you add a note to PR 565 confirming the auth path stays provider-side, so that's on record in the review?",
+          "ts": "2025-03-31T12:15:31"
+        },
+        {
+          "userId": "theo",
+          "text": "is Mistral batch going to be in scope for WS-047 at all or is that test suite purely focused on CI infrastructure",
+          "ts": "2025-03-31T12:22:00"
+        },
+        {
+          "userId": "theo",
+          "text": "still can't find WS-047 anywhere in the tracker @Nils Brandt",
+          "ts": "2025-03-31T12:22:09"
+        },
+        {
+          "userId": "theo",
+          "text": "so I don't know if provider testing is in scope for it or if that's even written up yet",
+          "ts": "2025-03-31T12:22:21"
+        },
+        {
+          "userId": "emil",
+          "text": "If WS-047 is CI and test suite infrastructure, I wouldn't expect Mistral batch to be in scope for it, provider coverage feels like it belongs somewhere separate from CI plumbing.",
+          "ts": "2025-03-31T12:57:37"
+        },
+        {
+          "userId": "dario",
+          "text": "Adding that note to PR 565 now",
+          "ts": "2025-03-31T14:14:15"
+        },
+        {
+          "userId": "emil",
+          "text": "Auth flow and Mistral batch are both confirmed production-safe at this point, online request processing, retry, and resume are unaffected.",
+          "ts": "2025-03-31T14:24:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Emil already said it, and it matches what I verified on my end",
+          "ts": "2025-03-31T15:00:35"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we good to call this closed for today?",
+          "ts": "2025-03-31T15:00:43"
+        },
+        {
+          "userId": "theo",
+          "text": "yup good to close",
+          "ts": "2025-03-31T15:06:43"
+        },
+        {
+          "userId": "theo",
+          "text": "@Nils Brandt can you sort out where provider-side test coverage is supposed to live if its out of scope for WS-047",
+          "ts": "2025-03-31T15:06:55"
+        },
+        {
+          "userId": "dario",
+          "text": "Good call on the poll-window framing for the batch resume design, Emil",
+          "ts": "2025-03-31T15:42:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Fine to close on auth and retry/resume, but issue 207 is still open on this channel and Mistral batch makes it more pressing.",
+          "ts": "2025-03-31T16:04:55"
+        },
+        {
+          "userId": "emil",
+          "text": "On issue 207, the `has_capacity` implementation relies on rate limit headers from provider responses, and Mistral batch returns different headers than the online endpoint",
+          "ts": "2025-03-31T16:05:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Right now nobody owns a fix and it's not in any open PR",
+          "ts": "2025-03-31T16:05:41"
+        },
+        {
+          "userId": "emil",
+          "text": "It's not blocking the current milestone since we're not gating on it, but if we're adding more batch providers this is going to keep coming up and it's not something that'll resolve itself.",
+          "ts": "2025-03-31T16:05:46"
+        },
+        {
+          "userId": "dario",
+          "text": "Issue 207 is also unowned and there's no agreed approach for it yet, so that's going to stay stuck until someone picks it up",
+          "ts": "2025-03-31T16:07:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Dario already said what I was going to say, issue 233 is in the same boat, nobody owns automatic rate limit detection either.",
+          "ts": "2025-03-31T16:18:46"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we want to assign owners to issue 207 and issue 233 now or carry them into the next milestone as unowned?",
+          "ts": "2025-03-31T16:39:29"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward carrying both into next milestone rather than assigning owners at the end of the day with no real discussion, but i dunno if others feel differently",
+          "ts": "2025-03-31T16:39:57"
+        },
+        {
+          "userId": "theo",
+          "text": "@Dario Kestrel since you just went through online-request-processing, can you add a note to issue 207 on where the fix would actually need to land before we carry it forward",
+          "ts": "2025-03-31T16:46:57",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-31T16:47:39"
+        },
+        {
+          "userId": "dario",
+          "text": "You mean a comment on the issue itself, not just a note here in chat?",
+          "ts": "2025-03-31T16:47:39",
+          "threadParentTs": "2025-03-31T16:46:57"
+        },
+        {
+          "userId": "dario",
+          "text": "Once Theo confirms he wants it on the issue, I'll add the note there and then both 207 and 233 can go into next milestone with at least some context attached",
+          "ts": "2025-03-31T16:47:58"
+        },
+        {
+          "userId": "theo",
+          "text": "yup on the issue itself, and once that's done I think we're good to close out the day on this one, Mistral batch is production-safe and the pipeline paths are all confirmed unaffected",
+          "ts": "2025-03-31T17:16:58",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Solid end to the day, auth and Mistral batch are in good shape and the pipeline paths held",
+          "ts": "2025-03-31T17:30:58",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'll put that note on issue 207 first thing tomorrow",
+          "ts": "2025-03-31T17:31:10"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 585 still in progress on my end, otherwise good day.",
+          "ts": "2025-03-31T18:01:10"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure carrying 207 and 233 forward without owners attached actually moves them anywhere, they've been unowned for a while already.",
+          "ts": "2025-03-31T18:01:24"
+        },
+        {
+          "userId": "dario",
+          "text": "fair point on 207 and 233",
+          "ts": "2025-03-31T18:13:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Dario acknowledged my point. There's nothing left for me to add here, passing is the right move.",
+          "ts": "2025-03-31T18:25:50.570844"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 585 is where I'm leaving things tonight, retry logic for batch still in progress.",
+          "ts": "2025-03-31T18:26:10.570844"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 600 is basically wrapped, env flag for disabling rich CLI is working end to end",
+          "ts": "2025-04-01T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Starting to look at what I need from the batch side and want to make sure the retry semantics from PR 585 actually landed as designed before I build on top of it",
+          "ts": "2025-04-01T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil did PR 585 change how we classify retriable vs non-retriable errors for batch, or did that stay the same and it was just the retry loop itself that got reworked?",
+          "ts": "2025-04-01T09:00:41"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone have a sense of which batch providers we're sweeping after Gemini, or is the order still unset?",
+          "ts": "2025-04-01T09:35:41"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, where does WS-050 actually live?",
+          "ts": "2025-04-01T09:55:41"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can't track it down in the issues",
+          "ts": "2025-04-01T09:55:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "hmm",
+          "ts": "2025-04-01T10:23:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll track Emil down on that this afternoon",
+          "ts": "2025-04-01T10:23:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is there a tracking issue for the batch provider sweep, or is that still up in the air?",
+          "ts": "2025-04-01T10:40:58"
+        },
+        {
+          "userId": "emil",
+          "text": "Retry semantics from PR 585 landed as designed, error classification didn't change.",
+          "ts": "2025-04-01T11:22:58",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, batch provider sweep order is still unsettled and Gideon needs it to plan - can you weigh in this afternoon?",
+          "ts": "2025-04-01T11:23:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "So we're effectively waiting on @Dario to set the sweep order - is that the blocker right now?",
+          "ts": "2025-04-01T11:28:03"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah, sweep order is on Dario.",
+          "ts": "2025-04-01T11:39:03"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-050 also isn't filed as a tracking issue anywhere I can find - that still needs to happen.",
+          "ts": "2025-04-01T11:39:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "- *cancellation fix*: pr 614 is up, corrects misuse of cancel_batches in bulk-llm-inference\n- *batch failures*: want visibility into failures via jsonl output, not there yet",
+          "ts": "2025-04-02T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 565 and the cancellation fix are related, just so everyone has context",
+          "ts": "2025-04-02T09:32:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "The cancel_batches misuse was causing requests to get dropped in a way that looked like success, so retry logic never kicked in",
+          "ts": "2025-04-02T09:32:08",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "The jsonl visibility piece is still missing, which means right now batch failures are silent until you go looking",
+          "ts": "2025-04-02T09:32:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "is anyone picking up the jsonl visibility piece or is that still unowned?",
+          "ts": "2025-04-02T09:44:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "does WS-050 cover the jsonl output piece at all, or is that outside its scope?",
+          "ts": "2025-04-02T10:09:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "that's mine, I flagged it above",
+          "ts": "2025-04-02T10:13:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "is that going into PR 615 or a separate PR?",
+          "ts": "2025-04-02T11:17:33"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 615 already has the failed requests output",
+          "ts": "2025-04-02T11:32:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-04-02T11:59:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll take a look at PR 615 this afternoon to make sure the sequencing with 614 is clean",
+          "ts": "2025-04-02T11:59:41",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure sequencing is the main thing to check, if they're touching the same root cause, merging 614 first might change what 615 even needs to do.",
+          "ts": "2025-04-02T12:06:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil free for a quick call this afternoon to sort out the 614/615 overlap?",
+          "ts": "2025-04-02T12:36:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Works for me this afternoon",
+          "ts": "2025-04-02T12:41:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Is the jsonl output piece going into PR 615 or is that a separate track?",
+          "ts": "2025-04-02T12:41:05"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-050 flags issue 207 as unresolved on the batch path, is that a blocker for the next release or are we carrying it?",
+          "ts": "2025-04-02T12:41:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference is stable, no blockers",
+          "ts": "2025-04-03T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "been tidying multimodal-prompts this mornign, mostly done",
+          "ts": "2025-04-03T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "emil spotted three batches on the openai dashboard that show as completed and paid for, no local record of any of them",
+          "ts": "2025-04-03T09:00:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure if it's a persistence gap or something in the submit path",
+          "ts": "2025-04-03T09:00:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we write the local batch record at submit time or only once the download completes",
+          "ts": "2025-04-03T09:56:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil do you have the batch IDs for those three from the dashboard",
+          "ts": "2025-04-03T10:59:36"
+        },
+        {
+          "userId": "emil",
+          "text": "good catch on the timing of that write",
+          "ts": "2025-04-03T11:40:36",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "If we're only writing a local record once the download comes back, the entire polling window is basically unrecoverable",
+          "ts": "2025-04-03T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "all the wall clock in a batch run is the poll loop, submit at 11, provider finishes around 6",
+          "ts": "2025-04-03T11:50:20"
+        },
+        {
+          "userId": "dario",
+          "text": "kill it at hour three and there's nothing on disk that so much as knows a job was ever opened. bitten me twice this week",
+          "ts": "2025-04-03T11:50:40"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth checking whether the submit call is even awaited per-batch or fired in a gather, honestly not sure we'd have the batch IDs in hand to write anything at submit time if it's the latter",
+          "ts": "2025-04-03T12:04:16",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-03T12:59:27"
+        },
+        {
+          "userId": "emil",
+          "text": "So we'd get the batch ID back even from a gather, just maybe not synchronously?",
+          "ts": "2025-04-03T12:59:27",
+          "threadParentTs": "2025-04-03T12:04:16"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm around this afternoon if anyone wants to dig into it",
+          "ts": "2025-04-03T13:17:27",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil is the submit awaited per-batch or do they all go into a gather?",
+          "ts": "2025-04-03T13:17:53"
+        },
+        {
+          "userId": "dario",
+          "text": "Is anyone actually pushing back on the polling window being unrecoverable, or is the open question just where the write goes?",
+          "ts": "2025-04-03T14:08:48"
+        },
+        {
+          "userId": "emil",
+          "text": "- *Polling window*: nobody's pushing back on that, agreed it's unrecoverable if we only write after download\n- *Submit / gather*: I'd have to check the actual implementation to answer that one definitively",
+          "ts": "2025-04-03T14:33:26"
+        },
+        {
+          "userId": "dario",
+          "text": "Is the submit path all in batch-mode or does it touch caching-and-resume at all?",
+          "ts": "2025-04-03T15:01:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone written Dermot's ordering down anywhere, or is it still just sitting in this thread?",
+          "ts": "2025-04-03T16:18:46"
         }
       ],
       "projectSpec": {
@@ -39714,6 +41593,89 @@
           "userId": "dermot",
           "text": "@Emil the offline behaviour question isn't mine to own, not sure where that landed, who picked it up?",
           "ts": "2025-03-24T14:26:48"
+        },
+        {
+          "userId": "konrad",
+          "text": "- examples and docs are current for v0.1.22\n- authentication flow is live and verified on my end\n- Mistral batch is now a first-class provider in the examples",
+          "ts": "2025-03-31T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the v0.1.22 tag cut yet or are we still waiting on the release notes to land first?",
+          "ts": "2025-03-31T09:42:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "oh wait, we're already at v0.1.22 so the tag is done. @emil is the announcement going out today?",
+          "ts": "2025-03-31T10:17:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "@dermot what's the state on the release notes, are they close?",
+          "ts": "2025-03-31T11:23:27"
+        },
+        {
+          "userId": "emil",
+          "text": "Announcement is out",
+          "ts": "2025-03-31T12:40:58",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Flagged authentication flow, Mistral batch as a first-class provider, and the examples refresh, that's the core of what shipped in v0.1.22",
+          "ts": "2025-03-31T12:41:10"
+        },
+        {
+          "userId": "emil",
+          "text": "@dermot the v0.1.21 Release Notes page isn't on the wiki yet, is that still coming, or did it land somewhere else?",
+          "ts": "2025-03-31T13:02:18"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 is ready for final review, auth path confirmed provider-side and noted in the PR",
+          "ts": "2025-03-31T14:17:27"
+        },
+        {
+          "userId": "dario",
+          "text": "Online request processing and the retry/resume paths are unaffected, so that's all good on my end for this release",
+          "ts": "2025-03-31T14:17:39"
+        },
+        {
+          "userId": "emil",
+          "text": "v0.1.22 is good to ship from my side.",
+          "ts": "2025-03-31T15:02:25",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Is there anything still blocking on the release notes front before we call this done?",
+          "ts": "2025-03-31T15:02:33"
+        },
+        {
+          "userId": "emil",
+          "text": "The v0.1.21 release notes aren't on the wiki, pulled it up and the page isn't there",
+          "ts": "2025-03-31T15:03:15"
+        },
+        {
+          "userId": "emil",
+          "text": "@dermot, is that landing today?",
+          "ts": "2025-03-31T15:03:20"
         }
       ],
       "projectSpec": {
@@ -40418,6 +42380,185 @@
           "userId": "emil",
           "text": "fair enough",
           "ts": "2025-03-06T14:58:49"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finished up my examples-cookbooks pass.",
+          "ts": "2025-03-27T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Been building on the assumption that local viewer is going away, hosted is the user story from here",
+          "ts": "2025-03-27T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wanted to make sure thats a shared read before I get too much further",
+          "ts": "2025-03-27T09:00:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure that's been formally settled yet, has it? I'd want to know if @Dario has actually signed off on local going away before we treat it as decided",
+          "ts": "2025-03-27T09:33:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Well, the direction has felt pretty clear for a while, even if nobody put it in writing formally.",
+          "ts": "2025-03-27T09:54:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "where did that get decided?",
+          "ts": "2025-03-27T10:19:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not sure I caught it",
+          "ts": "2025-03-27T10:19:22"
+        },
+        {
+          "userId": "konrad",
+          "text": "honestly, I'm not sure it was",
+          "ts": "2025-03-27T10:32:22"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario can you confirm whether local viewer is actually being removed, or is that still open?",
+          "ts": "2025-03-27T10:32:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "how far into the examples-cookbooks pass are you at this point?",
+          "ts": "2025-03-27T10:57:37"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-03-27T11:28:37"
+        },
+        {
+          "userId": "dario",
+          "text": "local viewer is going away, PR 605 is what actually does it",
+          "ts": "2025-03-27T11:28:42",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly the only thing I'm not sure about is whether the team broadly has that picture yet, which is sort of the whole point",
+          "ts": "2025-03-27T11:28:50"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 605 makes it pretty concrete:\n\n```\n- HOSTED_CURATOR_VIEWER = True\n+ CURATOR_VIEWER = True\n```\n\nThe rename drops \"HOSTED\" because there's only one kind now. That's not an ambiguous direction.",
+          "ts": "2025-03-27T12:07:50",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "is the PR the only place this is written up, or is there a doc somewhere that explains the hosted-only direction?",
+          "ts": "2025-03-27T12:32:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 600 is almost ready, just finishing up the edge case where the env var gets read before the logger initializes",
+          "ts": "2025-04-03T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Should have it up for review this morning",
+          "ts": "2025-04-03T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone run into duplicate jobs showing up on the dashboard?",
+          "ts": "2025-04-03T09:00:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Answering my own Q - traced it",
+          "ts": "2025-04-03T09:41:33",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "User ctrl-c'd while the first status line was still printing, restarted beofre we heard anything back from the provider",
+          "ts": "2025-04-03T09:41:41"
+        },
+        {
+          "userId": "gideon",
+          "text": "Two jobs on the same account, four minutes apart, identical request counts",
+          "ts": "2025-04-03T09:41:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think restarts in the gap is the explanation - that window is maybe 90 seconds right after the first submission, before we hear back from the provider at all",
+          "ts": "2025-04-03T10:13:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "Should we try to address this in the progress code or just wait for the reattach to land first?",
+          "ts": "2025-04-03T11:13:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not sure a patch there makes sense before that's in",
+          "ts": "2025-04-03T11:13:58"
+        },
+        {
+          "userId": "emil",
+          "text": "Want to grab 15 min this afternoon to talk through what the viewer should show when reattach lands?",
+          "ts": "2025-04-03T11:15:58"
+        },
+        {
+          "userId": "emil",
+          "text": "Makes sense to spec that before the code gets there",
+          "ts": "2025-04-03T11:16:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm free this afternoon, though not sure how much of the viewer state we can nail down before the reattach shape is clearer",
+          "ts": "2025-04-03T11:29:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the idea just to sketch it loosely?",
+          "ts": "2025-04-03T11:29:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Are we calling it restarts-in-the-gap, or does someone have a different theory on the duplicates?",
+          "ts": "2025-04-03T11:29:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Restarts-in-the-gap tracks for me. Seeing the same pattern in the submission log:\n\n```\n[10:42:11] submitted batch job a1b2c3 (n=500)\n[10:46:04] submitted batch job d4e5f6 (n=500)\n```\n\nNo cancel on the first one, identical params.",
+          "ts": "2025-04-03T11:45:50",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "What does the progress display currently show if you reconnect to a run that's already mid-flight?",
+          "ts": "2025-04-03T11:46:12"
         }
       ],
       "projectSpec": {

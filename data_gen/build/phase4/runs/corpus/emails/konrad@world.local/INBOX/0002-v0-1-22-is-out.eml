@@ -1,0 +1,26 @@
+From: emil@world.local
+To: dario@world.local, dermot@world.local, konrad@world.local,
+ nikolai@world.local, nils@world.local, theo@world.local
+Subject: v0.1.22 is out
+Date: Mon, 31 Mar 2025 09:56:00 +0000
+Message-ID: <178769096413.2148437.10770849796445880743@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Millrow v0.1.22 is out.
+
+What's in this release:
+
+Authentication flow is now live and required. Every provider backend goes thr=
+ough the auth path =E2=80=94 make sure your API keys are set before running.
+
+Mistral batch is now a first-class provider. You can submit async batch jobs =
+to Mistral at the same 50%-cost discount as Anthropic and OpenAI batch. The b=
+atch mode doc (WS-050: Batch Mode (50%-Cost Async Batch APIs)) has more detai=
+l on the failure model and resume behaviour.
+
+Examples have been refreshed to reflect the current API, including Mistral ba=
+tch auth.
+
+Let us know if anything looks off.
