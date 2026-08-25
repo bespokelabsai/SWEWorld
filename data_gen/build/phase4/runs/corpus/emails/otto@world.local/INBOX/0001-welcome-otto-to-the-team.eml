@@ -1,0 +1,25 @@
+From: konrad@world.local
+To: otto@world.local
+Subject: Welcome otto to the team
+Date: Thu, 14 Nov 2024 09:35:00 +0000
+Message-ID: <178763239619.1753940.12463859855326448677@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey Otto, welcome to the team!
+
+Your main focus right now is PR 104 (the logo size fix in the README for mobi=
+le) and picking up any rough edges in the install flow. There's an onboarding=
+ doc on the wiki =E2=80=94 onboarding/onboarding-otto-on-install-ux-readme-po=
+lish =E2=80=94 that has more detail on first tasks and who to loop in on what.
+
+Quick question: have you had a chance to actually run through the install end=
+ to end on your own machine? I want to make sure you're not hitting anything =
+that blocks you before we get you deeper into the examples flow. If you ran i=
+nto anything confusing during setup, that's exactly the kind of thing we'd wa=
+nt you to capture and fix.
+
+Find us in #engineering for anything day to day.
+
+Konrad

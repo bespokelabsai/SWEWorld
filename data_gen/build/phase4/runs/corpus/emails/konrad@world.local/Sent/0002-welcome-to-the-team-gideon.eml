@@ -1,0 +1,35 @@
+From: konrad@world.local
+To: gideon@world.local
+Subject: Welcome to the team, Gideon
+Date: Mon, 04 Nov 2024 09:07:00 +0000
+Message-ID: <178762330422.1674015.15952025110688958023@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey Gideon,
+
+Welcome to Millrow. Really glad to have you on board.
+
+Quick orientation: we're in the middle of milestone "Everything Through a Rev=
+iewed PR" =E2=80=94 the goal is getting the full request pipeline in place, w=
+ith every piece of work going through a proper reviewed PR before it lands. S=
+ix changes merged so far, a couple more in flight right now.
+
+Your piece is request processing and the bespoke-dataset-viewer. PR 8 (init c=
+ommit on bespoke-dataset-viewer) is already open, so you're off to a fast sta=
+rt. For day-to-day coordination we're mostly in Mattermost =E2=80=94 #general=
+ for announcements and logistics, #cookbooks for the technical work on the pi=
+peline and dataset scripts.
+
+If you have questions on the codebase direction or examples, I'm your first s=
+top. For anything on the CI/release side, Emil Brandvold owns that. Dermot Ca=
+llaghan is working on the reasoning-dataset scripts and has context on how th=
+e cookbooks layer fits together.
+
+Could you please let us know roughly how you're thinking about sequencing the=
+ viewer work? Just trying to get a sense of what'll be in flight this week.
+
+Welcome again =E2=80=94 looking forward to it.
+
+Konrad

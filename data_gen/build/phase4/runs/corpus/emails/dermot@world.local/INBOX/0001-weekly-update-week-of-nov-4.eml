@@ -1,0 +1,30 @@
+From: konrad@world.local
+To:
+ dario@world.local, emil@world.local, gideon@world.local, dermot@world.local
+Subject: Weekly update: week of Nov 4
+Date: Mon, 11 Nov 2024 09:07:00 +0000
+Message-ID: <178762923579.1715767.8333290101369263677@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+19 commits landed since Friday, which is good pace.
+
+Open PRs right now (6 total, 2 opened today, 2 stale):
+- PR 39: Fix minor code issues =E2=80=94 stale, mine, pushing on it today
+- PR 43: Better poem example =E2=80=94 stale, also mine
+- PR 44: Starter UI example (Gideon)
+- PR 49: Hot fix for batch=3DFalse file path (Gideon)
+- PR 53: Allow specifying working directory for cache (Dermot) =E2=80=94 new =
+today
+- PR 56: Add batch_mode field to metadata db (Gideon) =E2=80=94 new today
+
+Two things I want to get answered this week:
+
+1. Token counting and parsing fixes =E2=80=94 are these ready to surface as P=
+Rs or still being worked? Would like to know status before end of day.
+2. ws-006 (bulk-llm core) =E2=80=94 is this unblocked? Wasn't clear to me fro=
+m last week where that landed.
+
+PR 39 and PR 43 have been sitting longest. Goal is to have all 6 PRs merged o=
+r with clear path forward by end of today.

@@ -1,0 +1,450 @@
+{
+  "world": "millrow",
+  "people": {
+    "dario": {
+      "core": {
+        "name": "Dario Kestrel",
+        "age": 42,
+        "gender": "Male",
+        "occupation": "computer or information systems manager",
+        "personality": [
+          "meticulous",
+          "reserved",
+          "disciplined",
+          "introspective"
+        ],
+        "background": "",
+        "strengths": [
+          "IT infrastructure management",
+          "Network security",
+          "ITIL process implementation",
+          "Project management",
+          "Windows Server administration",
+          "VMware virtualization"
+        ],
+        "gaps": [
+          "People management and conflict resolution in heated team situations",
+          "Cloud migration strategies and multi-cloud environments compared to on-premises expertise",
+          "Security compliance frameworks like SOC 2 or ISO 27001 certification requirements",
+          "Vendor negotiation and license optimization across enterprise contracts"
+        ],
+        "hobbies": [
+          "Model building",
+          "Hiking",
+          "Fishing",
+          "Korean cooking",
+          "Korean language practice",
+          "Reading tech journals",
+          "Playing chess",
+          "Evening walks with small group of friends"
+        ],
+        "travel_habits": "Son Oh prefers meticulously planned weekend getaways, they have recently explored the red\u2011rock canyons of Sedona, the historic streets of Kyoto\u2019s Gion district, and the Scottish Highlands, while they dream of a future road trip along New\u202fZealand\u2019s South Island where they can sketch and photograph remote landscapes.",
+        "dining_preferences": "Son Oh\u2019s kitchen is a laboratory for traditional fermented cabbage stew (kimchi jjigae), grilled marinated beef (bulgogi), and homemade soybean paste soup (doenjang\u2011guk), where they expertly balance gochujang, sesame oil, and fresh napa cabbage, but they often neglect pastry skills, admitting they can\u2019t tell a souffl\u00e9 from a pancake.",
+        "spending_habits": "",
+        "other": [
+          "Son H Oh is a first\u2011generation Korean American who grew up in a bilingual household that emphasized respect for elders, diligence, and community. While he has fully integrated into the Texan environment of Killeen\u2014especially the military community surrounding Fort Hood\u2014he continues to observe Korean cultural traditions such as Chuseok and Korean New Year. His cultural identity blends Korean family values with American individualism, influencing his pragmatic work ethic, preference for clear structures, and a reserved yet courteous interpersonal style.",
+          "Son aims to progress from his current managerial role to a senior leadership position such as Director of IT or Chief Information Officer within the next five years. He seeks to lead larger, multi\u2011site IT operations, championing a balanced approach that preserves system reliability while integrating emerging secure technologies. He plans to mentor junior staff, formalize a mentorship program, and drive initiatives that improve operational efficiency through automation, all while maintaining the structured, predictable environment he values."
+        ]
+      },
+      "voice": {
+        "cadence": "burst",
+        "formality": "casual",
+        "capitalization": "normal",
+        "punctuation": "inconsistent",
+        "vocabulary": "verbose",
+        "typo_tendency": "light",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "neutral",
+        "signature_words": [
+          "anyway",
+          "so basically"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "humor"
+        },
+        "hedge_words": [
+          "honestly",
+          "i dunno",
+          "hold on",
+          "i'd lean"
+        ],
+        "affirm_words": [
+          "makes sense",
+          "fair",
+          "fair enough"
+        ],
+        "question_style": "either-or"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
+    "dermot": {
+      "core": {
+        "name": "Dermot Callaghan",
+        "age": 51,
+        "gender": "Male",
+        "occupation": "computer or information systems manager",
+        "personality": [
+          "pragmatic",
+          "meticulous",
+          "impulsive",
+          "perfectionist"
+        ],
+        "background": "",
+        "strengths": [
+          "Network infrastructure management",
+          "Cybersecurity strategy",
+          "Cloud services implementation",
+          "IT project management",
+          "Budgeting and financial planning",
+          "Team leadership and mentorship"
+        ],
+        "gaps": [
+          "emerging cloud-native frameworks and containerization nuances",
+          "real-time compliance audit procedures for newer regulations",
+          "deep troubleshooting of distributed system race conditions",
+          "modern hr policy compliance in remote team scaling"
+        ],
+        "hobbies": [
+          "Woodworking",
+          "Fishing",
+          "Reading historical non-fiction",
+          "Playing classic rock vinyl records",
+          "Sailing",
+          "Community theater attendance",
+          "Cooking",
+          "Board game evenings"
+        ],
+        "travel_habits": "Nelson Rice prefers low\u2011key, family\u2011oriented travel, planning weekend getaways to historic coastal towns like Newport, Rhode Island, and Mystic, Connecticut, while also dreaming of a summer sailing charter in the Greek Islands, though budget and work commitments keep most voyages within the New England corridor.",
+        "dining_preferences": "Nelson Rice cooks family\u2011style meals with a solid intermediate skill level, favoring New England clam chowder, rosemary\u2011roasted chicken, and grilled swordfish topped with lemon\u2011butter, and he delights in pairing these dishes with locally sourced apples for a classic apple pie, while occasionally indulging in a weekend steak\u2011house brunch where the side of truffle\u2011infused mac and cheese satisfies his occasional food\u2011ie indulgence.",
+        "spending_habits": "",
+        "other": [
+          "Nelson grew up in a working\u2011class family in Lynn, Massachusetts, with Irish\u2011American roots that emphasized hard work, modesty, and community service. He attended the local public high school and entered the technology field through apprenticeships and industry certifications rather than a formal college degree. The multicultural fabric of Essex County, combined with deep ties to neighborhood events, church gatherings, and seasonal festivals, shaped his pragmatic yet open\u2011minded worldview. This blend of New England values and exposure to diverse cultures informs his balanced approach to both professional challenges and personal relationships.",
+          "Nelson aims to advance from his current managerial role to a Director of IT position within the next five years, where he can oversee enterprise\u2011wide digital transformation and strengthen organizational cybersecurity posture. He plans to earn advanced certifications such as CISSP and PMP to bolster his strategic credibility. A passionate mentor, he also strives to formalize a junior\u2011staff development program and become a recognized leader in the local tech community through guest speaking and participation in industry meet\u2011ups. Ultimately, he envisions leveraging his experience to launch a boutique consulting firm that helps small businesses in Essex County modernize their IT operations while preserving the personal touch he values."
+        ]
+      },
+      "voice": {
+        "cadence": "burst",
+        "formality": "formal",
+        "capitalization": "always lowercase",
+        "punctuation": "inconsistent",
+        "vocabulary": "plain",
+        "typo_tendency": "frequent",
+        "register": "esl",
+        "reaction_style": "restrained",
+        "agreeableness": "neutral",
+        "signature_words": [
+          "look we need to",
+          "that said"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "emphasis"
+        },
+        "hedge_words": [
+          "not entirely sure",
+          "so",
+          "i mean"
+        ],
+        "affirm_words": [
+          "yeah",
+          "gotcha"
+        ],
+        "question_style": "blunt-direct"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
+    "gideon": {
+      "core": {
+        "name": "Gideon Halloway",
+        "age": 38,
+        "gender": "Female",
+        "occupation": "software developer",
+        "personality": [
+          "curious",
+          "disciplined",
+          "resilient",
+          "socially energetic"
+        ],
+        "background": "",
+        "strengths": [
+          "Python",
+          "Java",
+          "JavaScript/React",
+          "AWS",
+          "Azure",
+          "SQL"
+        ],
+        "gaps": [
+          "DevOps infrastructure and containerization tooling like Docker and Kubernetes",
+          "Front-end frameworks and responsive design patterns\u2014tends to defer to specialists",
+          "Performance optimization for legacy codebases without clear documentation",
+          "Project estimation and recognizing personal bandwidth limits before over-committing"
+        ],
+        "hobbies": [
+          "Tech meetups and conferences",
+          "Hosting dinner parties",
+          "Wine tasting",
+          "Hiking the C&O Canal Trail",
+          "Playing tennis",
+          "Traveling to European cultural festivals",
+          "Reading business and technology books",
+          "Urban photography",
+          "Mentoring underrepresented youth in tech",
+          "Yoga"
+        ],
+        "travel_habits": "Brittany Bradford plans trips with the precision of a product roadmap, favoring immersive cultural festivals such as Munich's Oktoberfest, the Venice Carnival, and the Lisbon Festas de Lisboa, while balancing weekend getaways to the Shenandoah Valley with occasional long-haul flights to historic cities like Prague and Istanbul, always allocating a budget line for experiential learning and photography.",
+        "dining_preferences": "Brittany Bradford enjoys experimenting in the kitchen as an avid home chef, mastering dishes like coq au vin with a drizzle of truffle oil, crafting a perfect sushi roll with smoked salmon and wasabi, and pairing each course with carefully selected wines such as a crisp Sauvignon Blanc or a robust Bordeaux, while their competitive nature drives them to host themed dinner parties that double as networking events.",
+        "spending_habits": "",
+        "other": [
+          "Brittany grew up in a middle\u2011class family in the Mid\u2011Atlantic region, where education, civic engagement, and professional achievement were highly valued. Her white American upbringing was shaped by the diverse cultural tapestry of Washington, D.C., exposing her to a wide range of perspectives and fostering an appreciation for networking and community involvement. Family traditions emphasized celebrating national holidays, supporting local charities, and encouraging higher education\u2014leading her to earn a business graduate degree at a regional university. This background instilled a pragmatic, methodical outlook, a respect for structured processes, and a strong affinity for collaborative yet competitive environments.",
+          "Brittany aims to transition into senior technology leadership within the next five years, targeting roles such as Director of Engineering or VP of Product at a mid\u2011size tech firm or a government\u2011focused startup. She wants to spearhead large\u2011scale, data\u2011driven projects that modernize public\u2011sector services, while championing inclusive hiring and mentorship programs for women and underrepresented groups in tech. She aspires to become a recognized speaker at national conferences, publish thought pieces on the intersection of technology, policy, and business strategy, and eventually launch her own consultancy focused on digital transformation for civic organizations. To support these ambitions, she plans to earn an executive MBA and a PMP certification, and to deepen her expertise in emerging cloud security and AI ethics."
+        ]
+      },
+      "voice": {
+        "cadence": "burst",
+        "formality": "formal",
+        "capitalization": "inconsistent",
+        "punctuation": "standard",
+        "vocabulary": "verbose",
+        "typo_tendency": "light",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "agreeable",
+        "signature_words": [
+          "at scale",
+          "data-driven approach"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "never"
+        },
+        "hedge_words": [
+          "honestly",
+          "hold on",
+          "actually",
+          "well"
+        ],
+        "affirm_words": [
+          "fair enough",
+          "totally"
+        ],
+        "question_style": "either-or"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
+    "konrad": {
+      "core": {
+        "name": "Konrad Feltrin",
+        "age": 40,
+        "gender": "Male",
+        "occupation": "computer or information systems manager",
+        "personality": [
+          "pragmatic",
+          "community-oriented",
+          "methodical",
+          "grounded"
+        ],
+        "background": "",
+        "strengths": [
+          "Network Design & Administration",
+          "Server Virtualization (VMware, Hyper\u2011V)",
+          "Cloud Migration (AWS, Azure)",
+          "IT Budgeting & Vendor Management",
+          "Agile Project Management",
+          "ITIL Service Management"
+        ],
+        "gaps": [
+          "cloud architecture patterns \u2014 keeps defaulting to on-prem mental models",
+          "advanced database optimization and query tuning specifics",
+          "staying current with rapid shifts in container orchestration tooling",
+          "security compliance frameworks like SOC 2 audit requirements"
+        ],
+        "hobbies": [
+          "Hiking in the Pacific Northwest",
+          "Trout fishing",
+          "Woodworking (furniture building)",
+          "Home brewing craft beer",
+          "Chess",
+          "Historical non\u2011fiction reading",
+          "Community theater attendance",
+          "Volunteer work at food bank and farmers market"
+        ],
+        "travel_habits": "A strategic road\u2011trip planner, Alexander Leppert prefers mapping scenic drives through Oregon\u2019s coastline and Cascade peaks, they have trekked to Crater Lake, explored Seattle\u2019s Pike Place Market, and dream of hiking Norway\u2019s fjords and strolling Kyoto\u2019s historic temples, balancing adventure with budget constraints by booking modest lodgings and using a well\u2011stocked camper van.",
+        "dining_preferences": "A devoted home\u2011brewer and woodworker, Alexander Leppert crafts seasonal IPAs with Cascade hops, they cook cedar\u2011plank smoked trout seasoned with rosemary and wild mushrooms, perfect their family\u2019s traditional holiday roast served with apple\u2011cinnamon crumble, and routinely experiment with foraged ingredients like pine nuts and juniper berries, showcasing a blend of rustic flavors and meticulous technique.",
+        "spending_habits": "",
+        "other": [
+          "Alexander is a white American of German and English descent, raised in a small Midwestern town where self\u2011reliance and community involvement were core values. After completing a STEM bachelor's degree, he relocated to Oregon for career opportunities, embracing the Pacific Northwest's love of nature and outdoor recreation. He maintains family traditions such as holiday gatherings with homemade recipes, while actively participating in local events like the Jackson County Fair and supporting regional farmers markets. His cultural outlook blends Midwestern practicality with Oregon's environmental appreciation and a strong commitment to volunteerism.",
+          "Alexander aims to advance to a regional IT Director role, overseeing technology strategy for a health\u2011care network or municipal government in the Pacific Northwest. He plans to earn the CISSP certification and an AWS Solutions Architect Professional credential to deepen his security and cloud expertise. His ambition includes leading a comprehensive digital transformation that modernizes legacy systems, enhances remote\u2011work capabilities, and strengthens cybersecurity posture. Additionally, he seeks to mentor emerging IT talent and cultivate a workplace culture centered on reliability, teamwork, and employee well\u2011being."
+        ]
+      },
+      "voice": {
+        "cadence": "burst",
+        "formality": "casual",
+        "capitalization": "normal",
+        "punctuation": "inconsistent",
+        "vocabulary": "verbose",
+        "typo_tendency": "frequent",
+        "register": "esl",
+        "reaction_style": "restrained",
+        "agreeableness": "neutral",
+        "signature_words": [
+          "so here's the thing",
+          "makes sense"
+        ],
+        "emoji_tendency": {
+          "frequency": "rare",
+          "preferred": [
+            "\ud83d\ude24"
+          ],
+          "trigger": "frustration"
+        },
+        "hedge_words": [
+          "so",
+          "well"
+        ],
+        "affirm_words": [
+          "definitely",
+          "totally"
+        ],
+        "question_style": "either-or"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
+    "otto": {
+      "core": {
+        "name": "Otto Brennan",
+        "age": 50,
+        "gender": "Male",
+        "occupation": "software developer",
+        "personality": [
+          "methodical",
+          "pragmatic",
+          "grounded",
+          "conscientious"
+        ],
+        "background": "",
+        "strengths": [
+          "Java",
+          "C#",
+          "Python",
+          ".NET",
+          "Spring",
+          "Angular"
+        ],
+        "gaps": [
+          "stays behind on newer frontend frameworks and their rapid ecosystem changes",
+          "hasn't worked much with cloud infrastructure automation tools like terraform or kubernetes",
+          "sometimes underestimates timeline on projects involving unfamiliar third-party apis",
+          "gets rusty on database optimization and query performance tuning between projects"
+        ],
+        "hobbies": [
+          "Fly-fishing",
+          "Hiking",
+          "Camping",
+          "Woodworking",
+          "Gardening",
+          "Reading historical novels",
+          "Reading technology magazines",
+          "Chess",
+          "Volunteer computing instructor",
+          "Model railroading",
+          "Listening to classic rock and blues",
+          "Craft-beer tasting"
+        ],
+        "travel_habits": "Sean Buckley is a meticulous planner who prefers structured, nature\u2011focused trips, having already explored Yellowstone, Glacier, and Banff National Parks, and now dreams of hiking the Patagonia Torres del Paine circuit and the Scottish Highlands, arranging each itinerary months in advance while balancing a modest travel budget with his commitment to maintain work\u2011life equilibrium.",
+        "dining_preferences": "Sean Buckley is a competent home cook who transforms garden\u2011grown vegetables into roasted root medleys, grills fresh river trout with rosemary and lemon, prepares a hearty wild\u2011mushroom risotto, and pairs these dishes with craft\u2011beer selections from local breweries such as Great Divide and BridgePort, reflecting his love for rustic, flavorful meals.",
+        "spending_habits": "",
+        "other": [
+          "Sean\u2019s cultural background blends a Midwestern Irish\u2011American heritage with the rugged, community\u2011centered ethos of Montana\u2019s \u201cBig Sky\u201d country. Raised in a small town, he grew up valuing self\u2011reliance, neighborly cooperation, and a deep respect for nature. His family traditions include modest celebrations of Irish holidays like St. Patrick\u2019s Day, and a strong work ethic passed down through generations of labor\u2011focused parents. Since moving to Livingston, he has embraced the local culture of outdoor recreation, frontier hospitality, and a modest, pragmatic approach to life, while integrating his technical career into the region\u2019s growing digital economy.",
+          "Sean aims to transition into a lead software architect role within the next three to five years, focusing on building scalable, maintainable systems for his employer and local businesses. He seeks to obtain AWS Solutions Architect certification to broaden his cloud expertise and to mentor a small cohort of junior developers, fostering a culture of quality and predictability. Over the longer term, he envisions moving into a technical leadership position that balances architectural oversight with hands-on coding, while maintaining a stable work\u2011life balance that allows him to spend ample time outdoors. He also hopes to contribute to open\u2011source projects that emphasize reliability and to develop a community\u2011oriented tech workshop series in Livingston."
+        ]
+      },
+      "voice": {
+        "cadence": "considered",
+        "formality": "semi-formal",
+        "capitalization": "always lowercase",
+        "punctuation": "standard",
+        "vocabulary": "plain",
+        "typo_tendency": "frequent",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "blunt",
+        "signature_words": [
+          "that said",
+          "solid approach"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "warmth"
+        },
+        "hedge_words": [
+          "i'd say",
+          "actually",
+          "not sure"
+        ],
+        "affirm_words": [
+          "sounds right",
+          "that tracks"
+        ],
+        "question_style": "plain-what"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    }
+  }
+}
