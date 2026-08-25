@@ -1,0 +1,19 @@
+From: emil@world.local
+To: dario@world.local, dermot@world.local, gideon@world.local,
+ nikolai@world.local
+Subject: v0.1.23.post1 is out
+Date: Fri, 11 Apr 2025 09:07:00 +0000
+Message-ID: <178769863042.2250839.7933772582833750155@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.23.post1 shipped today, same day as 0.1.23.
+
+What it fixes: failed-requests jsonl handling, conftest cleanup, and some vie=
+wer tidying. No public API changes.
+
+This is not a mandatory upgrade. If you're not hitting those issues, you can =
+wait, but worth pulling before the weekend.
+
+Full release notes are in the v0.1.23.post1 Release Notes doc.

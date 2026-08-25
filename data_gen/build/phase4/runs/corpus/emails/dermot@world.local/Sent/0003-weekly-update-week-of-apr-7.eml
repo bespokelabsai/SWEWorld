@@ -1,0 +1,38 @@
+From: dermot@world.local
+To: emil@world.local, dario@world.local, gideon@world.local,
+ nikolai@world.local, tomas@world.local
+Subject: Weekly update: week of Apr 7
+Date: Mon, 14 Apr 2025 09:56:00 +0000
+Message-ID: <178769930038.2250839.2605881431154859866@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hi all,
+
+Quick summary of where things stand coming into this week.
+
+What shipped last week: v0.1.23 is out, and we cut v0.1.23.post1 shortly afte=
+r to address a post-release regression. Postmortem is in the wiki under the p=
+ostmortems collection.
+
+In flight right now:
+- PR 631: projected-total and projected-remaining readout improvements (in re=
+view)
+- PR 632: curator CLI batch update frequency fix (in review, needs eyes)
+- PR 626: metadata schema update with cost fields (Emil, waiting on 632 to la=
+nd first, or possibly can proceed in parallel =E2=80=94 see below)
+- PR 634: OpenAI/DeepSeek provider support (Tomas)
+- PR 583: param to disable metadata db (Nikolai)
+- PR 468: n samples in generation params (Emil)
+
+Merge ordering to sort: PR 632 should ideally land before PR 626, but I'm not=
+ sure that's a hard dependency. Worth clarifying so Emil isn't blocked unnece=
+ssarily.
+
+Open question I'd like input on: is cost metadata coming back consistently fr=
+om provider backends, or are there gaps depending on which one you hit? This =
+matters before PR 626 lands. If you've run against multiple backends recently=
+ please shout.
+
+Dermot
