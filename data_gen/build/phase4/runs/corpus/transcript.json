@@ -2261,6 +2261,423 @@
           "userId": "dario",
           "text": "@Konrad, if you have any capacity left after PR 78 and PR 90, PR 141 could use eyes too",
           "ts": "2024-11-23T14:18:32"
+        },
+        {
+          "userId": "gideon",
+          "text": "- *PR 141* (LiteLLM+instructor backend): ready for review, touches provider integrations and the curator core; blocking v0.1.11\n- *PR 163* (viewer cache): also needs eyes before we can cut the release\n\nBoth are v0.1.11 blockers",
+          "ts": "2024-11-25T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "fyi i've taken a first pass at both prs. pr 141 is the heavier one, provider-integrations plus curator core changes in the same diff. pr 163 is more contained",
+          "ts": "2024-11-25T09:29:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "both are flagged as v0.1.11 blockers so I want to get through them this morning before anything else gets queued",
+          "ts": "2024-11-25T09:29:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 (text message summarization example) still needs a reviewer, it's been open and hasn't had any eyes on it yet",
+          "ts": "2024-11-25T10:02:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 78 and PR 90 are both sitting without a merge/defer decision and haven't had a review pass either.",
+          "ts": "2024-11-25T10:33:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "hold on, are PR 78 and PR 90 both just deferrable at this point?",
+          "ts": "2024-11-25T11:19:10"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean yes, honestly",
+          "ts": "2024-11-25T11:53:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 still hasn't had any eyes on it, it's examples-cookbooks only, pretty self-contained",
+          "ts": "2024-11-25T12:04:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "The onboarding page for Otto isn't on the wiki yet either",
+          "ts": "2024-11-25T12:04:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone actually put eyes on pr 141 and pr 163 yet, or are they still waiting for a first pass?",
+          "ts": "2024-11-25T12:40:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dermot, you posted a first pass on both 141 and 163 earlier this morning, so they're not completely unreviewed.",
+          "ts": "2024-11-25T13:12:50",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Also, the Nov 23 postmortem is on the wiki now if it helps with context for reviewing 141.",
+          "ts": "2024-11-25T13:12:58"
+        },
+        {
+          "userId": "dario",
+          "text": "On PR 78 and PR 90 - are we calling those deferred, or does anyone still want a pass on them before we close the loop?",
+          "ts": "2024-11-25T13:45:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'd call 78 and 90 deferred.",
+          "ts": "2024-11-25T14:30:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "The Nov 23 postmortem is on the wiki and covers the instructor integration issue that caused the last revert, the backend regression question on 141 is still open though.",
+          "ts": "2024-11-25T14:31:06"
+        },
+        {
+          "userId": "dario",
+          "text": "The Otto onboarding page still isn't on the wiki - Konrad, is that still coming?",
+          "ts": "2024-11-25T15:42:29"
+        },
+        {
+          "userId": "dario",
+          "text": "The v0.1.9.post1 release notes are up on the wiki now (engineering/release-notes-v0-1-9-post1.md) - covers the Nov 23 LiteLLM revert and points to PR 141 as the fix. Does that give enough context for the PR 141 review, or is there anything missing?",
+          "ts": "2024-11-25T15:50:01",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 141 and PR 161 have both been sitting without review for a few days now.",
+          "ts": "2024-11-26T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "141 is the LiteLLM+instructor structured output backend, 161 is the Prometheus eval example",
+          "ts": "2024-11-26T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Neither is blocking a release but I'd like to get them moving",
+          "ts": "2024-11-26T09:00:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario any update on PR 78 and PR 90?",
+          "ts": "2024-11-26T09:19:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "- PR 141: LiteLLM+instructor structured output backend, no review yet\n- PR 161: Prometheus eval example, no review yet",
+          "ts": "2024-11-26T09:50:24"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon, for PR 141 in particular, do you need someone who knows the liteLLM backend or will any reviewer do? I'm not sure a fresh pair of eyes catches what needs catching there.",
+          "ts": "2024-11-26T10:29:24",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-26T10:29:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "fair enough.",
+          "ts": "2024-11-26T10:29:49",
+          "threadParentTs": "2024-11-26T10:29:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 106 is almost ready for review - hit a small formatting thing in the prompt function I want eyes on:\n\n```python\nmessages = \"\\n\".join(f\"{m['sender']}: {m['text']}\" for m in conversation[\"messages\"])\n```\n\nnot sure if the prompt input should be structured differently or if flat text is fine here",
+          "ts": "2024-11-26T10:31:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "so",
+          "ts": "2024-11-26T11:10:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Just sent the v0.1.10 announcement to the team, asked for reviews on PR 78 and PR 90 in it",
+          "ts": "2024-11-26T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Does anyone have bandwidth to pick up either one this week?",
+          "ts": "2024-11-26T11:50:08"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd like to get it settled that cache lookup and cache_stats are keyed on the input row hash, not on anything we compute by constructing the LLM",
+          "ts": "2024-11-26T11:57:09"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone have a concern with that before we call it?",
+          "ts": "2024-11-26T11:57:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "weekly update for the week of nov 18 is out, check your inbox",
+          "ts": "2024-11-26T12:29:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dermot's \"so\" from three hours ago is just... still there.",
+          "ts": "2024-11-26T15:14:50",
+          "reactions": [
+            {
+              "emoji": "😂",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Cache lookup and cache_stats are both keyed on the input row hash, no prompt callable, no live LLM object",
+          "ts": "2024-11-26T16:03:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth writing down why the row hash is the right level for this - resume needs nothing but the dataset itself to work.",
+          "ts": "2024-11-26T16:03:25.666667"
+        },
+        {
+          "userId": "dario",
+          "text": "If the key depended on anything only computable by constructing the LLM, cache_stats stops being callable before a run and becomes another run.",
+          "ts": "2024-11-26T16:03:27.333334"
+        },
+        {
+          "userId": "dario",
+          "text": "That's what keeps cache_stats cheap on a cold process - you can rebuild the whole hit/miss picture from the metadata DB without constructing anything",
+          "ts": "2024-11-26T16:03:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, postmortem's closed on my end, has anyone actually picked up PR 141 yet?",
+          "ts": "2024-11-26T16:41:29"
+        },
+        {
+          "userId": "dario",
+          "text": "Cache lookup and cache_stats are keyed on the input row hash, nothing that requires constructing a live LLM object",
+          "ts": "2024-11-26T17:22:49"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon, I haven't seen anyone claim PR 141 yet - does it need someone with liteLLM depth specifically, or will any reviewer do?",
+          "ts": "2024-11-26T17:22:57"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, looking back at it - Dermot was already asking the detailed questions about PR 141 earlier",
+          "ts": "2024-11-26T18:27:53",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Is he the natural reviewer for it?",
+          "ts": "2024-11-26T18:28:01"
+        },
+        {
+          "userId": "dario",
+          "text": "v0.1.10 release notes are on the wiki now under engineering - does that cover what people need, or is anything worth adding?",
+          "ts": "2024-11-26T18:29:41.227117"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 141 (LiteLLM+instructor) and PR 161 (Prometheus judge eval) are both up and waiting for review",
+          "ts": "2024-11-28T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "would be good to get a signal on 141 before this afternoon, whether it's landing this cycle or we're deferring",
+          "ts": "2024-11-28T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "My concern is whether 141 has enough real coverage to land confidently this cycle - has instructor piece been tested against actual curator workflows, or are we kind of finding out in review?",
+          "ts": "2024-11-28T09:29:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, can you take a look at PR 141 and sanity-check the instructor coverage against real curator workflows?",
+          "ts": "2024-11-28T10:07:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Separately, do we have anyone lined up to review PR 78 and 90 this week, or are those just waiting in the queue?",
+          "ts": "2024-11-28T10:51:05"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 and 90 are both sitting ready and just need eyes, neither is blocking a release right now but I'd want to get them through before the queue builds up more",
+          "ts": "2024-11-28T11:35:05"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll pull up 141 and take a look at the instructor coverage too, give me a bit",
+          "ts": "2024-11-28T11:35:17",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "good to know",
+          "ts": "2024-11-28T11:39:17"
+        },
+        {
+          "userId": "dario",
+          "text": "Does anyone have a slot this afternoon to take a look at one of them?",
+          "ts": "2024-11-28T11:48:17"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 is probaly the lighter lift if you're short on time",
+          "ts": "2024-11-28T11:48:29"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can take a look at PR 78 after lunch.",
+          "ts": "2024-11-28T11:52:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there someone lined up for PR 90 as well, or does that still need a reviewer?",
+          "ts": "2024-11-28T11:52:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "So I guess PR 90 can probably wait since it's not blocking anything",
+          "ts": "2024-11-28T12:16:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are 133 and 161 in the same boat, or do those need to land before the next release?",
+          "ts": "2024-11-28T12:16:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 isn't release-blocking, it can wait",
+          "ts": "2024-11-28T13:00:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "141 is still waiting on Dario's review",
+          "ts": "2024-11-28T13:00:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "So 141 is still pending Dario's look, and I don't think 133 has anyone on it yet.",
+          "ts": "2024-11-28T13:19:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we actually have bandwidth to get through both of those this week?",
+          "ts": "2024-11-28T13:19:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "Sent the weekly update to the team (week of Nov 25), PR 141 and PR 161 are both still open and need eyes, and I flagged in the email that I want PR 141 resolved this week once I have clarity on what's actually blocking it.",
+          "ts": "2024-12-02T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, do you know what's actually holding up the merge on PR 141?",
+          "ts": "2024-12-02T09:00:37"
+        },
+        {
+          "userId": "gideon",
+          "text": "I've been going through the review comments but I'm not sure if there's a specific blocker I'm missing or if it just needs another pass from you",
+          "ts": "2024-12-02T09:00:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pulled up PR 141 myself, is the concern with the abstract class restructuring, or is it the instructor integration side specifically?",
+          "ts": "2024-12-02T09:31:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Flagged PR 141 in the weekly update this morning as unresolved, is it a split-the-PR situation, or does it need a rework pass first?",
+          "ts": "2024-12-02T10:21:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok",
+          "ts": "2024-12-02T11:29:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "looking at the PR description again, the \"Future Works\" piece is explicitly labeled as deferred",
+          "ts": "2024-12-02T11:29:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is that already tracked somewhere as a follow-up, or does it need its own issue before this can merge?",
+          "ts": "2024-12-02T11:29:10"
+        },
+        {
+          "userId": "dario",
+          "text": "So basically the Future Works item needs its own issue filed beofre this can merge, otherwise it just disappears after the fact",
+          "ts": "2024-12-02T11:50:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "On my end, most of the instructor integration side is in decent shape now but the abstract class restructuring still has an open thread I left, and there's an error handling path that wasn't addressed in the last round",
+          "ts": "2024-12-02T11:50:05",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "If those two things come back clean I can get to an approval",
+          "ts": "2024-12-02T11:50:17"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon, did you end up filing the Future Works piece as a separate issue, or is that still pending?",
+          "ts": "2024-12-02T12:04:04"
         }
       ],
       "projectSpec": {
@@ -5525,6 +5942,678 @@
           "userId": "dermot",
           "text": "was the async change part of PR 141 or something separate from it",
           "ts": "2024-11-23T12:37:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "- two commits ready for v0.1.10: resume pbar display fix and the default timeout\n- both are in the request layer, no changes outside that scope\n- aiming to get these cleared today so the release sequence doesn't back up",
+          "ts": "2024-11-25T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure I'm entirely comfortable sequencing these into v0.1.10 while pr 141 and pr 163 are both still open for v0.1.11",
+          "ts": "2024-11-25T09:39:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we have a clear enough boundary between the two cuts, or are we risking a conflict?",
+          "ts": "2024-11-25T09:39:51",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-25T10:28:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "the two cuts feel pretty separate to me, the pbar and timeout are nowhere near what 141 and 163 are touching.",
+          "ts": "2024-11-25T10:28:33",
+          "threadParentTs": "2024-11-25T09:39:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does anyone know if the v0.1.9.post1 release notes are up somewhere? I checked the wiki and didn't find anything.",
+          "ts": "2024-11-25T11:12:34"
+        },
+        {
+          "userId": "dario",
+          "text": "Checked the wiki and the v0.1.9.post1 release notes aren't up yet, that's on me, I'll write them up and get them posted this afternoon.",
+          "ts": "2024-11-25T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we have the release order actually settled - v0.1.10 once Gideon's second review lands, then 0.1.11 after 141 and 163 clear?",
+          "ts": "2024-11-25T12:01:00"
+        },
+        {
+          "userId": "dario",
+          "text": "I dunno if anyone's formally called that sequence yet",
+          "ts": "2024-11-25T12:01:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "that sequence hasn't been formally called yet, no",
+          "ts": "2024-11-25T12:54:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Three cuts in flight and no order called - who's making that call, or can we settle it here this afternoon?",
+          "ts": "2024-11-25T12:58:36"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly, I think the sequence kind of calls itself - 0.1.10 once Gideon's reviewer lands, 0.1.11 after 141 and 163 clear",
+          "ts": "2024-11-25T13:48:14"
+        },
+        {
+          "userId": "dario",
+          "text": "So which of the six stale PRs can we actually merge today vs which are we parking?",
+          "ts": "2024-11-25T13:48:26"
+        },
+        {
+          "userId": "dario",
+          "text": "v0.1.9.post1 release notes still aren't on the wiki - just the Nov 19 hotfix to capture, or was there more to it?",
+          "ts": "2024-11-25T14:52:26"
+        },
+        {
+          "userId": "dario",
+          "text": "Konrad, the Otto onboarding page still isn't on the wiki - is that still being drafted?",
+          "ts": "2024-11-25T15:39:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "honestly not sure the sequence is quite that settled - the backend regression check on 141 is still open.",
+          "ts": "2024-11-25T15:59:26",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-25T16:47:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "can anyone take a second pass on the pbar and timeout commits before end of day?",
+          "ts": "2024-11-25T16:12:01"
+        },
+        {
+          "userId": "dario",
+          "text": "Looked at PR 141 earlier and flagged the OnlineRequestProcessor abstract class refactor as the part that still needs a closer look",
+          "ts": "2024-11-25T16:47:04"
+        },
+        {
+          "userId": "dario",
+          "text": "I can take the pbar and timeout commits if nobody else has that pass",
+          "ts": "2024-11-25T16:47:09",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-25T17:30:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "so 0.1.11 is gated on the regression check clearing, not just the pr reviews?",
+          "ts": "2024-11-25T16:47:31",
+          "threadParentTs": "2024-11-25T15:59:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "yes please, that would unblock v0.1.10.",
+          "ts": "2024-11-25T17:30:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2024-11-25T16:47:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dario's taking the second pass on my pbar and timeout commits",
+          "ts": "2024-11-25T17:30:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "so once dario's pass clears, I'll sign off on gideon's commits and we can cut v0.1.10. the 0.1.11 sequence stays gated on the regression check for pr 141.",
+          "ts": "2024-11-25T17:57:34",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "that works for me",
+          "ts": "2024-11-25T18:08:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll also get the Nov 19 postmortem and the weekly notes page on the wiki done tonight so those aren't hanging into tomorrow",
+          "ts": "2024-11-25T18:08:42",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "where do the six stale prs land, has anyone gone through which ones we're merging vs parking?",
+          "ts": "2024-11-25T18:13:42"
+        },
+        {
+          "userId": "dario",
+          "text": "I've got the second pass on the pbar and timeout commits",
+          "ts": "2024-11-25T18:24:47.455774"
+        },
+        {
+          "userId": "dario",
+          "text": "On the stale PRs - 78 and 90 are deferred on my end, 141 is gated on the regression check",
+          "ts": "2024-11-25T18:24:59.455774"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dario has the second pass on my commits now",
+          "ts": "2024-11-25T18:29:40.878583"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 141 and PR 161 are both sitting in review, waiting on eyes.",
+          "ts": "2024-11-26T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "still working through the postmortem writeup on the nov 23 LiteLLM revert.",
+          "ts": "2024-11-26T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.10 is out as of this morning",
+          "ts": "2024-11-26T09:10:08",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "worth doing a quick retro on the 0.1.10 cycle before we lock in the next batch.",
+          "ts": "2024-11-26T09:23:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "So one thing I noticed - the online processing path went out in 0.1.10 with no example alongside it, which is worth flagging in the retro",
+          "ts": "2024-11-26T10:02:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean, PR 78 is already in flight for exactly that, so I'm not sure it belongs in the retro so much as just on the open-PR pile",
+          "ts": "2024-11-26T10:15:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2024-11-26T10:36:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we actually need the postmortem wrapped up before we can call the next batch priorities, or can we just do that now off what we already know from the cycle?",
+          "ts": "2024-11-26T11:04:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "postmortem's wrapped up on my end, actually.",
+          "ts": "2024-11-26T11:29:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "the main thing it sufaces for the next priorities is that PR 141 needs a smoke test for the instructor integration path as an explicit review criterion before it merges, not just happy-path coverage.",
+          "ts": "2024-11-26T11:29:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure that's a sprint priority so much as just a review gate for PR 141",
+          "ts": "2024-11-26T11:53:14"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we want to actually name what the next batch focuses on, or are we calling it 'finish what's in flight' and moving on?",
+          "ts": "2024-11-26T11:53:22"
+        },
+        {
+          "userId": "otto",
+          "text": "sorry, been heads down, I'd say finish what's in flight first, the open prs are the real backlog right now",
+          "ts": "2024-11-26T14:53:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "the postmortem has a specific action item in it: smoke test the instructor path before PR 141 merges.",
+          "ts": "2024-11-26T15:11:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "does that get folded into PR 141's review criteria explicitly, or does it need a separate issue?",
+          "ts": "2024-11-26T15:11:34",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-26T15:57:15"
+        },
+        {
+          "userId": "dario",
+          "text": "So basically the next sprint is clearing what's in flight",
+          "ts": "2024-11-26T15:40:34"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario can you get eyes on PR 106 today, it's pretty close to ready.",
+          "ts": "2024-11-26T15:56:34",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-26T15:57:34"
+        },
+        {
+          "userId": "dario",
+          "text": "Review criteria seems cleaner, does it actually need a separate issue to get tracked?",
+          "ts": "2024-11-26T15:57:15",
+          "threadParentTs": "2024-11-26T15:11:34"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll take a look this afternoon.",
+          "ts": "2024-11-26T15:57:34",
+          "threadParentTs": "2024-11-26T15:56:34"
+        },
+        {
+          "userId": "konrad",
+          "text": "does it actually get enforced if it's just in the PR description, or does someone have to own that explicitly?",
+          "ts": "2024-11-26T15:57:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon can you add the smoke test explicitly to PR 141's description so it doesn't just live in the postmortem?",
+          "ts": "2024-11-26T15:58:01",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-26T15:58:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "you just questioned whether PR description items actually get enforced, so should this be a separate issue instead?",
+          "ts": "2024-11-26T15:58:18",
+          "threadParentTs": "2024-11-26T15:58:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad did Dario end up getting to PR 106?",
+          "ts": "2024-11-26T16:08:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not sure yet, haven't heard back from him on it.",
+          "ts": "2024-11-26T16:53:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are we doing a quick sync before everyone signs off, or picking the sprint priorities conversation up tomorrow?",
+          "ts": "2024-11-26T16:53:44"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we need a sync for this, or have we basically already landed it in the thread?",
+          "ts": "2024-11-26T17:20:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "looks like we've basically landed it in the thread already, next sprint is clearing what's in flight, PR 141 gets the smoke test as an explicit review criterion",
+          "ts": "2024-11-26T17:55:44",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "postmortem's wrapped up, PR 141 and PR 161 are both still waiting on reviewers, so those are top of the list tomorrow.",
+          "ts": "2024-11-26T17:58:44"
+        },
+        {
+          "userId": "dario",
+          "text": "Where do PR 78 and PR 90 land in that - same priority or lower than 141 and 161?",
+          "ts": "2024-11-26T18:21:44"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually, hold on - if the sprint call is 'clear what's in flight', does that mean someone's picking up PR 78 and PR 90, or are those just on me to keep nudging?",
+          "ts": "2024-11-26T18:28:34.109454"
+        },
+        {
+          "userId": "gideon",
+          "text": "Weekly notes for the week of Nov 25 are up on the wiki (\"Weekly notes: week of Nov 25 - v0.1.10 out\"). Covers what's in flight, the open batch issues, and the six commits targeting v0.1.11.",
+          "ts": "2024-11-27T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 141 is in decent shape, the six commits cover coverage checks for the instructor+liteLLM path, model init logging, and formatting. Waiting on a review pass before it can target v0.1.11.",
+          "ts": "2024-11-27T09:00:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "I want to look at those coverage checks before we sign off on pr 141.",
+          "ts": "2024-11-27T09:09:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure the current set is actually sufficent for the instructor+liteLLM path, or if we've verified that.",
+          "ts": "2024-11-27T09:09:44",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-27T09:10:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "good instinct, I'd rather have a second set of eyes on those before they go in.",
+          "ts": "2024-11-27T09:10:24",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2024-11-27T09:09:44"
+        },
+        {
+          "userId": "gideon",
+          "text": "one thing that might settle the sufficiency question: run the checks against a deliberately broken instructor binding and confirm they actually trip.",
+          "ts": "2024-11-27T09:10:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "is that something you have set up already, or does it need to be written from scratch?",
+          "ts": "2024-11-27T09:26:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "the cache key is the hash of the raw input row, full stop. cache_stats should report against those hashes and nothing fancier.",
+          "ts": "2024-11-27T09:27:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "and I want that contract to stay narrow. every time someone folds another thing into the fingerprint we end up with a key nobody can explain to a user asking why their rerun did what it did.",
+          "ts": "2024-11-27T09:27:23"
+        },
+        {
+          "userId": "dermot",
+          "text": "the row is the unit the dataset is made of, so the row is the unit the cache is keyed on.",
+          "ts": "2024-11-27T09:27:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "the broken-binding harness isn't set up yet, that's still to write.",
+          "ts": "2024-11-27T10:03:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "Honestly I think the six checks already cover what's necessary for the instructor+liteLLM path.",
+          "ts": "2024-11-27T10:03:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "what are the six checks actually testing for?",
+          "ts": "2024-11-27T10:48:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "want to do a walkthrough of the six checks this afternoon?",
+          "ts": "2024-11-27T11:01:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "I also want to get eyes on the model init logging verbosity before v0.1.11 goes out.",
+          "ts": "2024-11-27T11:01:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "pulled up the postmortem",
+          "ts": "2024-11-27T11:01:41"
+        },
+        {
+          "userId": "gideon",
+          "text": "the smoke test action item lands on whoever is driving PR 141, which is me",
+          "ts": "2024-11-27T11:01:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "did anyone save the failing request shapes from Nov 23?",
+          "ts": "2024-11-27T11:01:51"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 90 is still open on my side and the cache key call from Dermot lands cleanly in that work",
+          "ts": "2024-11-27T11:35:51"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 is also still sitting and could use a review pass",
+          "ts": "2024-11-27T11:35:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "that's the cache key settled then",
+          "ts": "2024-11-27T12:07:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "glad it lands cleanly in pr 90",
+          "ts": "2024-11-27T12:08:04"
+        },
+        {
+          "userId": "dermot",
+          "text": "is the init logging part of what you're walking through this afternoon?",
+          "ts": "2024-11-27T12:08:32"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon Halloway what time this afternoon for the walkthrough?",
+          "ts": "2024-11-27T12:39:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "yes, init logging is part of it, 2pm work for you?",
+          "ts": "2024-11-27T12:46:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "after the walkthrough, is PR 141 the only open dependency for v0.1.11?",
+          "ts": "2024-11-27T12:46:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "actually, answering my own question: the postmortem calls PR 141 out as the blocker for v0.1.11",
+          "ts": "2024-11-27T13:18:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "is PR 90 also targeting that release?",
+          "ts": "2024-11-27T13:18:34"
+        },
+        {
+          "userId": "dario",
+          "text": "Yes, PR 90 is targeting v0.1.11, just needs a review pass before it can go in",
+          "ts": "2024-11-27T13:35:34"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll be at the 2pm walkthrough since the init logging question is still open on my end. PR 78 is also still sitting there alongside PR 90 if anyone has a slot to look at it this afternoon.",
+          "ts": "2024-11-27T13:35:47",
+          "replyCount": 2,
+          "replyLastTs": "2024-11-27T13:44:38"
+        },
+        {
+          "userId": "gideon",
+          "text": "is PR 78 also targeting v0.1.11?",
+          "ts": "2024-11-27T13:36:20",
+          "threadParentTs": "2024-11-27T13:35:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Yes, same release.",
+          "ts": "2024-11-27T13:44:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "just needs review, or is there more work left on it?",
+          "ts": "2024-11-27T13:44:38",
+          "threadParentTs": "2024-11-27T13:35:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Mostly just review, but honestly I want to do one more pass on it myself before I hand it off - I'm not fully confident it's clean yet",
+          "ts": "2024-11-27T13:45:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2024-11-27T13:51:13"
+        },
+        {
+          "userId": "dario",
+          "text": "Done with my own pass on PR 78, it's clean enough to hand off now",
+          "ts": "2024-11-27T14:28:13",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 90 is also still sitting there if someone wants to take both at once",
+          "ts": "2024-11-27T14:28:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "who's picking up the reviews on pr 78 and pr 90?",
+          "ts": "2024-11-27T14:40:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take PR 90 since it touches the cache layer, but someone else would need to pick up PR 78.",
+          "ts": "2024-11-27T15:06:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure pr 78 makes v0.1.11 if nobody picks it up now.",
+          "ts": "2024-11-27T15:35:21"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 78 is stuck without a reviewer, if nobody picks it up today it's probably slipping to the next release",
+          "ts": "2024-11-27T15:42:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "is PR 78 actually a hard dependency for v0.1.11, or does it slip cleanly?",
+          "ts": "2024-11-27T16:09:21"
+        },
+        {
+          "userId": "dario",
+          "text": "It slips cleanly, it's not a hard dependency",
+          "ts": "2024-11-27T16:27:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "so v0.1.11 moves forward without pr 78, just needs pr 141 and pr 90 through review.",
+          "ts": "2024-11-27T17:12:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dermot Callaghan after the walkthrough, are the six commits in PR 141 good to go for v0.1.11 or is there still something to address?",
+          "ts": "2024-11-27T17:26:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "six commits look good to me",
+          "ts": "2024-11-27T17:38:21",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 141 can target v0.1.11 and move to merge",
+          "ts": "2024-11-27T17:38:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 141 and PR 161 are both still open waiting on review. Also caught that @Dario opened a couple of new batch issues this morning, does anyone know if those are release-blocking or post-release?",
+          "ts": "2024-12-02T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, are the two new issues you filed this morning in the batch layer or something that spans wider?",
+          "ts": "2024-12-02T09:04:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "actually tracked down the two issues myself, issue 189 is the out-of-space error on OpenAI file storage and issue 190 is about the API key not being in the cache hash for batch mode",
+          "ts": "2024-12-02T10:18:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does either of those need to be on the release checklist, or are they post-release?",
+          "ts": "2024-12-02T10:18:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "Honestly issue 189 feels like it could hit users mid-batch run, not just at the edges. Does someone want to make a call on whether that goes on the release checklist or gets pushed out?",
+          "ts": "2024-12-02T10:52:56"
+        },
+        {
+          "userId": "dario",
+          "text": "Issue 189 can surface mid-run on any batch that hits the storage ceiling",
+          "ts": "2024-12-02T11:11:56"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward putting it on the checklist",
+          "ts": "2024-12-02T11:12:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "+1 on issue 189",
+          "ts": "2024-12-02T11:36:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Is issue 190 going on there too, or is that post-release?",
+          "ts": "2024-12-02T11:36:47"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd put 190 on the checklist:\n```\ncache_key = hash(model, prompt_hash, temperature, max_tokens) # api_key missing\n```",
+          "ts": "2024-12-02T11:58:47",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -5633,6 +6722,7 @@
       "memberIds": [
         "dario",
         "dermot",
+        "gideon",
         "konrad"
       ],
       "messages": [
@@ -5729,6 +6819,148 @@
           "userId": "dario",
           "text": "Four commits into examples-cookbooks today, the direction is starting to be visible if anyone wants to get oriented before things start building on top of it",
           "ts": "2024-11-04T11:41:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update for the week of Nov 18 is in everyone's inbox.\n\n- *Release*: v0.1.9.post1 shipped with a hotfix; postmortems from Gideon coming separately\n- *Open for review*: PR 106 (text message summarization example), please take a look\n- *Pending decision*: PR 78, 90, and 141 all need a merge/defer call before v0.1.11 can move",
+          "ts": "2024-11-25T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Nov 23 postmortem is up on the wiki: \"Postmortem: Nov 23 revert to old LiteLLM backend.\" Covers what happened, the root cause, and where PR 141 fits in.",
+          "ts": "2024-11-25T10:24:07"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not sure pr 78 and pr 90 are actually blockers for v0.1.11 the same way pr 141 is",
+          "ts": "2024-11-25T11:03:07"
+        },
+        {
+          "userId": "dermot",
+          "text": "are we treating all three as must-resolve, or can we defer the first two and still cut?",
+          "ts": "2024-11-25T11:03:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "v0.1.9.post1 release notes aren't on the wiki yet, at least not anywhere I can find them.",
+          "ts": "2024-11-25T11:05:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update email went out this morning, asked for the merge vs. defer call on PR 78, 90, and 141 and for review on PR 106",
+          "ts": "2024-11-25T11:42:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Pulled up the wiki just now and the Nov 19 hotfix postmortem and the weekly notes page still aren't there",
+          "ts": "2024-11-25T11:42:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "same, not seeing them on the wiki either",
+          "ts": "2024-11-25T11:42:28"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly notes for this week aren't on the wiki yet, at least not anywhere I can find",
+          "ts": "2024-11-25T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon is that page still coming?",
+          "ts": "2024-11-25T11:52:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "The Nov 19 hotfix postmortem isn't on the wiki either, I only see the Nov 23 one",
+          "ts": "2024-11-25T12:12:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon is that one still coming, or does the Nov 23 postmortem cover it?",
+          "ts": "2024-11-25T12:12:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel release notes are yours to post, right?",
+          "ts": "2024-11-25T12:52:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "a few people can't find them on the wiki",
+          "ts": "2024-11-25T12:52:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad, weekly notes and the Nov 19 postmortem are both still on me, I'll get them up this afternoon.",
+          "ts": "2024-11-25T13:25:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "I still can't find the v0.1.9.post1 release notes on the wiki either, Dario, are those going up today?",
+          "ts": "2024-11-25T13:25:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Release notes for v0.1.9.post1 are up on the wiki now (engineering/release-notes-v0-1-9-post1.md) - it's the LiteLLM backend revert from Nov 23, structured output via instructor unavailable in this cut, everything else unaffected, shout if anything looks off",
+          "ts": "2024-11-25T15:02:01",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, do you have 10-15 minutes before end of day?",
+          "ts": "2024-11-25T15:15:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "The Nov 23 postmortem is on the wiki (\"Postmortem: Nov 23 revert to old LiteLLM backend\") - does that cover the Nov 19 hotfix or does that need its own separate write-up?",
+          "ts": "2024-11-25T16:07:18"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon yeah, have a few minutes.",
+          "ts": "2024-11-25T16:39:18"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, does the Nov 19 hotfix need its own separate postmortem, or does the Nov 23 one cover it?",
+          "ts": "2024-11-25T16:39:23"
+        },
+        {
+          "userId": "dermot",
+          "text": "i'm not sure they're the same event, @Gideon do you think the nov 19 hotfix warrants its own write-up?",
+          "ts": "2024-11-25T16:45:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dermot they're different events - the Nov 23 postmortem covers the LiteLLM revert specifically:\n```\nOn Nov 23, the curator LiteLLM backend was reverted to the previous stable version after the updated backend introduced regressions in structured output handling.\n```\nNov 19 hotfix is separate, still on me to write.",
+          "ts": "2024-11-25T17:27:23",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update is out on my end, and the release notes from Dario fill in the last gap",
+          "ts": "2024-11-25T17:48:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Onboarding page for Otto is still something I owe, carrying that into the rest of this week",
+          "ts": "2024-11-25T17:48:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "what actually triggered the Nov 19 hotfix? I owe that postmortem and I'm not sure I have the full picture of the incident.",
+          "ts": "2024-11-25T18:26:35"
         }
       ],
       "projectSpec": {
@@ -7017,6 +8249,381 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "gideon",
+          "text": "- resume pbar display fix is committed and ready; it was dropping the progress bar state on resume, which made long runs look like they'd reset\n- default timeout commit is also up alongside it, both targeting v0.1.10\n- need a review pass on these two before we can cut the release",
+          "ts": "2024-11-25T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon Halloway can someone else on the team do a pass on the pbar and timeout commits before I sign off on them for v0.1.10?",
+          "ts": "2024-11-25T09:33:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "totally fair, I'll see if anyone has a few minutes to take a pass this morning.",
+          "ts": "2024-11-25T10:16:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "has Dario posted the v0.1.9.post1 release notes anywhere yet?",
+          "ts": "2024-11-25T10:38:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can't find them on the wiki",
+          "ts": "2024-11-25T10:38:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Release notes aren't on the wiki yet, I'll get them posted this afternoon",
+          "ts": "2024-11-25T10:50:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Also, before we close out v0.1.10, has anyone done a quick check that PR 141 doesn't introduce any regressions against the existing provider backends?",
+          "ts": "2024-11-25T10:50:58"
+        },
+        {
+          "userId": "dario",
+          "text": "Just want to make sure the litellm addition sits cleanly alongside what's already there before the release cut",
+          "ts": "2024-11-25T10:51:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Tried to pull up the Otto onboarding page on the wiki and it's not there yet, Konrad.",
+          "ts": "2024-11-25T10:51:14"
+        },
+        {
+          "userId": "gideon",
+          "text": "The pbar and timeout commits are both up and clean from my side, no changes outside the request layer",
+          "ts": "2024-11-25T11:22:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still waiting on that second reviewer before Dermot signs off on them for v0.1.10",
+          "ts": "2024-11-25T11:22:20"
+        },
+        {
+          "userId": "dario",
+          "text": "On the 141 side, did my question about provider backend regressions get picked up anywhere, or is that still hanging?",
+          "ts": "2024-11-25T11:58:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "the provider backend regression question on pr 141 hasn't been picked up as far as I can see, still open",
+          "ts": "2024-11-25T12:45:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "haven't run a backend regression check on 141 yet, that's still open on my end.",
+          "ts": "2024-11-25T13:17:24"
+        },
+        {
+          "userId": "dario",
+          "text": "That's mine to check - own provider-integrations so I'll take a pass at PR 141 this afternoon and flag anything that looks off",
+          "ts": "2024-11-25T13:53:07"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad Feltrin the Otto onboarding page still isn't on the wiki - did that get posted somewhere else, or is it still being drafted?",
+          "ts": "2024-11-25T14:57:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "pbar and timeout commits are still up, waiting on that second reviewer.",
+          "ts": "2024-11-25T15:13:20",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-25T15:13:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "who's the second reviewer at this point, has anyone actually volunteered?",
+          "ts": "2024-11-25T15:13:39",
+          "threadParentTs": "2024-11-25T15:13:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Took a pass at PR 141 - the LiteLLM backend itself is new and additive, but the `OnlineRequestProcessor` abstract class got refactored as part of it, and that's the part I'd want a closer look at before I'd call the existing backends clean.",
+          "ts": "2024-11-25T15:47:59",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "is anyone actually going to be able to take that second pass today, or does v0.1.10 slip?",
+          "ts": "2024-11-25T16:14:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Konrad Feltrin the second pass on gideon's pbar and timeout commits is still unclaimed, can you pick it up before end of day?",
+          "ts": "2024-11-25T16:34:03"
+        },
+        {
+          "userId": "dario",
+          "text": "To clear the backend regression question on PR 141, I need to see the actual abstract class changes - can someone point me at the diff or the relevant file?",
+          "ts": "2024-11-25T17:11:03",
+          "replyCount": 2,
+          "replyLastTs": "2024-11-25T18:29:14"
+        },
+        {
+          "userId": "dario",
+          "text": "oh wait, actually - re-reading the PR description, it explicitly says it implements `check_structured_output_support` on the OpenAI processor as part of this same PR:\n\n```\nImplement a robust OpenAI online request processor's check_structured_output_support\n```\n\nSo if OpenAI is the only concrete backend right now, the abstract class change shouldn't break it. The part I still can't verify without the actual diff is whether the response parsing behavior changed at all.",
+          "ts": "2024-11-25T17:11:31",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2024-11-25T17:11:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "is the parsing concern in the abstract class itself, or in how the concrete processor handles the response?",
+          "ts": "2024-11-25T18:29:14",
+          "threadParentTs": "2024-11-25T17:11:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "pulled up the release notes - they say all other curator functionality is unaffected and structured output via instructor is the only thing missing. does that settle the regression concern on PR 141?",
+          "ts": "2024-11-25T18:29:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "Token-based rate limiting and the parallel retry logic are both merged.",
+          "ts": "2024-11-26T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "want to get a second pair of eyes on the behavior before we ship it.",
+          "ts": "2024-11-26T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure either, so which part are you most concened about, the token limit windowing or the retry ordering when parallel requests all fail at the same time?",
+          "ts": "2024-11-26T09:22:12",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-26T10:35:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "the windowing part came out pretty clean actually.",
+          "ts": "2024-11-26T09:57:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "my assumption is they all re-queue simultaneously when they fail, but I honestly haven't verified that's what we actually ship.",
+          "ts": "2024-11-26T10:35:45",
+          "threadParentTs": "2024-11-26T09:22:12"
+        },
+        {
+          "userId": "dario",
+          "text": "Same, I haven't looked closely enough at that path to say for sure either",
+          "ts": "2024-11-26T11:11:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "the postmortem doesn't touch the retry path, that was a different class of issue.",
+          "ts": "2024-11-26T11:48:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "if neither of you has confidence in the parallel failure ordering, do we hold the ship until someone traces through it, or flag it for monitoring and go?",
+          "ts": "2024-11-26T11:49:00",
+          "replyCount": 1,
+          "replyLastTs": "2024-11-26T11:49:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can pull up that path this afternoon and trace through it",
+          "ts": "2024-11-26T11:49:13",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2024-11-26T11:49:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "if the ordering looks clean we go, if there's anything off we flag it for monitoring and ship anyway",
+          "ts": "2024-11-26T11:49:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'd lean toward not shipping if the trace turns something up, not just flagging it for monitoring.",
+          "ts": "2024-11-26T12:05:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "we are not maintaining a table of which models accept a json schema for response_format",
+          "ts": "2024-11-26T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "the provider is the source of truth here",
+          "ts": "2024-11-26T12:39:04"
+        },
+        {
+          "userId": "dermot",
+          "text": "one request's worth of spend is a fair price for not maintaining a whitelist",
+          "ts": "2024-11-26T12:39:05.333333"
+        },
+        {
+          "userId": "dermot",
+          "text": "and the provider's error text beats anything we'd write ourselves",
+          "ts": "2024-11-26T12:39:06.666666"
+        },
+        {
+          "userId": "dermot",
+          "text": "if the model can't do structured outputs we get a 400 back with the provider's own wording, we surface that to the user as-is",
+          "ts": "2024-11-26T12:39:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "that list goes stael the week after we write it and then we are the ones rejecting a model that would have worked fine",
+          "ts": "2024-11-26T12:39:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "send the request",
+          "ts": "2024-11-26T12:39:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "still waiting on Dermot's trace before I can call the retry side safe to ship.",
+          "ts": "2024-11-26T16:01:27"
+        },
+        {
+          "userId": "gideon",
+          "text": "the postmortem doesn't touch the retry layer at all, that was a strucutred output issue entirely.",
+          "ts": "2024-11-26T16:10:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "without Dermot's trace, do we settle on shipping the rate limiting piece and flag the retry ordering for monitoring?",
+          "ts": "2024-11-26T16:10:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "traced the retry path this afternoon",
+          "ts": "2024-11-26T16:17:55",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "when parallel requests all fail at the same time they re-queue simultaneously, but there's no defined ordering in that queue, so which one gets processed first is undefined",
+          "ts": "2024-11-26T16:18:03",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "not a crash, just non-deterministic",
+          "ts": "2024-11-26T16:18:08",
+          "replyCount": 2,
+          "replyLastTs": "2024-11-26T18:02:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "rate limit window still resets correctly regardless of which request comes first?",
+          "ts": "2024-11-26T16:47:02",
+          "threadParentTs": "2024-11-26T16:18:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon still going at this hour?",
+          "ts": "2024-11-26T18:02:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "is the response_format approach I laid out earlier settled for everyone, or is there still a concern?",
+          "ts": "2024-11-26T18:02:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll trace the window reset logic myself before we call it.",
+          "ts": "2024-11-26T18:02:47",
+          "threadParentTs": "2024-11-26T16:18:08"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm still not sure non-deterministic retry ordering is something we just flag for monitoring and ship",
+          "ts": "2024-11-26T18:29:11.293693"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm not sure tracing the window reset in isolation catches what we actually need to know here",
+          "ts": "2024-11-26T18:29:54.848981"
+        },
+        {
+          "userId": "gideon",
+          "text": "Landed a cleanup commit this morning removing unused imports across five core services, want to make sure there are no side effects before we get deeper into the week. If anyone sees anything odd in the pipeline layer, flag it.",
+          "ts": "2024-12-02T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Did CI actually run on the cleanup commit, or is that still pending?",
+          "ts": "2024-12-02T10:28:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone run into anything unexpected in online-request-processing or caching-and-resume since this morning?",
+          "ts": "2024-12-02T11:31:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Both my services look fine",
+          "ts": "2024-12-02T11:54:48",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Clean sweep on those imports",
+          "ts": "2024-12-02T11:54:53",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "good to hear",
+          "ts": "2024-12-02T12:52:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, anything from the release-and-ci side?",
+          "ts": "2024-12-02T12:53:05"
         }
       ],
       "projectSpec": {

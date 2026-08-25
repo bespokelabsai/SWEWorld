@@ -354,6 +354,97 @@
         "project_spec": null,
         "project_context": null
       }
+    },
+    "otto": {
+      "core": {
+        "name": "Otto Brennan",
+        "age": 50,
+        "gender": "Male",
+        "occupation": "software developer",
+        "personality": [
+          "methodical",
+          "pragmatic",
+          "grounded",
+          "deliberate"
+        ],
+        "background": "",
+        "strengths": [
+          "Java",
+          "C#",
+          "Python",
+          ".NET",
+          "Spring",
+          "Angular"
+        ],
+        "gaps": [
+          "keeping up with frontend framework ecosystem changes and latest tooling",
+          "navigating cloud infrastructure and containerization beyond basic deployment",
+          "formal project management and agile ceremony details",
+          "staying current with security vulnerability patches across dependencies"
+        ],
+        "hobbies": [
+          "Fly-fishing",
+          "Hiking",
+          "Camping",
+          "Woodworking",
+          "Gardening",
+          "Reading historical novels",
+          "Reading technology magazines",
+          "Chess",
+          "Volunteer computing instructor",
+          "Model railroading",
+          "Listening to classic rock and blues",
+          "Craft-beer tasting"
+        ],
+        "travel_habits": "Sean Buckley is a meticulous planner who prefers structured, nature\u2011focused trips, having already explored Yellowstone, Glacier, and Banff National Parks, and now dreams of hiking the Patagonia Torres del Paine circuit and the Scottish Highlands, arranging each itinerary months in advance while balancing a modest travel budget with his commitment to maintain work\u2011life equilibrium.",
+        "dining_preferences": "Sean Buckley is a competent home cook who transforms garden\u2011grown vegetables into roasted root medleys, grills fresh river trout with rosemary and lemon, prepares a hearty wild\u2011mushroom risotto, and pairs these dishes with craft\u2011beer selections from local breweries such as Great Divide and BridgePort, reflecting his love for rustic, flavorful meals.",
+        "spending_habits": "",
+        "other": [
+          "Sean\u2019s cultural background blends a Midwestern Irish\u2011American heritage with the rugged, community\u2011centered ethos of Montana\u2019s \u201cBig Sky\u201d country. Raised in a small town, he grew up valuing self\u2011reliance, neighborly cooperation, and a deep respect for nature. His family traditions include modest celebrations of Irish holidays like St. Patrick\u2019s Day, and a strong work ethic passed down through generations of labor\u2011focused parents. Since moving to Livingston, he has embraced the local culture of outdoor recreation, frontier hospitality, and a modest, pragmatic approach to life, while integrating his technical career into the region\u2019s growing digital economy.",
+          "Sean aims to transition into a lead software architect role within the next three to five years, focusing on building scalable, maintainable systems for his employer and local businesses. He seeks to obtain AWS Solutions Architect certification to broaden his cloud expertise and to mentor a small cohort of junior developers, fostering a culture of quality and predictability. Over the longer term, he envisions moving into a technical leadership position that balances architectural oversight with hands-on coding, while maintaining a stable work\u2011life balance that allows him to spend ample time outdoors. He also hopes to contribute to open\u2011source projects that emphasize reliability and to develop a community\u2011oriented tech workshop series in Livingston."
+        ]
+      },
+      "voice": {
+        "cadence": "considered",
+        "formality": "formal",
+        "capitalization": "always lowercase",
+        "punctuation": "minimal",
+        "vocabulary": "plain",
+        "typo_tendency": "frequent",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "neutral",
+        "signature_words": [
+          "that works",
+          "we need to think this through"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "never"
+        },
+        "hedge_words": [
+          "let me think",
+          "so",
+          "presumably"
+        ],
+        "affirm_words": [
+          "for real",
+          "true"
+        ],
+        "question_style": "restate-guess"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
     }
   }
 }

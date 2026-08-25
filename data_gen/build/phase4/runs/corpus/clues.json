@@ -1,1 +1,207 @@
-[]
+[
+  {
+    "clue": "t1.r1.h2",
+    "holder": "dario",
+    "date": "2024-11-26",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Worth writing down why the row hash is the right level for this - resume needs nothing but the dataset itself to work.",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's 16:03 sequence of messages covers every element: the row hash rationale, no prompt/LLM dependency, cold-process rebuildability, why that keeps cache_stats cheap, and the consequence if the key depended on constructing the LLM.",
+    "elements": [
+      {
+        "part": "worth writing down why the row hash is the right level for this",
+        "present": true,
+        "why": "Dario says this explicitly at 16:03"
+      },
+      {
+        "part": "resume/cache lookup need nothing but the dataset itself",
+        "present": true,
+        "why": "stated directly at 16:03"
+      },
+      {
+        "part": "no prompt callable involved in the key",
+        "present": true,
+        "why": "stated at 16:03"
+      },
+      {
+        "part": "no live LLM object involved in the key",
+        "present": true,
+        "why": "stated at 16:03 and repeated"
+      },
+      {
+        "part": "this lets the hit/miss picture be rebuilt from the metadata DB on a cold process",
+        "present": true,
+        "why": "stated at 16:03"
+      },
+      {
+        "part": "that is exactly what cache_stats needs to be cheap",
+        "present": true,
+        "why": "stated at 16:03, 'that's what keeps cache_stats cheap'"
+      },
+      {
+        "part": "if the key depended on anything only computable by constructing the LLM, cache_stats would stop being callable before a run",
+        "present": true,
+        "why": "stated verbatim at 16:03"
+      },
+      {
+        "part": "and would become another run instead",
+        "present": true,
+        "why": "stated verbatim at 16:03"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "15:14  gideon    Dermot's \"so\" from three hours ago is just... still there.",
+      "16:03  dario     Cache lookup and cache_stats are both keyed on the input row hash, no prompt callable, n",
+      "16:03  dario     Worth writing down why the row hash is the right level for this - resume needs nothing b   <-- the clue",
+      "16:03  dario     If the key depended on anything only computable by constructing the LLM, cache_stats sto",
+      "16:03  dario     That's what keeps cache_stats cheap on a cold process - you can rebuild the whole hit/mi"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "Worth writing down why the row hash is the right level for this - resume needs nothing but the dataset itself to work.",
+        "If the key depended on anything only computable by constructing the LLM, cache_stats stops being callable before a run and becomes another run."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t2.r1.h1",
+    "holder": "dermot",
+    "date": "2024-11-26",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "we are not maintaining a table of which models accept a json schema for response_format",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 12:39 run of messages lays out every element of the response_format compatibility stance.",
+    "elements": [
+      {
+        "part": "they are not maintaining a table of which models accept a json schema for response_format",
+        "present": true,
+        "why": "Dermot states this directly at 12:39"
+      },
+      {
+        "part": "such a list goes stale quickly and would cause rejecting a model that actually works",
+        "present": true,
+        "why": "Dermot says the list goes stale the week after and they'd be rejecting a working model"
+      },
+      {
+        "part": "the provider is the source of truth",
+        "present": true,
+        "why": "Dermot states this explicitly"
+      },
+      {
+        "part": "the approach is to send the request",
+        "present": true,
+        "why": "Dermot says 'send the request'"
+      },
+      {
+        "part": "if the model can't do structured outputs, a 400 comes back with the provider's own wording",
+        "present": true,
+        "why": "Dermot states this directly"
+      },
+      {
+        "part": "that error is surfaced to the user as-is",
+        "present": true,
+        "why": "Dermot says 'we surface that to the user as-is'"
+      },
+      {
+        "part": "one request's worth of spend is a fair price for not maintaining a whitelist",
+        "present": true,
+        "why": "Dermot states this explicitly"
+      },
+      {
+        "part": "the provider's error text is better than anything they'd write themselves",
+        "present": true,
+        "why": "Dermot states this explicitly"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:49  dermot    if the ordering looks clean we go, if there's anything off we flag it for monitoring and",
+      "12:05  dario     Honestly I'd lean toward not shipping if the trace turns something up, not just flagging",
+      "12:39  dermot    we are not maintaining a table of which models accept a json schema for response_format   <-- the clue",
+      "12:39  dermot    the provider is the source of truth here",
+      "12:39  dermot    one request's worth of spend is a fair price for not maintaining a whitelist"
+    ],
+    "repair": {
+      "attempts": 2,
+      "added": [
+        "the provider is the source of truth here",
+        "if the model can't do structured outputs we get a 400 back with the provider's own wording, we surface that to the user as-is",
+        "one request's worth of spend is a fair price for not maintaining a whitelist",
+        "and the provider's error text beats anything we'd write ourselves"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r1.h1",
+    "holder": "dermot",
+    "date": "2024-11-27",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "the cache key is the hash of the raw input row, full stop. cache_stats should report against those hashes and nothing fancier.",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 09:27 messages together state the hash-of-row rule, the narrow-contract want, the explainability objection, the row-as-unit reasoning, and the cache_stats scope.",
+    "elements": [
+      {
+        "part": "the cache key is the hash of the raw input row",
+        "present": true,
+        "why": "Dermot states this directly."
+      },
+      {
+        "part": "that is the whole contract, full stop",
+        "present": true,
+        "why": "Dermot says 'full stop' making clear nothing else is involved."
+      },
+      {
+        "part": "the person wants that contract to stay narrow",
+        "present": true,
+        "why": "Dermot says 'I want that contract to stay narrow'."
+      },
+      {
+        "part": "objection: folding other things into the fingerprint produces a key nobody can explain to a user asking why their rerun did what it did",
+        "present": true,
+        "why": "Dermot gives this exact reasoning as his concern."
+      },
+      {
+        "part": "the row is the unit the dataset is made of, so the row is the unit the cache is keyed on",
+        "present": true,
+        "why": "Dermot states this reasoning verbatim in substance."
+      },
+      {
+        "part": "cache_stats should report against those row hashes and nothing fancier",
+        "present": true,
+        "why": "Dermot says cache_stats should report against those hashes and nothing fancier."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:10  gideon    one thing that might settle the sufficiency question: run the checks against a deliberat",
+      "09:26  dermot    is that something you have set up already, or does it need to be written from scratch?",
+      "09:27  dermot    the cache key is the hash of the raw input row, full stop. cache_stats should report aga   <-- the clue",
+      "09:27  dermot    and I want that contract to stay narrow. every time someone folds another thing into the",
+      "09:27  dermot    the row is the unit the dataset is made of, so the row is the unit the cache is keyed on"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "and I want that contract to stay narrow. every time someone folds another thing into the fingerprint we end up with a key nobody can explain to a user asking why their rerun did what it did.",
+        "the row is the unit the dataset is made of, so the row is the unit the cache is keyed on."
+      ],
+      "rewrote": false
+    }
+  }
+]

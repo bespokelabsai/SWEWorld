@@ -10,37 +10,170 @@ Worth keeping in mind while reading:
 
 
 ==============================================================================
-# 2024-11-19 — 3 conversation(s), 30 turns budgeted
+# 2024-11-25 — 4 conversation(s), 36 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
-## #releases — 8 turns, 3 people
+## #code-review — 12 turns, 4 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #releases: v0.1.9.post1 hotfix shipped today; release notes due and announcement to be sent
+Channel #code-review: Ten PRs older than the era median merge time; two release cuts in flight need to unblock
 
-    Today is Tuesday 19 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Monday 25 November 2024. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: v0.1.9.post1 hotfix shipped today; release notes due and announcement to be sent
+    Why it is happening: Ten PRs older than the era median merge time; two release cuts in flight need to unblock
     
     What it should get through:
-      1. Lock release notes for v0.1.9.post1   [Dario Kestrel must raise this]
-           - Dario Kestrel lays out the commits
-           - Konrad Feltrin checks coverage
-           - Dermot Callaghan confirms nothing is missing
-      2. Send announcement mail to team   [Dario Kestrel must raise this]
-           - Dario Kestrel drafts it
-           - Konrad Feltrin reviews tone
-           - Dermot Callaghan hits send
+      1. Merge or defer PR 78 (vLLM example) and PR 90 (disable cache arg)   [Dario Kestrel must raise this]
+           - Dario Kestrel raises that both are 12 days old and blocking his own work
+           - Dermot Callaghan notes neither is on the critical path for v0.1.10
+           - group agrees to defer pending example pipeline completion
+      2. Clear PR 141 (LiteLLM+instructor) and PR 163 (viewer cache) so v0.1.11 can ship   [Gideon Halloway must raise this]
+           - Gideon Halloway flags PR 141 as 7 days old and blocking his structured output examples
+           - Gideon Halloway flags PR 163 as ready to merge; viewer improvements
+           - Dermot Callaghan and Dario Kestrel approve both for merge
+      3. Land PR 106 (text message summarization example) or identify what's missing   [Konrad Feltrin must raise this]
+           - Konrad Feltrin notes it's 11 days old
+           - Gideon Halloway reviews diff; asks if it needs the new LiteLLM backend to run
+           - group agrees to land if no dependency on PR 141
     
-    On the agenda: What went into v0.1.9.post1; Release notes and changelog; Announce to users
+    On the agenda: Review and triage the six oldest PRs; Identify which are blockers for v0.1.10/v0.1.11; Separate cosmetic from functional changes
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: v0.1.9.post1 release notes published and announcement sent to users; hot fix locked in place
+    Wrap when: At least 3 of the 6 stale PRs move to merged or deferred; PR 141 and PR 163 clear for v0.1.11; release cut unblocked
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
+
+    Settled
+      - 3 release(s) shipped, currently v0.1.9.post1
+      - 82 changes merged to date
+
+    On the table
+      - Onboarding: Otto Brennan on install UX & README polish (Konrad Feltrin)
+      - v0.1.9.post1 release notes (Dario Kestrel)
+      - postmortem-2024-11-23 (Gideon Halloway)
+      - Onboarding: Otto Brennan on install UX & README polish (Konrad Feltrin)
+      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
+      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 156: Bump aiohttp from 3.10.10 to 3.10.11 (Millrow Refactor Bot)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
+      - issue 47: Simple way to cancel submitted batches
+      - issue 48: ReadME documentation on batch
+      - issue 50: Vary batch size based on request numbers
+      - issue 52: Support multiple samples per request
+      - issue 55: Complain louder when num generic requests != num generic responses after parsing
+      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
+
+    DOES NOT EXIST YET (10 names)
+      - agentic-curation
+      - batch-mode
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - local-offline-inference
+      - multimodal-prompts
+      - progress-and-cli
+      - telemetry
+      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Two fresh commits on resume display and litellm examples; owns the v0.1.10 and v0.1.11 releases
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Merge or defer PR 78 (vLLM example) and PR 90 (disable cache arg)
+      2. Clear PR 141 (LiteLLM+instructor) and PR 163 (viewer cache) so v0.1.11 can ship   *** MUST RAISE ***
+      3. Land PR 106 (text message summarization example) or identify what's missing
+      4. what "Postmortem: Nov 23 revert to old LiteLLM backend" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Clear PR 141 (LiteLLM+instructor) and PR 163 (viewer cache) so v0.1.11 can ship
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Owns bulk-llm-inference, caching, online-request-processing; sees the shape of what's blocking
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Merge or defer PR 78 (vLLM example) and PR 90 (disable cache arg)   *** MUST RAISE ***
+      2. Clear PR 141 (LiteLLM+instructor) and PR 163 (viewer cache) so v0.1.11 can ship
+      3. Land PR 106 (text message summarization example) or identify what's missing
+      4. what "Onboarding: otto on install UX & README polish" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      5. what "v0.1.9.post1 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Merge or defer PR 78 (vLLM example) and PR 90 (disable cache arg)
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Just merged the v0.1.9 release; knows the stable baseline
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Merge or defer PR 78 (vLLM example) and PR 90 (disable cache arg)
+      2. Clear PR 141 (LiteLLM+instructor) and PR 163 (viewer cache) so v0.1.11 can ship
+      3. Land PR 106 (text message summarization example) or identify what's missing
+    goal        Ten PRs older than the era median merge time; two release cuts in flight need to unblock
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Founder perspective on examples and curation design
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Merge or defer PR 78 (vLLM example) and PR 90 (disable cache arg)
+      2. Clear PR 141 (LiteLLM+instructor) and PR 163 (viewer cache) so v0.1.11 can ship
+      3. Land PR 106 (text message summarization example) or identify what's missing   *** MUST RAISE ***
+      4. what "Onboarding: otto on install UX & README polish" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Land PR 106 (text message summarization example) or identify what's missing
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   At least 3 of the 6 stale PRs move to merged or deferred; PR 141 and PR 163 clear for v0.1.11; release cut unblocked
+
+
+------------------------------------------------------------------------------
+## #pipeline — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Gideon's two commits touch core request processing; two release cuts in flight need to confirm safety
+
+    Today is Monday 25 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Gideon's two commits touch core request processing; two release cuts in flight need to confirm safety
+    
+    What it should get through:
+      1. Approve resume pbar display and default timeout for v0.1.10   [Gideon Halloway must raise this]
+           - Gideon Halloway walks through the pbar fix; notes it improves user visibility on resumed jobs
+           - Dario Kestrel checks for side effects on long-running requests
+           - Dermot Callaghan: diff looks safe, LGTM once CI passes
+      2. Confirm no provider backend regressions from litellm example addition   [Dario Kestrel must raise this]
+           - Gideon Halloway notes the new litellm example is in cookbooks, not core
+           - Dario Kestrel confirms examples don't affect main request layer
+           - group agrees to ship
+    
+    On the agenda: Review resume display and timeout changes; Confirm safety for v0.1.10 release; Discuss any provider backend concerns
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Gideon's two commits approved for v0.1.10; release cut unblocked; no provider backend concerns
     
     Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -51,19 +184,17 @@ Channel #releases: v0.1.9.post1 hotfix shipped today; release notes due and anno
 
     Settled
       - 3 release(s) shipped, currently v0.1.9.post1
-      - 77 changes merged to date
+      - 82 changes merged to date
 
     On the table
       - v0.1.9.post1 release notes (Dario Kestrel)
-      - v0.1.9 release notes (Dario Kestrel)
-      - announce-v0-1-9-post1 (Dario Kestrel)
-      - release-v0-1-9-post1 (Dario Kestrel)
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
+      - Onboarding: Otto Brennan on install UX & README polish (Konrad Feltrin)
       - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
       - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
       - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 130: Add a teacher.py example that slightly refactors Ryan's original code (Dermot Callaghan)
       - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 156: Bump aiohttp from 3.10.10 to 3.10.11 (Millrow Refactor Bot)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -75,120 +206,8 @@ Channel #releases: v0.1.9.post1 hotfix shipped today; release notes due and anno
       - issue 50: Vary batch size based on request numbers
       - issue 52: Support multiple samples per request
       - issue 55: Complain louder when num generic requests != num generic responses after parsing
-      - issue 57: Expose more metrics from the raw_response to cache generic request / response
       - issue 62: Support generation configuration for LLM
-
-    DOES NOT EXIST YET (10 names)
-      - agentic-curation
-      - batch-mode
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - local-offline-inference
-      - multimodal-prompts
-      - progress-and-cli
-      - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. release-notes content and decision on what the post1 covers
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Lock release notes for v0.1.9.post1   *** MUST RAISE ***
-      2. Send announcement mail to team   *** MUST RAISE ***
-      3. that the doc "v0.1.9.post1 release notes" is done, and where the others can find it   *** MUST RAISE ***
-      4. that "v0.1.9.post1 hotfix is out" has gone out, and what you asked in it   *** MUST RAISE ***
-      5. what "v0.1.9 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      6. what "v0.1.9.post1 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Lock release notes for v0.1.9.post1
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. maintainer sign-off and release process oversight
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Lock release notes for v0.1.9.post1
-      2. Send announcement mail to team
-    goal        v0.1.9.post1 hotfix shipped today; release notes due and announcement to be sent
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. merge and shipping context
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Lock release notes for v0.1.9.post1
-      2. Send announcement mail to team
-    goal        v0.1.9.post1 hotfix shipped today; release notes due and announcement to be sent
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   v0.1.9.post1 release notes published and announcement sent to users; hot fix locked in place
-
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: 2 PRs opened today, 2 merged, 7 PRs older than median merge time; examples and docs riding through release
-
-    Today is Tuesday 19 November 2024. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 2 PRs opened today, 2 merged, 7 PRs older than median merge time; examples and docs riding through release
-    
-    What it should get through:
-      1. Get eyes on PR 149 viewer and logging PR   [Gideon Halloway must raise this]
-           - Gideon Halloway posts context
-           - Konrad Feltrin and Dario Kestrel scan for issues
-           - team agrees merge-ready or suggests changes
-      2. Clear path on stale examples PRs   [Konrad Feltrin must raise this]
-           - Konrad Feltrin flags PR 39 and PR 106 status
-           - Dario Kestrel and Dermot Callaghan state blockers for PR 78 PR 90 PR 130
-           - team decides triage or defer
-    
-    On the agenda: New PR PR 149 from today; Aging examples PRs backlog; Path forward on blocked work
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 149 queued for merge; clarity on which examples PRs can land this week vs deferred to next
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
-
-    Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 77 changes merged to date
-
-    On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
-      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
-      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 130: Add a teacher.py example that slightly refactors Ryan's original code (Dermot Callaghan)
-      - PR 133: adding an env example file (Otto Brennan)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
-      - issue 47: Simple way to cancel submitted batches
-      - issue 48: ReadME documentation on batch
-      - issue 50: Vary batch size based on request numbers
-      - issue 52: Support multiple samples per request
-      - issue 55: Complain louder when num generic requests != num generic responses after parsing
-      - issue 57: Expose more metrics from the raw_response to cache generic request / response
-      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
 
     DOES NOT EXIST YET (10 names)
       - agentic-curation
@@ -205,422 +224,70 @@ Channel #code-review: 2 PRs opened today, 2 merged, 7 PRs older than median merg
 ### 3. What EACH PERSON is told
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. heavy commit context from today's viewer and logging work; new PR PR 149 ready for review
+    role        Core Engineer — Dataset Viewer & Run Observability. Two commits: resume pbar display fix and default timeout. Fresh litellm example. Sees what's broken in request layer
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Get eyes on PR 149 viewer and logging PR   *** MUST RAISE ***
-      2. Clear path on stale examples PRs
-    goal        Get eyes on PR 149 viewer and logging PR
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. maintainer review and examples ownership
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Get eyes on PR 149 viewer and logging PR
-      2. Clear path on stale examples PRs   *** MUST RAISE ***
-    goal        Clear path on stale examples PRs
+      1. Approve resume pbar display and default timeout for v0.1.10   *** MUST RAISE ***
+      2. Confirm no provider backend regressions from litellm example addition
+      3. what "v0.1.9.post1 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Approve resume pbar display and default timeout for v0.1.10
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. vLLM and cache disable feature thinking
+    role        Core Engineer, Request Processing. Owns caching and resume; knows which issues are critical vs. nice-to-have
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Get eyes on PR 149 viewer and logging PR
-      2. Clear path on stale examples PRs
-    goal        2 PRs opened today, 2 merged, 7 PRs older than median merge time; examples and docs riding through release
+      1. Approve resume pbar display and default timeout for v0.1.10
+      2. Confirm no provider backend regressions from litellm example addition   *** MUST RAISE ***
+      3. what "Onboarding: otto on install UX & README polish" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm no provider backend regressions from litellm example addition
     available   around today
 
   Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. teacher.py refactor rationale
+    role        Founding Software Engineer — Core Pipeline & Release. Founder engineer; just landed the v0.1.9 merge; knows the stable baseline
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Get eyes on PR 149 viewer and logging PR
-      2. Clear path on stale examples PRs
-    goal        2 PRs opened today, 2 merged, 7 PRs older than median merge time; examples and docs riding through release
+      1. Approve resume pbar display and default timeout for v0.1.10
+      2. Confirm no provider backend regressions from litellm example addition
+    goal        Gideon's two commits touch core request processing; two release cuts in flight need to confirm safety
     available   around today
 
 ### 4. How it should land
 
-    lands as  partial
-    leaving   PR 149 queued for merge; clarity on which examples PRs can land this week vs deferred to next
+    lands as  resolves
+    leaving   Gideon's two commits approved for v0.1.10; release cut unblocked; no provider backend concerns
 
 
 ------------------------------------------------------------------------------
-## #engineering — 10 turns, 4 people
+## #general — 6 turns, 4 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #engineering: 15 commits today including release merge and heavy viewer/logging work; cache concerns raised
+Channel #general: Weekly update and postmortem due today; three release cuts in flight
 
-    Today is Tuesday 19 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Monday 25 November 2024. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: 15 commits today including release merge and heavy viewer/logging work; cache concerns raised
+    Why it is happening: Weekly update and postmortem due today; three release cuts in flight
     
     What it should get through:
-      1. Confirm v0.1.9.post1 hotfix scope and impact   [Gideon Halloway must raise this]
-           - Gideon Halloway summarizes commits
-           - team notes any surprises
-           - Dario Kestrel flags if cache issues warrant rollback
-      2. Get feedback on viewer timing and distribution PR   [Gideon Halloway must raise this]
-           - Gideon Halloway walks through timeseries and dark mode changes
-           - Konrad Feltrin weighs in on UX
-           - team agrees or defers
-      3. Understand cache fingerprint and prompt_func variable issues   [Dario Kestrel must raise this]
-           - Dario Kestrel lays out PR 143 and PR 148
-           - Gideon Halloway notes viewer implications
-           - team triages severity
+      1. Post weekly update covering Nov 18–25 work and release status   [Konrad Feltrin must raise this]
+           - Konrad Feltrin drafts the update; summarizes the week's themes
+           - Gideon Halloway and Dario Kestrel add release notes
+           - team replies with blockers or concerns
+      2. Share Nov 23 postmortem: what reverted, why, and how it's fixed   [Gideon Halloway must raise this]
+           - Gideon Halloway posts the postmortem doc
+           - Gideon Halloway summarizes: reverted to old litellm backend with stability fixes
+           - team acknowledges; no follow-up action needed
     
-    On the agenda: v0.1.9.post1 shipped; what it covered; Gideon's viewer work and PR 149 direction; Cache issues Dario Kestrel opened and next steps
+    On the agenda: Post weekly update for week of Nov 18; Share postmortem: Nov 23 LiteLLM revert and fixes; Brief status on v0.1.10, v0.1.11, v0.1.12 releases
     
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    Belongs in this channel: news the whole company needs: releases that matter to everyone, scheduling, people joining or moving on, and decisions that cross every team.
+    Does NOT belong here: work on any individual service, and anything only one team cares about.
     
-    Wrap when: Release confirmed shipped safely; viewer direction clear; cache issues triaged and assigned
+    Wrap when: Weekly update posted; postmortem shared; team has visibility on release cadence and backend stability
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
-
-    Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 77 changes merged to date
-
-    On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
-      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
-      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 130: Add a teacher.py example that slightly refactors Ryan's original code (Dermot Callaghan)
-      - PR 133: adding an env example file (Otto Brennan)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
-      - issue 47: Simple way to cancel submitted batches
-      - issue 48: ReadME documentation on batch
-      - issue 50: Vary batch size based on request numbers
-      - issue 52: Support multiple samples per request
-      - issue 55: Complain louder when num generic requests != num generic responses after parsing
-      - issue 57: Expose more metrics from the raw_response to cache generic request / response
-      - issue 62: Support generation configuration for LLM
-
-    DOES NOT EXIST YET (10 names)
-      - agentic-curation
-      - batch-mode
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - local-offline-inference
-      - multimodal-prompts
-      - progress-and-cli
-      - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 14 commits on logging, timing, viewer distribution today; new PR 149 PR
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm v0.1.9.post1 hotfix scope and impact   *** MUST RAISE ***
-      2. Get feedback on viewer timing and distribution PR   *** MUST RAISE ***
-      3. Understand cache fingerprint and prompt_func variable issues
-    goal        Confirm v0.1.9.post1 hotfix scope and impact
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. context from examples and docs integration
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Confirm v0.1.9.post1 hotfix scope and impact
-      2. Get feedback on viewer timing and distribution PR
-      3. Understand cache fingerprint and prompt_func variable issues
-    goal        15 commits today including release merge and heavy viewer/logging work; cache concerns raised
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. maintainer perspective on examples quality and release hygiene
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Confirm v0.1.9.post1 hotfix scope and impact
-      2. Get feedback on viewer timing and distribution PR
-      3. Understand cache fingerprint and prompt_func variable issues
-    goal        15 commits today including release merge and heavy viewer/logging work; cache concerns raised
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. cache and vLLM thinking; issues opened on cache behavior
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm v0.1.9.post1 hotfix scope and impact
-      2. Get feedback on viewer timing and distribution PR
-      3. Understand cache fingerprint and prompt_func variable issues   *** MUST RAISE ***
-    goal        Understand cache fingerprint and prompt_func variable issues
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Release confirmed shipped safely; viewer direction clear; cache issues triaged and assigned
-
-
-==============================================================================
-# 2024-11-20 — 2 conversation(s), 20 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Three new PRs opened today, six older ones still waiting; the release workstreams need the queue clear.
-
-    Today is Wednesday 20 November 2024. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three new PRs opened today, six older ones still waiting; the release workstreams need the queue clear.
-    
-    What it should get through:
-      1. Land Gideon Halloway's cost/token logging PR (PR 159)   [Gideon Halloway must raise this]
-           - Gideon Halloway: This adds cost tracking to OpenAI online and LiteLLM batch, using the new `completion_cost` field; Dermot Callaghan: Pattern looks sound, but let me check the integration points against the cache layer
-           - Dermot Callaghan: Sign off once CI's green
-      2. Decide fate of PR 130 (teacher.py example)   [Dermot Callaghan must raise this]
-           - Dermot Callaghan: Still valid, just needs a final pass; Dario Kestrel: Does it block the release? If not, defer to next week
-           - Dermot Callaghan: Agrees; defer
-      3. Bump and merge PR 156 (aiohttp security)   [Gideon Halloway must raise this]
-           - Gideon Halloway: Automation, no review needed; merge once CI passes
-    
-    On the agenda: Triage the three new PRs (PR 156, PR 159, PR 161); Clear the six stale PRs blocking release
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 159 lands today, PR 156 lands if CI passes. PR 130 deferred to next week. Remaining stale PRs (PR 39, PR 78, PR 90, PR 106, PR 133) still blocking until their owners re-pitch or rework.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
-
-    Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 79 changes merged to date
-
-    On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
-      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
-      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 130: Add a teacher.py example that slightly refactors Ryan's original code (Dermot Callaghan)
-      - PR 133: adding an env example file (Otto Brennan)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
-      - issue 47: Simple way to cancel submitted batches
-      - issue 48: ReadME documentation on batch
-      - issue 50: Vary batch size based on request numbers
-      - issue 52: Support multiple samples per request
-      - issue 55: Complain louder when num generic requests != num generic responses after parsing
-      - issue 57: Expose more metrics from the raw_response to cache generic request / response
-      - issue 62: Support generation configuration for LLM
-
-    DOES NOT EXIST YET (10 names)
-      - agentic-curation
-      - batch-mode
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - local-offline-inference
-      - multimodal-prompts
-      - progress-and-cli
-      - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Shipped two PRs today, knows what's blocking the remaining queue
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Land Gideon Halloway's cost/token logging PR (PR 159)   *** MUST RAISE ***
-      2. Decide fate of PR 130 (teacher.py example)
-      3. Bump and merge PR 156 (aiohttp security)   *** MUST RAISE ***
-      4. that the doc "Weekly notes: week of Nov 18 - v0.1.9.post1 out" is done, and where the others can find it   *** MUST RAISE ***
-      5. that the doc "Postmortem: Nov 19 hotfix (v0.1.9.post1)" is done, and where the others can find it   *** MUST RAISE ***
-    goal        Land Gideon Halloway's cost/token logging PR (PR 159)
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Senior code-review pattern-matching; owns the pipeline layer
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Land Gideon Halloway's cost/token logging PR (PR 159)
-      2. Decide fate of PR 130 (teacher.py example)   *** MUST RAISE ***
-      3. Bump and merge PR 156 (aiohttp security)
-    goal        Decide fate of PR 130 (teacher.py example)
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Request processing expertise; knows batch mode constraints
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Land Gideon Halloway's cost/token logging PR (PR 159)
-      2. Decide fate of PR 130 (teacher.py example)
-      3. Bump and merge PR 156 (aiohttp security)
-    goal        Three new PRs opened today, six older ones still waiting; the release workstreams need the queue clear.
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 159 lands today, PR 156 lands if CI passes. PR 130 deferred to next week. Remaining stale PRs (PR 39, PR 78, PR 90, PR 106, PR 133) still blocking until their owners re-pitch or rework.
-
-
-------------------------------------------------------------------------------
-## #pipeline — 8 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Two of today's commits touch bulk-llm-inference, caching-and-resume, online-request-processing, and provider-integrations. The logging work is mid-flight for v0.1.10.
-
-    Today is Wednesday 20 November 2024. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two of today's commits touch bulk-llm-inference, caching-and-resume, online-request-processing, and provider-integrations. The logging work is mid-flight for v0.1.10.
-    
-    What it should get through:
-      1. Confirm cost tracking is cache-safe   [Gideon Halloway must raise this]
-           - Gideon Halloway: Cost field comes from provider response, included in hash; Dermot Callaghan: That means a new provider version changes the cache key — is that intentional? Gideon Halloway: Yes, cost is deterministic per provider, so it's safe to bake into the key
-      2. Land PR PR 149 (time logging) into v0.1.10   [Gideon Halloway must raise this]
-           - Gideon Halloway: Merged today, CI passed, Dermot Callaghan approved three times (with a changes-requested in between); Dermot Callaghan: Log output looks clean, LGTM
-    
-    On the agenda: Verify cost/token logging doesn't break resume or cache; Scope v0.1.10 merge to time and cost visibility
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: PR 159 and PR 149 ship as part of v0.1.10. Cache semantics confirmed safe. Release cut once CI clears the rest of the queue.
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
-
-    Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 79 changes merged to date
-
-    On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
-      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
-      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 130: Add a teacher.py example that slightly refactors Ryan's original code (Dermot Callaghan)
-      - PR 133: adding an env example file (Otto Brennan)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
-      - issue 47: Simple way to cancel submitted batches
-      - issue 48: ReadME documentation on batch
-      - issue 50: Vary batch size based on request numbers
-      - issue 52: Support multiple samples per request
-      - issue 55: Complain louder when num generic requests != num generic responses after parsing
-      - issue 57: Expose more metrics from the raw_response to cache generic request / response
-      - issue 62: Support generation configuration for LLM
-
-    DOES NOT EXIST YET (10 names)
-      - agentic-curation
-      - batch-mode
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - local-offline-inference
-      - multimodal-prompts
-      - progress-and-cli
-      - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Just shipped time logging (PR PR 149); now adding cost/token logging (PR 159); knows the request layer cold
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm cost tracking is cache-safe   *** MUST RAISE ***
-      2. Land PR PR 149 (time logging) into v0.1.10   *** MUST RAISE ***
-    goal        Confirm cost tracking is cache-safe
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Batch and resume layer expertise; knows what can break cache invalidation
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Confirm cost tracking is cache-safe
-      2. Land PR PR 149 (time logging) into v0.1.10
-    goal        Two of today's commits touch bulk-llm-inference, caching-and-resume, online-request-processing, and provider-integrations. The logging work is mid-flight for v0.1.10.
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   PR 159 and PR 149 ship as part of v0.1.10. Cache semantics confirmed safe. Release cut once CI clears the rest of the queue.
-
-
-==============================================================================
-# 2024-11-21 — 1 conversation(s), 12 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Three PRs merged, four opened; six PRs older than median merge time; need to unblock stale work before cutting three releases
-
-    Today is Thursday 21 November 2024. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three PRs merged, four opened; six PRs older than median merge time; need to unblock stale work before cutting three releases
-    
-    What it should get through:
-      1. Validate dill pickling strategy didn't break serialization   [Gideon Halloway must raise this]
-           - Dermot Callaghan explains the dill approach and bytesio changes
-           - Gideon Halloway tests it against the viewer serialization path
-           - they land on: dill is safe, no follow-up needed
-      2. Clarify which stale PRs block which release cuts   [Dario Kestrel must raise this]
-           - Dario Kestrel asks if PR 141, PR 78, PR 90 block 0.1.12
-           - Gideon Halloway and Dermot Callaghan clarify: PR 141 and PR 161 can defer to 0.1.13
-           - Dario Kestrel confirms: 0.1.12 is clear to cut
-    
-    On the agenda: Merged work: cost/token logging, dill pickling, linting; Pending viewer and example PRs (PR 163, PR 165); Stale PRs and release blocking
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 163 and PR 165 get final sign-off; dill serialization validated; Dario Kestrel knows he can cut 0.1.12 without waiting for PR 141
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
@@ -632,13 +299,18 @@ Channel #code-review: Three PRs merged, four opened; six PRs older than median m
       - 82 changes merged to date
 
     On the table
+      - weekly-2024-11-18 (Konrad Feltrin)
       - Weekly notes: week of Nov 18 - v0.1.9.post1 out (Gideon Halloway)
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
+      - Postmortem: Nov 19 hotfix (v0.1.9.post1) (Gideon Halloway)
+      - v0.1.9.post1 release notes (Dario Kestrel)
+      - Postmortem: Nov 23 revert to old LiteLLM backend (Gideon Halloway)
+      - v0.1.9.post1 release notes (Dario Kestrel)
       - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
       - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
       - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
       - PR 133: adding an env example file (Otto Brennan)
       - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 156: Bump aiohttp from 3.10.10 to 3.10.11 (Millrow Refactor Bot)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -667,81 +339,86 @@ Channel #code-review: Three PRs merged, four opened; six PRs older than median m
 
 ### 3. What EACH PERSON is told
 
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Just merged PR 159 (cost/token logging) and PR 167/#168 (dill pickling and linting); knows what's in flight on viewer and example PRs
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Founder perspective; owns examples and curation platform
+    owns        examples-cookbooks, code-execution, finetuning
     agenda
-      1. Validate dill pickling strategy didn't break serialization   *** MUST RAISE ***
-      2. Clarify which stale PRs block which release cuts
-      3. what "Weekly notes: week of Nov 18 - v0.1.9.post1 out" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Validate dill pickling strategy didn't break serialization
+      1. Post weekly update covering Nov 18–25 work and release status   *** MUST RAISE ***
+      2. Share Nov 23 postmortem: what reverted, why, and how it's fixed
+      3. that "Weekly update: week of Nov 18" has gone out, and what you asked in it   *** MUST RAISE ***
+      4. what "Weekly notes: week of Nov 18 - v0.1.9.post1 out" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      5. what "Postmortem: Nov 19 hotfix (v0.1.9.post1)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      6. what "v0.1.9.post1 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Post weekly update covering Nov 18–25 work and release status
     available   around today
 
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Just landed linting infrastructure (PR 168) and dill pickling (PR 167); can explain the pickling strategy change and why linting matters for consistency
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Just cut v0.1.11; has postmortem on Nov 23 revert
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Validate dill pickling strategy didn't break serialization
-      2. Clarify which stale PRs block which release cuts
-    goal        Three PRs merged, four opened; six PRs older than median merge time; need to unblock stale work before cutting three releases
+      1. Post weekly update covering Nov 18–25 work and release status
+      2. Share Nov 23 postmortem: what reverted, why, and how it's fixed   *** MUST RAISE ***
+      3. that the doc "Postmortem: Nov 23 revert to old LiteLLM backend" is done, and where the others can find it   *** MUST RAISE ***
+      4. what "v0.1.9.post1 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Share Nov 23 postmortem: what reverted, why, and how it's fixed
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Context on PR 78 and PR 90, which are stale and blocking his release work
+    role        Core Engineer, Request Processing. Owns request processing; sees the pipeline health
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Validate dill pickling strategy didn't break serialization
-      2. Clarify which stale PRs block which release cuts   *** MUST RAISE ***
-    goal        Clarify which stale PRs block which release cuts
+      1. Post weekly update covering Nov 18–25 work and release status
+      2. Share Nov 23 postmortem: what reverted, why, and how it's fixed
+    goal        Weekly update and postmortem due today; three release cuts in flight
     available   around today
 
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Has two stale PRs (PR 39 and PR 106) that touch examples and docstrings
-    owns        examples-cookbooks, code-execution, finetuning
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Recently landed v0.1.9; knows what's stable
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Validate dill pickling strategy didn't break serialization
-      2. Clarify which stale PRs block which release cuts
-    goal        Three PRs merged, four opened; six PRs older than median merge time; need to unblock stale work before cutting three releases
+      1. Post weekly update covering Nov 18–25 work and release status
+      2. Share Nov 23 postmortem: what reverted, why, and how it's fixed
+    goal        Weekly update and postmortem due today; three release cuts in flight
     available   around today
 
 ### 4. How it should land
 
-    lands as  partial
-    leaving   PR 163 and PR 165 get final sign-off; dill serialization validated; Dario Kestrel knows he can cut 0.1.12 without waiting for PR 141
+    lands as  resolves
+    leaving   Weekly update posted; postmortem shared; team has visibility on release cadence and backend stability
 
-
-==============================================================================
-# 2024-11-22 — 1 conversation(s), 10 turns budgeted
-==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 10 turns, 3 people
+## #engineering — 10 turns, 3 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: PR PR 171 just opened; six older PRs are stale and three release workstreams are mid-flight
+Channel #engineering: Two commits landed overnight; two release cuts need coordination; backlog of stale PRs needs triage
 
-    Today is Friday 22 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Monday 25 November 2024. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: PR PR 171 just opened; six older PRs are stale and three release workstreams are mid-flight
+    Why it is happening: Two commits landed overnight; two release cuts need coordination; backlog of stale PRs needs triage
     
     What it should get through:
-      1. Establish whether Otto's test additions close real gaps or are defensive   [Gideon Halloway must raise this]
-           - Gideon Halloway: what does this test that we don't have?
-           - Otto Brennan: explains scope
-           - Dario Kestrel: proposes we land it and move on
-      2. Decide which stale PRs can land before the next release cut   [Dario Kestrel must raise this]
-           - Dario Kestrel: notes 78 and 90 are his and they're stale
-           - Konrad Feltrin: whether they're release-blocking or next-cycle
-           - Dario Kestrel: probably next-cycle, but worth a quick look
+      1. Confirm resume pbar and timeout commits are ready for v0.1.10   [Gideon Halloway must raise this]
+           - Gideon Halloway walks through the commits; explains the pbar fix improves user experience on resume
+           - Dario Kestrel and Dermot Callaghan skim diffs; no concerns
+           - group agrees commits are safe for the release
+      2. Sequence three concurrent releases without conflicts   [Dario Kestrel must raise this]
+           - Dario Kestrel notes all three are mid-flight; Gideon Halloway owns first two, Dario Kestrel the third
+           - team confirms no dependency conflicts
+           - group agrees to merge releases in order: v0.1.10 first, then v0.1.11, then v0.1.12
+      3. Triage six stale PRs: defer non-blockers, merge quick wins   [Dario Kestrel must raise this]
+           - Dario Kestrel lists the six oldest: PR 78, PR 90, PR 106, PR 141, PR 156, PR 161
+           - Gideon Halloway flags PR 141 and PR 163 as blockers for his releases
+           - group agrees to focus code-review on those four; defer the rest
     
-    On the agenda: Otto's GenericRequest test coverage PR and what it covers; Older PRs blocking release work (78, 90)
+    On the agenda: Brief on Gideon's two commits and their scope; Coordinate release sequencing: v0.1.10, v0.1.11, v0.1.12; Flag stale PRs blocking forward progress
     
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Otto's test PR gets a reviewer; team agrees on which stale PRs are release-blocking and which can wait until v0.1.13.
+    Wrap when: Gideon's commits approved; release sequence confirmed; code-review priorities set for the day
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -755,12 +432,15 @@ Channel #code-review: PR PR 171 just opened; six older PRs are stale and three r
       - 82 changes merged to date
 
     On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
+      - v0.1.9.post1 release notes (Dario Kestrel)
+      - v0.1.9.post1 release notes (Dario Kestrel)
+      - Onboarding: Otto Brennan on install UX & README polish (Konrad Feltrin)
       - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
       - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
       - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
       - PR 133: adding an env example file (Otto Brennan)
       - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 156: Bump aiohttp from 3.10.10 to 3.10.11 (Millrow Refactor Bot)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -790,262 +470,78 @@ Channel #code-review: PR PR 171 just opened; six older PRs are stale and three r
 ### 3. What EACH PERSON is told
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Understanding of the request layer and what coverage gaps exist
+    role        Core Engineer — Dataset Viewer & Run Observability. Two commits on resume display and timeout defaults; driving two releases; owns observability
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Establish whether Otto's test additions close real gaps or are defensive   *** MUST RAISE ***
-      2. Decide which stale PRs can land before the next release cut
-    goal        Establish whether Otto's test additions close real gaps or are defensive
+      1. Confirm resume pbar and timeout commits are ready for v0.1.10   *** MUST RAISE ***
+      2. Sequence three concurrent releases without conflicts
+      3. Triage six stale PRs: defer non-blockers, merge quick wins
+      4. what "v0.1.9.post1 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm resume pbar and timeout commits are ready for v0.1.10
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Owns request processing; knows what GenericRequest needs to cover
+    role        Core Engineer, Request Processing. Request processing ownership; sees the full backlog of open issues and PRs
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Establish whether Otto's test additions close real gaps or are defensive
-      2. Decide which stale PRs can land before the next release cut   *** MUST RAISE ***
-    goal        Decide which stale PRs can land before the next release cut
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Founder perspective on what's core vs nice-to-have in tests
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Establish whether Otto's test additions close real gaps or are defensive
-      2. Decide which stale PRs can land before the next release cut
-    goal        PR PR 171 just opened; six older PRs are stale and three release workstreams are mid-flight
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Otto's test PR gets a reviewer; team agrees on which stale PRs are release-blocking and which can wait until v0.1.13.
-
-
-==============================================================================
-# 2024-11-23 — 4 conversation(s), 39 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #engineering — 8 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Gideon reverted a significant async litellm change mid-flight, signaling instability that the team needs to understand before it affects releases.
-
-    Today is Saturday 23 November 2024. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Gideon reverted a significant async litellm change mid-flight, signaling instability that the team needs to understand before it affects releases.
-    
-    What it should get through:
-      1. Establish the old backend is production-ready again   [Gideon Halloway must raise this]
-           - Gideon Halloway outlines the revert and why
-           - Dermot Callaghan asks whether this blocks the release cuts
-    
-    On the agenda: What broke with the revamped async litellm; Why the old backend with fixes is more stable; Whether this affects the release pipeline
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team understands the revert was the right call; releases can proceed on schedule.
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
-
-    Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 82 changes merged to date
-
-    On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
-      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
-      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
-      - issue 47: Simple way to cancel submitted batches
-      - issue 48: ReadME documentation on batch
-      - issue 50: Vary batch size based on request numbers
-      - issue 52: Support multiple samples per request
-      - issue 55: Complain louder when num generic requests != num generic responses after parsing
-      - issue 62: Support generation configuration for LLM
-      - issue 74: Add more model support with liteLLM
-
-    DOES NOT EXIST YET (10 names)
-      - agentic-curation
-      - batch-mode
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - local-offline-inference
-      - multimodal-prompts
-      - progress-and-cli
-      - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. The details of yesterday's checkpoint and today's revert decision
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Establish the old backend is production-ready again   *** MUST RAISE ***
-    goal        Establish the old backend is production-ready again
+      1. Confirm resume pbar and timeout commits are ready for v0.1.10
+      2. Sequence three concurrent releases without conflicts   *** MUST RAISE ***
+      3. Triage six stale PRs: defer non-blockers, merge quick wins   *** MUST RAISE ***
+      4. what "v0.1.9.post1 release notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      5. what "Onboarding: otto on install UX & README polish" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Sequence three concurrent releases without conflicts
     available   around today
 
   Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Perspective on stability vs. feature completeness
+    role        Founding Software Engineer — Core Pipeline & Release. Just merged v0.1.9; knows the baseline; owns bulk-llm-inference and examples
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Establish the old backend is production-ready again
-    goal        Gideon reverted a significant async litellm change mid-flight, signaling instability that the team needs to understand before it affects releases.
+      1. Confirm resume pbar and timeout commits are ready for v0.1.10
+      2. Sequence three concurrent releases without conflicts
+      3. Triage six stale PRs: defer non-blockers, merge quick wins
+    goal        Two commits landed overnight; two release cuts need coordination; backlog of stale PRs needs triage
     available   around today
 
 ### 4. How it should land
 
-    lands as  partial
-    leaving   Team understands the revert was the right call; releases can proceed on schedule.
+    lands as  resolves
+    leaving   Gideon's commits approved; release sequence confirmed; code-review priorities set for the day
 
+
+==============================================================================
+# 2024-11-26 — 3 conversation(s), 31 turns budgeted
+==============================================================================
 
 ------------------------------------------------------------------------------
-## #incidents — 9 turns, 3 people
+## #code-review — 12 turns, 4 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #incidents: A revert in bulk-llm-inference on the day of multiple release cuts needs explicit incident tracking to avoid cascading into releases.
+Channel #code-review: 10 PRs older than the era median merge; 3 opened today; need to unblock the queue
 
-    Today is Saturday 23 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Tuesday 26 November 2024. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: A revert in bulk-llm-inference on the day of multiple release cuts needs explicit incident tracking to avoid cascading into releases.
+    Why it is happening: 10 PRs older than the era median merge; 3 opened today; need to unblock the queue
     
     What it should get through:
-      1. Mark the incident closed with the revert merged   [Gideon Halloway must raise this]
-           - Gideon Halloway posts the revert
-           - Dario Kestrel checks for breakage
-           - Dermot Callaghan clears it for release
+      1. Identify what's holding up Gideon Halloway's three stale PRs   [Gideon Halloway must raise this]
+           - Gideon says which need review vs which need rework
+           - Dermot or Konrad Feltrin volunteer to review the ready ones
+           - Plan rework timelines for the blocked ones
+      2. Get Dario Kestrel's blocking PRs moving   [Dario Kestrel must raise this]
+           - Dario states what he needs: review, feedback, or unblock signal
+           - Gideon or Dermot Callaghan commit to review
+           - Agree on which can land after v0.1.10
+      3. send Weekly update: week of Nov 18   [Dermot Callaghan must raise this]
+           - Dermot Callaghan says they will send Weekly update: week of Nov 18
     
-    On the agenda: State the revert and its impact; Confirm no downstream breakage; Decide if a hotfix or immediate release is needed
+    On the agenda: What's blocking Gideon Halloway's PR 141, PR 161, PR 163; Dario's PR 78 and PR 90: vLLM example and cache disabling; Konrad's PR 106: text message summarization example; Triage: what can land before next release; Weekly update: week of Nov 18
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: Incident is resolved; releases can proceed or are held with explicit reasoning.
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
-
-    Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 82 changes merged to date
-
-    On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
-      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
-      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
-      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
-      - PR 133: adding an env example file (Otto Brennan)
-      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
-      - issue 47: Simple way to cancel submitted batches
-      - issue 48: ReadME documentation on batch
-      - issue 50: Vary batch size based on request numbers
-      - issue 52: Support multiple samples per request
-      - issue 55: Complain louder when num generic requests != num generic responses after parsing
-      - issue 62: Support generation configuration for LLM
-      - issue 74: Add more model support with liteLLM
-
-    DOES NOT EXIST YET (10 names)
-      - agentic-curation
-      - batch-mode
-      - blocks-and-recipes
-      - code-execution
-      - finetuning
-      - local-offline-inference
-      - multimodal-prompts
-      - progress-and-cli
-      - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. The revert commit and its rationale
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Mark the incident closed with the revert merged   *** MUST RAISE ***
-    goal        Mark the incident closed with the revert merged
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Context on any downstream impact to request processing
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Mark the incident closed with the revert merged
-    goal        A revert in bulk-llm-inference on the day of multiple release cuts needs explicit incident tracking to avoid cascading into releases.
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release coordination perspective
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Mark the incident closed with the revert merged
-    goal        A revert in bulk-llm-inference on the day of multiple release cuts needs explicit incident tracking to avoid cascading into releases.
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Incident is resolved; releases can proceed or are held with explicit reasoning.
-
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Ten PRs are older than the median merge time; Gideon Halloway, Dario Kestrel, and Konrad Feltrin all have work waiting for review, and several are blocking features or hygiene improvements.
-
-    Today is Saturday 23 November 2024. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Ten PRs are older than the median merge time; Gideon Halloway, Dario Kestrel, and Konrad Feltrin all have work waiting for review, and several are blocking features or hygiene improvements.
-    
-    What it should get through:
-      1. Move oldest PRs toward approval or close-out   [Konrad Feltrin must raise this]
-           - Konrad Feltrin or Dario Kestrel skim the PR list
-           - Gideon Halloway flags which ones unblock releases
-           - Someone takes the first four and leaves detailed feedback
-      2. Land cache-disable and vLLM example PRs if they are clean   [Dario Kestrel must raise this]
-           - Dario Kestrel walks through his vLLM PR
-           - Konrad Feltrin or Gideon Halloway spot issues or approve
-    
-    On the agenda: Triage the oldest stale PRs by blocker status; Review Gideon Halloway's pending viewer and example PRs; Get approval on Dario Kestrel's feature PRs
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: At least three stale PRs have actionable feedback or merge approval; the blockage starts to clear.
+    Wrap when: Clear owners and timelines for each stale PR; at least two moved to review-ready or merged; it is settled that cache lookup and cache_stats are computed from the input row hash so they need only the dataset
     
     Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1055,16 +551,17 @@ Channel #code-review: Ten PRs are older than the median merge time; Gideon Hallo
     Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
 
     Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 82 changes merged to date
+      - 4 release(s) shipped, currently v0.1.10
+      - 83 changes merged to date
 
     On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
+      - Postmortem: Nov 23 revert to old LiteLLM backend (Gideon Halloway)
       - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
       - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
       - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
       - PR 133: adding an env example file (Otto Brennan)
       - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1089,69 +586,90 @@ Channel #code-review: Ten PRs are older than the median merge time; Gideon Hallo
       - multimodal-prompts
       - progress-and-cli
       - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. His own pending PRs and context on what they unblock
+    role        Core Engineer — Dataset Viewer & Run Observability. owns three of the stale PRs (141, 161, 163) and knows their status
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Move oldest PRs toward approval or close-out
-      2. Land cache-disable and vLLM example PRs if they are clean
-    goal        Ten PRs are older than the median merge time; Gideon Halloway, Dario Kestrel, and Konrad Feltrin all have work waiting for review, and several are blocking features or hygiene improvements.
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Maintainer perspective on code quality and consistency
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Move oldest PRs toward approval or close-out   *** MUST RAISE ***
-      2. Land cache-disable and vLLM example PRs if they are clean
-    goal        Move oldest PRs toward approval or close-out
+      1. Identify what's holding up Gideon Halloway's three stale PRs   *** MUST RAISE ***
+      2. Get Dario Kestrel's blocking PRs moving
+      3. send Weekly update: week of Nov 18
+      4. what "Postmortem: Nov 23 revert to old LiteLLM backend" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Identify what's holding up Gideon Halloway's three stale PRs
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Context on the vLLM and cache-disable features
+    role        Core Engineer, Request Processing. context on vLLM and caching disables
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Move oldest PRs toward approval or close-out
-      2. Land cache-disable and vLLM example PRs if they are clean   *** MUST RAISE ***
-    goal        Land cache-disable and vLLM example PRs if they are clean
+      1. Identify what's holding up Gideon Halloway's three stale PRs
+      2. Get Dario Kestrel's blocking PRs moving   *** MUST RAISE ***
+      3. send Weekly update: week of Nov 18
+      4. Worth writing down why the row hash is the right level for this. Keying on the row means resume and cache lookup need nothing but the dataset itself, no prompt callable, no live LLM object, so I can rebuild the whole hit/miss picture from the metadata DB on a cold process. That is exactly what cache_stats needs to be cheap. If the key depended on anything we can only compute by constructing the LLM, cache_stats stops being a thing you can call before a run and becomes another run.   *** MUST SETTLE (clue t1.r1.h2) ***
+      5. that the doc "v0.1.10 release notes" is done, and where the others can find it   *** MUST RAISE ***
+      6. that "v0.1.10 is out" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        Get Dario Kestrel's blocking PRs moving
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. README context; can review non-blocking PRs
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Identify what's holding up Gideon Halloway's three stale PRs
+      2. Get Dario Kestrel's blocking PRs moving
+      3. send Weekly update: week of Nov 18
+    goal        10 PRs older than the era median merge; 3 opened today; need to unblock the queue
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. can spot integration issues in request processing
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Identify what's holding up Gideon Halloway's three stale PRs
+      2. Get Dario Kestrel's blocking PRs moving
+      3. send Weekly update: week of Nov 18   *** MUST RAISE ***
+    goal        send Weekly update: week of Nov 18
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   At least three stale PRs have actionable feedback or merge approval; the blockage starts to clear.
+    leaving   Clear owners and timelines for each stale PR; at least two moved to review-ready or merged; it is settled that cache lookup and cache_stats are computed from the input row hash so they need only the dataset
 
 
 ------------------------------------------------------------------------------
-## #pipeline — 10 turns, 2 people
+## #engineering — 10 turns, 5 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #pipeline: The revert of async litellm touches four pipeline services; Dario Kestrel and Gideon Halloway need to confirm the fallback does not break request processing or cost accounting before releases ship.
+Channel #engineering: v0.1.10 released today; team gathers to sync on what's next
 
-    Today is Saturday 23 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Tuesday 26 November 2024. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: The revert of async litellm touches four pipeline services; Dario Kestrel and Gideon Halloway need to confirm the fallback does not break request processing or cost accounting before releases ship.
+    Why it is happening: v0.1.10 released today; team gathers to sync on what's next
     
     What it should get through:
-      1. Validate the old backend is safe for production release   [Gideon Halloway must raise this]
-           - Gideon Halloway walks through what the revert changes
-           - Dario Kestrel checks request routing and cost handling
-           - Both confirm provider integrations are stable
+      1. Reflect on what v0.1.10 taught us   [Gideon Halloway must raise this]
+           - Gideon runs through the final stretch
+           - Dermot notes any integration surprises
+           - Konrad flags docs or examples gaps
+      2. Settle priorities for the next batch   [Dario Kestrel must raise this]
+           - Gideon proposes direction
+           - Dario pushes on request-processing debt
+           - Team agrees on one or two services to focus
     
-    On the agenda: Confirm the old litellm backend handles all request types correctly; Check cost and latency tracking are not degraded; Verify provider integrations are stable
+    On the agenda: v0.1.10 is out: what was the main blocker or gap; Clear cache PR and other small opens: blockers or nice-to-have; Direction: which service gets focus in the next sprint
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Pipeline team is confident the revert does not degrade production request handling; releases can proceed.
+    Wrap when: Team aligned on what v0.1.10 surfaced and what the next sprint prioritizes
     
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
@@ -1159,16 +677,17 @@ Channel #pipeline: The revert of async litellm touches four pipeline services; D
     Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
 
     Settled
-      - 3 release(s) shipped, currently v0.1.9.post1
-      - 82 changes merged to date
+      - 4 release(s) shipped, currently v0.1.10
+      - 83 changes merged to date
 
     On the table
-      - PR 39: Fix minor code issues with incorrect docstring etc. (Konrad Feltrin)
+      - Postmortem: Nov 23 revert to old LiteLLM backend (Gideon Halloway)
       - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
       - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
       - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
       - PR 133: adding an env example file (Otto Brennan)
       - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1193,28 +712,694 @@ Channel #pipeline: The revert of async litellm touches four pipeline services; D
       - multimodal-prompts
       - progress-and-cli
       - telemetry
-      - — and 1293 function/class names and 188 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. The revert and its implications for the request pipeline
+    role        Core Engineer — Dataset Viewer & Run Observability. just shipped the release; knows what's next
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Validate the old backend is safe for production release   *** MUST RAISE ***
-    goal        Validate the old backend is safe for production release
+      1. Reflect on what v0.1.10 taught us   *** MUST RAISE ***
+      2. Settle priorities for the next batch
+      3. what "Postmortem: Nov 23 revert to old LiteLLM backend" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Reflect on what v0.1.10 taught us
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Deep knowledge of request processing and what the pipeline depends on
+    role        Core Engineer, Request Processing. knows the request-processing debt and what came up during the v0.1.10 cycle
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Validate the old backend is safe for production release
-    goal        The revert of async litellm touches four pipeline services; Dario Kestrel and Gideon Halloway need to confirm the fallback does not break request processing or cost accounting before releases ship.
+      1. Reflect on what v0.1.10 taught us
+      2. Settle priorities for the next batch   *** MUST RAISE ***
+    goal        Settle priorities for the next batch
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. README and examples perspective
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Reflect on what v0.1.10 taught us
+      2. Settle priorities for the next batch
+    goal        v0.1.10 released today; team gathers to sync on what's next
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. recently landed the LLM core; sees what's next
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Reflect on what v0.1.10 taught us
+      2. Settle priorities for the next batch
+    goal        v0.1.10 released today; team gathers to sync on what's next
+    available   around today
+
+  Otto Brennan  (otto)
+    role        Contributor — Install UX & README Polish. testing and setup UX perspective
+    owns        (nothing specific)
+    agenda
+      1. Reflect on what v0.1.10 taught us
+      2. Settle priorities for the next batch
+    goal        v0.1.10 released today; team gathers to sync on what's next
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Team aligned on what v0.1.10 surfaced and what the next sprint prioritizes
+
+
+------------------------------------------------------------------------------
+## #pipeline — 9 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Gideon merged three changes to rate limiting and retry logic in the request pipeline
+
+    Today is Tuesday 26 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Gideon merged three changes to rate limiting and retry logic in the request pipeline
+    
+    What it should get through:
+      1. Confirm token rate limiting behavior is safe to ship   [Gideon Halloway must raise this]
+           - Gideon walks through the status tracker changes
+           - Dermot asks about queue stalls or fairness
+           - Dario notes any compatibility concerns with existing scripts
+      2. Clarify parallel retry semantics   [Gideon Halloway must raise this]
+           - Gideon explains when parallel retry fires
+           - Dermot challenges the failure detection logic
+           - Agreement on whether partial results are discarded
+    
+    On the agenda: Token-based rate limiting (OpenAI-style): how does it integrate with existing request queuing; Parallel retry on LiteLLM: when does it retry, and what happens to partial results; Any provider edge cases we should gate behind feature flags
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Gideon has confidence the rate limiting and retry changes don't have hidden breakage; any edge cases noted for monitoring; it is settled that compatibility is determined by the backend's 400 on the first real request rather than any model list
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
+
+    Settled
+      - 4 release(s) shipped, currently v0.1.10
+      - 83 changes merged to date
+
+    On the table
+      - Postmortem: Nov 23 revert to old LiteLLM backend (Gideon Halloway)
+      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
+      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
+      - issue 47: Simple way to cancel submitted batches
+      - issue 48: ReadME documentation on batch
+      - issue 50: Vary batch size based on request numbers
+      - issue 52: Support multiple samples per request
+      - issue 55: Complain louder when num generic requests != num generic responses after parsing
+      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
+
+    DOES NOT EXIST YET (10 names)
+      - agentic-curation
+      - batch-mode
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - local-offline-inference
+      - multimodal-prompts
+      - progress-and-cli
+      - telemetry
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. just merged token-based rate limiting and parallel retry logic; knows the design
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Confirm token rate limiting behavior is safe to ship   *** MUST RAISE ***
+      2. Clarify parallel retry semantics   *** MUST RAISE ***
+      3. what "Postmortem: Nov 23 revert to old LiteLLM backend" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm token rate limiting behavior is safe to ship
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. knows the request layer and can spot edge cases
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Confirm token rate limiting behavior is safe to ship
+      2. Clarify parallel retry semantics
+      3. On the response_format compatibility question: we are not keeping a table of which models accept a json schema. That list goes stale the week after we write it and then we are the ones rejecting a model that actually works fine. The provider is the source of truth here. Send the request, and if the model can't do structured outputs we get a 400 back with the provider's own wording and surface that to the user as-is. One request's worth of spend is a fair price for not maintaining a whitelist, and the error text is better than anything we'd write ourselves.   *** MUST SETTLE (clue t2.r1.h1) ***
+    goal        compatibility is determined by the backend's 400 on the first real request rather than any model list
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. knows request-layer customers and their patterns
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm token rate limiting behavior is safe to ship
+      2. Clarify parallel retry semantics
+    goal        Gideon merged three changes to rate limiting and retry logic in the request pipeline
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Gideon has confidence the rate limiting and retry changes don't have hidden breakage; any edge cases noted for monitoring; it is settled that compatibility is determined by the backend's 400 on the first real request rather than any model list
+
+
+==============================================================================
+# 2024-11-27 — 1 conversation(s), 8 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #engineering — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Six commits landed on provider integrations; release v0.1.11 is mid-flight and waiting on signal that this batch is ready.
+
+    Today is Wednesday 27 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Six commits landed on provider integrations; release v0.1.11 is mid-flight and waiting on signal that this batch is ready.
+    
+    What it should get through:
+      1. Validate that instructor+liteLLM coverage checks are necessary and sufficient   [Gideon Halloway must raise this]
+           - Gideon walks through what happens when instructor or liteLLM are not available
+           - Dario asks whether this catches the real failure modes we have seen
+           - Landing: agreement that the checks prevent the breakage from the liteLLM revert postmortem
+      2. Confirm model init logging is appropriate verbosity for v0.1.11   [Gideon Halloway must raise this]
+           - Gideon explains what the logging reveals
+           - Dermot questions whether it's noisy in batch mode
+           - Landing: understanding that it's init-time only, worth the signal
+    
+    On the agenda: Instructor + liteLLM coverage guards: what they catch; Model initialization logging: why it matters; Code quality pass: black formatting and commented debug removal
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Gideon's six commits are acknowledged as ready; release v0.1.11 clears that dependency and moves to merge; it is settled that the response cache key is the hash of the raw input row alone
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
+
+    Settled
+      - 4 release(s) shipped, currently v0.1.10
+      - 83 changes merged to date
+
+    On the table
+      - Postmortem: Nov 23 revert to old LiteLLM backend (Gideon Halloway)
+      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
+      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
+      - issue 47: Simple way to cancel submitted batches
+      - issue 48: ReadME documentation on batch
+      - issue 50: Vary batch size based on request numbers
+      - issue 52: Support multiple samples per request
+      - issue 55: Complain louder when num generic requests != num generic responses after parsing
+      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
+
+    DOES NOT EXIST YET (10 names)
+      - agentic-curation
+      - batch-mode
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - local-offline-inference
+      - multimodal-prompts
+      - progress-and-cli
+      - telemetry
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Six commits on instructor+liteLLM coverage checks, model init logging, formatting cleanup
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Validate that instructor+liteLLM coverage checks are necessary and sufficient   *** MUST RAISE ***
+      2. Confirm model init logging is appropriate verbosity for v0.1.11   *** MUST RAISE ***
+      3. that the doc "Weekly notes: week of Nov 25 - v0.1.10 out" is done, and where the others can find it   *** MUST RAISE ***
+      4. what "Postmortem: Nov 23 revert to old LiteLLM backend" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Validate that instructor+liteLLM coverage checks are necessary and sufficient
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Familiarity with the request processing layer and what coverage checks matter most
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Validate that instructor+liteLLM coverage checks are necessary and sufficient
+      2. Confirm model init logging is appropriate verbosity for v0.1.11
+    goal        Six commits landed on provider integrations; release v0.1.11 is mid-flight and waiting on signal that this batch is ready.
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Historical context on why instructor/liteLLM integration exists and what it replaced
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Validate that instructor+liteLLM coverage checks are necessary and sufficient
+      2. Confirm model init logging is appropriate verbosity for v0.1.11
+      3. To be clear on the cache key since it came up again in review: it is the hash of the raw input row, full stop. Row in, hash out, that is the whole contract and I want it to stay that narrow. Every time someone folds another thing into a fingerprint we end up with a key nobody can explain to a user who asks why their rerun did what it did. The row is the unit the dataset is made of, so the row is the unit the cache is keyed on. cache_stats should just report against those row hashes and nothing fancier.   *** MUST SETTLE (clue t1.r1.h1) ***
+    goal        the response cache key is the hash of the raw input row alone
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Gideon's six commits are acknowledged as ready; release v0.1.11 clears that dependency and moves to merge; it is settled that the response cache key is the hash of the raw input row alone
+
+
+==============================================================================
+# 2024-11-28 — 1 conversation(s), 12 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 12 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Six PRs have sat longer than the median merge time; two releases are mid-flight and need the queue clear.
+
+    Today is Thursday 28 November 2024. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Six PRs have sat longer than the median merge time; two releases are mid-flight and need the queue clear.
+    
+    What it should get through:
+      1. Unblock or defer PR 141 (LiteLLM+instructor)   [Gideon Halloway must raise this]
+           - Gideon raises it as blocking structured output work
+           - Konrad or Dario pushes back on scope or priority
+           - Either approve with conditions or defer to post-release
+      2. Move PR 78 and 90 (vLLM and cache) toward landing   [Dario Kestrel must raise this]
+           - Dario describes what's holding them
+           - Gideon and Konrad assess whether they block a release
+           - Either approve or agree on what's needed to proceed
+      3. Establish review bandwidth for remaining queue   [Konrad Feltrin must raise this]
+           - Konrad or Dario volunteers to drive the remaining reviews
+           - Group agrees on priority order
+           - Assign owners or decide what can wait until next week
+    
+    On the agenda: Review oldest stalled PRs; Identify blockers on structured output and examples; Clear path to merge
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: At least one PR approved and merged; clear signal on whether the rest block the two active releases or can be deferred.
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
+
+    Settled
+      - 4 release(s) shipped, currently v0.1.10
+      - 83 changes merged to date
+
+    On the table
+      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
+      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
+      - issue 47: Simple way to cancel submitted batches
+      - issue 48: ReadME documentation on batch
+      - issue 50: Vary batch size based on request numbers
+      - issue 52: Support multiple samples per request
+      - issue 55: Complain louder when num generic requests != num generic responses after parsing
+      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
+
+    DOES NOT EXIST YET (10 names)
+      - agentic-curation
+      - batch-mode
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - local-offline-inference
+      - multimodal-prompts
+      - progress-and-cli
+      - telemetry
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. knowledge of the viewer and structured output work
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Unblock or defer PR 141 (LiteLLM+instructor)   *** MUST RAISE ***
+      2. Move PR 78 and 90 (vLLM and cache) toward landing
+      3. Establish review bandwidth for remaining queue
+    goal        Unblock or defer PR 141 (LiteLLM+instructor)
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. context on vLLM integration and cache control
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Unblock or defer PR 141 (LiteLLM+instructor)
+      2. Move PR 78 and 90 (vLLM and cache) toward landing   *** MUST RAISE ***
+      3. Establish review bandwidth for remaining queue
+    goal        Move PR 78 and 90 (vLLM and cache) toward landing
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. ownership of examples and ability to unblock Dario's stalled work
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Unblock or defer PR 141 (LiteLLM+instructor)
+      2. Move PR 78 and 90 (vLLM and cache) toward landing
+      3. Establish review bandwidth for remaining queue   *** MUST RAISE ***
+    goal        Establish review bandwidth for remaining queue
     available   around today
 
 ### 4. How it should land
 
     lands as  partial
-    leaving   Pipeline team is confident the revert does not degrade production request handling; releases can proceed.
+    leaving   At least one PR approved and merged; clear signal on whether the rest block the two active releases or can be deferred.
+
+
+==============================================================================
+# 2024-12-02 — 3 conversation(s), 21 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 8 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: PR 141 has been under heavy review for 14 days with 12 comments from Dario Kestrel in a single day; something needs to break the jam
+
+    Today is Monday 2 December 2024. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: PR 141 has been under heavy review for 14 days with 12 comments from Dario Kestrel in a single day; something needs to break the jam
+    
+    What it should get through:
+      1. Understand what's blocking the LiteLLM+instructor merge   [Dario Kestrel must raise this]
+           - Dario lays out the pattern in the review comments
+           - Gideon pushes back on scope or asks for clarification
+           - They land on whether this is design-level or implementation-level
+      2. send Weekly update: week of Nov 25   [Gideon Halloway must raise this]
+           - Gideon Halloway says they will send Weekly update: week of Nov 25
+    
+    On the agenda: Dario's 12 review rounds: what's blocking; Gideon's response: design or implementation; Next steps: rework or split; Weekly update: week of Nov 25
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: Either Gideon starts a rework iteration, or they agree to split the PR and land a subset, or Dario Kestrel gives explicit approval to merge.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
+
+    Settled
+      - 4 release(s) shipped, currently v0.1.10
+      - 90 changes merged to date
+
+    On the table
+      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
+      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
+      - issue 47: Simple way to cancel submitted batches
+      - issue 48: ReadME documentation on batch
+      - issue 50: Vary batch size based on request numbers
+      - issue 52: Support multiple samples per request
+      - issue 55: Complain louder when num generic requests != num generic responses after parsing
+      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
+
+    DOES NOT EXIST YET (10 names)
+      - agentic-curation
+      - batch-mode
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - local-offline-inference
+      - multimodal-prompts
+      - progress-and-cli
+      - telemetry
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 12 rounds of review comments on the LiteLLM+instructor integration; knows the structured-output requirements
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Understand what's blocking the LiteLLM+instructor merge   *** MUST RAISE ***
+      2. send Weekly update: week of Nov 25
+    goal        Understand what's blocking the LiteLLM+instructor merge
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. authored the PR; knows the instructor integration details and what the reviews are asking for
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Understand what's blocking the LiteLLM+instructor merge
+      2. send Weekly update: week of Nov 25   *** MUST RAISE ***
+      3. that "Weekly update: week of Nov 25" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        send Weekly update: week of Nov 25
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   Either Gideon starts a rework iteration, or they agree to split the PR and land a subset, or Dario Kestrel gives explicit approval to merge.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 6 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Gideon committed a cleanup this morning; the team checks that it landed clean
+
+    Today is Monday 2 December 2024. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Gideon committed a cleanup this morning; the team checks that it landed clean
+    
+    What it should get through:
+      1. Confirm the import cleanup has no side effects   [Gideon Halloway must raise this]
+           - Gideon explains what imports were unused and why safe to remove
+           - Dario confirms test coverage
+           - They move on if CI is green
+    
+    On the agenda: Gideon's import cleanup: scope and impact; CI status and test coverage; Any follow-up cleanup needed
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: The cleanup is confirmed safe, or a revert is flagged if tests fail.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
+
+    Settled
+      - 4 release(s) shipped, currently v0.1.10
+      - 90 changes merged to date
+
+    On the table
+      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
+      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
+      - issue 47: Simple way to cancel submitted batches
+      - issue 48: ReadME documentation on batch
+      - issue 50: Vary batch size based on request numbers
+      - issue 52: Support multiple samples per request
+      - issue 55: Complain louder when num generic requests != num generic responses after parsing
+      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
+
+    DOES NOT EXIST YET (10 names)
+      - agentic-curation
+      - batch-mode
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - local-offline-inference
+      - multimodal-prompts
+      - progress-and-cli
+      - telemetry
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. just landed a cleanup commit removing unused imports across five core services
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Confirm the import cleanup has no side effects   *** MUST RAISE ***
+    goal        Confirm the import cleanup has no side effects
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. owns the services touched; will see if CI is green
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm the import cleanup has no side effects
+    goal        Gideon committed a cleanup this morning; the team checks that it landed clean
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   The cleanup is confirmed safe, or a revert is flagged if tests fail.
+
+
+------------------------------------------------------------------------------
+## #engineering — 7 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Dario opened two new issues this morning that may affect batch stability; the team needs to assess priority
+
+    Today is Monday 2 December 2024. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Dario opened two new issues this morning that may affect batch stability; the team needs to assess priority
+    
+    What it should get through:
+      1. Assess whether the new batch issues block the two pending releases   [Dario Kestrel must raise this]
+           - Dario describes the space and cache-key issues
+           - Gideon offers context from recent commits
+           - They decide if these are release-critical or can land after
+    
+    On the agenda: Issue PR 189: Out of Space error on OpenAI servers; Issue PR 190: Add the OpenAI key to the cache hash for batch mode; Whether these block the releases
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Clear priority: either the issues are added to the release checklist, or they are marked as post-release work.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Everything Through a Reviewed PR: Building the Request Pipeline
+
+    Settled
+      - 4 release(s) shipped, currently v0.1.10
+      - 90 changes merged to date
+
+    On the table
+      - PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario Kestrel)
+      - PR 90: Add an argument to disable cache for Prompter (Dario Kestrel)
+      - PR 106: Add an example for summarizing text messages between two people. (Konrad Feltrin)
+      - PR 133: adding an env example file (Otto Brennan)
+      - PR 141: Add LiteLLM+instructor (for structured output) backend for curator (Gideon Halloway)
+      - PR 161: [Curator Usage Example] Prometheus LLM Judge evaluation (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 33: Check cache for batch=True completions and skip downloading results files if they exist
+      - issue 47: Simple way to cancel submitted batches
+      - issue 48: ReadME documentation on batch
+      - issue 50: Vary batch size based on request numbers
+      - issue 52: Support multiple samples per request
+      - issue 55: Complain louder when num generic requests != num generic responses after parsing
+      - issue 62: Support generation configuration for LLM
+      - issue 74: Add more model support with liteLLM
+
+    DOES NOT EXIST YET (10 names)
+      - agentic-curation
+      - batch-mode
+      - blocks-and-recipes
+      - code-execution
+      - finetuning
+      - local-offline-inference
+      - multimodal-prompts
+      - progress-and-cli
+      - telemetry
+      - — and 1273 function/class names and 183 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. just opened two new issues on the batch workflow: cache-key problems and space errors on OpenAI
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Assess whether the new batch issues block the two pending releases   *** MUST RAISE ***
+    goal        Assess whether the new batch issues block the two pending releases
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. watched batch commits land over the weekend; may have insights on the space error
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Assess whether the new batch issues block the two pending releases
+    goal        Dario opened two new issues this morning that may affect batch stability; the team needs to assess priority
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Clear priority: either the issues are added to the release checklist, or they are marked as post-release work.
 

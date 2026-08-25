@@ -1,0 +1,32 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, otto@world.local
+Subject: Weekly update: week of Nov 18
+Date: Mon, 25 Nov 2024 09:07:00 +0000
+Message-ID: <178763585548.1786257.17331220420275290027@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all,
+
+Quick recap of the week of Nov 18.
+
+Releases:
+- v0.1.9.post1 shipped mid-week with a hotfix. Gideon is writing up the postm=
+ortem on the Nov 19 hotfix and the Nov 23 LiteLLM backend revert separately.
+
+In flight:
+- PR 106 (text message summarization example) is open for review =E2=80=94 wo=
+uld appreciate eyes on it before we cut the next release.
+- Onboarding Otto on install UX and README polish is underway.
+- PR 141 (LiteLLM+instructor backend, Gideon) and PR 78 (vLLM example, Dario)=
+ are both pending =E2=80=94 need to decide merge vs. defer before v0.1.11 can=
+ ship.
+- PR 90 (disable cache arg for Prompter) same situation.
+
+Still open:
+- The Nov 23 revert postmortem is in progress. Will share once it's up.
+
+Let me know if anything looks off.
+
+Konrad

@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-26 of 26 obligations met.
+32 of 32 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -34,3 +34,9 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-11-19 | dario | send | 09:28 | v0.1.9.post1 hotfix is out |
 | 2024-11-20 | gideon | write | 09:14 | Weekly notes: week of Nov 18 - v0.1.9.post1 out |
 | 2024-11-20 | gideon | write | 09:35 | Postmortem: Nov 19 hotfix (v0.1.9.post1) |
+| 2024-11-25 | konrad | send | 09:07 | Weekly update: week of Nov 18 |
+| 2024-11-25 | gideon | write | 09:28 | Postmortem: Nov 23 revert to old LiteLLM backend |
+| 2024-11-26 | dario | write | 09:49 | v0.1.10 release notes |
+| 2024-11-26 | dario | send | 09:14 | v0.1.10 is out |
+| 2024-11-27 | gideon | write | 09:14 | Weekly notes: week of Nov 25 - v0.1.10 out |
+| 2024-12-02 | gideon | send | 09:07 | Weekly update: week of Nov 25 |

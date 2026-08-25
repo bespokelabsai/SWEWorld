@@ -1,0 +1,24 @@
+From: dermot@world.local
+To: dario@world.local, gideon@world.local, konrad@world.local,
+ otto@world.local, emil@world.local
+Subject: Weekly update: week of Nov 18
+Date: Tue, 26 Nov 2024 09:28:00 +0000
+Message-ID: <178763728568.1786257.17004628707938824560@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.10 is out today. 4 releases total, 83 changes merged.
+
+PRs open for review:
+- PR 141: LiteLLM+instructor structured output backend (Gideon) - no reviewer=
+ yet
+- PR 161: Prometheus LLM Judge eval example (Gideon) - no reviewer yet
+- PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario)
+- PR 90: Disable cache argument for Prompter (Dario)
+- PR 106: Text message summarization example (Konrad) - nearly ready
+- PR 133: env example file (Otto)
+
+In progress: postmortem on the Nov 23 LiteLLM revert (Gideon).
+
+Priority this week: get eyes on PR 141 and PR 161.
