@@ -989,5 +989,211 @@
       "14:11  gideon    Completely silent. And I get that a fly-built schema is never going to be reusable, that   <-- the clue",
       "14:11  gideon    Those rows should just go to the provider and show up as sends"
     ]
+  },
+  {
+    "clue": "t2.r1.L8",
+    "holder": "dermot",
+    "date": "2025-02-07",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "bigger concern from last night: the cookbook run got to around 9k requests before the provider started rejecting on schema, unwound everything, zero usable rows",
+    "said_by": "Dermot Callaghan",
+    "why": "All parts of the remark are stated across Dermot's 09:00 messages and reinforced later at 18:26 with the billing detail.",
+    "elements": [
+      {
+        "part": "the cookbook run pushed around 9k requests",
+        "present": true,
+        "why": "Dermot gives the ~9k number at 09:00"
+      },
+      {
+        "part": "the provider started rejecting on schema (400s)",
+        "present": true,
+        "why": "Dermot says the provider started rejecting on schema"
+      },
+      {
+        "part": "the whole run unwound",
+        "present": true,
+        "why": "Dermot says it unwound everything"
+      },
+      {
+        "part": "real money was spent / billed",
+        "present": true,
+        "why": "later at 18:26 Dermot says every 400 is a billed request"
+      },
+      {
+        "part": "zero usable rows resulted",
+        "present": true,
+        "why": "Dermot says zero usable rows"
+      },
+      {
+        "part": "finding out what the request can't do from someone else's error response is not a great place to be",
+        "present": true,
+        "why": "Dermot states this directly at 09:00"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  dermot    empty response fix is in post4, two commits, looked solid on the runs I watched",
+      "09:00  dermot    bigger concern from last night: the cookbook run got to around 9k requests before the pr   <-- the clue",
+      "09:00  dermot    we're finding out what our request can't do from someone else's 400, which is not a grea",
+      "09:06  gideon    not sure end-of-run summary is enough here, do we want to surface errors as they cluster"
+    ]
+  },
+  {
+    "clue": "t1.r1.l_stats_3",
+    "holder": "dario",
+    "date": "2025-02-07",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "I think those ~900 are erroring out mid-flight and falling out of both tallies with nothing tracking them",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's messages at 11:39, 17:34, and 17:35 together give the ~900 short gap, his belief it's from mid-flight errors dropping out of both tallies, and his statement that nobody would believe either count if they don't reconcile.",
+    "elements": [
+      {
+        "part": "the last summary table had reused plus sent counts about 900 short of the dataset length",
+        "present": true,
+        "why": "Dario states this exact figure at 11:39 and repeats it at 17:35."
+      },
+      {
+        "part": "the person's belief that the ~900 rows errored out mid-flight and dropped out of both tallies",
+        "present": true,
+        "why": "Dario says at 17:34 he thinks those ~900 are erroring out mid-flight and falling out of both tallies with nothing tracking them."
+      },
+      {
+        "part": "if the two numbers do not add up to the number of processed rows, nobody will believe either count, including the speaker",
+        "present": true,
+        "why": "Dario says at 17:35 that if the two numbers don't add up to processed rows, nobody's going to believe either count, me included."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "17:34  dario     Ok",
+      "17:34  dario     answering my own question on the dropped rows",
+      "17:34  dario     I think those ~900 are erroring out mid-flight and falling out of both tallies with noth   <-- the clue",
+      "17:35  dario     Last summary table had reuse plus sent 900 short of the dataset length.",
+      "17:35  dario     If the two numbers don't add up to processed rows, nobody's going to believe either coun"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "Last summary table had reuse plus sent 900 short of the dataset length.",
+        "If the two numbers don't add up to processed rows, nobody's going to believe either count, me included."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t4.r1.L7",
+    "holder": "dermot",
+    "date": "2025-02-11",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "ci job failed overnight on the code-execution run and nothing changed on our side / i'm tired of this pattern, third time it's cost me a rerun / the container the executor pulled has a different digest than monday's run / that's the third time this month I've rerun a red build and watched it pass by itself",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 11:28 burst of messages states each element plainly.",
+    "elements": [
+      {
+        "part": "CI died overnight on the code-execution job",
+        "present": true,
+        "why": "Dermot says the ci job failed overnight on the code-execution run"
+      },
+      {
+        "part": "nothing changed on their side",
+        "present": true,
+        "why": "Dermot says nothing changed on our side"
+      },
+      {
+        "part": "the container the executor pulled has a different digest than Monday's run",
+        "present": true,
+        "why": "Dermot states this directly"
+      },
+      {
+        "part": "this is the third time this month a red build reran and went green by itself",
+        "present": true,
+        "why": "Dermot says that's the third time this month I've rerun a red build and watched it pass by itself"
+      },
+      {
+        "part": "he is tired of this happening",
+        "present": true,
+        "why": "Dermot says i'm tired of this pattern"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:40  konrad    @Nikolai where are we on the recipe call signature check I mentioned?",
+      "11:01  nikolai   not yet, will pull the recipes this afternoon.",
+      "11:28  dermot    ci job failed overnight on the code-execution run and nothing changed on our side   <-- the clue",
+      "11:28  dermot    i'm tired of this pattern, third time it's cost me a rerun",
+      "11:28  dermot    the container the executor pulled has a different digest than monday's run"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "i'm tired of this pattern, third time it's cost me a rerun"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r2.L1",
+    "holder": "dario",
+    "date": "2025-02-13",
+    "channel": "general",
+    "attempt": 1,
+    "said": true,
+    "quote": "Burned an hour this morning on a script I was using to poke at cache stats - it was hardcoding `os.path.expanduser(\"~/.cache/curator\")` and I was seeing 12 hits out of 40k, nearly re-budgeted the whole persona run on those numbers",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's two messages together give the hour lost, the 12/40k number, the near-re-budget, the hardcoded expanduser call, the CURATOR_CACHE_DIR value set since June, and the October staleness.",
+    "elements": [
+      {
+        "part": "burned an hour this morning on a cache-poking script",
+        "present": true,
+        "why": "Dario says 'Burned an hour this morning on a script I was using to poke at cache stats'"
+      },
+      {
+        "part": "the script reported 12 hits out of 40k",
+        "present": true,
+        "why": "Dario says 'I was seeing 12 hits out of 40k'"
+      },
+      {
+        "part": "he nearly re-budgeted the whole persona run on those numbers",
+        "present": true,
+        "why": "Dario says 'nearly re-budgeted the whole persona run on those numbers'"
+      },
+      {
+        "part": "the script hardcodes os.path.expanduser(\"~/.cache/curator\")",
+        "present": true,
+        "why": "Dario says it was 'hardcoding os.path.expanduser(\"~/.cache/curator\")'"
+      },
+      {
+        "part": "he has had CURATOR_CACHE_DIR=/mnt/scratch/curator-cache in his shell profile since June",
+        "present": true,
+        "why": "Dario states this exact env var and value, set since June"
+      },
+      {
+        "part": "the numbers were from a directory nothing has written to since October",
+        "present": true,
+        "why": "Dario says 'the script was reading a directory nothing's written to since October'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:13  dario     right",
+      "11:13  dario     that's the crux of it",
+      "11:25  dario     Burned an hour this morning on a script I was using to poke at cache stats - it was hard   <-- the clue",
+      "11:26  dario     Turns out I've had `CURATOR_CACHE_DIR=/mnt/scratch/curator-cache` in my shell profile si",
+      "12:01  emil      Yeah"
+    ]
   }
 ]

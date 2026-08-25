@@ -1,0 +1,39 @@
+From: emil@world.local
+To: dario@world.local, dermot@world.local, nikolai@world.local,
+ gideon@world.local
+Subject: Weekly update: week of Feb 3 =?utf-8?b?4oCU?= v0.1.18 and
+ v0.1.18.post4 shipped
+Date: Mon, 10 Feb 2025 09:14:00 +0000
+Message-ID: <178766853257.1989578.7861029551151987328@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.18 shipped last week. v0.1.18.post4 went out as a hotfix over the weeken=
+d =E2=80=94 there's a postmortem on the wiki if you want the full breakdown.
+
+Short version on the hotfix: we hit a serialization issue with the pickler in=
+ online-request-processing and reverted to the previous approach. It's stable=
+ now, but we need to decide on the right path forward before anyone picks tha=
+t work back up.
+
+WS-033 design (Code Execution & Verifiers) is also done and on the wiki.
+
+In flight this week:
+- PR 468: n samples in generation params
+- PR 477: local url/file fix
+- PR 481: manual cost map support (looking for a reviewer)
+
+Two things I'd like to align on as a team before we go much further:
+
+1. Pickler strategy =E2=80=94 what's the right fallback approach? We reverted=
+, but that's not a long-term answer. I want to make sure whoever picks this u=
+p next isn't walking into the same problem.
+
+2. PR 481 scope =E2=80=94 how far is the cost-map feature supposed to reach? =
+There's at least one edge case (partial provider coverage) that I think needs=
+ a decision before we merge.
+
+Reply here or let's find time to talk through it this week.
+
+Emil

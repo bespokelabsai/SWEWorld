@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-85 of 86 obligations met.
+93 of 94 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -100,3 +100,11 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-02-05 | emil | write | 09:14 | Weekly sync notes: week of Feb 3 — v0.1.18 and v0.1.18.post4 shipped |
 | 2025-02-06 | emil | write | 09:14 | Release notes: v0.1.18 |
 | 2025-02-06 | dario | send | 09:28 | v0.1.18 is out |
+| 2025-02-07 | dermot | write | 09:14 | Release notes: v0.1.18.post4 |
+| 2025-02-07 | dermot | send | 09:56 | v0.1.18.post4 hotfix is out |
+| 2025-02-07 | nikolai | write | 09:42 | Postmortem: provider-integrations example revert on Feb 6 |
+| 2025-02-10 | emil | send | 09:14 | Weekly update: week of Feb 3 — v0.1.18 and v0.1.18.post4 shipped |
+| 2025-02-10 | emil | write | 09:35 | WS-033 design: Code Execution & Verifiers |
+| 2025-02-10 | emil | write | 09:56 | Postmortem: v0.1.18.post4 hotfix |
+| 2025-02-11 | emil | write | 09:14 | Postmortem: pickler revert on Feb 10 |
+| 2025-02-12 | emil | write | 09:21 | Weekly sync notes: week of Feb 10 — pickler regression |

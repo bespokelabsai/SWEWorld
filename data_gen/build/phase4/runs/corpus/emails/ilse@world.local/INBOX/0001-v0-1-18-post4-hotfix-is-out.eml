@@ -1,0 +1,20 @@
+From: dermot@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, ilse@world.local,
+ nikolai@world.local, priya@world.local, konrad@world.local
+Subject: v0.1.18.post4 hotfix is out
+Date: Fri, 07 Feb 2025 09:56:00 +0000
+Message-ID: <178766783642.1989578.5250848523159728795@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.18.post4 is out. the main reason to upgrade is the GC leak fix in bulk i=
+nference. also includes the empty response fix and inference.net provider sup=
+port.
+
+release notes are on the wiki ("Release notes: v0.1.18.post4" in the engineer=
+ing collection). postmortem for the Feb 6 incident is also up ("Postmortem: p=
+rovider-integrations example revert on Feb 6" in the postmortems collection) =
+if you want the full incident context.
+
+pip install --upgrade bespokelabs-curator
