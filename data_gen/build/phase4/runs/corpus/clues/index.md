@@ -1,12 +1,12 @@
 # Phase 4: every planted clue, and whether its information landed
 
-43 of 46 carried.
+46 of 49 carried.
 
 A clue is a fact the corpus has to teach. It does not have to be worded the way it was planted — the persona saying it has their own vocabulary — but the information has to be there, or the requirement it serves becomes unrecoverable and the task unscoreable. Each row links to the line that carried it, in the conversation around it.
 
 **6 clue(s) leaked giveaway language.** Those landed, but state the hidden requirement plainly enough to make the task trivial — a worse outcome than a miss, because a miss is visible in this table and a leak is not.
 
-**21 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
+**23 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
 
 | clue | task | holder | said by | date | where | kind | carried | leaked | repaired | attempt |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -56,3 +56,6 @@ A clue is a fact the corpus has to teach. It does not have to be worded the way 
 | [t1.r1.l_unhash_1](t1.r1.l_unhash_1.md) | t1 | emil | — | 2025-03-11 | #cookbooks | chat | yes | — | +2 msg | 1 |
 | [t1.r1.l_schema_3](t1.r1.l_schema_3.md) | t1 | gideon | — | 2025-03-12 | #incidents | chat | yes | — | +3 msg | 1 |
 | [t2.r2.l4](t2.r2.l4.md) | t2 | emil | — | 2025-03-12 | #pipeline | chat | yes | — | — | 1 |
+| [t2.r1.L6](t2.r1.L6.md) | t2 | dario | — | 2025-03-14 | #code-review | chat | yes | — | +2 msg | 1 |
+| [t2.r1.L2](t2.r1.L2.md) | t2 | gideon | — | 2025-03-17 | #engineering | chat | yes | — | +2 msg | 1 |
+| [t1.r1.l_model_1](t1.r1.l_model_1.md) | t1 | gideon | — | 2025-03-18 | #random | chat | yes | — | — | 1 |

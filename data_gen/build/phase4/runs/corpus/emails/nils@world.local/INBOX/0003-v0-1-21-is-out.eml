@@ -1,0 +1,25 @@
+From: dermot@world.local
+To: emil@world.local, dario@world.local, nikolai@world.local,
+ gideon@world.local, nils@world.local, konrad@world.local, priya@world.local,
+ bram@world.local, otto@world.local
+Subject: v0.1.21 is out
+Date: Wed, 19 Mar 2025 09:49:00 +0000
+Message-ID: <178768671734.2096191.11367232120394335167@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.21 is now available.
+
+two fixes in this release:
+
+- gemini batch output: unicode characters in model responses were being corru=
+pted silently. this is now fixed and output rows should be clean.
+- output-token count: token estimates were wrapping incorrectly on long respo=
+nses, which caused cost accounting to report wrong numbers. this is resolved.
+
+no breaking changes. upgrade is a drop-in.
+
+full release notes are on the engineering wiki under "v0.1.21 Release Notes".
+
+dermot

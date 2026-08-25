@@ -1,55 +1,52 @@
 ---
 title: "Postmortem: kluster.ai DeepSeek Output-Token Default"
 author: emil
-created_at: 2025-03-03T10:24:00+00:00
+created_at: 2025-03-18T09:49:00+00:00
 ---
 
-# Postmortem: kluster.ai DeepSeek Silent Output Truncation
+# Postmortem: kluster.ai DeepSeek Output-Token Default
 
-**Date:** 2025-03-03
-**Status:** Resolved (fix in current milestone, not yet shipped)
+**Date:** 2025-03-18
+**Status:** Open (action items not yet resolved)
 
 ---
 
 ## What Happened
 
-Runs against the kluster.ai DeepSeek endpoint were producing one- or two-word completions across every row. The API returned HTTP 200 with `finish_reason` of `stop` each time, which looks exactly like a successful completion. No error, no warning, no signal that anything was wrong at the call level.
+curator estimates output tokens before a request completes, using `max_output_tokens // 4` as a proxy for rate-limit headroom. The assumption baked into that heuristic is that the provider's max output token ceiling is consistent with what curator expects.
 
-The root cause is a provider-side default: kluster.ai applies `max_tokens=4` for DeepSeek models when the caller omits the parameter. Curator's online request processor does not inject an explicit `max_tokens` when the user hasn't set one in `generation_params`, which is the right behavior for every other provider we support, because they default to something sensible. kluster.ai does not, at least not for DeepSeek.
+kluster.ai's DeepSeek endpoint silently applies a different default for max output tokens than other providers. The pre-request estimate diverged significantly from actual usage. The run completed, cost figures were logged, and nothing indicated anything was wrong.
 
 ## Impact
 
-Every dataset generation run using the kluster.ai DeepSeek backend without an explicit `max_tokens` override produced effectively empty output. The rows were not empty in the sense that validation would catch: the field was populated, just truncated to a few tokens, so schema checks passed and everything wrote to the output file without complaint. Those runs have to be discarded and re-run against a working backend.
+- Cost estimates for kluster.ai DeepSeek runs were materially inaccurate. I don't have the exact magnitude to hand, need to pull the actual vs. estimated figures from whoever owns the cost log dashboard.
+- Throughput headroom was also miscalculated for those runs, meaning the rate limiter was not working as intended.
+- No user-visible error. No alert fired. The mismatch was completely invisible at the surface.
 
-I don't have a count of how many runs were affected or by whom. That would need to come from whoever has access to run logs or kluster.ai usage data.
+Duration of exposure is unclear. We caught it on a specific run but we don't know how many previous runs were also affected.
 
-## Timeline
+## Detection
 
-I'm reconstructing this from what I know, not from a structured incident log, so times here are approximate.
-
-- Detection happened during manual output review, not through any automated check. Someone noticed that response text was consistently one or two words across all rows from that provider.
-- Once the pattern was visible it was pretty quick to isolate: same provider, same model family, every row, no variation. That ruled out a flaky response or a bad prompt.
-- Confirmed against the kluster.ai API behavior by omitting `max_tokens` intentionally and observing the 4-token cap.
-- Fix identified: add kluster.ai + DeepSeek to the provider defaults table with an explicit `max_tokens` floor so Curator injects it when the user hasn't set one.
+Caught by manual inspection of cost logs after a run that appeared normal. The estimator feeds throughput control, not a validation gate, so there was nothing to trip on. No alert fired. If nobody had looked at the logs we would not have known.
 
 ## Root Cause
 
-kluster.ai's DeepSeek endpoint defaults `max_tokens` to 4 when the parameter is absent from the request body. Most providers default to either a large value or effectively unlimited. Curator trusts the provider to behave reasonably when `max_tokens` is omitted, and until now that assumption has held.
+The `max_output_tokens // 4` heuristic assumes a provider-consistent token ceiling. kluster.ai's DeepSeek overrides that ceiling silently with its own value, and curator has no mechanism to detect the discrepancy. There is no cross-check between the estimated token budget used for rate limiting and the actual token counts returned in the response.
 
-The finish_reason returning as `stop` rather than `length` is the part that made this hard to catch. `length` would have been a signal that something was cutting the response short. `stop` means the model decided it was done, which at 4 tokens is absurd, but we had no check looking for that combination.
+This is not a bug in the heuristic itself exactly. The heuristic is a reasonable approximation when the ceiling is what you expect. The problem is that there is no validation step that would surface a case where it is not.
 
 ## What Went Well
 
-- Once someone looked at the output, the pattern was immediately obvious. It wasn't ambiguous.
-- Root cause isolation was fast once we were looking, because the failure was 100% reproducible and consistent across all rows.
-
-## Action Items
-
-- [ ] Confirm whether the `max_tokens=4` default applies to all kluster.ai model endpoints or only DeepSeek. I'd rather know before assuming the fix is scoped correctly.
-- [ ] Add a runtime warning that flags suspiciously short completions: specifically, `finish_reason=stop` with token count below some threshold N. TBD what N should be, but even flagging anything under 10 or 20 would have caught this immediately.
-- [ ] The provider defaults table fix is in the current milestone. Make sure the fix is tested against the actual kluster.ai endpoint, not just a mock, before it ships.
+Manual log review caught it before it compounded further. The run completed without a crash or data loss, so the impact is scoped to cost accuracy and rate limiter fidelity.
 
 ## Open Questions
 
-- Who else ran affected kluster.ai DeepSeek jobs, and do they know the output was bad? There's a notification question here I don't have an answer to.
-- Is the `max_tokens=4` behavior documented anywhere by kluster.ai, or is it just how the endpoint behaves? Would be useful to know before the next time we onboard a new provider.
+- **Batch mode:** whether batch-mode requests are exposed to the same blindspot is not yet verified. The batch processor uses a different request path and its cost-estimation surface has not been audited against this incident. This needs to happen before we close this postmortem.
+- **Exposure window:** how many runs before detection were also affected? Needs someone to go back through the cost logs for kluster.ai DeepSeek runs.
+- **Other providers:** are there other providers where the same silent ceiling mismatch could exist? I'd want a quick check before assuming this is kluster-specific.
+
+## Action Items
+
+- [ ] Cross-check estimated vs. actual token counts at run completion and warn (or log loudly) if they diverge beyond a threshold. No silent mismatch.
+- [ ] Audit batch-mode cost estimation path against this incident before closing the postmortem.
+- [ ] Pull historical kluster.ai DeepSeek run logs to assess exposure window. (needs whoever owns the cost log dashboard)

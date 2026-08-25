@@ -1,0 +1,15 @@
+From: dermot@world.local
+To: emil@world.local
+Subject: concurrency figures for the verify
+Date: Fri, 14 Mar 2025 09:07:00 +0000
+Message-ID: <178768558147.2096191.14836834393468330923@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Emil, still digging for the exact number. What I can tell you is the OOM was =
+manifesting under high concurrent row-creation, not just high volume. The key=
+ thing to stress is simultaneous row creation requests, that's where the sema=
+phore kicks in. I'll follow up with the exact figure as soon as I find it, bu=
+t don't let that hold you up from starting if you can structure the test arou=
+nd that condition.

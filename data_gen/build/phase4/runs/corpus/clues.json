@@ -2224,5 +2224,175 @@
       ],
       "rewrote": false
     }
+  },
+  {
+    "clue": "t2.r1.L6",
+    "holder": "dario",
+    "date": "2025-03-14",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Same thing hit me again, not the first time this pattern's shown up.",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's messages together give the full notebook anecdote and the team's shared conclusion that construction returns unrunnable objects.",
+    "elements": [
+      {
+        "part": "Dario built the LLM object in one notebook cell and it returned happily",
+        "present": true,
+        "why": "Dario says cell four built the LLM and came back happy"
+      },
+      {
+        "part": "the next cell handed it the dataset",
+        "present": true,
+        "why": "Dario says cell five handed it the dataset"
+      },
+      {
+        "part": "twenty minutes into the run it blew up",
+        "present": true,
+        "why": "Dario says twenty minutes into the map it blew up"
+      },
+      {
+        "part": "the failure was because the combination was never valid",
+        "present": true,
+        "why": "Dario says the combination was never valid"
+      },
+      {
+        "part": "the object was already broken when construction returned",
+        "present": true,
+        "why": "Dario says object was already broken when construction returned and said nothing"
+      },
+      {
+        "part": "the team agrees construction currently returns objects that cannot possibly run",
+        "present": true,
+        "why": "Dario says everyone agrees construction hands back objects that were never going to run, that's the real problem"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:50  dario     Still a branch, getting it up as a draft this afternoon",
+      "11:50  dario     Leaning construction for the hook - hit this again in a notebook this morning, cell four",
+      "11:50  dario     Same thing hit me again, not the first time this pattern's shown up.   <-- the clue",
+      "11:50  dario     Object was already broken when construciton returned and said nothing",
+      "11:50  dario     Everyone agrees construction hands back objects that were never going to run, that's the"
+    ],
+    "repair": {
+      "attempts": 2,
+      "added": [
+        "Everyone agrees construction hands back objects that were never going to run, that's the real problem",
+        "Same thing hit me again, not the first time this pattern's shown up."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t2.r1.L2",
+    "holder": "gideon",
+    "date": "2025-03-17",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "the map only had the bare `gpt-4o` key in it, and providers keep bolting dates onto these names",
+    "said_by": "Gideon Halloway",
+    "why": "All five pieces — the failed lookup, the fallback behavior, the bare key cause, the naming pattern problem, and the conclusion that exact keys won't hold — are stated across Gideon's and Dermot's messages.",
+    "elements": [
+      {
+        "part": "a run on gpt-4o-2024-08-06 gave a capability lookup of false",
+        "present": true,
+        "why": "Gideon: 'someone in help pasted a run on gpt-4o-2024-08-06 where our capability lookup came back false'"
+      },
+      {
+        "part": "as a result that run got shunted onto the plain text path",
+        "present": true,
+        "why": "same message: 'so they got shunted onto the plain text path'"
+      },
+      {
+        "part": "the map only had the bare gpt-4o key in it",
+        "present": true,
+        "why": "Gideon: 'the map only had the bare `gpt-4o` key in it'"
+      },
+      {
+        "part": "providers keep bolting dates onto these names",
+        "present": true,
+        "why": "Gideon: 'providers keep bolting dates onto these names'"
+      },
+      {
+        "part": "exact-key lookups are never going to survive that (i.e. exact-key matching is not viable going forward)",
+        "present": true,
+        "why": "Dermot: 'I don't think exact keys hold either' states the exact-key approach won't work"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "18:16  gideon    Good, I'll follow up once you've had a chance to look",
+      "18:16  gideon    someone in help pasted a run on gpt-4o-2024-08-06 where our capability lookup came back ",
+      "18:17  gideon    the map only had the bare `gpt-4o` key in it, and providers keep bolting dates onto thes   <-- the clue",
+      "18:27  dario     @Dermot starting with gpt-4o for now",
+      "18:27  dario     Looks like litellm has `get_model_info()` that handles pattern-based resolution, so we m"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "someone in help pasted a run on gpt-4o-2024-08-06 where our capability lookup came back false, so they got shunted onto the plain text path",
+        "the map only had the bare `gpt-4o` key in it, and providers keep bolting dates onto these names"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r1.l_model_1",
+    "holder": "gideon",
+    "date": "2025-03-18",
+    "channel": "random",
+    "attempt": 1,
+    "said": true,
+    "quote": "Swapped gpt-4o-mini for gpt-4o on the reannotation set, run finished in nine seconds, summary said everything came off disk",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 11:29 messages cover all the listed points, split across consecutive lines but all from him.",
+    "elements": [
+      {
+        "part": "Lost most of yesterday to this",
+        "present": true,
+        "why": "Gideon says he lost most of the day to it right after describing the swap"
+      },
+      {
+        "part": "Swapped gpt-4o-mini for gpt-4o on the reannotation set",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "Run finished in nine seconds",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "Summary said everything came off disk",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "The outputs were the mini ones",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "Only noticed because the formatting was too sloppy for 4o",
+        "present": true,
+        "why": "stated directly by Gideon"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:25  emil      That whole failure mode applies to the postmortem I've been writing up too, we had the k",
+      "11:29  gideon    same pattern, silent is the worst kind of wrong",
+      "11:29  gideon    Swapped gpt-4o-mini for gpt-4o on the reannotation set yesterday and lost most of the da   <-- the clue",
+      "11:29  gideon    Run finished in nine seconds, summary said everything came off disk, outputs were the mi",
+      "11:29  gideon    Only notcied because the formatting was too sloppy for 4o"
+    ]
   }
 ]

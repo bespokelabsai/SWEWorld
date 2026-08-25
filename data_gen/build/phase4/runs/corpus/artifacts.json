@@ -1378,5 +1378,65 @@
     "done": true,
     "at": "2025-03-12T09:14:00+00:00",
     "date": "2025-03-12"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-03-10",
+    "title": "Weekly update: week of Mar 10",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-17T09:07:00+00:00",
+    "date": "2025-03-17"
+  },
+  {
+    "kind": "doc",
+    "id": "design-ws-047-release-and-ci",
+    "title": "WS-047: Release Engineering, CI & Test Suite",
+    "by": "nils",
+    "action": "write",
+    "to": "",
+    "doc_kind": "design",
+    "done": true,
+    "at": "2025-03-18T09:14:00+00:00",
+    "date": "2025-03-18"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-21",
+    "title": "v0.1.21 Release Notes",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-03-19T09:14:00+00:00",
+    "date": "2025-03-19"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-21",
+    "title": "v0.1.21 is out",
+    "by": "dermot",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-19T09:49:00+00:00",
+    "date": "2025-03-19"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-03-17",
+    "title": "Weekly Notes — Week of Mar 17",
+    "by": "nils",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-03-19T09:35:00+00:00",
+    "date": "2025-03-19"
   }
 ]
