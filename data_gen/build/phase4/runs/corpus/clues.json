@@ -1448,5 +1448,436 @@
       ],
       "rewrote": false
     }
+  },
+  {
+    "clue": "t1.r1.l_scope_2",
+    "holder": "gideon",
+    "date": "2025-02-21",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "We only ever assert on reuse counts in the online tests, the batch e2e checks the reassembled output and nothing else",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 16:03-16:04 messages together state the coverage gap, its history as a prior regression, and the personal Azure incident.",
+    "elements": [
+      {
+        "part": "reuse counts are only asserted in the online tests",
+        "present": true,
+        "why": "Gideon states this directly at 16:03"
+      },
+      {
+        "part": "the batch e2e checks only the reassembled output and nothing else",
+        "present": true,
+        "why": "Gideon states this directly at 16:03"
+      },
+      {
+        "part": "this gap is exactly how the last regression rode out to a release",
+        "present": true,
+        "why": "Gideon says this explicitly at 16:04"
+      },
+      {
+        "part": "it bit Gideon on the Azure batch run",
+        "present": true,
+        "why": "Gideon states this explicitly at 16:04"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "15:32  emil      Actually, I flagged the resume offset as the thing to check, not reuse counts generally",
+      "15:32  emil      Those are related but not the same concern",
+      "16:03  gideon    We only ever assert on reuse counts in the online tests, the batch e2e checks the reasse   <-- the clue",
+      "16:04  gideon    That's exactly how the last regression rode out to a release, and it's the same gap that",
+      "16:10  dario     So the async batch refactor sits until someone adds a reuse count assertion to the batch"
+    ]
+  },
+  {
+    "clue": "t1.r2.L5",
+    "holder": "dermot",
+    "date": "2025-02-21",
+    "channel": "help",
+    "attempt": 1,
+    "said": true,
+    "quote": "look we need to be clear on this - the shared cache mount is read-only for everyone except the nightly job, and any plain sqlite open dies before it reads a single row because sqlite alwasy tries to write a journal next to the file",
+    "said_by": "Dermot Callaghan",
+    "why": "The 15:54 message restates the full mechanism: mount permissions, the failure mode, the journal cause, and the personal repro, matching the requested content.",
+    "elements": [
+      {
+        "part": "the shared example cache mount is read-only for everyone except the nightly job",
+        "present": true,
+        "why": "Dermot states the mount is read-only except for the nightly job."
+      },
+      {
+        "part": "a normal sqlite open fails with the readonly database error",
+        "present": true,
+        "why": "Dermot quotes the exact OperationalError on open."
+      },
+      {
+        "part": "the failure happens before any row is read, even for pure counting",
+        "present": true,
+        "why": "Dermot says it dies before reading a single row even when just counting entries."
+      },
+      {
+        "part": "the cause is sqlite trying to write a journal file next to the db on open",
+        "present": true,
+        "why": "Dermot explains sqlite tries to put a journal next to the file on any open."
+      },
+      {
+        "part": "it bit him twice while trying to count entries",
+        "present": true,
+        "why": "Dermot says 'hit me twice just trying to count entries.'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "15:32  dermot    I mean, not quite yet - edge cases still need to go on the PR",
+      "15:32  dermot    I'll get the edge case comments on the PR this afternoon, then we can call it settled",
+      "15:54  dermot    look we need to be clear on this - the shared cache mount is read-only for everyone exce   <-- the clue",
+      "15:54  dermot    hit me twice just trying to count entries",
+      "15:55  dermot    does that workaround need to go anywhere beyond the test helper?"
+    ]
+  },
+  {
+    "clue": "t1.r1.l_schema_1",
+    "holder": "emil",
+    "date": "2025-02-24",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "Hit the same thing. Added a confidence field to the response model on the ungrounded QA example, reran, and got back last week's objects with no confidence on them.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's two messages together give every element: the change made, the rerun, the stale old-shape objects returned, the validator failing on every row, and the hour spent before realizing the objects were the culprit not the validator.",
+    "elements": [
+      {
+        "part": "a confidence field was added to the response model",
+        "present": true,
+        "why": "Emil says 'Added a confidence field to the response model on the ungrounded QA example'"
+      },
+      {
+        "part": "reran the job",
+        "present": true,
+        "why": "Emil says 'reran'"
+      },
+      {
+        "part": "got back last week's objects",
+        "present": true,
+        "why": "Emil says 'got back last week's objects with no confidence on them'"
+      },
+      {
+        "part": "those objects had no confidence field on them",
+        "present": true,
+        "why": "Emil says 'with no confidence on them'"
+      },
+      {
+        "part": "the downstream validator threw on every row",
+        "present": true,
+        "why": "Emil says 'Validator threw on every row'"
+      },
+      {
+        "part": "spent an hour looking at the validator before realizing it wasn't the validator's fault",
+        "present": true,
+        "why": "Emil says 'I spent an hour on it before realizing the stored objects were still the old shape, nothing wrong with the validator at all'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:20  dermot    I'm not entirely sure the check should hard-block at dispatch or just warn, and that pro",
+      "12:20  dermot    do we have a view on that?",
+      "13:40  emil      Hit the same thing. Added a confidence field to the response model on the ungrounded QA    <-- the clue",
+      "13:40  emil      Validator threw on every row and I spent an hour on it before realizing the stored objec",
+      "13:50  dario     Worth a quick sync to nail down the warn vs block question, anyone free this afternoon?"
+    ]
+  },
+  {
+    "clue": "t1.r2.L8",
+    "holder": "emil",
+    "date": "2025-02-25",
+    "channel": "releases",
+    "attempt": 1,
+    "said": true,
+    "quote": "Same shape in the onboarding notebook too - cell two of the quickstart asks how much the run will cost before any run exists.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil Brandvold's run of messages at 12:41 and 17:47 together give every element: the notebook parallel, the cell-two cost prompt before any run, the resulting traceback, the issue filed as 'broken', the three reports, and that all three were day-one installs.",
+    "elements": [
+      {
+        "part": "the onboarding notebook shows the same shape of problem",
+        "present": true,
+        "why": "Emil says 'Same shape in the onboarding notebook too'"
+      },
+      {
+        "part": "cell two of the quickstart asks how much the run will cost before any run exists",
+        "present": true,
+        "why": "Emil states this directly at 12:41"
+      },
+      {
+        "part": "the user has never generated anything at that point",
+        "present": true,
+        "why": "Emil says the user's never generated anything"
+      },
+      {
+        "part": "the user gets a traceback",
+        "present": true,
+        "why": "Emil says user 'gets a traceback'"
+      },
+      {
+        "part": "the user files an issue saying curator is broken on their machine",
+        "present": true,
+        "why": "Emil states this outcome explicitly"
+      },
+      {
+        "part": "three first-time install reports of this in the last two weeks",
+        "present": true,
+        "why": "Emil states the count and timeframe at 12:41"
+      },
+      {
+        "part": "all three reports were day-one installs",
+        "present": true,
+        "why": "Emil later confirms 'All three were day-one installs' at 17:47"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:55  dario     PR 536 is mostly there but token accounting on the reasoning model is still unconfirmed ",
+      "12:41  emil      Three first-time install reports in the last two weeks, all tracing back to cell two of ",
+      "12:41  emil      Same shape in the onboarding notebook too - cell two of the quickstart asks how much the   <-- the clue",
+      "12:41  emil      User's never generated anything, gets a traceback, files an issue saying curator is brok",
+      "12:53  emil      let me check the issue log myself"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "Same shape in the onboarding notebook too - cell two of the quickstart asks how much the run will cost before any run exists.",
+        "User's never generated anything, gets a traceback, files an issue saying curator is broken on their machine."
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t4.r2.L1",
+    "holder": "nikolai",
+    "date": "2025-02-26",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "sanity check on my own build: first line of the task is `print(os.getuid())`. against the python:3.11-slim i put together for the RAFT verifier it prints 0.",
+    "said_by": "Nikolai Berresford",
+    "why": "Nikolai's 14:37-14:38 messages together give the build, the test line, both results, and the embarrassment at the source of the difference.",
+    "elements": [
+      {
+        "part": "sanity check performed on his own build, first line of task is print(os.getuid())",
+        "present": true,
+        "why": "Nikolai says exactly this at 14:37"
+      },
+      {
+        "part": "against python:3.11-slim he put together for the RAFT verifier, it prints 0",
+        "present": true,
+        "why": "stated directly at 14:37/14:37"
+      },
+      {
+        "part": "same snippet against the shipped sandbox image prints 1000",
+        "present": true,
+        "why": "stated at 14:37 'same snippet in the shipped sandbox prints 1000'"
+      },
+      {
+        "part": "it took him an embarrassingly long while to work out the difference was coming from the image, not from anything he passed",
+        "present": true,
+        "why": "stated verbatim-ish at 14:38"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:56  emil      @Nikolai Berresford if the behavior is narrower than \"all caller-supplied images,\" does ",
+      "14:37  nikolai   from my own testing: `print(os.getuid())` in python:3.11-slim prints 0, same snippet in ",
+      "14:37  nikolai   sanity check on my own build: first line of the task is `print(os.getuid())`. against th   <-- the clue",
+      "14:38  nikolai   took me an embarrassingly long while to work out that difference was coming from the ima",
+      "14:38  nikolai   the difference is the image, we don't override the user in caller-supplied images, so wh"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "sanity check on my own build: first line of the task is `print(os.getuid())`. against the python:3.11-slim i put together for the RAFT verifier it prints 0.",
+        "took me an embarrassingly long while to work out that difference was coming from the image and not from anything i passed"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t4.r1.L9",
+    "holder": "konrad",
+    "date": "2025-02-26",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "Pointing `CodeExecutor` at your own image through `backend_params` is fine, that's your machine and your risk, we don't need to police it",
+    "said_by": "Konrad Feltrin",
+    "why": "Konrad Feltrin's 17:31 messages state the full split: caller overrides via backend_params are fine and unpoliced, while the default path silently changing containers is the only thing being constrained.",
+    "elements": [
+      {
+        "part": "caller pointing CodeExecutor at their own image via backend_params is fine",
+        "present": true,
+        "why": "Konrad says pointing CodeExecutor at your own image through backend_params is fine"
+      },
+      {
+        "part": "that's the caller's machine and their risk",
+        "present": true,
+        "why": "Konrad states that's your machine and your risk"
+      },
+      {
+        "part": "the team does not need to police caller overrides",
+        "present": true,
+        "why": "Konrad says we don't need to police it"
+      },
+      {
+        "part": "what bothers them is the out-of-the-box default path",
+        "present": true,
+        "why": "Konrad says what I don't want is the out of the box path"
+      },
+      {
+        "part": "a user who passes nothing quietly gets a different container than they did last month",
+        "present": true,
+        "why": "Konrad describes someone never passing anything and quietly getting a different container than last month"
+      },
+      {
+        "part": "that default path is the only part being locked down",
+        "present": true,
+        "why": "Konrad says that's the only part we're locking down"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "16:45  konrad    Are we good to call the launch ready to announce, or do we want to wait until WS-033 is ",
+      "16:46  konrad    actually, I think the examples and docker backend are confirmed",
+      "17:31  konrad    Pointing `CodeExecutor` at your own image through `backend_params` is fine, that's your    <-- the clue",
+      "17:31  konrad    What I don't want is the out of the box path where someone never passes anything and qui",
+      "17:51  nikolai   that's exactly the split, yes."
+    ]
+  },
+  {
+    "clue": "t1.r2.L2",
+    "holder": "emil",
+    "date": "2025-02-26",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "The sizing helper I wrote snapshots CURATOR_CACHE_DIR once when the module loads, and in the notebook walkthrough people do `import curator` in cell 1 and then set the env var in cell 4 because that's the order the tutorial reads",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 12:12 messages give the notebook cell-order scenario, the sizing helper's one-time snapshot behavior, the resulting stale reporting, and the two emails he received.",
+    "elements": [
+      {
+        "part": "people import curator in cell 1 and set CURATOR_CACHE_DIR in cell 4, per the tutorial order",
+        "present": true,
+        "why": "Emil says exactly this at 12:12"
+      },
+      {
+        "part": "the sizing helper grabs the path once at module load",
+        "present": true,
+        "why": "Emil says the sizing helper snapshots CURATOR_CACHE_DIR once when the module loads"
+      },
+      {
+        "part": "it kept telling users about the default directory for the rest of the session",
+        "present": true,
+        "why": "Emil states this outcome directly"
+      },
+      {
+        "part": "he got two emails about it",
+        "present": true,
+        "why": "Emil states this directly"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:11  emil      let me check",
+      "12:12  emil      Actually this is exactly what I wanted to raise",
+      "12:12  emil      The sizing helper I wrote snapshots CURATOR_CACHE_DIR once when the module loads, and in   <-- the clue",
+      "12:12  emil      so it kept telling users about the default directory for the rest of the session",
+      "12:12  emil      and I got two emails about it"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "so it kept telling users about the default directory for the rest of the session",
+        "and I got two emails about it"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t1.r2.L10",
+    "holder": "gideon",
+    "date": "2025-02-27",
+    "channel": "general",
+    "attempt": 1,
+    "said": true,
+    "quote": "Had a support thread yesterday that went three rounds before we figured it out, user pasted cache counts showing zero served locally, looked like the re-run should have been nearly free, but the counts alone told me nothing. Took echoing their env and ls-ing two directories to find they had one cache from docker and another from their shell.",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 09:00 message lays out the full incident with all its specific details.",
+    "elements": [
+      {
+        "part": "a support thread happened yesterday",
+        "present": true,
+        "why": "Gideon says he had a support thread yesterday"
+      },
+      {
+        "part": "it took three rounds to resolve",
+        "present": true,
+        "why": "Gideon says it went three rounds before they figured it out"
+      },
+      {
+        "part": "the user pasted cache counts showing zero served locally",
+        "present": true,
+        "why": "Gideon states this exactly"
+      },
+      {
+        "part": "the team believed the re-run should have been nearly free",
+        "present": true,
+        "why": "Gideon says it looked like the re-run should have been nearly free"
+      },
+      {
+        "part": "the counts alone gave no useful information",
+        "present": true,
+        "why": "Gideon says the counts alone told him nothing"
+      },
+      {
+        "part": "resolving it required echoing the user's env",
+        "present": true,
+        "why": "Gideon says it took echoing their env"
+      },
+      {
+        "part": "resolving it required ls-ing two directories",
+        "present": true,
+        "why": "Gideon says ls-ing two directories"
+      },
+      {
+        "part": "the user had one cache from a docker session",
+        "present": true,
+        "why": "Gideon says they had one cache from docker"
+      },
+      {
+        "part": "the user had another cache from their shell",
+        "present": true,
+        "why": "Gideon says another from their shell"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  gideon    Had a support thread yesterday that went three rounds before we figured it out, user pas   <-- the clue",
+      "09:16  dermot    yeah this comes up more than it should, counts without the path behind them are basicall",
+      "09:56  gideon    Would help a lot if the output just printed the path alongside the counts by default"
+    ]
   }
 ]

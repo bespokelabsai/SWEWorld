@@ -1,0 +1,24 @@
+From: nikolai@world.local
+To:
+ dario@world.local, emil@world.local, gideon@world.local, konrad@world.local
+Subject: v0.1.19.post1 hotfix is out
+Date: Wed, 26 Feb 2025 09:49:00 +0000
+Message-ID: <178767673589.2037813.7996685495250977369@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.19.post1 is tagged and on PyPI.
+
+Two fixes in this one:
+- curator tag fix: corrects how curator version tags were resolved in hosted =
+curator viewer resume flows
+- executor hardening: docker backend for code execution now runs tasks as uid=
+ 1000 in the shipped sandbox image (note: a caller-supplied image via backend=
+_params runs as uid 0, that's expected behavior)
+
+No breaking API changes. Upgrade with: pip install --upgrade bespokelabs-cura=
+tor=3D=3D0.1.19.post1
+
+Release notes are in the engineering wiki under "Release notes: v0.1.19.post1=
+" if you want the full details. Shout if anything looks wrong.

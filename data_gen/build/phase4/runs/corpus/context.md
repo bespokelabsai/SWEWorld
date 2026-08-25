@@ -10,1471 +10,33 @@ Worth keeping in mind while reading:
 
 
 ==============================================================================
-# 2025-02-14 — 3 conversation(s), 30 turns budgeted
+# 2025-02-21 — 5 conversation(s), 49 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 12 turns, 5 people
+## #code-review — 8 turns, 3 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: Three PRs older than median merge time; two opened today need eyes; one merged needs follow-up on stale work
+Channel #code-review: One day-old PR on a performance perf issue tied to batch mode; needs senior eyes before merge window closes
 
-    Today is Friday 14 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 21 February 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Three PRs older than median merge time; two opened today need eyes; one merged needs follow-up on stale work
+    Why it is happening: One day-old PR on a performance perf issue tied to batch mode; needs senior eyes before merge window closes
     
     What it should get through:
-      1. Unblock PR 468 or confirm it is waiting on external decision   [Emil Brandvold must raise this]
-           - Emil flags it has been 7 days since open
-           - Gideon or Dermot asks what is blocking
-           - Emil either lands it or names what is waiting
-      2. Move PR 493 and PR 495 off stale list   [Gideon Halloway must raise this]
-           - Gideon asks if PR 493 is ready for review or needs more work
-           - Nikolai offers context on PR 495 requirements
-           - Konrad or Dermot volunteers to review one of them
-      3. Confirm PR 502 is safe to land   [Nikolai Berresford must raise this]
-           - Nikolai walks through PR 502 scope
-           - Konrad confirms approval stands
-           - Emil or Dermot flag if it conflicts with PR 503
+      1. Approve async batch response refactor or flag blocking concerns   [Dario Kestrel must raise this]
+           - Emil: context on why async matters here (cost, UX), Dario Kestrel questions retry semantics, Emil Brandvold clarifies those are preserved
+           - Gideon: asks about progress bar during file write, Emil Brandvold confirms it still fires
+           - Dario approves or flags one blocker for later
     
-    On the agenda: Review PR 468 (n samples) for blocker status; Check PR 493 (progress bar) and PR 495 (code executor) readiness; Assess PR 502 (telemetry) and recent PR 503 merge
+    On the agenda: PR PR 532: async batch response file method; Impact on retry/resume paths; Progress bar during I/O
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: Three stale PRs get a path forward: either merged, assigned a reviewer, or confirmed waiting on a blocker outside the team.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 15 release(s) shipped, currently v0.1.18.post4
-      - 252 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 493: Revamp CLI progress bar UI (Gideon Halloway)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 501: Update badges (Dario Kestrel)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 640 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Fresh commits on batch client and request processing; knows what PR 468 needs
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Unblock PR 468 or confirm it is waiting on external decision   *** MUST RAISE ***
-      2. Move PR 493 and PR 495 off stale list
-      3. Confirm PR 502 is safe to land
-    goal        Unblock PR 468 or confirm it is waiting on external decision
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. CLI progress bar work; context on PR 493 stall
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Unblock PR 468 or confirm it is waiting on external decision
-      2. Move PR 493 and PR 495 off stale list   *** MUST RAISE ***
-      3. Confirm PR 502 is safe to land
-    goal        Move PR 493 and PR 495 off stale list
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Telemetry config changes; knows PR 495 requirements
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Unblock PR 468 or confirm it is waiting on external decision
-      2. Move PR 493 and PR 495 off stale list
-      3. Confirm PR 502 is safe to land   *** MUST RAISE ***
-    goal        Confirm PR 502 is safe to land
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Code review discipline; can spot integration issues
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Unblock PR 468 or confirm it is waiting on external decision
-      2. Move PR 493 and PR 495 off stale list
-      3. Confirm PR 502 is safe to land
-    goal        Three PRs older than median merge time; two opened today need eyes; one merged needs follow-up on stale work
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Maintainer perspective; knows release readiness
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Unblock PR 468 or confirm it is waiting on external decision
-      2. Move PR 493 and PR 495 off stale list
-      3. Confirm PR 502 is safe to land
-    goal        Three PRs older than median merge time; two opened today need eyes; one merged needs follow-up on stale work
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Three stale PRs get a path forward: either merged, assigned a reviewer, or confirmed waiting on a blocker outside the team.
-
-
-------------------------------------------------------------------------------
-## #engineering — 10 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Heavy refactor day on request processing; batch client merged; cost estimation bug opened; needs alignment before next release
-
-    Today is Friday 14 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Heavy refactor day on request processing; batch client merged; cost estimation bug opened; needs alignment before next release
-    
-    What it should get through:
-      1. Confirm batch client refactor is stable and handles all provider paths   [Emil Brandvold must raise this]
-           - Emil summarizes the changes from PR 503
-           - Dermot asks about edge cases in provider switching
-           - Konrad confirms curator client API did not break
-      2. Decide if PR 504 (cost estimation) blocks release or is v0.1.19 followup   [Gideon Halloway must raise this]
-           - Gideon describes the cost bug scope
-           - Emil or Dario estimates effort to fix
-           - Group votes: hotfix or defer
-      3. No surprise regressions in multimodal or offline paths after refactor   [Dermot Callaghan must raise this]
-           - Dermot raises any test gaps he saw in review
-           - Emil or Gideon confirms offline mode tests pass
-           - Dario confirms concurrency limits still enforced
-    
-    On the agenda: Emil walks through the batch client commit and PR 503 merge; Gideon flags the cost estimation bug (PR 504) and where it lands; Group settles whether this is safe to ship or if a hotfix is needed
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team agrees the refactor is stable, cost bug is classified as hotfix or v0.1.19 work, and next release can proceed; it is settled that Gideon Halloway wants the reason for not reusing a stored job logged where the user sees it
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 15 release(s) shipped, currently v0.1.18.post4
-      - 252 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 493: Revamp CLI progress bar UI (Gideon Halloway)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 501: Update badges (Dario Kestrel)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 640 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Nine commits across batch client, online processing, and offline mode; knows the scope of request handling changes
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm batch client refactor is stable and handles all provider paths   *** MUST RAISE ***
-      2. Decide if PR 504 (cost estimation) blocks release or is v0.1.19 followup
-      3. No surprise regressions in multimodal or offline paths after refactor
-    goal        Confirm batch client refactor is stable and handles all provider paths
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Cost estimation issue flagged (PR 504); knows CLI observability surface
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm batch client refactor is stable and handles all provider paths
-      2. Decide if PR 504 (cost estimation) blocks release or is v0.1.19 followup   *** MUST RAISE ***
-      3. No surprise regressions in multimodal or offline paths after refactor
-      4. whatever we do about reusing pending jobs, say why on the line where we skip one. today the only trace of a resume is the id at DEBUG level, and "resumed 1 pending batch job" with no reason attached is exactly how I burned an afternoon last month. one INFO line naming what didn't line up would have saved all of it.   *** MUST SETTLE (clue t3.r2.l_beh_gideon) ***
-    goal        Decide if PR 504 (cost estimation) blocks release or is v0.1.19 followup
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Reviewed PR 503; knows multimodal/structured prompt requirements
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Confirm batch client refactor is stable and handles all provider paths
-      2. Decide if PR 504 (cost estimation) blocks release or is v0.1.19 followup
-      3. No surprise regressions in multimodal or offline paths after refactor   *** MUST RAISE ***
-    goal        No surprise regressions in multimodal or offline paths after refactor
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Owns online-request-processing service; context on concurrency and rate limits
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm batch client refactor is stable and handles all provider paths
-      2. Decide if PR 504 (cost estimation) blocks release or is v0.1.19 followup
-      3. No surprise regressions in multimodal or offline paths after refactor
-    goal        Heavy refactor day on request processing; batch client merged; cost estimation bug opened; needs alignment before next release
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Maintainer view; knows API surface stability
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Confirm batch client refactor is stable and handles all provider paths
-      2. Decide if PR 504 (cost estimation) blocks release or is v0.1.19 followup
-      3. No surprise regressions in multimodal or offline paths after refactor
-    goal        Heavy refactor day on request processing; batch client merged; cost estimation bug opened; needs alignment before next release
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Team agrees the refactor is stable, cost bug is classified as hotfix or v0.1.19 work, and next release can proceed; it is settled that Gideon Halloway wants the reason for not reusing a stored job logged where the user sees it; Gideon Halloway wants the reason for not reusing a stored job logged where the user sees it
-
-
-------------------------------------------------------------------------------
-## #pipeline — 8 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Seven changes to provider-integrations, six to online-request-processing, four to batch mode; vLLM test fix; cost estimation bug opened; needs quick checkpoint
-
-    Today is Friday 14 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Seven changes to provider-integrations, six to online-request-processing, four to batch mode; vLLM test fix; cost estimation bug opened; needs quick checkpoint
-    
-    What it should get through:
-      1. No provider integration broke or regressed with batch client and request path changes   [Emil Brandvold must raise this]
-           - Emil walks provider-integrations scope in PR 503
-           - Dermot confirms CI matrix coverage
-           - Gideon or Dario flags any provider that needs manual testing
-      2. vLLM offline test fix will not regress again   [Dermot Callaghan must raise this]
-           - Dermot describes the fix (#195dab23d0a4)
-           - Emil or Gideon confirms the root cause
-           - Team agrees monitoring or guard is in place
-      3. Cost estimation bug (PR 504) is localized and has a clear owner   [Gideon Halloway must raise this]
-           - Gideon shows where cost calc goes wrong
-           - Emil or Dario traces it to a specific path
-           - Owner commits to fix timeline
-    
-    On the agenda: Emil runs through the batch client commits and request path changes; Confirm vLLM offline test fix is solid and CI will stay green; Gideon's cost estimation bug: is it in batching, online, or both?
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team confirms providers are stable, vLLM fix is solid, and cost bug is assigned and tracked; it is settled that the team agrees the offline path's hardcoded model names contradicted the maintained support list
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 15 release(s) shipped, currently v0.1.18.post4
-      - 252 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 493: Revamp CLI progress bar UI (Gideon Halloway)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 501: Update badges (Dario Kestrel)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 640 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Seven commits to provider-integrations and batch mode; knows exactly what changed in the request path
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. No provider integration broke or regressed with batch client and request path changes   *** MUST RAISE ***
-      2. vLLM offline test fix will not regress again
-      3. Cost estimation bug (PR 504) is localized and has a clear owner
-    goal        No provider integration broke or regressed with batch client and request path changes
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Reviewed PR 503; knows which providers get tested in CI
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. No provider integration broke or regressed with batch client and request path changes
-      2. vLLM offline test fix will not regress again   *** MUST RAISE ***
-      3. Cost estimation bug (PR 504) is localized and has a clear owner
-      4. Same flavour of thing on the offline path. vLLM run told a user their model can't do schema-constrained output while the identical model works fine over the API, because local-offline hardcodes its own set of names. That's the third file I've found this year carrying the same model strings around.   *** MUST SETTLE (clue t2.r2.l5) ***
-    goal        vLLM offline test fix will not regress again
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Init commit on online-request-processing (#31ee2ee90b5c); opening PR 504 on cost; knows observability surface
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. No provider integration broke or regressed with batch client and request path changes
-      2. vLLM offline test fix will not regress again
-      3. Cost estimation bug (PR 504) is localized and has a clear owner   *** MUST RAISE ***
-    goal        Cost estimation bug (PR 504) is localized and has a clear owner
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Owns the service; knows production constraints
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. No provider integration broke or regressed with batch client and request path changes
-      2. vLLM offline test fix will not regress again
-      3. Cost estimation bug (PR 504) is localized and has a clear owner
-    goal        Seven changes to provider-integrations, six to online-request-processing, four to batch mode; vLLM test fix; cost estimation bug opened; needs quick checkpoint
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Team confirms providers are stable, vLLM fix is solid, and cost bug is assigned and tracked; it is settled that the team agrees the offline path's hardcoded model names contradicted the maintained support list
-
-
-==============================================================================
-# 2025-02-17 — 4 conversation(s), 42 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 6 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Three PRs older than the median merge time; six opened or merged today; need to clear backlog
-
-    Today is Monday 17 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three PRs older than the median merge time; six opened or merged today; need to clear backlog
-    
-    What it should get through:
-      1. Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week   [Emil Brandvold must raise this]
-           - Emil flags that PR 468 is waiting on design; Nikolai Berresford explains PR 502 and PR 495 are waiting on his time
-           - Gideon offers to review PR 495 this afternoon
-           - Dario notes PR 468 is blocked on multi-sample cost accounting design
-      2. write up Release notes: 0.1.19   [Gideon Halloway must raise this]
-           - Gideon Halloway says they will write Release notes: 0.1.19 — Summarizes what shipped in the 0.1.19 release.
-      3. send Weekly update: week of Feb 10 — pickler regression   [Konrad Feltrin must raise this]
-           - Konrad Feltrin says they will send Weekly update: week of Feb 10 — pickler regression
-    
-    On the agenda: Where is PR 468 (n samples support)?; Where is PR 502 (telemetry config)?; Where is PR 495 (code executor)?; PR 509 (litellm) status; Green light on PR 514 (docs)
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: Clear status on why each PR is stuck; at least one gets moved forward this week
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 258 changes merged to date
-
-    On the table
-      - Weekly sync notes: week of Feb 10 — pickler regression (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 514: Update README.md to stop kluster.ai promo (Konrad Feltrin)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Context on what PR 468 (n samples) and PR 509 (litellm) need; owns most of the active workstreams
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week   *** MUST RAISE ***
-      2. write up Release notes: 0.1.19
-      3. send Weekly update: week of Feb 10 — pickler regression
-      4. what "Weekly sync notes: week of Feb 10 — pickler regression" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Status of code executor enhancements and telemetry config work
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week
-      2. write up Release notes: 0.1.19
-      3. send Weekly update: week of Feb 10 — pickler regression
-    goal        Three PRs older than the median merge time; six opened or merged today; need to clear backlog
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Can review progress-bar and online-request changes; shipped multiple merges today
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week
-      2. write up Release notes: 0.1.19   *** MUST RAISE ***
-      3. send Weekly update: week of Feb 10 — pickler regression
-      4. that the doc "Release notes: 0.1.19" is done, and where the others can find it   *** MUST RAISE ***
-    goal        write up Release notes: 0.1.19
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Status of docs-only changes
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week
-      2. write up Release notes: 0.1.19
-      3. send Weekly update: week of Feb 10 — pickler regression   *** MUST RAISE ***
-      4. that "Weekly update: week of Feb 10 — pickler regression" has gone out, and what you asked in it   *** MUST RAISE ***
-    goal        send Weekly update: week of Feb 10 — pickler regression
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Understanding of what bulk-llm-inference and request-processing need
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week
-      2. write up Release notes: 0.1.19
-      3. send Weekly update: week of Feb 10 — pickler regression
-    goal        Three PRs older than the median merge time; six opened or merged today; need to clear backlog
-    available   around today
-
-  Priya Vandersloot  (priya)
-    role        Software Engineer, LLM Interface. Status of function-calling example
-    owns        multimodal-prompts, release-and-ci
-    agenda
-      1. Surface blockers on PR 468, PR 502, PR 495 and decide what needs review this week
-      2. write up Release notes: 0.1.19
-      3. send Weekly update: week of Feb 10 — pickler regression
-    goal        Three PRs older than the median merge time; six opened or merged today; need to clear backlog
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Clear status on why each PR is stuck; at least one gets moved forward this week
-
-
-------------------------------------------------------------------------------
-## #engineering — 10 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: 25 commits, 6 merges, 4 PRs opened today; need to sync on what's next
-
-    Today is Monday 17 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 25 commits, 6 merges, 4 PRs opened today; need to sync on what's next
-    
-    What it should get through:
-      1. Confirm 0.1.19 is solid and decide what ships next week   [Emil Brandvold must raise this]
-           - Emil says batch stabilization is done for now; cli revamp shipped; provider cost maps need one more pass
-           - Gideon adds that the progress bar fix resolved the GC leak issue from last week
-           - Konrad notes docs are clean
-    
-    On the agenda: 0.1.19 is out; what shipped; Where we are on the four active workstreams; Stale PRs and blockers this week
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team aligned on 0.1.19 shipping cleanly; Nikolai's two PRs unblocked; focus set on multi-sample support and provider cost maps for next week
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 258 changes merged to date
-
-    On the table
-      - release-0-1-19 (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 514: Update README.md to stop kluster.ai promo (Konrad Feltrin)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Status of all four workstreams: batch stabilization mostly done, provider cost maps in progress, multimodal test hardening ongoing, CLI revamp shipped
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm 0.1.19 is solid and decide what ships next week   *** MUST RAISE ***
-      2. what "Release notes: 0.1.19" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm 0.1.19 is solid and decide what ships next week
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Just shipped progress bar revamp and a dozen fixes to online request handling and cost tracking
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm 0.1.19 is solid and decide what ships next week
-    goal        25 commits, 6 merges, 4 PRs opened today; need to sync on what's next
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Docs side is mostly cleanup; no blockers
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Confirm 0.1.19 is solid and decide what ships next week
-    goal        25 commits, 6 merges, 4 PRs opened today; need to sync on what's next
-    available   around today
-
-  Priya Vandersloot  (priya)
-    role        Software Engineer, LLM Interface. The function-calling example is now fixed and shipped in 0.1.19
-    owns        multimodal-prompts, release-and-ci
-    agenda
-      1. Confirm 0.1.19 is solid and decide what ships next week
-    goal        25 commits, 6 merges, 4 PRs opened today; need to sync on what's next
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Observer; understands request layer
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm 0.1.19 is solid and decide what ships next week
-    goal        25 commits, 6 merges, 4 PRs opened today; need to sync on what's next
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Team aligned on 0.1.19 shipping cleanly; Nikolai's two PRs unblocked; focus set on multi-sample support and provider cost maps for next week
-
-
-------------------------------------------------------------------------------
-## #general — 6 turns, 6 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #general: 0.1.19 shipped overnight; needs company visibility
-
-    Today is Monday 17 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 0.1.19 shipped overnight; needs company visibility
-    
-    What it should get through:
-      1. Announce 0.1.19 with key changes so everyone knows to upgrade   [Gideon Halloway must raise this]
-           - Gideon posts announcement in general with summary of what shipped
-           - Team confirms it looks good
-           - Anyone running older version gets quiet nudge to upgrade
-    
-    On the agenda: Post 0.1.19 announcement with highlights; Surface any questions or issues
-    
-    Belongs in this channel: news the whole company needs: releases that matter to everyone, scheduling, people joining or moving on, and decisions that cross every team.
-    Does NOT belong here: work on any individual service, and anything only one team cares about.
-    
-    Wrap when: 0.1.19 announced to the company; users notified to upgrade
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 258 changes merged to date
-
-    On the table
-      - announce-0-1-19 (Gideon Halloway)
-      - release-0-1-19 (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 514: Update README.md to stop kluster.ai promo (Konrad Feltrin)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. The release announcement and what changed
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Announce 0.1.19 with key changes so everyone knows to upgrade   *** MUST RAISE ***
-      2. that "0.1.19 is out" has gone out, and what you asked in it   *** MUST RAISE ***
-      3. what "Release notes: 0.1.19" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Announce 0.1.19 with key changes so everyone knows to upgrade
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Can answer questions about the release
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Announce 0.1.19 with key changes so everyone knows to upgrade
-    goal        0.1.19 shipped overnight; needs company visibility
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Can provide context on what shipped and why
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Announce 0.1.19 with key changes so everyone knows to upgrade
-    goal        0.1.19 shipped overnight; needs company visibility
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Can comment on docs and examples side
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Announce 0.1.19 with key changes so everyone knows to upgrade
-    goal        0.1.19 shipped overnight; needs company visibility
-    available   around today
-
-  Priya Vandersloot  (priya)
-    role        Software Engineer, LLM Interface. Can note the function-calling example fix
-    owns        multimodal-prompts, release-and-ci
-    agenda
-      1. Announce 0.1.19 with key changes so everyone knows to upgrade
-    goal        0.1.19 shipped overnight; needs company visibility
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Can comment on CI and test coverage
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Announce 0.1.19 with key changes so everyone knows to upgrade
-    goal        0.1.19 shipped overnight; needs company visibility
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   0.1.19 announced to the company; users notified to upgrade
-
-
-------------------------------------------------------------------------------
-## #pipeline — 14 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Dario Kestrel wants a status before the week's cut and Gideon Halloway is buried in something else
-
-    Today is Monday 17 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Dario Kestrel wants a status before the week's cut and Gideon Halloway is buried in something else
-    
-    What it should get through:
-    
-    On the agenda: Dario Kestrel asks where the draft stands; Gideon Halloway is chasing a viewer regression and has not looked; Gideon Halloway mentions in passing that the one version he did try took over two minutes on a 200k-row dataset because it opened each cache entry individually; Gideon Halloway also mentions he pointed the same script at a newer model snapshot last week and it completed in three seconds, which he found suspicious but did not chase
-    
-    Wrap when: No progress, two observations logged and nothing claimed; it is settled that the team agrees users want the cached-versus-backend split before starting a run
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 258 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 514: Update README.md to stop kluster.ai promo (Konrad Feltrin)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. 
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-    goal        Dario Kestrel wants a status before the week's cut and Gideon Halloway is buried in something else
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. people keep asking the same question before a re-run: how much of this is already on disk. Right now the only way to answer it is to run the thing and watch the hit counter go by on the progress bar, which is too late to decide anything.   *** MUST SETTLE (clue t1.r2.L13) ***
-    goal        the team agrees users want the cached-versus-backend split before starting a run
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   No progress, two observations logged and nothing claimed; it is settled that the team agrees users want the cached-versus-backend split before starting a run
-
-
-==============================================================================
-# 2025-02-18 — 3 conversation(s), 37 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Two new PRs opened today, four under review, three stale; clearing the queue before they age further
-
-    Today is Tuesday 18 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two new PRs opened today, four under review, three stale; clearing the queue before they age further
-    
-    What it should get through:
-      1. Approve and land PR 515 error summarization   [Emil Brandvold must raise this]
-           - Emil walks through the error-summarization logic for online mode
-           - Dario checks the cost-map interaction
-           - Gideon confirms no viewer surface impact
-      2. Approve and land PR 516 curator viewer links   [Gideon Halloway must raise this]
-           - Gideon presents the rich hyperlink UX
-           - Emil confirms no request-layer impact
-           - Dario approves the interface contract
-      3. Unblock PR 495 code executor and PR 502 telemetry   [Nikolai Berresford must raise this]
-           - Nikolai outlines what's blocking PR 495 and PR 502
-           - Emil and Dario Kestrel offer suggestions on test coverage or integration points
-           - Nikolai commits to next steps or surface remaining friction
-    
-    On the agenda: Land PR 515 error summarization; Land PR 516 curator viewer links; Discuss PR 495 code executor enhancements and PR 502 telemetry blockers
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 515 and PR 516 land cleanly; PR 495 and PR 502 have a clear path forward or concrete blockers named.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 259 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 515: ref: summarize errors in online mode (Emil Brandvold)
-      - PR 516: Rich hyperlink for curator viewer (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Error summarization in online mode; knows the request-processing layer deeply
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Approve and land PR 515 error summarization   *** MUST RAISE ***
-      2. Approve and land PR 516 curator viewer links
-      3. Unblock PR 495 code executor and PR 502 telemetry
-    goal        Approve and land PR 515 error summarization
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. UX polish on curator viewer links; knows the UI surface
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Approve and land PR 515 error summarization
-      2. Approve and land PR 516 curator viewer links   *** MUST RAISE ***
-      3. Unblock PR 495 code executor and PR 502 telemetry
-    goal        Approve and land PR 516 curator viewer links
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Code execution testing rigor; knows verifier design
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Approve and land PR 515 error summarization
-      2. Approve and land PR 516 curator viewer links
-      3. Unblock PR 495 code executor and PR 502 telemetry   *** MUST RAISE ***
-    goal        Unblock PR 495 code executor and PR 502 telemetry
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Request-processing depth; knows the core LLM interface
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Approve and land PR 515 error summarization
-      2. Approve and land PR 516 curator viewer links
-      3. Unblock PR 495 code executor and PR 502 telemetry
-    goal        Two new PRs opened today, four under review, three stale; clearing the queue before they age further
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. README context; drove PR 514 to completion
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Approve and land PR 515 error summarization
-      2. Approve and land PR 516 curator viewer links
-      3. Unblock PR 495 code executor and PR 502 telemetry
-    goal        Two new PRs opened today, four under review, three stale; clearing the queue before they age further
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   PR 515 and PR 516 land cleanly; PR 495 and PR 502 have a clear path forward or concrete blockers named.
-
-
-------------------------------------------------------------------------------
-## #engineering — 14 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Eleven commits today, one merge, three stale PRs; team needs to see the shape of the current work and hand-offs
-
-    Today is Tuesday 18 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Eleven commits today, one merge, three stale PRs; team needs to see the shape of the current work and hand-offs
-    
-    What it should get through:
-      1. Confirm README Grooming completed and identify next cleanup work   [Konrad Feltrin must raise this]
-           - Konrad confirms PR 514 merged and kluster.ai promo removed
-           - Emil and Gideon Halloway check whether provider examples need follow-up
-           - Team agrees on scope of next round if needed
-      2. Socialize error handling and viewer link improvements   [Gideon Halloway must raise this]
-           - Emil describes the error-summarization work in PR 515
-           - Gideon walks the curator viewer link polish in PR 516
-           - Dario and Konrad Feltrin note whether these unblock other work
-      3. Name what is blocking sample support and code executor tests   [Dario Kestrel must raise this]
-           - Dario outlines what's needed for PR 468 sample support
-           - Nikolai surfaces the test coverage gap on PR 495
-           - Team commits to next PR or identifies what must land first
-    
-    On the agenda: Recap README Grooming landing and what comes next; Dispatch work on error handling and viewer UX; Clarify blockers on sample support and code executor tests
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team sees the shape of work in flight; PR 514 handoff is clear; blockers on PR 468 and PR 495 are named or have a plan.
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 259 changes merged to date
-
-    On the table
-      - Release notes: 0.1.19 (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 515: ref: summarize errors in online mode (Emil Brandvold)
-      - PR 516: Rich hyperlink for curator viewer (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Eight commits today across examples, docs, error handling; knows what's moving
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm README Grooming completed and identify next cleanup work
-      2. Socialize error handling and viewer link improvements
-      3. Name what is blocking sample support and code executor tests
-    goal        Eleven commits today, one merge, three stale PRs; team needs to see the shape of the current work and hand-offs
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Three commits on rich markup and viewer links; owns progress-and-cli
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm README Grooming completed and identify next cleanup work
-      2. Socialize error handling and viewer link improvements   *** MUST RAISE ***
-      3. Name what is blocking sample support and code executor tests
-    goal        Socialize error handling and viewer link improvements
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. README Grooming landed; knows what's next on examples-cookbooks
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Confirm README Grooming completed and identify next cleanup work   *** MUST RAISE ***
-      2. Socialize error handling and viewer link improvements
-      3. Name what is blocking sample support and code executor tests
-      4. what "Release notes: 0.1.19" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm README Grooming completed and identify next cleanup work
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Request-processing depth; knows the blockers on PR 468 and PR 121
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm README Grooming completed and identify next cleanup work
-      2. Socialize error handling and viewer link improvements
-      3. Name what is blocking sample support and code executor tests   *** MUST RAISE ***
-    goal        Name what is blocking sample support and code executor tests
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Code execution design; knows the test coverage gaps on PR 495
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Confirm README Grooming completed and identify next cleanup work
-      2. Socialize error handling and viewer link improvements
-      3. Name what is blocking sample support and code executor tests
-    goal        Eleven commits today, one merge, three stale PRs; team needs to see the shape of the current work and hand-offs
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Team sees the shape of work in flight; PR 514 handoff is clear; blockers on PR 468 and PR 495 are named or have a plan.
-
-
-------------------------------------------------------------------------------
-## #pipeline — 11 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Seven changes to provider-integrations, five to online-request-processing, four each to bulk-llm-inference and caching-and-resume; core request layer is moving
-
-    Today is Tuesday 18 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Seven changes to provider-integrations, five to online-request-processing, four each to bulk-llm-inference and caching-and-resume; core request layer is moving
-    
-    What it should get through:
-      1. Validate error-summarization logic in online mode   [Emil Brandvold must raise this]
-           - Emil walks the error-summarization beats in PR 515
-           - Gideon checks logging contract with progress-and-cli
-           - Dario confirms retry/resume behavior is unchanged
-      2. Review cost-map refactoring and its interaction with caching   [Dario Kestrel must raise this]
-           - Emil describes the cost completion method changes in #716e7b59b447
-           - Dermot asks about persistence and cache invalidation
-           - Dario names any contract changes needed in viewer or CLI
-      3. Confirm provider example updates don't break integration tests   [Gideon Halloway must raise this]
-           - Emil summarizes litellm and provider example updates
-           - Dario and Dermot Callaghan ask whether CI coverage is sufficient
-           - Gideon confirms no new telemetry or logging side-effects
-    
-    On the agenda: Error summarization and online-mode robustness; Cost-map refactoring and accuracy; Provider integration stability across examples
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Error handling and cost-map changes are understood; no hidden contract breaks; PR 515 is clear to land.
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 259 changes merged to date
-
-    On the table
-      - Release notes: 0.1.19 (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 515: ref: summarize errors in online mode (Emil Brandvold)
-      - PR 516: Rich hyperlink for curator viewer (Gideon Halloway)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Eight commits across online-mode error handling, cost map, litellm updates; knows the request layer end-to-end
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Validate error-summarization logic in online mode   *** MUST RAISE ***
-      2. Review cost-map refactoring and its interaction with caching
-      3. Confirm provider example updates don't break integration tests
-    goal        Validate error-summarization logic in online mode
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Three commits on rich markup and logger redirect; owns observability and progress tracking
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Validate error-summarization logic in online mode
-      2. Review cost-map refactoring and its interaction with caching
-      3. Confirm provider example updates don't break integration tests   *** MUST RAISE ***
-      4. what "Release notes: 0.1.19" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm provider example updates don't break integration tests
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Core understanding of retry logic, concurrency, provider abstraction
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Validate error-summarization logic in online mode
-      2. Review cost-map refactoring and its interaction with caching   *** MUST RAISE ***
-      3. Confirm provider example updates don't break integration tests
-    goal        Review cost-map refactoring and its interaction with caching
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Deep request-layer history; knows where caching and resume interact
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Validate error-summarization logic in online mode
-      2. Review cost-map refactoring and its interaction with caching
-      3. Confirm provider example updates don't break integration tests
-    goal        Seven changes to provider-integrations, five to online-request-processing, four each to bulk-llm-inference and caching-and-resume; core request layer is moving
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Error handling and cost-map changes are understood; no hidden contract breaks; PR 515 is clear to land.
-
-
-==============================================================================
-# 2025-02-19 — 4 conversation(s), 44 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Three PRs opened or merged in a single day on logging and viewer; PR 516 stuck waiting on changes; logger work spans all services
-
-    Today is Wednesday 19 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three PRs opened or merged in a single day on logging and viewer; PR 516 stuck waiting on changes; logger work spans all services
-    
-    What it should get through:
-      1. Land PR 518 (custom logger) or identify blockers   [Emil Brandvold must raise this]
-           - Emil walks through logger design and where it surfaces
-           - Dermot flags integration concerns with existing error handling
-           - Decision: land or request changes
-      2. Unblock PR 516 (rich hyperlink) from CHANGES_REQUESTED   [Gideon Halloway must raise this]
-           - Gideon presents what the changes request is about
-           - Dermot clarifies the blocker
-           - Team decides: rework, accept, or defer
-    
-    On the agenda: Review PR 518 (Feat/logger) for scope and integration; Assess PR 520 (Feat/push to viewer) against PR 516 progress; Decide what unblocks PR 516 from CHANGES_REQUESTED
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 518 and PR 520 either land or have clear feedback; PR 516's path forward is known
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 260 changes merged to date
-
-    On the table
-      - notes-2025-02-17 (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 516: Rich hyperlink for curator viewer (Gideon Halloway)
-      - PR 518: Feat/logger (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Four commits on logging and viewer integration; knows what the logger and push-to-viewer features need
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Land PR 518 (custom logger) or identify blockers   *** MUST RAISE ***
-      2. Unblock PR 516 (rich hyperlink) from CHANGES_REQUESTED
-      3. what "Weekly sync notes: week of Feb 17 — 0.1.19 shipped" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Land PR 518 (custom logger) or identify blockers
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Rich hyperlink work complete; owns progress-and-cli surface
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Land PR 518 (custom logger) or identify blockers
-      2. Unblock PR 516 (rich hyperlink) from CHANGES_REQUESTED   *** MUST RAISE ***
-      3. that the doc "Weekly sync notes: week of Feb 17 — 0.1.19 shipped" is done, and where the others can find it   *** MUST RAISE ***
-    goal        Unblock PR 516 (rich hyperlink) from CHANGES_REQUESTED
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Reviewed PR 516 with changes requested; knows integration points
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Land PR 518 (custom logger) or identify blockers
-      2. Unblock PR 516 (rich hyperlink) from CHANGES_REQUESTED
-    goal        Three PRs opened or merged in a single day on logging and viewer; PR 516 stuck waiting on changes; logger work spans all services
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   PR 518 and PR 520 either land or have clear feedback; PR 516's path forward is known
-
-
-------------------------------------------------------------------------------
-## #pipeline — 12 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Emil landed 4 commits (logger, error summary, curator init) touching 8+ services in online-request-processing and provider-integrations; Gideon made 5 commits to progress bar and status; mid-flight workstream
-
-    Today is Wednesday 19 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Emil landed 4 commits (logger, error summary, curator init) touching 8+ services in online-request-processing and provider-integrations; Gideon made 5 commits to progress bar and status; mid-flight workstream
-    
-    What it should get through:
-      1. Confirm logger design handles concurrent requests and retries safely   [Emil Brandvold must raise this]
-           - Emil explains logger scope (what gets logged, where, at what level)
-           - Dario raises concurrency or cleanup concerns
-           - Team agrees logger is thread-safe or marks it for follow-up
-      2. Validate error summary format works with rich progress bar without visual collision   [Gideon Halloway must raise this]
-           - Gideon demonstrates rich console views with error output
-           - Emil describes error summary format change
-           - Dario or Gideon flags if they collide or decide one takes priority
-    
-    On the agenda: Walk through logger integration across services; Check error summary format against user-facing output; Validate provider backend changes don't introduce regressions
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Logger and error summary changes are safe for release; no regressions expected in provider integrations or retry paths
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 260 changes merged to date
-
-    On the table
-      - notes-2025-02-17 (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 516: Rich hyperlink for curator viewer (Gideon Halloway)
-      - PR 518: Feat/logger (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Custom logger implementation; error summary refactor across all services; knows the context for each commit
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm logger design handles concurrent requests and retries safely   *** MUST RAISE ***
-      2. Validate error summary format works with rich progress bar without visual collision
-      3. what "Weekly sync notes: week of Feb 17 — 0.1.19 shipped" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm logger design handles concurrent requests and retries safely
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Rich console views for progress bar and CLI output; understands how status/error display flows to user
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm logger design handles concurrent requests and retries safely
-      2. Validate error summary format works with rich progress bar without visual collision   *** MUST RAISE ***
-    goal        Validate error summary format works with rich progress bar without visual collision
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Knows request layer concurrency and error propagation
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm logger design handles concurrent requests and retries safely
-      2. Validate error summary format works with rich progress bar without visual collision
-    goal        Emil landed 4 commits (logger, error summary, curator init) touching 8+ services in online-request-processing and provider-integrations; Gideon made 5 commits to progress bar and status; mid-flight workstream
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Logger and error summary changes are safe for release; no regressions expected in provider integrations or retry paths
-
-
-------------------------------------------------------------------------------
-## #viewer — 8 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #viewer: Gideon landed 5 commits on progress bar, status, and rich console views; PR 516 blocked 1 day; rich hyperlink for viewer links is mid-implementation
-
-    Today is Wednesday 19 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Gideon landed 5 commits on progress bar, status, and rich console views; PR 516 blocked 1 day; rich hyperlink for viewer links is mid-implementation
-    
-    What it should get through:
-      1. Resolve PR 516 CHANGES_REQUESTED and land rich hyperlink feature   [Gideon Halloway must raise this]
-           - Gideon presents the revised hyperlink approach
-           - Dermot re-evaluates or confirms the change request is addressed
-           - Team decides to land or iterate
-      2. Coordinate logger output with progress bar visual layout   [Gideon Halloway must raise this]
-           - Gideon shows how rich hyperlinks render with status messages
-           - Emil flags any logger output that might overflow or collide
-           - Decision: logger goes before/after progress, or in separate stream
-    
-    On the agenda: Review PR 516 (rich hyperlink) state and resolve CHANGES_REQUESTED; Link display in context of logger and error summary output; Run status and progress metadata capture in metadata.db
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: PR 516 unblocked or path to unblock is clear; progress bar, status, and logger output layout is settled
+    Wrap when: PR approved with any minor comments addressed, or one clear blocking item identified for next session
     
     Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1485,15 +47,11 @@ Channel #viewer: Gideon landed 5 commits on progress bar, status, and rich conso
 
     Settled
       - 16 release(s) shipped, currently 0.1.19
-      - 260 changes merged to date
+      - 267 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 516: Rich hyperlink for curator viewer (Gideon Halloway)
-      - PR 518: Feat/logger (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1512,166 +70,68 @@ Channel #viewer: Gideon landed 5 commits on progress bar, status, and rich conso
       - agentic-curation
       - blocks-and-recipes
       - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Rich console views and hyperlink work; progress bar refinements; owns UI surface
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Resolve PR 516 CHANGES_REQUESTED and land rich hyperlink feature   *** MUST RAISE ***
-      2. Coordinate logger output with progress bar visual layout   *** MUST RAISE ***
-    goal        Resolve PR 516 CHANGES_REQUESTED and land rich hyperlink feature
-    available   around today
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Logger work that will affect what status and error info displays
+    role        Core Platform Engineer, Request Processing. Performance issue identified and PR structure ready; context on batch-mode internals
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Resolve PR 516 CHANGES_REQUESTED and land rich hyperlink feature
-      2. Coordinate logger output with progress bar visual layout
-    goal        Gideon landed 5 commits on progress bar, status, and rich console views; PR 516 blocked 1 day; rich hyperlink for viewer links is mid-implementation
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Watched PR 516 changes; knows integration story
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Resolve PR 516 CHANGES_REQUESTED and land rich hyperlink feature
-      2. Coordinate logger output with progress bar visual layout
-    goal        Gideon landed 5 commits on progress bar, status, and rich console views; PR 516 blocked 1 day; rich hyperlink for viewer links is mid-implementation
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   PR 516 unblocked or path to unblock is clear; progress bar, status, and logger output layout is settled
-
-
-------------------------------------------------------------------------------
-## #engineering — 14 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: The counting work cannot be built on top of the current key without producing numbers people will not believe
-
-    Today is Wednesday 19 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: The counting work cannot be built on top of the current key without producing numbers people will not believe
-    
-    What it should get through:
-    
-    On the agenda: Gideon Halloway says he fixed a typo in the system message inside a prompt function, reran, and got the old rows straight back, so he does not trust anything that hashes at the level of the function or the run; Dermot Callaghan argues for hashing the exact bytes we would put on the wire for that one row, Dario Kestrel worries provider-specific fields we inject ourselves will churn keys between releases; left open: what to do about fields the SDK adds after we build the payload
-    
-    Wrap when: Leaning towards a per-row payload hash, with Dario Kestrel's churn objection unresolved and no PR yet; it is settled that the team agrees adding a column prompt() ignores currently invalidates reuse and that this is a real cost
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 260 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 509: Update/litellm (Emil Brandvold)
-      - PR 516: Rich hyperlink for curator viewer (Gideon Halloway)
-      - PR 518: Feat/logger (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 639 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: source_url.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-    goal        The counting work cannot be built on top of the current key without producing numbers people will not believe
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. 
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Heads up, I added a source_url column to the persona input set purely for provenance. prompt() does not look at it. Entire 40k run went back out to the API and billed me again. I did not touch a single prompt.   *** MUST SETTLE (clue t1.r1.l_prompt_1) ***
-         must contain literally: source_url
-    goal        the team agrees adding a column prompt() ignores currently invalidates reuse and that this is a real cost
+      1. Approve async batch response refactor or flag blocking concerns
+    goal        One day-old PR on a performance perf issue tied to batch mode; needs senior eyes before merge window closes
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. 
+    role        Core Engineer, Request Processing. Request-processing semantics; knows how batch response ties to resume
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-    goal        The counting work cannot be built on top of the current key without producing numbers people will not believe
+      1. Approve async batch response refactor or flag blocking concerns   *** MUST RAISE ***
+    goal        Approve async batch response refactor or flag blocking concerns
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Progress tracking and observability angle
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Approve async batch response refactor or flag blocking concerns
+    goal        One day-old PR on a performance perf issue tied to batch mode; needs senior eyes before merge window closes
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Leaning towards a per-row payload hash, with Dario Kestrel's churn objection unresolved and no PR yet; it is settled that the team agrees adding a column prompt() ignores currently invalidates reuse and that this is a real cost
+    leaving   PR approved with any minor comments addressed, or one clear blocking item identified for next session
 
-
-==============================================================================
-# 2025-02-20 — 4 conversation(s), 49 turns budgeted
-==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 12 turns, 4 people
+## #engineering — 10 turns, 5 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: three PRs merged today, five more waiting; stale PRs in the backlog need movement
+Channel #engineering: Friday wrap; four merged PRs, one fresh PR, executor and telemetry work landing, one blocker stale for two weeks
 
-    Today is Thursday 20 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 21 February 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: three PRs merged today, five more waiting; stale PRs in the backlog need movement
+    Why it is happening: Friday wrap; four merged PRs, one fresh PR, executor and telemetry work landing, one blocker stale for two weeks
     
     What it should get through:
-      1. land PR 530 and PR 509 together as the telemetry fix   [Emil Brandvold must raise this]
-           - Emil Brandvold flags the expanduser fix is ready
-           - Nikolai Berresford notes his config change rides along
-           - Dermot Callaghan approves the pair
-      2. unblock PR 520 (push to viewer) or defer it cleanly   [Emil Brandvold must raise this]
-           - Emil Brandvold describes the blocker
-           - Gideon Halloway weighs in on viewer readiness
-           - group decides to land or defer
-      3. move PR 495 and PR 502 forward or accept they slip to next week   [Nikolai Berresford must raise this]
-           - Nikolai Berresford explains what's needed
-           - Dermot Callaghan or Emil Brandvold offers review time
-           - or group agrees it lands next week
+      1. Confirm executor cleanup scope and docker example fix timeline   [Nikolai Berresford must raise this]
+           - Nikolai: docker backend doesn't match examples, need to ship fix before people copy-paste it
+           - Konrad: saw the cleanup list, some things can simplify — raises priority
+           - Nikolai: clarifies what lands today vs deferred
+      2. Acknowledge PR PR 468 blocker and unblock or defer explicitly   [Dario Kestrel must raise this]
+           - Emil: 468 has been open 14 days, needs to land or get bumped
+           - Dario: states whether he can unblock today or points to next window
+           - Team: notes decision
     
-    On the agenda: where PR 520 (push to viewer) stands and what's blocking; whether PR 518 (logger) and PR 530 (telemetry) can land today; PR 495 (code executor enhancements) and PR 502 (telemetry config) status
+    On the agenda: Merged this week: executor, telemetry config, logger, push-to-viewer; Executor docker example fix and cleanup scope; PR PR 468 blocker status and next steps
     
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: At least PR 530 and PR 509 land; decision on PR 520 (merge today or hold); PR 495/#502 either reviewed or deferred to next week
+    Wrap when: Executor scope locked for end of day; PR 468 either unblocked or deferred to next week with clear reason
     
     Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1682,14 +142,11 @@ Channel #code-review: three PRs merged today, five more waiting; stale PRs in th
 
     Settled
       - 16 release(s) shipped, currently 0.1.19
-      - 263 changes merged to date
+      - 267 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 518: Feat/logger (Emil Brandvold)
-      - PR 520: Feat/push to viewer (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1708,172 +165,59 @@ Channel #code-review: three PRs merged today, five more waiting; stale PRs in th
       - agentic-curation
       - blocks-and-recipes
       - finetuning
-      - — and 637 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. the telemetry fix and the viewer push work; knows what's blocking the other PRs
+    role        Core Platform Engineer, Request Processing. Four PRs merged this week; telemetry fix live; push-to-viewer feature landing; batch async perf issue flagged
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. land PR 530 and PR 509 together as the telemetry fix   *** MUST RAISE ***
-      2. unblock PR 520 (push to viewer) or defer it cleanly   *** MUST RAISE ***
-      3. move PR 495 and PR 502 forward or accept they slip to next week
-    goal        land PR 530 and PR 509 together as the telemetry fix
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. context on the viewer hyperlink changes and the broader viewer UX epic
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. land PR 530 and PR 509 together as the telemetry fix
-      2. unblock PR 520 (push to viewer) or defer it cleanly
-      3. move PR 495 and PR 502 forward or accept they slip to next week
-    goal        three PRs merged today, five more waiting; stale PRs in the backlog need movement
+      1. Confirm executor cleanup scope and docker example fix timeline
+      2. Acknowledge PR PR 468 blocker and unblock or defer explicitly
+    goal        Friday wrap; four merged PRs, one fresh PR, executor and telemetry work landing, one blocker stale for two weeks
     available   around today
 
   Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. the async/docker timeout changes that unblock code-execution work
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Executor PRs landed; cleanup work underway; docker example mismatch flagged
     owns        code-execution, release-and-ci, telemetry
     agenda
-      1. land PR 530 and PR 509 together as the telemetry fix
-      2. unblock PR 520 (push to viewer) or defer it cleanly
-      3. move PR 495 and PR 502 forward or accept they slip to next week   *** MUST RAISE ***
-    goal        move PR 495 and PR 502 forward or accept they slip to next week
+      1. Confirm executor cleanup scope and docker example fix timeline   *** MUST RAISE ***
+      2. Acknowledge PR PR 468 blocker and unblock or defer explicitly
+    goal        Confirm executor cleanup scope and docker example fix timeline
     available   around today
 
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. review stability and standards
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Executor review in progress; simplification opportunities spotted
+    owns        examples-cookbooks, code-execution, finetuning
     agenda
-      1. land PR 530 and PR 509 together as the telemetry fix
-      2. unblock PR 520 (push to viewer) or defer it cleanly
-      3. move PR 495 and PR 502 forward or accept they slip to next week
-    goal        three PRs merged today, five more waiting; stale PRs in the backlog need movement
+      1. Confirm executor cleanup scope and docker example fix timeline
+      2. Acknowledge PR PR 468 blocker and unblock or defer explicitly
+    goal        Friday wrap; four merged PRs, one fresh PR, executor and telemetry work landing, one blocker stale for two weeks
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Unblocking perspective on 468 and what lands next
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm executor cleanup scope and docker example fix timeline
+      2. Acknowledge PR PR 468 blocker and unblock or defer explicitly   *** MUST RAISE ***
+    goal        Acknowledge PR PR 468 blocker and unblock or defer explicitly
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Progress bar frequency update merged
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Confirm executor cleanup scope and docker example fix timeline
+      2. Acknowledge PR PR 468 blocker and unblock or defer explicitly
+    goal        Friday wrap; four merged PRs, one fresh PR, executor and telemetry work landing, one blocker stale for two weeks
     available   around today
 
 ### 4. How it should land
 
     lands as  partial
-    leaving   At least PR 530 and PR 509 land; decision on PR 520 (merge today or hold); PR 495/#502 either reviewed or deferred to next week
-
-
-------------------------------------------------------------------------------
-## #engineering — 14 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: 20 commits, 3 PRs merged, 5 PRs waiting; new epic opened with six follow-up issues; team needs to calibrate priorities
-
-    Today is Thursday 20 February 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: 20 commits, 3 PRs merged, 5 PRs waiting; new epic opened with six follow-up issues; team needs to calibrate priorities
-    
-    What it should get through:
-      1. celebrate the week's shipped work and understand the pattern   [Emil Brandvold must raise this]
-           - Emil Brandvold summarizes the merged PRs
-           - Gideon Halloway notes the viewer polish is paying off
-           - team acknowledges the pace
-      2. align on the viewer UX epic direction   [Gideon Halloway must raise this]
-           - Gideon Halloway presents the epic (521) and the follow-ups (522–527)
-           - Dermot Callaghan asks about effort vs. other work
-           - group agrees to treat as roadmap items vs. immediate work
-      3. decide which stale PR gets attention next   [Emil Brandvold must raise this]
-           - Emil Brandvold flags PR 468 (n samples) is 13 days old
-           - Nikolai Berresford defends PR 495 and PR 502
-           - group decides on a clear next item
-    
-    On the agenda: what shipped this week (hyperlinks, telemetry, litellm); Gideon Halloway's new viewer UX epic and the six issues; where the stale PRs stand and what's genuinely blocking them
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team understands what shipped and why; viewer epic is mapped; one stale PR gets clear next steps
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
-
-    Settled
-      - 16 release(s) shipped, currently 0.1.19
-      - 263 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 518: Feat/logger (Emil Brandvold)
-      - PR 520: Feat/push to viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
-      - issue 93: [UI] Display status of the run
-      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 105: Distribution graph is skewed for data viewer 
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-
-    DOES NOT EXIST YET (4 names)
-      - agentic-curation
-      - blocks-and-recipes
-      - finetuning
-      - — and 637 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. summary of what landed: hyperlinks, telemetry fix, litellm bump
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. celebrate the week's shipped work and understand the pattern   *** MUST RAISE ***
-      2. align on the viewer UX epic direction
-      3. decide which stale PR gets attention next   *** MUST RAISE ***
-    goal        celebrate the week's shipped work and understand the pattern
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. the viewer epic he just opened and six fresh issues
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. celebrate the week's shipped work and understand the pattern
-      2. align on the viewer UX epic direction   *** MUST RAISE ***
-      3. decide which stale PR gets attention next
-    goal        align on the viewer UX epic direction
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. code-execution docker/async work; context on what's holding PR 495
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. celebrate the week's shipped work and understand the pattern
-      2. align on the viewer UX epic direction
-      3. decide which stale PR gets attention next
-    goal        20 commits, 3 PRs merged, 5 PRs waiting; new epic opened with six follow-up issues; team needs to calibrate priorities
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. stability and standards perspective
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. celebrate the week's shipped work and understand the pattern
-      2. align on the viewer UX epic direction
-      3. decide which stale PR gets attention next
-    goal        20 commits, 3 PRs merged, 5 PRs waiting; new epic opened with six follow-up issues; team needs to calibrate priorities
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Team understands what shipped and why; viewer epic is mapped; one stale PR gets clear next steps
+    leaving   Executor scope locked for end of day; PR 468 either unblocked or deferred to next week with clear reason
 
 
 ------------------------------------------------------------------------------
@@ -1882,27 +226,28 @@ Channel #engineering: 20 commits, 3 PRs merged, 5 PRs waiting; new epic opened w
 
 ### 1. What the DIRECTOR is told
 
-Channel #pipeline: 14 commits to online-request-processing, 9 to bulk-llm-inference, 9 to caching-and-resume; three PRs merged affecting this layer
+Channel #pipeline: Six commits to online-request-processing and bulk-llm-inference landed this week; async batch refactor opens Friday; progress bar integration live
 
-    Today is Thursday 20 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 21 February 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: 14 commits to online-request-processing, 9 to bulk-llm-inference, 9 to caching-and-resume; three PRs merged affecting this layer
+    Why it is happening: Six commits to online-request-processing and bulk-llm-inference landed this week; async batch refactor opens Friday; progress bar integration live
     
     What it should get through:
-      1. confirm no regressions from the viewer/progress bar polish   [Gideon Halloway must raise this]
-           - Gideon Halloway walks through the hyperlink and message changes
-           - Emil Brandvold confirms no breaking changes
-           - group signs off or flags a concern
-      2. note the curator home and telemetry impact   [Emil Brandvold must raise this]
-           - Emil Brandvold describes the curator home feature
-           - group agrees it's safe or needs a follow-up test
+      1. Confirm push-to-viewer and progress bar wiring safe for release   [Emil Brandvold must raise this]
+           - Emil: viewer link was wrong, fixed in last two commits, PRs 518 and 520 landed
+           - Gideon: progress bar fires during upload now, no blocking issues
+           - Dario: nods, no cache/resume concerns
+      2. Surface any resume/caching risk from async batch file method before merge   [Dario Kestrel must raise this]
+           - Emil: raising async batch file refactor as a perf win, want Dario Kestrel's eyes
+           - Dario: asks if file writes block resume checkpoints, Emil Brandvold confirms they don't
+           - Emil or Dario: flags if anything needs serialization order guarantees
     
-    On the agenda: what the recent commits did to online, caching, and progress tracking; whether the viewer polish has any backend implications; any stability concerns from the week
+    On the agenda: Push-to-viewer landing: link constant, progress bar on upload; Async batch file method: impact on resume and caching; Progress tracking during I/O operations
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Pipeline layer stability confirmed; no concerns raised from recent changes
+    Wrap when: Viewer and progress bar rollout confirmed safe; async batch refactor either approved or one concern flagged for implementation review; it is settled that the team agrees batch-mode reuse behaviour is currently unverified and has regressed before
     
     Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1913,14 +258,11 @@ Channel #pipeline: 14 commits to online-request-processing, 9 to bulk-llm-infere
 
     Settled
       - 16 release(s) shipped, currently 0.1.19
-      - 263 changes merged to date
+      - 267 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 518: Feat/logger (Emil Brandvold)
-      - PR 520: Feat/push to viewer (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1939,60 +281,145 @@ Channel #pipeline: 14 commits to online-request-processing, 9 to bulk-llm-infere
       - agentic-curation
       - blocks-and-recipes
       - finetuning
-      - — and 637 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: e2e.
 
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. the hyperlink, telemetry, and litellm work; knows what's live
+    role        Core Platform Engineer, Request Processing. Push-to-viewer PRs landed; async batch file refactor ready; viewer link constant fixed; progress bar wiring live
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. confirm no regressions from the viewer/progress bar polish
-      2. note the curator home and telemetry impact   *** MUST RAISE ***
-    goal        note the curator home and telemetry impact
+      1. Confirm push-to-viewer and progress bar wiring safe for release   *** MUST RAISE ***
+      2. Surface any resume/caching risk from async batch file method before merge
+    goal        Confirm push-to-viewer and progress bar wiring safe for release
     available   around today
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. the viewer polish and the curator home feature; sees the UX side
+    role        Core Engineer — Dataset Viewer & Run Observability. Progress bar frequency tuning merged; observability working end-to-end
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. confirm no regressions from the viewer/progress bar polish   *** MUST RAISE ***
-      2. note the curator home and telemetry impact
-    goal        confirm no regressions from the viewer/progress bar polish
+      1. Confirm push-to-viewer and progress bar wiring safe for release
+      2. Surface any resume/caching risk from async batch file method before merge
+      3. We only ever assert on reuse counts in the online tests. The batch e2e checks the reassembled output and nothing else, which is exactly how the last regression rode out to a release. It bit me on the Azure batch run too.   *** MUST SETTLE (clue t1.r1.l_scope_2) ***
+         must contain literally: e2e
+    goal        the team agrees batch-mode reuse behaviour is currently unverified and has regressed before
     available   around today
 
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. standards and integration testing perspective
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Request-processing internals knowledge; resume and caching guardrails
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. confirm no regressions from the viewer/progress bar polish
-      2. note the curator home and telemetry impact
-    goal        14 commits to online-request-processing, 9 to bulk-llm-inference, 9 to caching-and-resume; three PRs merged affecting this layer
+      1. Confirm push-to-viewer and progress bar wiring safe for release
+      2. Surface any resume/caching risk from async batch file method before merge   *** MUST RAISE ***
+    goal        Surface any resume/caching risk from async batch file method before merge
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Pipeline layer stability confirmed; no concerns raised from recent changes
+    leaving   Viewer and progress bar rollout confirmed safe; async batch refactor either approved or one concern flagged for implementation review; it is settled that the team agrees batch-mode reuse behaviour is currently unverified and has regressed before
 
 
 ------------------------------------------------------------------------------
-## #viewer — 14 turns, 3 people
+## #viewer — 8 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #viewer: The summary table is where most users will actually read these counts
+Channel #viewer: Four commits to curator-viewer this week; two PRs merged for push-to-viewer and logger; ready to confirm landing
 
-    Today is Thursday 20 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 21 February 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: The summary table is where most users will actually read these counts
+    Why it is happening: Four commits to curator-viewer this week; two PRs merged for push-to-viewer and logger; ready to confirm landing
+    
+    What it should get through:
+      1. Confirm push-to-viewer and progress bar shipped correctly   [Emil Brandvold must raise this]
+           - Emil: both merged, link constant was last fix needed, progress bar fires during upload
+           - Dario: checks for any regression in viewer client or download
+           - Konrad: no issues for recipe examples noted
+    
+    On the agenda: PRs PR 518 and PR 520 landed: push-to-viewer + progress bar; Viewer client link constant and update scope; Integration with curator-viewer surface for next release
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Feature confirmed shipped; no regressions reported; ready for next release cycle
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 16 release(s) shipped, currently 0.1.19
+      - 267 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Push-to-viewer PRs merged and live; link constant fixed; progress bar on upload wired; logger integration complete
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm push-to-viewer and progress bar shipped correctly   *** MUST RAISE ***
+    goal        Confirm push-to-viewer and progress bar shipped correctly
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Viewer surface ownership; feedback on link/progress integration
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm push-to-viewer and progress bar shipped correctly
+    goal        Four commits to curator-viewer this week; two PRs merged for push-to-viewer and logger; ready to confirm landing
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Feature confirmed shipped; no regressions reported; ready for next release cycle
+
+
+------------------------------------------------------------------------------
+## #help — 14 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #help: A test helper touching the stats path broke the release-and-ci suite
+
+    Today is Friday 21 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: A test helper touching the stats path broke the release-and-ci suite
     
     What it should get through:
     
-    On the agenda: Gideon Halloway wants the table to print exactly what cache_stats() returns and says the two lines have to add up to the number of rows the user handed in, otherwise people will not trust either surface; Emil Brandvold says when he ran with CURATOR_DISABLE_CACHE set the summary printed nothing at all and he assumed the run had died; he thinks it should just state that everything went to the provider and carry on; open: whether to also show a projected dollar figure for the re-run, or only counts
+    On the agenda: Dermot Callaghan: the helper called into the stats path with CURATOR_DISABLE_CACHE set in the environment and got None back, which turned into an AttributeError two frames later; he has wrapped it in a try and hates it; Emil Brandvold says he also wants plain zeros rather than an exception when no run has happened yet in the process; neither can decide whether cache-off and no-run-yet should look different to the caller
     
-    Wrap when: Table wiring deferred until the method's return shape is fixed; cost projection unresolved; it is settled that the team agrees a fractional hit_rate is needed alongside raw counts
+    Wrap when: Workaround stays in the test helper; the two edge cases go on the PR as comments; it is settled that the team agrees ordinary sqlite opens fail against the shared cache mount even for pure counting
     
     Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -2003,14 +430,11 @@ Channel #viewer: The summary table is where most users will actually read these 
 
     Settled
       - 16 release(s) shipped, currently 0.1.19
-      - 263 changes merged to date
+      - 267 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 495: Code executor enhancements + tests (Nikolai Berresford)
-      - PR 502: modify telemetry config (Nikolai Berresford)
-      - PR 518: Feat/logger (Emil Brandvold)
-      - PR 520: Feat/push to viewer (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -2029,35 +453,1505 @@ Channel #viewer: The summary table is where most users will actually read these 
       - agentic-curation
       - blocks-and-recipes
       - finetuning
-      - — and 637 function/class names and 42 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: hit_rate.
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. The end of run table says cached: 12,403 and the first thing every single user asks is out of what. A bare count tells nobody whether their rerun is cheap. Give me a hit_rate I can print as a percentage next to it.   *** MUST SETTLE (clue t1.r1.l_stats_1) ***
-         must contain literally: hit_rate
-    goal        the team agrees a fractional hit_rate is needed alongside raw counts
+      1. the shared example cache on the box is mounted so only the nightly job can write to it, everybody else gets it as a read-only mount. Any script that opens the metadata sqlite the normal way dies with "attempt to write a readonly database" before it has read a single row, because sqlite wants to put a journal next to the file. Bit me twice trying to count entries.   *** MUST SETTLE (clue t1.r2.L5) ***
+    goal        the team agrees ordinary sqlite opens fail against the shared cache mount even for pure counting
     available   around today
 
   Emil Brandvold  (emil)
     role        Core Platform Engineer, Request Processing. 
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-    goal        The summary table is where most users will actually read these counts
+    goal        A test helper touching the stats path broke the release-and-ci suite
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Workaround stays in the test helper; the two edge cases go on the PR as comments; it is settled that the team agrees ordinary sqlite opens fail against the shared cache mount even for pure counting
+
+
+==============================================================================
+# 2025-02-24 — 2 conversation(s), 26 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 12 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Two PRs opened today need review; two older PRs still waiting
+
+    Today is Monday 24 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Two PRs opened today need review; two older PRs still waiting
+    
+    What it should get through:
+      1. Get eyes on PR 533 (viewer resume integration)   [Emil Brandvold must raise this]
+           - Emil raises the integration points
+           - Konrad checks for persistence concerns
+           - Land or identify blocking questions
+      2. Get eyes on PR 536 (Claude 3.7 reasoning)   [Dario Kestrel must raise this]
+           - Dario notes the three related issues (token rate limits, thinking tokens, LiteLLM gaps)
+           - Nikolai flags what needs to ship before merge
+           - Determine if this lands or needs a follow-up
+    
+    On the agenda: PR 533: resume and hosted curator viewer integration; PR 536: Claude 3.7 reasoning model support; Quick pass on stale PRs 468 and 532
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: Both PRs get initial review; 468 and 532 may stay open pending other work landing first
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 16 release(s) shipped, currently 0.1.19
+      - 267 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. understanding of resume/viewer integration work
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Get eyes on PR 533 (viewer resume integration)   *** MUST RAISE ***
+      2. Get eyes on PR 536 (Claude 3.7 reasoning)
+      3. that "Weekly update: week of Feb 17 — 0.1.19 shipped" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        Get eyes on PR 533 (viewer resume integration)
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Claude 3.7 reasoning implementation
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Get eyes on PR 533 (viewer resume integration)
+      2. Get eyes on PR 536 (Claude 3.7 reasoning)   *** MUST RAISE ***
+    goal        Get eyes on PR 536 (Claude 3.7 reasoning)
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   Both PRs get initial review; 468 and 532 may stay open pending other work landing first
+
+
+------------------------------------------------------------------------------
+## #engineering — 14 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Dario Kestrel lost most of an afternoon to a persona-hub rerun that got a 400 back on every row after the dataset was already loaded and the run was already registered
+
+    Today is Monday 24 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Dario Kestrel lost most of an afternoon to a persona-hub rerun that got a 400 back on every row after the dataset was already loaded and the run was already registered
+    
+    What it should get through:
+    
+    On the agenda: Dario Kestrel pastes the provider 400 body and points out the field it objected to has been in that Pydantic model since the file was written, so nothing about the run made it late-breaking; Gideon Halloway asks what actually happens between LLM() being constructed and the first HTTP request, because as far as he can tell nothing looks at response_format at all until a provider looks at it; Dermot Callaghan says the shape of the fix he wants is that it stops before anything goes out, not a nicer error after the fact, but he does not want to guess the rules from one 400
+    
+    Wrap when: agreement that some pre-dispatch check on response_format is worth building; nobody has claimed it, and what counts as incompatible is left as a list to be gathered; it is settled that the team agrees editing a response model currently yields stored objects shaped like the old schema
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 16 release(s) shipped, currently 0.1.19
+      - 267 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: confidence.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        Dario Kestrel lost most of an afternoon to a persona-hub rerun that got a 400 back on every row after the dataset was already loaded and the run was already registered
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. 
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+    goal        Dario Kestrel lost most of an afternoon to a persona-hub rerun that got a 400 back on every row after the dataset was already loaded and the run was already registered
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+    goal        Dario Kestrel lost most of an afternoon to a persona-hub rerun that got a 400 back on every row after the dataset was already loaded and the run was already registered
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Added a confidence field to the response model on the ungrounded QA example, reran, and got back last week's objects with no confidence on them. Then the downstream validator threw on every row and I spent an hour looking at the validator.   *** MUST SETTLE (clue t1.r1.l_schema_1) ***
+         must contain literally: confidence
+    goal        the team agrees editing a response model currently yields stored objects shaped like the old schema
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   agreement that some pre-dispatch check on response_format is worth building; nobody has claimed it, and what counts as incompatible is left as a list to be gathered; it is settled that the team agrees editing a response model currently yields stored objects shaped like the old schema
+
+
+==============================================================================
+# 2025-02-25 — 4 conversation(s), 50 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 10 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Five commits landed today touching core request processing, caching, and viewer integration; two PRs (533, 536) are under active review and older PRs (468, 532) need movement.
+
+    Today is Tuesday 25 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Five commits landed today touching core request processing, caching, and viewer integration; two PRs (533, 536) are under active review and older PRs (468, 532) need movement.
+    
+    What it should get through:
+      1. Confirm PR 533 (resume/hosted curator viewer) is ready to land or needs rework   [Emil Brandvold must raise this]
+           - Emil outlines the four commits adding session ID tracking across the run lifecycle
+           - Dario flags whether the tag fix in 539 creates any conflicts with the metadata surface
+           - Decision: either merge 533 or identify what's blocking it
+      2. Resolve curator tag fix without breaking the viewer integration   [Dario Kestrel must raise this]
+           - Dario explains what broke in the tag and why commit 924692c fixes it
+           - Emil confirms session ID work doesn't touch the same code paths
+           - Either 539 lands now or gets deferred after 533
+      3. Validate that metadatadb schema changes don't create downstream friction   [Emil Brandvold must raise this]
+           - Emil walks through the schema validation logic in commit 557bbcff
+           - Dermot offers feedback on whether this approach matches the rest of the validation pattern
+           - Consensus on whether this is ready or needs another pass
+    
+    On the agenda: Session ID threading through request processor and resume flow; Curator tag fix and LLM interface consistency; Metadata schema validation in metadatadb
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: PR 533 either lands or gets a clear list of blockers; PR 539 lands or defers cleanly; the team agrees the metadata schema changes are sound.
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 16 release(s) shipped, currently 0.1.19
+      - 267 changes merged to date
+
+    On the table
+      - WS-033 design: Code Execution & Verifiers (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Four commits on session ID and metadata handling across request processing and caching
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm PR 533 (resume/hosted curator viewer) is ready to land or needs rework   *** MUST RAISE ***
+      2. Resolve curator tag fix without breaking the viewer integration
+      3. Validate that metadatadb schema changes don't create downstream friction   *** MUST RAISE ***
+      4. what "WS-033 design: Code Execution & Verifiers" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm PR 533 (resume/hosted curator viewer) is ready to land or needs rework
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. The curator tag fix (commit 924692c) that touches the same LLM interface surface
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm PR 533 (resume/hosted curator viewer) is ready to land or needs rework
+      2. Resolve curator tag fix without breaking the viewer integration   *** MUST RAISE ***
+      3. Validate that metadatadb schema changes don't create downstream friction
+    goal        Resolve curator tag fix without breaking the viewer integration
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Fresh perspective on whether the schema validation approach in metadatadb is sound
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Confirm PR 533 (resume/hosted curator viewer) is ready to land or needs rework
+      2. Resolve curator tag fix without breaking the viewer integration
+      3. Validate that metadatadb schema changes don't create downstream friction
+    goal        Five commits landed today touching core request processing, caching, and viewer integration; two PRs (533, 536) are under active review and older PRs (468, 532) need movement.
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   PR 533 either lands or gets a clear list of blockers; PR 539 lands or defers cleanly; the team agrees the metadata schema changes are sound.
+
+
+------------------------------------------------------------------------------
+## #engineering — 12 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Five commits landed today; four workstreams are mid-flight; two PRs older than the merge median (468, 532) need attention; one day-old PR (533) needs momentum.
+
+    Today is Tuesday 25 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Five commits landed today; four workstreams are mid-flight; two PRs older than the merge median (468, 532) need attention; one day-old PR (533) needs momentum.
+    
+    What it should get through:
+      1. Confirm Emil's session ID and request processor work is unblocking the resume flow   [Emil Brandvold must raise this]
+           - Emil summarizes the commits: session ID in metadata, request processor update for hosted curator, metadatadb schema validation
+           - Dario and Nikolai flag any cross-service concerns
+           - Team agrees this is the right direction or identifies what to change
+      2. Land or defer PR 536 (Claude 3.7 Reasoning) without further back-and-forth   [Dario Kestrel must raise this]
+           - Dario explains the three review comments he posted on 536
+           - Team decides if it's a blocker for release or can ship after 0.1.19
+           - If blocker: what is the fix; if not: merge or defer
+      3. Understand if the request processor changes create work for other teams   [Emil Brandvold must raise this]
+           - Emil notes which services are touched by the commits (bulk-llm-inference, provider-integrations, online-request-processing)
+           - Nikolai and Gideon (if involved) flag any observability or executor concerns
+           - Decision: no surprises or identify what needs follow-up
+    
+    On the agenda: Session ID and resume flow progress; Curator tag fix and LLM interface status; Claude 3.7 reasoning PR (536) and any blocking feedback; How request processor changes affect downstream services
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Team has a shared picture of what the four commits do, knows whether PR 536 is in the way, and agrees there are no hidden cross-service issues.
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 16 release(s) shipped, currently 0.1.19
+      - 267 changes merged to date
+
+    On the table
+      - WS-033 design: Code Execution & Verifiers (Emil Brandvold)
+      - Release notes: 0.1.19 (Gideon Halloway)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Four commits on session ID, request processing internals, and metadatadb; driving three active workstreams in provider integrations, online request processing, and release/CI
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm Emil's session ID and request processor work is unblocking the resume flow   *** MUST RAISE ***
+      2. Land or defer PR 536 (Claude 3.7 Reasoning) without further back-and-forth
+      3. Understand if the request processor changes create work for other teams   *** MUST RAISE ***
+      4. what "WS-033 design: Code Execution & Verifiers" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm Emil's session ID and request processor work is unblocking the resume flow
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. The curator tag fix and three review comments on PR 536 (Claude 3.7 Reasoning)
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Confirm Emil's session ID and request processor work is unblocking the resume flow
+      2. Land or defer PR 536 (Claude 3.7 Reasoning) without further back-and-forth   *** MUST RAISE ***
+      3. Understand if the request processor changes create work for other teams
+      4. what "Release notes: 0.1.19" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Land or defer PR 536 (Claude 3.7 Reasoning) without further back-and-forth
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Perspective on code execution hardening (ws-033) and overlap with the session ID / resume work
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Confirm Emil's session ID and request processor work is unblocking the resume flow
+      2. Land or defer PR 536 (Claude 3.7 Reasoning) without further back-and-forth
+      3. Understand if the request processor changes create work for other teams
+    goal        Five commits landed today; four workstreams are mid-flight; two PRs older than the merge median (468, 532) need attention; one day-old PR (533) needs momentum.
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. One review comment on PR 533; context on cookbooks and multimodal prompt handling
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Confirm Emil's session ID and request processor work is unblocking the resume flow
+      2. Land or defer PR 536 (Claude 3.7 Reasoning) without further back-and-forth
+      3. Understand if the request processor changes create work for other teams
+    goal        Five commits landed today; four workstreams are mid-flight; two PRs older than the merge median (468, 532) need attention; one day-old PR (533) needs momentum.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Team has a shared picture of what the four commits do, knows whether PR 536 is in the way, and agrees there are no hidden cross-service issues.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 14 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Five commits to core pipeline services today (bulk-llm-inference, online-request-processing, caching-and-resume, provider-integrations); ws-025 and ws-026 are mid-flight; PR 532 (batch response file async) is four days old and stale.
+
+    Today is Tuesday 25 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Five commits to core pipeline services today (bulk-llm-inference, online-request-processing, caching-and-resume, provider-integrations); ws-025 and ws-026 are mid-flight; PR 532 (batch response file async) is four days old and stale.
+    
+    What it should get through:
+      1. Validate the request processor refactoring for hosted curator doesn't break existing run lifecycle   [Emil Brandvold must raise this]
+           - Emil walks through commit d0c3445 (update request processor for prev run hosted curator) and the metadatadb schema change
+           - Dario confirms the LLM interface surface is unaffected by the session ID metadata
+           - Gideon confirms observability (progress bar, cost tracking) still works correctly
+      2. Unblock PR 532 (batch response file async) or understand what it's waiting on   [Emil Brandvold must raise this]
+           - Emil or Dario flags whether 532 is part of the current push or waiting on something else
+           - Team decides: merge this week or defer; it has been four days without movement
+           - If merge: quick review; if defer: document the dependency
+      3. Confirm provider backend integrations (Azure, inference.net) are tracking correctly with cost maps   [Emil Brandvold must raise this]
+           - Emil notes the issue opened today (Issue 538: Azure OpenAI + Batch API support)
+           - Team assesses: is this blocking anything or is it groundwork for later
+           - Quick decision on priority: now, after this release, or backlog
+    
+    On the agenda: Session ID and request processor refactoring for hosted curator; Batch response file handling and async method updates; Provider backend status (Azure, inference.net); Metadata and cost map tracking
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Request processor refactoring is validated; PR 532 has a clear path forward; team agrees on the priority of Azure OpenAI support (Issue 538).
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 16 release(s) shipped, currently 0.1.19
+      - 267 changes merged to date
+
+    On the table
+      - WS-033 design: Code Execution & Verifiers (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Four commits on session ID tracking, request processor refactoring for hosted curator, and metadatadb schema validation; driving provider-integrations, online-request-processing, and release-and-ci workstreams
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Validate the request processor refactoring for hosted curator doesn't break existing run lifecycle   *** MUST RAISE ***
+      2. Unblock PR 532 (batch response file async) or understand what it's waiting on   *** MUST RAISE ***
+      3. Confirm provider backend integrations (Azure, inference.net) are tracking correctly with cost maps   *** MUST RAISE ***
+      4. what "WS-033 design: Code Execution & Verifiers" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Validate the request processor refactoring for hosted curator doesn't break existing run lifecycle
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. The curator tag fix; three comments on PR 536 (Claude 3.7 Reasoning) touching the LLM interface
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Validate the request processor refactoring for hosted curator doesn't break existing run lifecycle
+      2. Unblock PR 532 (batch response file async) or understand what it's waiting on
+      3. Confirm provider backend integrations (Azure, inference.net) are tracking correctly with cost maps
+    goal        Five commits to core pipeline services today (bulk-llm-inference, online-request-processing, caching-and-resume, provider-integrations); ws-025 and ws-026 are mid-flight; PR 532 (batch response file async) is four days old and stale.
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Observer perspective on whether the progress bar upload feature (noted in ws-034) is working as expected
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Validate the request processor refactoring for hosted curator doesn't break existing run lifecycle
+      2. Unblock PR 532 (batch response file async) or understand what it's waiting on
+      3. Confirm provider backend integrations (Azure, inference.net) are tracking correctly with cost maps
+    goal        Five commits to core pipeline services today (bulk-llm-inference, online-request-processing, caching-and-resume, provider-integrations); ws-025 and ws-026 are mid-flight; PR 532 (batch response file async) is four days old and stale.
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. One comment on PR 533; context from recent work on multimodal and batch handling
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Validate the request processor refactoring for hosted curator doesn't break existing run lifecycle
+      2. Unblock PR 532 (batch response file async) or understand what it's waiting on
+      3. Confirm provider backend integrations (Azure, inference.net) are tracking correctly with cost maps
+    goal        Five commits to core pipeline services today (bulk-llm-inference, online-request-processing, caching-and-resume, provider-integrations); ws-025 and ws-026 are mid-flight; PR 532 (batch response file async) is four days old and stale.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Request processor refactoring is validated; PR 532 has a clear path forward; team agrees on the priority of Azure OpenAI support (Issue 538).
+
+
+------------------------------------------------------------------------------
+## #releases — 14 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #releases: Weekly tag is Thursday and Dario Kestrel wants to know whether to rush the PR
+
+    Today is Tuesday 25 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Weekly tag is Thursday and Dario Kestrel wants to know whether to rush the PR
+    
+    What it should get through:
+    
+    On the agenda: Dermot Callaghan says a reporting method landing on its own is fine, but anything that changes how entries are matched invalidates every user's cache directory and needs a loud changelog line and its own week; Emil Brandvold drafts the changelog wording for cache_stats() and asks for a docs sentence covering what the method reports when caching is switched off; Dario Kestrel asks whether the two can really ship separately given the numbers will be wrong until the matching is fixed; not resolved
+    
+    Wrap when: Method provisionally allowed in this cut, keying change pushed to the next one, Dario Kestrel's objection noted and not answered; it is settled that the team agrees first-time users hit a traceback before any run exists
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 16 release(s) shipped, currently 0.1.19
+      - 267 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 532: ref: make batch response file method async (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 559 function/class names and 30 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+    goal        Weekly tag is Thursday and Dario Kestrel wants to know whether to rush the PR
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. same shape in the onboarding notebook. Cell two of the quickstart asks how much the run will cost, user has never generated anything, they get a traceback and file an issue saying curator is broken on their machine. Three of those in the last two weeks and all three were day-one installs.   *** MUST SETTLE (clue t1.r2.L8) ***
+    goal        the team agrees first-time users hit a traceback before any run exists
     available   around today
 
   Dario Kestrel  (dario)
     role        Core Engineer, Request Processing. 
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-    goal        The summary table is where most users will actually read these counts
+    goal        Weekly tag is Thursday and Dario Kestrel wants to know whether to rush the PR
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Table wiring deferred until the method's return shape is fixed; cost projection unresolved; it is settled that the team agrees a fractional hit_rate is needed alongside raw counts
+    leaving   Method provisionally allowed in this cut, keying change pushed to the next one, Dario Kestrel's objection noted and not answered; it is settled that the team agrees first-time users hit a traceback before any run exists
+
+
+==============================================================================
+# 2025-02-26 — 4 conversation(s), 40 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #code-review — 12 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Five PRs in flight, three merged today, executor hardening landed and shipping in hotfix
+
+    Today is Wednesday 26 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Five PRs in flight, three merged today, executor hardening landed and shipping in hotfix
+    
+    What it should get through:
+      1. Confirm executor hardening ready to ship in v0.1.19.post1   [Nikolai Berresford must raise this]
+           - Nikolai Berresford raises: docker backend fix and examples now updated, executor in good shape
+           - Konrad Feltrin confirms: refactor is clean, no blocking issues
+           - Emil Brandvold notes: batch response file landed same day, reinforces stability
+      2. Announce code execution launch with updated README   [Konrad Feltrin must raise this]
+           - Konrad Feltrin: PR 547 up with launch news and links
+           - Nikolai Berresford: checks accuracy against what actually shipped
+           - Dario Kestrel or Emil Brandvold: approves for merge
+      3. Get cost estimation revamp (PR 546) unblocked for online processor work   [Gideon Halloway must raise this]
+           - Gideon Halloway explains the online processor cost structure changes
+           - Emil Brandvold or Dario Kestrel: flags any integration concerns
+           - Gideon Halloway: adjusts scope if needed
+    
+    On the agenda: Executor hardening PRs (PR 540, PR 541) post-merge review; README and release notes for code execution launch (PR 547); Cost estimation revamp (PR 546) initial feedback; Stale PRs blocking: PR 536 (Claude reasoning), PR 468 (n-samples), PR 533 (viewer)
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: PR 540, PR 541, PR 545 post-mortems posted; PR 547 approved and merged; PR 546 feedback captured; team confident v0.1.19.post1 is solid; it is settled that the team agrees a caller-supplied image currently runs the task as uid 0 while the shipped image does not
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 272 changes merged to date
+
+    On the table
+      - Release notes: v0.1.19.post1 (Nikolai Berresford)
+      - WS-033 design: Code Execution & Verifiers (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+      - PR 547: Update README.md to add code execution launch news (Konrad Feltrin)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 507 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: print(os.getuid()).
+
+### 3. What EACH PERSON is told
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. The executor fixes and version bump merged; knows what the docker backend changes were and why they matter
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Confirm executor hardening ready to ship in v0.1.19.post1   *** MUST RAISE ***
+      2. Announce code execution launch with updated README
+      3. Get cost estimation revamp (PR 546) unblocked for online processor work
+      4. Sanity check on my own build: first line of the task is `print(os.getuid())`. Against the python:3.11-slim I put together for the RAFT verifier it prints 0. Same snippet against the sandbox image we ship prints 1000. Took me an embarrassing while to work out that difference was coming from the image and not from anything I passed.   *** MUST SETTLE (clue t4.r2.L1) ***
+         must contain literally: print(os.getuid())
+      5. that the doc "Release notes: v0.1.19.post1" is done, and where the others can find it   *** MUST RAISE ***
+      6. that "v0.1.19.post1 hotfix is out" has gone out, and what you asked in it   *** MUST RAISE ***
+      7. what "WS-033 design: Code Execution & Verifiers" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm executor hardening ready to ship in v0.1.19.post1
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. The executor refactor work and the README update announcing the code execution launch
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Confirm executor hardening ready to ship in v0.1.19.post1
+      2. Announce code execution launch with updated README   *** MUST RAISE ***
+      3. Get cost estimation revamp (PR 546) unblocked for online processor work
+    goal        Announce code execution launch with updated README
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Batch response file async work landed; knows the broader test stability picture
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Confirm executor hardening ready to ship in v0.1.19.post1
+      2. Announce code execution launch with updated README
+      3. Get cost estimation revamp (PR 546) unblocked for online processor work
+    goal        Five PRs in flight, three merged today, executor hardening landed and shipping in hotfix
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Cost estimation revamp starting; fresh perspective on the PR queue
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Confirm executor hardening ready to ship in v0.1.19.post1
+      2. Announce code execution launch with updated README
+      3. Get cost estimation revamp (PR 546) unblocked for online processor work   *** MUST RAISE ***
+      4. that the doc "Weekly sync notes: week of Feb 24 — v0.1.19.post1 and v0.1.20 shipped" is done, and where the others can find it   *** MUST RAISE ***
+    goal        Get cost estimation revamp (PR 546) unblocked for online processor work
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   PR 540, PR 541, PR 545 post-mortems posted; PR 547 approved and merged; PR 546 feedback captured; team confident v0.1.19.post1 is solid; it is settled that the team agrees a caller-supplied image currently runs the task as uid 0 while the shipped image does not
+
+
+------------------------------------------------------------------------------
+## #releases — 6 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #releases: hotfix-release shipped today: v0.1.19.post1
+
+    Today is Wednesday 26 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: hotfix-release shipped today: v0.1.19.post1
+    
+    What it should get through:
+      1. Team knows v0.1.19.post1 is live with curator tag fix and executor hardening   [Nikolai Berresford must raise this]
+           - Nikolai Berresford announces the tag; posts release notes
+           - Dario Kestrel confirms curator tag fix is the main blocker addressed
+           - team acknowledges and moves on
+    
+    On the agenda: v0.1.19.post1 release announcement and changelog; What's fixed: curator tag, executor, batch response, bump version; Next: watch for any hotfix rollouts needed
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: v0.1.19.post1 announcement posted; team aware of what shipped; no rollback needed
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 272 changes merged to date
+
+    On the table
+      - release-v0-1-19-post1 (Nikolai Berresford)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+      - PR 547: Update README.md to add code execution launch news (Konrad Feltrin)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 507 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Just shipped v0.1.19.post1; has the release notes ready
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Team knows v0.1.19.post1 is live with curator tag fix and executor hardening   *** MUST RAISE ***
+      2. what "Release notes: v0.1.19.post1" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Team knows v0.1.19.post1 is live with curator tag fix and executor hardening
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Curator tag fix in the hotfix; knows the impact of that bugfix
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Team knows v0.1.19.post1 is live with curator tag fix and executor hardening
+    goal        hotfix-release shipped today: v0.1.19.post1
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Batch response async landed same day; part of the patch stability picture
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Team knows v0.1.19.post1 is live with curator tag fix and executor hardening
+    goal        hotfix-release shipped today: v0.1.19.post1
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Executor refactor merged; part of the hardening story
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Team knows v0.1.19.post1 is live with curator tag fix and executor hardening
+    goal        hotfix-release shipped today: v0.1.19.post1
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   v0.1.19.post1 announcement posted; team aware of what shipped; no rollback needed
+
+
+------------------------------------------------------------------------------
+## #cookbooks — 8 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #cookbooks: Code Executor Hardening landing with example updates and docker backend fix
+
+    Today is Wednesday 26 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Code Executor Hardening landing with example updates and docker backend fix
+    
+    What it should get through:
+      1. Examples updated and tested for code execution launch   [Nikolai Berresford must raise this]
+           - Nikolai Berresford: examples now point to the working executor
+           - Konrad Feltrin: confirms examples match the published recipe
+           - Emil Brandvold or Dario Kestrel: spot any fixture issues
+      2. Docker backend hardening is production-ready for code execution feature   [Nikolai Berresford must raise this]
+           - Nikolai Berresford: explains the speed-up and the fix
+           - Konrad Feltrin: refactor looks clean, no corners cut
+           - team: satisfied the feature is solid
+    
+    On the agenda: Example updates for code execution launch (PR 540); Docker backend and executor refactor landed (PR 541); README announcement ready (PR 547); Any fixture or CI gaps for the launch
+    
+    Meeting today: Weekly sync
+    
+    No longer here: Priya Vandersloot — do not expect them back or wait on them
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Examples confirmed correct; docker backend speed-up and refactor validated; code execution launch ready to announce; it is settled that the team agrees only the no-override default is being constrained, caller overrides stay free
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 272 changes merged to date
+
+    On the table
+      - WS-033 design: Code Execution & Verifiers (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+      - PR 547: Update README.md to add code execution launch news (Konrad Feltrin)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 507 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: CodeExecutor, backend_params.
+
+### 3. What EACH PERSON is told
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Docker backend fix and examples updated; knows the executor changes for published pipelines
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Examples updated and tested for code execution launch   *** MUST RAISE ***
+      2. Docker backend hardening is production-ready for code execution feature   *** MUST RAISE ***
+      3. what "WS-033 design: Code Execution & Verifiers" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Examples updated and tested for code execution launch
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Owns the examples and is launching the code execution feature; knows what needs to be in the README
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Examples updated and tested for code execution launch
+      2. Docker backend hardening is production-ready for code execution feature
+      3. I have no problem with people pointing `CodeExecutor` at their own image through `backend_params`, that is their machine and their risk, we do not need to police it. What bothers me is the out of the box path where the user never passes anything and quietly gets a different container than they did last month.   *** MUST SETTLE (clue t4.r1.L9) ***
+         must contain literally: CodeExecutor, backend_params
+    goal        the team agrees only the no-override default is being constrained, caller overrides stay free
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Release stability picture; knows whether the fixtures and CI are ready
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Examples updated and tested for code execution launch
+      2. Docker backend hardening is production-ready for code execution feature
+    goal        Code Executor Hardening landing with example updates and docker backend fix
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Curator tag fix; impacts how examples run
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Examples updated and tested for code execution launch
+      2. Docker backend hardening is production-ready for code execution feature
+    goal        Code Executor Hardening landing with example updates and docker backend fix
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Examples confirmed correct; docker backend speed-up and refactor validated; code execution launch ready to announce; it is settled that the team agrees only the no-override default is being constrained, caller overrides stay free
+
+
+------------------------------------------------------------------------------
+## #pipeline — 14 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Emil Brandvold went to add the check and found that by the time a request processor exists, the run has already touched the metadata DB and the cache directory
+
+    Today is Wednesday 26 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Emil Brandvold went to add the check and found that by the time a request processor exists, the run has already touched the metadata DB and the cache directory
+    
+    What it should get through:
+    
+    On the agenda: Emil Brandvold says he put a throwaway assert in base_request_processor and it fired, but by then there was already a run directory with a fingerprint row in it, and the next invocation treated that directory as a resume candidate; Dario Kestrel argues response_format is not always known at construction time in the recipe paths, so a constructor-only check will miss cases; Dermot Callaghan on getting bitten by the leftover row twice in one morning: he had to rm the cache dir by hand before the corrected schema would run at all, and says whatever we do the run should be refused before it earns a place on disk
+    
+    Wrap when: two candidate hook points on the table, neither chosen; Emil Brandvold to write down what the metadata DB has already committed at each point; it is settled that the team agrees the directory cannot be snapshotted at import time because users set the env var afterwards
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 272 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 533: Feat/resume/hosted curator viewer (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+      - PR 547: Update README.md to add code execution launch news (Konrad Feltrin)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 507 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: CURATOR_CACHE_DIR.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        Emil Brandvold went to add the check and found that by the time a request processor exists, the run has already touched the metadata DB and the cache directory
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. related annoyance from the notebook walkthrough: people import curator in cell 1 and then set CURATOR_CACHE_DIR in cell 4 because that is the order the tutorial reads. The sizing helper I wrote grabs the path once when the module loads, so it kept telling them about the default directory for the rest of the session and I got two emails about it.   *** MUST SETTLE (clue t1.r2.L2) ***
+         must contain literally: CURATOR_CACHE_DIR
+    goal        the team agrees the directory cannot be snapshotted at import time because users set the env var afterwards
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+    goal        Emil Brandvold went to add the check and found that by the time a request processor exists, the run has already touched the metadata DB and the cache directory
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   two candidate hook points on the table, neither chosen; Emil Brandvold to write down what the metadata DB has already committed at each point; it is settled that the team agrees the directory cannot be snapshotted at import time because users set the env var afterwards
+
+
+==============================================================================
+# 2025-02-27 — 4 conversation(s), 46 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #engineering — 12 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: PR PR 533 (hosted curator viewer) merged today; need to land the feature cleanly and understand integration points
+
+    Today is Thursday 27 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: PR PR 533 (hosted curator viewer) merged today; need to land the feature cleanly and understand integration points
+    
+    What it should get through:
+      1. Land PR 533 without regressions to caching or resume   [Emil Brandvold must raise this]
+           - Emil walks through what PR 533 ships (hosted viewer metadata and push)
+           - Dermot flags whether run lifecycle is clear
+           - Gideon confirms cost tracking is unaffected
+      2. Confirm token/cost path is correct for viewer requests   [Gideon Halloway must raise this]
+           - Gideon explains blocked_capacity usage in token estimate
+           - Emil clarifies whether push-to-viewer is metered differently
+           - Landed or deferred to next PR
+    
+    On the agenda: Viewer feature scope: what PR 533 ships vs defers; Caching and resume story for hosted runs; Cost accounting in the new viewer path
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: PR PR 533 reviewed and merged; team understands the hosted viewer cost model and any deferred work is flagged
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 276 changes merged to date
+
+    On the table
+      - WS-033 design: Code Execution & Verifiers (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 506 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. The hosted viewer feature design, implementation state, and test coverage
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Land PR 533 without regressions to caching or resume   *** MUST RAISE ***
+      2. Confirm token/cost path is correct for viewer requests
+      3. what "WS-033 design: Code Execution & Verifiers" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Land PR 533 without regressions to caching or resume
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Review perspective on the feature surface and integration points
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Land PR 533 without regressions to caching or resume
+      2. Confirm token/cost path is correct for viewer requests
+    goal        PR PR 533 (hosted curator viewer) merged today; need to land the feature cleanly and understand integration points
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Token estimation and capacity planning for the viewer backend
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Land PR 533 without regressions to caching or resume
+      2. Confirm token/cost path is correct for viewer requests   *** MUST RAISE ***
+    goal        Confirm token/cost path is correct for viewer requests
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   PR PR 533 reviewed and merged; team understands the hosted viewer cost model and any deferred work is flagged
+
+
+------------------------------------------------------------------------------
+## #code-review — 10 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: 4 open PRs including 2 older than era median; PR 549 and PR 551 are ready; team needs to clear the backlog
+
+    Today is Thursday 27 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: 4 open PRs including 2 older than era median; PR 549 and PR 551 are ready; team needs to clear the backlog
+    
+    What it should get through:
+      1. Land PR 549 (Anthropic bug fix) and PR 551 (README)   [Dario Kestrel must raise this]
+           - Dario explains the Anthropic UnboundLocalError and the fix
+           - Emil or Konrad approves
+           - Both merged same-day
+      2. Understand PR 546 (cost estimation) blockers and next step   [Gideon Halloway must raise this]
+           - Gideon states what PR 546 is waiting on
+           - Emil notes if it conflicts with today's viewer work
+           - Decision: merge, rebase, or defer
+      3. write up Postmortem: v0.1.19.post1 hotfix   [Konrad Feltrin must raise this]
+           - Konrad Feltrin says they will write Postmortem: v0.1.19.post1 hotfix — Explains what forced the same-day v0.1.19.post1 hotfix release.
+    
+    On the agenda: PR PR 549: Anthropic batch bug and fix; PR PR 551: README update merge; PR PR 546 and PR 468: Older PRs status check; Postmortem: v0.1.19.post1 hotfix
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: PR 549 and PR 551 merged; PR 546 and PR 468 have a clear owner and next step
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 276 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 506 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Two ready-to-land docs PRs and a bug fix for Anthropic batch
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Land PR 549 (Anthropic bug fix) and PR 551 (README)   *** MUST RAISE ***
+      2. Understand PR 546 (cost estimation) blockers and next step
+      3. write up Postmortem: v0.1.19.post1 hotfix
+    goal        Land PR 549 (Anthropic bug fix) and PR 551 (README)
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Code review bandwidth and context on recent changes
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Land PR 549 (Anthropic bug fix) and PR 551 (README)
+      2. Understand PR 546 (cost estimation) blockers and next step
+      3. write up Postmortem: v0.1.19.post1 hotfix
+    goal        4 open PRs including 2 older than era median; PR 549 and PR 551 are ready; team needs to clear the backlog
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Review perspective on PR PR 546 (cost estimation)
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Land PR 549 (Anthropic bug fix) and PR 551 (README)
+      2. Understand PR 546 (cost estimation) blockers and next step   *** MUST RAISE ***
+      3. write up Postmortem: v0.1.19.post1 hotfix
+    goal        Understand PR 546 (cost estimation) blockers and next step
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Landed PR 547; can advise on README patterns
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. Land PR 549 (Anthropic bug fix) and PR 551 (README)
+      2. Understand PR 546 (cost estimation) blockers and next step
+      3. write up Postmortem: v0.1.19.post1 hotfix   *** MUST RAISE ***
+      4. that the doc "Postmortem: v0.1.19.post1 hotfix" is done, and where the others can find it   *** MUST RAISE ***
+    goal        write up Postmortem: v0.1.19.post1 hotfix
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   PR 549 and PR 551 merged; PR 546 and PR 468 have a clear owner and next step
+
+
+------------------------------------------------------------------------------
+## #pipeline — 10 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: 5 commits to provider-integrations, 4 to online-request-processing today; hosted viewer and cost estimation both landing
+
+    Today is Thursday 27 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: 5 commits to provider-integrations, 4 to online-request-processing today; hosted viewer and cost estimation both landing
+    
+    What it should get through:
+      1. Hosted viewer sits cleanly in request/resume flow without breaking cost accounting   [Emil Brandvold must raise this]
+           - Emil explains where viewer metadata is added in the pipeline
+           - Gideon confirms cost accounting is unaffected
+           - Dario flags any Anthropic or batch-specific edge cases
+      2. Token estimation with blocked_capacity is stable across batch and online   [Gideon Halloway must raise this]
+           - Gideon walks through the blocked_capacity refactor (PR 546)
+           - Emil notes tqdm removal and batch changes (#52ff459)
+           - Landed or specific blockers called out
+    
+    On the agenda: Hosted viewer integration into request flow; Token estimation and blocked_capacity alignment; Batch vs online cost accounting parity
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Viewer and cost-estimation work are aligned; any conflicts or deferred items are explicit
+    
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 276 changes merged to date
+
+    On the table
+      - WS-033 design: Code Execution & Verifiers (Emil Brandvold)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 506 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Hosted viewer implementation, batch refactoring (tqdm removal), online processor token estimation
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Hosted viewer sits cleanly in request/resume flow without breaking cost accounting   *** MUST RAISE ***
+      2. Token estimation with blocked_capacity is stable across batch and online
+      3. what "WS-033 design: Code Execution & Verifiers" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Hosted viewer sits cleanly in request/resume flow without breaking cost accounting
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Token estimation refactor using blocked_capacity
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Hosted viewer sits cleanly in request/resume flow without breaking cost accounting
+      2. Token estimation with blocked_capacity is stable across batch and online   *** MUST RAISE ***
+    goal        Token estimation with blocked_capacity is stable across batch and online
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Context on Anthropic integration and bug patterns
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Hosted viewer sits cleanly in request/resume flow without breaking cost accounting
+      2. Token estimation with blocked_capacity is stable across batch and online
+    goal        5 commits to provider-integrations, 4 to online-request-processing today; hosted viewer and cost estimation both landing
+    available   around today
+
+### 4. How it should land
+
+    lands as  partial
+    leaving   Viewer and cost-estimation work are aligned; any conflicts or deferred items are explicit
+
+
+------------------------------------------------------------------------------
+## #general — 14 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #general: Dario Kestrel reworked the PR after the first review and wants it merged before the cut
+
+    Today is Thursday 27 February 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Dario Kestrel reworked the PR after the first review and wants it merged before the cut
+    
+    What it should get through:
+    
+    On the agenda: client construction is gone and it does a single pass over metadata.db; Gideon Halloway confirms it is fast now but the two counts still do not sum to len(dataset) on his dataset with repeated prompts; Dermot Callaghan asks him to prove it runs with no network at all and no provider keys in the environment, since he demos this on planes and has been caught out before; Emil Brandvold still has not checked batch mode and offline parity from two weeks ago and says he will do it before the tag
+    
+    Wrap when: Close to approval, blocked on the duplicate accounting and on Emil Brandvold's outstanding batch and offline check; it is settled that the team agrees counts pasted without their location cost multiple support round trips to interpret
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Stratos Crunch: Backend Explosion and Loosened Process
+
+    Settled
+      - 17 release(s) shipped, currently v0.1.19.post1
+      - 276 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 536: Claude 3.7 Reasoning (Dario Kestrel)
+      - PR 546: Cost Estimation revamp [1/n] Online processors (Gideon Halloway)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 92: [UI] Detail View support better JSON / markdown etc file extension views
+      - issue 93: [UI] Display status of the run
+      - issue 94: metadata.db updates run status (enum), run progress (percentage), etc
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 105: Distribution graph is skewed for data viewer 
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+
+    DOES NOT EXIST YET (4 names)
+      - agentic-curation
+      - blocks-and-recipes
+      - finetuning
+      - — and 506 function/class names and 22 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        Dario Kestrel reworked the PR after the first review and wants it merged before the cut
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. 
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. support thread from yesterday, three round trips. User pasted counts showing zero served locally, we were sure their re-run should have been almost free. I had to get them to echo their env, then ls two directories, before we worked out they had one cache from a docker session and another from their laptop shell. The counts on their own told me nothing.   *** MUST SETTLE (clue t1.r2.L10) ***
+    goal        the team agrees counts pasted without their location cost multiple support round trips to interpret
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+    goal        Dario Kestrel reworked the PR after the first review and wants it merged before the cut
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+    goal        Dario Kestrel reworked the PR after the first review and wants it merged before the cut
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Close to approval, blocked on the duplicate accounting and on Emil Brandvold's outstanding batch and offline check; it is settled that the team agrees counts pasted without their location cost multiple support round trips to interpret
 

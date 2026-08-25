@@ -314,3 +314,14 @@
 {"path": "nikolai@world.local/INBOX/0002-weekly-update-week-of-feb-10-pickler-regression.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-02-17T09:49:00+00:00", "flags": []}
 {"path": "gideon@world.local/INBOX/0002-weekly-update-week-of-feb-10-pickler-regression.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-02-17T09:49:00+00:00", "flags": []}
 {"path": "priya@world.local/INBOX/0002-weekly-update-week-of-feb-10-pickler-regression.eml", "mailbox": "priya@world.local", "folder": "INBOX", "date": "2025-02-17T09:49:00+00:00", "flags": []}
+{"path": "emil@world.local/Sent/0001-weekly-update-week-of-feb-17-0-1-19-shipped.eml", "mailbox": "emil@world.local", "folder": "Sent", "date": "2025-02-24T09:07:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0001-weekly-update-week-of-feb-17-0-1-19-shipped.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-02-24T09:07:00+00:00", "flags": []}
+{"path": "gideon@world.local/INBOX/0001-weekly-update-week-of-feb-17-0-1-19-shipped.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-02-24T09:07:00+00:00", "flags": []}
+{"path": "nikolai@world.local/INBOX/0001-weekly-update-week-of-feb-17-0-1-19-shipped.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-02-24T09:07:00+00:00", "flags": []}
+{"path": "nikolai@world.local/Sent/0002-v0-1-19-post1-hotfix-is-out.eml", "mailbox": "nikolai@world.local", "folder": "Sent", "date": "2025-02-26T09:49:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0002-v0-1-19-post1-hotfix-is-out.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-02-26T09:49:00+00:00", "flags": []}
+{"path": "emil@world.local/INBOX/0002-v0-1-19-post1-hotfix-is-out.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2025-02-26T09:49:00+00:00", "flags": []}
+{"path": "gideon@world.local/INBOX/0002-v0-1-19-post1-hotfix-is-out.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-02-26T09:49:00+00:00", "flags": []}
+{"path": "konrad@world.local/INBOX/0002-v0-1-19-post1-hotfix-is-out.eml", "mailbox": "konrad@world.local", "folder": "INBOX", "date": "2025-02-26T09:49:00+00:00", "flags": []}
+{"path": "nikolai@world.local/Sent/0003-ws-033-verifier-contract-input-from-code-executi.eml", "mailbox": "nikolai@world.local", "folder": "Sent", "date": "2025-02-26T10:10:00+00:00", "flags": ["\\Seen"]}
+{"path": "emil@world.local/INBOX/0003-ws-033-verifier-contract-input-from-code-executi.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2025-02-26T10:10:00+00:00", "flags": []}

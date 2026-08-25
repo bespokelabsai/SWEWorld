@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-96 of 98 obligations met.
+101 of 103 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -113,3 +113,8 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-02-17 | konrad | send | 09:49 | Weekly update: week of Feb 10 — pickler regression |
 | 2025-02-17 | gideon | send | NO | 0.1.19 is out |
 | 2025-02-19 | gideon | write | 09:14 | Weekly sync notes: week of Feb 17 — 0.1.19 shipped |
+| 2025-02-24 | emil | send | 09:07 | Weekly update: week of Feb 17 — 0.1.19 shipped |
+| 2025-02-26 | nikolai | write | 09:14 | Release notes: v0.1.19.post1 |
+| 2025-02-26 | nikolai | send | 09:49 | v0.1.19.post1 hotfix is out |
+| 2025-02-26 | gideon | write | 09:35 | Weekly sync notes: week of Feb 24 — v0.1.19.post1 and v0.1.20 shipped |
+| 2025-02-27 | konrad | write | 09:14 | Postmortem: v0.1.19.post1 hotfix |

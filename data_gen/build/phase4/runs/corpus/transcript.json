@@ -9396,6 +9396,549 @@
           "userId": "gideon",
           "text": "Did anyone actually pick up PR 509 for review yet?",
           "ts": "2025-02-20T13:12:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress bar wiring is merged and observability is e2e",
+          "ts": "2025-02-21T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still need to sort out executor cleanup scope before I feel good about the release",
+          "ts": "2025-02-21T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 532 has been sitting since yesterday and I want to get it merged today, but I'm a little uneasy pushing it through while executor cleanup scope is still unsettled. Anyone with batch-mode context have time to take a look before this afternoon?",
+          "ts": "2025-02-21T09:05:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 532 touches batch-mode, not release-blocking but I'd like eyes on it before end of day, it's been sitting since yesterday and the merge window's not going to stay open over the weekend",
+          "ts": "2025-02-21T09:46:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, PR 532 is batch-mode, been open since yesterday, can you take a look before this afternoon?",
+          "ts": "2025-02-21T10:15:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario or @Emil, is there a specific concern with PR 532 that's been holding it up, or does it just need eyes?",
+          "ts": "2025-02-21T13:35:33"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll pull up PR 532 now",
+          "ts": "2025-02-21T14:02:33",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 532 is the async batch response file refactor, batch-mode only, no release-blocking concern on my end",
+          "ts": "2025-02-21T14:22:45"
+        },
+        {
+          "userId": "emil",
+          "text": "It's been sitting because it needed a second set of eyes, not because anything was flagged",
+          "ts": "2025-02-21T14:22:57"
+        },
+        {
+          "userId": "emil",
+          "text": "The one thing worth checking is whether the async path handles the resume offset correctly on a partial run, that's the only area I'd want someone to poke at before approving",
+          "ts": "2025-02-21T14:23:09",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-02-21T14:23:21"
+        },
+        {
+          "userId": "dario",
+          "text": "Does the async path read the offset from the cache, or does it re-derive it from the file itself?",
+          "ts": "2025-02-21T14:23:21",
+          "threadParentTs": "2025-02-21T14:23:09"
+        },
+        {
+          "userId": "dario",
+          "text": "Still waiting on the offset question before I can sign off on PR 532.",
+          "ts": "2025-02-21T14:23:52"
+        },
+        {
+          "userId": "dario",
+          "text": "If the async path re-derives the offset from the file rather than reading it from the cache, that's a resume correctness issue and I'd want it fixed before this merges.",
+          "ts": "2025-02-21T14:23:57"
+        },
+        {
+          "userId": "emil",
+          "text": "I'd have to look at the PR to answer that, I haven't read the actual implementation.",
+          "ts": "2025-02-21T15:25:16"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel you're already in the code, if it's re-deriving from the file flag it as a blocker and we push 532 to next week.",
+          "ts": "2025-02-21T15:25:48"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 533 is up for review, it's the viewer resume integration, touches curator-viewer and caching-and-resume. Not blocking a release but I'd like to get eyes on it this week.",
+          "ts": "2025-02-24T09:00:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Sent the weekly update to dario, gideon, and nikolai. Flagged PR 533 for review in there, and also asked whether PR 536 changes anything on the generation params contract, a little worried PR 468 and 536 are going to step on each other.",
+          "ts": "2025-02-24T10:45:10"
+        },
+        {
+          "userId": "dario",
+          "text": "- *bulk-llm-inference*: PR 536 is up, Claude 3.7 reasoning support\n- *caching-and-resume / curator-viewer*: will take a look at PR 533 today\n- On the 468/536 overlap, I don't think they step on each other, generation params contract is unchanged on my side, reasoning is additive",
+          "ts": "2025-02-24T10:57:10",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "When you say step on each other, you mean the `n` param specifically, or something broader in the request schema?",
+          "ts": "2025-02-24T10:57:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Mostly the `n` param, yeah. If reasoning is additive and the rest of the contract is unchanged, that's good. PR 468 is sitting a bit stuck though, I don't want to merge it before 536 lands, just in case something shakes out differently in review.",
+          "ts": "2025-02-24T11:06:29"
+        },
+        {
+          "userId": "dario",
+          "text": "Fair enough on holding 468. Is anyone free to look at PR 536 this afternoon, or should I be tagging someone specific?",
+          "ts": "2025-02-24T11:18:29"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take a look this afternoon.",
+          "ts": "2025-02-24T12:03:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone have bandwidth to take a look at PR 532 as well? It's a batch-mode refactor, pretty contained.",
+          "ts": "2025-02-24T12:03:50"
+        },
+        {
+          "userId": "emil",
+          "text": "@dario, have you had a chance to start on PR 533, or is that this afternoon?",
+          "ts": "2025-02-24T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Is PR 532 worth holding until 536 is in, or does it stand on its own?",
+          "ts": "2025-02-24T13:35:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Starting on PR 533 now, should have notes this afternoon",
+          "ts": "2025-02-24T13:44:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "On PR 532, I'd lean toward letting it stand on its own, doesn't look like it would block on 536 from what I can see",
+          "ts": "2025-02-24T13:44:08"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 536 is sitting there waiting on a first pass if anyone gets to it today",
+          "ts": "2025-02-24T13:44:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 536 (claude 3.7 reasoning) is through my review pass on bulk-llm-inference, no issues on my side with the provider params",
+          "ts": "2025-02-25T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "still need someone to confirm the reasoning token accounting lands correctly before I'd feel good calling it done",
+          "ts": "2025-02-25T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario is pr 533 still waiting on anything or is it ready to land?",
+          "ts": "2025-02-25T09:00:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil did you open pr 533, any blockers on that, or is it waiting on review?",
+          "ts": "2025-02-25T10:10:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone looked at the metadatadb schema changes in pr 533, I want to make sure there's no downstream friction before we land it",
+          "ts": "2025-02-25T11:14:47"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 533 I'm not fully sure on yet, still need to confirm the curator tag fix (commit 924692c) doesn't create problems for the viewer integration before I'd call it ready.",
+          "ts": "2025-02-25T11:17:47",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "same, that tag fix is the part I'm not fully sure on either",
+          "ts": "2025-02-25T12:01:15"
+        },
+        {
+          "userId": "emil",
+          "text": "On PR 533, is the curator tag fix the only blocker, or are the metadatadb schema changes also holding it up?",
+          "ts": "2025-02-25T12:47:01"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Release notes for v0.1.19.post1 are up on the wiki (Release notes: v0.1.19.post1, under engineering).\n\n- curator tag fix and executor hardening, both in code-execution\n- sandbox image runs tasks as uid 1000; caller-supplied image runs as uid 0, that's expected and noted\n- no breaking API changes, upgrade is just `pip install, upgrade`",
+          "ts": "2025-02-26T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 547 is up and ready for review, it's a README update announcing the code execution launch and touches examples-cookbooks",
+          "ts": "2025-02-26T09:07:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not blocking a release but I'd like to get it merged today",
+          "ts": "2025-02-26T09:07:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Weekly sync notes for the week of Feb 24 are up in the engineering wiki (Weekly sync notes: week of Feb 24, v0.1.19.post1 and v0.1.20 shipped)",
+          "ts": "2025-02-26T09:43:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also, PR 546 is open for feedback, first chunk of the cost estimation revamp touching online processors",
+          "ts": "2025-02-26T09:43:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "sent the hotfix announcement out over email to the team, pointing at the release notes in the wiki",
+          "ts": "2025-02-26T10:09:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "can someone take a look at PR 547 when they get a chance, it touches code-execution examples and i want to make sure the README changes are accurate before it goes in",
+          "ts": "2025-02-26T10:09:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take a look at PR 547",
+          "ts": "2025-02-26T10:24:49",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon Halloway thanks, can you specifically check that the uid behavior is described correctly, the part about caller-supplied images running as uid 0 vs the sandbox default of 1000",
+          "ts": "2025-02-26T11:05:49"
+        },
+        {
+          "userId": "emil",
+          "text": "got it, release notes look solid",
+          "ts": "2025-02-26T12:55:51",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai Berresford can you confirm the exact behavior?",
+          "ts": "2025-02-26T13:25:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "So like, is it that ANY caller-supplied image always runs as uid 0, or is that only when the image doesn't set a user itself?",
+          "ts": "2025-02-26T13:25:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "worth noting for PR 547 too, if it's only images that don't set USER, the README wording probably needs to say that rather than \"caller-supplied image runs as uid 0\" flat out",
+          "ts": "2025-02-26T13:43:56"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai Berresford if the behavior is narrower than \"all caller-supplied images,\" does that change what you already wrote in the release notes too, or just PR 547?",
+          "ts": "2025-02-26T13:56:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "from my own testing: `print(os.getuid())` in python:3.11-slim prints 0, same snippet in the shipped sandbox prints 1000",
+          "ts": "2025-02-26T14:37:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "sanity check on my own build: first line of the task is `print(os.getuid())`. against the python:3.11-slim i put together for the RAFT verifier it prints 0.",
+          "ts": "2025-02-26T14:37:58.666667"
+        },
+        {
+          "userId": "nikolai",
+          "text": "took me an embarrassingly long while to work out that difference was coming from the image and not from anything i passed",
+          "ts": "2025-02-26T14:38:01.333334"
+        },
+        {
+          "userId": "nikolai",
+          "text": "the difference is the image, we don't override the user in caller-supplied images, so whatever the image sets (or defaults to) is what runs",
+          "ts": "2025-02-26T14:38:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "yeah the release notes wording is too flat, \"caller-supplied runs as uid 0\" is only true for images that don't set their own user",
+          "ts": "2025-02-26T14:38:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does anyone have bandwidth to take a look at PR 546 this afternoon?",
+          "ts": "2025-02-26T15:20:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "It's the first chunk of the cost estimation revamp, online processors, and I'd like to get some feedback before end of day",
+          "ts": "2025-02-26T15:20:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "i can take a quick look at PR 546 this afternoon, no promises on a full review but i can at least capture initial feedback before end of day.",
+          "ts": "2025-02-26T15:45:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "WS-033 isn't on the wiki yet, Emil said it's still in draft. the verifier side is the part still being worked through, so i haven't been able to check whether it covers my piece.",
+          "ts": "2025-02-26T15:54:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Uid behavior is confirmed and settled now, a caller-supplied image with no USER set runs as uid 0, the sandbox image we ship runs as uid 1000",
+          "ts": "2025-02-26T16:38:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 547 needs a quick wording fix to reflect that before it goes in",
+          "ts": "2025-02-26T16:38:44"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-033 is still in draft on my end, the verifier contract piece is taking a bit longer than I expected",
+          "ts": "2025-02-26T16:47:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Aiming to get it posted before I wrap up today",
+          "ts": "2025-02-26T16:47:49"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll get the uid wording updated in PR 547 now so it's ready to merge before end of day",
+          "ts": "2025-02-26T17:35:38"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 and 533 are both still in flight, nothing new on either today, I was heads down on WS-033 most of the afternoon.",
+          "ts": "2025-02-26T18:09:38"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 547 wording fix is still pending on my end, will have it up tonight.",
+          "ts": "2025-02-26T18:13:38"
+        },
+        {
+          "userId": "emil",
+          "text": "Didn't get to PR 546 today, was in the weeds on WS-033. I can take a pass at it tomorrow morning.",
+          "ts": "2025-02-26T18:20:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- *v0.1.19.post1* shipped, release notes are on the wiki\n- *uid behavior* settled: shipped sandbox runs as uid 1000, caller-supplied image without USER set runs as uid 0\n- sent Emil the verifier contract input for WS-033, that piece is off my plate",
+          "ts": "2025-02-26T18:29:02.227799",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 549 and PR 551 are ready for eyes, both pretty small",
+          "ts": "2025-02-27T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "549 is the Anthropic bug fix and 551 is just a README update, neither is blocking anything",
+          "ts": "2025-02-27T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Postmortem for v0.1.19.post1 is up on the wiki, anyone have anything to add before I mark it done?",
+          "ts": "2025-02-27T09:20:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Postmortem looks solid to me",
+          "ts": "2025-02-27T10:52:37",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 549 is the fix it's talking about, up for review in #code-review if anyone wants to close the loop before marking this done",
+          "ts": "2025-02-27T10:52:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 546 is stalled, I'm not sure the cost model for viewer requests is settled yet, and I don't want to merge the online processor side without knowing how they're going to interact.",
+          "ts": "2025-02-27T11:31:13"
+        },
+        {
+          "userId": "dario",
+          "text": "same on 546, the viewer cost model isn't settled on my end either",
+          "ts": "2025-02-27T12:02:13"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 still needs eyes if anyone has a few minutes this afternoon.",
+          "ts": "2025-02-27T12:17:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "thursday afternoons hit different, I always think there's more day left than there is",
+          "ts": "2025-02-27T14:21:20"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 549 and PR 551 need eyes too if anyone's around this afternoon.",
+          "ts": "2025-02-27T14:25:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "Postmortem for v0.1.19.post1 is done and filed on the wiki, title is \"Postmortem: v0.1.19.post1 hotfix\" if anyone needs to find it later",
+          "ts": "2025-02-27T14:42:20",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon Halloway for PR 546, is the viewer cost model something that gets its own issue to track, or are you and Dario planning to sync on it first before deciding next steps?",
+          "ts": "2025-02-27T14:42:42"
+        },
+        {
+          "userId": "dario",
+          "text": "good turnaround on that postmortem, Konrad",
+          "ts": "2025-02-27T15:40:13",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad Feltrin I think an issue makes sense, the viewer cost model question is still open on both our ends, @Dario Kestrel do you want to open it or should I?",
+          "ts": "2025-02-27T16:14:13"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll open the viewer cost model issue.",
+          "ts": "2025-02-27T16:54:13"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 549 and PR 551 still need a reviewer before end of day, neither is blocking anything but I'd like to get them merged today",
+          "ts": "2025-02-27T16:54:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Still need a reviewer on PR 468 too if anyone has bandwidth before end of day.",
+          "ts": "2025-02-27T17:05:25"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll take PR 549 and PR 551 if nobody else has grabbed them",
+          "ts": "2025-02-27T17:29:45",
+          "reactions": [
+            {
+              "emoji": "🔥",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 is a tomorrow problem at this point",
+          "ts": "2025-02-27T17:29:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "thanks Dario",
+          "ts": "2025-02-27T17:44:50"
+        },
+        {
+          "userId": "dario",
+          "text": "- *PR 549 + 551*: Emil's on them, should be done shortly\n- *PR 546*: still blocked on viewer cost model, haven't opened the issue yet\n- PR 468: tomorrow per Emil",
+          "ts": "2025-02-27T18:13:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Working through 549 now, 551 is next.",
+          "ts": "2025-02-27T18:16:50"
         }
       ],
       "projectSpec": {
@@ -11434,6 +11977,179 @@
           "userId": "dario",
           "text": "Honestly, if the recipe check isn't done yet and we're basically at end of day, do we just call the fix a one-off for now and revisit the cookbok rollout once Konrad actually pulls the recipes?",
           "ts": "2025-02-11T18:22:28.434435"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- examples are updated and tested against the new docker backend for code execution launch\n- the hardening is in, sandbox image runs as uid 1000 by default\n- WS-033 design doc I haven't actually opened yet, will check this morning to see if it covers the verifier side",
+          "ts": "2025-02-26T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are we agreed that the uid 0 behavior only matters for the default path, and someone passing their own image through `backend_params` is still totally free to do that?",
+          "ts": "2025-02-26T09:27:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "yep",
+          "ts": "2025-02-26T10:03:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "caller overrides through `backend_params` are free",
+          "ts": "2025-02-26T10:04:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "separately, `print(os.getuid())` in a caller-supplied python:3.11-slim returns 0; in the sandbox image we ship it returns 1000",
+          "ts": "2025-02-26T10:04:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "That's exactly the split I wanted. Quick sanity check I ran this morning:\n\n```python\nexecutor = CodeExecutor()\nprint(os.getuid()) # 1000 — sandbox image default\n```\n\ncaller-supplied gets 0, that's their call.",
+          "ts": "2025-02-26T10:44:21",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "nice, that's the split exactly",
+          "ts": "2025-02-26T12:45:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "WS-033 design doc isn't on the wiki yet, I went looking and it's not there",
+          "ts": "2025-02-26T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, that one's yours when it's ready, I want to check whether it covers the verifier side before we call the launch fully documented",
+          "ts": "2025-02-26T12:51:12"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I haven't done my own pass on the examples yet, so I'd lean toward not calling that side confirmed until I have",
+          "ts": "2025-02-26T13:40:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Can take a look this afternoon",
+          "ts": "2025-02-26T13:40:53"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-033 design is still in draft on my end, I'll get it on the wiki this afternoon. The verifier side is the part I'm still working through, so Nikolai's check will be timely.",
+          "ts": "2025-02-26T14:10:53"
+        },
+        {
+          "userId": "dario",
+          "text": "Went through the examples on my end, everything looks correct against the new docker backend. Nothing jumped out as broken.",
+          "ts": "2025-02-26T14:37:53",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, when WS-033 lands on the wiki, what does the verifier spec actually cover, is there a contract for what a verifier has to return, or is that still open?",
+          "ts": "2025-02-26T15:50:26"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai that's the open part in my draft",
+          "ts": "2025-02-26T16:14:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Can you send me what you think the return contract needs to cover from the code-execution side and I'll get it into the doc",
+          "ts": "2025-02-26T16:14:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "sure",
+          "ts": "2025-02-26T16:34:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll send it over by end of day",
+          "ts": "2025-02-26T16:34:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "from my side the key things are exit code, stdout/stderr capture, and timeout behavior, i want to make sure the doc is clear on what the executor guarantees versus what the verifier has to handle itself",
+          "ts": "2025-02-26T16:34:50",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Are we good to call the launch ready to announce, or do we want to wait until WS-033 is on the wiki first?",
+          "ts": "2025-02-26T16:45:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "actually, I think the examples and docker backend are confirmed",
+          "ts": "2025-02-26T16:46:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Pointing `CodeExecutor` at your own image through `backend_params` is fine, that's your machine and your risk, we don't need to police it",
+          "ts": "2025-02-26T17:31:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "What I don't want is the out of the box path where someone never passes anything and quietly gets a different container than they did last month, that's the only part we're locking down",
+          "ts": "2025-02-26T17:31:28"
+        },
+        {
+          "userId": "nikolai",
+          "text": "that's exactly the split, yes.",
+          "ts": "2025-02-26T17:51:28"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-033 is waiting on Nikolai's input, I'll get it posted once that comes in.",
+          "ts": "2025-02-26T17:53:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Examples are confirmed on my end.",
+          "ts": "2025-02-26T18:26:28"
+        },
+        {
+          "userId": "nikolai",
+          "text": "just sent Emil my input on the verifier return contract",
+          "ts": "2025-02-26T18:28:41.957866",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-02-26T18:29:24.957866"
+        },
+        {
+          "userId": "konrad",
+          "text": "So once Emil posts WS-033, are we calling the launch documented and ready to announce?",
+          "ts": "2025-02-26T18:29:24.957866",
+          "threadParentTs": "2025-02-26T18:28:41.957866"
         }
       ],
       "projectSpec": {
@@ -19500,6 +20216,555 @@
           "userId": "dermot",
           "text": "viewer epic scope is still unresolved, Dario hasn't come back on it.",
           "ts": "2025-02-20T18:18:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "executor PRs are all merged, cleanup is underway on my end",
+          "ts": "2025-02-21T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "also flagged a docker example mismatch earlier this week, and i want to make sure we lock scope on that beofre today is out",
+          "ts": "2025-02-21T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good timing. Code-execution review is wrapped up on my end too, found a couple simplification spots while I was in there.",
+          "ts": "2025-02-21T09:31:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, are the simplification spots going into this cleanup pass, or are we keeping those separate?",
+          "ts": "2025-02-21T09:47:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Well, I'm not sure they should go in together, honestly",
+          "ts": "2025-02-21T10:13:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "The simplifications are pretty minor but I worry bundling them into cleanup blurs the scope of what this pass is actually for",
+          "ts": "2025-02-21T10:13:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "fair",
+          "ts": "2025-02-21T10:35:13",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 468 is still sitting blocked on the n-samples question, needs a decision on whether we're merging this week or pushing to next",
+          "ts": "2025-02-21T11:47:09"
+        },
+        {
+          "userId": "emil",
+          "text": "yeah, PR 468 needs a call, it's been sitting two weeks",
+          "ts": "2025-02-21T12:27:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "issue 52 has the background on what the n-samples question actually covers, worth a look before we call PR 468 one way or the other.",
+          "ts": "2025-02-21T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "This probably needs someone with more authority to just call it, @Gideon Halloway can we get a decision on PR 468 before end of day?",
+          "ts": "2025-02-21T13:19:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm leaning defer, but I want to look at issue 52 before I call it, give me a bit.",
+          "ts": "2025-02-21T13:30:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Working through some cleanup on progress-and-cli this morning, the CLI output was getting pretty noisy on longer runs so I'm tightening that up. Should have a PR up this afernoon.",
+          "ts": "2025-02-24T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the noisiest part, is it the per-row logging or something in the progress bar rendering?",
+          "ts": "2025-02-24T09:24:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Per-row logging mostly, it was flushing a line for every single row even on runs with thousands of samples",
+          "ts": "2025-02-24T09:50:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Batching that up now",
+          "ts": "2025-02-24T09:50:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario heard you were hitting 400s on a rerun - what was the request it was rejecting?",
+          "ts": "2025-02-24T10:22:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario loop me in on that too, request dispatch is my side",
+          "ts": "2025-02-24T10:43:05"
+        },
+        {
+          "userId": "dario",
+          "text": "oh yeah, will loop you both in",
+          "ts": "2025-02-24T11:01:05"
+        },
+        {
+          "userId": "dario",
+          "text": "So basically lost most of yesterday afternoon to this. Had a run already registered and the dataset fully loaded, went to rerun it after tweaking the response model, and every single row came back 400.",
+          "ts": "2025-02-24T11:01:49"
+        },
+        {
+          "userId": "dario",
+          "text": "The request was going out fine, no auth issues, just rejecting on the response_format",
+          "ts": "2025-02-24T11:01:54"
+        },
+        {
+          "userId": "dario",
+          "text": "Took me a while to figure out the stored objects were still shaped like the old schema, so the new model was incompatible with what was already cached",
+          "ts": "2025-02-24T11:02:06",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-24T11:04:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "ugh, so editing the response model doesn't reshape what's already stored",
+          "ts": "2025-02-24T11:04:06"
+        },
+        {
+          "userId": "gideon",
+          "text": "So the stored rows just keep whatever shape they had when first written, even after the model changes?",
+          "ts": "2025-02-24T11:04:47",
+          "threadParentTs": "2025-02-24T11:02:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-02-24T11:25:34"
+        },
+        {
+          "userId": "dario",
+          "text": "exactly. @Gideon can you put together a list of what else hits that same problem, other cases where the format would be incompatible at dispatch time?",
+          "ts": "2025-02-24T11:25:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm thinking just response_format stuff, but you might mean anything that can go stale between registration and dispatch?",
+          "ts": "2025-02-24T11:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Start with response_format, that's the one that burned me. We're aligned that a pre-dispatch check is worth building",
+          "ts": "2025-02-24T11:47:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure the check should hard-block at dispatch or just warn, and that probably matters for how it's built",
+          "ts": "2025-02-24T12:20:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-24T13:50:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we have a view on that?",
+          "ts": "2025-02-24T12:20:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Hit the same thing. Added a confidence field to the response model on the ungrounded QA example, reran, and got back last week's objects with no confidence on them.",
+          "ts": "2025-02-24T13:40:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Validator threw on every row and I spent an hour on it before realizing the stored objects were still the old shape, nothing wrong with the validator at all.",
+          "ts": "2025-02-24T13:40:07"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth a quick sync to nail down the warn vs block question, anyone free this afternoon?",
+          "ts": "2025-02-24T13:50:07"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think I lean block honestly, a warn that gets scrolled past and then every row 400s anyway doesn't feel like much of an improvement.",
+          "ts": "2025-02-24T13:50:21",
+          "threadParentTs": "2025-02-24T12:20:00"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure block is right either though, if someone intentionally tweaks the model mid-run they're going to want some rows to go through, not a hard stop.",
+          "ts": "2025-02-24T13:51:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does that actually come up, intentionally changing the model mid-run and wanting to continue dispatching?",
+          "ts": "2025-02-24T14:07:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Actually answering my own question - I think even if you intended the change, you'd end up with mixed schema across the dataset, which seems worse than a hard stop",
+          "ts": "2025-02-24T14:07:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "Either way, are we doing Dario's sync this afternoon to actually call it?",
+          "ts": "2025-02-24T14:07:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm around this afternoon if you do a sync, finishing up some bulk-llm-inference work now",
+          "ts": "2025-02-24T14:37:34"
+        },
+        {
+          "userId": "dario",
+          "text": "3:30 work for everyone?",
+          "ts": "2025-02-24T14:58:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "works for me",
+          "ts": "2025-02-24T15:00:34"
+        },
+        {
+          "userId": "emil",
+          "text": "works for me",
+          "ts": "2025-02-24T15:17:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "Did we land on who's building the pre-dispatch check, or is that still up for grabs?",
+          "ts": "2025-02-24T15:52:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "nice, the cli quieting was well overdue on longer runs.",
+          "ts": "2025-02-24T15:57:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "3:30 works, see you then",
+          "ts": "2025-02-24T15:57:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "Did anyone start a list of what counts as incompatible, or is that still TBD?",
+          "ts": "2025-02-24T16:11:46"
+        },
+        {
+          "userId": "dario",
+          "text": "Both still open, honestly. Let's use the sync to gather the incompatibles list and figure out who takes the check",
+          "ts": "2025-02-24T16:28:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Hard to gather the incompatibles list without knowing who's building it, the two questions aren't really separate.",
+          "ts": "2025-02-24T16:35:46",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-24T16:36:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "so you mean the list itself depends on how the check is implemented?",
+          "ts": "2025-02-24T16:36:16",
+          "threadParentTs": "2025-02-24T16:35:46"
+        },
+        {
+          "userId": "emil",
+          "text": "more that you need an owner before anyone can meaningfully scope it",
+          "ts": "2025-02-24T16:36:49",
+          "threadParentTs": "2025-02-24T16:35:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure you need an owner before you can start the list - does anyone just want to take a pass at it going into the sync?",
+          "ts": "2025-02-24T17:09:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take a first cut at the list before the sync.",
+          "ts": "2025-02-24T17:46:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR for the progress-and-cli logging is up, got the per-row batching in and it's a lot cleaner on long runs",
+          "ts": "2025-02-24T17:47:14",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Got my review notes on PR 533 posted, a few small things on the caching-and-resume side but nothing blocking. Still no owner on the pre-dispatch check but Gideon's list should help shake that out.",
+          "ts": "2025-02-24T18:26:14",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Worth noting for the list: it's not just response_format changes that hit this, anything that edits the stored schema between registration and dispatch will produce the same shape mismatch",
+          "ts": "2025-02-24T18:26:33"
+        },
+        {
+          "userId": "dario",
+          "text": "response_format is the one we've confirmed but probably not the only one",
+          "ts": "2025-02-24T18:26:45"
+        },
+        {
+          "userId": "nikolai",
+          "text": "code-execution is in decent shape this morning, mostly working through the verifier hookups for ws-033. no blockers on my end right now.",
+          "ts": "2025-02-25T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil is the session ID work on your side actually unblocking the resume flow, or is that still in progress?",
+          "ts": "2025-02-25T11:35:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Session ID work is done and merged",
+          "ts": "2025-02-25T11:58:29",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, the resume flow depends on how caching-and-resume picks that up on your end, can you confirm it's landing correctly?",
+          "ts": "2025-02-25T11:58:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Session ID and metadatadb changes are all merged. PR 533 is the active thing, sitting on the curator tag question before I'd call it ready to land.",
+          "ts": "2025-02-25T12:38:35"
+        },
+        {
+          "userId": "nikolai",
+          "text": "also flagging PR 536 (Claude 3.7 Reasoning), it's been sitting for a while and I'd like us to make call on it this afternoon, land or defer. It doesn't look like it blocks anything from my end, but I'm not certian whether Emil's request processor changes create any crossover into code-execution.",
+          "ts": "2025-02-25T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "hold on, let me check on that",
+          "ts": "2025-02-25T13:05:00"
+        },
+        {
+          "userId": "dario",
+          "text": "caching-and-resume is picking up Emil's session ID work fine on my end",
+          "ts": "2025-02-25T13:05:30",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Checked on the 0.1.19 release notes - the page isn't up yet",
+          "ts": "2025-02-25T13:05:35"
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone confirmed the token accounting for reasoning models yet, or is that still the open question blocking PR 536?",
+          "ts": "2025-02-25T14:17:35"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, request processor changes don't touch code-execution at all. It's all in the request layer:\n\n```python\nsession_id = _make_session_id(run_id, request_index)\nawait meta.update(request_id=req.id, session_id=session_id)\n```\n\nNo crossover into verifiers or execution hooks.",
+          "ts": "2025-02-25T14:19:35",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Testing PR 536 locally and the reasoning token counts in the response aren't lining up with what I'd expect from the API docs - anyone run into this?",
+          "ts": "2025-02-25T14:53:35"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-033 design page isn't up yet, I pulled it up and the wiki is empty",
+          "ts": "2025-02-25T16:06:24"
+        },
+        {
+          "userId": "emil",
+          "text": "That one's on me to write",
+          "ts": "2025-02-25T16:06:29"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot can you take the token accounting verification on PR 536, given you've already been through the bulk-llm-inference side?",
+          "ts": "2025-02-25T16:29:29"
+        },
+        {
+          "userId": "dario",
+          "text": "Token accounting on PR 536 is still unconfirmed and we're at the end of the day.",
+          "ts": "2025-02-25T16:51:23"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we calling it a defer to the next cut, or is someone actively trying to land it tonight?",
+          "ts": "2025-02-25T16:51:28"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon the 0.1.19 release notes still aren't on the wiki - is that coming tonight or tomorrow?",
+          "ts": "2025-02-25T18:28:52.691669"
+        },
+        {
+          "userId": "emil",
+          "text": "defer it",
+          "ts": "2025-02-25T18:29:40.292731",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 533 is through its second round of review and I think its in good shape now",
+          "ts": "2025-02-27T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "want to get it merged before the cut today",
+          "ts": "2025-02-27T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm still not sure it's clean on the caching and resume side, has anyone specifically checked that path?",
+          "ts": "2025-02-27T09:42:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-27T09:42:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "I haven't seen anyone explicitly verify that, and it's the right thing to flag before we merge.",
+          "ts": "2025-02-27T09:42:49",
+          "threadParentTs": "2025-02-27T09:42:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "So who's actually going to run that check before it goes in?",
+          "ts": "2025-02-27T10:47:41"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll check the caching and resume path - that's exactly what I've been watching on 533",
+          "ts": "2025-02-27T11:17:41",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Should have something beofre lunch",
+          "ts": "2025-02-27T11:17:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "nice, thanks Emil",
+          "ts": "2025-02-27T11:29:00",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Does anyone actually know if viewer requests go through cost accounting at all, or is that just assumed?",
+          "ts": "2025-02-27T11:37:16"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel - do viewer requests actually go through cost accounting, or is that still unconfirmed on your end?",
+          "ts": "2025-02-27T12:13:16"
+        },
+        {
+          "userId": "emil",
+          "text": "- PR 533 caching and resume check is done, path looks clean on my end\n- WS-033 design isn't in the wiki yet, that's on me to write up\n- Viewer cost model is still open, flagging that as a deferred item",
+          "ts": "2025-02-27T12:27:59",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-02-27T16:02:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "so \"deferred\" just means we know it's open, not that it's actually tracked anywhere yet?",
+          "ts": "2025-02-27T16:02:48",
+          "threadParentTs": "2025-02-27T12:27:59"
+        },
+        {
+          "userId": "gideon",
+          "text": "what did you actually run to verify the caching path, I want to know if it covers the resume case too",
+          "ts": "2025-02-27T16:21:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone actually confirmed whether viewer requests hit the cost accounting path, or is that still nobody-knows going into tomorrow?",
+          "ts": "2025-02-27T17:05:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Konrad's postmortem is solid, nice turnaround on that.",
+          "ts": "2025-02-27T17:27:09",
+          "reactions": [
+            {
+              "emoji": "👏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "WS-033 design still isn't in the wiki - I checked earlier - so nothing there yet on how execution requests sit in the cost path, and that's on me to write up.",
+          "ts": "2025-02-27T17:27:14"
         }
       ],
       "projectSpec": {
@@ -20164,6 +21429,129 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Had a support thread yesterday that went three rounds before we figured it out, user pasted cache counts showing zero served locally, looked like the re-run should have been nearly free, but the counts alone told me nothing. Took echoing their env and ls-ing two directories to find they had one cache from docker and another from their shell.",
+          "ts": "2025-02-27T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah this comes up more than it should, counts without the path behind them are basically unreadable for support purposes, and it ends up costing two or three extra round trips every time.",
+          "ts": "2025-02-27T09:16:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Would help a lot if the output just printed the path alongside the counts by default",
+          "ts": "2025-02-27T09:56:56"
+        },
+        {
+          "userId": "dermot",
+          "text": "is that tracked anywhere or does someone need to open an issue?",
+          "ts": "2025-02-27T10:10:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "Konrad got the postmortem up fast, that's a solid doc.",
+          "ts": "2025-02-27T10:56:15",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Reworked the PR after the first review, it's ready for another look if anyone has a minute before the cut this afternoon",
+          "ts": "2025-02-27T11:50:38"
+        },
+        {
+          "userId": "emil",
+          "text": "On it.",
+          "ts": "2025-02-27T12:09:44",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel what was the main thing you changed in the rework?",
+          "ts": "2025-02-27T12:27:44"
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone else eating lunch at their desk or is it just a me thing today",
+          "ts": "2025-02-27T12:57:44"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot Callaghan tightened up the fix based on the first review comments, it's ready for another pass now if you have a few minutes this afternoon",
+          "ts": "2025-02-27T13:37:44"
+        },
+        {
+          "userId": "gideon",
+          "text": "Going to open an issue for printing the cache path alongside counts, the support thread yesterday made it pretty clear we need it.",
+          "ts": "2025-02-27T14:13:44"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth including it in the resume summary output too, not just on the initial count display",
+          "ts": "2025-02-27T14:17:44"
+        },
+        {
+          "userId": "gideon",
+          "text": "Good call",
+          "ts": "2025-02-27T14:59:44",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll make sure the issue covers both spots",
+          "ts": "2025-02-27T14:59:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "Opening it now so it doesn't fall through",
+          "ts": "2025-02-27T15:00:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Can someone link me to that support thread from yesterday?",
+          "ts": "2025-02-27T15:32:08"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd want to read the full thing before anything lands in caching-and-resume",
+          "ts": "2025-02-27T15:32:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "Don't have a link to the support thread, it was a DM channel, but the issue isn't filed yet either, I'll get it up by end of day with enough context that it stands on its own",
+          "ts": "2025-02-27T16:00:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure the duplicate accounting got sorted in the rework, that was my main flag the first time.",
+          "ts": "2025-02-27T16:17:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "somehow this afternoon completely got away from me.",
+          "ts": "2025-02-27T16:18:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "Issue for the cache path display is still on me to file, but I think we're all agreed it's needed, going to get it up before I close out today",
+          "ts": "2025-02-27T16:50:03"
         }
       ],
       "projectSpec": {
@@ -20282,7 +21670,8 @@
       "isPrivate": false,
       "memberIds": [
         "dario",
-        "dermot"
+        "dermot",
+        "emil"
       ],
       "messages": [
         {
@@ -20376,6 +21765,118 @@
           "userId": "dario",
           "text": "the batch path probably never even parses the request body, so it wouldn't see updated params regardless",
           "ts": "2025-02-05T14:48:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "examples-cookbooks is mostly solid, but I've hit the shared cache sqlite problem twice now",
+          "ts": "2025-02-21T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "mount is read-only except for the nightly job, and sqlite tries to put a journal next to the file on any open. so it dies beofre reading a single row, even if you're just counting entries.",
+          "ts": "2025-02-21T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "error you get on the open, even with no writes:\n\n```\nsqlite3.OperationalError: attempt to write a readonly database\n```",
+          "ts": "2025-02-21T09:00:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "still stuck on this, can't get anythig useful from the cache metadata until there's a safe way to open the file on that mount",
+          "ts": "2025-02-21T09:34:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "is the plan to fix the mount, or are we just working around it in scripts?",
+          "ts": "2025-02-21T10:28:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure the test helper workaround is the right answer long term, but that's the direction I'm leaning unless someone actually wants to revisit the mount config",
+          "ts": "2025-02-21T10:47:18"
+        },
+        {
+          "userId": "emil",
+          "text": "same error hit our test helper on the stats path",
+          "ts": "2025-02-21T12:39:04"
+        },
+        {
+          "userId": "emil",
+          "text": "The workaround in the test helper, is that opening with `uri=True` and the `?mode=ro` flag, or something else entirely?",
+          "ts": "2025-02-21T12:39:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-02-21T12:50:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Did the `?mode=ro` approach actually fix it, or are you still getting the journal error?",
+          "ts": "2025-02-21T14:19:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "workaround is in the test helper, the `?mode=ro` uri flag sorted it. I'll put the edge cases as comments on the PR beofre end of day.",
+          "ts": "2025-02-21T14:46:34",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Are we good calling this the settled approach, workaround in the test helper and edge cases documented on the PR?",
+          "ts": "2025-02-21T15:17:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean, not quite yet - edge cases still need to go on the PR",
+          "ts": "2025-02-21T15:32:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll get the edge case comments on the PR this afternoon, then we can call it settled",
+          "ts": "2025-02-21T15:32:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "look we need to be clear on this - the shared cache mount is read-only for everyone except the nightly job, and any plain sqlite open dies before it reads a single row because sqlite alwasy tries to write a journal next to the file",
+          "ts": "2025-02-21T15:54:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "hit me twice just trying to count entries",
+          "ts": "2025-02-21T15:54:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "does that workaround need to go anywhere beyond the test helper?",
+          "ts": "2025-02-21T15:55:04"
+        },
+        {
+          "userId": "emil",
+          "text": "release-and-ci suite is green again with the workaround in place, good find on the `?mode=ro` flag",
+          "ts": "2025-02-21T16:27:03",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean, the edge cases still aren't on the PR, so I wouldn't call it fully wrapped up yet.",
+          "ts": "2025-02-21T16:53:03"
+        },
+        {
+          "userId": "emil",
+          "text": "The stats path workaround is in and the suite is passing, edge cases just need to land on the PR before this is fully closed.",
+          "ts": "2025-02-21T17:14:03"
         }
       ],
       "projectSpec": {
@@ -27311,6 +28812,502 @@
           "userId": "emil",
           "text": "Batch-mode hasn't had any changes this week",
           "ts": "2025-02-20T15:18:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress bar frequency tuning is merged and observability is running end-to-end",
+          "ts": "2025-02-21T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Push-to-viewer wiring looks clean on my end but I want to make sure we're all comfortable before we call it release-safe",
+          "ts": "2025-02-21T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does the batch e2e test assert anything about reuse counts, or just the reassembled output?",
+          "ts": "2025-02-21T09:12:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "Ok",
+          "ts": "2025-02-21T09:26:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "answering my own question, batch e2e only checks the reassembled output",
+          "ts": "2025-02-21T09:26:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "Reuse counts are only asserted in the online tests",
+          "ts": "2025-02-21T09:26:58"
+        },
+        {
+          "userId": "gideon",
+          "text": "welp",
+          "ts": "2025-02-21T09:51:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "The batch e2e has never asserted on reuse and I don't think we can call that covered",
+          "ts": "2025-02-21T10:49:03"
+        },
+        {
+          "userId": "emil",
+          "text": "So do we call viewer and progress bar release-safe as-is, or do we want to hold until batch reuse is covered?",
+          "ts": "2025-02-21T12:45:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Viewer and progress bar are release-safe, those shouldn't wait on the reuse question. Also, nice to see the executor PRs finally through",
+          "ts": "2025-02-21T13:37:53",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 532 changes the async file path, and if batch reuse is already unverified, I'd lean toward not merging until we at least know what the expected reuse behavior is supposed to be, otherwise we have no baseline to regress against.",
+          "ts": "2025-02-21T14:27:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, I flagged the resume offset as the thing to check, not reuse counts generally",
+          "ts": "2025-02-21T15:32:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Those are related but not the same concern",
+          "ts": "2025-02-21T15:32:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "We only ever assert on reuse counts in the online tests, the batch e2e checks the reassembled output and nothing else",
+          "ts": "2025-02-21T16:03:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "That's exactly how the last regression rode out to a release, and it's the same gap that bit me on the Azure batch run",
+          "ts": "2025-02-21T16:04:05"
+        },
+        {
+          "userId": "dario",
+          "text": "So the async batch refactor sits until someone adds a reuse count assertion to the batch e2e, and the resume offset question is still open on my side too",
+          "ts": "2025-02-21T16:10:05"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd hold PR 532 over the weekend and pick both up Monday.",
+          "ts": "2025-02-21T16:10:17"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure Monday is the right call either, the offset question on the caching side is mine to answer and I haven't looked at it yet.",
+          "ts": "2025-02-21T16:10:49"
+        },
+        {
+          "userId": "emil",
+          "text": "We're deferring PR 532 to next week pending the offset answer and a reuse assertion in the batch e2e, is that the call?",
+          "ts": "2025-02-21T16:24:49",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-21T16:24:59"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean that way, but I'm not sure \"next week\" is a firm enough target given I still don't know what I'll find on the offset side.",
+          "ts": "2025-02-21T16:24:59",
+          "threadParentTs": "2025-02-21T16:24:49"
+        },
+        {
+          "userId": "emil",
+          "text": "So it's deferred but without a target date until you know what you're dealing with on the offset?",
+          "ts": "2025-02-21T16:30:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress on my side: online-request-processing refactor is mostly done, just validating that the run lifecycle still holds up with the hosted curator path before I call it good. PR 532 has been sitting for four days now and I want to get that unblocked today",
+          "ts": "2025-02-25T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 532, is it waiting on a reviewer or is there something in the implementation that needs resolving first?",
+          "ts": "2025-02-25T09:19:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, how's PR 532 sitting on your end?",
+          "ts": "2025-02-25T09:59:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does the request processor refactor touch the run lifecycle hooks at all, or is that path isolated?",
+          "ts": "2025-02-25T09:59:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference side is clean for the reasoning model params, the provider integration isn't the problem. I'm still not sure on the token accounting piece and I'd want that confirmed before calling 536 done.",
+          "ts": "2025-02-25T11:21:16"
+        },
+        {
+          "userId": "emil",
+          "text": "- PR 532 is on me, the async refactor itself is clean, just waiting on a second reviewer sign-off\n- request processor changes don't touch the run lifecycle hooks directly, that path is isolated\n- provider integrations are tracking, Azure cost map is wired up but I want to verify token accounting before we call it done on 536 too",
+          "ts": "2025-02-25T11:41:16"
+        },
+        {
+          "userId": "dario",
+          "text": "makes sense",
+          "ts": "2025-02-25T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "that's what I needed on the lifecycle question",
+          "ts": "2025-02-25T11:50:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Around this afternoon if anyone needs a second look at PR 532.",
+          "ts": "2025-02-25T12:33:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the request processor refactoring actually validated against the hosted curator run lifecycle, or are we calling it done on my say-so from earlier?",
+          "ts": "2025-02-25T12:50:49"
+        },
+        {
+          "userId": "gideon",
+          "text": "Going through the lifecycle validation now, Emil's answer on the hooks being isolated narrows it down a lot so I should have something concrete this afternoon.",
+          "ts": "2025-02-25T13:09:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider backend side looks solid from my end, Azure cost map is tracking correctly and inference.net is the same",
+          "ts": "2025-02-25T13:13:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Token accounting is still the one thing unconfirmed before I'd call provider-integrations fully done",
+          "ts": "2025-02-25T13:14:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the token accounting gap on the provider response side or in how bulk-llm-inference reads it back?",
+          "ts": "2025-02-25T13:18:01",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-25T16:07:57"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure it's that clean a split, it could be touching both.",
+          "ts": "2025-02-25T14:21:19",
+          "threadParentTs": "2025-02-25T13:18:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Gideon, has the hosted curator path cleared in your lifecycle validation, or is that still the piece you're working through?",
+          "ts": "2025-02-25T15:00:19"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-033 design page doesn't exist yet. Who owes that, @Nikolai, is that on you given code-execution is yours?",
+          "ts": "2025-02-25T15:00:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Dario already said Azure cost map is tracking and inference.net looks good, is token accounting the only thing still unconfirmed on the provider side, or is there something else in the cost maps I should be checking?",
+          "ts": "2025-02-25T15:59:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "Hosted curator path is clear, lifecycle validation looks good.",
+          "ts": "2025-02-25T16:07:31",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'd guess the response has it right and we're miscounting on readback, but I'm not certain.",
+          "ts": "2025-02-25T16:07:57",
+          "threadParentTs": "2025-02-25T13:18:01"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon anything still needed from my side on the lifecycle validation, or are we good?",
+          "ts": "2025-02-25T16:34:38"
+        },
+        {
+          "userId": "gideon",
+          "text": "We're good on lifecycle, nothing needed from you.",
+          "ts": "2025-02-25T16:57:38"
+        },
+        {
+          "userId": "emil",
+          "text": "Good on lifecycle",
+          "ts": "2025-02-25T17:42:38",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Token accounting is still unresolved though - do we block PR 532 on that or treat it as separate?",
+          "ts": "2025-02-25T17:42:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Token accounting verification still has no clear owner and it hasn't landed - that's the thing actually stuck right now",
+          "ts": "2025-02-25T18:25:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Token accounting is not my area, but does it actually block PR 532, or is that a separate concern?",
+          "ts": "2025-02-25T18:27:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 546 is through review, waiting on one last sign-off before merge",
+          "ts": "2025-02-26T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 536 is moving too, dario's got the claude 3.7 reasoning bits mostly wired up",
+          "ts": "2025-02-26T09:00:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold at what point in the startup sequence does the run first write to the metadata db?",
+          "ts": "2025-02-26T09:00:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "actually, does CURATOR_CACHE_DIR get resolved at import time or when the run actually starts?",
+          "ts": "2025-02-26T09:57:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold what does PR 533 assume is already committed before a resume can be attempted?",
+          "ts": "2025-02-26T10:34:44"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel in online-request-processing, is there a point before the first request goes out where no db writes have happened yet?",
+          "ts": "2025-02-26T11:34:44"
+        },
+        {
+          "userId": "emil",
+          "text": "let me check",
+          "ts": "2025-02-26T12:11:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually this is exactly what I wanted to raise",
+          "ts": "2025-02-26T12:12:10",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The sizing helper I wrote snapshots CURATOR_CACHE_DIR once when the module loads, and in the notebook walkthrough people do `import curator` in cell 1 and then set the env var in cell 4 because that's the order the tutorial reads",
+          "ts": "2025-02-26T12:12:18"
+        },
+        {
+          "userId": "emil",
+          "text": "so it kept telling users about the default directory for the rest of the session",
+          "ts": "2025-02-26T12:12:38"
+        },
+        {
+          "userId": "emil",
+          "text": "and I got two emails about it",
+          "ts": "2025-02-26T12:12:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah that's the problem, the snapshot can't happen at import time for exactly that reason",
+          "ts": "2025-02-26T12:25:18"
+        },
+        {
+          "userId": "emil",
+          "text": "Agreed on the problem, but where we move the resolution to isn't obvious.",
+          "ts": "2025-02-26T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "What are the two candidates for where we move the resolution, is it \"on run start\" vs \"on first request out,\" or is the shape different?",
+          "ts": "2025-02-26T12:48:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Checked online-request-processing and the processor isn't instantiated until after run setup has already written to the metadata DB, so there's no clean pre-write window at that layer, at least not where Dermot was pointing.",
+          "ts": "2025-02-26T13:37:50"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil do you know what's already committed to the metadata DB at each of those two points, \"on run start\" and \"on first request out\"?",
+          "ts": "2025-02-26T13:48:41"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm around this afternoon, I'll pull up what's committed at each of those two points and write it down.",
+          "ts": "2025-02-26T14:24:41",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "i'm not entirely sure \"on run start\" and \"on first request out\" are actually distinct enough to matter, depending on what's in between them in the startup sequence.",
+          "ts": "2025-02-26T14:40:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Are those two actually different moments in the startup sequence, or does run setup collapse them?",
+          "ts": "2025-02-26T14:41:15"
+        },
+        {
+          "userId": "emil",
+          "text": "Is there anything writing to the metadata DB between run start and first request out, or is that window empty?",
+          "ts": "2025-02-26T14:41:34"
+        },
+        {
+          "userId": "emil",
+          "text": "What are we calling the two candidates exactly, is it \"pre-setup\" and \"pre-first-request,\" or do they have actual names in the code I should use when I write this down?",
+          "ts": "2025-02-26T16:18:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "^ same question I had earlier",
+          "ts": "2025-02-26T16:34:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Been going through the startup sequence on my end this afternoon, and everything I'm seeing in online-request-processing is consistent with what I said earlier - both of those candidate points are already downstream of the first DB writes, so the real hook is somwhere before either of them",
+          "ts": "2025-02-26T16:52:05"
+        },
+        {
+          "userId": "emil",
+          "text": "If both of those candidates are already downstream of the first DB writes, what is there before that point?",
+          "ts": "2025-02-26T18:17:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 546 is moving along on the online processor cost estimation side, but I'm still not sure the hosted viewer requests are going to sit cleanly in the resume flow without messing up cost accounting",
+          "ts": "2025-02-27T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Want to make sure the `blocked_capacity` token estimation holds the same way for batch and online before I go further",
+          "ts": "2025-02-27T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "For the `blocked_capacity` token estimation, is the same path running for both batch and online, or are they hitting different code?",
+          "ts": "2025-02-27T09:49:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "Are viewer requests going through the same cost accounting path as generation requests, or tracked separately?",
+          "ts": "2025-02-27T10:41:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Viewer work is sitting in the request flow cleanly on my end, but I'm still not confident the blocked_capacity estimation is consistent across batch and online - that part isn't resolved yet.",
+          "ts": "2025-02-27T10:49:46"
+        },
+        {
+          "userId": "dario",
+          "text": "Does PR 546 assume batch and online are on the same blocked_capacity path, or is it computing them separately?",
+          "ts": "2025-02-27T11:18:46"
+        },
+        {
+          "userId": "emil",
+          "text": "same",
+          "ts": "2025-02-27T11:28:46"
+        },
+        {
+          "userId": "emil",
+          "text": "and I still haven't confirmed the viewer side either - whether viewer requests are going through the same cost accounting path as generation requests is still open on my end",
+          "ts": "2025-02-27T11:28:51"
+        },
+        {
+          "userId": "dario",
+          "text": "On my end, I've got commits landing in provider-integrations and online-request-processing today, but the viewer cost accounting question is honestly still open on my side too, I haven't confirmed that path is clean",
+          "ts": "2025-02-27T11:43:51"
+        },
+        {
+          "userId": "emil",
+          "text": "Separately - I just pulled up the wiki and the WS-033 code execution design isn't written up yet. Does that affect anything on the cost accounting side that needs to be settled for 546?",
+          "ts": "2025-02-27T12:01:51"
+        },
+        {
+          "userId": "emil",
+          "text": "Ohh",
+          "ts": "2025-02-27T12:21:28"
+        },
+        {
+          "userId": "emil",
+          "text": "figured that out myself - WS-033 isn't in the wiki yet",
+          "ts": "2025-02-27T12:21:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Does PR 546 need the viewer cost model settled before it can go, or is that a separate track?",
+          "ts": "2025-02-27T12:21:41"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think 546 can go without it, flag the viewer cost model as a deferred follow-up and we track it separately",
+          "ts": "2025-02-27T15:06:56",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Viewer cost model going as deferred is fine.",
+          "ts": "2025-02-27T15:13:56",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Does the viewer actually sit cleanly in the request and resume flow right now, or is that part also still open?",
+          "ts": "2025-02-27T15:14:08"
         }
       ],
       "projectSpec": {
@@ -29712,6 +31709,200 @@
           "userId": "konrad",
           "text": "@Nikolai, you flagged that as owner TBD in the postmortem, any idea who originally wrote the provider-integrations example?",
           "ts": "2025-02-07T12:52:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 536 is the main open question for this cut, tag is thursday so there's still time this morning to decide without rushing it.",
+          "ts": "2025-02-25T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario what's the actual blocker on pr 536, is it review or something in the implementation you're not happy with?",
+          "ts": "2025-02-25T09:05:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "if nobody has a strong dependency on pr 536 before thursday, is there a reason not to just defer it to the next cut rather than rushing?",
+          "ts": "2025-02-25T10:14:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "is there a changelog entry ready for pr 536, or is that still to come?",
+          "ts": "2025-02-25T11:28:46"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 536 is mostly there but token accounting on the reasoning model is still unconfirmed and the changelog isn't written",
+          "ts": "2025-02-25T11:55:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Three first-time install reports in the last two weeks, all tracing back to cell two of the quickstart when no run exists yet. Is that going into this cut or the next?",
+          "ts": "2025-02-25T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Same shape in the onboarding notebook too - cell two of the quickstart asks how much the run will cost before any run exists.",
+          "ts": "2025-02-25T12:41:20"
+        },
+        {
+          "userId": "emil",
+          "text": "User's never generated anything, gets a traceback, files an issue saying curator is broken on their machine.",
+          "ts": "2025-02-25T12:41:40"
+        },
+        {
+          "userId": "emil",
+          "text": "let me check the issue log myself",
+          "ts": "2025-02-25T12:53:53"
+        },
+        {
+          "userId": "dario",
+          "text": "Is the first-run traceback something we'd want to fix before Thursday, or is that going in the next cut?",
+          "ts": "2025-02-25T13:26:53"
+        },
+        {
+          "userId": "dario",
+          "text": "What's actually confirmed for this cut at this point?",
+          "ts": "2025-02-25T14:26:58"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll write up the changelog for 536 and confirm what's cleared for this cut by end of day.",
+          "ts": "2025-02-25T15:06:58",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "So are we actually landing PR 536 with token accounting still unconfirmed, or is that a blocker?",
+          "ts": "2025-02-25T15:48:58"
+        },
+        {
+          "userId": "dario",
+          "text": "Can we at least confirm, before Thursday, that first-time users are hitting a traceback before any run exists and that we're knowingly shipping with that?",
+          "ts": "2025-02-25T16:10:40"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, you own examples-cookbooks - can you take the fix for that cell-two traceback before Thursday?",
+          "ts": "2025-02-25T16:20:40",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah I can take the cell-two fix. I couldn't find it filed as an issue anywhere - is it tracked somewhere or just the install reports Emil mentioned?",
+          "ts": "2025-02-25T16:44:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Not tracked as an issue, just those three reports. All three were day-one installs, all hitting cell two before any run exists.",
+          "ts": "2025-02-25T17:47:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Should I open an issue for it, or are you working straight from the reports?",
+          "ts": "2025-02-25T17:47:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, I'll open the issue myself.",
+          "ts": "2025-02-25T17:47:47",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Is the first-run traceback going in the changelog for this cut, or just tracked internally?",
+          "ts": "2025-02-25T17:47:52"
+        },
+        {
+          "userId": "emil",
+          "text": "Answering my own question - it's end of day so I'll just note it internally and file the issue",
+          "ts": "2025-02-25T18:29:56.026772"
+        },
+        {
+          "userId": "emil",
+          "text": "The traceback is confirmed: first-time users hit it in cell two before any run exists, and we're knowingly shipping with it in this cut",
+          "ts": "2025-02-25T18:30:04.026772"
+        },
+        {
+          "userId": "nikolai",
+          "text": "v0.1.19.post1 is out, curator tag fix and executor hardening both in. release notes are on the wiki if anyone wants the details.",
+          "ts": "2025-02-26T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "nice",
+          "ts": "2025-02-26T09:21:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "executor hardening made it in",
+          "ts": "2025-02-26T09:21:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "anyone flagged concerns about the hotfix, or are we clear?",
+          "ts": "2025-02-26T09:58:12",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-26T09:59:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "still want to confirm the executor hardening is solid before I'd call it fully clear",
+          "ts": "2025-02-26T09:58:50",
+          "threadParentTs": "2025-02-26T09:58:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "has it been tested against actual task runs, or just the unit level?",
+          "ts": "2025-02-26T09:59:35",
+          "threadParentTs": "2025-02-26T09:58:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "tested against actual task runs, not just unit level. that's what confirmed the uid 1000 behavior in the shipped image.",
+          "ts": "2025-02-26T10:07:32",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "pulled up the release notes",
+          "ts": "2025-02-26T10:12:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "the executor hardening section covers my part, uid 1000 in the shipped image and uid 0 for caller-supplied images, both documented as expected",
+          "ts": "2025-02-26T10:12:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "one thing i left open: i don't have a full list of which resume-flow edge cases were tested for the tag fix, so there's a note in there asking people to file an issue if they hit something.",
+          "ts": "2025-02-26T10:12:53"
         }
       ],
       "projectSpec": {
@@ -30165,6 +32356,74 @@
           "text": "so you mean both, like `cached: 12,403 (45%)`?",
           "ts": "2025-02-20T13:26:39",
           "threadParentTs": "2025-02-20T12:27:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Push-to-viewer and progress bar wiring are both merged and live as of this morning.",
+          "ts": "2025-02-21T09:00:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Did the progress bar actually update live during a run, or does it only show at the end?",
+          "ts": "2025-02-21T11:09:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Live, it ticks as rows are pushed:\n\n```\n[viewer] uploaded 250/1000 rows 25%\n[viewer] uploaded 500/1000 rows 50%\n[viewer] uploaded 750/1000 rows 75%\n[viewer] uploaded 1000/1000 rows 100%\n```",
+          "ts": "2025-02-21T11:39:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "replyCount": 4,
+          "replyLastTs": "2025-02-21T11:41:12"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure what happens to that counter if you resume a partially finished run",
+          "ts": "2025-02-21T11:39:17"
+        },
+        {
+          "userId": "dario",
+          "text": "Does it restart from 0 or pick up from the cached offset?",
+          "ts": "2025-02-21T11:39:57",
+          "threadParentTs": "2025-02-21T11:39:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure off the top of my head. If it restarts you'd see something like:\n\n```\n[viewer] uploaded 0/1000 rows 0% <- resumed here, counter reset\n[viewer] uploaded 250/1000 rows 25%\n...\n```\n\n@Dario Kestrel probably knows the offset behavior on the caching side better than I do.",
+          "ts": "2025-02-21T11:40:33",
+          "threadParentTs": "2025-02-21T11:39:00"
+        },
+        {
+          "userId": "dario",
+          "text": "The cache has the offset, but I'd have to check if the viewer wiring actually reads it on resume",
+          "ts": "2025-02-21T11:40:57",
+          "threadParentTs": "2025-02-21T11:39:00"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll look into it this afternoon and report back",
+          "ts": "2025-02-21T11:41:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-02-21T11:39:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the offset exposed somewhere the viewer wiring can consume it, or is it internal to caching-and-resume?",
+          "ts": "2025-02-21T12:05:12"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel, while you're in there, is the cached offset something the viewer wiring can read directly, or does it need to go through you?",
+          "ts": "2025-02-21T12:31:44"
         }
       ],
       "projectSpec": {
