@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-49 of 50 obligations met.
+59 of 60 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -64,3 +64,13 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-12-23 | konrad | send | 09:28 | 0.1.13 is out |
 | 2024-12-23 | konrad | send | 09:42 | Weekly update: week of Dec 16 |
 | 2024-12-25 | dario | write | 09:35 | Weekly notes: week of Dec 23 - 0.1.13 out |
+| 2025-01-06 | dario | write | 09:56 | WS-016 design: Examples & Reasoning-Dataset Cookbooks |
+| 2025-01-06 | dermot | write | 09:14 | WS-014 design: Release Engineering, CI & Test Suite |
+| 2025-01-06 | konrad | write | 09:35 | Onboarding: emil, Core Platform Engineer for Request Processing |
+| 2025-01-06 | konrad | write | 10:17 | Onboarding: ilse, vLLM local inference contributor |
+| 2025-01-06 | konrad | send | 10:31 | Weekly update: week of Dec 30 |
+| 2025-01-06 | konrad | send | 10:45 | Welcome emil to the team |
+| 2025-01-06 | konrad | send | 10:45 | Welcome ilse to the team |
+| 2025-01-07 | emil | write | 09:14 | Release notes: v0.1.14 |
+| 2025-01-07 | emil | send | 09:35 | v0.1.14 is out |
+| 2025-01-08 | dermot | write | 09:14 | Weekly sync notes: week of Jan 6 — v0.1.14 shipped |

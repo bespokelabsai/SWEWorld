@@ -60,6 +60,36 @@
       "presence": "active",
       "personality": "Engineer, Request-Processing Internals; owns no service of their own",
       "personaId": "255a519d8d6e4460b3beeab84c08be55"
+    },
+    {
+      "id": "emil",
+      "name": "Emil Brandvold",
+      "title": "Core Platform Engineer, Request Processing",
+      "persona": "Core Platform Engineer, Request Processing",
+      "avatarColor": "#2C82C9",
+      "presence": "active",
+      "personality": "Core Platform Engineer, Request Processing; owns release-and-ci, online-request-processing, provider-integrations, batch-mode",
+      "personaId": "50647879055f436f8e025ccabca9742b"
+    },
+    {
+      "id": "ilse",
+      "name": "Ilse Vandekerckhove",
+      "title": "Contributor, Local Inference Backends (vLLM)",
+      "persona": "Contributor, Local Inference Backends (vLLM)",
+      "avatarColor": "#16A085",
+      "presence": "active",
+      "personality": "Contributor, Local Inference Backends (vLLM); owns local-offline-inference",
+      "personaId": "255a519d8d6e4460b3beeab84c08be55"
+    },
+    {
+      "id": "nikolai",
+      "name": "Nikolai Berresford",
+      "title": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
+      "persona": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
+      "avatarColor": "#3C8C5C",
+      "presence": "active",
+      "personality": "Research Platform Engineer — Code Execution & Data-Generation Recipes; owns code-execution, release-and-ci, telemetry",
+      "personaId": "9932c06bd0864adaa080b8a5386d788c"
     }
   ],
   "channels": [
@@ -71,8 +101,10 @@
       "memberIds": [
         "dario",
         "dermot",
+        "emil",
         "gideon",
         "konrad",
+        "nikolai",
         "petar"
       ],
       "messages": [
@@ -5027,6 +5059,507 @@
           "userId": "dario",
           "text": "PR 90 is basically ready for review, it's the disable-cache argument for Prompter, and PR 78 is the vLLM example which just needs eyes on it",
           "ts": "2025-01-02T13:37:37"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 161 and PR 163 are both up and waiting on reviews:\n- PR 161 (Prometheus LLM judge example) is ready but I think it's stalled until the viewer refactor settles\n- PR 163 (getCacheDir + cache dir param for curator-viewer) is in the same spot, touches the viewer internals so probably shouldn't merge before that work lands",
+          "ts": "2025-01-03T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the viewer refactor tracked somewhere, or is it still just a rough plan?",
+          "ts": "2025-01-03T09:16:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Honestly that's part of the problem, I don't see it tracked anywhere, which is why I'm not sure when it's safe to merge PR 163",
+          "ts": "2025-01-03T09:22:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dario would know if there's an issue open for it",
+          "ts": "2025-01-03T09:22:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, is there an issue open for the curator-viewer refactor, or is it still informal?",
+          "ts": "2025-01-03T09:26:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "at least it's friday",
+          "ts": "2025-01-03T09:52:05",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "totally",
+          "ts": "2025-01-03T10:04:05",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone done a pass on which open PRs are actually ready to merge versus blocked on something?",
+          "ts": "2025-01-03T10:30:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "I've been meaning to do exactly that, was going to pull together a list Monday when Emil's around too",
+          "ts": "2025-01-03T15:30:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Got a few things to finish up before EOD",
+          "ts": "2025-01-03T15:30:10"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, nothing open for a viewer refactor that I can find, so it's still informal as far as the tracker goes",
+          "ts": "2025-01-03T15:49:10"
+        },
+        {
+          "userId": "dario",
+          "text": "Which also means we probably can't call PR 161 or PR 163 \"blocked on review\" in any clean sense, they're more in a holding pattern waiting on work that hasn't been formally started yet",
+          "ts": "2025-01-03T15:49:18"
+        },
+        {
+          "userId": "dario",
+          "text": "That's actually the split I wanted to flag before we all drop for the weekend: do we have any shared sense of which open PRs are actually blocked waiting on someone to review them, versus which ones are parked because the author needs to do more work first?",
+          "ts": "2025-01-03T15:49:30"
+        },
+        {
+          "userId": "dario",
+          "text": "There's also the SimpleLLM refactor stuff sitting in the stale pile and I don't think anyone's sorted it.",
+          "ts": "2025-01-03T15:49:39"
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone gone through and called out which pieces of that are actual blockers for next week versus things we can just push to 0.1.14?",
+          "ts": "2025-01-03T15:49:44"
+        },
+        {
+          "userId": "dario",
+          "text": "Pulled up the wiki just now to check what the Stratos Crunch plan actually says for the backend side, and there are no pages there at all.",
+          "ts": "2025-01-03T16:47:44"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, is that doc somewhere else or is it just not written yet?",
+          "ts": "2025-01-03T16:47:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Still no 0.1.13 release notes anywhere I can find, wiki's empty",
+          "ts": "2025-01-03T17:39:49"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, are those landing today or is that a next week thing?",
+          "ts": "2025-01-03T17:39:54"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ruff migration and pre-commit setup are ready for review, touches release-and-ci",
+          "ts": "2025-01-06T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "not blocking a release but i'd like eyes on it before more formating drift builds up",
+          "ts": "2025-01-06T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "what are the pr numbers?",
+          "ts": "2025-01-06T09:42:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll pull them up",
+          "ts": "2025-01-06T09:42:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "one sec, let me find them",
+          "ts": "2025-01-06T10:24:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "while I'm waiting, is there a separate pr number for the docstring one where Dario left changes?",
+          "ts": "2025-01-06T11:13:29"
+        },
+        {
+          "userId": "dario",
+          "text": "That's PR 308, docstring standardization, touches provider-integrations. Happy to have you look at it Dermot, the main question is whether the style I landed on there is what we want to standardize on across the rest of the codebase",
+          "ts": "2025-01-06T11:47:07",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Should we be deciding the docstring standard separately from the ruff migration, or wait and settle them togehter?",
+          "ts": "2025-01-06T12:21:07"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-01-06T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll take a look at PR 308 this afternoon.",
+          "ts": "2025-01-06T12:39:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "i'm still not sure whether PR 302 and 303 should wait for 308 to be settled first. anyone have a call on that?",
+          "ts": "2025-01-06T12:52:05"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai I'd hold PR 302 and 303 until Dermot's had eyes on PR 308 this afternoon, docstring standard should be settled first or the ruff migration just picks up whatever inconsistency is already there",
+          "ts": "2025-01-06T13:19:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Dermot, when you look at PR 308 this afternoon, are you approving it as-is or do you expect more changes before it can merge?",
+          "ts": "2025-01-06T13:19:43"
+        },
+        {
+          "userId": "dario",
+          "text": "Dermot, got a few minutes this afternoon to go through PR 308 together?",
+          "ts": "2025-01-06T13:34:43"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai does the ruff config in those PRs include docstring linting, or is it purely style and formatting?",
+          "ts": "2025-01-06T14:49:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "test file movement is done and the docstring pass is in",
+          "ts": "2025-01-07T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "are those test files moved within the same package or did they cross a module boundary?",
+          "ts": "2025-01-07T09:19:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "crossed a boundary yeah, this is what surfaced:\n\n```\nImportError: cannot import name 'Prompter' from partially initialized module\n'curator.prompter' (most likely due to a circular import)\n```",
+          "ts": "2025-01-07T09:57:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-07T09:57:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "Was that already there before the move or did the reorganization surface it?",
+          "ts": "2025-01-07T09:57:24",
+          "threadParentTs": "2025-01-07T09:57:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "i want to check whether that circular import is also hitting the batch processor imports, given the module boundary change.",
+          "ts": "2025-01-07T10:08:24",
+          "replyCount": 2,
+          "replyLastTs": "2025-01-07T10:18:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "not certain if it was latent or new from the move",
+          "ts": "2025-01-07T10:18:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "are you seeing failures on the batch processor imports too?",
+          "ts": "2025-01-07T10:18:05",
+          "threadParentTs": "2025-01-07T10:08:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "going to check now",
+          "ts": "2025-01-07T10:18:49",
+          "threadParentTs": "2025-01-07T10:08:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "confirmed, batch processor imports are affected too",
+          "ts": "2025-01-07T10:19:03",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "While we're in here, PR 106 has been sitting for 54 days now, should we get eyes on it this week or formally deprioritize it?",
+          "ts": "2025-01-07T11:02:03"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 317 is up for review, touches provider-integrations and batch-mode. One thing worth knowing before you look at it: SimpleLLM can't coexist with the new config path, so if anything downstream is still using that directly it will break.",
+          "ts": "2025-01-07T12:13:27"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 320 is also up, first integration test harness for release-and-ci",
+          "ts": "2025-01-07T12:25:32",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "It covers the happy path through the provider factory right now, retry and timeout behavior isn't in yet, so that's the obvious gap if anyone's looking at it",
+          "ts": "2025-01-07T12:25:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "on PR 320, erm, are we okay merging a harness that skips retry and timeout behavior entirely, or does that need to land before we can call it ready?",
+          "ts": "2025-01-07T12:30:44"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-014 scopes Stage 3 to a minimal smoke: one online request, one batch, one cache resume",
+          "ts": "2025-01-07T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Retry and timeout aren't on that list",
+          "ts": "2025-01-07T12:41:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil do any of the existing cookbook examples use SimpleLLM directly, or are they all going through the higher-level API?",
+          "ts": "2025-01-07T13:16:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 329 is up for review, touches the vLLM version constraint in release-and-ci, loosening it, and I need someone to confirm local-offline-inference isn't broken before I'd want this merged.",
+          "ts": "2025-01-08T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "has PR 326 had any eyes on it yet?",
+          "ts": "2025-01-08T09:57:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "where does PR 324 stand, is cache disabling ready to go or does it need another pass?",
+          "ts": "2025-01-08T11:11:38"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 326 hasn't had any eyes on it yet as far as I know, it's just a lockfile resync so should be a quick review if someone has a few minutes",
+          "ts": "2025-01-08T11:31:38"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 324 I'd lean toward another pass honestly, not fully confident the cache disabling edge cases are buttoned up yet",
+          "ts": "2025-01-08T11:31:46"
+        },
+        {
+          "userId": "emil",
+          "text": "I can check PR 329 against local-offline-inference this afternoon and confirm whether the version loosening breaks anything",
+          "ts": "2025-01-08T12:08:46",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "On PR 324, if Dario's not confident the edge cases are covered I'd hold it too, that one probably needs another pass before we push it",
+          "ts": "2025-01-08T12:08:54"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can take a look at PR 326 this afternoon, lockfile resyncs are quick. PR 329 is sitting on Emil's check, so that's just waiting.",
+          "ts": "2025-01-08T12:11:54",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot what's the new constraint range in PR 329, do you know what version it's loosening to?",
+          "ts": "2025-01-08T12:20:54"
+        },
+        {
+          "userId": "emil",
+          "text": "Want to make sure I'm testing against the right target",
+          "ts": "2025-01-08T12:21:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "let me check the PR and get back to you",
+          "ts": "2025-01-08T12:45:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "going thorugh pr 334 this morning, test overload question isn't settled for me yet",
+          "ts": "2025-01-09T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "want to confirm the circular import on pr 330 is clean before that one moves",
+          "ts": "2025-01-09T09:00:12"
+        },
+        {
+          "userId": "petar",
+          "text": "for pr 330 if the fix moves the import inside the function body you can confirm it's clean just by checking that a cold import of the module doesn't pull in the whole batch processor chain",
+          "ts": "2025-01-09T10:12:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "is that check something we're blocking the merge on, or more of a nice-to-have before it goes in",
+          "ts": "2025-01-09T10:38:33"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 334 is ready on my end, test coverage is solid and I want to get it merged today if Dermot's questions are resolved.",
+          "ts": "2025-01-09T11:37:07",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "petar",
+          "text": "nice",
+          "ts": "2025-01-09T12:08:07",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "petar",
+          "text": "PR 334 with solid coverage is the right way to send it",
+          "ts": "2025-01-09T12:08:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the WS-014 design doc Dermot wrote. It covers the CI stages and test structure clearly enough. Stage 3 integration smoke is the gate that matters for my PR 334 work, and the doc flags vLLM offline path as the open gap there.",
+          "ts": "2025-01-09T12:43:25"
+        },
+        {
+          "userId": "petar",
+          "text": "@Dermot can you share the WS-014 design doc",
+          "ts": "2025-01-09T12:50:00"
+        },
+        {
+          "userId": "petar",
+          "text": "found it: WS-014 design: Release Engineering, CI & Test Suite on the wiki",
+          "ts": "2025-01-09T12:50:26"
+        },
+        {
+          "userId": "petar",
+          "text": "has anyone actually confirmed the circular import in PR 330 is clean, or is that still open?",
+          "ts": "2025-01-09T13:21:26"
+        },
+        {
+          "userId": "dermot",
+          "text": "still open from my side, whoever's closest to pr 330 should run the cold import check petar described before this goes in",
+          "ts": "2025-01-09T13:54:26"
+        },
+        {
+          "userId": "emil",
+          "text": "\"Whoever's closest\" is going to sit unanswered until end of day. Someone needs to own that check explicitly or PR 330 just stays in limbo.",
+          "ts": "2025-01-09T14:35:26",
+          "reactions": [
+            {
+              "emoji": "💯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "petar",
+          "text": "@Dario can you run the cold import check on PR 330 this afternoon",
+          "ts": "2025-01-09T14:43:26",
+          "reactions": [
+            {
+              "emoji": "✋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah fair",
+          "ts": "2025-01-09T15:26:26"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get PR 334 queued up as soon as PR 330 clears.",
+          "ts": "2025-01-09T16:14:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-014 ci design is mostly mapped out, coverage tiers are clearer, provider backend gap is still the open piece before I'd call it done",
+          "ts": "2025-01-09T16:32:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "- ws-014 ci design is mostly mapped, provider backend coverage stil the open gap\n- pr 334 sitting ready to merge once pr 330 clears\n- circular import check on pr 330 is with dario, no update yet",
+          "ts": "2025-01-09T17:41:41"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel any update on the PR 330 circular import check?",
+          "ts": "2025-01-09T18:21:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Trying to get PR 334 in tonight and that's the last thing in the way",
+          "ts": "2025-01-09T18:21:53"
         }
       ],
       "projectSpec": {
@@ -6228,6 +6761,68 @@
           "userId": "konrad",
           "text": "PR 104 is marked as the first priority in there, is anyone aware if that ever got any movement?",
           "ts": "2024-11-18T17:51:32"
+        },
+        {
+          "userId": "dermot",
+          "text": "got the WS-014 design doc written up this morning, release engineering, CI, and test suite structure. it's on the wiki under engineering if anyone wants to look before we get into the vLLM and README questions today.",
+          "ts": "2025-01-06T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "ilse, are the vLLM examples somewhere I can pull them in, or are they still tied up in the offline processor work?",
+          "ts": "2025-01-06T09:35:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone have a sense of what WS-016 is actually meant to cover?",
+          "ts": "2025-01-06T10:22:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure where the scope lands on that one",
+          "ts": "2025-01-06T10:22:36"
+        },
+        {
+          "userId": "dermot",
+          "text": "for the README work, what's the expectation on what actually ships today versus what we defer past the release?",
+          "ts": "2025-01-06T11:10:36"
+        },
+        {
+          "userId": "dario",
+          "text": "WS-016 design doc is up on the wiki now, engineering collection, \"WS-016 design: Examples & Reasoning-Dataset Cookbooks\", scope question is in there, covers the cookbook structure, reasoning-dataset pipelines and verifiers, and what's deferred. vLLM examples are flagged as blocked on the offline processor interface settling, and the README index question I've left explicitly open in the doc since we still haven't landed on what ships this release versus defers",
+          "ts": "2025-01-06T11:41:36",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "On the vLLM examples and the README, I'm not sure we should hold the whole README section waiting on those, honestly",
+          "ts": "2025-01-06T11:53:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Ilse's offline processor work sounds close but I'd lean toward deciding now: do we commit to getting her examples in before the release, or do we explicitly defer that part and ship the README without the vLLM section?",
+          "ts": "2025-01-06T11:53:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "WS-016 being up is good, that was hanging over us",
+          "ts": "2025-01-06T12:43:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "the vLLM/README call is still the question I don't have a clear answer on",
+          "ts": "2025-01-06T12:43:05"
         }
       ],
       "projectSpec": {
@@ -6313,8 +6908,11 @@
       "memberIds": [
         "dario",
         "dermot",
+        "emil",
         "gideon",
+        "ilse",
         "konrad",
+        "nikolai",
         "otto",
         "petar"
       ],
@@ -10228,6 +10826,679 @@
           "userId": "dario",
           "text": "@Emil Brandvold are you able to take a look at caching-and-resume this afternoon?",
           "ts": "2025-01-02T13:42:32"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference is in decent shape heading into this week, got through the main inference path changes over the weekend and the ci is green",
+          "ts": "2025-01-06T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I want to sort out the vLLM side of things this morning before anything else piles on",
+          "ts": "2025-01-06T09:00:12"
+        },
+        {
+          "userId": "ilse",
+          "text": "local-offline-inference is in good shape, got through the bulk of the vllm work over the weekend. happy to walk through where it stands this mornign if that helps",
+          "ts": "2025-01-06T09:03:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Got the onboarding doc for Emil up in the wiki, onboarding/onboarding-emil-brandvold-core-platform-engineer-for-request-processing.md",
+          "ts": "2025-01-06T09:30:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ilse, what does the vLLM setup in local-offline-inference actually look like right now, is it a full inference path or more of initial scaffolding?",
+          "ts": "2025-01-06T09:30:17"
+        },
+        {
+          "userId": "ilse",
+          "text": "full inference path, the core is running. @Emil it's yours to take from here, ping me if you want a walkthrough.",
+          "ts": "2025-01-06T10:33:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "nice",
+          "ts": "2025-01-06T10:48:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "also got an onboarding doc up for Ilse, onboarding/onboarding-ilse-vandekerckhove-vllm-local-inference-contributor.md",
+          "ts": "2025-01-06T10:48:12"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 306 landed cleanly overnight, caching-and-resume and online-request-processing are both in good shape coming out of that merge",
+          "ts": "2025-01-06T12:08:17",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "provider-integrations has one open question on token-counting that I need a call on before I can call it release-ready",
+          "ts": "2025-01-06T12:08:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "look we need to settle the tooling question before this release actually closes, do the ruff migration and docstring standard need to be in for 0.1.14, or do we explicitly call them deferred and move on?",
+          "ts": "2025-01-06T12:45:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update for the week of Dec 30 is in your inbox",
+          "ts": "2025-01-06T13:18:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dermot, the tooling question is one of the two asks I've put in there",
+          "ts": "2025-01-06T13:18:18"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward calling both deferred for 0.1.14 honestly, the docstring standard isn't settled and I'm not sure we should gate the release on it.",
+          "ts": "2025-01-06T14:57:09"
+        },
+        {
+          "userId": "dario",
+          "text": "And on the vLLM side, is that in for this release or are we also calling it deferred?",
+          "ts": "2025-01-06T14:57:36"
+        },
+        {
+          "userId": "ilse",
+          "text": "@Dario got time this afternoon if you want to sort the token-counting question, that should help settle the vLLM side too.",
+          "ts": "2025-01-06T15:42:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Sent @Emil a welcome, asked him to drop a quick intro in channel when he gets a chance",
+          "ts": "2025-01-06T16:22:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "release-and-ci is stable. PR 302 and 303 are ready, and i'm fine holding them for 0.1.15 if we're calling tooling deferred.",
+          "ts": "2025-01-06T16:35:36"
+        },
+        {
+          "userId": "ilse",
+          "text": "- *vLLM offline processor*: core inference path is running, handed to Emil to take forward\n- *token-counting*: still open, syncing with Dario to clear it",
+          "ts": "2025-01-06T17:00:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Sent @Ilse a welcome too, asked her to drop an intro in channel when she gets a chance",
+          "ts": "2025-01-06T17:25:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Once Dario and Ilse clear the token-counting question, is that the last thing blocking 0.1.14?",
+          "ts": "2025-01-06T17:25:41"
+        },
+        {
+          "userId": "ilse",
+          "text": "on my end the vLLM work is wrapped and with Emil, still waiting on the call with Dario to close out the token-counting question",
+          "ts": "2025-01-06T17:42:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "so tooling is deferred to 0.1.15, that's settled.",
+          "ts": "2025-01-06T18:16:41",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario when is the token-counting call happening, is that today or tomorrow?",
+          "ts": "2025-01-06T18:16:49"
+        },
+        {
+          "userId": "dario",
+          "text": "@Ilse tomorrow morning work for you?",
+          "ts": "2025-01-06T18:26:16.310721"
+        },
+        {
+          "userId": "ilse",
+          "text": "works for me.",
+          "ts": "2025-01-06T18:29:16.310721"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 323 is merged and the docstring pass is in, so I can meausre the coverage gaps now",
+          "ts": "2025-01-07T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "need to look at the ws-014 design today and get scoping clear between that, ws-015, and ws-016 before more work lands",
+          "ts": "2025-01-07T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario is the ws-016 design written up yet?",
+          "ts": "2025-01-07T10:02:03"
+        },
+        {
+          "userId": "ilse",
+          "text": "hitting a snag with local-offline-inference and the factory pattern from pr 317, the SimpleLLM constructor changes are conflicint with how I'm initializing the vLLM backend and I can't wire them together until we know which interface wins",
+          "ts": "2025-01-07T10:33:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil is this on your radar?",
+          "ts": "2025-01-07T11:24:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah, on it. The SimpleLLM constructor change in PR 317 is intentional but it does break the vLLM init path, the two interfaces aren't compatible and we need to settle which one wins before Ilse can wire them together. That's the same incompatibility I flagged in code-review.",
+          "ts": "2025-01-07T12:17:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up my onboarding doc - it's there and current, nothing in it that changes anything on the PR 317 thread.",
+          "ts": "2025-01-07T13:00:15"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot ws-016 design is up on the wiki, engineering collection",
+          "ts": "2025-01-07T13:47:38",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Where do you see the overlap risk between ws-014 and ws-016 specifically?",
+          "ts": "2025-01-07T13:47:43"
+        },
+        {
+          "userId": "emil",
+          "text": "The factory pattern landing makes the v0.1.15 gating question the next thing to settle, we have the integration baseline in place, which means the next feature that tries to land needs to clear a real bar.",
+          "ts": "2025-01-07T14:35:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "we still don't have actual numbers on what the gating criteria are for v0.1.15",
+          "ts": "2025-01-07T15:15:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "is it PR 318 green, a coverage threshold, both, and do we want to lock that in today while we're all here?",
+          "ts": "2025-01-07T15:15:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Onboarding doc is on the wiki and accurate - I'm on batch-mode, local-offline-inference, and multimodal-prompts, vLLM integration is the live priority, and it points me at Ilse to coordinate before going further on that thread.",
+          "ts": "2025-01-07T15:28:48"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-014 and ws-015 scopes are clear to me, haven't read ws-016 yet. @Dario does that doc touch the CI integration path at all?",
+          "ts": "2025-01-07T15:55:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad, I just pulled up the wiki and couldn't find the Stratos Crunch plan anywhere - is it posted somewhere else or still being written?",
+          "ts": "2025-01-07T16:18:48"
+        },
+        {
+          "userId": "dermot",
+          "text": "I read the ws-014 doc, ci scope is lint, unit tests with an 80% line coverage gate (soft for now), and a stage 3 smoke covering online request, batch, and cache resume",
+          "ts": "2025-01-07T17:03:48"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario does ws-016 need any of those same provider credential paths, or is it running against stubs?",
+          "ts": "2025-01-07T17:04:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "oh",
+          "ts": "2025-01-07T17:17:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "read ws-016, that answers it: examples run off env file credentials only, no CI secrets, so there's no conflict with ws-014's credential paths.",
+          "ts": "2025-01-07T17:17:53",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "vLLM examples in ws-016 are blocked on Emil's interface though, @Emil is that unblocking with 317 in?",
+          "ts": "2025-01-07T17:18:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "I read Ilse's onboarding doc",
+          "ts": "2025-01-07T18:02:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "vLLM core inference path is functional and the handoff to Emil is in progress this week",
+          "ts": "2025-01-07T18:02:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil does that mean the interface is stable enough for ws-016 to start planning the vLLM examples?",
+          "ts": "2025-01-07T18:02:18",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-07T18:03:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Not quite yet, that clears once 317 is approved and the interface question is settled.",
+          "ts": "2025-01-07T18:03:02",
+          "threadParentTs": "2025-01-07T18:02:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 317 needs eyes before more code piles on top of it - it's blocking ws-012 and ws-015, and the interface question Emil mentioned won't settle until it's approved.",
+          "ts": "2025-01-07T18:26:02",
+          "reactions": [
+            {
+              "emoji": "⚠️",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Ilse - once PR 317 lands that's the interface your vLLM work targets. SimpleLLM won't coexist with the new config path",
+          "ts": "2025-01-07T18:28:07.004961"
+        },
+        {
+          "userId": "dermot",
+          "text": "sync notes for the week of jan 6 are up on the wiki, \"Weekly sync notes: week of jan 6, v0.1.14 shipped\" in the engineering collection",
+          "ts": "2025-01-08T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "covers what landed, open PRs, and the questions carrying into this week",
+          "ts": "2025-01-08T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ruff migration is wrapped up on my end, CI configs are updated",
+          "ts": "2025-01-08T09:09:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still want to land a group decision on whether we're committing to it or rolling back before next release though",
+          "ts": "2025-01-08T09:09:13"
+        },
+        {
+          "userId": "ilse",
+          "text": "local vLLM is stable, cuda memory fix is in and the feature's merged to main",
+          "ts": "2025-01-08T09:37:13",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "ilse",
+          "text": "I'm thinking it's ready for next release but want to gut-check whether we need a short soak period first",
+          "ts": "2025-01-08T09:37:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "nice on the vLLM fix",
+          "ts": "2025-01-08T09:51:25",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "anyone free this afternoon to land the Ruff call?",
+          "ts": "2025-01-08T10:03:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm around this afternoon",
+          "ts": "2025-01-08T11:17:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes for v0.1.14 are done on my end. Still want to gut-check stability before we call it fully clean",
+          "ts": "2025-01-08T11:57:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "- CI is clean on my end, nothing flagged since v0.1.14 went out\n- opened the release notes just now, looks complete, five changes, no breaking, the only open item is a TODO on documenting the getCacheDir config key\n- from release-and-ci side I'd call 0.1.14 stable, no hotfix needed",
+          "ts": "2025-01-08T12:02:40",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I wrote the sync notes for the week, they're up on the wiki, covers the release, open PRs, and the questions carrying forward",
+          "ts": "2025-01-08T12:15:56"
+        },
+        {
+          "userId": "dermot",
+          "text": "does that capture what people need, or is there anything missing from their section that should go in?",
+          "ts": "2025-01-08T12:16:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Good to have that confirmed",
+          "ts": "2025-01-08T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "The getCacheDir doc TODO is the one thing I'd flag for tracking before next release, might be worth an issue so it doesn't slip",
+          "ts": "2025-01-08T12:41:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot Callaghan still need to land the Ruff call this afternoon, are you the right person to make that call or does it need more people in the room?",
+          "ts": "2025-01-08T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "My side has been quiet since the release, online-request-processing and provider-integrations are both clean, nothing flagged post-v0.1.14",
+          "ts": "2025-01-08T13:18:00"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm around this afternoon too if the Ruff call needs more people in the room",
+          "ts": "2025-01-08T13:18:05"
+        },
+        {
+          "userId": "ilse",
+          "text": "has anyone actually run local-offline-inference against a real workload since the cuda fix went in?",
+          "ts": "2025-01-08T13:30:05"
+        },
+        {
+          "userId": "ilse",
+          "text": "actually answering my own question, I haven't run it against a full workload myself since the fix landed, so the soak period call is kind of stuck til someone does",
+          "ts": "2025-01-08T13:30:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Is that Emil's to run, or can anyone with the right setup do it?",
+          "ts": "2025-01-08T14:24:37",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-08T15:47:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "the sync notes flag both ruff and local vLLM as the two open calls, might be cleaner to do one slot this afternoon that covers both rather than two separate ones",
+          "ts": "2025-01-08T15:05:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "on the ruff question specifically, I'm not sure I can land that unilaterally, so if Dario's available it's probably worth having him in the room too",
+          "ts": "2025-01-08T15:05:42"
+        },
+        {
+          "userId": "dermot",
+          "text": "I pulled up the release notes, five changes, no breaking, but there's a TODO in there about documenting the getCacheDir config key",
+          "ts": "2025-01-08T15:06:05",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-08T16:23:25"
+        },
+        {
+          "userId": "dermot",
+          "text": "has that been filed as an issue yet or is it still just sitting in the doc?",
+          "ts": "2025-01-08T15:06:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Nice work on that cuda fix, Ilse",
+          "ts": "2025-01-08T15:47:09",
+          "reactions": [
+            {
+              "emoji": "👏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "And yeah, it's mine to run - I'll get a workload through it this afternoon",
+          "ts": "2025-01-08T15:47:21",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-01-08T14:24:37"
+        },
+        {
+          "userId": "emil",
+          "text": "The getCacheDir doc gap is still just sitting in the release notes, hasn't been filed",
+          "ts": "2025-01-08T15:47:33"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get an issue in for it",
+          "ts": "2025-01-08T15:47:45"
+        },
+        {
+          "userId": "nikolai",
+          "text": "does that TODO mean the release notes are still open, or is it just a carry-forward for next release?",
+          "ts": "2025-01-08T16:23:25",
+          "threadParentTs": "2025-01-08T15:06:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "can someone make the Ruff call today, keep or roll back, I want to make sure we don't leave it open going into next week.",
+          "ts": "2025-01-08T16:23:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "on the getCacheDir TODO, the config key for setting a non-default cache path isn't documented anywhere visible right now, so anyone trying to configure it has nothing to go on until Emil's issue lands.",
+          "ts": "2025-01-08T17:40:28"
+        },
+        {
+          "userId": "ilse",
+          "text": "local-offline-inference is clean on my end, cuda fix is merged to main",
+          "ts": "2025-01-08T18:13:28"
+        },
+        {
+          "userId": "ilse",
+          "text": "just waiting to see what Emil's run comes back with before I can say if it needs a soak period or it's good to go for next release",
+          "ts": "2025-01-08T18:13:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'm around tomorrow if the Ruff call slips to then, but I'd still rather land it today if Emil's back.",
+          "ts": "2025-01-08T18:24:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "- ws-014 design is moving, sketching out the ci matrix and test coverage tiers this morning\n- factory refactor on bulk-llm-inference has class strucutre in place, lazy imports still to go\n- want to nail down v0.1.15 blockers before end of day if we can",
+          "ts": "2025-01-09T09:00:00"
+        },
+        {
+          "userId": "petar",
+          "text": "for the ci matrix, are we planning integration tests against all backends or just the main ones?",
+          "ts": "2025-01-09T10:08:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "still working though that exact question, but this helped me frame the coverage tiers: https://martinfowler.com/articles/practical-test-pyramid.html",
+          "ts": "2025-01-09T10:18:01",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ],
+          "unfurl": {
+            "title": "martinfowler.com",
+            "url": "https://martinfowler.com/articles/practical-test-pyramid.html"
+          }
+        },
+        {
+          "userId": "petar",
+          "text": "where are provider integration tests landing in that model, real backends or mocked at the boundary?",
+          "ts": "2025-01-09T10:28:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "provider integration coverage is still an open point in ws-014, that question isn't settled yet",
+          "ts": "2025-01-09T10:42:59"
+        },
+        {
+          "userId": "emil",
+          "text": "Factory refactor on batch-mode is solid from my side, class structure is clean",
+          "ts": "2025-01-09T12:51:06",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Ready to call the approach settled if Dermot's bulk-llm-inference side is close enough to compare",
+          "ts": "2025-01-09T12:51:14"
+        },
+        {
+          "userId": "dario",
+          "text": "bulk-llm-inference class structure is done on my end too, lazy imports are the remaining piece so not quite ready to call it settled yet but getting close.",
+          "ts": "2025-01-09T13:25:14"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot Callaghan for the v0.1.15 blockers pass, is the integration test coverage gap on provider backends one of them, or are we treating that as a follow-on?",
+          "ts": "2025-01-09T13:25:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure we should call the factory refactor settled before lazy imports are wired up, do we want to hold that call or just go ahead and ship it as-is?",
+          "ts": "2025-01-09T13:47:36"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot Callaghan, how's the integration test strategy side of WS-014 sitting with you right now?",
+          "ts": "2025-01-09T14:04:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Provider backend coverage looked like it was still open when I read through it",
+          "ts": "2025-01-09T14:04:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Read through Dermot's Jan 8 sync notes",
+          "ts": "2025-01-09T14:37:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Local vLLM stability is listed as a v0.1.15 blocker - has anyone done the soak period assessment on that yet?",
+          "ts": "2025-01-09T14:37:47"
+        },
+        {
+          "userId": "emil",
+          "text": "The WS-014 design doc has the CI stages and test structure clear, but provider backend coverage is explicitly flagged as still open",
+          "ts": "2025-01-09T15:33:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that getting resolved before we lock the v0.1.15 blockers list?",
+          "ts": "2025-01-09T15:33:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "provider backend coverage is flaged open in ws-014, no decision yet on whether it's a v0.1.15 gate or a follow-on",
+          "ts": "2025-01-09T15:44:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "we need that call before we can close the blockers list today",
+          "ts": "2025-01-09T15:45:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we call the factory refactor settled as-is, or hold that call until lazy imports are wired up",
+          "ts": "2025-01-09T16:35:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-09T17:45:58"
+        },
+        {
+          "userId": "emil",
+          "text": "I'd call the pattern settled and track lazy imports as a separate item",
+          "ts": "2025-01-09T16:43:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The class structure is locked in on batch-mode, that's the part that was actually in question",
+          "ts": "2025-01-09T16:43:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "wrapping up shortly, back tomorrow",
+          "ts": "2025-01-09T17:45:32"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward holding it, calling it settled without lazy imports feels premature on my side too",
+          "ts": "2025-01-09T17:45:58",
+          "threadParentTs": "2025-01-09T16:35:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider backend coverage call is still open though, that one shouldn't slip to tomorrow.",
+          "ts": "2025-01-09T17:46:13"
         }
       ],
       "projectSpec": {
@@ -11290,7 +12561,9 @@
       "memberIds": [
         "dario",
         "dermot",
+        "emil",
         "gideon",
+        "ilse",
         "petar"
       ],
       "messages": [
@@ -13889,6 +15162,377 @@
           "userId": "dermot",
           "text": "@Dario Kestrel are you still on this, or should we pick it up this afternoon?",
           "ts": "2025-01-02T12:39:00"
+        },
+        {
+          "userId": "ilse",
+          "text": "vllm offline processor is basically in shape, got the core implementation runnign over the weekend",
+          "ts": "2025-01-06T09:00:00",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "ilse",
+          "text": "want to validate it fits the provider-integrations pattern before anything else",
+          "ts": "2025-01-06T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, are you the right person to confirm the pattern fit here?",
+          "ts": "2025-01-06T09:30:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure I can sign off on that without you looking at it first",
+          "ts": "2025-01-06T09:30:20"
+        },
+        {
+          "userId": "ilse",
+          "text": "@Dario if you're looking at it anyway, I've also got a question on the docstring and token-counting side in provider-integrations, would be good to get your take on that at the same time",
+          "ts": "2025-01-06T09:50:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "what were the requested changes on PR 308?",
+          "ts": "2025-01-06T10:25:11"
+        },
+        {
+          "userId": "ilse",
+          "text": "three coffees in and the morning still feels like it hasn't quite started, not sure that's a good sign.",
+          "ts": "2025-01-06T10:27:11",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "is the vLLM offline processor in a PR yet, or is it still pre-review?",
+          "ts": "2025-01-06T11:18:20"
+        },
+        {
+          "userId": "dario",
+          "text": "@Ilse yes, I'm the right person for that. The pattern in provider-integrations basically expects this shape:\n\n```python\nclass LLMProvider:\n def __call__(self, request: GenericRequest) -> dict: ...\n def count_tokens(self, messages: list) -> int: ...\n```\n\nShare the PR when it's up and I can validate the fit. On the docstring and token-counting question, I've also got a blocker on my end in provider-integrations that I wanted to sort out, so good timing, can we look at both together?",
+          "ts": "2025-01-06T11:50:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-01-06T11:50:37"
+        },
+        {
+          "userId": "ilse",
+          "text": "is `count_tokens` mandatory on the offline side, or can it be stubbed out?",
+          "ts": "2025-01-06T11:50:37",
+          "threadParentTs": "2025-01-06T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Still blocked on the token-counting work in provider-integrations and haven't gotten a call on it.",
+          "ts": "2025-01-06T12:01:37"
+        },
+        {
+          "userId": "dario",
+          "text": "@Ilse that's basically your question too, do we need real token counts for this release or are stubs acceptable across the board?",
+          "ts": "2025-01-06T12:01:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "docstring pass is in and test file movement is done",
+          "ts": "2025-01-07T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "test movement and docstring pass are both in, I can see now where we're actually losing throughput",
+          "ts": "2025-01-07T10:07:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-015 scope is redy to write up but it's waiting on PR 317.",
+          "ts": "2025-01-07T10:07:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 298 has been sitting for a couple days now, is that still blocked?",
+          "ts": "2025-01-07T11:22:21"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 317 is up, factory pattern fix is in",
+          "ts": "2025-01-07T12:07:21",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Backend auto-detect pulls the right config now",
+          "ts": "2025-01-07T12:07:33"
+        },
+        {
+          "userId": "emil",
+          "text": "ws-015 scope is settled on my end: file handle cleanup, config stability, concurrency targets, and a measurement plan. Nothing ships from that workstream without the measurement baseline in place.",
+          "ts": "2025-01-07T12:56:47"
+        },
+        {
+          "userId": "dario",
+          "text": "- *provider-integrations*: retry path is stable, config propagation looks clean with 317 in\n- *online-request-processing*: throughput baseline collection is next, waiting on ws-015 scope to firm up measurement targets",
+          "ts": "2025-01-07T13:02:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Is PR 298 unblocked now that 317 is in, or is there something else still holding it?",
+          "ts": "2025-01-07T13:33:55"
+        },
+        {
+          "userId": "dario",
+          "text": "What are the actual concurrency targets for ws-015, do we have numbers yet or is that part of what the measurement baseline is supposed to establish?",
+          "ts": "2025-01-07T13:44:55"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-014 has Stage 3 scoped to a minimal smoke: online request, batch, cache resume",
+          "ts": "2025-01-07T13:46:55"
+        },
+        {
+          "userId": "emil",
+          "text": "vLLM offline is explicitly called out as a tracked gap in the doc, not yet in scope",
+          "ts": "2025-01-07T13:47:00"
+        },
+        {
+          "userId": "emil",
+          "text": "That's Dermot's call to schedule, it's his doc.",
+          "ts": "2025-01-07T13:47:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Online request and cache resume are mine, I'll cover those for the ws-014 Stage 3 smoke",
+          "ts": "2025-01-07T14:10:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure I want to lock in a date for ws-014 Stage 3 before ws-015 has the measurement targets set",
+          "ts": "2025-01-07T14:52:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "can that run in parallel or should it wait?",
+          "ts": "2025-01-07T14:52:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "for ws-015 concurrency targets, do we commit numbers first or does the measurement baseline tell us what they should be?",
+          "ts": "2025-01-07T14:56:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Baseline first on ws-015, we run the measurement plan, then set concurrency targets from what the data shows",
+          "ts": "2025-01-07T15:40:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Committing numbers before we have a baseline is the wrong order",
+          "ts": "2025-01-07T15:40:51"
+        },
+        {
+          "userId": "dermot",
+          "text": "who do I need to ask to get provider credentials wired into CI for the ws-015 measurement runs?",
+          "ts": "2025-01-07T16:21:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 298 is still sitting blocked and nobody's confirmed it cleared after 317 landed.",
+          "ts": "2025-01-07T17:08:21"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 317 is up and ready for review. On CI credentials for ws-015 measurement runs, that's mine to wire, come to me when you're ready to set that up.",
+          "ts": "2025-01-07T17:24:21"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil can you loop me in when you're wiring the CI credentials for ws-015? The measurement runs are going to hit online-request-processing and provider-integrations so I'll need visibility into how they're configured there",
+          "ts": "2025-01-07T18:05:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "factory refactor on bulk-llm-inference is moving, class struture is roughed in this morning",
+          "ts": "2025-01-09T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "lazy imports are next, want to verify startup doesn't regress before I call it done",
+          "ts": "2025-01-09T09:00:08"
+        },
+        {
+          "userId": "petar",
+          "text": "still on the config-change side of things for online-request-processing, want to make sure a hot reload doesn't punch a hole in throughput before I sign off on it",
+          "ts": "2025-01-09T09:34:08"
+        },
+        {
+          "userId": "ilse",
+          "text": "petar, are you doing a live config swap or bouncing the process to pick up changes?",
+          "ts": "2025-01-09T09:52:08"
+        },
+        {
+          "userId": "petar",
+          "text": "live swap, no bounce, that's the whole point of the test, if throughput dips during the reload window we have a problem worth knowing about before this ships",
+          "ts": "2025-01-09T10:00:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-09T10:00:39"
+        },
+        {
+          "userId": "ilse",
+          "text": "you're sending real requests through during the swap, not replaying recorded ones?",
+          "ts": "2025-01-09T10:00:39",
+          "threadParentTs": "2025-01-09T10:00:08"
+        },
+        {
+          "userId": "petar",
+          "text": "true",
+          "ts": "2025-01-09T10:09:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we have an agreed threshold for acceptable throughput dip, or is that still up to whoever's watching",
+          "ts": "2025-01-09T10:25:39"
+        },
+        {
+          "userId": "ilse",
+          "text": "noticing the integration tests don't seem to exercise the local backend at all when a config change is in flight",
+          "ts": "2025-01-09T11:05:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Does the throughput dip threshold apply just during the reload window, or are we also watching post-reload to make sure it fully recovers?",
+          "ts": "2025-01-09T11:29:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Are the integration tests actually exercising all provider backends, or just the primary one?",
+          "ts": "2025-01-09T11:41:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone measured startup time before and after the lazy import changes, or is that still outstanding?",
+          "ts": "2025-01-09T12:05:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the onboarding doc Konrad wrote for me",
+          "ts": "2025-01-09T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "It covers the basics, key contacts, issues to track",
+          "ts": "2025-01-09T12:41:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Doesn't really get into the config or throughput side of request processing though Is there a better place to look for that, or is it all just in the code?",
+          "ts": "2025-01-09T12:41:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Read through the WS-014 design doc. Stage 3 integration smoke covers one online request, one batch submission, one resume from cache. Does any of that run with a config change in flight, or is the live-reload scenario completely outside what CI exercises?",
+          "ts": "2025-01-09T13:38:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Online-request-processing refactor is progressing, but the config-change throughput question Petar's working through is exactly the thing I haven't been able to call closed yet on my end either.",
+          "ts": "2025-01-09T13:51:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we actually have a number for what \"acceptable\" throughput dip looks like, or are we just going to know it when we see it?",
+          "ts": "2025-01-09T13:51:51"
+        },
+        {
+          "userId": "petar",
+          "text": "this is what I'm capturing during the reload window right now:\n\n```\npre_reload_rps, reload_window_rps, post_reload_rps\n```\n\nno threshold agreed yet so I'm just collecting the delta, need someone to say what's acceptable",
+          "ts": "2025-01-09T14:03:51"
+        },
+        {
+          "userId": "petar",
+          "text": "still no number on the throughput threshold, i'd say we need that before we call the refactor done, who's making that call?",
+          "ts": "2025-01-09T14:46:17"
+        },
+        {
+          "userId": "dario",
+          "text": "Same boat, I can't close out the online-request-processing side without that number either",
+          "ts": "2025-01-09T15:29:17"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot Callaghan this needs a call before end of day, nobody here can set the throughput threshold on their own.",
+          "ts": "2025-01-09T16:06:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure I can set that threshold without seeing baseline performance data for online-request-processing",
+          "ts": "2025-01-09T16:19:17"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot Callaghan I can pull the baseline numbers, got a few minutes right now if you want to look at them together before EOD.",
+          "ts": "2025-01-09T16:59:17",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "petar",
+          "text": "the integration tests aren't hitting the local backend during a config change in flight, Ilse flagged it earlier and I can reproduce it on my side too",
+          "ts": "2025-01-09T17:18:17",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-09T17:34:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "thursdays always feel longer than they are",
+          "ts": "2025-01-09T17:34:17"
+        },
+        {
+          "userId": "ilse",
+          "text": "that's not something we should just leave as a known gap and ship anyway",
+          "ts": "2025-01-09T17:34:47",
+          "threadParentTs": "2025-01-09T17:18:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "good spot on the local backend gap, ilse",
+          "ts": "2025-01-09T17:52:47",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "So is the local backend gap a blocker for the refactor, or are we shipping around it?",
+          "ts": "2025-01-09T18:23:47"
         }
       ],
       "projectSpec": {
@@ -13989,7 +15633,9 @@
       "memberIds": [
         "dario",
         "dermot",
-        "konrad"
+        "emil",
+        "konrad",
+        "nikolai"
       ],
       "messages": [
         {
@@ -15078,6 +16724,369 @@
           "userId": "konrad",
           "text": "good start to the week",
           "ts": "2024-12-23T10:38:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "test file movement is merged and the docstring pass is in, I can see the coverage gaps now",
+          "ts": "2025-01-07T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "my view: nothing lands on v0.1.15 until we have a real baseline and the integration tests exist",
+          "ts": "2025-01-07T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil where do the v0.1.14 release notes stand?",
+          "ts": "2025-01-07T09:02:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "So I think I've been saying \"nothing lands\" but I probably should have said no features land, patches are a different question and I'm not sure we want to block those too",
+          "ts": "2025-01-07T09:41:26"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the bar for patch vs feature in that framing?",
+          "ts": "2025-01-07T10:13:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "is PR 318 open yet?",
+          "ts": "2025-01-07T11:29:15"
+        },
+        {
+          "userId": "emil",
+          "text": "Done. Release notes: v0.1.14 is on the wiki, engineering collection. Five changes: docstring pass, getCacheDir helper, special tokens fix, test movement, GenericRequest coverage.",
+          "ts": "2025-01-07T12:32:16",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Sent \"v0.1.14 is out\" to the team with a pointer to the release notes on the wiki",
+          "ts": "2025-01-07T12:48:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Asked everyone to flag anything in the notes that doesn't match what they saw merge",
+          "ts": "2025-01-07T12:48:49"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 318 epic is open, yeah. on the patch vs feature split, I'm honestly not sure that distinction holds - if the coverage baseline isn't set, how do we know a patch isn't covering something broken?",
+          "ts": "2025-01-07T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Release notes: v0.1.14 is on the wiki if anyone wants to double-check against what they saw merge",
+          "ts": "2025-01-07T13:30:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Five changes are all in there",
+          "ts": "2025-01-07T13:30:05"
+        },
+        {
+          "userId": "dario",
+          "text": "One TODO flagged in the getCacheDir section about whether the config key is documented anywhere visible, might be worth a quick follow-up",
+          "ts": "2025-01-07T13:30:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nikolai's probably right that the patch distinction doesn't hold without a baseline",
+          "ts": "2025-01-07T14:05:13"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad the 0.1.13 release notes aren't on the wiki yet - still in progress, or is that landing today?",
+          "ts": "2025-01-07T14:30:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "ws-014 design is on the wiki. coverage gate is 80% line on changed files, soft until it holds for two releases in a row. stage 3 smoke is one online request, one batch submission, one cache resume",
+          "ts": "2025-01-07T14:54:13",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "vLLM offline is the biggest gap in there, explicitly tracked but not in stage 3 scope yet.",
+          "ts": "2025-01-07T14:54:21"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad the Stratos Crunch plan isn't on the wiki yet, is that landing today?",
+          "ts": "2025-01-07T15:35:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "the weekly sync notes for the dec 30 week aren't on the wiki yet",
+          "ts": "2025-01-07T16:17:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "so I can't tell if anything from that sync afects the release gating picture",
+          "ts": "2025-01-07T16:17:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we agreed that v0.1.15 doesn't ship until PR 318 is at least partially green and the coverage baseline is set?",
+          "ts": "2025-01-07T16:56:29",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ],
+          "replyCount": 3,
+          "replyLastTs": "2025-01-07T17:14:31"
+        },
+        {
+          "userId": "nikolai",
+          "text": "agreed",
+          "ts": "2025-01-07T17:06:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean, not entirely sure \"at least partially green\" is a concrete enough gate",
+          "ts": "2025-01-07T17:13:43",
+          "threadParentTs": "2025-01-07T16:56:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "what does \"partially green\" actually mean, the happy path only?",
+          "ts": "2025-01-07T17:14:01",
+          "threadParentTs": "2025-01-07T16:56:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "so stage 3 smoke from ws-014, or something else?",
+          "ts": "2025-01-07T17:14:31",
+          "threadParentTs": "2025-01-07T16:56:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "stage 3 smoke is defined in ws-014 but it's not running in CI yet",
+          "ts": "2025-01-07T17:20:31"
+        },
+        {
+          "userId": "konrad",
+          "text": "If WS-014 already names exactly what \"smoke\" means, maybe the cleaner gate is just \"stage 3 smoke passing in CI\" rather than tying it to PR 318 status, which is going to keep moving.",
+          "ts": "2025-01-07T17:55:31",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Well, \"soft until it holds for two releases in a row\" is a pretty long runway, that's basically no coverage gate for the next two cycles.",
+          "ts": "2025-01-07T17:55:52"
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean, soft isn't no gate, it warns on every miss.",
+          "ts": "2025-01-07T18:13:49.879187"
+        },
+        {
+          "userId": "dario",
+          "text": "are we calling \"stage 3 smoke passing in CI\" the gate, or do we still need the coverage baseline too?",
+          "ts": "2025-01-07T18:29:49.879187"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly I'd lean toward both, smoke passing and a coverage baseline, not just one or the other, but someone else should make that call",
+          "ts": "2025-01-07T18:29:52.933909"
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.14 is looking stable on my end, no issues coming out of release-and-ci since it went out",
+          "ts": "2025-01-08T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "sync notes are up on the wiki if anyone wants the full picture, \"Weekly sync notes: week of jan 6, v0.1.14 shipped\" in the engineering collection",
+          "ts": "2025-01-08T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ruff is in CI now from my side, but I haven't confirmed yet whether it should be a hard gate for 0.1.15 or if we want to give it a bit of settling time first.",
+          "ts": "2025-01-08T09:11:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure we want it as a hard gate for 0.1.15, do we give it a cycle as non-blocking first, or does someone have a strong read on whether it's stable enough?",
+          "ts": "2025-01-08T10:01:21"
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, not sure non-blocking for a cycle actually lands us anywhere different, we'll just have the same conversation before 0.1.16.",
+          "ts": "2025-01-08T10:06:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "do we have any sense of when we're targeting 0.1.15, are we waiting on the Ruff call and local vLLM to settle first, or does someone have a date in mind already?",
+          "ts": "2025-01-08T12:07:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ruff in CI still isn't called, blocking or not, and I haven't had a clear answer on that from anyone yet.",
+          "ts": "2025-01-08T12:19:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I suppose we can't really set firm 0.1.15 timing until that's decided.",
+          "ts": "2025-01-08T12:19:10"
+        },
+        {
+          "userId": "dermot",
+          "text": "the sync notes I put up this morning flag Ruff and local vLLM as the two open items carrying into this week, consistent with what Nikolai is saying",
+          "ts": "2025-01-08T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "is there someone who can actually make the Ruff call, or does it need a dedicated slot this afternoon?",
+          "ts": "2025-01-08T12:39:08"
+        },
+        {
+          "userId": "emil",
+          "text": "We've got the Ruff call lined up for this afternoon, I'll weigh in on whether it's a hard gate for 0.1.15 once that's done.",
+          "ts": "2025-01-08T13:39:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "From my side the main dependency concern was lockfile drift, and PR 326 cleans that up once it's in, so provider-integrations and the request processing stack should be solid for a 0.1.15 cut whenever that timeline gets set",
+          "ts": "2025-01-08T14:19:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Batch-mode is clean on my end too",
+          "ts": "2025-01-08T14:48:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Still waiting on the Ruff call to land before I'd sign off on a 0.1.15 timeline, but that should happen today",
+          "ts": "2025-01-08T14:48:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "release-and-ci is clean, no issues since 0.1.14 went out",
+          "ts": "2025-01-08T15:03:13",
+          "replyCount": 5,
+          "replyLastTs": "2025-01-08T15:05:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "uhh, clean for now, but Ruff isn't actually gating anything yet, so I'm not sure that tells us much about what CI looks like once we decide it's blocking.",
+          "ts": "2025-01-08T15:03:53",
+          "threadParentTs": "2025-01-08T15:03:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "has Ruff actually run against any of the current PRs yet?",
+          "ts": "2025-01-08T15:04:14",
+          "threadParentTs": "2025-01-08T15:03:13"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly release-and-ci staying green through the merge volume this week is a decent result, I'll give it that.",
+          "ts": "2025-01-08T15:04:38",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-01-08T15:03:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "but running and gating are different things, right?",
+          "ts": "2025-01-08T15:05:23",
+          "threadParentTs": "2025-01-08T15:03:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "so currently it runs but a failure wouldn't block a merge?",
+          "ts": "2025-01-08T15:05:32",
+          "threadParentTs": "2025-01-08T15:03:13"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, still free to land the Ruff call today?",
+          "ts": "2025-01-08T15:44:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Getting a bit late",
+          "ts": "2025-01-08T15:44:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "yes, still around, let's do it now.",
+          "ts": "2025-01-08T15:58:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "i mean, not entirely sure we should jump straight to hard gate without seeing it actually fail a merge at least once, is the call going to land on phased rollout or straight to blocking?",
+          "ts": "2025-01-08T16:11:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold this is the question, phased or straight to blocking, can you make the call on that one?",
+          "ts": "2025-01-08T16:15:40",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-08T16:16:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure I can make that call cleanly right now, I don't have a read yet on how it's behaved under real merge pressure.",
+          "ts": "2025-01-08T16:16:16",
+          "threadParentTs": "2025-01-08T16:15:40"
+        },
+        {
+          "userId": "dario",
+          "text": "I dunno, if nobody has a read on how it's behaved yet this just ends with it staying non-blocking by default and the same conversation happens before 0.1.16.",
+          "ts": "2025-01-08T16:55:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "so do we just set a hard deadline, say, Ruff gate decision has to land before we cut 0.1.15, not after?",
+          "ts": "2025-01-08T17:35:16"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, 0.1.14 out with no hotfixes needed after a week that heavy is a decent result.",
+          "ts": "2025-01-08T18:13:16",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {

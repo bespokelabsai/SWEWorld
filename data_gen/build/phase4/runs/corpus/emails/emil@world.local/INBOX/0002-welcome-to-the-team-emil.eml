@@ -1,0 +1,29 @@
+From: konrad@world.local
+To: emil@world.local
+Subject: Welcome to the team, Emil
+Date: Mon, 06 Jan 2025 10:45:00 +0000
+Message-ID: <178765237404.1878812.15022952931792727999@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Welcome to Millrow, Emil. Really glad to have you on board.
+
+A few things to help you get oriented:
+
+- Onboarding doc is up in the wiki at onboarding/onboarding-emil-brandvold-co=
+re-platform-engineer-for-request-processing.md =E2=80=94 covers your services=
+, key contacts, and open questions that touch your work
+- Ilse Vandekerckhove has been doing the vLLM integration work in local-offli=
+ne-inference and has offered a walkthrough =E2=80=94 definitely worth syncing=
+ with her early this week to get the full picture before you start pulling th=
+reads
+- Main day-to-day conversation is in the #engineering channel
+
+One ask: could you drop a short intro in #engineering when you have a moment?=
+ Just a few lines about your background and what you're coming in to work on.=
+ Helps the rest of the team put a face to the name.
+
+Shout if you have any questions getting set up.
+
+Konrad

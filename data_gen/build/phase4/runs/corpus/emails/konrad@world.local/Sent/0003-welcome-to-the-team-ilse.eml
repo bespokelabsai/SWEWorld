@@ -1,0 +1,28 @@
+From: konrad@world.local
+To: ilse@world.local
+Subject: Welcome to the team, Ilse
+Date: Mon, 06 Jan 2025 10:59:00 +0000
+Message-ID: <178765246562.1878812.17070642753177499837@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Welcome to Millrow, Ilse. Really glad to have you contributing here.
+
+A few things to get you oriented:
+
+- Onboarding doc is up in the wiki at onboarding/onboarding-ilse-vandekerckho=
+ve-vllm-local-inference-contributor.md =E2=80=94 covers your role, the servic=
+es you're touching, and open questions relevant to your work
+- Emil Brandvold is the owner of local-offline-inference and will be picking =
+up the vLLM work from here =E2=80=94 you've already been coordinating with hi=
+m, but worth keeping that loop tight as he gets up to speed
+- Main day-to-day conversation is in #engineering
+
+One ask: could you drop a quick intro in #engineering when you have a moment?=
+ Just a few lines on your background and what you're focused on. Helps the te=
+am get a sense of who you are.
+
+Shout if anything is unclear or you need access to something.
+
+Konrad
