@@ -1,12 +1,12 @@
 # Phase 4: every planted clue, and whether its information landed
 
-35 of 38 carried.
+37 of 40 carried.
 
 A clue is a fact the corpus has to teach. It does not have to be worded the way it was planted — the persona saying it has their own vocabulary — but the information has to be there, or the requirement it serves becomes unrecoverable and the task unscoreable. Each row links to the line that carried it, in the conversation around it.
 
-**5 clue(s) leaked giveaway language.** Those landed, but state the hidden requirement plainly enough to make the task trivial — a worse outcome than a miss, because a miss is visible in this table and a leak is not.
+**6 clue(s) leaked giveaway language.** Those landed, but state the hidden requirement plainly enough to make the task trivial — a worse outcome than a miss, because a miss is visible in this table and a leak is not.
 
-**17 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
+**18 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
 
 | clue | task | holder | said by | date | where | kind | carried | leaked | repaired | attempt |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -48,3 +48,5 @@ A clue is a fact the corpus has to teach. It does not have to be worded the way 
 | [t4.r1.L9](t4.r1.L9.md) | t4 | konrad | — | 2025-02-26 | #cookbooks | chat | yes | — | — | 1 |
 | [t4.r2.L1](t4.r2.L1.md) | t4 | nikolai | — | 2025-02-26 | #code-review | chat | yes | — | +2 msg | 1 |
 | [t1.r2.L10](t1.r2.L10.md) | t1 | gideon | — | 2025-02-27 | #general | chat | yes | — | — | 1 |
+| [t1.r1.l_params_1](t1.r1.l_params_1.md) | t1 | gideon | — | 2025-02-28 | #help | chat | yes | cache key | +1 msg | 1 |
+| [t4.r1.L11](t4.r1.L11.md) | t4 | dario | — | 2025-02-28 | page:release-v0-1-20 | page | yes | — | — | 1 |

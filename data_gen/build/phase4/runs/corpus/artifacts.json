@@ -1234,5 +1234,89 @@
     "done": true,
     "at": "2025-02-27T09:14:00+00:00",
     "date": "2025-02-27"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-20",
+    "title": "Release notes: v0.1.20",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-02-28T09:14:00+00:00",
+    "date": "2025-02-28"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-20",
+    "title": "v0.1.20 is out",
+    "by": "dario",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-02-28T09:56:00+00:00",
+    "date": "2025-02-28"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2025-03-01",
+    "title": "Postmortem: kluster.ai DeepSeek Output-Token Default",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "postmortem",
+    "done": true,
+    "at": "2025-03-03T10:24:00+00:00",
+    "date": "2025-03-03"
+  },
+  {
+    "kind": "doc",
+    "id": "handover-packaging-version-bumps-and-release-cutt",
+    "title": "Handover: Packaging, Version Bumps & Release Cutting",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "handover",
+    "done": true,
+    "at": "2025-03-03T10:03:00+00:00",
+    "date": "2025-03-03"
+  },
+  {
+    "kind": "doc",
+    "id": "plan-consolidation-provider-breadth",
+    "title": "Q2 Plan: Consolidation and Provider Breadth",
+    "by": "konrad",
+    "action": "write",
+    "to": "",
+    "doc_kind": "planning",
+    "done": true,
+    "at": "2025-03-03T09:14:00+00:00",
+    "date": "2025-03-03"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-02-24",
+    "title": "Weekly update: week of Feb 24",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-03T09:28:00+00:00",
+    "date": "2025-03-03"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-03-03",
+    "title": "Weekly Notes — Week of Mar 3",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-03-05T09:28:00+00:00",
+    "date": "2025-03-05"
   }
 ]

@@ -9939,6 +9939,487 @@
           "userId": "emil",
           "text": "Working through 549 now, 551 is next.",
           "ts": "2025-02-27T18:16:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 546 is up, touches online-request-processing. 15 commits today on token accounting, unified TokenCount with TokenUsage, pre/post cost estimation for online processors. Would appreciate eyes on it before EOD",
+          "ts": "2025-02-28T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also, what's the status on PR 468?",
+          "ts": "2025-02-28T09:05:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "I thought it was waiting on something but I'm not sure if that's still the case",
+          "ts": "2025-02-28T09:05:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "On the cost-estimation work, do we have a sense of which of PR 559 through 563 are meant to land this sprint?",
+          "ts": "2025-02-28T09:36:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "Did I miss a standup call where the cost-estimation scope got sorted, or is that still up in the air?",
+          "ts": "2025-02-28T11:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 468 I'm honestly not sure on",
+          "ts": "2025-02-28T11:37:00"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd thought it was still waiting on issue 52 but I haven't confirmed that recently",
+          "ts": "2025-02-28T11:37:05"
+        },
+        {
+          "userId": "emil",
+          "text": "let me check on that",
+          "ts": "2025-02-28T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Checked on PR 468, it's still tied to issue 52 and I haven't seen that move",
+          "ts": "2025-02-28T12:55:19"
+        },
+        {
+          "userId": "gideon",
+          "text": "So 468 is just deferred until issue 52 moves, so like no decision needed right now?",
+          "ts": "2025-02-28T13:35:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "And has anyone gotten to PR 546 yet?",
+          "ts": "2025-02-28T13:36:02"
+        },
+        {
+          "userId": "dario",
+          "text": "I can get eyes on PR 546 this afternoon, it touches my side of the stack.",
+          "ts": "2025-02-28T14:07:48",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Batch-mode is still referencing the old TokenCount field name in a couple places, looks like the unification didn't catch that side.",
+          "ts": "2025-02-28T14:36:48",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil are those TokenCount references in the main cost-tracking path or more like in logging?",
+          "ts": "2025-02-28T15:06:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Nice catch on the TokenCount references",
+          "ts": "2025-02-28T15:23:48",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 468 I'd lean toward calling deferred, it's still sitting on issue 52 and that hasn't moved",
+          "ts": "2025-02-28T15:23:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 546 has new commits up, tests are passing, and it's ready for another look whenever someone has cycles this morning.",
+          "ts": "2025-03-01T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil is PR 468 blocked on anything or is it just waiting for review?",
+          "ts": "2025-03-01T09:08:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 468 is Emil's so I'd have to leave that one to him, but does PR 546 have a reviewer assigned or is it just sitting open?",
+          "ts": "2025-03-01T09:53:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "I pulled up the release notes, cost estimation isn't in v0.1.20 at all.",
+          "ts": "2025-03-01T10:18:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "So is PR 546 still in scope for this cycle or are we punting it to next release?",
+          "ts": "2025-03-01T10:18:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can't answer that one myself, it depends on whether the revert triage changes anything about the cost estimation scope, so PR 546's cycle status is still open for me until that's clearer.",
+          "ts": "2025-03-01T10:51:30"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 isn't blocked on anything technical, it's just been sitting while I sorted out the revert fallout on the provider side",
+          "ts": "2025-03-01T11:14:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Whether it's worth reviving this cycle or pushing to next is still up in the air for me, honestly",
+          "ts": "2025-03-01T11:14:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Does PR 468 even make sense to reland before the token default stuff is sorted, or are we just deferring it to next cycle?",
+          "ts": "2025-03-01T11:14:56"
+        },
+        {
+          "userId": "gideon",
+          "text": "Actually I think I jumped the gun calling PR 546 ready, if the token default handling changes cost projection inputs, that PR might need updates before it can actually land.",
+          "ts": "2025-03-01T11:31:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "Q2 Plan: Consolidation and Provider Breadth is up on the wiki now (engineering collection, \"Q2 Plan: Consolidation and Provider Breadth\") if anyone wants to read it before we get deeper into the week. Also been looking at PR 571 from an API shape angle and I have a few notes, will drop them in the PR.",
+          "ts": "2025-03-03T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Sent the weekly update out this morning, asked about PR 574 status in there, but is it clear to merge today or are there still open concerns on it?",
+          "ts": "2025-03-03T09:29:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "sorry, got caught up",
+          "ts": "2025-03-03T10:29:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 574 is clear to merge, no concerns left on my side",
+          "ts": "2025-03-03T10:30:07",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "also put the handover doc up on engineering wiki, \"Handover: Packaging, Version Bumps & Release Cutting\"",
+          "ts": "2025-03-03T10:30:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is anyone else actively reviewing PR 571, or is it mostly waiting on the style pass at this point?",
+          "ts": "2025-03-03T11:52:42"
+        },
+        {
+          "userId": "emil",
+          "text": "Postmortem for the kluster.ai DeepSeek output-token issue is up on the wiki: \"Postmortem: kluster.ai DeepSeek Output-Token Default.\"",
+          "ts": "2025-03-03T13:54:35"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot nice clean review on PR 574, good to have that cleared.",
+          "ts": "2025-03-03T14:20:01",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "nice",
+          "ts": "2025-03-03T15:04:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure PR 571 is as close as it looks - the style pass is still outstanding and I don't know who's picking it up.",
+          "ts": "2025-03-03T15:11:01"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get PR 574 merged this afternoon.",
+          "ts": "2025-03-03T15:11:26",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "who's picking up the style pass on PR 571, is it assigned to anyone?",
+          "ts": "2025-03-03T15:28:26"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, can you take the style pass on PR 571?",
+          "ts": "2025-03-03T16:07:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll take it",
+          "ts": "2025-03-03T16:12:26",
+          "reactions": [
+            {
+              "emoji": "💪",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Once the style pass is done I'll drop notes in the PR and flag you to merge",
+          "ts": "2025-03-03T16:12:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the API shape on PR 571 considered locked once the style pass clears, or does that need a separate sign-off?",
+          "ts": "2025-03-03T16:45:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "for release procedure reference, the handover doc is on engineering wiki, \"Handover: Packaging, Version Bumps & Release Cutting\"",
+          "ts": "2025-03-03T16:59:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "the api shape question for PR 571 I'm not sure is settled yet, not certain where that lands",
+          "ts": "2025-03-03T16:59:39"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 574 merged, anyone catch any issues with the process_response change?",
+          "ts": "2025-03-03T17:29:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 575 and 576 need eyes today, they're blocking the next steps in the cost estimation series",
+          "ts": "2025-03-04T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost processor and curator-viewer, not release-blocking but I can't move forward without them",
+          "ts": "2025-03-04T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 575 touches the cost processor, right?",
+          "ts": "2025-03-04T09:06:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "is that just the model-name fix or is there more to it?",
+          "ts": "2025-03-04T09:06:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "Yeah",
+          "ts": "2025-03-04T09:36:17"
+        },
+        {
+          "userId": "gideon",
+          "text": "cost processor only",
+          "ts": "2025-03-04T09:36:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "Just the model-name lookup - it was pulling from the wrong place instead of config",
+          "ts": "2025-03-04T09:36:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-03-04T09:42:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll take a look at it",
+          "ts": "2025-03-04T09:42:38"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is PR 576 on your list too, or should I find someone else for that one?",
+          "ts": "2025-03-04T10:13:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "I've already reviewed 576, it's good from my end",
+          "ts": "2025-03-04T10:28:45",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "worth landing 575 first though since the viewer likely pulls cost data",
+          "ts": "2025-03-04T10:28:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 565 and 566 still don't have a reviewer - those are getting stale.",
+          "ts": "2025-03-04T11:11:57"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 565 and 566 are both mine, and honestly they've been sitting longer than I'd like. I don't have a reviewer assigned for either yet.",
+          "ts": "2025-03-04T11:39:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Postmortem is up on the wiki",
+          "ts": "2025-03-04T12:08:57"
+        },
+        {
+          "userId": "emil",
+          "text": "I haven't confirmed whether the 4-token cap is DeepSeek-specific or applies to other kluster.ai endponts - do we need that settled before the fix can land?",
+          "ts": "2025-03-04T12:09:05"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario I can take PR 565 this afternoon if you need a reviewer.",
+          "ts": "2025-03-04T12:09:10",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I'll take 565 since nobody's come back on that. Once Dermot claers 575, that and 576 can both go in. 566 still needs a reviewer.",
+          "ts": "2025-03-04T12:20:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "is PR 575 self-contained or are there other changes I should read alongside it before I approve?",
+          "ts": "2025-03-04T12:24:45",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-04T12:25:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Self-contained, it's a single lookup change:\n\n```python\nmodel_name = self.config.model_name # was pulling from the wrong place before\n```\n\n576 is separate, no need to read them together.",
+          "ts": "2025-03-04T12:25:12",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-03-04T12:24:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Dermot, once 575 is approved does 576 go in right behind it, or is there something holding it?",
+          "ts": "2025-03-04T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Got through the examples-cookbooks updates this morning",
+          "ts": "2025-03-05T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Anyone know if PR 579 is overlapping with what Dario has going in PR 565 and 566?",
+          "ts": "2025-03-05T09:00:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "ok",
+          "ts": "2025-03-05T09:00:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "answering my own question, PR 579 is \"Feat/openai/deepseek api.\" @Dario, is that meant to replace PR 565 and 566, or is it parallel work?",
+          "ts": "2025-03-05T09:47:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil is PR 578 good for a review pass now?",
+          "ts": "2025-03-05T10:16:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil does the batch example in PR 578 land in examples-cookbooks, or is it self-contained in the PR?",
+          "ts": "2025-03-05T10:30:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is PR 578 waiting on anything besides a review pass, or is it good to go once someone approves?",
+          "ts": "2025-03-05T11:25:27"
+        },
+        {
+          "userId": "emil",
+          "text": "Weekly notes for the week of Mar 3 are up in the engineering wiki, engineering/weekly-notes-week-of-mar-3.",
+          "ts": "2025-03-05T11:33:27"
+        },
+        {
+          "userId": "dario",
+          "text": "The title of PR 579 basically covers the same ground as PR 565 and PR 566 combined, which is what has me confused",
+          "ts": "2025-03-05T11:37:27"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad, who opened PR 579, and do you know what it's changing that isn't already in my two PRs?",
+          "ts": "2025-03-05T11:37:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Going ahead and approving PR 578 for merge",
+          "ts": "2025-03-05T11:43:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario I honestly don't know who opened 579 either, available this afternoon if you want to dig into it",
+          "ts": "2025-03-05T11:43:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Pulled up the Q2 plan and PR 565 and 566 are both named explicitly under provider breadth, so that part's clear on my end.",
+          "ts": "2025-03-05T11:50:00",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 579 doesn't show up in the plan at all though - @Konrad do you know if it's a separate effort someone started on the side, or is it meant to replace one of mine?",
+          "ts": "2025-03-05T11:50:12"
         }
       ],
       "projectSpec": {
@@ -12150,6 +12631,68 @@
           "text": "So once Emil posts WS-033, are we calling the launch documented and ready to announce?",
           "ts": "2025-02-26T18:29:24.957866",
           "threadParentTs": "2025-02-26T18:28:41.957866"
+        },
+        {
+          "userId": "konrad",
+          "text": "Been going through the examples-cookbooks backlog this morning and the main thing I'm waiting on is whether the RAFT block API is settled, once PR 571 is in and the shape is locked I can get the example published, but I don't want to write it against something that's still moving.",
+          "ts": "2025-03-03T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, is the RAFT block API shape in PR 571 considered final, or is there still stuff likely to shift before it merges?",
+          "ts": "2025-03-03T09:36:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "So I pulled up issue 553, the example interface there has `chunk_size`, `p`, `k`, `num_chunks` in `generation_params`",
+          "ts": "2025-03-03T10:40:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is that still what landed in PR 571, or did the shape change?",
+          "ts": "2025-03-03T10:40:57"
+        },
+        {
+          "userId": "emil",
+          "text": "That shape is still right, `chunk_size`, `p`, `k`, `num_chunks` in `generation_params` is what landed in PR 571 and I'm not planning any more changes to the interface",
+          "ts": "2025-03-03T10:59:57",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "You're good to write the example against it",
+          "ts": "2025-03-03T11:00:09"
+        },
+        {
+          "userId": "emil",
+          "text": "If the RAFT example in the cookbook is written against the locked API shape, it effectively becomes a canary for any future interface drift on the block.",
+          "ts": "2025-03-03T11:16:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "So do we want the example written before PR 571 actually merges, or after?",
+          "ts": "2025-03-03T11:45:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm a bit wary of writing it against a PR that's still in review, if anything changes at the style pass it means updating the example too",
+          "ts": "2025-03-03T11:45:06"
+        },
+        {
+          "userId": "emil",
+          "text": "Sorry, just got back to this. I think waiting until after merge is the safer call, even if I'm not expecting the shape to move.",
+          "ts": "2025-03-03T13:45:06",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -20765,6 +21308,172 @@
           "userId": "emil",
           "text": "WS-033 design still isn't in the wiki - I checked earlier - so nothing there yet on how execution requests sit in the cost path, and that's on me to write up.",
           "ts": "2025-02-27T17:27:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "Q2 plan is written up and on the wiki if anyone wants to read it before the week gets moving. Separately, I've been keeping an eye on the Gemini rate-limit and parse-failure-count stuff, are those being tracked somewhere or is that still floating?",
+          "ts": "2025-03-03T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, are you on the Gemini rate-limit issues or is that still unassigned?",
+          "ts": "2025-03-03T09:41:55"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon, is the Mar 1 postmortem writeup happening today, or has that slipped?",
+          "ts": "2025-03-03T10:48:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-03-03T11:08:05"
+        },
+        {
+          "userId": "emil",
+          "text": "that's mine. I've got the rate-limit handling and the parse-failure-count stuff, will get both logged in the backlog today.",
+          "ts": "2025-03-03T11:08:13",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Does anyone have Gemini API test credentials I can get added to, or know who to ask?",
+          "ts": "2025-03-03T11:08:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "solid, thanks",
+          "ts": "2025-03-03T11:38:44",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, are the Gemini rate-limit issues going in as new issues, or are they under existing issues 207 and 233?",
+          "ts": "2025-03-03T12:00:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Let me check, I want to see if 207 covers it before opening something new.",
+          "ts": "2025-03-03T13:57:10"
+        },
+        {
+          "userId": "emil",
+          "text": "Rate-limit stuff fits under issues 207 and 233, logging the parse-failure-count separately.",
+          "ts": "2025-03-03T14:26:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "gotcha, that's clean",
+          "ts": "2025-03-03T15:10:55",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Is Gideon's cost-estimation PR unblocked at this point, or is there still something holding it up?",
+          "ts": "2025-03-03T15:37:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "- cost revamp is done, that's 1/n on the estimation series\n- next piece is the token-field fixes, but those are blocked on PR 575 and 576 landing first\n- nothing else blocking me this morning",
+          "ts": "2025-03-04T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, is the max_tokens=4 default kluster.ai-wide or just the DeepSeek endpoint?",
+          "ts": "2025-03-04T09:05:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "So once 575 and 576 land, token-fiel fixes unblock and we're at 2/n.",
+          "ts": "2025-03-04T09:33:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "I also want to settle PR 468 and PR 571 before EOD, defer explicitly or keep them moving",
+          "ts": "2025-03-04T09:33:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "What's the status on 468 and 571, are they waiting on review or is there still active work on them?",
+          "ts": "2025-03-04T09:49:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "The Q2 plan flags the Q1 end-to-end audit as needing an owner - has anyone picked that up?",
+          "ts": "2025-03-04T10:17:56"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can pull up PR 468 and 571 and give a view on where they actually stand, that should make the defer decision easier",
+          "ts": "2025-03-04T10:45:56"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon just DeepSeek at kluster, other models there didn't hit the same default",
+          "ts": "2025-03-04T11:25:56",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "On 468 and 571, both are review-ready from my side, no active work pending, just waiting on eyes",
+          "ts": "2025-03-04T11:26:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "good to know on 468 and 571",
+          "ts": "2025-03-04T11:45:53"
+        },
+        {
+          "userId": "dario",
+          "text": "Is anyone picking up PR 565 or 566 this afternoon, or are we calling those a tomorrow problem?",
+          "ts": "2025-03-04T11:46:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Konrad, PR 565 and 566 have been sitting for over 25 days at this point, can you weigh in on whether we assign them today or push to tomorrow?",
+          "ts": "2025-03-04T11:50:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "25 days is already a lot to keep deferring, but I'm not sure a rushed review at this point in the day helps anyone either",
+          "ts": "2025-03-04T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, do you have a real window this afternoon or is tomorrow the honest answer?",
+          "ts": "2025-03-04T11:52:12"
         }
       ],
       "projectSpec": {
@@ -21552,6 +22261,83 @@
           "userId": "gideon",
           "text": "Issue for the cache path display is still on me to file, but I think we're all agreed it's needed, going to get it up before I close out today",
           "ts": "2025-02-27T16:50:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "- release-cutting handover is the main thing I'm working through today\n- pipeline is stable at v0.1.20, nothing blocking the next cut\n- planing to circulate the q2 consolidation plan before eod",
+          "ts": "2025-03-03T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, are you clear on the release-cutting steps, or do you want me to walk through it before I hand it off?",
+          "ts": "2025-03-03T09:00:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "Q2 plan is already up actually, wrote it up this morning, it's on the engineering wiki under \"Q2 Plan: Consolidation and Provider Breadth.\"",
+          "ts": "2025-03-03T09:26:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2025-03-03T09:54:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll take a look",
+          "ts": "2025-03-03T09:54:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "does it call out which services are getting cut specifically?",
+          "ts": "2025-03-03T09:54:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "not specifically, no",
+          "ts": "2025-03-03T10:12:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure that's enough to work from, if we're actually pruning something this quarter",
+          "ts": "2025-03-03T10:37:51"
+        },
+        {
+          "userId": "dermot",
+          "text": "who's making the call on which services get consolidated?",
+          "ts": "2025-03-03T10:38:03"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot a written walkthrough would work better for me than a verbal one, gives me something to refer back to.",
+          "ts": "2025-03-03T13:48:42"
+        },
+        {
+          "userId": "dermot",
+          "text": "already done. it's on engineering wiki under \"Handover: Packaging, Version Bumps & Release Cutting\". that's yours to run with.",
+          "ts": "2025-03-03T13:51:42",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Got it, I'll read through it and take the release-cutting role from here.",
+          "ts": "2025-03-03T14:16:42",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "So does the consolidation call sit with individual service owners, or does it need a broader team decision first?",
+          "ts": "2025-03-03T14:21:42"
         }
       ],
       "projectSpec": {
@@ -21671,7 +22457,8 @@
       "memberIds": [
         "dario",
         "dermot",
-        "emil"
+        "emil",
+        "gideon"
       ],
       "messages": [
         {
@@ -21877,6 +22664,162 @@
           "userId": "emil",
           "text": "The stats path workaround is in and the suite is passing, edge cases just need to land on the PR before this is fully closed.",
           "ts": "2025-02-21T17:14:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference is moving along, got the retry handling squared away this mornign, and I'm starting to look at the temperature logic next which I think might tie into what we've been seeing in these tracebacks.",
+          "ts": "2025-02-28T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Bumped temperature from 0 to 1.2 on a poem set and got the exact same 5k rows back",
+          "ts": "2025-02-28T09:24:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think caching-and-resume is serving cached results regardless of gen param changes",
+          "ts": "2025-02-28T09:24:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Do we consider that a bug or expected behavior right now?",
+          "ts": "2025-02-28T09:24:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Kestrel caching-and-resume is yours, that question belongs to you",
+          "ts": "2025-02-28T09:47:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario is the cache key including gen params like temperature, or is it hashing something else?",
+          "ts": "2025-02-28T11:32:20"
+        },
+        {
+          "userId": "dario",
+          "text": "oh",
+          "ts": "2025-02-28T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "let me check what we're actually keying on",
+          "ts": "2025-02-28T11:50:05"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, you mentioned this is the third variant of the same problem this week, can you share what the other two looked like?",
+          "ts": "2025-02-28T14:02:51"
+        },
+        {
+          "userId": "dermot",
+          "text": "monday someone increased max_tokens on a run and got back identical outputs to their previous run, truncated at exactly the same point. wednesday a different person swapped the model name and saw no change in responses at all.",
+          "ts": "2025-02-28T14:42:51"
+        },
+        {
+          "userId": "dermot",
+          "text": "so gideon's temperature case is the thrid time this week",
+          "ts": "2025-02-28T14:42:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "different param each time, same symptom",
+          "ts": "2025-02-28T14:43:04"
+        },
+        {
+          "userId": "dermot",
+          "text": "three variants of the same class of bug in one week, I'm very ready for the weekend",
+          "ts": "2025-02-28T14:43:31",
+          "reactions": [
+            {
+              "emoji": "😩",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'm not sure these are all the same root cause, honestly",
+          "ts": "2025-02-28T15:08:31"
+        },
+        {
+          "userId": "dario",
+          "text": "A model swap I'd have expected to be keyed differently than temperature or max_tokens",
+          "ts": "2025-02-28T15:08:39",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-28T15:08:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "So you think model name goes into the cache key but temperature doesn't?",
+          "ts": "2025-02-28T15:08:47",
+          "threadParentTs": "2025-02-28T15:08:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "i think it might be neither, so like the model swap case still returned cached outputs",
+          "ts": "2025-02-28T15:09:02"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot, while you're in that code, can you check what the cache key actually includes?",
+          "ts": "2025-02-28T15:40:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "caching-and-resume is yours, I don't have that code",
+          "ts": "2025-02-28T16:03:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm still in the temperature handling on the bulk-llm-inference side",
+          "ts": "2025-02-28T16:03:14"
+        },
+        {
+          "userId": "dario",
+          "text": "Fair",
+          "ts": "2025-02-28T16:24:14"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll dig into the cache key code myself",
+          "ts": "2025-02-28T16:24:26",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Want to sync on all three cases Monday?",
+          "ts": "2025-02-28T16:24:38"
+        },
+        {
+          "userId": "gideon",
+          "text": "Changing temperature currently returns the previous run's outputs, at least in my case",
+          "ts": "2025-02-28T16:41:38"
+        },
+        {
+          "userId": "gideon",
+          "text": "Bumped it from 0 to 1.2 on 5k rows and got everything back identical, spent an hour thinking vLLM was broken before I traced it back to caching-and-resume",
+          "ts": "2025-02-28T16:41:50"
+        },
+        {
+          "userId": "gideon",
+          "text": "Bumped it to get some variety on the poem set, wasn't chasing anything specific",
+          "ts": "2025-02-28T16:41:52.500000"
+        },
+        {
+          "userId": "gideon",
+          "text": "Monday works, can we make sure all three rejection cases are in one place before then so we're not reconstructing them?",
+          "ts": "2025-02-28T16:41:55"
         }
       ],
       "projectSpec": {
@@ -22688,6 +23631,96 @@
           "userId": "emil",
           "text": "We need that settled before end of day one way or the other.",
           "ts": "2025-02-06T12:23:45"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 546 is in good shape, integration tests are green and cost projection logic is cleaned up on my end.",
+          "ts": "2025-03-01T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does anyone have a clear picture of exactly what got reverted and whether main is clean enough to cut v0.1.20 from?",
+          "ts": "2025-03-01T09:00:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok",
+          "ts": "2025-03-01T09:00:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "answering my own question a bit, pulled up Dario's release notes mail. v0.1.20 covers Claude 3.7 support, the generation params refactor, an install fix, and session IDs for hosted-curator. No mention of the token default work, so I think the reverted stuff just didn't make it in at all",
+          "ts": "2025-03-01T09:44:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "Were the reverts just on the token-default side or did anything else get pulled?",
+          "ts": "2025-03-01T10:09:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the call on relanding any of the reverted stuff happening today or is that getting pushed to next week?",
+          "ts": "2025-03-01T11:03:25"
+        },
+        {
+          "userId": "emil",
+          "text": "If the release notes are accurate and the reverted token-default work never made it into v0.1.20, I think we can ship as-is",
+          "ts": "2025-03-01T11:30:14",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The reland question for deepseek and Gemini token defaults is still open and probably needs more eyes before we commit to a plan, so that's next week",
+          "ts": "2025-03-01T11:30:22"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, do we actually know what triggered all three reverts? I can't tell from my side whether it was purely token-default or if something else in the request processing layer got caught in there too",
+          "ts": "2025-03-01T11:38:22"
+        },
+        {
+          "userId": "emil",
+          "text": "From the online-request-processing side, nothing in those reverts touched my code",
+          "ts": "2025-03-01T12:20:22",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-01T18:28:40.332861"
+        },
+        {
+          "userId": "gideon",
+          "text": "so it's just the token-default layer, nothing deeper in the request path?",
+          "ts": "2025-03-01T18:28:40.332861",
+          "threadParentTs": "2025-03-01T12:20:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "I read the full release notes on the wiki earlier, four things in v0.1.20, none of them touch token defaults or provider-specific handling.",
+          "ts": "2025-03-01T18:29:08.332861"
+        },
+        {
+          "userId": "gideon",
+          "text": "So the reverted stuff genuinely never shipped, which supports Emil's read that we're shippable as-is, but Dario's question about what actually triggered the reverts is still hanging",
+          "ts": "2025-03-01T18:29:20.332861",
+          "reactions": [
+            {
+              "emoji": "✓",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Actually I want to walk back my earlier read slightly. I said we're shippable as-is, and I still think that's probably right, but I don't actually have a clear picture of what triggered the reverts.",
+          "ts": "2025-03-01T18:29:34.112802"
+        },
+        {
+          "userId": "emil",
+          "text": "The token-default reland question is still unresolved for me and I'd rather not carry that into next week without someone who knows the revert scope actually signing off.",
+          "ts": "2025-03-01T18:29:42.112802"
         }
       ],
       "projectSpec": {
@@ -29308,6 +30341,500 @@
           "userId": "emil",
           "text": "Does the viewer actually sit cleanly in the request and resume flow right now, or is that part also still open?",
           "ts": "2025-02-27T15:14:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Unified TokenCount into TokenUsage across online-request-processing, old field names are gone",
+          "ts": "2025-02-28T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Still want to make sure batch-mode cost tracking isn't regressing with the new model, @Emil do you have eyes on that side?",
+          "ts": "2025-02-28T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "For the pre-call cost estimate, are we using the running average per model or is there a fixed fallback when we haven't seen enough requests yet?",
+          "ts": "2025-02-28T09:43:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does batch-mode track cost per-request or is it aggregated at the job level?",
+          "ts": "2025-02-28T10:14:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "Trying to figure out if the unified model even maps cleanly onto it",
+          "ts": "2025-02-28T10:14:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil do you have a few minutes this afternoon to walk me through how batch-mode handles cost right now?",
+          "ts": "2025-02-28T11:26:33"
+        },
+        {
+          "userId": "emil",
+          "text": "yeah, after lunch works",
+          "ts": "2025-02-28T12:00:33",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "What does the new TokenUsage structure look like on the response side, field by field?",
+          "ts": "2025-02-28T12:01:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the running average keyed per model or per provider?",
+          "ts": "2025-02-28T12:33:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "Let's go through the structure at the sync, easier to show. Before then, can you check how batch-mode is currently accumulating cost, whether it's per-request or at the job level?",
+          "ts": "2025-02-28T12:45:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "And do you know off the top of your head if there are still any TokenCount references in the batch-mode code?",
+          "ts": "2025-02-28T12:45:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pre/post cost estimation is using the running average correctly, no double-counting.",
+          "ts": "2025-02-28T13:33:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Batch-mode alignment is still the open question for me, need that sync with Emil to close it.",
+          "ts": "2025-02-28T13:33:41"
+        },
+        {
+          "userId": "dario",
+          "text": "Token accounting refactor came out clean on the online processing side, that's a solid place to land.",
+          "ts": "2025-02-28T13:54:41",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Batch-mode cost tracking aligning with the new model is still the part I haven't got confirmed though, need to make sure we're not regressing on accuracy there.",
+          "ts": "2025-02-28T13:54:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "- cost projection logic in online-request-processing is cleaned up, reverted changes are isolated\n- online request path looks stable to me, nothing in the revert touched the critical request flow\n- still need to sort out what exactly we want to reland on the token defaults before next week",
+          "ts": "2025-03-01T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "What specifically got reverted on the token defaults, deepseek and Gemini both or just one of them?",
+          "ts": "2025-03-01T09:05:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "i think i can actually work this out from the code side, the deepseek and Gemini token default handling both went through the same path in bulk-llm-inference, so if one got reverted the other almost certainly did too.",
+          "ts": "2025-03-01T09:48:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario can you confirm that's right before I assume it in the reland plan?",
+          "ts": "2025-03-01T09:48:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think it's probably safest to just assume both until Dario confirms otherwise, anyone know if the online request path was touched by any of the reverts, or was that separate?",
+          "ts": "2025-03-01T10:11:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "oh wait",
+          "ts": "2025-03-01T10:47:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can actually answer that, online-request-processing is mine and none of the reverts touched it, so that path's clean from my side.",
+          "ts": "2025-03-01T10:48:04"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is it just the provider token defaults we're still waiting to sort out before calling this shippable?",
+          "ts": "2025-03-01T10:48:16"
+        },
+        {
+          "userId": "emil",
+          "text": "gotcha",
+          "ts": "2025-03-01T10:53:16"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not sure we have enough detail on what the original token-default fix actually contained to agree on a reland scope, are we deferring the whole thing to next week or does someone have a clear enough picture to make a call today?",
+          "ts": "2025-03-01T11:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "fair enough",
+          "ts": "2025-03-01T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Online request path is clean from my side, the reverts didn't touch it",
+          "ts": "2025-03-01T11:50:10",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'd still want someone to actually confirm main is green before we call v0.1.20 shippable, not just assume it from the revert summary.",
+          "ts": "2025-03-01T11:50:18",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Online request path is clean on my end too, nothing from the reverts touched it. The deepseek and Gemini token default question is still open and I don't think we have enough to call a reland scope today.",
+          "ts": "2025-03-01T18:29:47.244779"
+        },
+        {
+          "userId": "gideon",
+          "text": "Read the release notes earlier, cost estimation isn't in v0.1.20, my part of the work isn't captured there, which tracks since PR 546 hasn't landed.",
+          "ts": "2025-03-01T18:29:55.244779"
+        },
+        {
+          "userId": "gideon",
+          "text": "Has anyone actually run a CI check on main to confirm it's green, or are we going on assumption?",
+          "ts": "2025-03-01T18:30:03.244779"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost revamp is merged, the big one was output token default sittng at 0 for kluster deepseek which is what caused the request dump",
+          "ts": "2025-03-04T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also cleaned up the success-factor calc for remaining-cost projection so estimates should track much better going forward",
+          "ts": "2025-03-04T09:00:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone know if Gemini surfaces rate limit info in response headers, or is it all through error codes?",
+          "ts": "2025-03-04T09:39:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "Trying to figure out if it needs its own handling path or if the generic fallback covers it",
+          "ts": "2025-03-04T09:39:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "actually, I'm not sure the estimation loop is fully closed yet",
+          "ts": "2025-03-04T10:21:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "I don't think the mime_type and None-value tally fixes made it into this merge",
+          "ts": "2025-03-04T10:21:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "right",
+          "ts": "2025-03-04T10:44:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-03-04T10:49:24"
+        },
+        {
+          "userId": "emil",
+          "text": "mime_type, None-value tally, and process_response mandatory are all still in my branch",
+          "ts": "2025-03-04T10:49:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Getting those up today so we can actually call the loop closed",
+          "ts": "2025-03-04T10:49:44",
+          "reactions": [
+            {
+              "emoji": "💪",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "nice",
+          "ts": "2025-03-04T11:18:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Emil's putting the token-field fixes up today, can someone grab review on that when it's up?",
+          "ts": "2025-03-04T11:19:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Whoever gets that review, I owe you one.",
+          "ts": "2025-03-04T12:16:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Gemini rate limit handling - do we give it its own path or are we calling the generic fallback good enough for now?",
+          "ts": "2025-03-04T12:27:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, did the postmortem action item on the kluster.ai cap scope ever get resolved?",
+          "ts": "2025-03-04T12:42:18"
+        },
+        {
+          "userId": "gideon",
+          "text": "Last I saw it was still open on whether the 4-token default is DeepSeek-only or all their endpoints",
+          "ts": "2025-03-04T12:42:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Still open on my end",
+          "ts": "2025-03-04T13:21:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Do we scope the fix to DeepSeek and ship it, or hold until we know whether it's broader?",
+          "ts": "2025-03-04T13:21:42"
+        },
+        {
+          "userId": "dario",
+          "text": "On Gemini rate limits, I haven't verified whether it surfaces info in headers or just through error codes, so I'm not confident the generic fallback covers it without testing.",
+          "ts": "2025-03-04T13:47:42"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we deciding on Gemini today or pushing that to tomorrow?",
+          "ts": "2025-03-04T13:48:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "Read through the postmortem - the fix is scoped to DeepSeek but whether the 4-token cap applies to other kluster.ai endpoints is listed as an open action item, not closed.",
+          "ts": "2025-03-04T14:08:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario @Emil, 20 min this afternoon to settle that and Gemini rate limits?",
+          "ts": "2025-03-04T14:08:10"
+        },
+        {
+          "userId": "emil",
+          "text": "Has the weekly sync from the week of Feb 24 been posted somewhere?",
+          "ts": "2025-03-04T14:18:10"
+        },
+        {
+          "userId": "emil",
+          "text": "I don't see it on the wiki",
+          "ts": "2025-03-04T14:18:15"
+        },
+        {
+          "userId": "dario",
+          "text": "Works for me this afternoon. I'll pull up the Gemini docs on rate limit headers before we sync so we're not going in blind on that part.",
+          "ts": "2025-03-04T14:23:15",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure docs alone are going to settle the Gemini headers question - that might need an actual test run to know for certain.",
+          "ts": "2025-03-04T15:07:15"
+        },
+        {
+          "userId": "emil",
+          "text": "Token-field PR is going up shortly.",
+          "ts": "2025-03-04T15:07:31"
+        },
+        {
+          "userId": "dario",
+          "text": "fair enough on the test run",
+          "ts": "2025-03-04T15:26:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "Weekly sync notes for the week of Feb 24 are up on the wiki now, engineering/weekly-sync-notes-week-of-feb-24.",
+          "ts": "2025-03-04T15:28:31",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Token-field PR is up - mime_type, None-value tally, and process_response mandatory all in one go",
+          "ts": "2025-03-04T16:00:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Would appreciate eyes on it before EOD",
+          "ts": "2025-03-04T16:00:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'd be a little careful bundling process_response mandatory in with the other two, that one's a behavior change in a way the mime_type and None-value fixes aren't.",
+          "ts": "2025-03-04T16:05:39",
+          "replyCount": 3,
+          "replyLastTs": "2025-03-04T16:06:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah, I'm not entirely sure bundling process_response is a good idea at this point in the day either - that one deserves a separate look.",
+          "ts": "2025-03-04T16:05:49",
+          "threadParentTs": "2025-03-04T16:05:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulling it out means it sits at least another day though.",
+          "ts": "2025-03-04T16:06:06",
+          "threadParentTs": "2025-03-04T16:05:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "i think sitting another day is better than it getting a rushed EOD review bundled with the other two",
+          "ts": "2025-03-04T16:06:29",
+          "threadParentTs": "2025-03-04T16:05:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost estimation is landing once Emil's mime_type and None-value PR merges",
+          "ts": "2025-03-04T16:06:51"
+        },
+        {
+          "userId": "gideon",
+          "text": "Gemini rate limit path is still the one thing open going into the sync",
+          "ts": "2025-03-04T16:06:56"
+        },
+        {
+          "userId": "dario",
+          "text": "Gemini docs don't answer the headers question definitively",
+          "ts": "2025-03-04T16:41:56"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure it needs as much runway as we're giving it - it's not a huge change.",
+          "ts": "2025-03-04T16:42:38"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario hope the Gemini docs weren't too much of a rabbit hole this afternoon.",
+          "ts": "2025-03-04T16:43:02",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-04T16:43:42"
+        },
+        {
+          "userId": "dario",
+          "text": "haha a bit, honestly",
+          "ts": "2025-03-04T16:43:42",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-03-04T16:43:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "If docs don't settle the Gemini headers question, are we deferring that to tomorrow or trying to fit a test run in today?",
+          "ts": "2025-03-04T17:07:42",
+          "replyCount": 2,
+          "replyLastTs": "2025-03-04T17:08:55"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd defer it",
+          "ts": "2025-03-04T17:08:23",
+          "threadParentTs": "2025-03-04T17:07:42"
+        },
+        {
+          "userId": "dario",
+          "text": "Cost revamp landing today was the real lift anyway",
+          "ts": "2025-03-04T17:08:31",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "If we're deferring, does someone own it for tomorrow or is it just floating?",
+          "ts": "2025-03-04T17:08:55",
+          "threadParentTs": "2025-03-04T17:07:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "Could just attach it to issue 233 so it's not floating - Dario already has the context from today anyway.",
+          "ts": "2025-03-04T17:17:55"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario are you good with owning that, or did we just volunteer you?",
+          "ts": "2025-03-04T17:22:55"
+        },
+        {
+          "userId": "dario",
+          "text": "I've got it, I'll pick it up tomorrow",
+          "ts": "2025-03-04T17:58:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Token-field PR is up and waiting on review",
+          "ts": "2025-03-04T18:01:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Process_response is getting its own PR tomorrow",
+          "ts": "2025-03-04T18:02:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the token-field PR getting reviewed tonight or first thing tomorrow?",
+          "ts": "2025-03-04T18:12:03"
         }
       ],
       "projectSpec": {
@@ -31903,6 +33430,191 @@
           "userId": "nikolai",
           "text": "one thing i left open: i don't have a full list of which resume-flow edge cases were tested for the tag fix, so there's a note in there asking people to file an issue if they hit something.",
           "ts": "2025-02-26T10:12:53"
+        },
+        {
+          "userId": "dario",
+          "text": "Working on the v0.1.20 release notes this morning, want to get those published and the announcement out to stakeholders before end of day",
+          "ts": "2025-02-28T09:00:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Release notes: v0.1.20 is up at engineering/release-notes-v0-1-20.md. I've got Claude 3.7, the gen params refactor and the install fix in there, but was there a fourth merged PR I should be covering?",
+          "ts": "2025-02-28T10:45:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes are only showing three items - the hosted-curator session-id change isn't in there and that did land in this release.",
+          "ts": "2025-02-28T12:38:30"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario did you get a chance to add the session-id change to the notes?",
+          "ts": "2025-02-28T12:48:40"
+        },
+        {
+          "userId": "dario",
+          "text": "Added the session-id entry to the release notes and the v0.1.20 announcement is out to the team",
+          "ts": "2025-02-28T13:59:52",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, can you check that entry in engineering/release-notes-v0-1-20.md and confirm the wording's right?",
+          "ts": "2025-02-28T14:00:04"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, does the session-id entry look right to you, and are we confident we've got all four merged PRs covered in those notes?",
+          "ts": "2025-02-28T14:12:31"
+        },
+        {
+          "userId": "dario",
+          "text": "One thing in the release notes I want to make sure lands: the code execution backend's container doesn't update itself, and nothing in the codebase will tell you it's stale",
+          "ts": "2025-02-28T15:15:46"
+        },
+        {
+          "userId": "dario",
+          "text": "Before you touch that line, check what the image status notes say",
+          "ts": "2025-02-28T15:15:54"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon, the v0.1.19 release notes page doesn't exist yet, is that still coming?",
+          "ts": "2025-02-28T15:15:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Checked this myself, the v0.1.19 release notes page isn't up",
+          "ts": "2025-02-28T16:01:59"
+        },
+        {
+          "userId": "dario",
+          "text": "@Gideon, rolling to Monday?",
+          "ts": "2025-02-28T16:02:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Still here, pulling it up now.",
+          "ts": "2025-02-28T16:42:04"
+        },
+        {
+          "userId": "dario",
+          "text": "Announcement is out to the team",
+          "ts": "2025-02-28T16:46:04"
+        },
+        {
+          "userId": "dario",
+          "text": "Was `pip install, upgrade bespokelabs-curator` the right install command, or did I get the package name wrong?",
+          "ts": "2025-02-28T16:46:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Notes look good, all four are in there. Package name I'd want to confirm though, I'm not 100% sure that's right and if it's off the install instructions in the announcement are wrong.",
+          "ts": "2025-02-28T17:19:16",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, can you share the announcement so I can see exactly what install command you put in?",
+          "ts": "2025-02-28T17:19:54",
+          "replyCount": 2,
+          "replyLastTs": "2025-02-28T17:21:41"
+        },
+        {
+          "userId": "dario",
+          "text": "I put `pip install, upgrade bespokelabs-curator` but now I'm second-guessing that too.",
+          "ts": "2025-02-28T17:20:25"
+        },
+        {
+          "userId": "emil",
+          "text": "same, let me look it up",
+          "ts": "2025-02-28T17:20:56",
+          "threadParentTs": "2025-02-28T17:19:54"
+        },
+        {
+          "userId": "dario",
+          "text": "```\npip install --upgrade bespokelabs-curator\n```",
+          "ts": "2025-02-28T17:21:41",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-02-28T17:19:54"
+        },
+        {
+          "userId": "dario",
+          "text": "welp",
+          "ts": "2025-02-28T17:21:56"
+        },
+        {
+          "userId": "dario",
+          "text": "Sent the v0.1.20 announcement out to the team and asked them to flag anything unexpected after upgrading",
+          "ts": "2025-02-28T18:19:56"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, did you ever land on whether `bespokelabs-curator` is the right package name?",
+          "ts": "2025-02-28T18:20:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Couldn't confirm it before now, @Gideon - do you know if that's the right PyPI name?",
+          "ts": "2025-02-28T18:25:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the announcement already out to stakeholders, or just internal team?",
+          "ts": "2025-02-28T18:25:37"
+        },
+        {
+          "userId": "dario",
+          "text": "Just internal team so far",
+          "ts": "2025-02-28T18:26:43.102239"
+        },
+        {
+          "userId": "dario",
+          "text": "Notes are at engineering/release-notes-v0-1-20.md, four PRs all in there, but the package name in the announcement is still the open thing.",
+          "ts": "2025-02-28T18:26:55.102239",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-28T18:27:21.102239"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon, any word on the package name?",
+          "ts": "2025-02-28T18:27:21.102239",
+          "threadParentTs": "2025-02-28T18:26:55.102239"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure we should send it to stakeholders until someone actually confirms the package name works.",
+          "ts": "2025-02-28T18:27:34.102239"
+        },
+        {
+          "userId": "dario",
+          "text": "curator's PyPI page: https://pypi.org/project/bespokelabs-curator/",
+          "ts": "2025-02-28T18:29:34.102239",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ],
+          "unfurl": {
+            "title": "pypi.org",
+            "url": "https://pypi.org/project/bespokelabs-curator/"
+          }
         }
       ],
       "projectSpec": {
@@ -32424,6 +34136,71 @@
           "userId": "emil",
           "text": "@Dario Kestrel, while you're in there, is the cached offset something the viewer wiring can read directly, or does it need to go through you?",
           "ts": "2025-02-21T12:31:44"
+        },
+        {
+          "userId": "gideon",
+          "text": "Progress tracking looks coherent after the reverts, but I want to sanity check that the token counters and end-of-run summary are still reading from the right cost numbers given what changed.",
+          "ts": "2025-03-01T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is the cost counter in the end-of-run summary pulling from the reverted code or the current state?",
+          "ts": "2025-03-01T09:11:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "uh, actually I can answer my own question since I own progress-and-cli, the summary table pulls from the current cost state, not the reverted path",
+          "ts": "2025-03-01T09:58:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does curator-viewer read that same source for its display?",
+          "ts": "2025-03-01T09:58:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Do the token counters display correctly mid-run or only in the final summary?",
+          "ts": "2025-03-01T10:20:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Actually I can answer my own question there, counters do update live mid-run from my code",
+          "ts": "2025-03-01T10:58:26"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm not totally confident the numbers are accurate post-revert though, so are we going to do a quick test run before calling this safe to ship?",
+          "ts": "2025-03-01T10:58:31"
+        },
+        {
+          "userId": "emil",
+          "text": "a test run sounds right to me",
+          "ts": "2025-03-01T11:27:31",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "If the counters are live mid-run, are we confident the numbers are actually right post-revert, or do we need to see a test run before we call the summary table safe to ship?",
+          "ts": "2025-03-01T11:27:53",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-01T18:27:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "sorry, been away most of the afternoon, yeah a test run is the right call, I'll do one and report back on whether the counters look right.",
+          "ts": "2025-03-01T18:27:53",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-03-01T11:27:53"
         }
       ],
       "projectSpec": {

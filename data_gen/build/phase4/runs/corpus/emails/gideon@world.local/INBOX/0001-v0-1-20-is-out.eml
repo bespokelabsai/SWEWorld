@@ -1,0 +1,29 @@
+From: dario@world.local
+To:
+ emil@world.local, gideon@world.local, nikolai@world.local, dermot@world.local
+Subject: v0.1.20 is out
+Date: Fri, 28 Feb 2025 09:56:00 +0000
+Message-ID: <178767814138.2056394.10902481508744620439@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.20 is out. Four changes in this release:
+
+- Claude 3.7 support: now available in provider integrations, just update you=
+r generation params
+- Generation params refactor: interface is cleaner and more consistent, doubl=
+e-check your field names if you were passing params directly
+- Install command fix: setup failures in certain environments are resolved
+- Hosted-curator session ID: session IDs now included in hosted-curator respo=
+nses
+
+To upgrade:
+  pip install --upgrade bespokelabs-curator
+
+If you run into anything unexpected after upgrading, please let us know. And =
+if you're using the code execution backend, check the image status notes befo=
+re touching that line =E2=80=94 the container does not update itself and noth=
+ing in the codebase will tell you it's stale.
+
+Full release notes are at engineering/release-notes-v0-1-20.md on the wiki.

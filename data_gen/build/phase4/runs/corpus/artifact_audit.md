@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-101 of 103 obligations met.
+108 of 110 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -118,3 +118,10 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-02-26 | nikolai | send | 09:49 | v0.1.19.post1 hotfix is out |
 | 2025-02-26 | gideon | write | 09:35 | Weekly sync notes: week of Feb 24 — v0.1.19.post1 and v0.1.20 shipped |
 | 2025-02-27 | konrad | write | 09:14 | Postmortem: v0.1.19.post1 hotfix |
+| 2025-02-28 | dario | write | 09:14 | Release notes: v0.1.20 |
+| 2025-02-28 | dario | send | 09:56 | v0.1.20 is out |
+| 2025-03-03 | emil | write | 10:24 | Postmortem: kluster.ai DeepSeek Output-Token Default |
+| 2025-03-03 | dermot | write | 10:03 | Handover: Packaging, Version Bumps & Release Cutting |
+| 2025-03-03 | konrad | write | 09:14 | Q2 Plan: Consolidation and Provider Breadth |
+| 2025-03-03 | konrad | send | 09:28 | Weekly update: week of Feb 24 |
+| 2025-03-05 | emil | write | 09:28 | Weekly Notes — Week of Mar 3 |

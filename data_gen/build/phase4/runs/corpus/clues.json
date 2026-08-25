@@ -1879,5 +1879,85 @@
       "09:16  dermot    yeah this comes up more than it should, counts without the path behind them are basicall",
       "09:56  gideon    Would help a lot if the output just printed the path alongside the counts by default"
     ]
+  },
+  {
+    "clue": "t1.r1.l_params_1",
+    "holder": "gideon",
+    "date": "2025-02-28",
+    "channel": "help",
+    "attempt": 1,
+    "said": true,
+    "quote": "Bumped it from 0 to 1.2 on 5k rows and got everything back identical, spent an hour thinking vLLM was broken before I traced it back to caching-and-resume",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 16:41 messages together give the temperature change, the goal, the identical output, the hour lost, and the trace-back to caching-and-resume.",
+    "elements": [
+      {
+        "part": "temperature was bumped from 0 to 1.2 on the poem set",
+        "present": true,
+        "why": "Gideon states this at 09:24 and 16:41"
+      },
+      {
+        "part": "the goal was to get some variety, not chasing anything specific",
+        "present": true,
+        "why": "16:41 'wasn't chasing anything specific'"
+      },
+      {
+        "part": "the run was 5k rows",
+        "present": true,
+        "why": "09:24 and 16:41 both mention 5k rows"
+      },
+      {
+        "part": "the identical rows came back",
+        "present": true,
+        "why": "09:24 'got the exact same 5k rows back'"
+      },
+      {
+        "part": "they spent an hour thinking vLLM was broken",
+        "present": true,
+        "why": "16:41 'spent an hour thinking vLLM was broken'"
+      },
+      {
+        "part": "before tracing it back to caching-and-resume",
+        "present": true,
+        "why": "16:41 'before I traced it back to caching-and-resume'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "cache key"
+    ],
+    "context": [
+      "16:24  dario     Want to sync on all three cases Monday?",
+      "16:41  gideon    Changing temperature currently returns the previous run's outputs, at least in my case",
+      "16:41  gideon    Bumped it from 0 to 1.2 on 5k rows and got everything back identical, spent an hour thin   <-- the clue",
+      "16:41  gideon    Bumped it to get some variety on the poem set, wasn't chasing anything specific",
+      "16:41  gideon    Monday works, can we make sure all three rejection cases are in one place before then so"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "Bumped it to get some variety on the poem set, wasn't chasing anything specific"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t4.r1.L11",
+    "holder": "dario",
+    "date": "2025-02-28",
+    "channel": "releases",
+    "wrote_into": "page:release-v0-1-20",
+    "attempt": 1,
+    "said": true,
+    "quote": "Before you touch the checklist line for that backend, go check what the image status notes actually say. Otherwise you're guessing.",
+    "said_by": "dario",
+    "why": "The note directly instructs that before changing the shipped image reference for that backend, one must consult the image status notes, which is the substance of the point even though phrased as individual guidance rather than 'the team decided'.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Release notes: v0.1.20",
+    "written_as": "engineering/release-notes-v0-1-20.md"
   }
 ]
