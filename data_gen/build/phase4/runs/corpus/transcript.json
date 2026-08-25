@@ -6208,6 +6208,768 @@
           "userId": "dermot",
           "text": "is there any test coverage for the dict message path, or is that still to come?",
           "ts": "2025-01-16T12:23:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "been going throught PR 373 this morning, the separate input/output rate limit changes touch bulk-llm-inference directly and I'd like at least one more reviewer on it before we call it ready to merge",
+          "ts": "2025-01-17T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "does PR 373 have any tests for the separate input/output limit paths, or is that still relying on manual checks?",
+          "ts": "2025-01-17T09:00:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "gone through PR 373 now, the logic looks solid to me overall but I'm still not sure about test coverage for the new limit paths, going to flag that directly on the PR.",
+          "ts": "2025-01-17T09:49:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure the logic review is enough on its own here, the test coverage question is still open from my side",
+          "ts": "2025-01-17T10:25:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "is anyone else actively reviewing PR 373, or am I the only one on it?",
+          "ts": "2025-01-17T11:10:19"
+        },
+        {
+          "userId": "dario",
+          "text": "Good catch on the coverage gap, Dermot",
+          "ts": "2025-01-17T11:32:19",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'll get eyes on PR 373 this afternoon and add a second review",
+          "ts": "2025-01-17T11:32:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Pulled up my mail looking for the v0.1.15.post1 release notes and there's nothing there yet. Do we hold on PR 373 until those land, or are we treating that as independent?",
+          "ts": "2025-01-17T11:43:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Tests on the split limit paths are thin, I'll add those before this is merge-ready",
+          "ts": "2025-01-17T12:15:01",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes are independent, I wouldn't hold PR 373 for those",
+          "ts": "2025-01-17T12:15:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 384 is ready for review, r1 completions object support, touches bulk-llm-inference",
+          "ts": "2025-01-20T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "want to get this merged today before it starts conflicting with the throughput work",
+          "ts": "2025-01-20T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does this need Dario on the review since it's his subsystem, or can any maintainer sign off?",
+          "ts": "2025-01-20T09:10:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone gotten to PR 384 yet, or is it still waiting on a first pass?",
+          "ts": "2025-01-20T17:10:37"
+        },
+        {
+          "userId": "dario",
+          "text": "@Konrad go ahead and do the first pass, I'll cover the provider-integrations side once Dermot fills me in on what changed there",
+          "ts": "2025-01-20T18:07:11",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad any update on where you are with the PR 384 review?",
+          "ts": "2025-01-20T18:12:06.643231"
+        },
+        {
+          "userId": "konrad",
+          "text": "on it",
+          "ts": "2025-01-20T18:26:03.537815",
+          "reactions": [
+            {
+              "emoji": "⏱️",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Once that's through, PR 378, PR 380, and PR 381 are all queued up behind it.",
+          "ts": "2025-01-20T18:27:31.850704"
+        },
+        {
+          "userId": "dario",
+          "text": "One thing still open on my end: the docs and CONTRIBUTING updates haven't been verified against the examples yet, and I'd rather know that's clean before PR 378 and the others land",
+          "ts": "2025-01-20T18:28:41.875775"
+        },
+        {
+          "userId": "konrad",
+          "text": "sent the weekly update to the team earlier, v0.1.15 and v0.1.15.post1 sumamry is out",
+          "ts": "2025-01-20T18:29:04.543247"
+        },
+        {
+          "userId": "konrad",
+          "text": "has anyone run the examples against the docs changes yet?",
+          "ts": "2025-01-20T18:29:16.543247"
+        },
+        {
+          "userId": "konrad",
+          "text": "worth remembering before we sign off on tag work",
+          "ts": "2025-01-20T18:29:38.543247"
+        },
+        {
+          "userId": "konrad",
+          "text": "the appuser line at the bottom of the sandbox Dockerfile got dropped in the December refactor and we shipped four days of runs before anybody spotted it",
+          "ts": "2025-01-20T18:29:50.543247",
+          "reactions": [
+            {
+              "emoji": "😬",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "nothing on our side would ever have noticed, we just take whatever the image decided and start it",
+          "ts": "2025-01-20T18:30:02.543247"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 394 should be up this morning - data generation cookbook, touches examples-cookbooks. not blocking the curent release but want it in before the next cut.",
+          "ts": "2025-01-21T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Can someone take a look at PR 387 when they get a chance?",
+          "ts": "2025-01-21T09:27:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "It's Emil's max_tokens capacity blocking change, touches the anthropic online path",
+          "ts": "2025-01-21T09:27:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Would be good to get it merged today alongside PR 394",
+          "ts": "2025-01-21T09:27:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "good morning all, hope the coffee is holding up :slightly_smiling_face:",
+          "ts": "2025-01-21T09:47:16",
+          "reactions": [
+            {
+              "emoji": "☕",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "anything already flagged on PR 387 or is it clean going in?",
+          "ts": "2025-01-21T09:55:16"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok",
+          "ts": "2025-01-21T10:11:49"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own q - looks clean going in",
+          "ts": "2025-01-21T10:11:54",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 394 lands in examples-cookbooks so I'll review it as soon as Dermot has it up. From my side, everything is clear to receive it.",
+          "ts": "2025-01-21T10:39:54"
+        },
+        {
+          "userId": "emil",
+          "text": "- PR 387 looks clean on my end too, nothing outstanding that would hold it\n- Pulled up the v0.1.16 release notes just now - both my changes are in there (capacity guard and max-parallel), though there's a TBD in the max-parallel entry about where the config key lives, @Dermot might want to nail that down before it goes out\n- PR 378 still needs a proper review pass if anyone has time this afternoon",
+          "ts": "2025-01-21T11:04:54"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we doing anything about the older open PRs (133, 161, 362, 372) or are those just sitting until after 387 and 394 land?",
+          "ts": "2025-01-21T11:47:39"
+        },
+        {
+          "userId": "dario",
+          "text": "ok answering my own question - I'd lean toward a quick triage pass on those four this afternoon rather than waiting, some of them look like they've been sitting a while",
+          "ts": "2025-01-21T11:48:05"
+        },
+        {
+          "userId": "emil",
+          "text": "+1 on doing a triage pass this afternoon, those have been sitting long enough",
+          "ts": "2025-01-21T12:16:05",
+          "reactions": [
+            {
+              "emoji": "+1",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 378 is in the same boat too - blocked on the cost guard but otherwise ready - so might as well roll it into the same pass",
+          "ts": "2025-01-21T12:16:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot is PR 394 up yet? Konrad's waiting on it and we've got this afternoon to get it reviewed and in.",
+          "ts": "2025-01-21T12:36:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "not up yet - finishing it now, will have PR 394 up this afternoon",
+          "ts": "2025-01-21T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "week of jan 13 - v0.1.15 and v0.1.15.post1 both shipped",
+          "ts": "2025-01-21T12:59:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "anything else land that week that should go in the summary?",
+          "ts": "2025-01-21T12:59:57"
+        },
+        {
+          "userId": "dario",
+          "text": "Around this afternoon for the triage pass, I can make time once PR 394 is up.",
+          "ts": "2025-01-21T13:29:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "For the triage pass this afternoon, are we doing actual review on each or just a keep/close call?",
+          "ts": "2025-01-21T13:43:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "Five PRs plus PR 394 in one afternoon feels like a lot",
+          "ts": "2025-01-21T13:43:57"
+        },
+        {
+          "userId": "dario",
+          "text": "My side of online-request-processing is clear so I can give PR 387 a proper look this afternoon, and I'll be in on the triage pass once PR 394 lands",
+          "ts": "2025-01-21T14:15:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "So if Dario reviews PR 387 this afternoon, are we expecting to actually merge it today or is that slipping to tomorrow?",
+          "ts": "2025-01-21T14:55:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Expecting PR 387 to land today - Dermot already took a pass and found nothing, so if Dario's review goes smoothly there's no reason to hold it.",
+          "ts": "2025-01-21T15:02:57"
+        },
+        {
+          "userId": "dario",
+          "text": "On PR 387 now, should have a verdict shortly",
+          "ts": "2025-01-21T15:36:57"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 387 review done, looks good to merge.",
+          "ts": "2025-01-21T15:47:26",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Are we clear to merge PR 387 now, or does it need anything else?",
+          "ts": "2025-01-21T15:50:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dermot two approvals on PR 387, you should be clear to merge it",
+          "ts": "2025-01-21T16:23:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Ready to land from my side.",
+          "ts": "2025-01-21T17:07:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "once PR 394 is up, who's got eyes on it? it's late enough that it'll need a quick turnaround to land today.",
+          "ts": "2025-01-21T17:46:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "I said I'd review PR 394 as soon as it landed, still will, but if it's not up yet I'm not sure we're getting it merged tonight.",
+          "ts": "2025-01-21T18:19:26"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 387 is cleared, two approvals in.",
+          "ts": "2025-01-21T18:24:26",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "still around if PR 394 comes up before people sign off.",
+          "ts": "2025-01-21T18:29:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Weekly sync notes for the Jan 20 week are up on the wiki (\"Weekly sync notes: week of Jan 20, v0.1.16 shipped\"). PR 378 and PR 387 are both still waiting on at least one review if anyone has a few minutes this morning.",
+          "ts": "2025-01-22T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone taken pr 378 or pr 387 yet, or are they still fully unreviewed?",
+          "ts": "2025-01-22T09:45:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Heads up, some of the example scripts in examples-cookbooks are currently failing against main.",
+          "ts": "2025-01-22T10:09:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still unreviewed as far as I know",
+          "ts": "2025-01-22T10:33:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dermot, are you able to take one?",
+          "ts": "2025-01-22T10:33:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah",
+          "ts": "2025-01-22T11:03:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I can take one this afternoon",
+          "ts": "2025-01-22T11:03:17"
+        },
+        {
+          "userId": "emil",
+          "text": "nice",
+          "ts": "2025-01-22T11:20:17",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "that gets one covered but we'd still need someone for the other one, anyone else have a slot this afternoon?",
+          "ts": "2025-01-22T11:48:17"
+        },
+        {
+          "userId": "dario",
+          "text": "hmm",
+          "ts": "2025-01-22T11:48:55"
+        },
+        {
+          "userId": "dario",
+          "text": "also, should we sort out which of the stale PRs (133, 161, 362, 372) are actually landing this week vs getting deferred?",
+          "ts": "2025-01-22T11:49:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, not sure we can really call which of those stale PRs land without Gideon and Otto in the thread. do we wait for them to weigh in, or just go through the list now and flag the obvious ones?",
+          "ts": "2025-01-22T12:02:00"
+        },
+        {
+          "userId": "emil",
+          "text": "I'd hold on the stale PR list until Gideon and Otto can weigh in.",
+          "ts": "2025-01-22T12:04:47"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 387 still needs a reviewer this afternoon if Dermot is taking 378.",
+          "ts": "2025-01-22T12:04:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "what's the status on pr 398, does that need a reviewer today or can it wait?",
+          "ts": "2025-01-22T12:36:55"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 387 still doesn't have anyone on it, I'd want that sorted before we move on to 398.",
+          "ts": "2025-01-22T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 398 can hold until PR 387 is sorted.",
+          "ts": "2025-01-22T13:09:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we expecting Gideon and Otto to weigh in on the stale list today, or does that get pushed to tomorrow?",
+          "ts": "2025-01-22T13:09:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Once PR 387 has someone on it, is there any bandwidth left today for PR 398, or does that realistically slip to tomorrow?",
+          "ts": "2025-01-22T13:09:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can take PR 387 this afternoon. Stale list and 398 both hold until Gideon and Otto are in the thread.",
+          "ts": "2025-01-22T13:46:39",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Dermot, are you confirmed on PR 378, or is that still open?",
+          "ts": "2025-01-22T14:00:39",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-22T14:01:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah, confirmed on 378.",
+          "ts": "2025-01-22T14:01:21",
+          "threadParentTs": "2025-01-22T14:00:39"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 398 is there whenever Gideon or Otto come back, math and amc_aime baseline data gen with deepseek-r1, touches provider-integrations.",
+          "ts": "2025-01-22T14:39:21"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- *sync notes*: up on the wiki, covers Jan 20 week and v0.1.16 shipped\n- *PR 378*: Dermot confirmed\n- *PR 387*: Konrad this afternoon\n- *stale list + PR 398*: holding for Gideon and Otto",
+          "ts": "2025-01-22T15:20:21",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure Gideon or Otto are going to surface today, so PR 398 is probably slipping to tomorrow regardless.",
+          "ts": "2025-01-22T15:58:21"
+        },
+        {
+          "userId": "dario",
+          "text": "Fair on 398 slipping",
+          "ts": "2025-01-22T16:20:21"
+        },
+        {
+          "userId": "dario",
+          "text": "But does the whole stale list need to wait on them, can we at least call PR 362 and 372 now?",
+          "ts": "2025-01-22T16:20:29"
+        },
+        {
+          "userId": "dario",
+          "text": "I mean, at least for PR 362, is there actually a reason that one isn't landing this week?",
+          "ts": "2025-01-22T16:20:43",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-22T16:29:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Went through PR 387, the max_tokens capacity blocking looks good to me for the anthropic online case",
+          "ts": "2025-01-22T16:28:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone actually looked at 362, or is it just sitting without a reviewer?",
+          "ts": "2025-01-22T16:29:08",
+          "threadParentTs": "2025-01-22T16:20:43"
+        },
+        {
+          "userId": "dermot",
+          "text": "one thing I caught in pr 378 while going through it, the error handling on failed futures is pretty bare:\n\n```python\nfor future in as_completed(futures):\n result = future.result()\n```\n\nno try/except around the `.result()` call, so a single failed request raises and kills the whole batch.",
+          "ts": "2025-01-22T17:09:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-22T17:52:44"
+        },
+        {
+          "userId": "emil",
+          "text": "That's intentional on my end, if a request in the batch fails I'd rather it surface immediately than silently skip.",
+          "ts": "2025-01-22T17:12:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Haven't looked at it",
+          "ts": "2025-01-22T17:52:08"
+        },
+        {
+          "userId": "dario",
+          "text": "Does someone take PR 362 today or does it just slip with everything else?",
+          "ts": "2025-01-22T17:52:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Wrapping it and continuing would mask real API errors, partial results with no signal that some requests failed seems worse.",
+          "ts": "2025-01-22T17:52:44",
+          "threadParentTs": "2025-01-22T17:09:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll take PR 362.",
+          "ts": "2025-01-22T18:11:47.636828",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 372 is the refactor bot's, we don't actually need Gideon or Otto to call that one.",
+          "ts": "2025-01-22T18:13:47.636828"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 387 landed this morning, max_tokens capacity blocking. if anyone has bandwidth, would apprecaite a quick look to confirm the implementation is solid.",
+          "ts": "2025-01-23T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone know what's actually blocking PR 378?",
+          "ts": "2025-01-23T09:43:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Emil's had it open for five days and I'm not sure what it needs to move",
+          "ts": "2025-01-23T09:43:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "if someone gets a chance, PR 387 is merged and ready to be formally closed out.",
+          "ts": "2025-01-23T09:52:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 387 is wrapped on my end, just needs someone to close it out",
+          "ts": "2025-01-23T10:59:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still no clarity on PR 378, might slip to next cycle if Emil can't weigh in today",
+          "ts": "2025-01-23T10:59:31"
+        },
+        {
+          "userId": "emil",
+          "text": "I can weigh in on PR 378.",
+          "ts": "2025-01-23T11:38:05"
+        },
+        {
+          "userId": "dario",
+          "text": "I own online-request-processing so I sholud probably be the one to confirm PR 387's max_tokens blocking is actually right",
+          "ts": "2025-01-23T12:06:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone already looked at the diff?",
+          "ts": "2025-01-23T12:06:13"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 378 still needs a reviewer and nothing's moved on it.",
+          "ts": "2025-01-23T12:41:28"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil realistically, does PR 378 get a reviewer this week or is it next cycle?",
+          "ts": "2025-01-23T12:55:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Looked at the release notes - the capacity guard section lines up with what PR 387 was supposed to do",
+          "ts": "2025-01-23T13:08:58"
+        },
+        {
+          "userId": "dario",
+          "text": "Still need to reviwe the actual diff to sign off on the implementation",
+          "ts": "2025-01-23T13:09:10"
+        },
+        {
+          "userId": "dario",
+          "text": "The release notes cover my part - capactiy guard and online-request-processing are both called out explicitly.",
+          "ts": "2025-01-23T14:06:09"
+        },
+        {
+          "userId": "dario",
+          "text": "There's a TBD in there on where the max-parallel config lives, is that a flag or an env var?",
+          "ts": "2025-01-23T14:06:14"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm around this afternoon if someone has bandwidth to get to it.",
+          "ts": "2025-01-23T14:28:14"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil while you're around - is the max_tokens blocking logic in PR 387 sitting in online-request-processing or provider-integrations?",
+          "ts": "2025-01-23T14:54:14"
+        },
+        {
+          "userId": "emil",
+          "text": "provider-integrations I think, the check runs before the request goes out.",
+          "ts": "2025-01-23T15:30:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Any chance PR 378 gets a look by end of day, or is it next cycle at this point?",
+          "ts": "2025-01-23T15:30:22"
+        },
+        {
+          "userId": "dario",
+          "text": "Good, provider-integrations is mine - I can confirm PR 387.",
+          "ts": "2025-01-23T15:41:22"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario since you're already in there on PR 387, any chance you can take a look at PR 378 as well?",
+          "ts": "2025-01-23T16:02:22"
+        },
+        {
+          "userId": "emil",
+          "text": "It's been sitting without a reviewer all day and it touches the same area",
+          "ts": "2025-01-23T16:02:34"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll take both before end of day - PR 387 blocking logic is first up adn I can fold PR 378 in while I'm already in that area.",
+          "ts": "2025-01-23T16:20:34",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "erm, i do wonder if back-to-back at end of day is enough time for PR 378 to get a proper look, given it's been sitting five days.",
+          "ts": "2025-01-23T16:36:34",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-23T16:37:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, a quick back-to-back pass at end of day might not give PR 378 a fair look.",
+          "ts": "2025-01-23T16:37:00",
+          "threadParentTs": "2025-01-23T16:36:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "i suppose, but leaving it to next cycle after five days sitting doesn't feel great either.",
+          "ts": "2025-01-23T17:15:00"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 378 has no committed reviewer and the day is almost over.",
+          "ts": "2025-01-23T17:19:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-23T17:19:20"
+        },
+        {
+          "userId": "dario",
+          "text": "Is PR 378 blocking v0.1.16 or can it slide to next cycle?",
+          "ts": "2025-01-23T17:19:20",
+          "threadParentTs": "2025-01-23T17:19:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Not blocking v0.1.16, that already shipped",
+          "ts": "2025-01-23T17:33:20"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot can you confirm PR 378 is safe to slot into next cycle, or is there a reason to try to get it in sooner?",
+          "ts": "2025-01-23T17:33:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario did PR 387 actually get a look, or is it still pending?",
+          "ts": "2025-01-23T18:18:32"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai still pending on the diff, haven't gotten past the description",
+          "ts": "2025-01-23T18:25:58.789794"
+        },
+        {
+          "userId": "dario",
+          "text": "I'll have it done first thing tomorrow.",
+          "ts": "2025-01-23T18:26:10.789794",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "ok",
+          "ts": "2025-01-23T18:26:22.789794"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll leave PR 387 open overnight then.",
+          "ts": "2025-01-23T18:26:56.688068"
         }
       ],
       "projectSpec": {
@@ -7622,6 +8384,88 @@
           "userId": "dario",
           "text": "Konrad, honestly, the ws-016 design doc still doesn't exist on the wiki, does that change anything for you or is the examples side enough to call it in good shape?",
           "ts": "2025-01-14T18:23:19.796423"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- four commits in examples-cookbooks this week: README updates, directory renames, comment cleanup\n- still need to confirm which example scripts broke with the LLM interface change before anything else lands",
+          "ts": "2025-01-22T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I've got the docs fixes and attribution commits in",
+          "ts": "2025-01-22T09:49:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure just inspecting the scripts tells us much, we'd need to actually run them to know what's actually broken",
+          "ts": "2025-01-22T09:49:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "So do we actually run them all today or just flag the likely suspects and defer the test run?",
+          "ts": "2025-01-22T10:18:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "ran a quick one just now and it's not just flagging, at least one is already broken:\n\n```\nAttributeError: 'LLM' object has no attribute 'model_name'\n```\n\nso we'd need to run them, not just guess.",
+          "ts": "2025-01-22T11:07:28",
+          "reactions": [
+            {
+              "emoji": "🚨",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "are we committing to run all of them today, or picking the likely suspects and deferring the rest?",
+          "ts": "2025-01-22T11:53:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "welp",
+          "ts": "2025-01-22T12:35:12",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I just pulled up the sync notes and they don't say anything about the interface change or the examples",
+          "ts": "2025-01-22T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "so do we tag the broken ones for tomorrow, or is someone running them this afternoon?",
+          "ts": "2025-01-22T12:39:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "ran into the same thing when I was touching the examples earlier:\n\n```\nAttributeError: 'LLM' object has no attribute 'model_name'\n```\n\nprobably not just one script.",
+          "ts": "2025-01-22T13:15:05"
+        },
+        {
+          "userId": "dario",
+          "text": "I dunno if we can confidently tag them for tomorrow without at least knowing how many we're dealing with",
+          "ts": "2025-01-22T13:54:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Same thing in the amc_aime example:\n\n```\nAttributeError: 'LLM' object has no attribute 'model_name'\n```",
+          "ts": "2025-01-22T13:58:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone have 20 minutes later this afternoon to go through the scripts together and just run them all?",
+          "ts": "2025-01-22T14:32:05"
+        },
+        {
+          "userId": "dario",
+          "text": "I can do that, are we trying to fix them in the same session, or just get a list for tomorrow?",
+          "ts": "2025-01-22T14:47:02"
         }
       ],
       "projectSpec": {
@@ -12758,6 +13602,537 @@
           "userId": "dario",
           "text": "Anyone have scope input I should pull in before I write it up?",
           "ts": "2025-01-15T14:03:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "been going through the token accounting changes against bulk-llm-inference this morning, and with dario's four issues all filed the same day as PR 373 I think we nee to settle the order before anyone starts picking up the next one",
+          "ts": "2025-01-17T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "do all four of dario's new issues depend on PR 373 landing first, or are some of them independent?",
+          "ts": "2025-01-17T09:07:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the output token estimation in PR 373 unblock cost tracking?",
+          "ts": "2025-01-17T09:52:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "did the four issues dario filed come with any suggested ordering?",
+          "ts": "2025-01-17T10:42:31"
+        },
+        {
+          "userId": "dario",
+          "text": "Sounds like a busy morning, Dermot",
+          "ts": "2025-01-17T10:51:31"
+        },
+        {
+          "userId": "dario",
+          "text": "I didn't file those four with any strict ordering in mind, so yeah, locking that down beofre anyone pulls the next ticket is the right move",
+          "ts": "2025-01-17T10:51:43"
+        },
+        {
+          "userId": "dario",
+          "text": "On whether 373 unblocks cost tracking, I'm honestly not certain on that one",
+          "ts": "2025-01-17T10:51:55"
+        },
+        {
+          "userId": "emil",
+          "text": "that one's mine, I can answer the cost tracking piece",
+          "ts": "2025-01-17T11:20:55"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 373 does unblock it",
+          "ts": "2025-01-17T11:21:27",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "The moving average gives you a pre-flight output token estimate",
+          "ts": "2025-01-17T11:21:32"
+        },
+        {
+          "userId": "dario",
+          "text": "If PR 373 lands first, does that settle the sequence for the other four issues, or are some of them independent of it?",
+          "ts": "2025-01-17T11:50:27"
+        },
+        {
+          "userId": "dario",
+          "text": "Answering my own question - I think issue 374 is the natural next piece after PR 373 lands, it's the post-response consumption update.",
+          "ts": "2025-01-17T11:59:58"
+        },
+        {
+          "userId": "emil",
+          "text": "v0.1.15.post1 release notes aren't out yet, I just checked and there's nothing in my inbox.",
+          "ts": "2025-01-17T12:46:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Who's writing those?",
+          "ts": "2025-01-17T12:46:52"
+        },
+        {
+          "userId": "dario",
+          "text": "Hold on, I jumped ahead on issue 374 - the sequence across all four is what we actually need to settle.",
+          "ts": "2025-01-17T13:04:52"
+        },
+        {
+          "userId": "dario",
+          "text": "Still no agreed order on the four token-accounting issues.",
+          "ts": "2025-01-17T13:05:15"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we try to land the sequence this afternoon, or does that carry to next week?",
+          "ts": "2025-01-17T13:05:20"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd say we nail this down today rather than carry it over the weekend - my read: PR 373 first, then issue 374, then 206 and 235.",
+          "ts": "2025-01-17T13:44:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "before we lock that in, do we know what 206 and 235 actually depend on?",
+          "ts": "2025-01-17T13:55:20"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, can you have a look at what 206 and 235 actually depend on before we finalize the sequence?",
+          "ts": "2025-01-17T13:59:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up issue 206 and issue 235, they both describe implementing the moving average output estimation, which is exactly what PR 373 already does. If that's right, they're not follow-ons, they're duplicates, and the sequencing question changes.",
+          "ts": "2025-01-17T14:05:20",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-01-17T14:06:05"
+        },
+        {
+          "userId": "dario",
+          "text": "So 373 closes both of them?",
+          "ts": "2025-01-17T14:06:05",
+          "threadParentTs": "2025-01-17T14:05:20"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-01-17T14:12:05"
+        },
+        {
+          "userId": "emil",
+          "text": "the moving average implementation is in PR 373, so 206 and 235 both close against it once it merges",
+          "ts": "2025-01-17T14:12:10"
+        },
+        {
+          "userId": "emil",
+          "text": "That makes issue 374 the actual next thing to pick up",
+          "ts": "2025-01-17T14:12:18"
+        },
+        {
+          "userId": "dario",
+          "text": "So is PR 373 close enough to merge that we're treating 374 as next, or do the open questions still block it?",
+          "ts": "2025-01-17T14:33:18"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, did you get through PR 373 this afternoon like you were planning?",
+          "ts": "2025-01-17T14:54:18",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-17T14:54:39"
+        },
+        {
+          "userId": "dario",
+          "text": "Not there yet",
+          "ts": "2025-01-17T14:54:39",
+          "threadParentTs": "2025-01-17T14:54:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Where does the simultaneous hit question stand?",
+          "ts": "2025-01-17T14:54:51"
+        },
+        {
+          "userId": "dario",
+          "text": "PR 373's pre-flight output enforcement doesn't catch cases where actual output exceeds the moving average estimate - those requests slip through the limit unpenalized",
+          "ts": "2025-01-17T14:55:36",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-17T14:55:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not entirely sure 'unpenalized' is right if the moving average adjusts on real usage afterward, but I haven't seen the feedback loop in the code",
+          "ts": "2025-01-17T14:55:50",
+          "threadParentTs": "2025-01-17T14:55:36"
+        },
+        {
+          "userId": "dario",
+          "text": "The feedback loop adjusts future estimates, not the request that already went over, right?",
+          "ts": "2025-01-17T14:56:34"
+        },
+        {
+          "userId": "dario",
+          "text": "Did 373 actually include a post-response feedback loop, or just the pre-flight estimate?",
+          "ts": "2025-01-17T14:56:47"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 373 is pre-flight only, no post-response feedback loop in there.",
+          "ts": "2025-01-17T15:14:47"
+        },
+        {
+          "userId": "dermot",
+          "text": "from the bulk-llm-inference side, my review is basically done, the only thing I'm still holding on is the test coverage question I flagged in code-review.",
+          "ts": "2025-01-17T15:41:47"
+        },
+        {
+          "userId": "dario",
+          "text": "If 374 is the post-response update, it's basically the other half of what 373 sets up - the two aren't really sequential, they complete each other.",
+          "ts": "2025-01-17T16:18:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Heading out shortly, I'll get the test coverage for PR 373 sorted Monday.",
+          "ts": "2025-01-17T16:58:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Are we holding PR 373 until the coverage lands Monday, or is it ready to merge as soon as Emil adds that?",
+          "ts": "2025-01-17T17:37:47"
+        },
+        {
+          "userId": "dario",
+          "text": "I never got to my review of 373 today - do I go through what's there now, or wait until Emil has the coverage in Monday?",
+          "ts": "2025-01-17T17:38:10"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, go through what's there now, the coverage piece will be in Monday.",
+          "ts": "2025-01-17T17:51:10",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "If the logic checks out, do I approve pending coverage or hold approval until the full thing is in Monday?",
+          "ts": "2025-01-17T18:09:10"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll approve from my side and we hold the merge until Emil's coverage lands monday, dario can do the same and we're not blocking on a formality.",
+          "ts": "2025-01-17T18:22:10",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "rate-limiting merged over the weekend",
+          "ts": "2025-01-20T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know if there are existing callers in the codebase that assume a specific completions object shape, or is PR 384 safe to merge without auditing those first?",
+          "ts": "2025-01-20T09:07:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "Sorry, was heads-down all day, glad rate-limiting landed, that should get PR 378 and PR 380 moving.",
+          "ts": "2025-01-20T17:07:27"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 378 and PR 380 are both queued up, should be able to get them in today now that rate-limiting is out of the way.",
+          "ts": "2025-01-20T17:24:27"
+        },
+        {
+          "userId": "dario",
+          "text": "With rate-limiting in and PR 378 and PR 380 about to land, the interface is shifting.",
+          "ts": "2025-01-20T18:04:27"
+        },
+        {
+          "userId": "dario",
+          "text": "Has anyone actually run the examples against those changes, or is that still unverified?",
+          "ts": "2025-01-20T18:04:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can run the examples against the current interface before PR 378 and PR 380 land, that way we know if anything breaks before it's in rather than after",
+          "ts": "2025-01-20T18:10:01.930359",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "r1 is also moving, PR 384 is up for review, that's the ask if anyone has cycles this evening",
+          "ts": "2025-01-20T18:10:13.930359"
+        },
+        {
+          "userId": "dermot",
+          "text": "still working through cost estmation guard this morning - if a model is missing from the price table it just crashes outright, which will be problem as we bring more providers in",
+          "ts": "2025-01-21T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "want to get that wrapped up before we try to land PR 378",
+          "ts": "2025-01-21T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "the cost estimator crashes on any model that isn't in the price table.",
+          "ts": "2025-01-21T09:00:31"
+        },
+        {
+          "userId": "nikolai",
+          "text": "tracking Dermot's cost guard fix too, since that's the gate for PR 378 getting in. nothing new from my side this morning yet, still watching how the price-table crash gets handled.",
+          "ts": "2025-01-21T09:49:29"
+        },
+        {
+          "userId": "dermot",
+          "text": "cost guard is coming along - adding safe fallback for when model isn't in price table so estimator returns none instead of throwing. should have somthing reviewable before lunch.",
+          "ts": "2025-01-21T10:27:29",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "when it returns none, does anything downstream actaully handle that gracefully or does it just propagate the none and blow up later?",
+          "ts": "2025-01-21T11:09:29"
+        },
+        {
+          "userId": "dario",
+          "text": "good q",
+          "ts": "2025-01-21T11:43:29",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "PR 378 is basically sitting idle until the cost guard lands, so that's the blocker for it right now",
+          "ts": "2025-01-21T11:43:49"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 378 is sitting ready on my end, just waiting on the cost guard to clear - once Dermot's fix is up I can take a look at whether anything downstream handles a None return cleanly",
+          "ts": "2025-01-21T11:51:49"
+        },
+        {
+          "userId": "emil",
+          "text": "Separately, I pulled up the v0.1.16 release notes - my changes are in there, but the max-parallel entry has a TBD on config location that needs sorting before it goes out",
+          "ts": "2025-01-21T11:51:54"
+        },
+        {
+          "userId": "emil",
+          "text": "The cost guard returning None instead of crashing on an unknown model is the right call.",
+          "ts": "2025-01-21T12:27:51",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Does anyone know if downstream actually handles a None estimate cleanly, or is that still an open question?",
+          "ts": "2025-01-21T12:28:03"
+        },
+        {
+          "userId": "dermot",
+          "text": "emil's january throughput changes merged this morning, so that work is in",
+          "ts": "2025-01-23T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "I want to confirm the full scope is there, max_tokens handling, finish_reasons, capacity efficiency, before we call v0.1.16 ready for testing",
+          "ts": "2025-01-23T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil do you know which job patterns are expected to see the most improvement from this?",
+          "ts": "2025-01-23T09:39:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll fold whatever emil confirms into the release notes, that's a gap worth spelling out for v0.1.16.",
+          "ts": "2025-01-23T10:13:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil is there a quick way to verify the capacity efficiency piece is actually working once we cut the release?",
+          "ts": "2025-01-23T10:27:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can add a verification step to the release checklist for it",
+          "ts": "2025-01-23T10:59:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "once emil has the details on what to watch I'll get that in",
+          "ts": "2025-01-23T10:59:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Capacity guard and max-parallel processor are both in the release notes, so max_tokens blocking and the efficiency piece are covered",
+          "ts": "2025-01-23T11:31:16"
+        },
+        {
+          "userId": "emil",
+          "text": "Finish_reasons isn't explicitly called out there though, Dermot - worth adding before we call it complete?",
+          "ts": "2025-01-23T11:31:28"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai on job patterns - if I had to guess, concurrent batch loads against Anthropic see the most difference, but I haven't verified that yet.",
+          "ts": "2025-01-23T11:31:33"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil, is concurrent batch loads against Anthropic specific enough to actually set expectations around, or do we want to verifiy that first",
+          "ts": "2025-01-23T11:50:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Verify first, I'd say. Do we have anything in the existing run data that shows which job types are actually hitting the capacity limits? The sync notes don't cover this at all, so I don't have a better baseline than the guess I threw out.",
+          "ts": "2025-01-23T12:35:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll hold off on the job-type expectations in the sync notes until that's verified then.",
+          "ts": "2025-01-23T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil you free this afternoon to look at the run data on this?",
+          "ts": "2025-01-23T13:06:00"
+        },
+        {
+          "userId": "dario",
+          "text": "We still don't have a clear answer on which job patterns actualy see the most improvement from the capacity changes",
+          "ts": "2025-01-23T13:06:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Is concurrent batch loads against Anthropic still the best working assumption going into the data review this afternoon, or does anyone have a better read?",
+          "ts": "2025-01-23T13:06:36"
+        },
+        {
+          "userId": "dario",
+          "text": "Ok",
+          "ts": "2025-01-23T14:02:36"
+        },
+        {
+          "userId": "dario",
+          "text": "answering my own question a bit - from the request processing side it's any job running high max_tokens per request against Anthropic online, not specifcally concurrent batch",
+          "ts": "2025-01-23T14:02:41"
+        },
+        {
+          "userId": "dario",
+          "text": "Does the run data break down by max_tokens settings at all?",
+          "ts": "2025-01-23T14:02:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the release notes - the capacity guard and max-parallel processor are both in there",
+          "ts": "2025-01-23T14:22:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Finish_reasons isn't mentioned anywhere",
+          "ts": "2025-01-23T14:22:51"
+        },
+        {
+          "userId": "emil",
+          "text": "That's still a gap in the v0.1.16 docs on my end.",
+          "ts": "2025-01-23T14:23:03"
+        },
+        {
+          "userId": "emil",
+          "text": "Looked at the sync notes - they call out PR 378 and 387 as needing review, but there's nothing in there about which job types are expected to see improvement from the throughput changes.",
+          "ts": "2025-01-23T14:34:49"
+        },
+        {
+          "userId": "emil",
+          "text": "Is Nikolai adding that once we have the run data, or does that belong in the release notes instead?",
+          "ts": "2025-01-23T14:34:57"
+        },
+        {
+          "userId": "dermot",
+          "text": "adding finish_reasons to the release notes now, that should be closed before we ship",
+          "ts": "2025-01-23T14:36:57",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "on job-type expectations I'd put that in the release notes once the run data is in, nikolai can reference it from the sync notes",
+          "ts": "2025-01-23T14:37:09"
+        },
+        {
+          "userId": "emil",
+          "text": "- max_tokens blocking, finish_reasons, and capacity efficiency are all in v0.1.16\n- run data still pending to confirm which job types see the most impact\n- PR 378 still needs a reviewer",
+          "ts": "2025-01-23T15:37:07",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "With the capacity guard in place, what's the next constraint we're likely to hit on the Anthropic online path?",
+          "ts": "2025-01-23T15:37:43"
         }
       ],
       "projectSpec": {
@@ -17466,6 +18841,322 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "dermot",
+          "text": "been looking at PR 373 against bulk-llm-inference this morning and I'm not entirely sure the split input/output rate limits won't affect downstream enforcement, want pipeline team eyes on it beofre we merge.",
+          "ts": "2025-01-17T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "when PR 373 splits the input and output token limits, does the rate limiter enforce them independently or still bucket them together?",
+          "ts": "2025-01-17T09:11:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "if both limits hit simultaneously, which one takes precedence?",
+          "ts": "2025-01-17T09:56:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone on the pipeline side had a chance to look at PR 373 yet?",
+          "ts": "2025-01-17T10:45:30"
+        },
+        {
+          "userId": "emil",
+          "text": "- PR 373 enforces input and output limits independently, separate buckets, that's the whole point of the change\n- the moving average estimate feeds output token enforcement pre-flight, before a response finishes\n- simultaneous limit hits aren't explicitly handled yet, that's still the open question before I'd call this merge-ready",
+          "ts": "2025-01-17T11:00:30",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'm not sure a pre-flight estimate actually enforces the output limit in any strict sense, it just enforces a guess. If the real response comes back over the estimate, you've already let it through",
+          "ts": "2025-01-17T11:38:11"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd lean toward treating the pre-flight accuracy as a separate open question from the simultaneous hit case, not the same one.",
+          "ts": "2025-01-17T11:57:33",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "so is the plan to resolve the simultaneous limit case before merging, or is that going in as a follow-on?",
+          "ts": "2025-01-17T12:32:33"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, did you get those flags on PR 373 posted yet?",
+          "ts": "2025-01-17T12:41:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "- rate-limiting landed so PR 378 and PR 380 are unblocked as of this morning\n- r1 completions object is up as PR 384, intending it as a flag-only change but want someone to sanity check that nothing ripples into the request path\n- integration test cuda mock-out is still failing in CI, need to look at that today",
+          "ts": "2025-01-20T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "does the r1 completions object change touch anything in online-request-processing, or is it fully contained to bulk-llm-inference?",
+          "ts": "2025-01-20T09:12:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "anyone know the right way to mock out cuda in the integration tests so CI doesn't fail on a cpu-only runner?",
+          "ts": "2025-01-20T09:20:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario can you take a look at PR 384 and tell me if it touches anything in online-request-processing?",
+          "ts": "2025-01-20T10:31:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "does CI on PR 384 cover enough of the request path to catch a regression if the completions object change isn't actually flag-only?",
+          "ts": "2025-01-20T11:13:38"
+        },
+        {
+          "userId": "emil",
+          "text": "The cuda mock-out is still a blocker for me too, CI on PR 378 keeps failing on the cpu-only runner and I haven't found a clean fix yet.",
+          "ts": "2025-01-20T11:32:38",
+          "reactions": [
+            {
+              "emoji": "🤝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Pulling up PR 384 now, but quick question before I dig in: is the flag checked at request construction time, or only on the response parsing side?",
+          "ts": "2025-01-20T11:40:38",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-20T11:41:42"
+        },
+        {
+          "userId": "dario",
+          "text": "@Dermot the routing change for deepseek to the openai backend is in provider-integrations, which is mine",
+          "ts": "2025-01-20T11:41:10"
+        },
+        {
+          "userId": "dario",
+          "text": "Can you walk me through what changed there specifically so I can sign off on it?",
+          "ts": "2025-01-20T11:41:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "when you say request construction, do you mean the payload shape we send to the provider, or the internal request object?",
+          "ts": "2025-01-20T11:41:42",
+          "threadParentTs": "2025-01-20T11:40:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 384 is flag-only on my end, completions object is response parsing side only, nothing changes in how the request is built or routed",
+          "ts": "2025-01-20T11:41:59"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario is that consistent with what you're seeing in the diff?",
+          "ts": "2025-01-20T11:42:11",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-20T18:15:50"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, did you get anywhere on the cuda mock-out?",
+          "ts": "2025-01-20T17:31:44"
+        },
+        {
+          "userId": "emil",
+          "text": "That's still the last thing blocking CI on PR 378 and PR 380",
+          "ts": "2025-01-20T17:31:52"
+        },
+        {
+          "userId": "dario",
+          "text": "The description mentions routing deepseek to the openai backend though, that doesn't count as routing changes?",
+          "ts": "2025-01-20T18:15:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Specifically is the backend selection behind the flag, or always-on for deepseek?",
+          "ts": "2025-01-20T18:15:50",
+          "threadParentTs": "2025-01-20T11:42:11"
+        },
+        {
+          "userId": "emil",
+          "text": "Still no answer on the cuda mock-out from this afternoon.",
+          "ts": "2025-01-20T18:28:03.224590"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll take a crack at it tonight so CI isn't still red tomorrow morning.",
+          "ts": "2025-01-20T18:28:11.224590",
+          "reactions": [
+            {
+              "emoji": "💪",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "So the openai routing for deepseek was already there before this PR, you're just fixing the response parsing on top?",
+          "ts": "2025-01-20T18:29:30.445889"
+        },
+        {
+          "userId": "dario",
+          "text": "Once Dermot gets back to me on the routing question I can close out PR 384 from my side, and Emil's got the cuda mock tonight",
+          "ts": "2025-01-20T18:29:38.445889"
+        },
+        {
+          "userId": "dermot",
+          "text": "cost guard is coming along - if model is missing form the price table the esimate currently throws, so working on safe fallback for unknown models this morning.",
+          "ts": "2025-01-21T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "is there currently check on anthropic OTPM capacity before we send, or does the request just go out?",
+          "ts": "2025-01-21T10:08:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "where does the price table actually live, is it in provider-integrations?",
+          "ts": "2025-01-21T10:59:20"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 387 is exactly that check - right now there's nothing blocking a request if it would exceed OTPM capacity, the request just goes out",
+          "ts": "2025-01-21T12:32:07"
+        },
+        {
+          "userId": "emil",
+          "text": "And yes, the price table is in provider-integrations",
+          "ts": "2025-01-21T12:32:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Also pulled up the v0.1.16 release notes - both my changes are documented there, though the max-parallel entry still has a TBD on config location that needs resolving before that's really complete.",
+          "ts": "2025-01-21T12:32:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "cost guard is going into provider-integrations now that I know where the price table lives",
+          "ts": "2025-01-21T13:09:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "need to close that TBD in Release notes: v0.1.16 on the max-parallel config key before end of day",
+          "ts": "2025-01-21T13:09:49"
+        },
+        {
+          "userId": "dario",
+          "text": "Since provider-integrations is mine, I want to make sure we're aligned on what the cost guard should do when a model's missing - is returning None actually safe, or should it log a warning and fall back to some sentinel value so the caller knows it got nothing?",
+          "ts": "2025-01-21T14:14:20"
+        },
+        {
+          "userId": "emil",
+          "text": "afternoon is moving fast, feels like we barely got through lunch",
+          "ts": "2025-01-21T14:29:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "nice, PR 387 looks solid.",
+          "ts": "2025-01-21T14:37:20",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "Release notes: v0.1.16 are up and cover all five changes, but the max-parallel entry has a TBD on how concurrency is configured",
+          "ts": "2025-01-21T14:49:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "flag, env var, or config file key?",
+          "ts": "2025-01-21T14:49:13"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil that TBD is yours to close - you'd know how max_parallel is configured in PR 378",
+          "ts": "2025-01-21T15:44:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Can I edit the release notes page directly to close that TBD, or should I just drop the config detail here and you update it, @Dermot?",
+          "ts": "2025-01-21T15:46:24"
+        },
+        {
+          "userId": "dermot",
+          "text": "go for it @Emil, just edit it directly",
+          "ts": "2025-01-21T16:08:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Worth having someone look at the cost guard before it lands in provider-integrations - the None fallback behavior still isn't confirmed safe on the caller side.",
+          "ts": "2025-01-21T16:32:24",
+          "replyCount": 1,
+          "replyLastTs": "2025-01-21T17:15:00"
+        },
+        {
+          "userId": "emil",
+          "text": "I can check the caller side - online-request-processing is mine, so I'll verify how it handles a None estimate before this lands.",
+          "ts": "2025-01-21T17:15:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-01-21T16:32:24"
+        },
+        {
+          "userId": "dario",
+          "text": "Does it skip the request entirely when estimate is None, or just proceed without the guard?",
+          "ts": "2025-01-21T17:15:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Still checking - haven't confirmed yet whether it skips or just proceeds unguarded, I'll have an answer before end of day.",
+          "ts": "2025-01-21T17:44:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "any update yet?",
+          "ts": "2025-01-21T17:45:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "cost guard is in provider-integrations but not confirmed safe yet",
+          "ts": "2025-01-21T17:45:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "is Emil's caller-side check the last thing needed before we can close this?",
+          "ts": "2025-01-21T17:45:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Still working through it, haven't confirmed yet. If the None is handled cleanly on the caller side, that's the last gate.",
+          "ts": "2025-01-21T18:28:56.480050"
         }
       ],
       "projectSpec": {
@@ -19221,6 +20912,129 @@
           "userId": "dermot",
           "text": "@Emil can you check whether the PyPI page for post1 needs a changelog entry, or if the wiki is the only place we're documenting it?",
           "ts": "2025-01-15T14:40:21"
+        },
+        {
+          "userId": "dermot",
+          "text": "release notes: v0.1.16 is up on the wiki - five merged changes are in there. shout if I've got anything wrong or something is missing.",
+          "ts": "2025-01-21T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "announcement is out to the full team",
+          "ts": "2025-01-21T10:01:20",
+          "reactions": [
+            {
+              "emoji": "📢",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know if Release notes: v0.1.15 and v0.1.15.post1 are written up yet?",
+          "ts": "2025-01-21T10:01:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "wrote up Release notes: v0.1.15.post1, it's on the wiki now",
+          "ts": "2025-01-21T10:36:28"
+        },
+        {
+          "userId": "dermot",
+          "text": "that said, Release notes: v0.1.15 are not there yet and that's Emil's",
+          "ts": "2025-01-21T10:36:33"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil where are you on Release notes: v0.1.15?",
+          "ts": "2025-01-21T11:50:00"
+        },
+        {
+          "userId": "emil",
+          "text": "on it, will get them up this afternoon",
+          "ts": "2025-01-21T12:20:23"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure the five changes I put in Release notes: v0.1.16 are exactly right - can someone verify what actually merged before we treat that as final?",
+          "ts": "2025-01-21T12:55:23"
+        },
+        {
+          "userId": "dario",
+          "text": "I can take a look at the notes and check what's in there for the provider-integrations and online-request-processing side this afternoon, confirm what actually landed on my end",
+          "ts": "2025-01-21T13:26:23"
+        },
+        {
+          "userId": "dario",
+          "text": "Did the announcement go out to users too or just the internal team?",
+          "ts": "2025-01-21T13:33:34"
+        },
+        {
+          "userId": "dario",
+          "text": "Which collection are the v0.1.16 release notes under on the wiki?",
+          "ts": "2025-01-21T14:06:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "announcement went out to the full internal team this morning, not external users",
+          "ts": "2025-01-21T14:29:34"
+        },
+        {
+          "userId": "dermot",
+          "text": "notes are in the engineering collection on the wiki, @Dario.",
+          "ts": "2025-01-21T14:29:42"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, Release notes: v0.1.15 still not on the wiki - still coming this afternoon?",
+          "ts": "2025-01-21T14:45:05"
+        },
+        {
+          "userId": "emil",
+          "text": "- Still on it, putting them together now\n- Having trouble nailing down exactly which changes landed in 0.1.15 vs the versions around it - I'd have to check the tag to be sure",
+          "ts": "2025-01-21T15:05:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Around for the rest of the afternoon, will have the 0.1.15 notes up before end of day.",
+          "ts": "2025-01-21T15:05:22",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "v0.1.16 notes are up but one TBD still open on the max-parallel config key - will fix that once I have the answer",
+          "ts": "2025-01-21T15:14:22"
+        },
+        {
+          "userId": "emil",
+          "text": "v0.1.15 notes are almost ready, will have them up before end of day.",
+          "ts": "2025-01-21T15:57:34"
+        },
+        {
+          "userId": "dario",
+          "text": "v0.1.16 notes are up and the announcement is out, that's most of it done.",
+          "ts": "2025-01-21T16:18:34",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil the TBD on max-parallel config is still in Release notes: v0.1.16 - did you get to it?",
+          "ts": "2025-01-21T16:55:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Haven't closed the TBD yet - I need to pull up PR 378 to confirm the exact config key before I update the page.",
+          "ts": "2025-01-21T18:25:42.718276"
         }
       ],
       "projectSpec": {

@@ -1,0 +1,27 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, gideon@world.local, otto@world.local,
+ ilse@world.local, dermot@world.local, bram@world.local, priya@world.local
+Subject: Weekly update: week of Jan 13 =?utf-8?b?4oCU?= v0.1.15 and
+ v0.1.15.post1 shipped
+Date: Mon, 20 Jan 2025 09:07:00 +0000
+Message-ID: <178765891464.1915810.3238555366705346745@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.15 and v0.1.15.post1 are out. Four PRs merged, eight commits landed this=
+ week. Throughput work is in motion =E2=80=94 PR 378 and PR 380 are in review=
+ =E2=80=94 and r1 completions support (PR 384) is up for eyes today and needs=
+ to merge before it starts conflicting.
+
+Worth remembering the December rebuild before we sign off on the tag work. Th=
+e appuser line at the bottom of the sandbox Dockerfile got dropped in a refac=
+tor and we shipped four days of runs before anybody spotted it. Nothing on ou=
+r side would ever have noticed. We take whatever the image decided and start =
+it.
+
+A couple of things still open: PR 381 needs to get unblocked alongside the th=
+roughput PRs, and docs/CONTRIBUTING changes from this week need sanity check =
+that they don't break the examples.
+
+Konrad

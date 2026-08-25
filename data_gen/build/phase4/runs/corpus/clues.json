@@ -630,5 +630,25 @@
       ],
       "rewrote": false
     }
+  },
+  {
+    "clue": "t4.r2.L2",
+    "holder": "konrad",
+    "date": "2025-01-20",
+    "channel": "code-review",
+    "wrote_into": "mail:weekly-2025-01-13",
+    "attempt": 1,
+    "said": false,
+    "quote": "",
+    "said_by": "konrad",
+    "why": "The mail recounts an incident where a Dockerfile's appuser line was dropped and nobody noticed, implying the executor doesn't control/verify the user, but it never states as a fact or assertion that the executor does not decide who the container process runs as.",
+    "missing": [
+      "that the executor does not itself decide who the container process runs as"
+    ],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped",
+    "written_as": "Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped"
   }
 ]
