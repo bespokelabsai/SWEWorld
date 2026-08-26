@@ -1254,7 +1254,12 @@ async def _run(world, days, built, people, root: Path, out: Path, args) -> int:
 
         rl.ok(f"{date}: {sum(1 for r in rows if r['said'])}/{len(rows)} clue(s) said")
 
-    return _finish(world, root, out, clue_rows, art_rows, stores, args)
+    # The plant's own total, not just what this invocation judged. Without it
+    # `_finish` prints "N/N clue(s) said" over whatever it happened to look at
+    # — which is how a ledger covering 37 days went on reading as a complete
+    # account of 161, through thirty-three batches, unnoticed.
+    return _finish(world, root, out, clue_rows, art_rows, stores, args,
+                   planted_total=len(_every_planted(world, days)))
 
 
 def _batches(channels: list, budget: int) -> list[list]:
@@ -1848,20 +1853,27 @@ def audit_corpus(world, root: Path, out: Path, args) -> int:
                    planted_total=len(_every_planted(world)), rewrite=True)
 
 
-def _every_planted(world) -> dict[str, dict]:
+def _every_planted(world, days: list[str] | None = None) -> dict[str, dict]:
     """Every clue the plant seated anywhere, by id.
 
     The specs are only one of four surfaces phase 3 uses. Counting just those
     is what made a ledger of 49 look complete beside a plant of 99.
+
+    `days` scopes it to the dates a run covers. Without that a nine-day run
+    would report "9 of 107 judged" and cry coverage every time, which is how a
+    real warning becomes something people scroll past.
     """
+    want = set(days) if days else None
     out: dict[str, dict] = {}
 
     def take(items, kind, where, date=""):
         for p in items or []:
             cid = p.get("clue")
             if cid:
-                out.setdefault(cid, {"kind": kind, "where": where, "date": date,
-                                     "holder": p.get("holder", "")})
+                if want is None or date in want:
+                    out.setdefault(cid, {"kind": kind, "where": where,
+                                         "date": date,
+                                         "holder": p.get("holder", "")})
 
     for date in world.days:
         # `world.days` spans the calendar, not the days that got a spec file;
