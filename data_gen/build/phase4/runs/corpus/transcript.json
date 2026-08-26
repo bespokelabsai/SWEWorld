@@ -571,7 +571,7 @@
         },
         {
           "userId": "dermot",
-          "text": "postmortem for the nov 5 revert is up on the wiki, onboarding collection, \"Postmortem: Nov 5 revert of unwanted diffs\" (`onboarding/postmortem-nov-5-revert-of-unwanted-diffs.md`)",
+          "text": "postmortem for the nov 5 revert is up on the wiki, onboarding collection, \"Postmortem: Nov 5 revert of unwanted diffs\" (`incidents/postmortem-nov-5-revert-of-unwanted-diffs.md`)",
           "ts": "2024-11-06T10:37:32"
         },
         {
@@ -2432,7 +2432,7 @@
         },
         {
           "userId": "dario",
-          "text": "The v0.1.9.post1 release notes are up on the wiki now (engineering/release-notes-v0-1-9-post1.md) - covers the Nov 23 LiteLLM revert and points to PR 141 as the fix. Does that give enough context for the PR 141 review, or is there anything missing?",
+          "text": "The v0.1.9.post1 release notes are up on the wiki now (releases/release-notes-v0-1-9-post1.md) - covers the Nov 23 LiteLLM revert and points to PR 141 as the fix. Does that give enough context for the PR 141 review, or is there anything missing?",
           "ts": "2024-11-25T15:50:01",
           "reactions": [
             {
@@ -4483,7 +4483,7 @@
         },
         {
           "userId": "dario",
-          "text": "Put the weekly notes up for this week - it's in the engineering wiki as \"Weekly notes: week of Dec 23 - 0.1.13 out\" (engineering/weekly-notes-week-of-dec-23-0-1-13-out.md), covers the 0.1.13 release, in-flight PRs and the open issues we're carrying. Still need to sit with PR 243 before I weigh in, but I'd lean toward deferring merge until we have integration tests on the batch mapping changes.",
+          "text": "Put the weekly notes up for this week - it's in the engineering wiki as \"Weekly notes: week of Dec 23 - 0.1.13 out\" (meetings/weekly-notes-week-of-dec-23-0-1-13-out.md), covers the 0.1.13 release, in-flight PRs and the open issues we're carrying. Still need to sit with PR 243 before I weigh in, but I'd lean toward deferring merge until we have integration tests on the batch mapping changes.",
           "ts": "2024-12-25T11:50:00",
           "reactions": [
             {
@@ -6160,7 +6160,7 @@
         },
         {
           "userId": "konrad",
-          "text": "The post1 release notes are on the wiki (engineering/release-notes-v0-1-15-post1.md) if that helps, though the cost fix description doesn't call out which inference paths it covered",
+          "text": "The post1 release notes are on the wiki (releases/release-notes-v0-1-15-post1.md) if that helps, though the cost fix description doesn't call out which inference paths it covered",
           "ts": "2025-01-15T17:23:20"
         },
         {
@@ -10848,7 +10848,7 @@
         },
         {
           "userId": "nils",
-          "text": "Weekly Notes for the week of Mar 10 are up on the wiki (engineering/weekly-notes-week-of-mar-10.md) if anyone needs a reference",
+          "text": "Weekly Notes for the week of Mar 10 are up on the wiki (meetings/weekly-notes-week-of-mar-10.md) if anyone needs a reference",
           "ts": "2025-03-12T09:44:05"
         },
         {
@@ -12684,7 +12684,7 @@
         },
         {
           "userId": "emil",
-          "text": "Weekly Notes, Week of Mar 31 are up: engineering/weekly-notes-week-of-mar-31.md",
+          "text": "Weekly Notes, Week of Mar 31 are up: meetings/weekly-notes-week-of-mar-31.md",
           "ts": "2025-04-02T11:57:20"
         },
         {
@@ -13261,7 +13261,7 @@
         },
         {
           "userId": "dermot",
-          "text": "weekly notes for the week of apr 7 are up on the engineering wiki (engineering/weekly-notes-week-of-apr-7.md)",
+          "text": "weekly notes for the week of apr 7 are up on the engineering wiki (meetings/weekly-notes-week-of-apr-7.md)",
           "ts": "2025-04-09T09:00:00",
           "reactions": [
             {
@@ -21526,7 +21526,7 @@
         },
         {
           "userId": "emil",
-          "text": "v0.1.23 release notes are up now, engineering/v0-1-23-release-notes.md on the wiki.",
+          "text": "v0.1.23 release notes are up now, releases/v0-1-23-release-notes.md on the wiki.",
           "ts": "2025-04-25T12:39:23",
           "reactions": [
             {
@@ -29280,7 +29280,7 @@
         },
         {
           "userId": "emil",
-          "text": "Postmortem for the Feb 10 pickler revert is up on the wiki: onboarding/postmortem-pickler-revert-on-feb-10.md",
+          "text": "Postmortem for the Feb 10 pickler revert is up on the wiki: incidents/postmortem-pickler-revert-on-feb-10.md",
           "ts": "2025-02-11T17:55:35",
           "reactions": [
             {
@@ -34835,7 +34835,7 @@
         },
         {
           "userId": "emil",
-          "text": "Weekly notes for the week of May 19 are up in the engineering wiki (engineering/weekly-notes-week-of-may-19.md) if anyone wants the full rundown",
+          "text": "Weekly notes for the week of May 19 are up in the engineering wiki (meetings/weekly-notes-week-of-may-19.md) if anyone wants the full rundown",
           "ts": "2025-05-21T11:19:35",
           "reactions": [
             {
@@ -37025,7 +37025,7 @@
         },
         {
           "userId": "dario",
-          "text": "Release notes for v0.1.9.post1 are up on the wiki now (engineering/release-notes-v0-1-9-post1.md) - it's the LiteLLM backend revert from Nov 23, structured output via instructor unavailable in this cut, everything else unaffected, shout if anything looks off",
+          "text": "Release notes for v0.1.9.post1 are up on the wiki now (releases/release-notes-v0-1-9-post1.md) - it's the LiteLLM backend revert from Nov 23, structured output via instructor unavailable in this cut, everything else unaffected, shout if anything looks off",
           "ts": "2024-11-25T15:02:01",
           "reactions": [
             {
@@ -54335,7 +54335,7 @@
         },
         {
           "userId": "emil",
-          "text": "Release notes for v0.1.18 are up on the wiki (engineering/release-notes-v0-1-18.md)",
+          "text": "Release notes for v0.1.18 are up on the wiki (releases/release-notes-v0-1-18.md)",
           "ts": "2025-02-06T11:27:12",
           "reactions": [
             {
@@ -54469,7 +54469,7 @@
         },
         {
           "userId": "emil",
-          "text": "Good for the sync. Release notes are up on the wiki (engineering/release-notes-v0-1-18.md) if anyone wants to cross-check before we jump on.",
+          "text": "Good for the sync. Release notes are up on the wiki (releases/release-notes-v0-1-18.md) if anyone wants to cross-check before we jump on.",
           "ts": "2025-02-06T17:02:16"
         },
         {
@@ -54484,7 +54484,7 @@
         },
         {
           "userId": "emil",
-          "text": "- Release notes are up at engineering/release-notes-v0-1-18.md, I wrote them this morning\n- Next-patch section flags the prompt formatter root cause as top priority and calls out PR 362 and PR 430 as next-release targets\n- Happy to update the wording if anything needs adjusting after the sync",
+          "text": "- Release notes are up at releases/release-notes-v0-1-18.md, I wrote them this morning\n- Next-patch section flags the prompt formatter root cause as top priority and calls out PR 362 and PR 430 as next-release targets\n- Happy to update the wording if anything needs adjusting after the sync",
           "ts": "2025-02-06T18:00:14"
         },
         {
@@ -54772,7 +54772,7 @@
         },
         {
           "userId": "dario",
-          "text": "Release notes: v0.1.20 is up at engineering/release-notes-v0-1-20.md. I've got Claude 3.7, the gen params refactor and the install fix in there, but was there a fourth merged PR I should be covering?",
+          "text": "Release notes: v0.1.20 is up at releases/release-notes-v0-1-20.md. I've got Claude 3.7, the gen params refactor and the install fix in there, but was there a fourth merged PR I should be covering?",
           "ts": "2025-02-28T10:45:25"
         },
         {
@@ -54798,7 +54798,7 @@
         },
         {
           "userId": "dario",
-          "text": "@Emil, can you check that entry in engineering/release-notes-v0-1-20.md and confirm the wording's right?",
+          "text": "@Emil, can you check that entry in releases/release-notes-v0-1-20.md and confirm the wording's right?",
           "ts": "2025-02-28T14:00:04"
         },
         {
@@ -54919,7 +54919,7 @@
         },
         {
           "userId": "dario",
-          "text": "Notes are at engineering/release-notes-v0-1-20.md, four PRs all in there, but the package name in the announcement is still the open thing.",
+          "text": "Notes are at releases/release-notes-v0-1-20.md, four PRs all in there, but the package name in the announcement is still the open thing.",
           "ts": "2025-02-28T18:26:55.102239",
           "replyCount": 1,
           "replyLastTs": "2025-02-28T18:27:21.102239"

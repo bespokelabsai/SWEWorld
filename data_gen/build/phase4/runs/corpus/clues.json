@@ -526,7 +526,7 @@
     ],
     "context": [],
     "artifact": "Postmortem: cache hashing regression revert on Jan 13",
-    "written_as": "onboarding/postmortem-cache-hashing-regression-revert-on-jan-13.md"
+    "written_as": "incidents/postmortem-cache-hashing-regression-revert-on-jan-13.md"
   },
   {
     "clue": "t4.r1.h2",
@@ -1867,7 +1867,7 @@
     "leaked": [],
     "context": [],
     "artifact": "Release notes: v0.1.20",
-    "written_as": "engineering/release-notes-v0-1-20.md"
+    "written_as": "releases/release-notes-v0-1-20.md"
   },
   {
     "clue": "t4.r2.L11",
