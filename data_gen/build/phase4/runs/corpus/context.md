@@ -10,37 +10,37 @@ Worth keeping in mind while reading:
 
 
 ==============================================================================
-# 2025-04-11 — 4 conversation(s), 44 turns budgeted
+# 2025-04-18 — 3 conversation(s), 38 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
-## #releases — 10 turns, 4 people
+## #code-review — 10 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #releases: Two tags shipped same day; post1 is a hotfix that needs explaining
+Channel #code-review: One PR opened today, four sitting past the era's median merge time; two active drivers need to move
 
-    Today is Friday 11 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 18 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Two tags shipped same day; post1 is a hotfix that needs explaining
+    Why it is happening: One PR opened today, four sitting past the era's median merge time; two active drivers need to move
     
     What it should get through:
-      1. 0.1.23 release notes finalized and mailed   [Emil Brandvold must raise this]
-           - Emil walks through what batch cancellation fix and viewer cleanup mean for users
-           - Dermot confirms the three merged PRs are captured
-           - Mail goes out to the team
-      2. 0.1.23.post1 hotfix explained and announced   [Emil Brandvold must raise this]
-           - Dermot explains why post1 was necessary (failed-requests jsonl or conftest issue)
-           - Emil captures it in release notes
-           - Second announcement goes out same day
+      1. Decide whether PR 646 can land or needs revision   [Emil Brandvold must raise this]
+           - Emil describes the Gemini job-state issue and why it needs the refactor
+           - Gideon or another reviewer asks whether this conflicts with other batch fixes landing
+           - Land with approval or mark for revision
+      2. Unblock or defer PR 632 and understand why PR 643, PR 468 are still open   [Gideon Halloway must raise this]
+           - Gideon raises PR 632 (batch update frequency) — what's blocking it?
+           - Emil notes dependencies or conflicts with ongoing batch-mode work
+           - Team agrees on next step: land, revise, or defer until after sweep
     
-    On the agenda: 0.1.23 release notes and announcement; 0.1.23.post1 hotfix rationale and second announcement; changelog accuracy for both tags
+    On the agenda: Triage PR 646 (Gemini job-state check) against other batch-mode fixes; Clear or defer stalled PRs (PR 632, PR 643, PR 468); Flag any blocking release dependencies
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: Both v0.1.23 and v0.1.23.post1 are documented, announced, and the team knows what each fixes. No confusion about which version to use.
+    Wrap when: PR 646 either approved or given concrete revision request; PR 632 has a clear path (land, iterate, or defer). Other stalled PRs understood but may not move today.
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -51,18 +51,16 @@ Channel #releases: Two tags shipped same day; post1 is a hotfix that needs expla
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 323 changes merged to date
+      - 334 changes merged to date
 
     On the table
-      - v0.1.23 Release Notes (Emil Brandvold)
-      - announce-v0-1-23 (Emil Brandvold)
       - WS-055: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - v0.1.23.post1 Release Notes (Emil Brandvold)
-      - announce-v0-1-23-post1 (Emil Brandvold)
-      - release-v0-1-23 (Emil Brandvold)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
-      - PR 626: update metadata schema with cost (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -80,302 +78,52 @@ Channel #releases: Two tags shipped same day; post1 is a hotfix that needs expla
     DOES NOT EXIST YET (3 names)
       - agentic-curation
       - finetuning
-      - — and 363 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. owns release-and-ci; writing release notes for both tags
+    role        Core Platform Engineer, Request Processing. Context on batch-mode bugs and the Gemini job-state fix in PR 646; knowledge of what's blocking release
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. 0.1.23 release notes finalized and mailed   *** MUST RAISE ***
-      2. 0.1.23.post1 hotfix explained and announced   *** MUST RAISE ***
-      3. that the doc "v0.1.23 Release Notes" is done, and where the others can find it   *** MUST RAISE ***
-      4. that "v0.1.23 is out" has gone out, and what you asked in it   *** MUST RAISE ***
-      5. that the doc "v0.1.23.post1 Release Notes" is done, and where the others can find it   *** MUST RAISE ***
-      6. that "v0.1.23.post1 is out" has gone out, and what you asked in it   *** MUST RAISE ***
-      7. what "WS-055: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      8. what "v0.1.23 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        0.1.23 release notes finalized and mailed
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. fixed batch cancellation, removed dead viewer code, knows what went into each tag
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. 0.1.23 release notes finalized and mailed
-      2. 0.1.23.post1 hotfix explained and announced
-    goal        Two tags shipped same day; post1 is a hotfix that needs explaining
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. founder perspective on what gets released
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. 0.1.23 release notes finalized and mailed
-      2. 0.1.23.post1 hotfix explained and announced
-    goal        Two tags shipped same day; post1 is a hotfix that needs explaining
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. knows if any of his changes landed in the release
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. 0.1.23 release notes finalized and mailed
-      2. 0.1.23.post1 hotfix explained and announced
-    goal        Two tags shipped same day; post1 is a hotfix that needs explaining
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Both v0.1.23 and v0.1.23.post1 are documented, announced, and the team knows what each fixes. No confusion about which version to use.
-
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Three open PRs; two are stale and blocking other work
-
-    Today is Friday 11 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three open PRs; two are stale and blocking other work
-    
-    What it should get through:
-      1. PR 626 approved and ready to merge   [Emil Brandvold must raise this]
-           - Emil explains the cost schema change
-           - Dermot or Gideon checks it against the metadata uses
-           - Approval or blockers surface
-      2. PR 468 and PR 583 stale PR blockers identified   [Nikolai Berresford must raise this]
-           - Nikolai raises that PR 468 is stalled and needs a path forward
-           - Emil or Dermot explains what's blocking or if it can land now
-           - Next step is clear (rebase, review cycle, or descope)
-    
-    On the agenda: Status of PR 468 (n-samples, 63 days old); PR 583 metadata db param (35 days old); PR 626 metadata cost schema (new today, needs approval)
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 626 gets approved. The team knows what it takes to unblock PR 468 (n-samples) and PR 583 (metadata db), or those PRs are descoped.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 323 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
-      - PR 626: update metadata schema with cost (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 363 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. two PRs open today: 0.1.23 bump and metadata cost schema update
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. PR 626 approved and ready to merge   *** MUST RAISE ***
-      2. PR 468 and PR 583 stale PR blockers identified
-    goal        PR 626 approved and ready to merge
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. version bump and viewer cleanup PR; knows what the cleanup unblocks
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. PR 626 approved and ready to merge
-      2. PR 468 and PR 583 stale PR blockers identified
-    goal        Three open PRs; two are stale and blocking other work
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. PR 468 waiting 63 days; knows what n-samples feature unblocks
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. PR 626 approved and ready to merge
-      2. PR 468 and PR 583 stale PR blockers identified   *** MUST RAISE ***
-    goal        PR 468 and PR 583 stale PR blockers identified
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. founder review; approved PR 627
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. PR 626 approved and ready to merge
-      2. PR 468 and PR 583 stale PR blockers identified
-    goal        Three open PRs; two are stale and blocking other work
+      1. Decide whether PR 646 can land or needs revision   *** MUST RAISE ***
+      2. Unblock or defer PR 632 and understand why PR 643, PR 468 are still open
+      3. what "WS-055: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Decide whether PR 646 can land or needs revision
     available   around today
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. approved PR 627
+    role        Core Engineer — Dataset Viewer & Run Observability. Batch update frequency fix (PR 632) that's been sitting; can offer perspective on CLI observability concerns
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. PR 626 approved and ready to merge
-      2. PR 468 and PR 583 stale PR blockers identified
-    goal        Three open PRs; two are stale and blocking other work
+      1. Decide whether PR 646 can land or needs revision
+      2. Unblock or defer PR 632 and understand why PR 643, PR 468 are still open   *** MUST RAISE ***
+    goal        Unblock or defer PR 632 and understand why PR 643, PR 468 are still open
     available   around today
 
 ### 4. How it should land
 
     lands as  partial
-    leaving   PR 626 gets approved. The team knows what it takes to unblock PR 468 (n-samples) and PR 583 (metadata db), or those PRs are descoped.
+    leaving   PR 646 either approved or given concrete revision request; PR 632 has a clear path (land, iterate, or defer). Other stalled PRs understood but may not move today.
 
 
 ------------------------------------------------------------------------------
-## #incidents — 8 turns, 5 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #incidents: Hotfix release v0.1.23.post1 shipped same day as 0.1.23; team needs to know the impact
-
-    Today is Friday 11 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Hotfix release v0.1.23.post1 shipped same day as 0.1.23; team needs to know the impact
-    
-    What it should get through:
-      1. Post1 hotfix impact and user guidance clear   [Dermot Callaghan must raise this]
-           - Dermot states what broke in 0.1.23 (flaky litellm cost, conftest, or viewer artifact)
-           - Emil checks if it blocks anyone's workflows
-           - Guidance (mandatory upgrade vs optional) is decided
-    
-    On the agenda: Why post1 was needed; What it fixes in 0.1.23; Whether users should upgrade
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: The team and users understand whether v0.1.23.post1 is a mandatory upgrade or a minor patch, and why it went out the same day.
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 323 changes merged to date
-
-    On the table
-      - v0.1.23.post1 Release Notes (Emil Brandvold)
-      - announce-v0-1-23-post1 (Emil Brandvold)
-      - WS-055: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
-      - PR 626: update metadata schema with cost (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 363 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. knows what the hotfix fixes (failed-requests jsonl, conftest, or viewer code)
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Post1 hotfix impact and user guidance clear   *** MUST RAISE ***
-      2. what "WS-055: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Post1 hotfix impact and user guidance clear
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. release notes context and communication
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Post1 hotfix impact and user guidance clear
-    goal        Hotfix release v0.1.23.post1 shipped same day as 0.1.23; team needs to know the impact
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. observability and run perspective
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Post1 hotfix impact and user guidance clear
-    goal        Hotfix release v0.1.23.post1 shipped same day as 0.1.23; team needs to know the impact
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. platform perspective
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. Post1 hotfix impact and user guidance clear
-    goal        Hotfix release v0.1.23.post1 shipped same day as 0.1.23; team needs to know the impact
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. aware of the release
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Post1 hotfix impact and user guidance clear
-    goal        Hotfix release v0.1.23.post1 shipped same day as 0.1.23; team needs to know the impact
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   The team and users understand whether v0.1.23.post1 is a mandatory upgrade or a minor patch, and why it went out the same day.
-
-
-------------------------------------------------------------------------------
-## #cookbooks — 14 turns, 3 people
+## #engineering — 14 turns, 3 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #cookbooks: the Bespoke-Stratos reproduction script gets edited between runs and Dermot Callaghan wants to know what reattach will do to it
+Channel #engineering: Emil Brandvold asked how he is supposed to force a new submission while debugging without hand-deleting files
 
-    Today is Friday 11 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 18 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: the Bespoke-Stratos reproduction script gets edited between runs and Dermot Callaghan wants to know what reattach will do to it
+    Why it is happening: Emil Brandvold asked how he is supposed to force a new submission while debugging without hand-deleting files
     
     What it should get through:
     
-    On the agenda: Dermot Callaghan on appending 500 new prompts to the input dataset, rerunning, and getting the old shorter batch's results back with the new rows silently missing; Emil Brandvold says the same script is run by two people on the same machine against different slices and he does not want either of them landing in the other's batch; Dario Kestrel asks whether a changed dataset should mean a whole new batch or a top-up batch for the extra rows, and nobody wants to own that answer today
+    On the agenda: Emil Brandvold on deleting batch_objects.jsonl by hand three times yesterday to get a clean submission, and how that is not something users should be told to do; Dario Kestrel notes CURATOR_DISABLE_CACHE already exists for the response cache and gets set in CI, and asks whether reattach should honour it too or need its own switch; Gideon Halloway says whatever it is, a fresh submit should leave the old batch alone rather than cancel it behind his back
     
-    Wrap when: agreed the input rows have to matter somehow; top-up-vs-fresh deferred, Emil Brandvold says he will look at what the resume path does for online mode; it is settled that the team agrees resume state keyed independently of the prompt cache fingerprint goes stale and resumes the wrong job
+    Wrap when: leaning towards reusing the existing env var but not settled; Dario Kestrel will check what CI actually sets before anyone names a new variable; it is settled that the team agrees changing max_tokens currently returns the previous truncated output
     
     Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -386,12 +134,15 @@ Channel #cookbooks: the Bespoke-Stratos reproduction script gets edited between 
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 323 changes merged to date
+      - 334 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
-      - PR 626: update metadata schema with cost (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -409,76 +160,58 @@ Channel #cookbooks: the Bespoke-Stratos reproduction script gets edited between 
     DOES NOT EXIST YET (3 names)
       - agentic-curation
       - finetuning
-      - — and 363 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: max_tokens.
 
 ### 3. What EACH PERSON is told
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. 
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-    goal        the Bespoke-Stratos reproduction script gets edited between runs and Dermot Callaghan wants to know what reattach will do to it
-    available   around today
 
   Emil Brandvold  (emil)
     role        Core Platform Engineer, Request Processing. 
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. When I was poking at this last month I stashed the id in a .curator_batch file in the working directory. Worked right up until I edited the prompt template, reran, and it cheerfully picked the previous job back up and handed me answers for the old prompts. The response cache didn't make that mistake, my file did.   *** MUST SETTLE (clue t3.r1.L2) ***
-    goal        the team agrees resume state keyed independently of the prompt cache fingerprint goes stale and resumes the wrong job
+      1. Same shape of thing with max_tokens for me. Response came back truncated mid sentence, I raised max_tokens, reran, got handed the truncated text again. Deleted the cache directory in the end, which also threw away four thousand rows that were perfectly fine.   *** MUST SETTLE (clue t1.r1.l_params_2) ***
+         must contain literally: max_tokens
+    goal        the team agrees changing max_tokens currently returns the previous truncated output
     available   around today
 
   Dario Kestrel  (dario)
     role        Core Engineer, Request Processing. 
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-    goal        the Bespoke-Stratos reproduction script gets edited between runs and Dermot Callaghan wants to know what reattach will do to it
+    goal        Emil Brandvold asked how he is supposed to force a new submission while debugging without hand-deleting files
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. 
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+    goal        Emil Brandvold asked how he is supposed to force a new submission while debugging without hand-deleting files
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   agreed the input rows have to matter somehow; top-up-vs-fresh deferred, Emil Brandvold says he will look at what the resume path does for online mode; it is settled that the team agrees resume state keyed independently of the prompt cache fingerprint goes stale and resumes the wrong job
+    leaving   leaning towards reusing the existing env var but not settled; Dario Kestrel will check what CI actually sets before anyone names a new variable; it is settled that the team agrees changing max_tokens currently returns the previous truncated output
 
-
-==============================================================================
-# 2025-04-14 — 3 conversation(s), 31 turns budgeted
-==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 12 turns, 5 people
+## #incidents — 14 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: Three PRs opened, two reviewed, stale work in code-review channel
+Channel #incidents: Konrad Feltrin tried to reproduce the pass-rate change from Monday and could not, because the second run finished in nine seconds
 
-    Today is Monday 14 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 18 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Three PRs opened, two reviewed, stale work in code-review channel
+    Why it is happening: Konrad Feltrin tried to reproduce the pass-rate change from Monday and could not, because the second run finished in nine seconds
     
     What it should get through:
-      1. Determine if PR 632 batch frequency fix is ready to merge   [Gideon Halloway must raise this]
-           - Gideon outlines the fix for tqdm update frequency
-           - Dario or Emil raises concern if there are edge cases
-           - Group lands on approval or defers to one more check
-      2. Clarify merge ordering for PR 626 and PR 632 to avoid blockage   [Dario Kestrel must raise this]
-           - Emil flags PR 626 is blocking cost work
-           - Gideon notes PR 632 is independent
-           - Nikolai suggests merge order or confirms both can land in parallel
-      3. Signal to Emil that PR 626 can proceed after PR 632 lands   [Dermot Callaghan must raise this]
-           - Dermot confirms PR 631 merge didn't surface new issues
-           - Emil gets thumbs-up to pursue PR 626 merge in parallel
-           - Nikolai notes any release-window constraints
     
-    On the agenda: Review and merge readiness for PR 632 batch update frequency fix; Status of PR 631 (merged) and remaining work on projected totals; Unblock PR 626 metadata schema cost tracking
+    On the agenda: Konrad Feltrin describes pulling the newer image on purpose, rerunning, and getting byte-identical results back in nine seconds, then losing an afternoon before he worked out nothing had executed; Dario Kestrel says the only lever anyone reaches for here is CURATOR_DISABLE_CACHE and that using it means throwing away every other cached row in the run too; Konrad Feltrin says what he wanted was for that rerun to actually re-execute the code, and asks who owns the key that decides that
     
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    Wrap when: open: Dario Kestrel says the fingerprint code is his but he needs to look at what the code executor puts into it before promising anything; it is settled that Dario Kestrel saw a restarted run resume a job submitted under a different provider
     
-    Wrap when: PR 632 approved or deferred with clear next steps; PR 626 unblocked; merge ordering clarified for the team
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
@@ -487,744 +220,15 @@ Channel #code-review: Three PRs opened, two reviewed, stale work in code-review 
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 327 changes merged to date
+      - 334 changes merged to date
 
     On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
-      - PR 626: update metadata schema with cost (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 634: Feat/openai/deepseek api (Tomas Berczik)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 362 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Two fresh commits on progress tracking UI; owns the projected-total/remaining work
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Determine if PR 632 batch frequency fix is ready to merge   *** MUST RAISE ***
-      2. Clarify merge ordering for PR 626 and PR 632 to avoid blockage
-      3. Signal to Emil that PR 626 can proceed after PR 632 lands
-    goal        Determine if PR 632 batch frequency fix is ready to merge
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Provider integrations context from his commit; approved PR 631
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Determine if PR 632 batch frequency fix is ready to merge
-      2. Clarify merge ordering for PR 626 and PR 632 to avoid blockage   *** MUST RAISE ***
-      3. Signal to Emil that PR 626 can proceed after PR 632 lands
-    goal        Clarify merge ordering for PR 626 and PR 632 to avoid blockage
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Metadata schema cost work; familiarity with online request processing
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Determine if PR 632 batch frequency fix is ready to merge
-      2. Clarify merge ordering for PR 626 and PR 632 to avoid blockage
-      3. Signal to Emil that PR 626 can proceed after PR 632 lands
-    goal        Three PRs opened, two reviewed, stale work in code-review channel
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release stability perspective; approved PR 631 yesterday
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Determine if PR 632 batch frequency fix is ready to merge
-      2. Clarify merge ordering for PR 626 and PR 632 to avoid blockage
-      3. Signal to Emil that PR 626 can proceed after PR 632 lands   *** MUST RAISE ***
-      4. that the doc "Postmortem: v0.1.23.post1 Hotfix" is done, and where the others can find it   *** MUST RAISE ***
-      5. that "Weekly update: week of Apr 7" has gone out, and what you asked in it   *** MUST RAISE ***
-    goal        Signal to Emil that PR 626 can proceed after PR 632 lands
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Release and CI perspective; metadata db disable work pending
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Determine if PR 632 batch frequency fix is ready to merge
-      2. Clarify merge ordering for PR 626 and PR 632 to avoid blockage
-      3. Signal to Emil that PR 626 can proceed after PR 632 lands
-    goal        Three PRs opened, two reviewed, stale work in code-review channel
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 632 approved or deferred with clear next steps; PR 626 unblocked; merge ordering clarified for the team
-
-
-------------------------------------------------------------------------------
-## #pipeline — 10 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Two changes to online-request-processing and one to provider-integrations; progress-and-cli work is landing
-
-    Today is Monday 14 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two changes to online-request-processing and one to provider-integrations; progress-and-cli work is landing
-    
-    What it should get through:
-      1. Validate that projected-total and projected-remaining readout is now trustworthy   [Gideon Halloway must raise this]
-           - Gideon walks through the UI improvements and accuracy fixes
-           - Dario or Dermot raises a remaining edge case or asks about test coverage
-           - Group confirms readout is now ship-ready or flags one more round of work
-      2. Confirm batch statistics account is ready for testing   [Gideon Halloway must raise this]
-           - Gideon outlines what the account tracks and what is still needed
-           - Emil flags any dependency on metadata schema work
-           - Group agrees on testing scope and timeline
-      3. Ensure provider integrations layer is prepared for cost-tracking handoff   [Dario Kestrel must raise this]
-           - Dario notes his provider integration commit context
-           - Emil surfaces PR 626 metadata schema blocker if relevant
-           - Group confirms cost tracking can proceed without additional pipeline changes
-    
-    On the agenda: Gideon's two commits on projected total/remaining readout; Batch statistics account checkpoint and testing plan; Impact on downstream provider integrations and cost tracking
-    
-    No longer here: Nils Brandt, Theo Marchetti — do not expect them back or wait on them
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Gideon's progress-tracking work validated; batch statistics account checkpoint assessed; provider integration path clear for cost work
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 327 changes merged to date
-
-    On the table
-      - Weekly Notes — Week of Apr 7 (Dermot Callaghan)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
-      - PR 626: update metadata schema with cost (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 634: Feat/openai/deepseek api (Tomas Berczik)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 362 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Two commits improving projected total/remaining UI; checkpoint progress on batch statistics account
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Validate that projected-total and projected-remaining readout is now trustworthy   *** MUST RAISE ***
-      2. Confirm batch statistics account is ready for testing   *** MUST RAISE ***
-      3. Ensure provider integrations layer is prepared for cost-tracking handoff
-      4. what "Weekly Notes — Week of Apr 7" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Validate that projected-total and projected-remaining readout is now trustworthy
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Provider integration perspective; one commit to integrations today; approved progress tracking work
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Validate that projected-total and projected-remaining readout is now trustworthy
-      2. Confirm batch statistics account is ready for testing
-      3. Ensure provider integrations layer is prepared for cost-tracking handoff   *** MUST RAISE ***
-    goal        Ensure provider integrations layer is prepared for cost-tracking handoff
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Platform engineering view; metadata schema cost work that feeds into progress tracking
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Validate that projected-total and projected-remaining readout is now trustworthy
-      2. Confirm batch statistics account is ready for testing
-      3. Ensure provider integrations layer is prepared for cost-tracking handoff
-    goal        Two changes to online-request-processing and one to provider-integrations; progress-and-cli work is landing
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Stability and release perspective on progress UI changes
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Validate that projected-total and projected-remaining readout is now trustworthy
-      2. Confirm batch statistics account is ready for testing
-      3. Ensure provider integrations layer is prepared for cost-tracking handoff
-    goal        Two changes to online-request-processing and one to provider-integrations; progress-and-cli work is landing
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Gideon's progress-tracking work validated; batch statistics account checkpoint assessed; provider integration path clear for cost work
-
-
-------------------------------------------------------------------------------
-## #viewer — 9 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #viewer: Two changes to progress-and-cli and Gideon Halloway driving landing work
-
-    Today is Monday 14 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two changes to progress-and-cli and Gideon Halloway driving landing work
-    
-    What it should get through:
-      1. Confirm PR 631 improvements to projected total/remaining are correct and ship-ready   [Gideon Halloway must raise this]
-           - Gideon walks through what changed and why it's more accurate
-           - Dario or Dermot spot-checks the logic or raises edge case
-           - Group agrees it's ready or flags a follow-up
-      2. Validate batch update frequency fix doesn't harm UI responsiveness   [Gideon Halloway must raise this]
-           - Gideon outlines the frequency change rationale
-           - Emil flags any impact on progress bar refresh or cost counter
-           - Group confirms the tradeoff is acceptable
-      3. Assess whether cost and time projections are now user-facing   [Emil Brandvold must raise this]
-           - Emil asks if projections are accurate enough to show
-           - Dario notes PR 626 metadata schema cost work is still pending
-           - Group acknowledges readout is ready but full cost tracking waits on schema
-    
-    On the agenda: Review of PR 631 merged progress-tracking improvements; Batch update frequency fix (PR 632) and UI responsiveness; Readiness of cost and time projections for users
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: PR 631 validated as correct; PR 632 assessed for impact; group clear on next phase (likely PR 626 cost schema work); it is settled that Gideon Halloway saw a resumed job whose provider disagreed with the configured one, breaking the cost table
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 327 changes merged to date
-
-    On the table
-      - v0.1.23 Release Notes (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 583: feat: add param to disable metadata db (Nikolai Berresford)
-      - PR 626: update metadata schema with cost (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 634: Feat/openai/deepseek api (Tomas Berczik)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 362 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Two commits to progress UI and batch frequency; owns the readout work
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm PR 631 improvements to projected total/remaining are correct and ship-ready   *** MUST RAISE ***
-      2. Validate batch update frequency fix doesn't harm UI responsiveness   *** MUST RAISE ***
-      3. Assess whether cost and time projections are now user-facing
-      4. got a weird one in the summary table after a restart: header said the run was on gemini, the batch object we were tracking was clearly a mistral one, and the cost column came out as gibberish because the token fields didn't line up. I can make the table defensive but the thing feeding it is wrong.   *** MUST SETTLE (clue t3.r2.l_prov_gideon) ***
-    goal        Confirm PR 631 improvements to projected total/remaining are correct and ship-ready
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Bulk-inference and request-processing context; approved progress work
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm PR 631 improvements to projected total/remaining are correct and ship-ready
-      2. Validate batch update frequency fix doesn't harm UI responsiveness
-      3. Assess whether cost and time projections are now user-facing
-    goal        Two changes to progress-and-cli and Gideon Halloway driving landing work
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release and stability perspective; foundational cookbook and inference owner
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Confirm PR 631 improvements to projected total/remaining are correct and ship-ready
-      2. Validate batch update frequency fix doesn't harm UI responsiveness
-      3. Assess whether cost and time projections are now user-facing
-    goal        Two changes to progress-and-cli and Gideon Halloway driving landing work
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Platform engineering view on progress tracking; owns the service
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm PR 631 improvements to projected total/remaining are correct and ship-ready
-      2. Validate batch update frequency fix doesn't harm UI responsiveness
-      3. Assess whether cost and time projections are now user-facing   *** MUST RAISE ***
-      4. what "v0.1.23 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Assess whether cost and time projections are now user-facing
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   PR 631 validated as correct; PR 632 assessed for impact; group clear on next phase (likely PR 626 cost schema work); it is settled that Gideon Halloway saw a resumed job whose provider disagreed with the configured one, breaking the cost table; Gideon Halloway saw a resumed job whose provider disagreed with the configured one, breaking the cost table
-
-
-==============================================================================
-# 2025-04-15 — 3 conversation(s), 32 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 10 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Four PRs merged today touching request processing, batch mode, and structured outputs; three active workstreams need validation
-
-    Today is Tuesday 15 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Four PRs merged today touching request processing, batch mode, and structured outputs; three active workstreams need validation
-    
-    What it should get through:
-      1. Confirm PR 639 (batch mode structure outputs) is merged and blocks nothing downstream   [Emil Brandvold must raise this]
-           - Emil outlines the structure output bug and the fix
-           - Dario checks impact on online request processing
-           - Emil confirms it unblocks cost accounting work
-      2. Validate PR 638 (cost streaming) is ready to land or needs refinement   [Emil Brandvold must raise this]
-           - Emil presents the cost streaming approach
-           - Gideon flags any observability or telemetry concerns
-           - Dario approves path forward
-      3. Verify PR 637 (GPT-4.1 structured output) does not conflict with existing provider mappings   [Gideon Halloway must raise this]
-           - Gideon walks through the structured output mapping
-           - Emil checks for Gemini/Anthropic interaction
-           - Validation that it lands cleanly
-    
-    On the agenda: PR 639 batch mode structure outputs — is this the root cause or a symptom?; PR 638 cost streaming and delayed streaming — does this unblock the cost accounting work?; PR 637 GPT-4.1 structured output — any conflicts with existing mappings?
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: Three PRs validated as safe to leave open or merged; cost streaming path forward confirmed; no blocking concerns on GPT-4.1 integration
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 331 changes merged to date
-
-    On the table
-      - WS-050: Batch Mode (50%-Cost Async Batch APIs) (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 638: cost streaming in batch mode and delayed streaming support (Emil Brandvold)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 359 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Deep understanding of batch mode structure output bugs and cost streaming; owns the two active workstreams touching this code
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm PR 639 (batch mode structure outputs) is merged and blocks nothing downstream   *** MUST RAISE ***
-      2. Validate PR 638 (cost streaming) is ready to land or needs refinement   *** MUST RAISE ***
-      3. Verify PR 637 (GPT-4.1 structured output) does not conflict with existing provider mappings
-      4. what "WS-050: Batch Mode (50%-Cost Async Batch APIs)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm PR 639 (batch mode structure outputs) is merged and blocks nothing downstream
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. GPT-4.1 structured output context; observability perspective on request handling
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm PR 639 (batch mode structure outputs) is merged and blocks nothing downstream
-      2. Validate PR 638 (cost streaming) is ready to land or needs refinement
-      3. Verify PR 637 (GPT-4.1 structured output) does not conflict with existing provider mappings   *** MUST RAISE ***
-    goal        Verify PR 637 (GPT-4.1 structured output) does not conflict with existing provider mappings
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Request processing owner perspective; has already approved PR 639
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm PR 639 (batch mode structure outputs) is merged and blocks nothing downstream
-      2. Validate PR 638 (cost streaming) is ready to land or needs refinement
-      3. Verify PR 637 (GPT-4.1 structured output) does not conflict with existing provider mappings
-    goal        Four PRs merged today touching request processing, batch mode, and structured outputs; three active workstreams need validation
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Just landed metadata schema changes; understands downstream impact
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Confirm PR 639 (batch mode structure outputs) is merged and blocks nothing downstream
-      2. Validate PR 638 (cost streaming) is ready to land or needs refinement
-      3. Verify PR 637 (GPT-4.1 structured output) does not conflict with existing provider mappings
-    goal        Four PRs merged today touching request processing, batch mode, and structured outputs; three active workstreams need validation
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Three PRs validated as safe to leave open or merged; cost streaming path forward confirmed; no blocking concerns on GPT-4.1 integration
-
-
-------------------------------------------------------------------------------
-## #engineering — 12 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Three commits landed, four PRs merged; two active workstreams need team awareness; new feature flags and schema changes need communication
-
-    Today is Tuesday 15 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Three commits landed, four PRs merged; two active workstreams need team awareness; new feature flags and schema changes need communication
-    
-    What it should get through:
-      1. Team understands batch mode structure output bugs are being resolved incrementally   [Emil Brandvold must raise this]
-           - Emil: batch mode bugs (Gemini parts, finish reason) are two symptoms, not root cause
-           - Gideon: notes any impact on CLI observability
-           - Dario: confirms online request path is stable
-      2. Cost accounting work is now unblocked by schema and streaming updates   [Emil Brandvold must raise this]
-           - Emil: cost metadata schema landed, cost streaming PR open
-           - Dario: confirms request processing side is ready
-           - Gideon: flags any display concerns
-      3. Metadata db opt-out flag is live and changes verifier behavior   [Nikolai Berresford must raise this]
-           - Nikolai: flag is now available, verifier runs skip db on demand
-           - Dario: understands impact on code-execution service
-           - Dermot: notes any downstream effects
-    
-    On the agenda: What landed today: batch mode, cost schema, GPT-4.1, metadata db flag; What's in flight: cost streaming, rate limit detection, provider response shapes; Blockers and next steps
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Team is aligned on what landed and what's still in flight; cost accounting work is unblocked; no surprises on metadata db opt-out behavior
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 331 changes merged to date
-
-    On the table
-      - WS-050: Batch Mode (50%-Cost Async Batch APIs) (Emil Brandvold)
-      - WS-050: Batch Mode (50%-Cost Async Batch APIs) (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 638: cost streaming in batch mode and delayed streaming support (Emil Brandvold)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 359 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Two workstreams in mid-flight; batch mode bugs landing in quick succession; cost accounting coming into focus
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Team understands batch mode structure output bugs are being resolved incrementally   *** MUST RAISE ***
-      2. Cost accounting work is now unblocked by schema and streaming updates   *** MUST RAISE ***
-      3. Metadata db opt-out flag is live and changes verifier behavior
-      4. what "WS-050: Batch Mode (50%-Cost Async Batch APIs)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-      5. what "WS-050: Batch Mode (50%-Cost Async Batch APIs)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Team understands batch mode structure output bugs are being resolved incrementally
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. GPT-4.1 structured output work; observability on request handling; recent CLI readout fixes
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Team understands batch mode structure output bugs are being resolved incrementally
-      2. Cost accounting work is now unblocked by schema and streaming updates
-      3. Metadata db opt-out flag is live and changes verifier behavior
-    goal        Three commits landed, four PRs merged; two active workstreams need team awareness; new feature flags and schema changes need communication
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Just kicked off code-execution metadata db opt-out; understands verifier impact
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Team understands batch mode structure output bugs are being resolved incrementally
-      2. Cost accounting work is now unblocked by schema and streaming updates
-      3. Metadata db opt-out flag is live and changes verifier behavior   *** MUST RAISE ***
-    goal        Metadata db opt-out flag is live and changes verifier behavior
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Request processing owner; already deep in cost accounting conversation
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Team understands batch mode structure output bugs are being resolved incrementally
-      2. Cost accounting work is now unblocked by schema and streaming updates
-      3. Metadata db opt-out flag is live and changes verifier behavior
-    goal        Three commits landed, four PRs merged; two active workstreams need team awareness; new feature flags and schema changes need communication
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Team is aligned on what landed and what's still in flight; cost accounting work is unblocked; no surprises on metadata db opt-out behavior
-
-
-------------------------------------------------------------------------------
-## #pipeline — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Batch mode, cost streaming, and GPT-4.1 work all landed or are in-flight; request processing architecture needs to accommodate all three without conflicts
-
-    Today is Tuesday 15 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Batch mode, cost streaming, and GPT-4.1 work all landed or are in-flight; request processing architecture needs to accommodate all three without conflicts
-    
-    What it should get through:
-      1. Determine if batch mode response-shape bugs are root-cause or symptom of underlying Gemini integration issue   [Emil Brandvold must raise this]
-           - Emil: outlines Gemini missing parts and finish reason issues
-           - Dario: asks whether this is Gemini-specific or affects other batch backends
-           - Gideon: suggests unified response-shape test harness
-      2. Cost streaming architecture integrates cleanly with rate limiting and buffering without deadlock or latency issues   [Emil Brandvold must raise this]
-           - Emil: presents cost streaming approach and buffer interaction
-           - Gideon: raises observability and display concerns
-           - Dario: validates no conflict with retry or resume logic
-      3. GPT-4.1 structured output mapping does not conflict with Gemini or Anthropic paths and integrates into cost accounting   [Gideon Halloway must raise this]
-           - Gideon: walks through GPT-4.1 mapping
-           - Emil: checks interaction with cost streaming
-           - Dario: confirms no duplication with existing structured output paths
-    
-    On the agenda: Batch mode response-shape bugs: Gemini parts, finish reason — one bug or two?; Cost streaming integration with existing buffering and rate limiting; GPT-4.1 structured output mapping — any provider interaction concerns?
-    
-    No longer here: Nils Brandt, Theo Marchetti — do not expect them back or wait on them
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Batch mode bugs are diagnosed as Gemini-specific; cost streaming path is validated; GPT-4.1 integrates without conflict; it is settled that the team agrees a run whose image needed root completed with no indication anything was different
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 331 changes merged to date
-
-    On the table
-      - WS-050: Batch Mode (50%-Cost Async Batch APIs) (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 638: cost streaming in batch mode and delayed streaming support (Emil Brandvold)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 359 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Batch mode bugs across Gemini and other providers; cost streaming implementation; GPT-4.1 structured output
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Determine if batch mode response-shape bugs are root-cause or symptom of underlying Gemini integration issue   *** MUST RAISE ***
-      2. Cost streaming architecture integrates cleanly with rate limiting and buffering without deadlock or latency issues   *** MUST RAISE ***
-      3. GPT-4.1 structured output mapping does not conflict with Gemini or Anthropic paths and integrates into cost accounting
-      4. what "WS-050: Batch Mode (50%-Cost Async Batch APIs)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Determine if batch mode response-shape bugs are root-cause or symptom of underlying Gemini integration issue
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. GPT-4.1 structured output integration; observability on request throughput and cost; CLI display logic
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Determine if batch mode response-shape bugs are root-cause or symptom of underlying Gemini integration issue
-      2. Cost streaming architecture integrates cleanly with rate limiting and buffering without deadlock or latency issues
-      3. GPT-4.1 structured output mapping does not conflict with Gemini or Anthropic paths and integrates into cost accounting   *** MUST RAISE ***
-    goal        GPT-4.1 structured output mapping does not conflict with Gemini or Anthropic paths and integrates into cost accounting
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Cost accounting architecture; request processing internals; recent PR 639 review
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Determine if batch mode response-shape bugs are root-cause or symptom of underlying Gemini integration issue
-      2. Cost streaming architecture integrates cleanly with rate limiting and buffering without deadlock or latency issues
-      3. GPT-4.1 structured output mapping does not conflict with Gemini or Anthropic paths and integrates into cost accounting
-      4. Follow-up on my image mess: the entrypoint does an apt-get at container start, which is why it wanted to be root. The batch ran to completion, the numbers looked normal, and I only found out days later because I opened the Dockerfile for an unrelated reason. Nothing anywhere told me the run had been different from every other run.   *** MUST SETTLE (clue t4.r2.L10) ***
-    goal        the team agrees a run whose image needed root completed with no indication anything was different
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Batch mode bugs are diagnosed as Gemini-specific; cost streaming path is validated; GPT-4.1 integrates without conflict; it is settled that the team agrees a run whose image needed root completed with no indication anything was different
-
-
-==============================================================================
-# 2025-04-16 — 4 conversation(s), 44 turns budgeted
-==============================================================================
-
-------------------------------------------------------------------------------
-## #code-review — 12 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #code-review: Two new PRs opened today plus a stale one waiting; cost streaming landed and response object variant needs review before Gideon Halloway can move forward
-
-    Today is Wednesday 16 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two new PRs opened today plus a stale one waiting; cost streaming landed and response object variant needs review before Gideon Halloway can move forward
-    
-    What it should get through:
-      1. Confirm PR 643 response object approach does not conflict with PR 642 structured output mapping   [Emil Brandvold must raise this]
-           - Emil explains the response object pattern to Dario Kestrel
-           - Dario flags the Devraj Kulaskar overlap
-           - Gideon clarifies where his batch work intersects
-      2. Get PR 632 batch update frequency unblocked so Gideon Halloway can finalize CLI observability   [Gideon Halloway must raise this]
-           - Gideon raises the blocker
-           - Emil or Dario Kestrel reviews the threshold logic
-           - Signoff deferred to async or quick iteration
-      3. Document the cost-streaming pattern for future provider integrations   [Emil Brandvold must raise this]
-           - Emil walks through what PR 638 changed
-           - Dario asks about edge cases with batch API latency
-           - Agreement on pattern or deferral to WS-054 notes
-    
-    On the agenda: Cost streaming in batch mode (PR 638 merged, PR 643 follow-up); Structured output support coordination (Devraj Kulaskar's PR 642, Gideon Halloway's concern); CLI batch update frequency review (PR 632)
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: PR 643 signoff or light iteration; PR 632 move forward; clarity on whether Devraj Kulaskar's PR 642 and Gideon Halloway's batch work diverge or converge
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 332 changes merged to date
-
-    On the table
-      - WS-050: Batch Mode (50%-Cost Async Batch APIs) (Emil Brandvold)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 642: Add gpt-4.1 structured output support (Devraj Kulaskar)
       - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1246,189 +250,58 @@ Channel #code-review: Two new PRs opened today plus a stale one waiting; cost st
 
 ### 3. What EACH PERSON is told
 
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. cost streaming implementation in batch mode; response object refactoring
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm PR 643 response object approach does not conflict with PR 642 structured output mapping   *** MUST RAISE ***
-      2. Get PR 632 batch update frequency unblocked so Gideon Halloway can finalize CLI observability
-      3. Document the cost-streaming pattern for future provider integrations   *** MUST RAISE ***
-      4. what "WS-050: Batch Mode (50%-Cost Async Batch APIs)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm PR 643 response object approach does not conflict with PR 642 structured output mapping
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. context on batch update frequency and CLI observability
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm PR 643 response object approach does not conflict with PR 642 structured output mapping
-      2. Get PR 632 batch update frequency unblocked so Gideon Halloway can finalize CLI observability   *** MUST RAISE ***
-      3. Document the cost-streaming pattern for future provider integrations
-      4. that the doc "Weekly Notes — Week of Apr 14" is done, and where the others can find it   *** MUST RAISE ***
-    goal        Get PR 632 batch update frequency unblocked so Gideon Halloway can finalize CLI observability
-    available   around today
-
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. senior review on request processing changes; knowledge of API incompatibilities emerging
+    role        Core Engineer, Request Processing. 
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Confirm PR 643 response object approach does not conflict with PR 642 structured output mapping
-      2. Get PR 632 batch update frequency unblocked so Gideon Halloway can finalize CLI observability
-      3. Document the cost-streaming pattern for future provider integrations
-    goal        Two new PRs opened today plus a stale one waiting; cost streaming landed and response object variant needs review before Gideon Halloway can move forward
+      1. heads up, I killed a run mid-batch, flipped the backend from openai to anthropic in the same script and reran, and it went straight back to polling the openai batch id from the first attempt. only spotted it because the id in the log still had the openai shape on it.   *** MUST SETTLE (clue t3.r2.l_prov_dario) ***
+    goal        Dario Kestrel saw a restarted run resume a job submitted under a different provider
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. 
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+    goal        Konrad Feltrin tried to reproduce the pass-rate change from Monday and could not, because the second run finished in nine seconds
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   PR 643 signoff or light iteration; PR 632 move forward; clarity on whether Devraj Kulaskar's PR 642 and Gideon Halloway's batch work diverge or converge
+    leaving   open: Dario Kestrel says the fingerprint code is his but he needs to look at what the code executor puts into it before promising anything; it is settled that Dario Kestrel saw a restarted run resume a job submitted under a different provider; Dario Kestrel saw a restarted run resume a job submitted under a different provider
 
 
-------------------------------------------------------------------------------
-## #engineering — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: One merged PR, two new ones opened, and a new issue raised; mid-flight workstream needs status alignment
-
-    Today is Wednesday 16 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: One merged PR, two new ones opened, and a new issue raised; mid-flight workstream needs status alignment
-    
-    What it should get through:
-      1. Clarify whether GPT-4.1 structured output mapping merges from Devraj Kulaskar (direct) or Gideon Halloway (via batch work)   [Emil Brandvold must raise this]
-           - Emil notes both PR 642 (Devraj Kulaskar) and Gideon Halloway's batch work touch this
-           - Dario or Gideon Halloway says which is primary
-           - Decision or deferral to code-review channel
-      2. Triage Gemini 2.0/2.5 API incompatibility: blocker or known backlog   [Dario Kestrel must raise this]
-           - Dario opens issue PR 641
-           - Gideon or Emil Brandvold says if it affects live runs
-           - Decision to hotfix or defer
-      3. Confirm cost streaming pattern ready for next week's provider work   [Emil Brandvold must raise this]
-           - Emil says PR 638 merged, PR 643 follows
-           - Dario confirms no blocking concerns
-           - Gideon notes CLI impact minimal
-    
-    On the agenda: Cost streaming landed; response object variant; GPT-4.1 structured output path (two directions?); Gemini 2.0/2.5 incompatibility triage
-    
-    Meeting today: Weekly sync
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Direction clear on GPT-4.1 path; Gemini issue triaged; cost streaming readiness confirmed for next sprint
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 332 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 642: Add gpt-4.1 structured output support (Devraj Kulaskar)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. cost streaming landed; response object variant ready; April Grind status
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Clarify whether GPT-4.1 structured output mapping merges from Devraj Kulaskar (direct) or Gideon Halloway (via batch work)   *** MUST RAISE ***
-      2. Triage Gemini 2.0/2.5 API incompatibility: blocker or known backlog
-      3. Confirm cost streaming pattern ready for next week's provider work   *** MUST RAISE ***
-    goal        Clarify whether GPT-4.1 structured output mapping merges from Devraj Kulaskar (direct) or Gideon Halloway (via batch work)
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. CLI observability fixes; projected-total/remaining readout corrections
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Clarify whether GPT-4.1 structured output mapping merges from Devraj Kulaskar (direct) or Gideon Halloway (via batch work)
-      2. Triage Gemini 2.0/2.5 API incompatibility: blocker or known backlog
-      3. Confirm cost streaming pattern ready for next week's provider work
-    goal        One merged PR, two new ones opened, and a new issue raised; mid-flight workstream needs status alignment
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. API incompatibility issue opened (Gemini 2.0 vs 2.5)
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Clarify whether GPT-4.1 structured output mapping merges from Devraj Kulaskar (direct) or Gideon Halloway (via batch work)
-      2. Triage Gemini 2.0/2.5 API incompatibility: blocker or known backlog   *** MUST RAISE ***
-      3. Confirm cost streaming pattern ready for next week's provider work
-    goal        Triage Gemini 2.0/2.5 API incompatibility: blocker or known backlog
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Direction clear on GPT-4.1 path; Gemini issue triaged; cost streaming readiness confirmed for next sprint
-
+==============================================================================
+# 2025-04-21 — 5 conversation(s), 60 turns budgeted
+==============================================================================
 
 ------------------------------------------------------------------------------
-## #pipeline — 8 turns, 3 people
+## #code-review — 8 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #pipeline: Cost streaming landed in batch mode and response object variant opens; core request-layer services touch all three commit/PR areas
+Channel #code-review: One new PR opened; six others stale beyond median merge time; two drivers have PRs waiting
 
-    Today is Wednesday 16 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Monday 21 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Cost streaming landed in batch mode and response object variant opens; core request-layer services touch all three commit/PR areas
+    Why it is happening: One new PR opened; six others stale beyond median merge time; two drivers have PRs waiting
     
     What it should get through:
-      1. Confirm cost streaming does not break rate-limit calculation or capacity checks   [Emil Brandvold must raise this]
-           - Emil explains delayed streaming model
-           - Dario asks if rate-limit accounting sees partial costs
-           - Gideon notes whether has_capacity logic needs update
-      2. Ensure projected-remaining readout survives cost streaming delays   [Gideon Halloway must raise this]
-           - Gideon raises concern or confirms it works
-           - Emil says if PR 643 handles it or deferred
-           - Dario notes if bulk inference is affected
-      3. Align batch and online cost representation so they stay consistent   [Emil Brandvold must raise this]
-           - Emil walks through cost model across both paths
-           - Dario flags any divergence in how costs accrue
-           - Agreement or note for next sprint
+      1. Unblock PR 468, PR 643, PR 646 from review queue   [Emil Brandvold must raise this]
+           - Emil explains why PR 468 (n samples) is still open after 73 days
+           - Gideon notes PR 632 (batch frequency) is ready to land and not a blocker
+           - Emil proposes rebasing PR 643 and PR 646 if they conflict with incoming work
+      2. Route PR 650 (DeepSeek json_schema) to code review   [Emil Brandvold must raise this]
+           - New PR PR 650 from Tomas Berczik flagged as blocking WS-054 work
+           - Emil claims review and notes DeepSeek API integration (PR 640) also waiting
     
-    On the agenda: Cost streaming in batch mode and delayed support (PR 638, PR 643); Rate limit accounting with streaming costs; Progress bar and projected-remaining accuracy with cost delays
+    On the agenda: Review status of 7 open PRs, focus on age and blockers; Decide which need rebase vs split vs land-as-is; Route PR 650 (DeepSeek json_schema fix) to owner
     
-    Meeting today: Weekly sync
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    No longer here: Nils Brandt, Theo Marchetti — do not expect them back or wait on them
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Cost streaming safety confirmed or edge cases noted for code review; progress bar impact clear; batch/online cost consistency aligned
+    Wrap when: PR 632 marked ready to land; PR 650 routed to Emil Brandvold; plan made for unblocking PR 468, PR 643, PR 646 by rebase or close
     
     Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1439,15 +312,15 @@ Channel #pipeline: Cost streaming landed in batch mode and response object varia
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 332 changes merged to date
+      - 334 changes merged to date
 
     On the table
-      - WS-050: Batch Mode (50%-Cost Async Batch APIs) (Emil Brandvold)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 642: Add gpt-4.1 structured output support (Devraj Kulaskar)
       - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1470,61 +343,59 @@ Channel #pipeline: Cost streaming landed in batch mode and response object varia
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. cost streaming implementation; batch mode response object refactor; April Grind progress
+    role        Core Platform Engineer, Request Processing. ownership of release-and-ci and provider-integrations; context on what's blocking in WS-050 and WS-054
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Confirm cost streaming does not break rate-limit calculation or capacity checks   *** MUST RAISE ***
-      2. Ensure projected-remaining readout survives cost streaming delays
-      3. Align batch and online cost representation so they stay consistent   *** MUST RAISE ***
-      4. what "WS-050: Batch Mode (50%-Cost Async Batch APIs)" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm cost streaming does not break rate-limit calculation or capacity checks
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Gemini incompatibility report; bulk inference perspective
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm cost streaming does not break rate-limit calculation or capacity checks
-      2. Ensure projected-remaining readout survives cost streaming delays
-      3. Align batch and online cost representation so they stay consistent
-    goal        Cost streaming landed in batch mode and response object variant opens; core request-layer services touch all three commit/PR areas
+      1. Unblock PR 468, PR 643, PR 646 from review queue   *** MUST RAISE ***
+      2. Route PR 650 (DeepSeek json_schema) to code review   *** MUST RAISE ***
+    goal        Unblock PR 468, PR 643, PR 646 from review queue
     available   around today
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. CLI observability context; progress bar impact of cost streaming
+    role        Core Engineer — Dataset Viewer & Run Observability. context on progress tracking and CLI batch-update frequency; understanding of what's needed for observability
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Confirm cost streaming does not break rate-limit calculation or capacity checks
-      2. Ensure projected-remaining readout survives cost streaming delays   *** MUST RAISE ***
-      3. Align batch and online cost representation so they stay consistent
-    goal        Ensure projected-remaining readout survives cost streaming delays
+      1. Unblock PR 468, PR 643, PR 646 from review queue
+      2. Route PR 650 (DeepSeek json_schema) to code review
+    goal        One new PR opened; six others stale beyond median merge time; two drivers have PRs waiting
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Cost streaming safety confirmed or edge cases noted for code review; progress bar impact clear; batch/online cost consistency aligned
+    leaving   PR 632 marked ready to land; PR 650 routed to Emil Brandvold; plan made for unblocking PR 468, PR 643, PR 646 by rebase or close
 
 
 ------------------------------------------------------------------------------
-## #cookbooks — 14 turns, 2 people
+## #general — 10 turns, 5 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #cookbooks: Konrad Feltrin reran the code-verification step of a published reasoning-dataset script on Monday and got a different pass rate than the number in the README, with no commit in between
+Channel #general: Weekly update due; two mid-flight workstreams need team visibility; 6 stale PRs need prioritization
 
-    Today is Wednesday 16 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Monday 21 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Konrad Feltrin reran the code-verification step of a published reasoning-dataset script on Monday and got a different pass rate than the number in the README, with no commit in between
+    Why it is happening: Weekly update due; two mid-flight workstreams need team visibility; 6 stale PRs need prioritization
     
     What it should get through:
+      1. Update team on Batch Mode bug sweep (WS-050) and cost-accounting work (WS-054)   [Emil Brandvold must raise this]
+           - Emil reports on gemini batch bugs and whether they are two issues or one response-shape problem
+           - Dario notes PR 649 (anthropic token accounting) landed Friday and unblocks cost work
+           - Gideon adds that observability fix is in, removing noise from logs
+      2. Surface PR review backlog and blockers   [Dario Kestrel must raise this]
+           - Dario flags PR 468 (n samples) at 73 days and asks if it should be closed or rebased
+           - Emil notes PR 643, PR 646, PR 632 are close to ready; PR 650 came in over the weekend
+           - Gideon confirms PR 632 is unrelated to the workstreams and can land independently
     
-    On the agenda: Konrad Feltrin walks through the diff in pass rate and the fact that the only thing that moved was what docker pulled; Nikolai Berresford says the Docker backend of CodeExecutor asks for the sandbox image by name with no tag, so whatever is newest wins, and states the shape of the feature: a pinned tag plus a way for callers to override it through backend_params; open question nobody answers: which tag to pin to, and whether the pinned value lives in code or somewhere a user can set without editing curator
+    On the agenda: Week ahead priorities and WS-050/WS-054 status; Open PR blockers and what needs review; Any incidents or blockers from the weekend
     
-    Wrap when: agreement that the image has to stop floating and that callers need an override, with the tag value, the override key name and where the default lives all still undecided; Nikolai Berresford says he will look at what the sandbox repo actually publishes; it is settled that Dermot Callaghan got outputs from the old model after editing the model name and restarting
+    Belongs in this channel: news the whole company needs: releases that matter to everyone, scheduling, people joining or moving on, and decisions that cross every team.
+    Does NOT belong here: work on any individual service, and anything only one team cares about.
     
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+    Wrap when: Team aligned on priorities; WS-050 and WS-054 status clear; plan made to unblock stale PRs this week
+    
+    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
@@ -1533,14 +404,17 @@ Channel #cookbooks: Konrad Feltrin reran the code-verification step of a publish
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 332 changes merged to date
+      - 334 changes merged to date
 
     On the table
+      - weekly-2025-04-14 (Emil Brandvold)
+      - weekly-2025-04-14 (Emil Brandvold)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 642: Add gpt-4.1 structured output support (Devraj Kulaskar)
       - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1558,7 +432,208 @@ Channel #cookbooks: Konrad Feltrin reran the code-verification step of a publish
     DOES NOT EXIST YET (3 names)
       - agentic-curation
       - finetuning
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: gpt-4o, gpt-4o-mini.
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. ownership of request processing and caching; visibility into PR blockers and what's stalled
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Update team on Batch Mode bug sweep (WS-050) and cost-accounting work (WS-054)
+      2. Surface PR review backlog and blockers   *** MUST RAISE ***
+    goal        Surface PR review backlog and blockers
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. recent work on April Stabilization; context on cookbooks and bulk inference
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Update team on Batch Mode bug sweep (WS-050) and cost-accounting work (WS-054)
+      2. Surface PR review backlog and blockers
+    goal        Weekly update due; two mid-flight workstreams need team visibility; 6 stale PRs need prioritization
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. leadership of WS-050 and WS-054; context on batch mode bugs and provider integration work
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Update team on Batch Mode bug sweep (WS-050) and cost-accounting work (WS-054)   *** MUST RAISE ***
+      2. Surface PR review backlog and blockers
+      3. that "Weekly update: week of Apr 14" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        Update team on Batch Mode bug sweep (WS-050) and cost-accounting work (WS-054)
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. recent progress on observability and projected-total readout; context on CLI batch updates
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Update team on Batch Mode bug sweep (WS-050) and cost-accounting work (WS-054)
+      2. Surface PR review backlog and blockers
+    goal        Weekly update due; two mid-flight workstreams need team visibility; 6 stale PRs need prioritization
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. recent code-execution and telemetry work; understanding of release-and-ci ownership
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. Update team on Batch Mode bug sweep (WS-050) and cost-accounting work (WS-054)
+      2. Surface PR review backlog and blockers
+    goal        Weekly update due; two mid-flight workstreams need team visibility; 6 stale PRs need prioritization
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Team aligned on priorities; WS-050 and WS-054 status clear; plan made to unblock stale PRs this week
+
+
+------------------------------------------------------------------------------
+## #pipeline — 14 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Dario Kestrel rewrote the reattach path after the review and wants sign-off on the parts people already argued about
+
+    Today is Monday 21 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Dario Kestrel rewrote the reattach path after the review and wants sign-off on the parts people already argued about
+    
+    What it should get through:
+    
+    On the agenda: Dario Kestrel walks through startup reading the tracker, matching, and only then deciding to submit, and says if anything about the call has moved since last time it should just submit a fresh batch and not touch the old one; Gideon Halloway says a finished batch that was never downloaded should get its results pulled on the next run instead of being fired off again, since it is already paid for; Dermot Callaghan and Emil Brandvold both still want the 404 case nailed down and Dermot Callaghan says he will test what OpenAI, Anthropic, Gemini and Mistral each return for an id that never existed
+    
+    Wrap when: key-mismatch behaviour and completed-batch download agreed in the thread; missing-id behaviour and the env var name still open, release cut mentioned but not promised; it is settled that Dermot Callaghan wants a fresh submission rather than reuse when the stored job does not match the current run
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 334 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        Dario Kestrel rewrote the reattach path after the review and wants sign-off on the parts people already argued about
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. my take after this week: if the job sitting on the provider isn't the job we would send today, just send a new one and eat the 24h and the money. a duplicate batch costs us a few dollars, handing someone a dataset that quietly blends two configs costs us their trust.   *** MUST SETTLE (clue t3.r2.l_beh_dermot) ***
+    goal        Dermot Callaghan wants a fresh submission rather than reuse when the stored job does not match the current run
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+    goal        Dario Kestrel rewrote the reattach path after the review and wants sign-off on the parts people already argued about
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. 
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+    goal        Dario Kestrel rewrote the reattach path after the review and wants sign-off on the parts people already argued about
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   key-mismatch behaviour and completed-batch download agreed in the thread; missing-id behaviour and the env var name still open, release cut mentioned but not promised; it is settled that Dermot Callaghan wants a fresh submission rather than reuse when the stored job does not match the current run; Dermot Callaghan wants a fresh submission rather than reuse when the stored job does not match the current run
+
+
+------------------------------------------------------------------------------
+## #engineering — 14 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Nikolai Berresford posted a one-line change and Dermot Callaghan pushed back on where the default should live
+
+    Today is Monday 21 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Nikolai Berresford posted a one-line change and Dermot Callaghan pushed back on where the default should live
+    
+    What it should get through:
+    
+    On the agenda: Nikolai Berresford wants an env var because that is what he can set on the CI runner without a release; Dermot Callaghan points out he grepped and found the image string written out in three places, the backend, a test fixture and a docs snippet, so his last attempt to move it only moved one of them, and says he wants one place that a release PR touches together with its changelog line; Emil Brandvold asks what happens to somebody who is already passing something into backend_params today and gets told nobody knows
+    
+    Wrap when: no decision; Dermot Callaghan's single-place preference is the loudest but Nikolai Berresford has not given up on the env var, and the question of whether backend_params keys are validated at all is raised and dropped; it is settled that the team agrees v0.1.8 must not be used for anything user facing
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 334 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: v0.1.8.
 
 ### 3. What EACH PERSON is told
 
@@ -1566,26 +641,118 @@ Channel #cookbooks: Konrad Feltrin reran the code-verification step of a publish
     role        Research Platform Engineer — Code Execution & Data-Generation Recipes. 
     owns        code-execution, release-and-ci, telemetry
     agenda
-    goal        Konrad Feltrin reran the code-verification step of a published reasoning-dataset script on Monday and got a different pass rate than the number in the README, with no commit in between
+    goal        Nikolai Berresford posted a one-line change and Dermot Callaghan pushed back on where the default should live
     available   around today
 
   Dermot Callaghan  (dermot)
     role        Founding Software Engineer — Core Pipeline & Release. 
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. lost most of an afternoon on this. bumped the example from gpt-4o-mini to gpt-4o, killed the run because I fat-fingered the output path, reran, and the dataset that came out was plainly mini text. the batch id it resumed was the one from before the edit.   *** MUST SETTLE (clue t3.r2.l_model_dermot) ***
-         must contain literally: gpt-4o-mini, gpt-4o
-    goal        Dermot Callaghan got outputs from the old model after editing the model name and restarting
+      1. Please do not move anything user facing onto v0.1.8 yet, it is still eating test files in collection. I know it is sitting there in the registry looking newer than everything else, that is exactly how we get bug reports we cannot reproduce.   *** MUST SETTLE (clue t4.r1.L6) ***
+         must contain literally: v0.1.8
+    goal        the team agrees v0.1.8 must not be used for anything user facing
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+    goal        Nikolai Berresford posted a one-line change and Dermot Callaghan pushed back on where the default should live
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   agreement that the image has to stop floating and that callers need an override, with the tag value, the override key name and where the default lives all still undecided; Nikolai Berresford says he will look at what the sandbox repo actually publishes; it is settled that Dermot Callaghan got outputs from the old model after editing the model name and restarting; Dermot Callaghan got outputs from the old model after editing the model name and restarting
+    leaving   no decision; Dermot Callaghan's single-place preference is the loudest but Nikolai Berresford has not given up on the env var, and the question of whether backend_params keys are validated at all is raised and dropped; it is settled that the team agrees v0.1.8 must not be used for anything user facing
+
+
+------------------------------------------------------------------------------
+## #help — 14 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #help: Emil Brandvold's verification pass over 20k rows spent most of its wall clock outside the container
+
+    Today is Monday 21 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Emil Brandvold's verification pass over 20k rows spent most of its wall clock outside the container
+    
+    What it should get through:
+    
+    On the agenda: Emil Brandvold timed it: every executor start goes out to the registry even when the image is already sitting in his local images list, roughly 40 seconds a pop on hotel wifi, and he wants it to look locally first and only go to the network when the image genuinely is not there; Nikolai Berresford adds that the CI box has no outbound registry access and the run dies on the pull even though the image was loaded into the daemon in a previous step; Gideon Halloway asks which tag Emil Brandvold actually ended up running and nobody can answer from the logs, so Gideon Halloway says the run should say the resolved name and tag once at startup where he can see it
+    
+    Wrap when: three separate annoyances collected, no code written; Nikolai Berresford says he will fold the pull behaviour into the pinning PR if it is small; it is settled that the team agrees a per-request capability lookup is wasted work because the answer is fixed for the whole run
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 334 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 646: ref: check job state before download in gemini (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+    goal        Emil Brandvold's verification pass over 20k rows spent most of its wall clock outside the container
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. 
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+    goal        Emil Brandvold's verification pass over 20k rows spent most of its wall clock outside the container
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. 
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. profiled the 40k row poem run because the bars were stuttering. we do the capability lookup per request, so that is 40k passes over the same model string and 40k identical debug lines in the log. the answer cannot change between row 1 and row 40000, the model name is fixed the moment you configure the thing   *** MUST SETTLE (clue t2.r1.L5) ***
+    goal        the team agrees a per-request capability lookup is wasted work because the answer is fixed for the whole run
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   three separate annoyances collected, no code written; Nikolai Berresford says he will fold the pull behaviour into the pinning PR if it is small; it is settled that the team agrees a per-request capability lookup is wasted work because the answer is fixed for the whole run
 
 
 ==============================================================================
-# 2025-04-17 — 4 conversation(s), 44 turns budgeted
+# 2025-04-22 — 2 conversation(s), 18 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
@@ -1594,24 +761,32 @@ Channel #cookbooks: Konrad Feltrin reran the code-verification step of a publish
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: Two PRs merged today touch cost accounting and progress display; need to ensure they don't conflict
+Channel #code-review: Three PRs merged today plus one just opened; two workstreams landing
 
-    Today is Thursday 17 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Tuesday 22 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Two PRs merged today touch cost accounting and progress display; need to ensure they don't conflict
+    Why it is happening: Three PRs merged today plus one just opened; two workstreams landing
     
     What it should get through:
-      1. Land PR 644 or identify what the stats-display contract needs to handle   [Gideon Halloway must raise this]
-           - Gideon raises the fix and what it addresses
-           - Emil checks whether it covers batch-mode cost rollup
-           - Approval or request for revision
+      1. PR 649 confirmed as safe to ship   [Dario Kestrel must raise this]
+           - Dario explains the casting bug in token metadata
+           - Dermot asks if it affects batch streaming
+           - Dario confirms it's anthropic-specific
+      2. PR 646 framed as sweep closure not quick fix   [Emil Brandvold must raise this]
+           - Emil explains this closes the batch-mode bug sweep by fixing the root ordering issue
+           - Dermot notes this is different from previous patchwork
+           - Emil confirms — no more symptom fixes
+      3. PR 651 queued for review cycle   [Emil Brandvold must raise this]
+           - Emil posts the PR scope
+           - Dermot asks if it blocks anything
+           - Emil: no — just model list refresh
     
-    On the agenda: Gideon's PR 644 stats-display fix: scope and edge cases; Whether Devraj Kulaskar's GPT-4.1 structured output mapping (merged PR 642) needs follow-up in the stats layer
+    On the agenda: PR 649: anthropic token accounting fix — casting bug contained; PR 646: gemini job state ordering — root cause vs symptom; PR 651: multimodal openai models — what changed
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: PR 644 approved or rework identified; it is settled that the team agrees the container's protections must not be a side effect of using the default tag
+    Wrap when: All three merged PRs acknowledged as landing; PR 651 queued for eyes and will merge same-day style; no blockers found
     
     Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1622,14 +797,14 @@ Channel #code-review: Two PRs merged today touch cost accounting and progress di
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 334 changes merged to date
+      - 337 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
       - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1651,35 +826,40 @@ Channel #code-review: Two PRs merged today touch cost accounting and progress di
 
 ### 3. What EACH PERSON is told
 
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. The stats-display fix and its interaction with batch-mode progress tracking
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Land PR 644 or identify what the stats-display contract needs to handle   *** MUST RAISE ***
-    goal        Land PR 644 or identify what the stats-display contract needs to handle
-    available   around today
-
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Context on the broader stats-display contract across online and batch modes
+    role        Core Platform Engineer, Request Processing. context on both landing workstreams and the new multimodal PR
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Land PR 644 or identify what the stats-display contract needs to handle
-    goal        Two PRs merged today touch cost accounting and progress display; need to ensure they don't conflict
+      1. PR 649 confirmed as safe to ship
+      2. PR 646 framed as sweep closure not quick fix   *** MUST RAISE ***
+      3. PR 651 queued for review cycle   *** MUST RAISE ***
+    goal        PR 646 framed as sweep closure not quick fix
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. the anthropic token accounting fix and why it matters
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. PR 649 confirmed as safe to ship   *** MUST RAISE ***
+      2. PR 646 framed as sweep closure not quick fix
+      3. PR 651 queued for review cycle
+    goal        PR 649 confirmed as safe to ship
     available   around today
 
   Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Historical context on what the stats-display interface promised
+    role        Founding Software Engineer — Core Pipeline & Release. testing perspective on the refactors
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Land PR 644 or identify what the stats-display contract needs to handle
-      2. Pinning the tag is a reproducibility fix. Whether the container is locked down is a different axis and I do not want it riding on which tag you happen to get handed.   *** MUST SETTLE (clue t4.r2.L8) ***
-    goal        the team agrees the container's protections must not be a side effect of using the default tag
+      1. PR 649 confirmed as safe to ship
+      2. PR 646 framed as sweep closure not quick fix
+      3. PR 651 queued for review cycle
+    goal        Three PRs merged today plus one just opened; two workstreams landing
     available   around today
 
 ### 4. How it should land
 
-    lands as  resolves
-    leaving   PR 644 approved or rework identified; it is settled that the team agrees the container's protections must not be a side effect of using the default tag
+    lands as  partial
+    leaving   All three merged PRs acknowledged as landing; PR 651 queued for eyes and will merge same-day style; no blockers found
 
 
 ------------------------------------------------------------------------------
@@ -1688,26 +868,34 @@ Channel #code-review: Two PRs merged today touch cost accounting and progress di
 
 ### 1. What the DIRECTOR is told
 
-Channel #pipeline: Two commits today touch provider-integrations and online-request-processing; need to ensure the structured-output mapping doesn't break cost or progress accounting
+Channel #pipeline: Three provider-facing commits; two workstreams landing back-to-back
 
-    Today is Thursday 17 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Tuesday 22 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Two commits today touch provider-integrations and online-request-processing; need to ensure the structured-output mapping doesn't break cost or progress accounting
+    Why it is happening: Three provider-facing commits; two workstreams landing back-to-back
     
     What it should get through:
-      1. Confirm GPT-4.1 structured output mapping doesn't create blind spots in cost or progress tracking   [Emil Brandvold must raise this]
-           - Emil raises the risk of a new response shape breaking accounting
-           - Gideon describes what PR 644 covers
-           - Dario confirms online-request-processing handles it or identifies what's missing
+      1. Anthropic token bug is anthropic-only, not cascading   [Dario Kestrel must raise this]
+           - Dario walks through where the casting happens
+           - Emil asks if online-request-processing sees it elsewhere
+           - Dario: just in anthropic metadata; other backends unaffected
+      2. Batch-mode sweep closed by ordering root cause fix   [Emil Brandvold must raise this]
+           - Emil: PR 646 fixes job-state-before-download ordering in gemini
+           - Gideon asks if other backends have the same issue
+           - Emil: gemini-specific; others already check state correctly
+      3. April grind status clear; Gideon Halloway's batch-update PR path visible   [Emil Brandvold must raise this]
+           - Emil: cost in metadata and batch streaming done; GPT-4.1 works end-to-end
+           - Gideon raises PR 632 blockers and whether they're grind-related
+           - Emil: not critical path; can land in next pass
     
-    On the agenda: Devraj's GPT-4.1 structured output mapping (merged PR 642) integration with stats layer; Whether the stats-display fix in PR 644 handles all response shapes
+    On the agenda: Anthropic casting bug scope; Gemini ordering — batch-mode sweep closed; What's left in the grind
     
     No longer here: Nils Brandt, Theo Marchetti — do not expect them back or wait on them
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Confidence that GPT-4.1 responses are tracked correctly, or a task identified for follow-up; it is settled that the team agrees STRUCTURED_OUTPUT_MODELS is the list that gets edited when a new model like o3 ships
+    Wrap when: Both landing workstreams confirmed stable; provider integrations clean; Gideon has clarity on PR 632 unblock timing
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1718,109 +906,14 @@ Channel #pipeline: Two commits today touch provider-integrations and online-requ
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 334 changes merged to date
+      - 337 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
       - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 645: feature: set dtype flag (Tobias Renner)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (3 names)
-      - agentic-curation
-      - finetuning
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: STRUCTURED_OUTPUT_MODELS, o3.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Overall picture of the RPM and cost-accounting work, and where GPT-4.1 structured output fits
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Confirm GPT-4.1 structured output mapping doesn't create blind spots in cost or progress tracking   *** MUST RAISE ***
-    goal        Confirm GPT-4.1 structured output mapping doesn't create blind spots in cost or progress tracking
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. What the stats-display fix does and how it handles structured-output responses
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm GPT-4.1 structured output mapping doesn't create blind spots in cost or progress tracking
-    goal        Two commits today touch provider-integrations and online-request-processing; need to ensure the structured-output mapping doesn't break cost or progress accounting
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Operational knowledge of online-request-processing internals and retry semantics
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Confirm GPT-4.1 structured output mapping doesn't create blind spots in cost or progress tracking
-      2. o3 support was basically free for us. I put the model name into STRUCTURED_OUTPUT_MODELS the morning it went live and structured output worked on the online path that afternoon, no other diff.   *** MUST SETTLE (clue t2.r2.l1) ***
-         must contain literally: STRUCTURED_OUTPUT_MODELS, o3
-    goal        the team agrees STRUCTURED_OUTPUT_MODELS is the list that gets edited when a new model like o3 ships
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Confidence that GPT-4.1 responses are tracked correctly, or a task identified for follow-up; it is settled that the team agrees STRUCTURED_OUTPUT_MODELS is the list that gets edited when a new model like o3 ships
-
-
-------------------------------------------------------------------------------
-## #engineering — 12 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: Two mid-flight workstreams need a weekly sync; two new PRs opened; need to align on release readiness
-
-    Today is Thursday 17 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Two mid-flight workstreams need a weekly sync; two new PRs opened; need to align on release readiness
-    
-    What it should get through:
-      1. Land or defer the open PRs based on workstream state   [Emil Brandvold must raise this]
-           - Emil summarizes the backlog and risk
-           - Dario flags whether any are blocking April Grind
-           - Decision: merge, hold, or defer
-    
-    On the agenda: State of Batch Mode Provider Bug Sweep and what's left; State of April Grind: RPM, Cost Accounting, GPT-4.1; Whether this week's changes are ready to ship or need more vetting; Open PRs: PR 640 (DeepSeek API), PR 645 (dtype flag), PR 643 (response object)
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Alignment on what ships this week and what waits; unblocked team to keep moving
-    
-    Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 334 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1843,60 +936,163 @@ Channel #engineering: Two mid-flight workstreams need a weekly sync; two new PRs
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. The state of both mid-flight workstreams: what landed, what's stuck, what's next
+    role        Core Platform Engineer, Request Processing. the gemini ordering fix and anthropic token fix; cost accounting status
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Land or defer the open PRs based on workstream state   *** MUST RAISE ***
-    goal        Land or defer the open PRs based on workstream state
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Fresh perspective on the stats-display work and whether it unblocks anything downstream
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Land or defer the open PRs based on workstream state
-    goal        Two mid-flight workstreams need a weekly sync; two new PRs opened; need to align on release readiness
+      1. Anthropic token bug is anthropic-only, not cascading
+      2. Batch-mode sweep closed by ordering root cause fix   *** MUST RAISE ***
+      3. April grind status clear; Gideon Halloway's batch-update PR path visible   *** MUST RAISE ***
+    goal        Batch-mode sweep closed by ordering root cause fix
     available   around today
 
   Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. View of the request-processing backlog and any accumulating tech debt
+    role        Core Engineer, Request Processing. the casting bug details and whether it cascades
     owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Land or defer the open PRs based on workstream state
-    goal        Two mid-flight workstreams need a weekly sync; two new PRs opened; need to align on release readiness
+      1. Anthropic token bug is anthropic-only, not cascading   *** MUST RAISE ***
+      2. Batch-mode sweep closed by ordering root cause fix
+      3. April grind status clear; Gideon Halloway's batch-update PR path visible
+    goal        Anthropic token bug is anthropic-only, not cascading
     available   around today
 
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release perspective and whether the week's changes are stable
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. his blocked PR (PR 632) and whether batch update freq is related
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Land or defer the open PRs based on workstream state
-    goal        Two mid-flight workstreams need a weekly sync; two new PRs opened; need to align on release readiness
+      1. Anthropic token bug is anthropic-only, not cascading
+      2. Batch-mode sweep closed by ordering root cause fix
+      3. April grind status clear; Gideon Halloway's batch-update PR path visible
+    goal        Three provider-facing commits; two workstreams landing back-to-back
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Alignment on what ships this week and what waits; unblocked team to keep moving
+    leaving   Both landing workstreams confirmed stable; provider integrations clean; Gideon has clarity on PR 632 unblock timing
 
+
+==============================================================================
+# 2025-04-23 — 2 conversation(s), 23 turns budgeted
+==============================================================================
 
 ------------------------------------------------------------------------------
-## #random — 14 turns, 3 people
+## #code-review — 9 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #random: gossip about a provider's batch queue being slow turns into war stories about batches nobody could recover
+Channel #code-review: Four PRs older than median merge time; two owners present need to unblock or redirect
 
-    Today is Thursday 17 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Wednesday 23 April 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: gossip about a provider's batch queue being slow turns into war stories about batches nobody could recover
+    Why it is happening: Four PRs older than median merge time; two owners present need to unblock or redirect
+    
+    What it should get through:
+      1. Clear blockers on PR 632 (batch CLI) merge   [Gideon Halloway must raise this]
+           - Gideon states where it stands and what's waiting
+           - Emil or others surface blocking concerns or dependencies
+           - Decision: merge, request changes, or defer
+      2. Route PR 643 (response object) to merge or closure   [Emil Brandvold must raise this]
+           - Emil outlines what the PR does and why
+           - Gideon or Dario raise design or API concerns if any
+           - Next step: ready to merge or needs rework
+      3. Surface why PR 468 (n-samples) has stalled 75 days   [Emil Brandvold must raise this]
+           - Emil or Gideon states the blocker or waiting reason
+           - Others confirm whether it is still needed
+           - Keep, rebase and try again, or close
+    
+    On the agenda: PR 632 batch update frequency: current state and blockers; PR 643 response object: scope and dependencies; PR 468 n-samples support: 75 days open, what's stuck
+    
+    Meeting today: Weekly sync
+    
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
+    
+    Wrap when: Two of the three PRs either move to merge or get a clear next step; the team knows what unblocks the third
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 337 changes merged to date
+
+    On the table
+      - Weekly Notes — Week of Apr 21 (Gideon Halloway)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. Merge status on batch CLI update; knows what blocks it
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Clear blockers on PR 632 (batch CLI) merge   *** MUST RAISE ***
+      2. Route PR 643 (response object) to merge or closure
+      3. Surface why PR 468 (n-samples) has stalled 75 days
+      4. that the doc "Weekly Notes — Week of Apr 21" is done, and where the others can find it   *** MUST RAISE ***
+    goal        Clear blockers on PR 632 (batch CLI) merge
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Two open PRs (468, 643) and context on generation params and response object work
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Clear blockers on PR 632 (batch CLI) merge
+      2. Route PR 643 (response object) to merge or closure   *** MUST RAISE ***
+      3. Surface why PR 468 (n-samples) has stalled 75 days   *** MUST RAISE ***
+    goal        Route PR 643 (response object) to merge or closure
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Two of the three PRs either move to merge or get a clear next step; the team knows what unblocks the third
+
+
+------------------------------------------------------------------------------
+## #pipeline — 14 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Dario Kestrel said in incidents he would look at the fingerprint and this is him looking at it out loud
+
+    Today is Wednesday 23 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Dario Kestrel said in incidents he would look at the fingerprint and this is him looking at it out loud
     
     What it should get through:
     
-    On the agenda: Gideon Halloway on an Anthropic batch that hit the 24h window and expired while his laptop was shut, and the rerun happily reporting it as pending forever; Emil Brandvold mentions cancelling a Mistral batch from the dashboard mid-run and then having the script sit there waiting on it; Dermot Callaghan says in both of those cases the requests plainly have to go out again, they were never going to come back
+    On the agenda: Dario Kestrel reads out what goes into the key for a code-execution row today, the program text and the test cases, and says that being all of it is why Konrad Feltrin's rerun was free; Emil Brandvold says he has been bitten by the same shape of thing before in a different subsystem and that when the thing doing the work changes underneath, a hit is worse than a miss because it looks like a result; Gideon Halloway asks whether existing on-disk caches would all go cold the day this changes and the thread stalls on nobody wanting to answer that before a release
     
-    Wrap when: stays a war-story thread, but Dermot Callaghan's line about resending is the first time anyone says what should happen to dead batches; it is settled that the team agrees a counting helper that creates the directory can cause a full re-billed run
+    Wrap when: Dario Kestrel stops short of a change, says he wants Nikolai Berresford in the room and that the invalidation blast radius needs a number before he touches it; it is settled that Emil Brandvold notes the persisted job record does not include the model it was submitted with
     
     Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1907,14 +1103,120 @@ Channel #random: gossip about a provider's batch queue being slow turns into war
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 334 changes merged to date
+      - 337 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
       - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 645: feature: set dtype flag (Tobias Renner)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        Dario Kestrel said in incidents he would look at the fingerprint and this is him looking at it out loud
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+    goal        Dario Kestrel said in incidents he would look at the fingerprint and this is him looking at it out loud
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. the record we keep for a pending job is the id, the request file path and a timestamp. that is it. nothing on disk tells me which model it went out with, so when someone pastes me a run dir I genuinely cannot say whether picking it back up is safe or not. that has bitten me twice this week.   *** MUST SETTLE (clue t3.r2.l_model_emil) ***
+    goal        Emil Brandvold notes the persisted job record does not include the model it was submitted with
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. 
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+    goal        Dario Kestrel said in incidents he would look at the fingerprint and this is him looking at it out loud
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Dario Kestrel stops short of a change, says he wants Nikolai Berresford in the room and that the invalidation blast radius needs a number before he touches it; it is settled that Emil Brandvold notes the persisted job record does not include the model it was submitted with; Emil Brandvold notes the persisted job record does not include the model it was submitted with
+
+
+==============================================================================
+# 2025-04-24 — 5 conversation(s), 48 turns budgeted
+==============================================================================
+
+------------------------------------------------------------------------------
+## #engineering — 8 turns, 3 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #engineering: Gideon landed two commits on progress and CLI today, touching core observability; the team needs to align on implications.
+
+    Today is Thursday 24 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Gideon landed two commits on progress and CLI today, touching core observability; the team needs to align on implications.
+    
+    What it should get through:
+      1. Validate batch status tracker progress bar changes   [Gideon Halloway must raise this]
+           - Gideon walks through the pbar logic change
+           - Emil checks if it affects batch lifecycle tracking
+           - Team agrees on any follow-up needed
+      2. Confirm CLI test display fix is complete   [Gideon Halloway must raise this]
+           - Gideon explains the test failure and fix
+           - Emil or Dario spot-check against expected behavior
+    
+    On the agenda: Gideon's pbar updates for batch status tracking; CLI test display fix and validation; Any ripple effects on monitoring or observability
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Gideon's commits are validated; team is confident in the batch and CLI changes. No blocking issues identified.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 337 changes merged to date
+
+    On the table
+      - Weekly Notes — Week of Apr 21 (Gideon Halloway)
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1937,29 +1239,386 @@ Channel #random: gossip about a provider's batch queue being slow turns into war
 ### 3. What EACH PERSON is told
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 
+    role        Core Engineer — Dataset Viewer & Run Observability. hands-on fixes to pbar and CLI test display
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. self-inflicted, posting so nobody else does it. I typo'd the path in my cache-poking script last night, it did a mkdir -p on the way in, and this morning's cookbook run found a shiny empty cache directory at the typo, decided nothing was cached and re-sent 38k requests. Bill is real. The script only ever wanted to count rows.   *** MUST SETTLE (clue t1.r2.L4) ***
-    goal        the team agrees a counting helper that creates the directory can cause a full re-billed run
+      1. Validate batch status tracker progress bar changes   *** MUST RAISE ***
+      2. Confirm CLI test display fix is complete   *** MUST RAISE ***
+      3. what "Weekly Notes — Week of Apr 21" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Validate batch status tracker progress bar changes
     available   around today
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. 
+    role        Core Platform Engineer, Request Processing. context on how batch status tracking integrates with the request layer
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-    goal        gossip about a provider's batch queue being slow turns into war stories about batches nobody could recover
+      1. Validate batch status tracker progress bar changes
+      2. Confirm CLI test display fix is complete
+    goal        Gideon landed two commits on progress and CLI today, touching core observability; the team needs to align on implications.
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. perspective on how progress display affects user experience across job types
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+      1. Validate batch status tracker progress bar changes
+      2. Confirm CLI test display fix is complete
+    goal        Gideon landed two commits on progress and CLI today, touching core observability; the team needs to align on implications.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Gideon's commits are validated; team is confident in the batch and CLI changes. No blocking issues identified.
+
+
+------------------------------------------------------------------------------
+## #pipeline — 6 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #pipeline: Gideon's commit touches online-request-processing; Emil and Gideon need to sync on batch observability.
+
+    Today is Thursday 24 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Gideon's commit touches online-request-processing; Emil and Gideon need to sync on batch observability.
+    
+    What it should get through:
+      1. Ensure batch job status tracking remains accurate after pbar update   [Gideon Halloway must raise this]
+           - Gideon describes the change to batch status tracker pbar
+           - Emil confirms no breakage in request layer integration
+    
+    On the agenda: Review pbar updates for batch status tracking; Confirm no regressions in batch lifecycle monitoring
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Batch status tracking validated; any edge cases in lifecycle handling identified and planned.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 337 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. direct knowledge of the pbar and batch status tracker implementation
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Ensure batch job status tracking remains accurate after pbar update   *** MUST RAISE ***
+    goal        Ensure batch job status tracking remains accurate after pbar update
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. understanding of how the request layer integrates with progress tracking
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Ensure batch job status tracking remains accurate after pbar update
+    goal        Gideon's commit touches online-request-processing; Emil and Gideon need to sync on batch observability.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Batch status tracking validated; any edge cases in lifecycle handling identified and planned.
+
+
+------------------------------------------------------------------------------
+## #viewer — 6 turns, 2 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #viewer: Gideon's pbar commit affects progress-and-cli; Viewer channel needs to see the change.
+
+    Today is Thursday 24 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Gideon's pbar commit affects progress-and-cli; Viewer channel needs to see the change.
+    
+    What it should get through:
+      1. Validate pbar display is accurate and user-facing progress readout is unchanged   [Gideon Halloway must raise this]
+           - Gideon walks through the pbar update logic
+           - Emil checks against expected viewer behavior
+    
+    On the agenda: Review pbar fix for accuracy and clarity; Validate end-to-end progress display behavior
+    
+    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
+    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    
+    Wrap when: Pbar fix is confirmed safe; progress display is consistent with viewer expectations.
+    
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 337 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. direct implementation of the pbar fix
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. Validate pbar display is accurate and user-facing progress readout is unchanged   *** MUST RAISE ***
+    goal        Validate pbar display is accurate and user-facing progress readout is unchanged
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. context on viewer surface expectations
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Validate pbar display is accurate and user-facing progress readout is unchanged
+    goal        Gideon's pbar commit affects progress-and-cli; Viewer channel needs to see the change.
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   Pbar fix is confirmed safe; progress display is consistent with viewer expectations.
+
+
+------------------------------------------------------------------------------
+## #code-review — 14 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #code-review: Dario Kestrel put up a first pass that reads batch_objects.jsonl on startup and reattaches by id
+
+    Today is Thursday 24 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: Dario Kestrel put up a first pass that reads batch_objects.jsonl on startup and reattaches by id
+    
+    What it should get through:
+    
+    On the agenda: Dermot Callaghan flags that the draft keys on the dataset path and nothing else, and tells the story of bumping max_tokens on a rerun and getting the shorter completions handed straight back to him; Emil Brandvold on his RAFT run: he changed the response_format schema between two runs and the resumed batch produced rows the new parser could not read, which he says cost him a whole evening of thinking his parser was broken; Gideon Halloway points out the draft resubmits any batch that is not in-progress, and that he paid twice for one that had already completed while the process was down
+    
+    Wrap when: draft not approved; Dario Kestrel takes the key question and the terminal-state question away separately, and says he will list what states each provider can hand back; it is settled that the team agrees a swallowed cache-write failure must instead be surfaced as a warning naming the path
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 337 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+
+### 3. What EACH PERSON is told
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        Dario Kestrel put up a first pass that reads batch_objects.jsonl on startup and reattaches by id
     available   around today
 
   Dermot Callaghan  (dermot)
     role        Founding Software Engineer — Core Pipeline & Release. 
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-    goal        gossip about a provider's batch queue being slow turns into war stories about batches nobody could recover
+    goal        Dario Kestrel put up a first pass that reads batch_objects.jsonl on startup and reattaches by id
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. 
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+    goal        Dario Kestrel put up a first pass that reads batch_objects.jsonl on startup and reattaches by id
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+      1. Adjacent gripe. The one place we do already wrap a cache write in try/except, the except body is a bare pass. Burned an hour last week wondering why a rerun redid everything from scratch; the write had failed on a permissions thing on a mounted dir and we never said one word about it. If we're going to carry on regardless then it needs to come out at warning level with the path in it, otherwise it's indistinguishable from the cache just not working.   *** MUST SETTLE (clue t3.r1.L10) ***
+    goal        the team agrees a swallowed cache-write failure must instead be surfaced as a warning naming the path
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   stays a war-story thread, but Dermot Callaghan's line about resending is the first time anyone says what should happen to dead batches; it is settled that the team agrees a counting helper that creates the directory can cause a full re-billed run
+    leaving   draft not approved; Dario Kestrel takes the key question and the terminal-state question away separately, and says he will list what states each provider can hand back; it is settled that the team agrees a swallowed cache-write failure must instead be surfaced as a warning naming the path
+
+
+------------------------------------------------------------------------------
+## #releases — 14 turns, 4 people
+------------------------------------------------------------------------------
+
+### 1. What the DIRECTOR is told
+
+Channel #releases: the weekly cut is Thursday and Nikolai Berresford wants to know whether the pinning change can ride along
+
+    Today is Thursday 24 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    
+    Why it is happening: the weekly cut is Thursday and Nikolai Berresford wants to know whether the pinning change can ride along
+    
+    What it should get through:
+    
+    On the agenda: Dermot Callaghan says the thing that annoys him about silent image movement is that a user cannot look at anything and see why their verifier numbers moved between two curator versions, and that a version change here has to be visible in the same place every other behaviour change is; Emil Brandvold asks how often the sandbox image publishes and whether bumping it is a patch or a minor for bespokelabs-curator; Nikolai Berresford says he will ask the sandbox side what tags they keep alive and for how long before anyone picks a number
+    
+    Wrap when: the tag value is still blank; agreement that whatever the bump mechanism is, it happens deliberately in a PR and not by a daemon pulling overnight; it is settled that the team agrees v0.1.7 is the build everything verified runs on
+    
+    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+
+### 2. What EVERYONE in the channel shares
+
+    Project    Millrow
+    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
+
+    Settled
+      - 22 release(s) shipped, currently v0.1.23
+      - 337 changes merged to date
+
+    On the table
+      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
+      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
+      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
+      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+
+    Settled decisions everyone works to
+      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
+
+    Open questions
+      - issue 52: Support multiple samples per request
+      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
+      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
+      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
+      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
+      - issue 233: Automatically detect the rate limits
+      - issue 290: ModuleNotFoundError: No module named 'resource'
+      - issue 293: OpenAI Usage and Costs via API
+
+    DOES NOT EXIST YET (3 names)
+      - agentic-curation
+      - finetuning
+      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: v0.1.7.
+
+### 3. What EACH PERSON is told
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. 
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+    goal        the weekly cut is Thursday and Nikolai Berresford wants to know whether the pinning change can ride along
+    available   around today
+
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. 
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+    agenda
+    goal        the weekly cut is Thursday and Nikolai Berresford wants to know whether the pinning change can ride along
+    available   around today
+
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. 
+    owns        code-execution, release-and-ci, telemetry
+    agenda
+      1. For what it is worth the docker backend smoke test has been running against v0.1.7 since February and it is the last build I would personally call safe. Everything we have actually verified end to end sits on that one.   *** MUST SETTLE (clue t4.r1.L5) ***
+         must contain literally: v0.1.7
+    goal        the team agrees v0.1.7 is the build everything verified runs on
+    available   around today
+
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. 
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+    agenda
+    goal        the weekly cut is Thursday and Nikolai Berresford wants to know whether the pinning change can ride along
+    available   around today
+
+### 4. How it should land
+
+    lands as  resolves
+    leaving   the tag value is still blank; agreement that whatever the bump mechanism is, it happens deliberately in a PR and not by a daemon pulling overnight; it is settled that the team agrees v0.1.7 is the build everything verified runs on
 

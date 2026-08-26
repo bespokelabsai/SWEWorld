@@ -405,3 +405,10 @@
 {"path": "gideon@world.local/INBOX/0003-weekly-update-week-of-apr-7.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-04-14T09:56:00+00:00", "flags": []}
 {"path": "nikolai@world.local/INBOX/0003-weekly-update-week-of-apr-7.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-04-14T09:56:00+00:00", "flags": []}
 {"path": "tomas@world.local/INBOX/0003-weekly-update-week-of-apr-7.eml", "mailbox": "tomas@world.local", "folder": "INBOX", "date": "2025-04-14T09:56:00+00:00", "flags": []}
+{"path": "emil@world.local/Sent/0001-weekly-update-week-of-apr-14.eml", "mailbox": "emil@world.local", "folder": "Sent", "date": "2025-04-21T09:07:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0001-weekly-update-week-of-apr-14.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-04-21T09:07:00+00:00", "flags": []}
+{"path": "nikolai@world.local/INBOX/0001-weekly-update-week-of-apr-14.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-04-21T09:07:00+00:00", "flags": []}
+{"path": "gideon@world.local/INBOX/0001-weekly-update-week-of-apr-14.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-04-21T09:07:00+00:00", "flags": []}
+{"path": "dermot@world.local/INBOX/0001-weekly-update-week-of-apr-14.eml", "mailbox": "dermot@world.local", "folder": "INBOX", "date": "2025-04-21T09:07:00+00:00", "flags": []}
+{"path": "tomas@world.local/INBOX/0001-weekly-update-week-of-apr-14.eml", "mailbox": "tomas@world.local", "folder": "INBOX", "date": "2025-04-21T09:07:00+00:00", "flags": []}
+{"path": "tobias@world.local/INBOX/0001-weekly-update-week-of-apr-14.eml", "mailbox": "tobias@world.local", "folder": "INBOX", "date": "2025-04-21T09:07:00+00:00", "flags": []}

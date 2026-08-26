@@ -1,0 +1,32 @@
+From: emil@world.local
+To: dario@world.local, nikolai@world.local, gideon@world.local,
+ dermot@world.local, tomas@world.local, tobias@world.local
+Subject: Weekly update: week of Apr 14
+Date: Mon, 21 Apr 2025 09:07:00 +0000
+Message-ID: <178770212973.2301745.4705747507669611471@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all,
+
+Quick rundown on where things stand heading into this week.
+
+WS-050 (batch-mode bug sweep): working through the main failure cases, got th=
+e Gemini job-state check addressed in PR 646. A few more edge cases still to =
+close out, but we're past the worst of it.
+
+WS-054 (cost accounting): in progress, not blocked. The response object work =
+in PR 643 is part of this =E2=80=94 should have something reviewable this wee=
+k.
+
+PR situation: I have PR 468 (n samples), PR 643 (response object), and PR 646=
+ (Gemini job state) all sitting in review. They need a rebase before they can=
+ move, which I'll sort out today. PR 632 (Gideon's CLI batch update frequency=
+ fix) looks contained and ready to land =E2=80=94 needs eyes. PR 650 (DeepSee=
+k json_schema) just came in and is coming to me.
+
+If anyone can spare time for reviews this week, 632 is the quickest one to ge=
+t through.
+
+Emil

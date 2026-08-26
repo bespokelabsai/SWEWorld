@@ -13973,6 +13973,520 @@
           "userId": "gideon",
           "text": "separate track, PR 644 is just the rendering fix, so you mean someone needs to wire the lockdown explicitly outside of it?",
           "ts": "2025-04-17T12:18:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is up and ready for eyes, it touches the CLI batch update frequency and I think it's in good shape, just needs a pass before I can close it out",
+          "ts": "2025-04-18T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil what's holding up PR 643 and PR 468, are those blocked on something?",
+          "ts": "2025-04-18T09:06:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "has anyone looked at PR 646 yet, trying to figure out if that one's good to go or if there are changes needed",
+          "ts": "2025-04-18T10:16:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "is anyone free to take a look at PR 632 this afternoon?",
+          "ts": "2025-04-18T10:45:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "it's just the CLI batch update frequency change, shouldn't be a heavy review",
+          "ts": "2025-04-18T10:46:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure PR 646 is ready to just land, the job state check has some branches I'm not fully comfortable with",
+          "ts": "2025-04-18T11:29:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Could use a real look, not just a quick pass",
+          "ts": "2025-04-18T11:29:21"
+        },
+        {
+          "userId": "emil",
+          "text": "let me look at what's stalled on 643 and 468",
+          "ts": "2025-04-18T11:29:41"
+        },
+        {
+          "userId": "gideon",
+          "text": "so who's doing that real look on PR 646, is that happening today or are we carrying it into next week?",
+          "ts": "2025-04-18T14:13:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Going to take another pass at the job state branches in PR 646 before asking anyone to look at it - there are a couple of edge cases I'm not satisfied with yet.",
+          "ts": "2025-04-18T14:58:44",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-18T14:59:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, WS-055 isn't in the tracker as far as I can tell - @Dermot Callaghan, is that written up somewhere?",
+          "ts": "2025-04-18T14:58:52"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take a look at PR 632 this afternoon - it's close enough to batch-mode that I should have enough context for a real pass.",
+          "ts": "2025-04-18T14:59:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "so this is getting another pass before it goes up for review, not a revision after?",
+          "ts": "2025-04-18T14:59:43",
+          "threadParentTs": "2025-04-18T14:58:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-04-18T14:59:51"
+        },
+        {
+          "userId": "emil",
+          "text": "pre-review - I want to clean up the edge cases in the job state check before putting it up for anyone to look at. Should have a cleaner version ready this afternoon.",
+          "ts": "2025-04-18T15:04:43",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is ready for a look, it's the CLI batch update frequency fix on progress-and-cli, pretty self-contained change",
+          "ts": "2025-04-21T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Does anyone have PR 468, 643, or 646 on their radar this week?",
+          "ts": "2025-04-21T09:00:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is still sitting, no takers yet, also there's a new PR 650 on the DeepSeek json_schema side that I think needs to go to @Emil Brandvold.",
+          "ts": "2025-04-21T10:11:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "Are PR 468, 643, and 646 still relevant at this point, or should we just close them?",
+          "ts": "2025-04-21T10:57:39"
+        },
+        {
+          "userId": "emil",
+          "text": "468, 643, and 646 are still active, they just need a rebase to come current",
+          "ts": "2025-04-21T11:39:39"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get those cleaned up this afternon",
+          "ts": "2025-04-21T11:39:51",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 650, yep, send it over, I've got it.",
+          "ts": "2025-04-21T11:40:03"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone have time to look at PR 468, 643, or 646 this afternoon, or should I just rebase and requeue them?",
+          "ts": "2025-04-21T12:18:24",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-21T13:08:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "I can take a look at them once you rebase, just ping me",
+          "ts": "2025-04-21T13:08:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-21T12:18:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone free to look at PR 632 this afternoon?",
+          "ts": "2025-04-21T13:09:04"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 651 is up if anyone can spare look this morning - multimodal support model updates in openai, ref change",
+          "ts": "2025-04-22T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "nothing blocking on it, should be quick eyes",
+          "ts": "2025-04-22T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "has anyone had eyes on PR 649 yet, or is it still waiting on review?",
+          "ts": "2025-04-22T09:00:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok answering my own question on PR 649 - casting fix in token accounting with anthropic, looks clean to me",
+          "ts": "2025-04-22T10:11:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 646, is that meant to land as part of a broader sweep or just a one-off fix?",
+          "ts": "2025-04-22T10:11:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 649 is clear on my end, and 651 still needs eyes this afternoon",
+          "ts": "2025-04-22T11:25:46"
+        },
+        {
+          "userId": "dermot",
+          "text": "haven't gotten answer on PR 646 so that framing question is still open",
+          "ts": "2025-04-22T11:25:51"
+        },
+        {
+          "userId": "dario",
+          "text": "+1 on 649, good to ship",
+          "ts": "2025-04-22T12:10:51",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 646 is sweep closure, part of the batch-mode ordering cleanup, not a standalone fix",
+          "ts": "2025-04-22T12:41:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "And yeah, PR 651 still needs eyes if anyone has a few minutes this afternoon, that one's mine",
+          "ts": "2025-04-22T12:41:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Is PR 649 confirmed safe to ship, or is someone still looking at it?",
+          "ts": "2025-04-22T12:41:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Oh wait",
+          "ts": "2025-04-22T12:58:45"
+        },
+        {
+          "userId": "emil",
+          "text": "I missed it, Dermot and Dario both cleared 649 above",
+          "ts": "2025-04-22T12:58:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone looking at 651 this afternoon?",
+          "ts": "2025-04-22T12:59:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "Weekly Notes, Week of Apr 21 is up in the engineering wiki if anyone wants the full picture on what's in flight.",
+          "ts": "2025-04-23T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone still needs to look at PR 632 before it can merge, or is it waiting on something specific?",
+          "ts": "2025-04-23T09:32:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is ready on my end, touches progress-and-cli and just bumps the batch update frequency in the curator CLI",
+          "ts": "2025-04-23T10:14:02"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think it just needs a review pass before it can go in",
+          "ts": "2025-04-23T10:14:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "What's actually blocking PR 468 at this point? It's been open a while and I've lost track of where it got stuck.",
+          "ts": "2025-04-23T11:09:10"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 is mine",
+          "ts": "2025-04-23T11:15:10"
+        },
+        {
+          "userId": "emil",
+          "text": "It's been sitting mostly because issue 52 is still unresolved, we never landed on how multiple samples per request should actually work, and 468 is blocked on that decision",
+          "ts": "2025-04-23T11:15:15"
+        },
+        {
+          "userId": "emil",
+          "text": "Also want to get a call on PR 643 before this afternoon, does the response object work belong in curator now, or is it getting cut?",
+          "ts": "2025-04-23T11:15:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "If PR 643 is mostly just exposing what's already in the response, it might be easier to ship than cut and revisit",
+          "ts": "2025-04-23T11:29:00"
+        },
+        {
+          "userId": "emil",
+          "text": "That's roughly what it does, yeah",
+          "ts": "2025-04-23T11:48:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone able to give it a read this afternoon?",
+          "ts": "2025-04-23T11:48:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Is there anyone in particular who should own the review on 643, or is it open to whoever has cycles?",
+          "ts": "2025-04-23T11:48:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone taken a look at PR 632 yet, or is it still waiting on a first pass?",
+          "ts": "2025-04-23T12:41:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still waiting on a first pass.",
+          "ts": "2025-04-23T12:41:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Still no eyes on PR 643 either, does anyone have capacity this afternoon to take a look, or should I just plan to carry it into next week?",
+          "ts": "2025-04-23T13:04:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "Same boat, PR 632 still hasn't had a first look either.",
+          "ts": "2025-04-23T13:35:29"
+        },
+        {
+          "userId": "gideon",
+          "text": "Should we just agree to swap reviews, or is there someone else who should be the one looking at 632?",
+          "ts": "2025-04-23T13:36:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "Going to take a pass at 643 this afternoon, still hoping someone can get eyes on 632 before end of day",
+          "ts": "2025-04-23T14:29:13"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take 632",
+          "ts": "2025-04-23T15:02:13",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Batch CLI touches stuff close to what I own anyway",
+          "ts": "2025-04-23T15:02:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "Nice, thanks Emil. I'm working through 643 now, should have notes back to you before end of day",
+          "ts": "2025-04-23T15:33:25",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 468 is still hard-blocked on issue 52",
+          "ts": "2025-04-23T15:34:06"
+        },
+        {
+          "userId": "emil",
+          "text": "Working through 632 now, should have a review posted before end of day.",
+          "ts": "2025-04-23T15:53:06",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "643 has no clear owner for the review yet, still open on that one.",
+          "ts": "2025-04-23T16:28:06"
+        },
+        {
+          "userId": "emil",
+          "text": "I thought you were working through it, Gideon, did something change?",
+          "ts": "2025-04-23T16:55:06"
+        },
+        {
+          "userId": "emil",
+          "text": "If not, are you the reviewer or not?",
+          "ts": "2025-04-23T16:55:11",
+          "replyCount": 3,
+          "replyLastTs": "2025-04-23T17:05:46"
+        },
+        {
+          "userId": "gideon",
+          "text": "Yeah I'm on it, got my wires crossed",
+          "ts": "2025-04-23T16:55:21",
+          "threadParentTs": "2025-04-23T16:55:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "Working through how `CuratorResponse` handles `failed_requests` specifically before I send notes",
+          "ts": "2025-04-23T16:55:29",
+          "threadParentTs": "2025-04-23T16:55:11"
+        },
+        {
+          "userId": "emil",
+          "text": "Will you have notes before you sign off today?",
+          "ts": "2025-04-23T16:56:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah",
+          "ts": "2025-04-23T17:05:46",
+          "threadParentTs": "2025-04-23T16:55:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "notes before I sign off",
+          "ts": "2025-04-23T17:05:54"
+        },
+        {
+          "userId": "emil",
+          "text": "Review on 632 is posted. 643 is waiting on Gideon's notes.",
+          "ts": "2025-04-23T17:19:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "Notes on 643 coming in the next few minutes, wrapping up now.",
+          "ts": "2025-04-23T17:38:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "643 looks contained to me, CuratorResponse scoped to run metadata, no red flags from what I've seen.",
+          "ts": "2025-04-23T17:39:37",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Good enough to approve, or does it need anything before it merges?",
+          "ts": "2025-04-23T17:50:37"
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference cleanup is mostly done, just tidying up the last few error paths before I put it up for review this afternoon.",
+          "ts": "2025-04-24T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dario's got a first pass up for review, reads batch_objects.jsonl on startup and reattaches by id, touches caching-and-resume",
+          "ts": "2025-04-24T09:36:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Not blocking a release but has a few things worth looking at before it goes in",
+          "ts": "2025-04-24T09:36:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "not entirely sure, but I think if the cache write fails it just swallows it silently",
+          "ts": "2025-04-24T16:49:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "does it log the path anywhere when it swallows it, or is the failure completely invisible?",
+          "ts": "2025-04-24T17:26:10"
+        },
+        {
+          "userId": "dermot",
+          "text": "from what I can tell, completely invisible, no path anywhere.",
+          "ts": "2025-04-24T17:28:10"
+        },
+        {
+          "userId": "emil",
+          "text": "ugh, that's the exact thing",
+          "ts": "2025-04-24T17:59:15",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "That bare `pass` in the cache-write except needs to go, at minimum it should log a warning with the path.",
+          "ts": "2025-04-24T18:23:56",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "adjacent gripe, the one place we do already wrap a cache write in try/except, the except body is a bare pass",
+          "ts": "2025-04-24T18:24:16"
+        },
+        {
+          "userId": "emil",
+          "text": "burned an hour last week wondering why a rerun redid everything from scratch, turned out the write had failed on a permissions thing on a mounted dir and we never said one word about it",
+          "ts": "2025-04-24T18:24:36"
+        },
+        {
+          "userId": "dario",
+          "text": "+1",
+          "ts": "2025-04-24T18:26:59.495546",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -28774,6 +29288,299 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "gideon",
+          "text": "- PR 632 is ready, just waiting on a review pass\n- still poking at the batch update frequency logic, i think thre's one more edge case to flush out",
+          "ts": "2025-04-18T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil Brandvold is there an env var already for skipping the cache check, or does forcing a resubmit currently require touching the files?",
+          "ts": "2025-04-18T09:00:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil Brandvold is this for local debugging or are you hitting it in CI too?",
+          "ts": "2025-04-18T10:11:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil Brandvold does the caching layer have any existing env var for forcing a cache miss, or is that not wired up at all right now?",
+          "ts": "2025-04-18T10:34:34"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario Kestrel do you know if there's anything in caching-and-resume for skipping the cache check without touching files?",
+          "ts": "2025-04-18T11:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "There's already an env var in caching-and-resume for forcing a cache miss",
+          "ts": "2025-04-18T12:54:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "I'll check what CI's actually setting this afternoon before we point anyone at it or name a new one",
+          "ts": "2025-04-18T12:54:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "nice, thanks Dario",
+          "ts": "2025-04-18T13:03:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Does anyone have a preference on reusing the existing var versus adding a dedicated one for forcing resubmit, or should I just report what CI sets and we decide then?",
+          "ts": "2025-04-18T13:13:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'd lean towards reusing the existing one, but @Emil Brandvold should probably weigh in since it's his debug workflow.",
+          "ts": "2025-04-18T13:26:12"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil Brandvold when you hit this, is it local or also in CI, and do you know if the var name matters to you or just that there is one?",
+          "ts": "2025-04-18T13:39:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "so waiting on Dario to check what CI sets, then we can figure out reuse vs. new var",
+          "ts": "2025-04-18T14:09:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Same shape of thing with max_tokens for me - response came back truncated mid-sentence, I raised max_tokens, reran, and got handed the same truncated text again. Ended up deleting the whole cache directory, which took out four thousand rows that were perfectly fine.",
+          "ts": "2025-04-18T14:51:12"
+        },
+        {
+          "userId": "emil",
+          "text": "This was local - is the expectation that people bust the whole cache when generation params change, or should changing max_tokens be invalidating on its own?",
+          "ts": "2025-04-18T14:51:24"
+        },
+        {
+          "userId": "emil",
+          "text": "To be clear on the sequence: truncated mid-sentence with max_tokens, raised max_tokens, reran, got handed the same truncated text again.",
+          "ts": "2025-04-18T14:51:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Deleting the cache directory is what finally cleared it, and that took out four thousand rows that were perfectly fine along with it.",
+          "ts": "2025-04-18T14:52:04"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-04-18T14:53:24"
+        },
+        {
+          "userId": "dario",
+          "text": "that's current behavior in caching-and-resume - max_tokens isn't part of the cache key",
+          "ts": "2025-04-18T14:53:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Batch mode bug sweep (WS-050) is mostly wrapped up, got through the main cases",
+          "ts": "2025-04-21T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Cost accounting (WS-054) is still in progress, probably have something to show by this afternoon",
+          "ts": "2025-04-21T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "can we agree not to move anything user-facing onto v0.1.8 yet?",
+          "ts": "2025-04-21T09:24:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "it is still eating test files in collection and I know it sits in the registry looking newer than everything else, but that is exactly how we end up with bug reports we cannot reproduce",
+          "ts": "2025-04-21T09:24:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "+1",
+          "ts": "2025-04-21T09:40:20",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "How many PRs are actually waiting on review right now?",
+          "ts": "2025-04-21T09:40:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "six at the moment",
+          "ts": "2025-04-21T09:54:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "worth blocking some time this week to go through them as a group rather than picking at them one at a time",
+          "ts": "2025-04-21T09:55:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "fair enough",
+          "ts": "2025-04-21T10:12:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I've got a one-liner I want to put up, it just defaults `backend_params` to an empty dict instead of None. Not sure if that belongs in the request path or somewhere earlier though, curious what people think.",
+          "ts": "2025-04-21T10:13:02",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-21T10:13:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean, not sure the request path is the right home for it.",
+          "ts": "2025-04-21T10:13:35",
+          "threadParentTs": "2025-04-21T10:13:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm also not sure the keys in it are validated at all, which changes the question a bit.",
+          "ts": "2025-04-21T10:13:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "You mean they just get forwarded as-is, no schema check anywhere?",
+          "ts": "2025-04-21T10:48:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Agreed on v0.1.8, keeping it off user-facing paths until the collection bug is sorted.",
+          "ts": "2025-04-21T12:12:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Even at the provider boundary, or just no check on our side?",
+          "ts": "2025-04-21T12:32:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "From what I can see there's nothing checking them on our side, dunno about at the provider level.",
+          "ts": "2025-04-21T12:40:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "so does the provider reject unknown keys or just silently ignore them?",
+          "ts": "2025-04-21T12:59:40"
+        },
+        {
+          "userId": "gideon",
+          "text": "- *PR 632* merged, batch update freq fix is in\n- pbar changes done, CLI test display looking clean\n- want to get eyes on the batch status tracker behavior before EOD if anyone has a minute",
+          "ts": "2025-04-24T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "has anyone opened the Weekly Notes for this week yet?",
+          "ts": "2025-04-24T09:07:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "I haven't pulled it up",
+          "ts": "2025-04-24T09:07:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok",
+          "ts": "2025-04-24T09:48:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "answering my own question, pulled it up",
+          "ts": "2025-04-24T09:48:25"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 468 is flagged as stalled at ~75 days, is anyone actively on that or does it need to get reassigned?",
+          "ts": "2025-04-24T09:48:30"
+        },
+        {
+          "userId": "gideon",
+          "text": "welp",
+          "ts": "2025-04-24T17:29:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "leaving the PR 468 thing for tomorrow I guess",
+          "ts": "2025-04-24T17:30:01"
+        },
+        {
+          "userId": "emil",
+          "text": "On the batch status tracker, what specifically do you want eyes on, the state transitions or the frequency behavior?",
+          "ts": "2025-04-24T18:13:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "both, honestly, the Weekly Notes, Week of Apr 21 has context on where PR 632 landed if that helps orient you",
+          "ts": "2025-04-24T18:22:54.153473"
+        },
+        {
+          "userId": "gideon",
+          "text": "mainly want to know the state transitions look right after the pbar update, and that the CLI test display is reading clean",
+          "ts": "2025-04-24T18:23:06.153473",
+          "replyCount": 2,
+          "replyLastTs": "2025-04-24T18:29:49.516085"
+        },
+        {
+          "userId": "gideon",
+          "text": "the weekly notes flag PR 468 as stalled ~75 days and nobody's answered who owns it",
+          "ts": "2025-04-24T18:23:36.153473"
+        },
+        {
+          "userId": "gideon",
+          "text": "is that one getting reassigned or is someone quietly working it?",
+          "ts": "2025-04-24T18:23:48.153473"
+        },
+        {
+          "userId": "emil",
+          "text": "gotcha",
+          "ts": "2025-04-24T18:29:37.516085",
+          "threadParentTs": "2025-04-24T18:23:06.153473"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll take a look at the state transitions",
+          "ts": "2025-04-24T18:29:49.516085",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-24T18:23:06.153473"
         }
       ],
       "projectSpec": {
@@ -29958,6 +30765,129 @@
           "userId": "dario",
           "text": "PR 565 is still in reveiw on my end",
           "ts": "2025-04-07T18:22:16.562712"
+        },
+        {
+          "userId": "dermot",
+          "text": "- *batch-mode bug sweep (WS-050)*: got through the main failure cases over the weekend, writing up findings now\n- *cost accounting (WS-054)*: in progress, not blocked, should have something to show this afternoon\n- six PRs sitting in review backlog that need eyes this week, will surface those separately",
+          "ts": "2025-04-21T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "On my end, PR 632 is wrapped up, just needs review, CLI batch update frequency fix, pretty contained change on progress-and-cli.",
+          "ts": "2025-04-21T09:31:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil Brandvold can you share the weekly?",
+          "ts": "2025-04-21T10:15:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "I want to make sure I'm not missing context on priorities before I push anything forward this week",
+          "ts": "2025-04-21T10:15:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "On the PRs, I'll pull together the list properly and we can block some time this week to go through them as a group rather than piecemeal.",
+          "ts": "2025-04-21T10:41:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Weekly is out, @Gideon Halloway",
+          "ts": "2025-04-21T11:43:03"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-050 is past the worst of it, main failure cases are covered, PR 646 handles the Gemini job-state issue, still a few things to close out",
+          "ts": "2025-04-21T11:43:11"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-054 is moving, the response object work in PR 643 is part of it and should be reviewable this week",
+          "ts": "2025-04-21T11:43:19"
+        },
+        {
+          "userId": "dario",
+          "text": "+1 to blocking time for the PR review, that's the right call",
+          "ts": "2025-04-21T11:50:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai Berresford are you thinking this week for that review block, or next?",
+          "ts": "2025-04-21T12:24:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "This week, I'll send something round this afternoon with the list",
+          "ts": "2025-04-21T12:27:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "I i think some of these are already ready to merge and don't need a group session, PR 632 is just sitting there",
+          "ts": "2025-04-21T13:03:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we want to at least do a quick triage pass first, or are we trusting individual reviewers to just grab what's ready?",
+          "ts": "2025-04-21T13:18:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Do we know which of the six PRs in the backlog are blocked on something vs. just sitting there waiting on review eyes?",
+          "ts": "2025-04-21T13:18:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Once Nikolai sends the list, we could do a quick call to sort blocked vs ready, I'm free this afternoon",
+          "ts": "2025-04-21T14:00:33"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai Berresford how far out is that list?",
+          "ts": "2025-04-21T14:38:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Sending it now.",
+          "ts": "2025-04-21T14:59:33",
+          "reactions": [
+            {
+              "emoji": "⚡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "nice, quick turnaround",
+          "ts": "2025-04-21T15:42:33",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Still free for a call if we want to triage while it's fresh",
+          "ts": "2025-04-21T16:27:33"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-050 main cases are all closed out, wrapping up the last edge case today",
+          "ts": "2025-04-21T16:56:33"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-054 is still moving, should have something reviewable tomorrow",
+          "ts": "2025-04-21T16:56:41"
         }
       ],
       "projectSpec": {
@@ -30078,7 +31008,8 @@
         "dario",
         "dermot",
         "emil",
-        "gideon"
+        "gideon",
+        "nikolai"
       ],
       "messages": [
         {
@@ -30684,6 +31615,128 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "- WS-050 bug sweep is mostly done, a few edge cases to double-check\n- WS-054 cost accounting still in progress, aiming to have something concrete this afternoon\n- noticed the 20k row verification run is spending a lot of wall clock outside the container, looking into where that time is going",
+          "ts": "2025-04-21T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Tangentially related to that - I profiled the 40k row poem run and noticed we're doing the capability lookup on every single request. Is that expected, or is something supposed to be caching that result?",
+          "ts": "2025-04-21T09:34:54"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- dug into the verification timing, looks like the wall clock is being eaten outside the container itself, not inside it\n- on Gideon's point: the capability answer doesn't change mid-run, doing that lookup per request is just waste",
+          "ts": "2025-04-21T10:09:54",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Yeah, good to have that confirmed. Is the lookup sitting in the request path itself, or somewhere we could plausibly pin it at run start?",
+          "ts": "2025-04-21T10:24:54"
+        },
+        {
+          "userId": "nikolai",
+          "text": "If it's the same answer for the whole run regardless, it makes more sense to resolve it once at startup and pass it down than to keep it in the request path at all",
+          "ts": "2025-04-21T10:45:05",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "That 20k row run is mine",
+          "ts": "2025-04-21T12:08:30"
+        },
+        {
+          "userId": "emil",
+          "text": "Most of the wall clock looks like it went to the pull step before the container even started",
+          "ts": "2025-04-21T12:08:42"
+        },
+        {
+          "userId": "emil",
+          "text": "hmm",
+          "ts": "2025-04-21T12:27:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "Also from that poem run - 40k identical debug lines in the log, same line repeated every request",
+          "ts": "2025-04-21T13:13:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone know where those are getting emitted?",
+          "ts": "2025-04-21T13:13:09"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai Berresford is the pre-container pull step something you're already tracking, or is that new?",
+          "ts": "2025-04-21T14:06:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "40k passes over the same model string for a 40k row run, that's what the debug lines are, log output of that same lookup",
+          "ts": "2025-04-21T14:06:21"
+        },
+        {
+          "userId": "gideon",
+          "text": "profiled the 40k row poem run because the bars were stuttering, that's what put me on this",
+          "ts": "2025-04-21T14:06:27.666667"
+        },
+        {
+          "userId": "gideon",
+          "text": "and the answer can't change between row 1 and row 40000, the model name is fixed the moment you configure the thing",
+          "ts": "2025-04-21T14:06:34.333334"
+        },
+        {
+          "userId": "gideon",
+          "text": "and the model name is fixed the moment you configure the thing",
+          "ts": "2025-04-21T14:06:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Yeah",
+          "ts": "2025-04-21T15:04:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'd flagged that",
+          "ts": "2025-04-21T15:04:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "If the fix is small enough it could probably fold into the pinning PR rather than its own thing",
+          "ts": "2025-04-21T15:04:55"
+        },
+        {
+          "userId": "emil",
+          "text": "If it's exactly 40k lines for a 40k row run, that's one log call per request.",
+          "ts": "2025-04-21T15:48:55"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is the pull happening every request, or just once at startup?",
+          "ts": "2025-04-21T15:49:18"
+        },
+        {
+          "userId": "emil",
+          "text": "No update on the pull timing from my end yet.",
+          "ts": "2025-04-21T17:00:37"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Emil, do you have a rough sense of how many times the pull ran in that 20k row pass?",
+          "ts": "2025-04-21T17:01:08"
         }
       ],
       "projectSpec": {
@@ -31915,6 +32968,106 @@
           "userId": "emil",
           "text": "Are we calling it optional or strongly recommended?",
           "ts": "2025-04-11T18:27:11.077393"
+        },
+        {
+          "userId": "nikolai",
+          "text": "code-execution is in decent shape, sandbox isolation is holding up and I've got instrumentation passing through cleanly",
+          "ts": "2025-04-18T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Working through the last few edge cases on the telemetry side this morning",
+          "ts": "2025-04-18T09:00:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Did anyone manage to repro the pass-rate change from Monday, or is that still sitting open?",
+          "ts": "2025-04-18T09:00:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Actually, answering my own question, I heard Konrad tried to repro it and his second run finished in nine seconds.",
+          "ts": "2025-04-18T09:15:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Nine seconds sounds like it just hit the cache and skipped the actual run. Is there a way to tell whether it actually executed anything or resumed from a prior job?",
+          "ts": "2025-04-18T10:01:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario Kestrel you own caching-and-resume right, what does the fingerprint for a run actually include?",
+          "ts": "2025-04-18T10:55:48"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah, that's a good question",
+          "ts": "2025-04-18T10:57:48"
+        },
+        {
+          "userId": "dario",
+          "text": "The fingerprint is in my code, so broadly: prompt hash, model, generation params, provider name",
+          "ts": "2025-04-18T10:58:06"
+        },
+        {
+          "userId": "dario",
+          "text": "Do you know if Konrad had the same provider set both times, or did anything change between the two runs?",
+          "ts": "2025-04-18T10:58:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "dunno, I'd have to check with Konrad",
+          "ts": "2025-04-18T11:10:18"
+        },
+        {
+          "userId": "dario",
+          "text": "Actually I hit something related - killed a run mid-batch, switched the backend from openai to anthropic in the same script, reran, and it went straight back to polling the openai batch id from the first attempt.",
+          "ts": "2025-04-18T11:24:18",
+          "reactions": [
+            {
+              "emoji": "🐛",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "only spotted it because the id in the log still had the openai shape on it",
+          "ts": "2025-04-18T11:24:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So the provider name is in the fingerprint but it's not actually being used to key the cache lookup?",
+          "ts": "2025-04-18T12:03:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does the fingerprint pull in anything from the code executor, or is it purely the request params?",
+          "ts": "2025-04-18T12:03:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario Kestrel still curious on the fingerprint question when you get a chance",
+          "ts": "2025-04-18T12:51:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-18T12:51:34"
+        },
+        {
+          "userId": "dario",
+          "text": "The fingerprint code is mine, but I'd need to look at what code-execution is actually feeding into it before I can promise anything about how that side is handled.",
+          "ts": "2025-04-18T12:51:34",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-18T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What does code-execution actually hand off to you, do you know what the interface looks like?",
+          "ts": "2025-04-18T13:01:34"
         }
       ],
       "projectSpec": {
@@ -42225,6 +43378,477 @@
             }
           ],
           "threadParentTs": "2025-04-17T16:32:55"
+        },
+        {
+          "userId": "dermot",
+          "text": "been thinking about the job-reuse question this week",
+          "ts": "2025-04-21T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "if the stored job doesn't match what we'd send today, I think we just submit a new one and eat the 24h and the cost",
+          "ts": "2025-04-21T09:00:05",
+          "reactions": [
+            {
+              "emoji": "💭",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "a duplicate batch is a few dollars; a dataset that quietly blends two configs is a trust problem",
+          "ts": "2025-04-21T09:00:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "i think that's right for a full mismatch, but do we have a clear definition of what \"doesn't match\" means yet?",
+          "ts": "2025-04-21T09:43:10"
+        },
+        {
+          "userId": "dermot",
+          "text": "good question, I don't think that's defined anywhere yet",
+          "ts": "2025-04-21T10:08:10"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold can you weigh in on what keys we'd need to compare to call it a mismatch?",
+          "ts": "2025-04-21T10:08:22",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-21T12:24:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "+1",
+          "ts": "2025-04-21T11:03:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Rewrote the reattach path over the weekend, the key-mismatch and completed-batch download cases are both handled now",
+          "ts": "2025-04-21T11:42:28",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-04-21T14:09:01"
+        },
+        {
+          "userId": "dario",
+          "text": "Ready for eyes on it when Emil weighs in on the comparison keys",
+          "ts": "2025-04-21T11:42:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Gotcha, let me think through the keys.",
+          "ts": "2025-04-21T12:01:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Model and the prompt inputs are obvious ones, but I'm not sure where we draw the line on generation params, does a temperature difference count as a mismatch, or are we only checking structural things?",
+          "ts": "2025-04-21T12:24:55",
+          "threadParentTs": "2025-04-21T10:08:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil Brandvold can you put together a short list of what counts as a mismatch and we treat that as the spec?",
+          "ts": "2025-04-21T12:39:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Will put that together this afternoon.",
+          "ts": "2025-04-21T12:41:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "So the completed-batch download, that's a re-download even if the file is already local?",
+          "ts": "2025-04-21T14:09:01",
+          "threadParentTs": "2025-04-21T11:42:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "And for the key mismatch, it resubmits fresh, or does it error?",
+          "ts": "2025-04-21T14:09:11"
+        },
+        {
+          "userId": "dario",
+          "text": "The completed-batch path in the old code was unconditionally re-downloading regardless of whether the file was already local, that's fixed in the rewrite",
+          "ts": "2025-04-21T14:43:54"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario Kestrel can you confirm how the rewrite handles the key mismatch case, fresh submission or error?",
+          "ts": "2025-04-21T15:55:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Key mismatch does a fresh submission, consistent with what Dermot said earlier",
+          "ts": "2025-04-21T16:40:59"
+        },
+        {
+          "userId": "dario",
+          "text": "Completed-batch download also fixed to skip re-download if the file's already local",
+          "ts": "2025-04-21T16:41:11"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is moving again, just clearing a few last things before it's ready to go. Also been poking at the Anthropic token issue and I think it's isolated to that provider, not cascading",
+          "ts": "2025-04-22T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone seen the token count issue show up on providers other than Anthropic?",
+          "ts": "2025-04-22T09:00:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok moving on from that, separate thing: does the ordering root cause fix in batch-mode already cover the update frequency issue, or are those tracked separately?",
+          "ts": "2025-04-22T09:15:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Tomas where does PR 640 stand, is it close?",
+          "ts": "2025-04-22T09:55:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anthropic token thing looks contained to that provider, nothing else showing the same pattern",
+          "ts": "2025-04-22T10:17:23",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is in decent shape, just need to nail down whether the batch ordering fix changes what I still owe there",
+          "ts": "2025-04-22T10:17:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "welp",
+          "ts": "2025-04-22T11:12:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Confirmed on my end too, the Anthropic token issue is scoped to that provider, nothing I've seen in the other integrations touches the same path",
+          "ts": "2025-04-22T11:50:28"
+        },
+        {
+          "userId": "emil",
+          "text": "The ordering fix in batch-mode does close out the sweep, Gideon, those aren't tracked separately, so PR 632 shouldn't owe anything on that front once you're past your last few items.",
+          "ts": "2025-04-22T12:22:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil once I push the last bits on PR 632, is there a review lined up or do I need to flag someone?",
+          "ts": "2025-04-22T12:50:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly, i'd want to double-check that the sweep didn't have other items beyond just the ordering issue, not 100% sure the root cause fix closes all of it",
+          "ts": "2025-04-22T13:18:28"
+        },
+        {
+          "userId": "dario",
+          "text": "Anyone hit weird retry behavior when the anthropic token count comes back malformed, or does the casting fix upstream prevent that from ever reaching the retry logic?",
+          "ts": "2025-04-22T13:18:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, worth a quick check on the sweep scope before I bank on PR 632 owing nothing there",
+          "ts": "2025-04-22T13:58:55"
+        },
+        {
+          "userId": "emil",
+          "text": "April grind is in solid shape from where I'm sitting, workstreams are moving and nothing broken on the provider integrations side.",
+          "ts": "2025-04-22T14:28:55"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon fair, let me actually verify the full sweep scope before you bank on it, is the batch-update frequency piece your main outstanding item on 632, or is there more?",
+          "ts": "2025-04-22T14:29:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Around the rest of today if anyone needs eyes on anything, just ping me",
+          "ts": "2025-04-22T14:51:00"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario still not 100% sure the ordering fix closes the full sweep, worth a quick look before we call it done, if you have a few minutes?",
+          "ts": "2025-04-22T15:24:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Can't close out the sweep until someone verifies the scope, that's sitting open and blocking the call on PR 632.",
+          "ts": "2025-04-22T15:24:12"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider integrations are clean across the board, nothing else showing the anthropic token pattern.",
+          "ts": "2025-04-22T15:52:12"
+        },
+        {
+          "userId": "dario",
+          "text": "- *token accounting fix* landed, anthropic-only, nothing cascading to other providers\n- online-request-processing stable, no issues on my end\n- caching-and-resume holding up fine",
+          "ts": "2025-04-22T15:52:24",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil yeah, batch-update freq is the main thing left on 632, nothing else outstanding on my side once that's settled",
+          "ts": "2025-04-22T16:22:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Sounds like the ordering fix does close the sweep then, nothing else outstanding on 632 beyond the freq piece.",
+          "ts": "2025-04-22T16:34:24"
+        },
+        {
+          "userId": "emil",
+          "text": "@Gideon, once that's done, do you need a reviewer lined up or are you already sorted?",
+          "ts": "2025-04-22T16:34:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Still need a reviewer, haven't sorted that yet",
+          "ts": "2025-04-22T16:50:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll push the freq fix shortly and can flag it then if you're up for it",
+          "ts": "2025-04-22T16:50:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-04-22T17:22:44"
+        },
+        {
+          "userId": "emil",
+          "text": "ping me when it's up and I'll take a look.",
+          "ts": "2025-04-22T17:22:56"
+        },
+        {
+          "userId": "dario",
+          "text": "Provider integrations wrapped on my end, nothing left open there",
+          "ts": "2025-04-22T17:43:56",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference is mostly stable, few loose ends on the proivder side",
+          "ts": "2025-04-23T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "multimodal-prompts is holding, nothing urgent there",
+          "ts": "2025-04-23T09:00:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Dario, does the request fingerprint factor in model at all, or is it just prompt + params?",
+          "ts": "2025-04-23T09:27:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "I mean, it should be. same prompt on a different model is not the same request",
+          "ts": "2025-04-23T09:35:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah but do we know for sure it actually is, or is that the thing nobody's checked?",
+          "ts": "2025-04-23T11:13:50"
+        },
+        {
+          "userId": "dario",
+          "text": "Been in the caching code most of this morning looking at exactly this - from what I can see so far, model is not explicitly part of the fingerprint",
+          "ts": "2025-04-23T11:40:50",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "It hashes on promt content and the generation params that get passed in, but model comes in as its own thing and I'm not seeing it folded into the key",
+          "ts": "2025-04-23T11:40:58"
+        },
+        {
+          "userId": "dario",
+          "text": "Still working through it to make sure I'm reading that right",
+          "ts": "2025-04-23T11:41:06"
+        },
+        {
+          "userId": "emil",
+          "text": "huh",
+          "ts": "2025-04-23T12:43:37"
+        },
+        {
+          "userId": "emil",
+          "text": "that would explain a lot",
+          "ts": "2025-04-23T12:43:42",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "If model gets added to the key, do we have any sense of how many existing cached entries would get blown away?",
+          "ts": "2025-04-23T13:15:42",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-23T13:16:02"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I don't have that count, and I'd lean toward not moving on this until we do.",
+          "ts": "2025-04-23T13:16:02",
+          "threadParentTs": "2025-04-23T13:15:42"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is there a way to pull that count from the cache store, or does it need instrumentation first?",
+          "ts": "2025-04-23T14:33:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Related: the persisted job record doesn't store the model either, just the id, the request file path, and a timestamp",
+          "ts": "2025-04-23T15:09:14"
+        },
+        {
+          "userId": "emil",
+          "text": "and this isn't the first time either, it's bitten me twice this week",
+          "ts": "2025-04-23T15:09:24"
+        },
+        {
+          "userId": "emil",
+          "text": "that's the whole record, nothing else on it",
+          "ts": "2025-04-23T15:09:34"
+        },
+        {
+          "userId": "emil",
+          "text": "so if someone hands me a run dir I can't tell what model it went out with, and that means I can't tell if picking it back up is safe",
+          "ts": "2025-04-23T15:09:54"
+        },
+        {
+          "userId": "dermot",
+          "text": "the fingerprint and the job record have the same gap",
+          "ts": "2025-04-23T15:35:14"
+        },
+        {
+          "userId": "dario",
+          "text": "I'd want @Nikolai Berresford in this before we touch anything - I dunno off the top of my head if the count is even pullable without adding instrumentation first, and I need a real number on the blast radius before I touch the key",
+          "ts": "2025-04-23T15:39:14",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "replyCount": 2,
+          "replyLastTs": "2025-04-23T16:59:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "Good call holding off",
+          "ts": "2025-04-23T16:59:19",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-23T15:39:14"
+        },
+        {
+          "userId": "gideon",
+          "text": "That's the right move",
+          "ts": "2025-04-23T16:59:31",
+          "threadParentTs": "2025-04-23T15:39:14"
+        },
+        {
+          "userId": "emil",
+          "text": "We could fix the job record side independently, just write the model into the pending record without touching the cache key at all.",
+          "ts": "2025-04-23T17:13:31",
+          "reactions": [
+            {
+              "emoji": "💯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "pbar update is done and batch update freq fix is merged. want to make sure batch job status tracking is still accurate through the full lifecycle after the pbar change, so flagging that now in case anyone spots something weird.",
+          "ts": "2025-04-24T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "does the batch status tracking read off the pbar state at all, or is it fully independent of it?",
+          "ts": "2025-04-24T09:10:54"
+        },
+        {
+          "userId": "gideon",
+          "text": "uh, answering myself, they're independent, batch status reads from job state directly, not the pbar",
+          "ts": "2025-04-24T09:54:55",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "so what I actually want to know is whether there's any point in the job lifecycle where those counts could diverge",
+          "ts": "2025-04-24T09:55:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "is there a test that exercises the full batch job lifecycle, or would I need to run one by hand to confirm the status tracking is still accurate?",
+          "ts": "2025-04-24T17:34:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Sorry, just catching up, no automated test covers the full batch job lifecycle end to end, you'd need to run one by hand to confirm the status tracking holds.",
+          "ts": "2025-04-24T18:16:23"
+        },
+        {
+          "userId": "emil",
+          "text": "I'd push back on calling the status tracking validated if nobody's actually run the full lifecycle by hand yet.",
+          "ts": "2025-04-24T18:29:31.019256",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -45737,6 +47361,132 @@
           "userId": "emil",
           "text": "WS-055 isn't on the wiki yet, Dermot said he still owes it, so that's on him whenever he gets to it.",
           "ts": "2025-04-11T18:29:57.995288"
+        },
+        {
+          "userId": "dermot",
+          "text": "changelog is drafted and CI is green",
+          "ts": "2025-04-24T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "just need to know if the pinning change is riding along before I tag",
+          "ts": "2025-04-24T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Before we tag, are we all agreed that v0.1.7 is the build everything verifed runs on?",
+          "ts": "2025-04-24T09:36:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "yeah, v0.1.7. I'm around all morning if we're tagging today",
+          "ts": "2025-04-24T09:56:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Not clear on the bump flow, does the version change go through a PR or is something automated kicking it?",
+          "ts": "2025-04-24T10:36:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ok",
+          "ts": "2025-04-24T10:36:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "It's the last build I'd personally call safe.",
+          "ts": "2025-04-24T10:36:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyway, the docker smoke test has been running against v0.1.7 since February, everything we've actually verified end to end sits on that build",
+          "ts": "2025-04-24T10:36:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "answering my own question",
+          "ts": "2025-04-24T10:36:45"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Should be PR only",
+          "ts": "2025-04-24T10:36:57"
+        },
+        {
+          "userId": "dermot",
+          "text": "+1",
+          "ts": "2025-04-24T11:03:57",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "What's the pinning change sitting in, is it already merged or still waiting on a PR?",
+          "ts": "2025-04-24T11:05:57",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-24T11:06:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll pull up the PR list and check where it sits.",
+          "ts": "2025-04-24T11:06:42",
+          "threadParentTs": "2025-04-24T11:05:57"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai where's the pinning change at?",
+          "ts": "2025-04-24T11:07:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Couldn't track it down in the open PRs, might already be merged",
+          "ts": "2025-04-24T11:49:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyway, the docker smoke test has been running against v0.1.7 since February, everything we've actually verified end to end sits on that build",
+          "ts": "2025-04-24T11:49:30"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'd want to actually confirm that before we tag, \"might be merged\" isn't really the same as knowing.",
+          "ts": "2025-04-24T12:28:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Fair enough, but does this actually need to be in beofre we tag or can it follow?",
+          "ts": "2025-04-24T12:30:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Emil would know the status better than me",
+          "ts": "2025-04-24T12:30:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Look, v0.1.7 is the build everything verified runs on, can we call that settled?",
+          "ts": "2025-04-24T12:31:18"
+        },
+        {
+          "userId": "emil",
+          "text": "I don't see an open PR for it either, so it's probably already merged. And yes, v0.1.7 is settled on my end.",
+          "ts": "2025-04-24T12:41:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -46951,6 +48701,51 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "gideon",
+          "text": "pbar fix is in, user-facing progress readout looks unchanged from what I can see",
+          "ts": "2025-04-24T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "want to confirm it's consistent with what viewer expects before calling it done",
+          "ts": "2025-04-24T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "does the viewer pull the progress readout directly from the pbar, or does it have its own source for that?",
+          "ts": "2025-04-24T09:15:39"
+        },
+        {
+          "userId": "gideon",
+          "text": "Went back and looked at it from my side, the pbar fix is self-contained and the progress readout coming out of progress-and-cli looks right. Still want someone on the viewer side to confirm the display is consistent with what they expect.",
+          "ts": "2025-04-24T09:58:13"
+        },
+        {
+          "userId": "gideon",
+          "text": "pbar fix is solid on my end, progress-and-cli readout is unchanged",
+          "ts": "2025-04-24T17:38:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "never got a confirmation on the viewer side today",
+          "ts": "2025-04-24T17:38:13"
+        },
+        {
+          "userId": "emil",
+          "text": "hmm",
+          "ts": "2025-04-24T18:28:07"
+        },
+        {
+          "userId": "emil",
+          "text": "that's still sitting open then",
+          "ts": "2025-04-24T18:28:15"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario can you confirm the pbar display is consistent with what viewer expects before we close this out?",
+          "ts": "2025-04-24T18:29:52.885993"
         }
       ],
       "projectSpec": {
