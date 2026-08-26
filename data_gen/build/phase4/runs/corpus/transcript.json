@@ -14487,6 +14487,539 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 652 is up, adds dataset download to the viewer surface, emil's work on bulk-llm-inference side looks clean so far",
+          "ts": "2025-04-25T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "needs eyes before end of day if we want any chance of landing it this week",
+          "ts": "2025-04-25T09:00:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "I've been through the bulk-llm-inference changes too, nothing jumping out, so the main question is really the viewer-side download flow if anyone has bandwidth this morning",
+          "ts": "2025-04-25T09:40:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno if end of day is realistic if nobody's been through the viewer-side download flow yet",
+          "ts": "2025-04-25T10:17:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "yeah that's the part that needs someone",
+          "ts": "2025-04-25T10:21:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "anyone able to take the viewer-side download flow in PR 652 before lunch?",
+          "ts": "2025-04-25T10:21:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can take the viewer-side download flow before lunch.",
+          "ts": "2025-04-25T11:03:35",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Perfect, thanks Dermot.",
+          "ts": "2025-04-25T11:54:58"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So if Dermot's pass is clean we're merging today?",
+          "ts": "2025-04-25T12:27:35"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Oh",
+          "ts": "2025-04-25T12:38:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I think I can answer my own question - Dermot's review decides it, clean pass and we merge today, anything that needs fixing and it's Monday.",
+          "ts": "2025-04-25T12:39:00"
+        },
+        {
+          "userId": "emil",
+          "text": "That's pretty much it",
+          "ts": "2025-04-25T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is otherwise ready on my end, just waiting on Dermot's pass",
+          "ts": "2025-04-25T12:41:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 merged, off my plate.",
+          "ts": "2025-04-25T13:55:22",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "went through the viewer-side download flow, most of it looks fine, but I still don't have clarity on how it behaves when caching-and-resume hasn't finished writing the dataset yet, and dario hasn't responded on that",
+          "ts": "2025-04-25T14:38:22",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-25T14:38:34"
+        },
+        {
+          "userId": "emil",
+          "text": "So is the partial-write case actually a blocker for you, or more of a \"nice to have clarity on\" before approving?",
+          "ts": "2025-04-25T14:38:34",
+          "threadParentTs": "2025-04-25T14:38:22"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we calling the partial-write question a blocker for PR 652, or is that a Monday follow-up with Dario?",
+          "ts": "2025-04-25T14:38:53"
+        },
+        {
+          "userId": "gideon",
+          "text": "- PR 632 (curator CLI batch update freq) is sitting in review, no blockers on my end\n- still got one stale PR of my own to keep an eye on but mostly good\n- Emil's queue is the one I'm watching, he has 5 open",
+          "ts": "2025-04-28T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone free to take a look at my finetuning client PR this morning, it's been sitting for a couple days now",
+          "ts": "2025-04-28T09:10:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "two days is a while, hope someone gets to it this morning",
+          "ts": "2025-04-28T10:08:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad, you have bandwidth for a finetuning client review this morning?",
+          "ts": "2025-04-28T10:27:44"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, free this afternoon to run through your open PRs?",
+          "ts": "2025-04-28T11:12:15"
+        },
+        {
+          "userId": "emil",
+          "text": "- *PR 468, 643, 651* are all ready for review, no blockers on my end\n- PR 652 still needs a bit of work before it's ready to go through\n- Afternoon works for me @Gideon, let's do it",
+          "ts": "2025-04-28T11:51:15",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 640 is still sitting there too, hasn't come up yet. Not sure where that one lands today.",
+          "ts": "2025-04-28T11:51:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still no reviewer on my finetuning client PR, Konrad hasn't replied to my ask this morning.",
+          "ts": "2025-04-28T12:02:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the finetuning client PR blocking anything, or is it just waiting?",
+          "ts": "2025-04-28T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 640 still doesn't have a reviewer - is anyone picking that one up this afternoon?",
+          "ts": "2025-04-28T12:50:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is in decent shape, batch update freq fix is done and tests are passing",
+          "ts": "2025-04-29T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone able to take a look at PR 632 today, or should I find someone specific to tag?",
+          "ts": "2025-04-29T09:00:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Got the finetuning client work in a state I'm happy with, going to open PR 653 for it this morning",
+          "ts": "2025-04-29T09:07:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Touches finetuning and some provider wiring, not blocking a release but I'd like eyes on it today if anyone has a slot",
+          "ts": "2025-04-29T09:07:47"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai what provider wiring does PR 653 touch exactly?",
+          "ts": "2025-04-29T10:53:43"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Mostly finetuning client stuff, the provider wiring is just the structured output override key rename and the num_gpus param, doesn't go anywhere near the actual inference path",
+          "ts": "2025-04-29T11:09:43"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR is open now if you have time to take a look",
+          "ts": "2025-04-29T11:09:55"
+        },
+        {
+          "userId": "emil",
+          "text": "gotcha",
+          "ts": "2025-04-29T12:25:17"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 651 and PR 652 are both ready for review, multimodal model update and viewer download respectively, neither blocking a release but I'd like to get them merged this afternoon if anyone has a slot.",
+          "ts": "2025-04-29T12:36:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone able to take PR 653 this afternoon, or should I find someone separately?",
+          "ts": "2025-04-29T12:51:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 still has no reviewer and it's mid-afternoon, it's going to slip if nobody picks it up today.",
+          "ts": "2025-04-29T13:56:48"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 651 and 652 still don't have reviewers either",
+          "ts": "2025-04-29T14:09:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Is anyone free to take one of those this afternoon, or do I need to go track someone down?",
+          "ts": "2025-04-29T14:09:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is in the same spot. @Konrad, it touches finetuning directly - any chance you can take it?",
+          "ts": "2025-04-29T14:54:48"
+        },
+        {
+          "userId": "emil",
+          "text": "WS-055 doesn't exist yet as far as I can tell. Is that still on Dermot to write up, or did it go somewhere else?",
+          "ts": "2025-04-29T15:38:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is clean, tests green, ready to merge the moment someone looks at it.",
+          "ts": "2025-04-29T16:17:48",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Can someone just claim PR 632 before end of day, or are we letting it roll to Wednesday?",
+          "ts": "2025-04-29T16:18:19"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 651 and 652 are in the same spot, no reviewer yet and the day's almost gone.",
+          "ts": "2025-04-29T18:27:44.341493"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 658 is ready for review, release-and-ci side",
+          "ts": "2025-05-01T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "not blocking a release but I'd like eyes on it this morning if anyone has a slot",
+          "ts": "2025-05-01T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "Handover: Status Tracking, Cost Reporting & the Viewer Surface is up on the engineering wiki. One thing I wanted to nail down explicitly in there: zero cache hits on a fresh machine is correct and a fine number to report, not a sign anything's broken.",
+          "ts": "2025-05-01T09:04:12",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dermot what's the part of PR 658 you most want eyes on, release scripts or CI config?",
+          "ts": "2025-05-01T09:04:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "CI config side mainly",
+          "ts": "2025-05-01T11:34:53"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 643 could use eyes if anyone has a slot after lunch, response object changes on the online-request-processing side.",
+          "ts": "2025-05-01T12:16:53"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 651 is up for review too, multimodal models update on the provider-integrations side.",
+          "ts": "2025-05-01T12:17:26"
+        },
+        {
+          "userId": "dermot",
+          "text": "I can take a look at PR 643 this afternoon",
+          "ts": "2025-05-01T12:39:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, might be worth you weighing in too given the viewer surface",
+          "ts": "2025-05-01T12:39:05"
+        },
+        {
+          "userId": "emil",
+          "text": "thanks Dermot",
+          "ts": "2025-05-01T12:41:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "also, I can look at PR 658 CI config this afternoon if nobody's on it yet",
+          "ts": "2025-05-01T12:41:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Tried to pull up WS-055 in the tracker and couldn't find it, Dermot",
+          "ts": "2025-05-01T12:41:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that written up anywhere yet, or is it still pending?",
+          "ts": "2025-05-01T12:41:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 643 is also a blocker for me on the integration side, the viewer is reading response fields that aren't under the stable contract yet, so until that merges I can't say the numbers it's surfacing are reliable.",
+          "ts": "2025-05-01T12:52:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil are the response object changes in PR 643 additive, or do they rename or remove any existing fields?",
+          "ts": "2025-05-01T12:52:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is PR 643 still targeting a merge today or has that slipped to tomorrow at this point?",
+          "ts": "2025-05-01T13:34:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anyone had a chance to look at PR 632 yet?",
+          "ts": "2025-05-01T13:51:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Sorry @Gideon, PR 643 is additive only, no fields renamed or dropped",
+          "ts": "2025-05-01T17:51:55",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure if Dermot got through the review yet, might slip to tomorrow",
+          "ts": "2025-05-01T17:52:03"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 658 CI config still needs a reviewer too, I didnt end up getting to it this afternoon.",
+          "ts": "2025-05-01T17:52:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "just checked, WS-055 isn't in the wiki or the tracker",
+          "ts": "2025-05-01T18:00:09.789357"
+        },
+        {
+          "userId": "dermot",
+          "text": "that writeup is mine and I haven't done it yet",
+          "ts": "2025-05-01T18:00:21.789357"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil is it blocking anything on your side right now?",
+          "ts": "2025-05-01T18:00:29.789357"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 653 and PR 656 both merged this morning on the finetuning side",
+          "ts": "2025-05-02T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 659 is the one I still need eyes on, presumbaly before end of day if we want to clear the queue",
+          "ts": "2025-05-02T09:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is nearly there, just a couple of small cleanups left",
+          "ts": "2025-05-02T09:27:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Can get eyes on PR 659 this morning too if that helps clear the queue",
+          "ts": "2025-05-02T09:27:20",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "That works, PR 659 eyes this morning would be great. Finetuning side is clear on my end",
+          "ts": "2025-05-02T10:01:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "So PR 659 is a straight review pass, no open threads or blockers on it already?",
+          "ts": "2025-05-02T10:28:22",
+          "replyCount": 2,
+          "replyLastTs": "2025-05-02T11:16:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Right",
+          "ts": "2025-05-02T11:16:03",
+          "threadParentTs": "2025-05-02T10:28:22"
+        },
+        {
+          "userId": "konrad",
+          "text": "nothing blocking on my end",
+          "ts": "2025-05-02T11:16:15",
+          "threadParentTs": "2025-05-02T10:28:22"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 656 is through, and PR 659 getting eyes this morning clears my queue on that side",
+          "ts": "2025-05-02T11:53:15"
+        },
+        {
+          "userId": "emil",
+          "text": "My batch-mode stuff (PR 468, PR 652) is still in flight but nothing blocking a review if anyone has cycles",
+          "ts": "2025-05-02T11:53:27"
+        },
+        {
+          "userId": "emil",
+          "text": "Does anyone need the v0.1.23 release notes filled out before we wrap today? Still a stub on my end.",
+          "ts": "2025-05-02T11:54:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Ok",
+          "ts": "2025-05-02T12:04:00"
+        },
+        {
+          "userId": "emil",
+          "text": "answering my own question on the release notes, nobody's waiting on it so I'll fill the stub in this afternoon",
+          "ts": "2025-05-02T12:04:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Anything still needed from me on PR 659 before Gideon's done with it?",
+          "ts": "2025-05-02T12:04:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, answering my own question, Gideon has PR 659 covered, nothing needed from me",
+          "ts": "2025-05-02T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Where does PR 632 land by end of day, still on track or are we pushing it to next week?",
+          "ts": "2025-05-02T12:41:12"
+        },
+        {
+          "userId": "emil",
+          "text": "v0.1.23 release notes are still a stub, opened them earlier, changelog section is all TBD, nothing filled in yet.",
+          "ts": "2025-05-02T13:48:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Does anyone have the merged PR list for the sprint, or should I just pull it myself this afternoon?",
+          "ts": "2025-05-02T13:48:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is pushing to next week, ran into some edge cases in the update-freq logic this afternoon.",
+          "ts": "2025-05-02T14:33:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "We should do a quick pass on anything else stale before we wrap for the weekend, make sure nothing's sitting blocked.",
+          "ts": "2025-05-02T14:33:28"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 659 is approved on my end, nothing flagged.",
+          "ts": "2025-05-02T14:33:56",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 656 and PR 659 both confirmed, finetuning queue is clear",
+          "ts": "2025-05-02T14:59:56",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 632 slipping to next week is fine, Gideon flagged the edge cases so at least it's not sitting silent",
+          "ts": "2025-05-02T15:00:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 picks back up Monday, edge cases first.",
+          "ts": "2025-05-02T15:10:08"
         }
       ],
       "projectSpec": {
@@ -17709,6 +18242,203 @@
           "userId": "nikolai",
           "text": "Sorry, got pulled into other stuff and never did end up checking the sandbox repo today. I'll look at what it actually publishes tomorrow.",
           "ts": "2025-04-16T18:10:31"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Upload function changes are wrapped up and the job ID return semantics are looking fine",
+          "ts": "2025-04-25T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Haven't dug into waht Konrad's finetuning work does to the cookbook examples yet, planning to get to that this morning",
+          "ts": "2025-04-25T09:00:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Konrad where do the finetuning changes land, anything that touches the cookbook interface?",
+          "ts": "2025-04-25T09:19:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai any early read on the cookbook impact yet?",
+          "ts": "2025-04-25T09:19:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Started going through the upload function changes and job ID semantics on my end, nothing looks broken so far. Stil need to see what Konrad's finetuning side actually touches before I can say anything useful about the cookbook examples.",
+          "ts": "2025-04-25T09:39:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not sure we can really say the cookbooks are unaffected until someone has actually looked at what konrad's changes touch",
+          "ts": "2025-04-25T10:59:23"
+        },
+        {
+          "userId": "emil",
+          "text": "+1",
+          "ts": "2025-04-25T11:42:23",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "- Upload function and job ID semantics are clean on my end, nothing cookbook-breaking there\n- Looked for the v0.1.23 release notes on the wiki and the page isn't up yet, that one's on Emil",
+          "ts": "2025-04-25T12:20:23",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-25T12:46:45"
+        },
+        {
+          "userId": "emil",
+          "text": "v0.1.23 release notes are up now, engineering/v0-1-23-release-notes.md on the wiki.",
+          "ts": "2025-04-25T12:39:23",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes are up now",
+          "ts": "2025-04-25T12:46:45",
+          "threadParentTs": "2025-04-25T12:20:23"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, where are you on the finetuning side, anything that touches the cookbook examples?",
+          "ts": "2025-04-25T12:46:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Around this afternoon. I looked at the release notes and it's still a skeleton, no changelog detail filled in yet, so my part isn't covered there.",
+          "ts": "2025-04-25T13:10:50"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai what's the part that's not covered, is it the upload function changes, the job ID semantics, or both?",
+          "ts": "2025-04-25T14:41:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Both, the notes have no changelog detail in them at all.",
+          "ts": "2025-04-25T14:51:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Emil still has the sprint board to go through, my part goes in once that's done",
+          "ts": "2025-04-25T14:51:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "We still haven't heard from Konrad on the finetuning side",
+          "ts": "2025-04-25T14:51:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Konrad if you have 10 minutes before end of day, I'd like to go through the finetuning changes with you to check the cookbook side",
+          "ts": "2025-04-25T14:57:45"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario we're trying to close out whether konrad's finetuning changes affect the cookbook examples today and konrad hasn't responded, can you weigh in on whether we should wait or just call it unaffected and move on?",
+          "ts": "2025-04-25T14:57:59"
+        },
+        {
+          "userId": "emil",
+          "text": "Going through the sprint board now, changelog detail going in after.",
+          "ts": "2025-04-25T15:15:59"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do Konrad's changes touch the code-execution side at all, or is it contained to the finetuning pipeline?",
+          "ts": "2025-04-25T15:33:59"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Actually, do the cookbook examples call into finetuning directly or just produce data that feeds it?",
+          "ts": "2025-04-25T15:34:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "the cookbook examples produce data that goes into finetuning, they don't call the finetuning pipeline directly, so whether konrad's changes break anything depends on whether the data format or handoff contract changed.",
+          "ts": "2025-04-25T15:46:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "i'm not sure we can call it unaffected without konrad confirming the handoff contract hasn't changed, that's the part nobody here actually knows",
+          "ts": "2025-04-25T15:46:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is the handoff contract documented anywhere, or is it just implicit?",
+          "ts": "2025-04-25T16:23:20"
+        },
+        {
+          "userId": "emil",
+          "text": "If it's not documented, that's probably the actual problem here regardless of Konrad's changes.",
+          "ts": "2025-04-25T16:29:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Could make the cookbook examples themselves the contract - if they run clean, the handoff is fine",
+          "ts": "2025-04-25T16:50:20",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "that's actually a reasonable way to treat it, runnable examples as the contract",
+          "ts": "2025-04-25T17:01:20",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Then running them against Konrad's changes is the check - if they pass, cookbooks are unaffected.",
+          "ts": "2025-04-25T17:26:20",
+          "replyCount": 3,
+          "replyLastTs": "2025-04-25T17:39:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "that works for me, but who's actually running them, do we wait for konrad or does someone else pick it up?",
+          "ts": "2025-04-25T17:26:32",
+          "threadParentTs": "2025-04-25T17:26:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I can run them if someone points me at the branch.",
+          "ts": "2025-04-25T17:27:09",
+          "threadParentTs": "2025-04-25T17:26:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is Konrad's work in a PR yet or still local?",
+          "ts": "2025-04-25T17:27:26"
+        },
+        {
+          "userId": "dermot",
+          "text": "the cookbooks are in a clean state on my end, ready to run as a check once you have the branch",
+          "ts": "2025-04-25T17:38:26"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad is your finetuning work in a PR yet?",
+          "ts": "2025-04-25T17:39:02",
+          "threadParentTs": "2025-04-25T17:26:20"
         }
       ],
       "projectSpec": {
@@ -29581,6 +30311,372 @@
             }
           ],
           "threadParentTs": "2025-04-24T18:23:06.153473"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Got code-execution building cleanly again after a dependency conflict that snuck in last week, so that's unblocked",
+          "ts": "2025-04-28T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Planning to look at what changed on the serving infra side this week too",
+          "ts": "2025-04-28T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Worth checking whether that same dependency conflict can surface in bulk-llm-inference, given they pull from a lot of the same places.",
+          "ts": "2025-04-28T09:00:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "the serving infra piece, I'm not sure we should let that move forward without a quick sync first",
+          "ts": "2025-04-28T09:34:38"
+        },
+        {
+          "userId": "dermot",
+          "text": "do you have a sense yet of which services it touches?",
+          "ts": "2025-04-28T09:34:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "code-execution is stable on my end after that dependency cleanup, so I'm mostly in a holding pattern there. Trying to get a clearer picture of whether the serving infra work is going to cross into it",
+          "ts": "2025-04-28T09:50:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "true, a sync makes sense before anything moves",
+          "ts": "2025-04-28T09:51:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll pull up bulk-llm-inference this morning and check whether that same conflict is lurking there",
+          "ts": "2025-04-28T09:55:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "want to get a slot on the calendar for the serving infra sync this week, even just 30 minutes",
+          "ts": "2025-04-28T09:55:10"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is this a two-person thing or are you expecting Dario on it given bulk-llm-inference is the one you're looking at?",
+          "ts": "2025-04-28T10:31:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "probably good to have dario there too",
+          "ts": "2025-04-28T11:08:06"
+        },
+        {
+          "userId": "dermot",
+          "text": "nice work getting code-execution clean, that conflict had been lurking for a bit.",
+          "ts": "2025-04-28T11:08:18",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Just sent out the weekly update for Apr 21.",
+          "ts": "2025-04-28T11:59:35"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, still not clear on the serving infra scope - which services does it actually touch?",
+          "ts": "2025-04-28T11:59:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Weekly update for Apr 21 is out, serving infra scope is still open from my end",
+          "ts": "2025-04-28T12:46:28"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, is that sync on the calendar yet?",
+          "ts": "2025-04-28T12:46:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario, heads up - there's a serving infra sync being planned this week, Dermot said you should probably be on it.",
+          "ts": "2025-04-28T12:51:00"
+        },
+        {
+          "userId": "dario",
+          "text": "Yeah",
+          "ts": "2025-04-28T13:56:27"
+        },
+        {
+          "userId": "dario",
+          "text": "happy to join",
+          "ts": "2025-04-28T13:56:35"
+        },
+        {
+          "userId": "dario",
+          "text": "Does the serving infra work actually cross into bulk-llm-inference or caching-and-resume, or is it mostly on the code-execution side?",
+          "ts": "2025-04-28T13:56:43"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- code-execution is stable, dependency conflict is resolved\n- holding off on any bigger changes there until I know what the serving infra work actually covers\n- still waiting on a reviewer for the finetuning client PR",
+          "ts": "2025-04-28T14:29:43"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot before end of day, can you spell out what's actually changing in the serving layer and which services it touches?",
+          "ts": "2025-04-28T14:30:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "checked bulk-llm-inference this afternoon, nothing matching that dependency conflict",
+          "ts": "2025-04-28T15:09:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai on the scope question, I'm honestly not the right person to answer that, you're the one who knows what's actually changing in the serving layer, which is why I wanted the sync in the first place",
+          "ts": "2025-04-28T15:09:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I think there's a mix-up here, I'm not the one driving the serving infra changes",
+          "ts": "2025-04-28T15:53:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I've been trying to work out what's changing and whether it crosses into code-execution, same as everyone else asking this week",
+          "ts": "2025-04-28T15:53:10"
+        },
+        {
+          "userId": "dario",
+          "text": "So if it's not Nikolai and not Dermot, who's actually driving the serving infra changes?",
+          "ts": "2025-04-28T16:07:10",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Hold on, is there an actual commit that already went in touching thse services, or are we talking about planned work that hasn't landed yet?",
+          "ts": "2025-04-28T16:07:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "that second question is the right one to ask",
+          "ts": "2025-04-28T16:46:47"
+        },
+        {
+          "userId": "dario",
+          "text": "And do you know which services it would actually touch when it lands?",
+          "ts": "2025-04-28T16:59:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "From code-execution, nothing has landed on my end that touches the serving layer",
+          "ts": "2025-04-28T17:04:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Nobody's been able to identify who's actually driving the serving infra changes, so we're basically blocked on scoping this before end of day.",
+          "ts": "2025-04-28T17:35:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Nothing from my side has touched the serving layer - batch-mode and the request processing stack are unchanged there.",
+          "ts": "2025-04-28T18:19:47"
+        },
+        {
+          "userId": "dario",
+          "text": "Same from bulk-llm-inference and caching-and-resume, nothing touching the serving layer on my end either",
+          "ts": "2025-04-28T18:26:35.603202"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Pushed four commits this morning on the finetuning side, num_gpus parameter rename and validation, structured output override tweak, and stdout removal from the execution path",
+          "ts": "2025-04-29T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Want to talk through the num_gpus one at some point today, not entirely sure how far the scope is supposed to extend",
+          "ts": "2025-04-29T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does num_gpus only apply to local-offline-inference or is it supposed to wire into anything else?",
+          "ts": "2025-04-29T09:00:45"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ok",
+          "ts": "2025-04-29T09:31:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "answering my own question - I think num_gpus is local-offline-inference only",
+          "ts": "2025-04-29T09:31:45",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does it even need to be in the shared generation params schema then?",
+          "ts": "2025-04-29T09:31:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Oh, also - is the stdout removal actually safe, anyone know if something depends on it?",
+          "ts": "2025-04-29T11:21:03"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai when you say \"execution path\" on the stdout removal, I'm reading that as code-execution specifically, is that right?",
+          "ts": "2025-04-29T13:33:53"
+        },
+        {
+          "userId": "dario",
+          "text": "If num_gpus is local-offline-inference only, I'd pull it out of the shared generation params schema, but is there a reason it ended up there in the first place?",
+          "ts": "2025-04-29T13:34:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Still around this afternoon if anyone wants to loop back on the num_gpus or stdout questions before end of day.",
+          "ts": "2025-04-29T14:40:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Yeah, code-execution only on the stdout side",
+          "ts": "2025-04-29T14:51:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Separate thing while you're around - the structured output override, what does that actually change on the backend when it gets set?",
+          "ts": "2025-04-29T14:51:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "been in release config this morning",
+          "ts": "2025-05-01T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I want to flag something about how we're picking the executor image default before end of day",
+          "ts": "2025-05-01T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "same, I've been looking at what's still unresolved in code-execution before we cut anything",
+          "ts": "2025-05-01T09:44:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I've got the open items in code-execution mostly mapped out, just working through what actually needs to block a release versus what can follow on after",
+          "ts": "2025-05-01T09:44:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai Berresford what's the plan for the executor image default, has that tag been decided yet?",
+          "ts": "2025-05-01T10:17:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Not decided yet, that's one of the things I'm trying to nail down before we cut a release. I've got a list of what's still open on my end but the tag value specifically I haven't landed on",
+          "ts": "2025-05-01T10:35:20"
+        },
+        {
+          "userId": "dario",
+          "text": "fair enough",
+          "ts": "2025-05-01T10:37:20"
+        },
+        {
+          "userId": "dario",
+          "text": "- *bulk-llm-inference*: mostly stable, tidying up a few edge cases around request batching\n- *caching-and-resume*: resume logic is solid, just want to make sure it handles provider errors cleanly before we cut anything",
+          "ts": "2025-05-01T10:37:32",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-05-01T11:19:32"
+        },
+        {
+          "userId": "dermot",
+          "text": "while that's still open, whatever we bake in as the default has to be a build somebody actually signed off, not just the newest thing out of CI green",
+          "ts": "2025-05-01T11:19:40"
+        },
+        {
+          "userId": "dermot",
+          "text": "we've shipped a container before that nobody had run the verifier suite against, I'd rather not repeat that",
+          "ts": "2025-05-01T11:20:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dermot Callaghan when you say signed off, you mean a specific pinned digest, not just a tagged release?",
+          "ts": "2025-05-01T11:31:40",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-01T11:32:07"
+        },
+        {
+          "userId": "dermot",
+          "text": "not quite. I was thinking about whether someone ran the verifier on that build, not specifically about digest pinning. I'm not sure those are the same question",
+          "ts": "2025-05-01T11:32:07",
+          "threadParentTs": "2025-05-01T11:31:40"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly I'd lean toward both mattering, but are those actually separate gates or do we want one check that covers both?",
+          "ts": "2025-05-01T11:42:07",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Separately, the non-docker path in code-execution is erroring on startup if no image tag is configured, it's not a graceful fallback, just blows up",
+          "ts": "2025-05-01T12:09:07"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai is that blow-up on the non-docker path intentional, or should it be warning instead of hard erroring?",
+          "ts": "2025-05-01T12:34:07"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Not intentional, it just falls through to an unhandled case. I dunno if it should warn or raise, that's actually the bit I haven't decided yet.",
+          "ts": "2025-05-01T12:51:00"
         }
       ],
       "projectSpec": {
@@ -30888,6 +31984,160 @@
           "userId": "emil",
           "text": "WS-054 is still moving, should have something reviewable tomorrow",
           "ts": "2025-04-21T16:56:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Renamed the structured output override key and dropped a validation check on top of it, those are pushed. Still sitting on one question though, whether that override is supposed to have any meaning when you're not running the docker backend, or if we just quietly ignore it in that case.",
+          "ts": "2025-04-29T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not sure we should quietly ignore it, that feels like the wrong call if someone's going to put that key in their config and have no idea it's doing nothing.",
+          "ts": "2025-04-29T09:12:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Fair",
+          "ts": "2025-04-29T09:29:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "and honestly I shouldn't have framed \"quietly ignore it\" as an option at all, that was sloppy wording on my part",
+          "ts": "2025-04-29T09:29:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The question is really more about whether it should warn or raise, not whether to surface it",
+          "ts": "2025-04-29T09:29:10"
+        },
+        {
+          "userId": "nikolai",
+          "text": "For the non-docker backends, do we raise or just warn when the override is set?",
+          "ts": "2025-04-29T11:15:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'm leaning toward warn but I'm not totally convinced that's strong enough if someone's relying on it to actually do something",
+          "ts": "2025-04-29T11:15:17"
+        },
+        {
+          "userId": "emil",
+          "text": "+1 on warn being too soft if someone's actually depending on it",
+          "ts": "2025-04-29T12:38:47",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Separate question: if the stored job can't be reused, do we abort the run or fall back and keep going?",
+          "ts": "2025-04-29T12:39:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "+1",
+          "ts": "2025-04-29T13:13:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the current behavior actually to abort, or does it already fall back silently?",
+          "ts": "2025-04-29T13:47:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Either way, I don't think aborting is the right call",
+          "ts": "2025-04-29T13:48:10"
+        },
+        {
+          "userId": "emil",
+          "text": "A nightly job dying at 3am over a config mismatch is worse than whatever we have now",
+          "ts": "2025-04-29T13:48:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "issue 124 is worth keeping in mind for that question, if the cache invalidates as easily as it does there, \"can't reuse\" is going to happen a lot more than expected and aborting starts to look even worse.",
+          "ts": "2025-04-29T13:59:22",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Fair, I'll add the complaint for non-docker backends. Raise or warn, leave that to whoever reviews?",
+          "ts": "2025-04-29T14:04:22"
+        },
+        {
+          "userId": "emil",
+          "text": "Works for me, leave raise vs warn to review.",
+          "ts": "2025-04-29T15:19:06"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai are you around for a quick sync this afternoon on the abort question, I want to make sure we're aligned before it goes in.",
+          "ts": "2025-04-29T15:19:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Around, yeah. Though I'm not sure I have enough context on the abort question to add much - that's more your side than mine, isn't it?",
+          "ts": "2025-04-29T16:03:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm not totally sure that sync is needed, @Emil already said abort is the wrong call",
+          "ts": "2025-04-29T16:44:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "fair enough",
+          "ts": "2025-04-29T17:23:18"
+        },
+        {
+          "userId": "emil",
+          "text": "I tested a guard locally that raised on job mismatch and it killed a nightly run at 3am, four hours in",
+          "ts": "2025-04-29T18:06:18",
+          "reactions": [
+            {
+              "emoji": "😬",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Aborting when the stored job can't be reused is not a fix",
+          "ts": "2025-04-29T18:06:26"
+        },
+        {
+          "userId": "emil",
+          "text": "So where does that leave the fallback behavior, is there any agreement on what we actually do instead?",
+          "ts": "2025-04-29T18:06:38"
+        },
+        {
+          "userId": "emil",
+          "text": "The fallback question is going to carry over to tomorrow unless someone has a strong opinion on it tonight.",
+          "ts": "2025-04-29T18:07:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario probably has the most context here, it's his side of the stack.",
+          "ts": "2025-04-29T18:19:48.901577"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, do you have a view on fallback behavior when the stored job can't be reused?",
+          "ts": "2025-04-29T18:25:41.588023"
         }
       ],
       "projectSpec": {
@@ -43849,6 +45099,196 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "gideon",
+          "text": "- *caching-and-resume*: holding steady, no regressions so far from recent changes\n- *bulk-llm-inference*: online request path looks clean, keeping an eye on anything that touches the request layer before it lands",
+          "ts": "2025-04-29T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is there a stdout removal happening in Nikolai's changes, or is that just something I heard secondhand?",
+          "ts": "2025-04-29T09:05:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pivoting: does anyone know if the structured output override in the openai/deepseek work is meant to be provider-agnostic or is it openai-specific for now?",
+          "ts": "2025-04-29T09:27:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "Do any of the recent provider backend changes (PR 640 etc) touch the resume path, or does that stay isolated?",
+          "ts": "2025-04-29T10:32:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai I asked earlier about stdout removal in your changes but didn't get an answer",
+          "ts": "2025-04-29T10:48:15"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'm trying to figure out how broad that change is - specifically whether it affects anything in the request layer that progress-and-cli or caching-and-resume depend on for observability",
+          "ts": "2025-04-29T10:48:23"
+        },
+        {
+          "userId": "gideon",
+          "text": "Is it scoped to code-execution output only, or does it touch shared logging paths?",
+          "ts": "2025-04-29T10:48:31"
+        },
+        {
+          "userId": "dario",
+          "text": "same question I had honestly",
+          "ts": "2025-04-29T11:03:31",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "My read is that stdout removal is scoped to code-execution output, but Nikolai hasn't confirmed that directly yet.",
+          "ts": "2025-04-29T11:46:31"
+        },
+        {
+          "userId": "dario",
+          "text": "fair",
+          "ts": "2025-04-29T11:50:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "still waiting on Nikolai to actually confirm it",
+          "ts": "2025-04-29T11:50:05"
+        },
+        {
+          "userId": "dario",
+          "text": "Caching-and-resume looks fine on my end for now, but I haven't verified it against whatever Nikolai's changes actually touch in the request layer, so that validation is still open for me this afternoon.",
+          "ts": "2025-04-29T11:50:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Does anyone know if the structured output override in PR 640 is wired to the OpenAI/DeepSeek backend specifically, or is it going through a shared path that other providers would hit too?",
+          "ts": "2025-04-29T12:20:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Tried to pull up WS-055 just now and can't find it anywhere",
+          "ts": "2025-04-29T12:30:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that actually written yet or is it still on Dermot?",
+          "ts": "2025-04-29T12:30:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai we really do need you to confirm the stdout scope before end of day, a few of us are blocked on that validation.",
+          "ts": "2025-04-29T13:12:33"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai does the structured output override in PR 640 touch any shared request handling code, or is it fully contained to the openai/deepseek backend?",
+          "ts": "2025-04-29T13:30:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Tomas does PR 640 include any changes to stdout or logging that would affect the request layer, or is it purely backend wiring?",
+          "ts": "2025-04-29T13:51:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Still no answer on whether the structured output override is provider-agnostic or OpenAI/DeepSeek-only.",
+          "ts": "2025-04-29T13:57:33"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai is that contained to the backend, or does it go through shared request handling?",
+          "ts": "2025-04-29T13:57:45"
+        },
+        {
+          "userId": "dario",
+          "text": "Still haven't been able to validate caching-and-resume against your changes, no answer on scope yet.",
+          "ts": "2025-04-29T14:42:18"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai can you confirm before end of day whether any of your commits touch the resume path or shared request handling?",
+          "ts": "2025-04-29T14:42:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up WS-055 earlier and it doesn't exist yet",
+          "ts": "2025-04-29T15:12:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that still on Dermot, or did it move somewhere?",
+          "ts": "2025-04-29T15:12:31"
+        },
+        {
+          "userId": "gideon",
+          "text": "Anthropic multimodal formatting is sorted on my end",
+          "ts": "2025-05-02T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is moving, the CLI batch update-freq work is fully separate from the provider fixes so no blockers there",
+          "ts": "2025-05-02T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "can someone take a look at PR 656 when they get a chance, it's the anthropic multimodal input fix",
+          "ts": "2025-05-02T09:49:14"
+        },
+        {
+          "userId": "gideon",
+          "text": "Can look at PR 656 this morning.",
+          "ts": "2025-05-02T10:15:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "the part I'm not entirely sure about is how we're handling mixed text and image content blocks, worth a specific look at that when you're in there?",
+          "ts": "2025-05-02T10:34:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "actually, I'm not entirely sure the content block ordering is even where the bug was, is the fix specifically about how we sequence text vs image blocks, or is it something else in the request structure?",
+          "ts": "2025-05-02T10:34:40"
+        },
+        {
+          "userId": "gideon",
+          "text": "nice catch on the multimodal formatting, that one's easy to miss",
+          "ts": "2025-05-02T10:39:40",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "- *Anthropic multimodal fix* merged, provider-integrations side is clear\n- *Batch-mode*, PR 468 and PR 652 still open, no blockers, just need eyes when there's capacity\n- PR 632 being independent tracks with what I'm seeing too, no cross-dependency on my end",
+          "ts": "2025-05-02T11:59:03",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -43949,7 +45389,8 @@
       "memberIds": [
         "dermot",
         "emil",
-        "gideon"
+        "gideon",
+        "nikolai"
       ],
       "messages": [
         {
@@ -44205,6 +45646,124 @@
           "text": "provider charged for both, or our system ran it twice?",
           "ts": "2025-04-17T15:21:14",
           "threadParentTs": "2025-04-17T15:20:55"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 632 is basically done, just needs a final reviewer pass before I can merge it",
+          "ts": "2025-04-25T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "got two support tickets this week about o3, both confused about schema support, and I finally twigged that we have more than one list of model names floating around in the tree, so users are getting different answers depending on where they look",
+          "ts": "2025-04-25T09:00:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That multiple-list problem is real, I've run into it from the release side too",
+          "ts": "2025-04-25T09:16:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "There's no single source of truth so depending on which file you check first you get a different answer",
+          "ts": "2025-04-25T09:16:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "Both tickets were users who had checked two different places and gotten opposite answers about o3",
+          "ts": "2025-04-25T09:58:33"
+        },
+        {
+          "userId": "gideon",
+          "text": "I think it's not quite just \"which file you check first\" - the lists actively disagree",
+          "ts": "2025-04-25T09:58:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "fair enough, that's worse",
+          "ts": "2025-04-25T10:23:57",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "it's not scoped to o3 either, any model that lives on one list but not the other hits the same thing.",
+          "ts": "2025-04-25T11:00:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "right",
+          "ts": "2025-04-25T12:31:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "it's a structural thing not a model-specific one",
+          "ts": "2025-04-25T12:31:22"
+        },
+        {
+          "userId": "gideon",
+          "text": "does anyone actually know how many separate lists there are in the tree right now?",
+          "ts": "2025-04-25T12:40:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Look, at least we can say definitively that the lists actively disagree - that's more than we knew Monday.",
+          "ts": "2025-04-25T12:51:00",
+          "reactions": [
+            {
+              "emoji": "💯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "I think we knew Monday, we just hadn't connected it to the support tickets yet",
+          "ts": "2025-04-25T13:30:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "so are we aligned that users are actually getting contradictory answers from us, not just that we have an internal consistency problem?",
+          "ts": "2025-04-25T13:30:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "wait",
+          "ts": "2025-04-25T13:49:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "ok, answering my own question - the tickets are the answer, users literally asked us two different things and got two different answers, so yeah that's already happening",
+          "ts": "2025-04-25T13:49:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "does anyone know if there's a canonical owner for which list is supposed to be authoritative?",
+          "ts": "2025-04-25T13:49:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "is there a way to auto-detect when the lists diverge, or does someone have to catch it manually?",
+          "ts": "2025-04-25T14:01:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "the two o3 tickets were users getting opposite schema answers depending on where they looked, that's not an internal consistency problem, users are actively getting wrong information from us.",
+          "ts": "2025-04-25T14:28:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'd rather we surface a hard error than have users triangulate between two lists that disagree",
+          "ts": "2025-04-25T14:28:41",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -47487,6 +49046,78 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is in good shape this morning, merges are through and nothing blocking on that side. Wondering if that clears enough for us to sign off on v0.1.24 today",
+          "ts": "2025-05-02T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "multimodal formatting fix is merged, bulk-llm-inference side is clear",
+          "ts": "2025-05-02T09:44:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm good to approve v0.1.24 whenever we're ready",
+          "ts": "2025-05-02T09:44:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Does PR 643 need a resolution before we tag, or are we cutting without it? It's been sitting 16 days and I'm not entirely sure where it stands",
+          "ts": "2025-05-02T09:58:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm inclined to just cut v0.1.24 without it and slot PR 643 for next sprint, but @Emil Brandvold should probably have a say before we do that",
+          "ts": "2025-05-02T09:58:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "if emil doesn't weigh in by early afternoon, cutting without pr 643 and slotting it next sprint is probably the cleaner call than holding the tag over a friday",
+          "ts": "2025-05-02T10:28:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Agreed. What's the cutoff, if Emil hasn't responded by when exactly, do we just go ahead?",
+          "ts": "2025-05-02T11:11:39"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take the v0.1.24 cut",
+          "ts": "2025-05-02T11:43:39"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 643 goes to next sprint",
+          "ts": "2025-05-02T11:43:51"
+        },
+        {
+          "userId": "emil",
+          "text": "No need to set a cutoff, I'm here and I'm good to tag whenever Dermot gives the final go-ahead.",
+          "ts": "2025-05-02T11:44:03",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Just pulled up the v0.1.23 release notes and the changelog detail is still TBD, I left it as a structural stub pending the merged PR list",
+          "ts": "2025-05-02T11:44:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that blocking anything for the v0.1.24 tag, or can I fill it in this afternoon after we cut?",
+          "ts": "2025-05-02T11:44:55"
         }
       ],
       "projectSpec": {
@@ -48746,6 +50377,194 @@
           "userId": "emil",
           "text": "@Dario can you confirm the pbar display is consistent with what viewer expects before we close this out?",
           "ts": "2025-04-24T18:29:52.885993"
+        },
+        {
+          "userId": "dermot",
+          "text": "pr 652 is open, download feature for the viewer, I want to make sure it hooks in cleanly with how caching-and-resume handles dataset persistence before this goes any further",
+          "ts": "2025-04-25T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario is the right person to weigh in on that side",
+          "ts": "2025-04-25T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "does the download go through the viewer directly, or is it bypassing it and hitting the dataset layer on its own?",
+          "ts": "2025-04-25T09:00:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "when a download gets triggered from the viewer, is the assumption that the dataset is already fully on disk at that point, or does this need to handle pulling from wherever the data currently lives mid-run?",
+          "ts": "2025-04-25T09:23:11"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario I've got two open questions on PR 652 above and we're trying to get this aligned before end of day, can you take a look when you get a chance?",
+          "ts": "2025-04-25T10:12:11",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-25T10:53:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil does pr 652 assume the dataset is fully written before download is triggered, or does it handle partial state?",
+          "ts": "2025-04-25T10:53:11"
+        },
+        {
+          "userId": "dario",
+          "text": "yeah, on it, will take a look at both questions",
+          "ts": "2025-04-25T10:53:39",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-04-25T10:12:11"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 assumes the dataset is fully on disk before a download gets triggered, it doesn't try to handle partial state.",
+          "ts": "2025-04-25T11:46:30",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario when you look at PR 652, can you check whether caching-and-resume guarantees the dataset is fully flushed before the viewer surface ever makes it available?",
+          "ts": "2025-04-25T11:47:04",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-25T11:47:46"
+        },
+        {
+          "userId": "dario",
+          "text": "do you mean flushed to disk, or flushed in the sense that the viewer has been told it's complete?",
+          "ts": "2025-04-25T11:47:46",
+          "threadParentTs": "2025-04-25T11:47:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Flushed to disk.",
+          "ts": "2025-04-25T12:27:46"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm around this afternoon if we want to get the caching integration side sorted before end of day, otherwise that's a Monday problem.",
+          "ts": "2025-04-25T12:27:58",
+          "reactions": [
+            {
+              "emoji": "🤝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "Batch update freq fix is basically wrapped up, switching focus to run observability stuff this morning",
+          "ts": "2025-04-28T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "End-of-run summary tables are next on my list",
+          "ts": "2025-04-28T09:00:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad, heard you pushed two verification runs to compare, what fields is the metadata panel actually showing you?",
+          "ts": "2025-04-28T09:00:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "Trying to understand what's missing",
+          "ts": "2025-04-28T09:00:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "Ok, answering my own question a bit, I think the panel probably doesn't show which directory was actually inspected. Does the executor even expose that as part of what it reports back?",
+          "ts": "2025-04-28T09:29:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Dario, what does the metadata panel pull from currently?",
+          "ts": "2025-04-28T10:04:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "hmm",
+          "ts": "2025-04-28T11:06:48"
+        },
+        {
+          "userId": "dario",
+          "text": "The panel just reads off whatever the executor reports back, so if the direcory isn't in that object it won't show up",
+          "ts": "2025-04-28T11:31:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Once the executor exposes a resolved value for it, @Gideon can you sketch what that field should look like in the metadata panel?",
+          "ts": "2025-04-28T11:32:00"
+        },
+        {
+          "userId": "dario",
+          "text": "The executor doesn't include the inspected directory in what it reports back, so two runs against different paths look identical in the metadata panel",
+          "ts": "2025-04-28T11:32:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-04-28T11:54:22"
+        },
+        {
+          "userId": "emil",
+          "text": "Does the executor actually resolve the path internally and just not include it in what it hands back?",
+          "ts": "2025-04-28T11:54:22",
+          "threadParentTs": "2025-04-28T11:32:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Assuming it does resolve it internally, the fix is just adding it to what the report object hands back, right?",
+          "ts": "2025-04-28T12:43:48"
+        },
+        {
+          "userId": "gideon",
+          "text": "I'll sketch the field for the metadata panel once that value is available on the report object.",
+          "ts": "2025-04-28T13:14:48"
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly I'm not sure the executor resolves the path internally at all - if it doesn't, it's more involved than just surfacing a field. Nikolai would know.",
+          "ts": "2025-04-28T13:48:48"
+        },
+        {
+          "userId": "dario",
+          "text": "@Nikolai does the executor resolve the inspected directory internally, or is that something it would need to do before it could hand a value back on the report object?",
+          "ts": "2025-04-28T13:48:58"
+        },
+        {
+          "userId": "emil",
+          "text": "The report object should carry the inspected directory as a field, same way the end-of-run summary already prints the db path.",
+          "ts": "2025-04-28T14:03:58"
+        },
+        {
+          "userId": "emil",
+          "text": "This is a cheap fix for the support loop, that's why I'd rather just add the field than chase the resolve question.",
+          "ts": "2025-04-28T14:04:04"
+        },
+        {
+          "userId": "emil",
+          "text": "If the executor needs to resolve it first, how much work is that?",
+          "ts": "2025-04-28T14:04:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "at least we're aligned on the report object needing to carry that field, that part's settled",
+          "ts": "2025-04-28T14:36:10",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {

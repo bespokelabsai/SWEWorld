@@ -1,45 +1,36 @@
 ---
 title: "v0.1.23 Release Notes"
 author: emil
-created_at: 2025-04-11T09:28:00+00:00
+created_at: 2025-04-25T09:14:00+00:00
 ---
 
 # v0.1.23 Release Notes
 
-22nd release. 323 changes merged to date.
-
-## What's in this release
-
-- **Metadata schema now includes cost fields** (PR 626)
-  - fields added to track per-request cost data in the metadata output
-- **n-samples support in generation params** (PR 468, in progress)
-  - not fully landed yet, more coming
-- **Param to disable the metadata db** (PR 583, in progress)
-  - same, still moving
-- Ongoing provider and integration work across:
-  - batch-mode
-  - local-offline-inference
-  - multimodal-prompts
-  - blocks-and-recipes
-
-## Upgrading
-
-No breaking public API changes. Drop-in upgrade.
+22nd release. 337 changes merged to date. Part of the Consolidation and Provider Breadth milestone.
 
 ---
 
-## v0.1.23.post1
+PRs still in flight at time of cut, not included here: 468, 632, 640, 643, 651, 652. If you were watching one of those, it will land in a later release.
 
-Same-day hotfix on top of v0.1.23.
+TBD - filling in changelog detail once i've pulled the merged PR list for this sprint. Notes below are structural for now.
 
-### What it fixes
+---
 
-- Failed-requests jsonl handling
-- Batch cancellation fix
-- Dead viewer code removed (conftest and viewer cleanup)
+## What's in this release
 
-### Should you upgrade now?
+Consolidation and pruning work, consistent with where the milestone is focused right now. No major feature additions in this cut, mostly stabilization.
 
-Not mandatory. If you're not hitting failed-request handling or batch cancellation issues you can wait. That said, worth pulling before the weekend.
+Details to be filled in once i've gone through the sprint board.
 
-No public API changes.
+## PRs not included
+
+Still in flight as of 2025-04-25:
+
+- 468
+- 632
+- 640
+- 643
+- 651
+- 652
+
+None of these are in the build. If any of them were blocking you, lets circle back on that once they land.
