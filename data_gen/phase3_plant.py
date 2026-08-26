@@ -2086,6 +2086,98 @@ def settle_outcome(spec: dict, item: dict) -> None:
         else f"it is settled that {settles}")
 
 
+def claim_seated(corpus, args) -> int:
+    """Make the day specs claim the pages and mail this plant seated.
+
+    `seat_arc_artifacts` appends a doc and a thread to artifacts.json and
+    touches no spec; `seat_arc` and `make_room` create their conversations with
+    an empty `goals` list. Phase 4 builds every obligation from a spec's
+    `goals[].writes[]`, so for four arcs nobody was ever asked to write the
+    page or send the mail, and the fourteen clues planted in them never reached
+    the corpus at all — invisible to every later gate, because a clue that was
+    never rendered is not a clue that came out thin.
+
+    The binding itself is phase 2's `attach_artifacts`: deterministic, no model
+    calls, and self-undoing, so re-planting rebinds rather than accretes. This
+    supplies the data and lets that supply the behaviour.
+    """
+    import phase2_days as p2
+
+    world = p2.World(argparse.Namespace(
+        timeline=DEFAULT_TIMELINE,
+        workstreams=rl.DEFAULT_BUILD_DIR / "workstreams.json",
+        artifacts=args.artifacts, company=DEFAULT_COMPANY))
+    world.artifacts = corpus.artifacts          # the seated ones, before write-out
+    claimed = {w["id"] for day in corpus.specs.values()
+               for s in day["specs"] for g in s.get("goals") or []
+               for w in g.get("writes") or []}
+    dates = sorted({(d.get("created_at") or "")[:10]
+                    for d in corpus.artifacts["docs"] if d["id"] not in claimed}
+                   | {str((t.get("messages") or [{}])[0].get("date"))[:10]
+                      for t in corpus.artifacts["threads"] if t["id"] not in claimed})
+    bound = 0
+    for date in dates:
+        day = corpus.specs.get(date)
+        if not day or date not in world.days:
+            continue
+        packet = p2.day_packet(world, world.days[date])
+        # Verify as a DELTA. A seated conversation can already fail verify — it
+        # sits in a channel the day never offered — and refusing on the total
+        # would block the binding for a defect it did not cause.
+        before = set(p2.verify(world, packet, day))
+        notes = p2.attach_artifacts(packet, day, world)
+        if not notes:
+            continue
+        if set(p2.verify(world, packet, day)) - before:
+            rl.warn(f"{date}: cannot bind here without breaking the day")
+            continue
+        bound += len(notes)
+    return bound
+
+
+def _present(corpus, date: str, who: str) -> bool:
+    """Is this person in any conversation that day?"""
+    day = corpus.specs.get(date) or {}
+    return any(who in {p["id"] for p in (s.get("participants") or [])}
+               for s in day.get("specs") or [])
+
+
+def unclaimed_carriers(corpus, leaves: list[dict]) -> list[tuple[str, str]]:
+    """Clues whose carrier no conversation is asked to produce."""
+    claimed = {w["id"] for day in corpus.specs.values()
+               for s in day["specs"] for g in s.get("goals") or []
+               for w in g.get("writes") or []}
+    docs = {d["id"] for d in corpus.artifacts["docs"]}
+    out = []
+    for leaf in leaves:
+        key = (leaf.get("slot") or {}).get("key") or ""
+        kind, _, rest = key.partition("|")
+        ident = rest.split("|")[0]
+        if kind == "doc" and ident not in claimed:
+            out.append((leaf.get("clue_id", "?"), f"the page {ident}"))
+        elif kind == "mail" and ident not in claimed:
+            out.append((leaf.get("clue_id", "?"), f"the mail thread {ident}"))
+        elif kind == "comment":
+            com = next((c for c in corpus.artifacts.get("comments") or []
+                        if c["id"] == ident), {})
+            doc = com.get("doc", "")
+            # Two ways a comment clue cannot land. Its page may be one nobody
+            # writes — there is nothing to comment on. Or its author may not be
+            # in any conversation that day: a comment has a date and an author
+            # but no channel, so phase 4 gives it to a room the author is in,
+            # and if there is no such room nobody is ever asked.
+            if doc and doc in docs and doc not in claimed:
+                out.append((leaf.get("clue_id", "?"),
+                            f"a comment on {doc}, a page nobody writes"))
+            elif com and not _present(corpus, str(com.get("created_at"))[:10],
+                                      com.get("author", "")):
+                out.append((leaf.get("clue_id", "?"),
+                            f"a comment by {com.get('author')} on "
+                            f"{str(com.get('created_at'))[:10]}, a day they are "
+                            "in no conversation"))
+    return out
+
+
 def write_into(corpus: Corpus, items: list[dict]) -> None:
     """Attach each placed clue to the thing that carries it."""
     docs = {d["id"]: d for d in corpus.artifacts["docs"]}
@@ -2664,6 +2756,10 @@ def main(argv: list[str] | None = None) -> int:
         every = [x for rid in trees for x in
                  trees[rid]["leaves"] + herrings.get(rid, [])]
         write_into(corpus, every)
+        bound = claim_seated(corpus, args)
+        if bound:
+            rl.ok(f"{bound} seated artifact(s) now claimed by a conversation")
+        orphans = unclaimed_carriers(corpus, every)
         for date, day in corpus.specs.items():
             rl.write_json(Path(args.specs) / f"{date}.json", day)
         rl.write_json(args.artifacts, corpus.artifacts)
@@ -2673,6 +2769,18 @@ def main(argv: list[str] | None = None) -> int:
             rl.ok(f"{DEFAULT_FORGE} — {len(payload['comments'])} forge item(s) "
                   "carry a clue")
         rl.ok(f"planted into {len(corpus.specs)} day file(s) and {args.artifacts}")
+
+        if orphans:
+            for cid, where in orphans:
+                rl.warn(f"{cid}: planted in {where}, which no conversation is "
+                        "asked to produce")
+            rl.fail(
+                f"{len(orphans)} clue(s) sit in a carrier nobody writes. Phase 4 "
+                "builds every obligation from a spec's goals[].writes[], so a "
+                "page or mail or comment no goal claims is never written and the "
+                "clue in it never reaches the corpus — as unscoreable as a fact "
+                "nothing carries, and silent, because no later gate can see a "
+                "clue that was never rendered.")
 
     rl.info(f"{llm.stats['calls']} calls, {llm.stats['cache_hits']} from cache "
             f"({llm.backend}/{llm.auth_mode})")

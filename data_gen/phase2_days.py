@@ -1068,7 +1068,17 @@ def attach_artifacts(packet: dict, specs: dict,
             continue
         picked = reassign(item, kind, author)
         if picked is None:
-            continue                       # nobody at all today; leave it alone
+            # Nobody is in a conversation today, so no goal can claim this and
+            # phase 4 will never ask for it. That used to be a bare `continue`:
+            # thirteen artifacts were dropped here without a word, and the
+            # clues planted in one of them went missing from the corpus with
+            # nothing anywhere saying so. It happens because two different
+            # definitions of "a day with conversations" disagree — the artifact
+            # calendar asks the timeline, and this asks which days actually got
+            # a spec, which is a subset.
+            notes.append(f"{item_id}: UNCLAIMED — nobody is in a conversation "
+                         f"on {packet['date']}, so nothing can produce it")
+            continue
         if picked[0] != author:
             notes.append(f"{item_id}: reassigned from {author} to {picked[0]}, who is "
                          "actually in the conversation that produces it")
@@ -1142,6 +1152,12 @@ def verify(world: World, packet: dict, specs: dict) -> list[str]:
                                 "who is not in the conversation")
         for goal in spec.get("goals", []):
             for ref in goal.get("writes") or []:
+                if ref["kind"] == "comment":
+                    # A page comment is derived from the plan at run time by
+                    # date and author, never stored in a spec, so it is not in
+                    # either due pool. Checked against `due_mail` it read as
+                    # "not due today" and failed the day.
+                    continue
                 pool = due_docs if ref["kind"] == "doc" else due_mail
                 if ref["id"] not in pool:
                     problems.append(f"{date}/{name}: writes {ref['id']}, "
