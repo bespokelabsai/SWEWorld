@@ -1,6 +1,6 @@
 # Phase 4: every planted clue, and whether its information landed
 
-46 of 49 carried.
+47 of 49 carried.
 
 A clue is a fact the corpus has to teach. It does not have to be worded the way it was planted — the persona saying it has their own vocabulary — but the information has to be there, or the requirement it serves becomes unrecoverable and the task unscoreable. Each row links to the line that carried it, in the conversation around it.
 
@@ -23,7 +23,7 @@ A clue is a fact the corpus has to teach. It does not have to be worded the way 
 | [t3.r2.l_pay_dermot](t3.r2.l_pay_dermot.md) | t3 | dermot | — | 2025-01-14 | #releases | chat | yes | — | — | 1 |
 | [t4.r1.h1](t4.r1.h1.md) | t4 | nikolai | — | 2025-01-14 | #cookbooks | chat | yes | — | +1 msg | 1 |
 | [t4.r1.h2](t4.r1.h2.md) | t4 | konrad | — | 2025-01-15 | #code-review | chat | yes | — | +1 msg | 1 |
-| [t4.r2.L2](t4.r2.L2.md) | t4 | konrad | — | 2025-01-20 | thread:weekly-2025-01-13 | mail | **NO** | — | — | 1 |
+| [t4.r2.L2](t4.r2.L2.md) | t4 | konrad | — | 2025-01-20 | thread:weekly-2025-01-13 | mail | yes | — | — | 1 |
 | [t1.r1.l_prompt_3](t1.r1.l_prompt_3.md) | t1 | emil | — | 2025-01-29 | #engineering | chat | yes | — | +2 msg | 1 |
 | [t1.r1.l_model_2](t1.r1.l_model_2.md) | t1 | dermot | — | 2025-01-30 | #incidents | chat | yes | cache key | — | 1 |
 | [t2.r2.l3](t2.r2.l3.md) | t2 | gideon | — | 2025-02-03 | #pipeline | chat | yes | — | — | 1 |

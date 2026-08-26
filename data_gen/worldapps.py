@@ -124,8 +124,23 @@ class Wiki(Store):
     """
 
     app = "wiki"
-    summary = ("the company wiki. Pages are grouped into collections "
-               "(engineering, design, onboarding, postmortems).")
+    # Where a page goes when it is filed under nothing at all.
+    DEFAULT_SHELF = {
+        "meeting-notes": "meetings", "postmortem": "incidents",
+        "release-notes": "releases", "onboarding": "onboarding",
+    }
+    summary = "the company wiki. Pages are grouped into collections."
+
+    # Descriptions for the shelves the doc plan knows about. A collection a
+    # persona invents gets no description rather than a guessed one.
+    SHELF_BLURB = {
+        "engineering": "Design docs, plans, runbooks and handovers.",
+        "meetings": "Notes from recurring and one-off meetings.",
+        "incidents": "Postmortems and incident write-ups.",
+        "releases": "Release notes, version by version.",
+        "onboarding": "How the team works, for people who just joined.",
+        "design": "Product and interface design.",
+    }
 
     def __init__(self, root: Path, clock: Clock, *, collections: dict[str, str],
                  scrub=None):
@@ -141,14 +156,56 @@ class Wiki(Store):
         return ["write_page", "read_page", "list_pages", "comment_on_page"]
 
     # -- the operations, callable from python as well as from a tool --------
+    def manifest(self) -> str:
+        """`collections.yaml`, written from the directories that actually have
+        pages in them. `ingest_docs.py` requires the file and errors on a `dir`
+        that does not exist, so it is built from the tree rather than from the
+        plan — a collection nobody wrote into is not a book."""
+        lines = ["version: 1", "collections:"]
+        for shelf in sorted(d.name for d in self.docs.iterdir()
+                            if d.is_dir() and any(d.glob("*.md"))):
+            lines.append(f"  - dir: {shelf}")
+            lines.append(f"    name: {shelf.replace('-', ' ').title()}")
+            blurb = self.SHELF_BLURB.get(shelf)
+            if blurb:
+                lines.append(f"    description: {json.dumps(blurb)}")
+        text = "\n".join(lines) + "\n"
+        (self.docs / "collections.yaml").write_text(text, encoding="utf-8")
+        return text
+
+    def _shelf_help(self) -> str:
+        have = sorted(self.collections)
+        return ("the wiki has no collections yet." if not have else
+                "the ones that exist are " + ", ".join(have) + ".")
+
+    def shelve(self, collection: str, kind: str = "", when: str = "") -> str:
+        """Which collection a page goes in.
+
+        A name we already know wins. A name we do not is *made* — someone
+        filing the first postmortem when no incidents shelf exists yet puts
+        one up rather than dropping the page on whatever shelf is nearest,
+        which is what the old fallback did: it took `next(iter(...))`, so
+        every unrecognised name landed in whichever collection the doc plan
+        happened to mention first. Only a page filed under nothing at all
+        falls back, and it falls back on its own kind.
+        """
+        want = slug(collection, "")
+        if want:
+            if want not in self.collections:
+                self.collections[want] = ""
+                self._record(kind="collection", ident=want, title=want,
+                             by="", action="create",
+                             ts=when or self.clock.iso())
+            return want
+        return self.DEFAULT_SHELF.get(kind, "engineering")
+
     def write(self, *, uid: str, title: str, body: str, collection: str,
               ts: str | None = None, kind: str = "") -> str:
-        book = collection if collection in self.collections else \
-            next(iter(self.collections), "engineering")
+        when = ts or self.clock.iso()
+        book = self.shelve(collection, kind, when)
         rel = f"{book}/{slug(title)}.md"
         path = self.docs / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        when = ts or self.clock.iso()
         # The body is scrubbed with the DOCUMENT scrubber, which splits on code
         # fences and works line by line, so a markdown rule or a table
         # separator survives. The chat-side one flattens both.
@@ -205,7 +262,14 @@ class Wiki(Store):
         page reads like a document instead of like a long Slack message: the
         persona's chat voice rules never touch it."""
 
-        @tool("write_page", "Write a new page on the company wiki.", {
+        # The persona can only file a page correctly if it knows what the
+        # shelves are called, so the live list goes in the description rather
+        # than a fixed sentence that drifts from the corpus.
+        @tool("write_page",
+              "Write a new page on the company wiki. `collection` is which "
+              "collection it belongs in — " + self._shelf_help() + " If none "
+              "of them fit, name the collection you think it should live in "
+              "and it will be created.", {
             "title": str, "collection": str, "kind": str, "brief": str})
         async def write_page(args):
             title = (args.get("title") or "").strip() or "Untitled"

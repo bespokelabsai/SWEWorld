@@ -35,9 +35,24 @@ import repolib as rl  # noqa: E402
 UTC = dt.timezone.utc
 
 
-def stamped(ts: str) -> str:
-    """An engine timestamp with the offset the ingest requires."""
-    when = dt.datetime.fromisoformat(ts)
+def stamped(ts: str, where: str = "") -> str:
+    """An engine timestamp with the offset the ingest requires.
+
+    A `ts` the engine has scribbled on — one live corpus carried
+    `2024-12-20T11:5ok so 0:01.666667`, a persona's words spliced into the
+    field — used to come out of `fromisoformat` as a bare ValueError naming
+    neither the channel nor the message. The render is the last step of a
+    run, so the exception was swallowed by the batch loop and `messages.jsonl`
+    simply stopped being rewritten: fifteen batches reported success while the
+    ingest file sat frozen three months behind the transcript. Say which
+    message, so the next one is a one-line fix rather than a bisect.
+    """
+    try:
+        when = dt.datetime.fromisoformat(ts)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"unusable timestamp {ts!r}{where} — the transcript is corrupt "
+            "at this message; fix the ts and re-render") from exc
     if when.tzinfo is None:
         when = when.replace(tzinfo=UTC)
     return when.isoformat(timespec="seconds")
@@ -97,7 +112,10 @@ def render(workspace: dict, *, channels_wanted: set[str] | None = None) -> list[
             author = message.get("userId") or ""
             parent = message.get("threadParentTs")
             row: dict = {"channel": name, "author": author,
-                         "created_at": stamped(message["ts"]), "text": text}
+                         "created_at": stamped(
+                             message.get("ts"),
+                             f" in #{name} message {index} by "
+                             f"{author or '?'}: {text[:60]!r}"), "text": text}
             if parent:
                 root = roots.get(parent)
                 if root is None:

@@ -1569,6 +1569,12 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args) -> 
     size = render.write(rows, out / "messages.jsonl")
     rl.ok(f"{out / 'messages.jsonl'} ({rl.human_bytes(size)}) — {len(rows)} message(s)")
 
+    # -- the wiki's own manifest, from the shelves that got used ------------
+    for store in stores:
+        if isinstance(store, wa.Wiki):
+            shelves = store.manifest().count("- dir:")
+            rl.ok(f"{store.docs / 'collections.yaml'} — {shelves} collection(s)")
+
     # -- did the planned artifacts get made? --------------------------------
     art_rows = _carry(out / "artifacts.json", art_rows, key=lambda r: (
         r["date"], r["by"], r["action"], r["title"]))
