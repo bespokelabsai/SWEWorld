@@ -1,0 +1,24 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, nikolai@world.local,
+ gideon@world.local, tomas@world.local, dermot@world.local
+Subject: Weekly update: week of Apr 28
+Date: Mon, 05 May 2025 09:07:00 +0000
+Message-ID: <178770618788.2366822.12798610007507427138@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Finetuning: PR 653 (Shreyas/finetuning client, owned by Nikolai) is in review=
+ =E2=80=94 no blockers on my end there.
+
+Examples-cookbooks: the response object changes may require updates to existi=
+ng cookbook code samples. Need to identify which ones are affected before we =
+can call this clean.
+
+Download feature: PR 652 and PR 654 both need eyes this week. One of these ne=
+eds to land to unblock the viewer download capability.
+
+Open: still confirming 0.1.24 shipped cleanly, particularly that the response=
+ object landed as expected. Will follow up once that's confirmed.
+
+=E2=80=94 Konrad

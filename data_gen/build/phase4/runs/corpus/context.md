@@ -10,33 +10,39 @@ Worth keeping in mind while reading:
 
 
 ==============================================================================
-# 2025-04-25 — 4 conversation(s), 46 turns budgeted
+# 2025-05-05 — 2 conversation(s), 14 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 12 turns, 4 people
+## #code-review — 8 turns, 5 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: PR 652 opened today with early review; needs to either land or surface blockers before end of week
+Channel #code-review: Two PRs merged today; response object is out; seven older PRs need attention
 
-    Today is Friday 25 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Monday 5 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: PR 652 opened today with early review; needs to either land or surface blockers before end of week
+    Why it is happening: Two PRs merged today; response object is out; seven older PRs need attention
     
     What it should get through:
-      1. Land or identify blockers for PR 652   [Emil Brandvold must raise this]
-           - Dermot raises any concerns from his COMMENTED review
-           - Emil addresses feedback or explains design
-           - Nikolai flags any integration points with upload changes
+      1. Confirm 0.1.24 and response object landed cleanly   [Emil Brandvold must raise this]
+           - Emil announces merge complete
+           - Konrad asks about API surface changes
+           - Group confirms no blockers
+      2. Unblock PR 652 or PR 654 for download feature   [Emil Brandvold must raise this]
+           - Emil flags critical path items
+           - Gideon notes PR 632 impact on observability
+           - Group triages which unblock next work
+      3. send Weekly update: week of Apr 28   [Konrad Feltrin must raise this]
+           - Konrad Feltrin says they will send Weekly update: week of Apr 28
     
-    On the agenda: Review PR 652 viewer download feature; Address any feedback from Dermot's comments; Check consistency with Nikolai Berresford's recent upload changes; Unblock merge
+    On the agenda: Response object merged, 0.1.24 status; Stale PR backlog: PR 468, PR 652, PR 654, PR 632, PR 653, PR 640; Weekly update: week of Apr 28
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: PR either approved for merge or concrete blocker identified for Monday
+    Wrap when: 0.1.24 release confirmed shipped; agreement on which stale PRs are on critical path
     
     Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -47,212 +53,16 @@ Channel #code-review: PR 652 opened today with early review; needs to either lan
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
-      - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (2 names)
-      - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. The viewer download feature implementation and context
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Land or identify blockers for PR 652   *** MUST RAISE ***
-    goal        Land or identify blockers for PR 652
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Fresh review and potential concerns about the implementation
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Land or identify blockers for PR 652
-    goal        PR 652 opened today with early review; needs to either land or surface blockers before end of week
-    available   around today
-
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Perspective on the broader upload/download architecture Nikolai Berresford just touched
-    owns        code-execution, release-and-ci, telemetry
-    agenda
-      1. Land or identify blockers for PR 652
-    goal        PR 652 opened today with early review; needs to either land or surface blockers before end of week
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Observer perspective on merge queue state
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Land or identify blockers for PR 652
-    goal        PR 652 opened today with early review; needs to either land or surface blockers before end of week
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR either approved for merge or concrete blocker identified for Monday
-
-
-------------------------------------------------------------------------------
-## #viewer — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #viewer: PR 652 adds dataset download to viewer; needs coordination on surface and architecture
-
-    Today is Friday 25 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: PR 652 adds dataset download to viewer; needs coordination on surface and architecture
-    
-    What it should get through:
-      1. Ensure download feature integrates cleanly with viewer surface and caching   [Emil Brandvold must raise this]
-           - Emil explains what the download path looks like and where it hooks in
-           - Dario checks against existing viewer affordances and user workflows
-           - Dermot flags any caching or persistence layer concerns
-    
-    On the agenda: Understand download feature scope and placement; Verify consistency with push/dataset lifecycle; Check performance implications
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Clear alignment on how download integrates, or deferred to next iteration
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
-      - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (2 names)
-      - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Implementation details of the new download feature
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Ensure download feature integrates cleanly with viewer surface and caching   *** MUST RAISE ***
-    goal        Ensure download feature integrates cleanly with viewer surface and caching
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Broader viewer architecture and user-facing API consistency
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Ensure download feature integrates cleanly with viewer surface and caching
-    goal        PR 652 adds dataset download to viewer; needs coordination on surface and architecture
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Understanding of how datasets flow through caching and persistence
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Ensure download feature integrates cleanly with viewer surface and caching
-    goal        PR 652 adds dataset download to viewer; needs coordination on surface and architecture
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   Clear alignment on how download integrates, or deferred to next iteration
-
-
-------------------------------------------------------------------------------
-## #cookbooks — 10 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #cookbooks: Nikolai's 3 commits today touch finetuning core; cookbooks repo depends on stable interface
-
-    Today is Friday 25 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Nikolai's 3 commits today touch finetuning core; cookbooks repo depends on stable interface
-    
-    What it should get through:
-      1. Surface finetuning changes and catch any cookbook-breaking impacts   [Nikolai Berresford must raise this]
-           - Nikolai explains the upload and job ID changes and why
-           - Dermot assesses impact on existing cookbook examples
-           - Emil flags any release or integration concerns
-    
-    On the agenda: Nikolai's finetuning changes: upload function and job ID semantics; Impact on published cookbooks and user examples; Any breaking changes or migration needed
-    
-    Out today: Konrad Feltrin (no commit, review or comment 2025-04-14..2025-05-01) — their input is missing and people may say so
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: Either cookbooks are unaffected, or a list of examples that need revision
-    
-    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 341 changes merged to date
 
     On the table
       - v0.1.23 Release Notes (Emil Brandvold)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -269,149 +79,96 @@ Channel #cookbooks: Nikolai's 3 commits today touch finetuning core; cookbooks r
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 343 function/class names and 43 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Concrete changes to upload function and job ID return semantics
-    owns        code-execution, release-and-ci, telemetry
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. Landing 0.1.24 and the response object feature
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Surface finetuning changes and catch any cookbook-breaking impacts   *** MUST RAISE ***
-      2. what "v0.1.23 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Surface finetuning changes and catch any cookbook-breaking impacts
+      1. Confirm 0.1.24 and response object landed cleanly   *** MUST RAISE ***
+      2. Unblock PR 652 or PR 654 for download feature   *** MUST RAISE ***
+      3. send Weekly update: week of Apr 28
+      4. what "v0.1.23 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm 0.1.24 and response object landed cleanly
     available   around today
 
   Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Cookbook and recipe perspective; how finetuning is exposed to users
+    role        Founding Software Engineer — Core Pipeline & Release. Documentation improvements and examples
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Surface finetuning changes and catch any cookbook-breaking impacts
-    goal        Nikolai's 3 commits today touch finetuning core; cookbooks repo depends on stable interface
+      1. Confirm 0.1.24 and response object landed cleanly
+      2. Unblock PR 652 or PR 654 for download feature
+      3. send Weekly update: week of Apr 28
+    goal        Two PRs merged today; response object is out; seven older PRs need attention
     available   around today
 
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Release and integration context
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Maintainer perspective on API surface and backwards compatibility
+    owns        examples-cookbooks, code-execution, finetuning
     agenda
-      1. Surface finetuning changes and catch any cookbook-breaking impacts
-    goal        Nikolai's 3 commits today touch finetuning core; cookbooks repo depends on stable interface
+      1. Confirm 0.1.24 and response object landed cleanly
+      2. Unblock PR 652 or PR 654 for download feature
+      3. send Weekly update: week of Apr 28   *** MUST RAISE ***
+      4. that "Weekly update: week of Apr 28" has gone out, and what you asked in it   *** MUST RAISE ***
+    goal        send Weekly update: week of Apr 28
     available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   Either cookbooks are unaffected, or a list of examples that need revision
-
-
-------------------------------------------------------------------------------
-## #random — 14 turns, 2 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #random: Gideon Halloway saw a note that another project force-pushed a docker tag and it reminded everyone of last week
-
-    Today is Friday 25 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Gideon Halloway saw a note that another project force-pushed a docker tag and it reminded everyone of last week
-    
-    What it should get through:
-    
-    On the agenda: Gideon Halloway grumbles that a tag pointing at a different layer set than yesterday means the string in your logs is not evidence of anything unless you write it down at the time; Konrad Feltrin says he has started pasting the output of docker images into his run notes by hand, which he does not want to keep doing; Nikolai Berresford jokes about pinning by digest and then admits he does not know whether the sandbox images are published with stable digests
-    
-    Wrap when: a digest-versus-tag question raised in a joking register and left for later; Konrad Feltrin's manual workaround stands; it is settled that the team agrees users see contradictory model-support answers because more than one list of names exists
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
-      - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (2 names)
-      - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: o3.
-
-### 3. What EACH PERSON is told
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 
+    role        Core Engineer — Dataset Viewer & Run Observability. CLI batch update work
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Two support tickets in a row about o3 getting a schema in one place and not another before I twigged that there was more than one list of model names in the tree. I'd rather explain a hard error than explain that.   *** MUST SETTLE (clue t2.r2.l6) ***
-         must contain literally: o3
-    goal        the team agrees users see contradictory model-support answers because more than one list of names exists
+      1. Confirm 0.1.24 and response object landed cleanly
+      2. Unblock PR 652 or PR 654 for download feature
+      3. send Weekly update: week of Apr 28
+    goal        Two PRs merged today; response object is out; seven older PRs need attention
     available   around today
 
   Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. 
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Finetuning client perspective
     owns        code-execution, release-and-ci, telemetry
     agenda
-    goal        Gideon Halloway saw a note that another project force-pushed a docker tag and it reminded everyone of last week
+      1. Confirm 0.1.24 and response object landed cleanly
+      2. Unblock PR 652 or PR 654 for download feature
+      3. send Weekly update: week of Apr 28
+    goal        Two PRs merged today; response object is out; seven older PRs need attention
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   a digest-versus-tag question raised in a joking register and left for later; Konrad Feltrin's manual workaround stands; it is settled that the team agrees users see contradictory model-support answers because more than one list of names exists
+    leaving   0.1.24 release confirmed shipped; agreement on which stale PRs are on critical path
 
-
-==============================================================================
-# 2025-04-28 — 3 conversation(s), 32 turns budgeted
-==============================================================================
 
 ------------------------------------------------------------------------------
-## #engineering — 8 turns, 4 people
+## #cookbooks — 6 turns, 4 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #engineering: Nikolai committed serving infrastructure work touching multiple core services; the team needs to align on scope and impact.
+Channel #cookbooks: Authentication documentation pass just merged; response object may affect cookbook code samples
 
-    Today is Monday 28 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Monday 5 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Nikolai committed serving infrastructure work touching multiple core services; the team needs to align on scope and impact.
+    Why it is happening: Authentication documentation pass just merged; response object may affect cookbook code samples
     
     What it should get through:
-      1. Understand serving infra scope   [Nikolai Berresford must raise this]
-           - Nikolai describes the changes
-           - Dario and Emil ask about request processing impact
-           - Dermot flags any release-blocking concerns
-      2. send Weekly update: week of Apr 21   [Emil Brandvold must raise this]
-           - Emil Brandvold says they will send Weekly update: week of Apr 21
+      1. Confirm auth documentation is clear for new users   [Dermot Callaghan must raise this]
+           - Dermot walks through the new section
+           - Konrad signals whether it meets 'beginner-ready' bar
+           - Group agrees or flags rework
+      2. Identify which cookbooks need response-object updates   [Emil Brandvold must raise this]
+           - Emil notes the API change scope
+           - Dario raises backward-compat concerns
+           - Group identifies which examples are most-used
     
-    On the agenda: Scope of serving infra changes; Impact on request layer and caching; Blocking status for ongoing work; Weekly update: week of Apr 21
+    On the agenda: Auth docs clarity for new users; Response object integration into existing examples
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Team understands what's changing in the serving layer and whether it blocks or is blocked by any open work.
+    Wrap when: Auth docs verified clear; list of cookbook examples needing response-object updates
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -422,15 +179,15 @@ Channel #engineering: Nikolai committed serving infrastructure work touching mul
 
     Settled
       - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 341 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
       - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
       - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -447,77 +204,83 @@ Channel #engineering: Nikolai committed serving infrastructure work touching mul
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 343 function/class names and 43 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Serving infrastructure changes across request processing and caching
-    owns        code-execution, release-and-ci, telemetry
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Direct changes to authentication documentation
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-      1. Understand serving infra scope   *** MUST RAISE ***
-      2. send Weekly update: week of Apr 21
-    goal        Understand serving infra scope
+      1. Confirm auth documentation is clear for new users   *** MUST RAISE ***
+      2. Identify which cookbooks need response-object updates
+    goal        Confirm auth documentation is clear for new users
     available   around today
 
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Request processing ownership and context
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. Maintainer veto on what constitutes 'clear' for new users
+    owns        examples-cookbooks, code-execution, finetuning
     agenda
-      1. Understand serving infra scope
-      2. send Weekly update: week of Apr 21
-    goal        Nikolai committed serving infrastructure work touching multiple core services; the team needs to align on scope and impact.
+      1. Confirm auth documentation is clear for new users
+      2. Identify which cookbooks need response-object updates
+    goal        Authentication documentation pass just merged; response object may affect cookbook code samples
     available   around today
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Provider integration and online-request-processing perspective
+    role        Core Platform Engineer, Request Processing. Perspective on response object changes and example compatibility
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Understand serving infra scope
-      2. send Weekly update: week of Apr 21   *** MUST RAISE ***
-      3. that "Weekly update: week of Apr 21" has gone out, and what you asked in it   *** MUST RAISE ***
-    goal        send Weekly update: week of Apr 21
+      1. Confirm auth documentation is clear for new users
+      2. Identify which cookbooks need response-object updates   *** MUST RAISE ***
+    goal        Identify which cookbooks need response-object updates
     available   around today
 
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Core pipeline and release context
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+  Dario Kestrel  (dario)
+    role        Core Engineer, Request Processing. Long-term example maintainability concerns
+    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
     agenda
-      1. Understand serving infra scope
-      2. send Weekly update: week of Apr 21
-    goal        Nikolai committed serving infrastructure work touching multiple core services; the team needs to align on scope and impact.
+      1. Confirm auth documentation is clear for new users
+      2. Identify which cookbooks need response-object updates
+    goal        Authentication documentation pass just merged; response object may affect cookbook code samples
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Team understands what's changing in the serving layer and whether it blocks or is blocked by any open work.
+    leaving   Auth docs verified clear; list of cookbook examples needing response-object updates
 
+
+==============================================================================
+# 2025-05-06 — 3 conversation(s), 24 turns budgeted
+==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 10 turns, 3 people
+## #releases — 8 turns, 4 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: 6 PRs older than the era median (25.6h); Emil has 5 open, Gideon has 1, Nikolai's finetuning client is 2 days old.
+Channel #releases: Three PRs merged today and v0.1.24 tag exists; release notes are due today and announcement must follow.
 
-    Today is Monday 28 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Tuesday 6 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: 6 PRs older than the era median (25.6h); Emil has 5 open, Gideon has 1, Nikolai's finetuning client is 2 days old.
+    Why it is happening: Three PRs merged today and v0.1.24 tag exists; release notes are due today and announcement must follow.
     
     What it should get through:
-      1. Clear stale PR queue   [Emil Brandvold must raise this]
-           - Emil catalogs status of 468, 643, 651, 652, 654, 656
-           - Gideon and Nikolai flag any they can review this week
-           - Team decides what merges vs. holds
+      1. Release notes capture the three merged changes   [Emil Brandvold must raise this]
+           - Emil drafts the three lines from the commit subjects
+           - Nikolai and Konrad Feltrin glance at coverage
+           - Notes are finalized
+      2. Announce v0.1.24 to releases subscribers   [Emil Brandvold must raise this]
+           - Emil posts the announcement with the release notes link
+           - Team sees it in releases channel
     
-    On the agenda: Which PRs are ready to land; Which need more work or are blocked; Dependencies between open PRs
+    On the agenda: Release v0.1.24 is tagged and ready; What shipped: CLI batch update, DeepSeek API, README auth docs; Announce to the wider team
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: Stale PRs either move to review, get unblocked, or are explicitly deferred with a reason.
+    Wrap when: Release notes doc is written, announcement mail is sent, team knows v0.1.24 is live.
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -527,16 +290,19 @@ Channel #code-review: 6 PRs older than the era median (25.6h); Emil has 5 open, 
     Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 23 release(s) shipped, currently v0.1.24
+      - 344 changes merged to date
 
     On the table
+      - v0.1.24 Release Notes (Emil Brandvold)
+      - announce-v0-1-24 (Emil Brandvold)
+      - release-v0-1-24 (Emil Brandvold)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
+      - PR 658: Feat/agentic/multiturn (Emil Brandvold)
+      - PR 661: feat: add example of prescription extraction (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -553,160 +319,83 @@ Channel #code-review: 6 PRs older than the era median (25.6h); Emil has 5 open, 
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 334 function/class names and 41 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Multiple pending features (n-samples, response object, multimodal, download, lazy gemini)
+    role        Core Platform Engineer, Request Processing. shipped tag and merged commits across three PRs
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Clear stale PR queue   *** MUST RAISE ***
-    goal        Clear stale PR queue
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. CLI batch-update frequency fix perspective
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Clear stale PR queue
-    goal        6 PRs older than the era median (25.6h); Emil has 5 open, Gideon has 1, Nikolai's finetuning client is 2 days old.
+      1. Release notes capture the three merged changes   *** MUST RAISE ***
+      2. Announce v0.1.24 to releases subscribers   *** MUST RAISE ***
+      3. that the doc "v0.1.24 Release Notes" is done, and where the others can find it   *** MUST RAISE ***
+      4. that "v0.1.24 is out" has gone out, and what you asked in it   *** MUST RAISE ***
+      5. what "v0.1.24 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Release notes capture the three merged changes
     available   around today
 
   Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Release and CI perspective; finetuning client PR context
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. code review signal and validation of the merged work
     owns        code-execution, release-and-ci, telemetry
     agenda
-      1. Clear stale PR queue
-    goal        6 PRs older than the era median (25.6h); Emil has 5 open, Gideon has 1, Nikolai's finetuning client is 2 days old.
+      1. Release notes capture the three merged changes
+      2. Announce v0.1.24 to releases subscribers
+    goal        Three PRs merged today and v0.1.24 tag exists; release notes are due today and announcement must follow.
     available   around today
 
-### 4. How it should land
-
-    lands as  partial
-    leaving   Stale PRs either move to review, get unblocked, or are explicitly deferred with a reason.
-
-
-------------------------------------------------------------------------------
-## #viewer — 14 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #viewer: Konrad Feltrin pushed two verification runs to the viewer to compare and could not tell them apart from the metadata panel
-
-    Today is Monday 28 April 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Konrad Feltrin pushed two verification runs to the viewer to compare and could not tell them apart from the metadata panel
-    
-    What it should get through:
-    
-    On the agenda: Konrad Feltrin says the two runs differ only in what executed the code and the viewer shows the same recipe, same model, same row count, so the comparison is useless to him; Gideon Halloway says the run metadata carries provider and model already and he would like whatever identified the execution environment to sit in the same block, sourced from whatever the executor resolved rather than from what the user typed; Dario Kestrel asks whether that value comes from the same place the cache key would read it from and says it had better, or the two will drift
-    
-    Wrap when: Gideon Halloway will sketch the metadata field once the executor exposes a resolved value; nothing merged; it is settled that the team agrees the reported object should expose the directory it inspected as a field
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
-      - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (2 names)
-      - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. foundation perspective on what shipped
+    owns        examples-cookbooks, code-execution, finetuning
     agenda
-    goal        Konrad Feltrin pushed two verification runs to the viewer to compare and could not tell them apart from the metadata panel
+      1. Release notes capture the three merged changes
+      2. Announce v0.1.24 to releases subscribers
+    goal        Three PRs merged today and v0.1.24 tag exists; release notes are due today and announcement must follow.
     available   around today
 
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. 
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. examples-cookbooks changes included in the release
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-    goal        Konrad Feltrin pushed two verification runs to the viewer to compare and could not tell them apart from the metadata panel
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. 
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. cheap fix for the support loop: whatever object these reporting calls hand back should carry the directory it looked at as a field, the way the end-of-run summary already prints the db path.   *** MUST SETTLE (clue t1.r2.L12) ***
-    goal        the team agrees the reported object should expose the directory it inspected as a field
+      1. Release notes capture the three merged changes
+      2. Announce v0.1.24 to releases subscribers
+    goal        Three PRs merged today and v0.1.24 tag exists; release notes are due today and announcement must follow.
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Gideon Halloway will sketch the metadata field once the executor exposes a resolved value; nothing merged; it is settled that the team agrees the reported object should expose the directory it inspected as a field
+    leaving   Release notes doc is written, announcement mail is sent, team knows v0.1.24 is live.
 
-
-==============================================================================
-# 2025-04-29 — 4 conversation(s), 50 turns budgeted
-==============================================================================
 
 ------------------------------------------------------------------------------
-## #engineering — 12 turns, 3 people
+## #code-review — 10 turns, 5 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #engineering: Nikolai has four commits today touching core request processing, provider integrations, and finetuning; the team needs to align on scope and impact before these land.
+Channel #code-review: Two PRs opened today, five older PRs stagnant, era median merge is 25.6h; code-review backlog blocks shipping.
 
-    Today is Tuesday 29 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Tuesday 6 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Nikolai has four commits today touching core request processing, provider integrations, and finetuning; the team needs to align on scope and impact before these land.
+    Why it is happening: Two PRs opened today, five older PRs stagnant, era median merge is 25.6h; code-review backlog blocks shipping.
     
     What it should get through:
-      1. Clarify num_gpus parameter scope and wiring   [Nikolai Berresford must raise this]
-           - Nikolai walks through the commit and its services
-           - Dario or Emil questions where it hooks into request processing
-           - Group agrees whether it's finetuning-only or affects the main pipeline
-      2. Understand structured output override and backend impact   [Nikolai Berresford must raise this]
-           - Nikolai explains the override and which providers needed it
-           - Emil flags any conflict with existing provider integrations or blocked PRs 651 and 643
-           - Group decides if this needs a provider-specific flag or is safe globally
-      3. Confirm stdout removal is safe and not a breaking change   [Nikolai Berresford must raise this]
-           - Nikolai clarifies why stdout is being removed
-           - Dario checks impact on caching, retries, and resume behavior
-           - Group settles on whether this is a feature removal or cleanup that should mention in next release
+      1. PR 661 prescription extraction example gets review and merges   [Emil Brandvold must raise this]
+           - Emil surfaces the example as cookbook-ready
+           - Konrad or Dermot Callaghan reviews for docs quality
+           - PR 661 merges same day if clean
+      2. PR 653 finetuning-client decision: merge or defer   [Nikolai Berresford must raise this]
+           - Nikolai flags PR 653 has been open 10 days and owns finetuning work
+           - Team decides if it blocks this sprint or lands as-is
+           - Decision is recorded
     
-    On the agenda: What the num_gpus parameter does and where it wires in; The structured output override: what backends does it affect; Removing stdout support: is that a breaking change or cleanup
+    On the agenda: Review open PRs blocking May work; Triage the five stale PRs by age and blocker status; Get PR 661 eyes and decide on PR 653 path
     
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
+    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
+    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: Nikolai's four commits are understood and greenlighted for PRs, or specific concerns are documented so he can refine before opening.
+    Wrap when: PR 661 in flight for merge, PR 653 either merged today or explicitly deferred with a date; it is settled that the team agrees the container user should be an argument the executor passes at create time
     
     Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -716,16 +405,16 @@ Channel #engineering: Nikolai has four commits today touching core request proce
     Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 23 release(s) shipped, currently v0.1.24
+      - 344 changes merged to date
 
     On the table
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
+      - PR 658: Feat/agentic/multiturn (Emil Brandvold)
+      - PR 661: feat: add example of prescription extraction (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -742,78 +431,90 @@ Channel #engineering: Nikolai has four commits today touching core request proce
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 334 function/class names and 41 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Four commits on finetuning, request processing and provider integrations, touching num_gpus parameter, structured output override, and stdout removal
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. fast review turnaround and understanding of finetuning-client blocker
     owns        code-execution, release-and-ci, telemetry
     agenda
-      1. Clarify num_gpus parameter scope and wiring   *** MUST RAISE ***
-      2. Understand structured output override and backend impact   *** MUST RAISE ***
-      3. Confirm stdout removal is safe and not a breaking change   *** MUST RAISE ***
-    goal        Clarify num_gpus parameter scope and wiring
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Deep knowledge of request processing and provider integration constraints
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Clarify num_gpus parameter scope and wiring
-      2. Understand structured output override and backend impact
-      3. Confirm stdout removal is safe and not a breaking change
-    goal        Nikolai has four commits today touching core request processing, provider integrations, and finetuning; the team needs to align on scope and impact before these land.
+      1. PR 661 prescription extraction example gets review and merges
+      2. PR 653 finetuning-client decision: merge or defer   *** MUST RAISE ***
+    goal        PR 653 finetuning-client decision: merge or defer
     available   around today
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Release and provider integration expertise, has blocked PRs waiting
+    role        Core Platform Engineer, Request Processing. authored PR 661 and owns online-request-processing work
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Clarify num_gpus parameter scope and wiring
-      2. Understand structured output override and backend impact
-      3. Confirm stdout removal is safe and not a breaking change
-    goal        Nikolai has four commits today touching core request processing, provider integrations, and finetuning; the team needs to align on scope and impact before these land.
+      1. PR 661 prescription extraction example gets review and merges   *** MUST RAISE ***
+      2. PR 653 finetuning-client decision: merge or defer
+    goal        PR 661 prescription extraction example gets review and merges
+    available   around today
+
+  Gideon Halloway  (gideon)
+    role        Core Engineer — Dataset Viewer & Run Observability. just merged PR 632, knows the batch update context
+    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+    agenda
+      1. PR 661 prescription extraction example gets review and merges
+      2. PR 653 finetuning-client decision: merge or defer
+    goal        Two PRs opened today, five older PRs stagnant, era median merge is 25.6h; code-review backlog blocks shipping.
+    available   around today
+
+  Konrad Feltrin  (konrad)
+    role        Founding Maintainer, Curation Platform. review authority on examples and cookbooks
+    owns        examples-cookbooks, code-execution, finetuning
+    agenda
+      1. PR 661 prescription extraction example gets review and merges
+      2. PR 653 finetuning-client decision: merge or defer
+    goal        Two PRs opened today, five older PRs stagnant, era median merge is 25.6h; code-review backlog blocks shipping.
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. just landed README cleanup, knows the docs state
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. PR 661 prescription extraction example gets review and merges
+      2. PR 653 finetuning-client decision: merge or defer
+      3. If we are naming a tag in code anyway, the uid feels like the wrong thing to leave to a Dockerfile. Docker takes a user on the create call and we have simply never passed one.   *** MUST SETTLE (clue t4.r2.L3) ***
+    goal        the team agrees the container user should be an argument the executor passes at create time
     available   around today
 
 ### 4. How it should land
 
-    lands as  partial
-    leaving   Nikolai's four commits are understood and greenlighted for PRs, or specific concerns are documented so he can refine before opening.
+    lands as  resolves
+    leaving   PR 661 in flight for merge, PR 653 either merged today or explicitly deferred with a date; it is settled that the team agrees the container user should be an argument the executor passes at create time
 
 
 ------------------------------------------------------------------------------
-## #code-review — 10 turns, 3 people
+## #incidents — 6 turns, 4 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: Six PRs are older than the consolidation era's 25.6h median merge time; Emil has 4, Gideon has 1, and Nikolai's 653 is blocked on input.
+Channel #incidents: Incident kind=revert in the packet; two commits reverted (docs lint and structured output). Main is in the tree, so status is unclear.
 
-    Today is Tuesday 29 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Tuesday 6 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Six PRs are older than the consolidation era's 25.6h median merge time; Emil has 4, Gideon has 1, and Nikolai's 653 is blocked on input.
+    Why it is happening: Incident kind=revert in the packet; two commits reverted (docs lint and structured output). Main is in the tree, so status is unclear.
     
     What it should get through:
-      1. Merge or clarify path for Emil's viewer and provider PRs   [Emil Brandvold must raise this]
-           - Emil summarizes each PR (651, 652, 654, 656) and any review feedback so far
-           - Dario or Gideon flag any concerns or conflicts with their services
-           - Group assigns reviewers and target merge date for each
-      2. Unblock Gideon's batch update frequency fix   [Gideon Halloway must raise this]
-           - Gideon explains the fix and why batch update was too slow
-           - Emil or Dario reviews and approves if safe, or flags concerns
-           - Group decides merge target
-      3. Clear path for Nikolai's 653 finetuning client   [Nikolai Berresford must raise this]
-           - Nikolai notes his 653 is waiting on input; group confirms no other blockers
-           - Dario or Emil summarize status of 468 and 643 if they are blocking anything else
-           - Group agrees next review pass target date
+      1. Confirm main is healthy and the revert was necessary and complete   [Nikolai Berresford must raise this]
+           - Nikolai states the structured output change broke something (exact impact unclear from commits alone)
+           - Gideon or Emil Brandvold confirms main is now green
+           - Team agrees no follow-up is needed
+      2. Document the revert reasoning so it does not happen again   [Nikolai Berresford must raise this]
+           - Nikolai or Dermot Callaghan flags the reason (likely: incompatible with test suite or provider API)
+           - Emil notes it for the May sweep postmortem if needed
+           - Decision: file an issue or let it sit until the reason resurfaces
     
-    On the agenda: Review state of Emil's four multimodal and viewer PRs; Decide on Gideon's batch update frequency PR; Surface any blockers on 468 (n samples) or 643 (response object)
+    On the agenda: State what reverted and the impact; Confirm the revert is complete and main is clean; Document why the structured output change rolled back
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: Each PR has a clear reviewer and merge target; no PR is left without a next step.
+    Wrap when: Revert is understood, main is confirmed healthy, and the team knows why structured output had to roll back; it is settled that the team agrees supports_structured_output() is the lookup the structured-output path already goes through
     
     Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -823,17 +524,16 @@ Channel #code-review: Six PRs are older than the consolidation era's 25.6h media
     Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 23 release(s) shipped, currently v0.1.24
+      - 344 changes merged to date
 
     On the table
-      - WS-055: Release Engineering, CI & Test Suite (Dermot Callaghan)
       - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
+      - PR 658: Feat/agentic/multiturn (Emil Brandvold)
+      - PR 661: feat: add example of prescription extraction (Emil Brandvold)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -850,83 +550,91 @@ Channel #code-review: Six PRs are older than the consolidation era's 25.6h media
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 334 function/class names and 41 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: response_format, supports_structured_output.
 
 ### 3. What EACH PERSON is told
 
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Context on 643 (response object), 651 (multimodal openai), 652 (dataset download), 654 (lazy gemini batch)
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. made the original structured output change and the revert commit
+    owns        code-execution, release-and-ci, telemetry
     agenda
-      1. Merge or clarify path for Emil's viewer and provider PRs   *** MUST RAISE ***
-      2. Unblock Gideon's batch update frequency fix
-      3. Clear path for Nikolai's 653 finetuning client
-      4. what "WS-055: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Merge or clarify path for Emil's viewer and provider PRs
+      1. Confirm main is healthy and the revert was necessary and complete   *** MUST RAISE ***
+      2. Document the revert reasoning so it does not happen again   *** MUST RAISE ***
+    goal        Confirm main is healthy and the revert was necessary and complete
     available   around today
 
   Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Context on 632 (batch update frequency increase); owns CLI and observability
+    role        Core Engineer — Dataset Viewer & Run Observability. merged PR 632 and understands the batch update context
     owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
     agenda
-      1. Merge or clarify path for Emil's viewer and provider PRs
-      2. Unblock Gideon's batch update frequency fix   *** MUST RAISE ***
-      3. Clear path for Nikolai's 653 finetuning client
-    goal        Unblock Gideon's batch update frequency fix
+      1. Confirm main is healthy and the revert was necessary and complete
+      2. Document the revert reasoning so it does not happen again
+    goal        Incident kind=revert in the packet; two commits reverted (docs lint and structured output). Main is in the tree, so status is unclear.
     available   around today
 
-  Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Fresh commits on request processing and structured output; can review others' PRs
-    owns        code-execution, release-and-ci, telemetry
+  Emil Brandvold  (emil)
+    role        Core Platform Engineer, Request Processing. owns online-request-processing and will confirm the revert did not break the sweep
+    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Merge or clarify path for Emil's viewer and provider PRs
-      2. Unblock Gideon's batch update frequency fix
-      3. Clear path for Nikolai's 653 finetuning client   *** MUST RAISE ***
-    goal        Clear path for Nikolai's 653 finetuning client
+      1. Confirm main is healthy and the revert was necessary and complete
+      2. Document the revert reasoning so it does not happen again
+      3. For anyone reading the online processor: before it puts response_format on the payload it calls supports_structured_output(model), which is just a membership check. If the check says no you get plain text back and a warning, nothing louder.   *** MUST SETTLE (clue t2.r2.l2) ***
+         must contain literally: supports_structured_output, response_format
+    goal        the team agrees supports_structured_output() is the lookup the structured-output path already goes through
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. recent context on the commit graph
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Confirm main is healthy and the revert was necessary and complete
+      2. Document the revert reasoning so it does not happen again
+    goal        Incident kind=revert in the packet; two commits reverted (docs lint and structured output). Main is in the tree, so status is unclear.
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Each PR has a clear reviewer and merge target; no PR is left without a next step.
+    leaving   Revert is understood, main is confirmed healthy, and the team knows why structured output had to roll back; it is settled that the team agrees supports_structured_output() is the lookup the structured-output path already goes through
 
+
+==============================================================================
+# 2025-05-07 — 2 conversation(s), 22 turns budgeted
+==============================================================================
 
 ------------------------------------------------------------------------------
-## #pipeline — 14 turns, 3 people
+## #engineering — 8 turns, 3 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #pipeline: Nikolai's four commits touch the core request layer (online-request-processing, provider-integrations, bulk-llm-inference, caching-and-resume); the service owners need to validate impact.
+Channel #engineering: Emil merged the prescription extraction example today; it touches multimodal-prompts which several people own.
 
-    Today is Tuesday 29 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Wednesday 7 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Nikolai's four commits touch the core request layer (online-request-processing, provider-integrations, bulk-llm-inference, caching-and-resume); the service owners need to validate impact.
+    Why it is happening: Emil merged the prescription extraction example today; it touches multimodal-prompts which several people own.
     
     What it should get through:
-      1. Validate caching and resume aren't broken by changes   [Dario Kestrel must raise this]
-           - Nikolai describes which commits touch caching or retry paths
-           - Dario walks through the caching key and invalidation logic; checks if structured output or stdout removal changes keys
-           - Group confirms that cache hits and resume still work across these changes
-      2. Confirm structured output override is safe and provider-agnostic   [Emil Brandvold must raise this]
-           - Nikolai explains what the override does and which providers needed it
-           - Emil checks for conflict with 643 (response object) and notes which backends it affects
-           - Group decides if the override can be global or needs a provider flag
-      3. Understand stdout removal scope and impact on observability   [Gideon Halloway must raise this]
-           - Nikolai clarifies why stdout is being removed and what still gets logged
-           - Gideon checks impact on progress bars, error messages, and cost accounting
-           - Group confirms that users can still debug and that CLI output is unaffected
+      1. Confirm prescription example is ready and fits the examples corpus   [Emil Brandvold must raise this]
+           - Emil states the merge is clean and tested
+           - Nikolai notes the code-execution angle is sound
+           - Dermot flags or clears any corpus integration risk
+      2. Unblock or defer the three stalled multimodal/cookbook PRs   [Dermot Callaghan must raise this]
+           - Emil lists the three open PRs (PR 652, PR 654, PR 658) and their blockers
+           - Discussion lands on which can move this week or which defer
     
-    On the agenda: Impact on caching and resume semantics from the changes; Structured output override and whether it needs provider-specific code paths; Stdout removal and how it affects tracing, logging, and debugging
+    On the agenda: Prescription extraction example merged and in v0.1.24; Torch dependency fix (PR PR 663) status; Multimodal path forward and blocked PRs
     
-    No longer here: Nils Brandt, Theo Marchetti — do not expect them back or wait on them
+    Meeting today: Weekly sync
+    
+    No longer here: Priya Vandersloot — do not expect them back or wait on them
     
     Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
     Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
     
-    Wrap when: Nikolai's changes are validated against request layer semantics, or specific changes are flagged as needing revision before landing.
+    Wrap when: Prescription example is live in v0.1.24 and integrated into the example suite. At least one blocked PR moves forward or a decision lands on deferrals.
     
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
@@ -934,17 +642,17 @@ Channel #pipeline: Nikolai's four commits touch the core request layer (online-r
     Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 23 release(s) shipped, currently v0.1.24
+      - 345 changes merged to date
 
     On the table
-      - WS-055: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+      - v0.1.24 Release Notes (Emil Brandvold)
+      - Weekly Notes — Week of May 5 (Dermot Callaghan)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
+      - PR 658: Feat/agentic/multiturn (Emil Brandvold)
+      - PR 663: fix error when torch isn't installed (Nikolai Berresford)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -961,64 +669,64 @@ Channel #pipeline: Nikolai's four commits touch the core request layer (online-r
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 329 function/class names and 37 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. Deepest expertise on request sequencing, caching invalidation, and retry logic
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-      1. Validate caching and resume aren't broken by changes   *** MUST RAISE ***
-      2. Confirm structured output override is safe and provider-agnostic
-      3. Understand stdout removal scope and impact on observability
-    goal        Validate caching and resume aren't broken by changes
-    available   around today
-
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Release and provider integration context; blocked on 468, 643, 651
+    role        Core Platform Engineer, Request Processing. Vision/multimodal workstream ready to land; example code for prescription extraction
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Validate caching and resume aren't broken by changes
-      2. Confirm structured output override is safe and provider-agnostic   *** MUST RAISE ***
-      3. Understand stdout removal scope and impact on observability
-      4. what "WS-055: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm structured output override is safe and provider-agnostic
+      1. Confirm prescription example is ready and fits the examples corpus   *** MUST RAISE ***
+      2. Unblock or defer the three stalled multimodal/cookbook PRs
+      3. what "v0.1.24 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Confirm prescription example is ready and fits the examples corpus
     available   around today
 
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Observability and progress tracking expertise; can catch impact on batch updates or cost accounting
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. Review perspective on code-execution angle and torch dependency fix
+    owns        code-execution, release-and-ci, telemetry
     agenda
-      1. Validate caching and resume aren't broken by changes
-      2. Confirm structured output override is safe and provider-agnostic
-      3. Understand stdout removal scope and impact on observability   *** MUST RAISE ***
-    goal        Understand stdout removal scope and impact on observability
+      1. Confirm prescription example is ready and fits the examples corpus
+      2. Unblock or defer the three stalled multimodal/cookbook PRs
+    goal        Emil merged the prescription extraction example today; it touches multimodal-prompts which several people own.
+    available   around today
+
+  Dermot Callaghan  (dermot)
+    role        Founding Software Engineer — Core Pipeline & Release. Ownership of the examples-cookbooks surface; weekly notes due today
+    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
+    agenda
+      1. Confirm prescription example is ready and fits the examples corpus
+      2. Unblock or defer the three stalled multimodal/cookbook PRs   *** MUST RAISE ***
+      3. the page you are writing, Postmortem: Examples/Cookbooks Lint & Structured-Output Revert, has to say this in your own words: review comment I keep leaving: if your branch depends on what a model can do, look it up in the support table and add the pattern there if it is missing. do not grow a fourth capability dict next to the one you are writing. the table is cheap to extend and everything reading it improves at once   *** MUST SETTLE (clue t2.r1.L4) ***
+      4. that the doc "Weekly Notes — Week of May 5" is done, and where the others can find it   *** MUST RAISE ***
+      5. that the doc "Postmortem: Examples/Cookbooks Lint & Structured-Output Revert" is done, and where the others can find it   *** MUST RAISE ***
+    goal        Unblock or defer the three stalled multimodal/cookbook PRs
     available   around today
 
 ### 4. How it should land
 
-    lands as  partial
-    leaving   Nikolai's changes are validated against request layer semantics, or specific changes are flagged as needing revision before landing.
+    lands as  resolves
+    leaving   Prescription example is live in v0.1.24 and integrated into the example suite. At least one blocked PR moves forward or a decision lands on deferrals.
 
 
 ------------------------------------------------------------------------------
-## #general — 14 turns, 3 people
+## #code-review — 14 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #general: Nikolai Berresford pushed the renamed key and a validation check and asked whether the override should mean anything outside the docker path
+Channel #code-review: Nikolai Berresford opened the first draft of the pinning change and asked for eyes before he wires up the override
 
-    Today is Tuesday 29 April 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Wednesday 7 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Nikolai Berresford pushed the renamed key and a validation check and asked whether the override should mean anything outside the docker path
+    Why it is happening: Nikolai Berresford opened the first draft of the pinning change and asked for eyes before he wires up the override
     
     What it should get through:
     
-    On the agenda: Emil Brandvold says he spent an hour on a run last month where he had fat-fingered a backend_params key and nothing complained, it just ran with the default, and he does not want a second knob with the same failure mode; Konrad Feltrin tried the new key against the local backend and against the hosted sandbox backend and both accepted it and ignored it, which he calls worse than refusing it; Dermot Callaghan says an override that only means something on one backend should say so out loud when handed to the others, rather than being quietly dropped
+    On the agenda: Gideon Halloway reports that while testing the branch he passed the image as a plain repository name with no tag after the colon and the run went ahead against whatever the registry served, which cost him most of a morning before he compared two runs side by side, and he says it should stop before the container starts and tell him what he got wrong; Dermot Callaghan bikesheds the key name in backend_params, docker_image versus image versus sandbox_image, and says whichever it is has to read unambiguously next to the other docker keys; Konrad Feltrin asks whether the same key means anything for the local backend and gets no answer
     
-    Wrap when: Nikolai Berresford agrees to make the non-docker backends complain, but the exact behaviour, raise versus warn, is left to whoever reviews next; it is settled that Emil Brandvold rules out aborting the run when the stored job cannot be reused
+    Wrap when: Nikolai Berresford will rename the key and add a check on the value; the local-backend question is left in a review comment unresolved; it is settled that the team agrees the repo gives no indication of which sandbox build is acceptable
     
     Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1028,16 +736,15 @@ Channel #general: Nikolai Berresford pushed the renamed key and a validation che
     Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 23 release(s) shipped, currently v0.1.24
+      - 345 changes merged to date
 
     On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
+      - PR 658: Feat/agentic/multiturn (Emil Brandvold)
+      - PR 663: fix error when torch isn't installed (Nikolai Berresford)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1054,7 +761,7 @@ Channel #general: Nikolai Berresford pushed the renamed key and a validation che
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 329 function/class names and 37 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in. These DO exist today and are yours to name: curator-sandbox.
 
 ### 3. What EACH PERSON is told
 
@@ -1062,64 +769,57 @@ Channel #general: Nikolai Berresford pushed the renamed key and a validation che
     role        Research Platform Engineer — Code Execution & Data-Generation Recipes. 
     owns        code-execution, release-and-ci, telemetry
     agenda
-    goal        Nikolai Berresford pushed the renamed key and a validation check and asked whether the override should mean anything outside the docker path
-    available   around today
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. 
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. I hacked a guard in locally that raised when the stored job looked off, ran it against a nightly, and it died at 3am four hours in. that is worse than what we have now for anyone running unattended. a job dying because someone touched the config is not a fix.   *** MUST SETTLE (clue t3.r2.l_beh_emil) ***
-    goal        Emil Brandvold rules out aborting the run when the stored job cannot be reused
+      1. Lost most of yesterday to this. I picked a curator-sandbox tag off the registry listing because it looked like the newest one, ran the verifier suite against it, got twelve failures that had nothing to do with my code. Grepped the whole repo afterwards for any hint of which build we consider good and there is nothing in there, the numbers are not written down anywhere in the codebase.   *** MUST SETTLE (clue t4.r1.L2) ***
+         must contain literally: curator-sandbox
+    goal        the team agrees the repo gives no indication of which sandbox build is acceptable
     available   around today
 
   Dermot Callaghan  (dermot)
     role        Founding Software Engineer — Core Pipeline & Release. 
     owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
     agenda
-    goal        Nikolai Berresford pushed the renamed key and a validation check and asked whether the override should mean anything outside the docker path
+    goal        Nikolai Berresford opened the first draft of the pinning change and asked for eyes before he wires up the override
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   Nikolai Berresford agrees to make the non-docker backends complain, but the exact behaviour, raise versus warn, is left to whoever reviews next; it is settled that Emil Brandvold rules out aborting the run when the stored job cannot be reused; Emil Brandvold rules out aborting the run when the stored job cannot be reused
+    leaving   Nikolai Berresford will rename the key and add a check on the value; the local-backend question is left in a review comment unresolved; it is settled that the team agrees the repo gives no indication of which sandbox build is acceptable
 
 
 ==============================================================================
-# 2025-05-01 — 2 conversation(s), 26 turns budgeted
+# 2025-05-08 — 1 conversation(s), 12 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 12 turns, 3 people
+## #code-review — 12 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: New feature PR opened; 6 stale PRs need path to merge
+Channel #code-review: Four PRs older than the era median; two people with code waiting; risk of stalled work in consolidation phase
 
-    Today is Thursday 1 May 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Thursday 8 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: New feature PR opened; 6 stale PRs need path to merge
+    Why it is happening: Four PRs older than the era median; two people with code waiting; risk of stalled work in consolidation phase
     
     What it should get through:
-      1. Get PR 658 reviewed and ready for merge   [Emil Brandvold must raise this]
-           - Emil presents design
-           - Dermot and Gideon probe integration surface
-           - Decision on merge readiness or requested changes
-      2. Unblock PR 643 response object PR   [Dermot Callaghan must raise this]
-           - Dermot raises blocking concerns from review
-           - Emil addresses and confirms resolution
-           - Agreement on merge or final feedback
-      3. write up Handover: Status Tracking, Cost Reporting & the Viewer Surface   [Gideon Halloway must raise this]
-           - Gideon Halloway says they will write Handover: Status Tracking, Cost Reporting & the Viewer Surface — Gideon's write-up handing status tracking, cost reporting, and viewer work to Emil Brandvold.
+      1. Unblock agentic multiturn and viewer downloads   [Emil Brandvold must raise this]
+           - Emil raises blockers on 658; Nikolai reviews the design
+           - Discussion clarifies whether multiturn is ready to merge or needs iteration
+      2. Assess gemini batch serialization and GCS upload issues   [Emil Brandvold must raise this]
+           - Emil flags new issues 664 and 665 as context for 654 review
+           - Discussion connects download batch laziness to rate limiting problem
+      3. Land torch dependency and finetuning client PRs   [Nikolai Berresford must raise this]
+           - Nikolai seeks merge approval for 663 (quick fix)
+           - Emil or Nikolai clarifies finetuning client scope and blockers on 653
     
-    On the agenda: Review PR 658 agentic/multiturn design and implementation; Unblock stale PRs: PR 468, PR 643, PR 651, PR 652, PR 632; Clarify integration points with response objects and observability; Handover: Status Tracking, Cost Reporting & the Viewer Surface
+    On the agenda: Review status of 658 (agentic multiturn, 7 days old); Address 652 and 654 (viewer download, 13 and 11 days old); Tackle torch dependency fix 663 and finetuning client 653
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: PR 658 has a clear review path; PR 643 either merges or has concrete next steps
+    Wrap when: Two to three PRs merge; remainder get clear feedback on what blocks them (design questions, test coverage, or gemini provider fixes)
     
     Do NOT wrap before about 8 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
@@ -1129,20 +829,17 @@ Channel #code-review: New feature PR opened; 6 stale PRs need path to merge
     Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
+      - 23 release(s) shipped, currently v0.1.24
+      - 345 changes merged to date
 
     On the table
-      - WS-055: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - WS-055: Release Engineering, CI & Test Suite (Dermot Callaghan)
-      - Handover: Status Tracking, Cost Reporting & the Viewer Surface (Gideon Halloway)
-      - Handover: Status Tracking, Cost Reporting & the Viewer Surface (Gideon Halloway)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
+      - Postmortem: Examples/Cookbooks Lint & Structured-Output Revert (Dermot Callaghan)
+      - Weekly Notes — Week of May 5 (Dermot Callaghan)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
+      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
+      - PR 658: Feat/agentic/multiturn (Emil Brandvold)
+      - PR 663: fix error when torch isn't installed (Nikolai Berresford)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1159,175 +856,72 @@ Channel #code-review: New feature PR opened; 6 stale PRs need path to merge
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 329 function/class names and 37 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Design and implementation of multi-turn agentic curation
+    role        Core Platform Engineer, Request Processing. context on viewer download feature, agentic multiturn, and gemini batch processing
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Get PR 658 reviewed and ready for merge   *** MUST RAISE ***
-      2. Unblock PR 643 response object PR
-      3. write up Handover: Status Tracking, Cost Reporting & the Viewer Surface
-      4. what "WS-055: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Get PR 658 reviewed and ready for merge
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Pipeline and inference perspective on response objects
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Get PR 658 reviewed and ready for merge
-      2. Unblock PR 643 response object PR   *** MUST RAISE ***
-      3. write up Handover: Status Tracking, Cost Reporting & the Viewer Surface
-      4. what "WS-055: Release Engineering, CI & Test Suite" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Unblock PR 643 response object PR
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Observability and CLI perspective
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Get PR 658 reviewed and ready for merge
-      2. Unblock PR 643 response object PR
-      3. write up Handover: Status Tracking, Cost Reporting & the Viewer Surface   *** MUST RAISE ***
-      4. the page you are writing, Handover: Status Tracking, Cost Reporting & the Viewer Surface, has to say this in your own words: For a machine with no history the truthful answer is that nothing is on disk and every request will go to the provider. That is a perfectly good number to report, all hits at zero and everything counted as going to the backend.   *** MUST SETTLE (clue t1.r2.L9) ***
-      5. that the doc "Handover: Status Tracking, Cost Reporting & the Viewer Surface" is done, and where the others can find it   *** MUST RAISE ***
-    goal        write up Handover: Status Tracking, Cost Reporting & the Viewer Surface
-    available   around today
-
-### 4. How it should land
-
-    lands as  partial
-    leaving   PR 658 has a clear review path; PR 643 either merges or has concrete next steps
-
-
-------------------------------------------------------------------------------
-## #engineering — 14 turns, 4 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #engineering: pulling together everything still open so the change can land in a release instead of drifting
-
-    Today is Thursday 1 May 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: pulling together everything still open so the change can land in a release instead of drifting
-    
-    What it should get through:
-    
-    On the agenda: Dario Kestrel reports the invalidation number he promised, and repeats that a stale hit after the execution environment moves should come back as a miss and re-run, not as a fast pass; Nikolai Berresford still has no answer from the sandbox side on which tags stay alive, so the constant has a placeholder in the branch; Dermot Callaghan lists what he is not willing to ship without: one place holding the default, a changelog line when it moves, and the resolved value visible in the log and in run metadata
-    
-    Wrap when: the shape is agreed and three specifics are still open, the tag value, digest versus tag, and whether non-docker backends raise or warn; Nikolai Berresford to chase the sandbox team; it is settled that the team agrees the shipped default must be a signed-off build rather than an arbitrary or newest tag
-    
-    Do NOT wrap before about 9 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 337 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 651: ref: update multimodal support models in openai (Emil Brandvold)
-      - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (2 names)
-      - agentic-curation
-      - — and 358 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. 
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. On the executor image question: whatever value we bake in as the shipped default has to be a build somebody actually signed off, not just the newest thing that came out of CI green. We have shipped a container to users before that nobody had run the verifier suite against and I would rather not repeat it.   *** MUST SETTLE (clue t4.r1.L3) ***
-    goal        the team agrees the shipped default must be a signed-off build rather than an arbitrary or newest tag
+      1. Unblock agentic multiturn and viewer downloads   *** MUST RAISE ***
+      2. Assess gemini batch serialization and GCS upload issues   *** MUST RAISE ***
+      3. Land torch dependency and finetuning client PRs
+      4. what "Postmortem: Examples/Cookbooks Lint & Structured-Output Revert" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+      5. what "Weekly Notes — Week of May 5" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Unblock agentic multiturn and viewer downloads
     available   around today
 
   Nikolai Berresford  (nikolai)
-    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. 
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. finetuning client implementation and torch dependency fix
     owns        code-execution, release-and-ci, telemetry
     agenda
-    goal        pulling together everything still open so the change can land in a release instead of drifting
-    available   around today
-
-  Dario Kestrel  (dario)
-    role        Core Engineer, Request Processing. 
-    owns        bulk-llm-inference, caching-and-resume, online-request-processing, provider-integrations
-    agenda
-    goal        pulling together everything still open so the change can land in a release instead of drifting
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. 
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-    goal        pulling together everything still open so the change can land in a release instead of drifting
+      1. Unblock agentic multiturn and viewer downloads
+      2. Assess gemini batch serialization and GCS upload issues
+      3. Land torch dependency and finetuning client PRs   *** MUST RAISE ***
+    goal        Land torch dependency and finetuning client PRs
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   the shape is agreed and three specifics are still open, the tag value, digest versus tag, and whether non-docker backends raise or warn; Nikolai Berresford to chase the sandbox team; it is settled that the team agrees the shipped default must be a signed-off build rather than an arbitrary or newest tag
+    leaving   Two to three PRs merge; remainder get clear feedback on what blocks them (design questions, test coverage, or gemini provider fixes)
 
 
 ==============================================================================
-# 2025-05-02 — 3 conversation(s), 21 turns budgeted
+# 2025-05-09 — 1 conversation(s), 10 turns budgeted
 ==============================================================================
 
 ------------------------------------------------------------------------------
-## #code-review — 8 turns, 3 people
+## #code-review — 10 turns, 2 people
 ------------------------------------------------------------------------------
 
 ### 1. What the DIRECTOR is told
 
-Channel #code-review: Two merges landed this morning; six older PRs need clarity on blockers
+Channel #code-review: Five PRs are older than the era's median merge time; two of them block Emil Brandvold's downstream work and Nikolai Berresford's are waiting on review feedback
 
-    Today is Friday 2 May 2025. This conversation is happening NOW and everything below is true as of this morning.
+    Today is Friday 9 May 2025. This conversation is happening NOW and everything below is true as of this morning.
     
-    Why it is happening: Two merges landed this morning; six older PRs need clarity on blockers
+    Why it is happening: Five PRs are older than the era's median merge time; two of them block Emil Brandvold's downstream work and Nikolai Berresford's are waiting on review feedback
     
     What it should get through:
-      1. Confirm PR 656 and PR 659 merge readiness   [Emil Brandvold must raise this]
-           - Emil explains the multimodal input fix scope
-           - Konrad nods on test coverage
-           - Both approved
-      2. Unblock stale PR queue   [Gideon Halloway must raise this]
-           - Gideon flags PR 632 batch-freq as critical blocker
-           - Emil routes PR 643 response-object toward next sprint
-           - Others parked pending architecture decisions
+      1. Establish which of Emil Brandvold's three PRs can merge this week   [Emil Brandvold must raise this]
+           - Emil Brandvold states blockers for 652 (viewer download), 654 (gemini lazy batch), and 658 (agentic multiturn)
+           - Nikolai Berresford notes what review comments he's seen or what's missing
+           - both agree on what each PR needs to land
+      2. Clarify review expectations for Nikolai Berresford's two PRs so they unblock   [Nikolai Berresford must raise this]
+           - Nikolai Berresford flags what feedback he's waiting for on 653 and 663
+           - Emil Brandvold or Dermot Callaghan indicates what they need to see before signing off
+           - plan emerges for next steps
     
-    On the agenda: Post-merge: PR 656 anthropic backend and PR 659 version bump; Stale PR status: PR 643, PR 652, PR 468, PR 632 blocking; CLI batch-freq work context (Gideon Halloway's PR 632)
+    On the agenda: Review status of five stale PRs and decide on merge path; Identify which PRs are blockers for other work; Surface any design concerns or test gaps before merge
     
     Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
     Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
     
-    Wrap when: PR 656 and PR 659 confirmed; stale PR triage complete; PR 632 escalated or re-prioritized
+    Wrap when: Agreement on which PRs merge this week and what each one needs; unblock at least one of Emil Brandvold's three stale PRs; it is settled that the team agrees write protection on the mount is what makes verifier results trustworthy and it was absent on a custom image
     
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
+    Do NOT wrap before about 7 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
 
 ### 2. What EVERYONE in the channel shares
 
@@ -1335,17 +929,17 @@ Channel #code-review: Two merges landed this morning; six older PRs need clarity
     Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
 
     Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 339 changes merged to date
+      - 23 release(s) shipped, currently v0.1.24
+      - 345 changes merged to date
 
     On the table
-      - v0.1.23 Release Notes (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
+      - v0.1.24 Release Notes (Emil Brandvold)
       - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
       - PR 653: Shreyas/finetuning client (Nikolai Berresford)
+      - PR 654: perf: make download batch lazy in gemini processor (Emil Brandvold)
+      - PR 658: Feat/agentic/multiturn (Emil Brandvold)
+      - PR 663: fix error when torch isn't installed (Nikolai Berresford)
+      - PR 666: fix: migrate to `logger.warning` (Rafael Duquette)
 
     Settled decisions everyone works to
       - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
@@ -1362,244 +956,32 @@ Channel #code-review: Two merges landed this morning; six older PRs need clarity
 
     DOES NOT EXIST YET (2 names)
       - agentic-curation
-      - — and 356 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
+      - — and 329 function/class names and 37 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
 
 ### 3. What EACH PERSON is told
 
   Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Anthropic multimodal input fix and version bump details
+    role        Core Platform Engineer, Request Processing. ownership of three blocked PRs (652, 654, 658); context on viewer download, gemini perf, and agentic multiturn work
     owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
     agenda
-      1. Confirm PR 656 and PR 659 merge readiness   *** MUST RAISE ***
-      2. Unblock stale PR queue
-      3. what "v0.1.23 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        Confirm PR 656 and PR 659 merge readiness
+      1. Establish which of Emil Brandvold's three PRs can merge this week   *** MUST RAISE ***
+      2. Clarify review expectations for Nikolai Berresford's two PRs so they unblock
+      3. what "v0.1.24 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
+    goal        Establish which of Emil Brandvold's three PRs can merge this week
     available   around today
 
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Founder perspective on release readiness
-    owns        examples-cookbooks, code-execution, finetuning
+  Nikolai Berresford  (nikolai)
+    role        Research Platform Engineer — Code Execution & Data-Generation Recipes. knowledge of torch dependency fix (663) and finetuning client changes (653); fresh perspective on what's been sitting
+    owns        code-execution, release-and-ci, telemetry
     agenda
-      1. Confirm PR 656 and PR 659 merge readiness
-      2. Unblock stale PR queue
-    goal        Two merges landed this morning; six older PRs need clarity on blockers
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. CLI batch update-freq context for parallel work
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Confirm PR 656 and PR 659 merge readiness
-      2. Unblock stale PR queue   *** MUST RAISE ***
-    goal        Unblock stale PR queue
+      1. Establish which of Emil Brandvold's three PRs can merge this week
+      2. Clarify review expectations for Nikolai Berresford's two PRs so they unblock   *** MUST RAISE ***
+      3. Half the reason the workspace bind is set up the way it is: a model solution physically cannot edit the test file, so grading means something. Ran last week's batch on a custom image someone handed me and three solutions passed by overwriting the assertions. I only caught it because the pass rate jumped.   *** MUST SETTLE (clue t4.r2.L5) ***
+    goal        Clarify review expectations for Nikolai Berresford's two PRs so they unblock
     available   around today
 
 ### 4. How it should land
 
     lands as  resolves
-    leaving   PR 656 and PR 659 confirmed; stale PR triage complete; PR 632 escalated or re-prioritized
-
-
-------------------------------------------------------------------------------
-## #pipeline — 7 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #pipeline: Anthropic multimodal input bug landed; Gideon Halloway has parallel batch CLI work
-
-    Today is Friday 2 May 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: Anthropic multimodal input bug landed; Gideon Halloway has parallel batch CLI work
-    
-    What it should get through:
-      1. Anthropic multimodal request formatting fixed   [Emil Brandvold must raise this]
-           - Emil walks through the formatter refactor
-           - Dermot questions edge cases with structured output
-           - Confirms existing tests cover the change
-      2. Batch CLI update-freq and provider fixes are independent   [Gideon Halloway must raise this]
-           - Gideon explains CLI polling interval issue
-           - Emil confirms no shared state
-           - Proceed in parallel
-    
-    On the agenda: PR 656 anthropic multimodal input formatter bug; Batch CLI update-freq fix scope (Gideon Halloway); Provider coverage and test plan
-    
-    No longer here: Nils Brandt, Theo Marchetti — do not expect them back or wait on them
-    
-    Belongs in this channel: day to day work on the services this channel owns: design debate, code review, blockers between the people who own them, and progress on the current phase.
-    Does NOT belong here: a production incident happening right now, which goes to the cross-cutting channel, and company-wide news, which goes to the announce channel.
-    
-    Wrap when: PR 656 anthropic fix understood; Gideon Halloway proceeds with PR 632 CLI work independently; no follow-up multimodal bug ticket opened
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 339 changes merged to date
-
-    On the table
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
-      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (2 names)
-      - agentic-curation
-      - — and 356 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Root cause of anthropic backend multimodal input formatting bug
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. Anthropic multimodal request formatting fixed   *** MUST RAISE ***
-      2. Batch CLI update-freq and provider fixes are independent
-    goal        Anthropic multimodal request formatting fixed
-    available   around today
-
-  Gideon Halloway  (gideon)
-    role        Core Engineer — Dataset Viewer & Run Observability. Batch update-freq CLI fix parallel work
-    owns        online-request-processing, progress-and-cli, bulk-llm-inference, caching-and-resume
-    agenda
-      1. Anthropic multimodal request formatting fixed
-      2. Batch CLI update-freq and provider fixes are independent   *** MUST RAISE ***
-    goal        Batch CLI update-freq and provider fixes are independent
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Request-formatter domain knowledge
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. Anthropic multimodal request formatting fixed
-      2. Batch CLI update-freq and provider fixes are independent
-    goal        Anthropic multimodal input bug landed; Gideon Halloway has parallel batch CLI work
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   PR 656 anthropic fix understood; Gideon Halloway proceeds with PR 632 CLI work independently; no follow-up multimodal bug ticket opened
-
-
-------------------------------------------------------------------------------
-## #releases — 6 turns, 3 people
-------------------------------------------------------------------------------
-
-### 1. What the DIRECTOR is told
-
-Channel #releases: v0.1.24 version bump merged; response object PR stalled 16 days
-
-    Today is Friday 2 May 2025. This conversation is happening NOW and everything below is true as of this morning.
-    
-    Why it is happening: v0.1.24 version bump merged; response object PR stalled 16 days
-    
-    What it should get through:
-      1. v0.1.24 release approved   [Emil Brandvold must raise this]
-           - Emil confirms bump only, no features
-           - Konrad confirms nothing controversial
-           - Dermot signs off changelog
-      2. Response object PR (PR 643) path forward   [Emil Brandvold must raise this]
-           - Emil presents blocking concern on PR 643
-           - Konrad decides: land after 0.1.24 or hold for next sprint
-           - Group aligns on timeline
-    
-    On the agenda: v0.1.24 version bump (PR 659) scope; Response object PR (PR 643) landability; Release notes and changelog review
-    
-    Belongs in this channel: the practice itself: what is broken now, what is waiting on review, what is shipping, and who is picking it up.
-    Does NOT belong here: routine work on one service, which belongs in the team channel that owns it.
-    
-    Wrap when: v0.1.24 approved; PR 643 response object scheduled for next sprint or unblocked with clear conditions
-    
-    Do NOT wrap before about 6 exchanges. There is more here than a single answer: if it feels finished early, the part that has not been said yet is somebody's — find who still owes something above and go to them.
-
-### 2. What EVERYONE in the channel shares
-
-    Project    Millrow
-    Milestone  Consolidation and Provider Breadth: Pruning After the Sprint
-
-    Settled
-      - 22 release(s) shipped, currently v0.1.23
-      - 339 changes merged to date
-
-    On the table
-      - v0.1.23 Release Notes (Emil Brandvold)
-      - PR 468: feat: add support for n samples in generation params (Emil Brandvold)
-      - PR 632: Fix/curator-cli-batch-update-freq-increase (Gideon Halloway)
-      - PR 640: Feat/openai/deepseek api (Tomas Berczik)
-      - PR 643: feat: add response object in curator (Emil Brandvold)
-      - PR 652: feat: add support to download dataset from viewer (Emil Brandvold)
-      - PR 653: Shreyas/finetuning client (Nikolai Berresford)
-
-    Settled decisions everyone works to
-      - House style for pointing at work in chat: a pull request or issue goes by its number with the word in front (issue 163, PR 528), never a bare #number — in Mattermost that opens a channel autocomplete. A wiki page goes by its title. Say it in full the first time, short form after.
-
-    Open questions
-      - issue 52: Support multiple samples per request
-      - issue 102: Clarify that we must return a dictionary without Pydantic objects for each row
-      - issue 121: Should we handle pydantic to dict and back for the user when adding to a row? 
-      - issue 124: inspect(func) is sensitive to comments and whitespace - cache invalidates
-      - issue 207: implementation of `has_capacity` using rate limit info from the headers returned from some providers/models
-      - issue 233: Automatically detect the rate limits
-      - issue 290: ModuleNotFoundError: No module named 'resource'
-      - issue 293: OpenAI Usage and Costs via API
-
-    DOES NOT EXIST YET (2 names)
-      - agentic-curation
-      - — and 356 function/class names and 44 files that this codebase only grows LATER. Do not name a function, class or file unless it has already come up in this conversation or you own the code it is in.
-
-### 3. What EACH PERSON is told
-
-  Emil Brandvold  (emil)
-    role        Core Platform Engineer, Request Processing. Version bump details and changelog
-    owns        release-and-ci, online-request-processing, provider-integrations, batch-mode
-    agenda
-      1. v0.1.24 release approved   *** MUST RAISE ***
-      2. Response object PR (PR 643) path forward   *** MUST RAISE ***
-      3. what "v0.1.23 Release Notes" actually says, having opened it yourself, and whether it answers your part (if it does not exist yet, say that plainly and leave it to whoever owes it)   *** MUST RAISE ***
-    goal        v0.1.24 release approved
-    available   around today
-
-  Konrad Feltrin  (konrad)
-    role        Founding Maintainer, Curation Platform. Founder sign-off and strategic context
-    owns        examples-cookbooks, code-execution, finetuning
-    agenda
-      1. v0.1.24 release approved
-      2. Response object PR (PR 643) path forward
-    goal        v0.1.24 version bump merged; response object PR stalled 16 days
-    available   around today
-
-  Dermot Callaghan  (dermot)
-    role        Founding Software Engineer — Core Pipeline & Release. Release engineering perspective
-    owns        examples-cookbooks, bulk-llm-inference, multimodal-prompts, release-and-ci
-    agenda
-      1. v0.1.24 release approved
-      2. Response object PR (PR 643) path forward
-    goal        v0.1.24 version bump merged; response object PR stalled 16 days
-    available   around today
-
-### 4. How it should land
-
-    lands as  resolves
-    leaving   v0.1.24 approved; PR 643 response object scheduled for next sprint or unblocked with clear conditions
+    leaving   Agreement on which PRs merge this week and what each one needs; unblock at least one of Emil Brandvold's three stale PRs; it is settled that the team agrees write protection on the mount is what makes verifier results trustworthy and it was absent on a custom image
 

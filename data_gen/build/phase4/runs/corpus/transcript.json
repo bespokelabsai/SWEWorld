@@ -15020,6 +15020,925 @@
           "userId": "gideon",
           "text": "PR 632 picks back up Monday, edge cases first.",
           "ts": "2025-05-02T15:10:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "trying to confirm 0.1.24 landed clean before anything else this morning",
+          "ts": "2025-05-05T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 652 and PR 654 both need eyes today if we want the download feature in",
+          "ts": "2025-05-05T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Weekly update for Apr 28 is out, also flagging PR 652 and PR 654 in there, same question on 0.1.24.",
+          "ts": "2025-05-05T09:08:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil, any word on 0.1.24?",
+          "ts": "2025-05-05T09:50:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "release pipeline is clean from my side",
+          "ts": "2025-05-05T10:29:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "still need to get through the older PR backlog at some point today, there are several that haven't had eyes in a while",
+          "ts": "2025-05-05T10:29:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "good, same on the backlog",
+          "ts": "2025-05-05T11:11:20"
+        },
+        {
+          "userId": "emil",
+          "text": "0.1.24 is good on my end, response object included.",
+          "ts": "2025-05-05T11:18:20",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 and 654 still need reviews, both are mine and they're blocking the download feature.",
+          "ts": "2025-05-05T11:18:32",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-05T11:26:22"
+        },
+        {
+          "userId": "emil",
+          "text": "Also pulled up the wiki just now: the v0.1.23 Release Notes page doesn't exist yet.",
+          "ts": "2025-05-05T11:18:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good, that covers what I flagged in the weekly update too",
+          "ts": "2025-05-05T11:25:40",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "So PR 652 can go in without PR 654, or do they need to go together?",
+          "ts": "2025-05-05T11:26:22",
+          "threadParentTs": "2025-05-05T11:18:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is good to go on my end, been waiting on a review pass",
+          "ts": "2025-05-06T09:00:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "- *PR 661* eyes still welcome, touches examples-cookbooks, not blocking but it's been sitting\n- *PR 653* will take a look this morning",
+          "ts": "2025-05-06T09:28:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 661 could use another set of eyes when you get a chance, it's the prescription extraction example in examples-cookbooks",
+          "ts": "2025-05-06T09:36:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "On PR 653 now, should have feedback before lunch",
+          "ts": "2025-05-06T09:50:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "while we're naming things in code anyway, it occured to me we've never actually passed a user argument to docker on the create call",
+          "ts": "2025-05-06T09:57:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "the uid is just left to the dockerfile, but that should be something the executor decides at create time",
+          "ts": "2025-05-06T09:57:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "right",
+          "ts": "2025-05-06T10:34:12"
+        },
+        {
+          "userId": "gideon",
+          "text": "uh, not sure - if the image doesn't have that user set up, won't the container just fail to start?",
+          "ts": "2025-05-06T11:18:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone got eyes on PR 661 when they wrap up PR 653?",
+          "ts": "2025-05-06T11:38:12"
+        },
+        {
+          "userId": "emil",
+          "text": "It's the prescription extraction example in examples-cookbooks, not blocking anything",
+          "ts": "2025-05-06T11:38:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai, gideon's question on the user setup is probably yours to answer. does code-execution handle that before the create call?",
+          "ts": "2025-05-06T12:23:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Did PR 661 get any eyes yet?",
+          "ts": "2025-05-06T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Trying to get it merged today, not carry it into tomorrow",
+          "ts": "2025-05-06T12:41:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Available this afternoon",
+          "ts": "2025-05-06T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "And yes, @Dermot is right about the user arg, code-execution owns that, the executor passes it at create time",
+          "ts": "2025-05-06T12:51:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The image shouldn't be making that call",
+          "ts": "2025-05-06T12:51:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai if you're free this afternoon, PR 661 would be a good use of that time, it's a straightforward example and shouldn't take long",
+          "ts": "2025-05-06T13:13:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "PR 653 still needs a merge-or-defer call, nobody's landed on that yet",
+          "ts": "2025-05-06T13:50:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Gideon you were reviewing PR 653 this morning, where did you land on it?",
+          "ts": "2025-05-06T14:10:20"
+        },
+        {
+          "userId": "gideon",
+          "text": "Looked clean to me, I think it's ready to merge.",
+          "ts": "2025-05-06T14:40:20",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "So are we merging PR 653 today or pushing it?",
+          "ts": "2025-05-06T14:40:55"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Worth noting: code-execution isn't actually passing the user arg to docker at create time right now, the uid is landing via the image. That's the gap Dermot flagged and it's real, we should track it.",
+          "ts": "2025-05-06T15:00:55"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I can merge PR 653 today, I'm just not sure the container user gap should go in separately or if it should be part of this first",
+          "ts": "2025-05-06T15:01:35"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 661 is ready on my end, no outstanding changes, just waiting on a review pass.",
+          "ts": "2025-05-06T15:39:35"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Merging PR 653 today, Gideon's review is in and the container user gap is a separate follow-up. PR 661 is next on my list.",
+          "ts": "2025-05-06T15:51:35",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 661 is still up for review if anyone else wants a look before Nikolai gets to it",
+          "ts": "2025-05-06T16:21:35"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Emil good day for you overall, getting two PRs to the finish line?",
+          "ts": "2025-05-06T16:54:35",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Nikolai is there an issue open for the container user fix, or do we need to open one?",
+          "ts": "2025-05-06T17:25:35"
+        },
+        {
+          "userId": "dermot",
+          "text": "the uid has to be an argument the executor passes at create time, not something the dockerfile decides.",
+          "ts": "2025-05-06T17:26:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'll open an issue for it if there isn't one already.",
+          "ts": "2025-05-06T17:26:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Lost most of yesterday to curator-sandbox tag confusion, picked what looked like the newest one off the registry, got twelve failures that had nothing to do with my code",
+          "ts": "2025-05-07T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ran the verifier suite against it too, that's how I got the twelve failures",
+          "ts": "2025-05-07T09:00:06"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Grepped the whole repo afterwards and there is literally nothing written down about which build we consider good",
+          "ts": "2025-05-07T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "so does anyone actually know which curator-sandbox build we're supposed to test against, or is that a call somebody still needs to make?",
+          "ts": "2025-05-07T09:21:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That's what I hit yesterday. We should at least have it pinned somewhere in CI config so there's one place to check rather than guessing off the registry.",
+          "ts": "2025-05-07T09:51:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "where's the draft, I can take a look at the CI side of it.",
+          "ts": "2025-05-07T10:10:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Haven't drafted anything yet, just raised the issue. I'll put something together this afternoon",
+          "ts": "2025-05-07T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does anyone actually know what the acceptable curator-sandbox tag is, or has nobody written it down?",
+          "ts": "2025-05-07T13:04:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "the postmortem I put up this morning on the wiki covers basically the same failure mode, undocumented assumptions that nobody catches until CI breaks",
+          "ts": "2025-05-07T14:25:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "might be useful context when you write up what the pinning decision actually is",
+          "ts": "2025-05-07T14:25:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What's the postmortem called on the wiki, I'll pull it up",
+          "ts": "2025-05-07T14:40:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "it's called \"Postmortem: Examples/Cookbooks Lint & Structured-Output Revert\", under postmortems on the wiki",
+          "ts": "2025-05-07T15:08:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "once you have the draft up, want to do a quick call this afternoon before you wire up the override?",
+          "ts": "2025-05-07T15:08:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Read it, good context. What time this afternoon are you thinking?",
+          "ts": "2025-05-07T15:21:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "I'm free the rest of the afternoon, just send me the draft when it's up.",
+          "ts": "2025-05-07T15:51:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does anyone on the team actually know which sandbox build is the right one, or are we all just guessing off the registry?",
+          "ts": "2025-05-07T16:08:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "if nobody's written it down, the pinning PR itself could be where the decision gets made canonical, document it right in the CI config so there's one place to check.",
+          "ts": "2025-05-07T16:10:13",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Fair",
+          "ts": "2025-05-07T16:10:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "but who actually decides what the right tag is in the first place?",
+          "ts": "2025-05-07T16:25:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "not sure that's a call anyone on this thread can actually make, I mean the CI config can pin whatever we decide, but the decision itself has to come from whoever owns code-execution.",
+          "ts": "2025-05-07T16:51:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 (torch install fix) and PR 653 (finetuning client) are both up and ready for review",
+          "ts": "2025-05-08T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Neither is blocking a release but I'd like to get them both in today if anyone has bandwidth",
+          "ts": "2025-05-08T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does PR 663 need a test for the torch-absent case or is the manual check enough?",
+          "ts": "2025-05-08T09:00:52"
+        },
+        {
+          "userId": "nikolai",
+          "text": "For PR 653, does Konrad need to sign off since it touches finetuning, or can anyone on the team review it?",
+          "ts": "2025-05-08T09:24:52"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is PR 658 blocked on anything from code-execution, or is Emil moving independently on that?",
+          "ts": "2025-05-08T09:49:52"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Can someone add me as a reviewer on PR 654? I want to take a look at the gemini batch changes.",
+          "ts": "2025-05-08T10:55:52"
+        },
+        {
+          "userId": "emil",
+          "text": "Gotcha",
+          "ts": "2025-05-08T11:15:52",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "adding you to PR 654 now.",
+          "ts": "2025-05-08T11:15:57"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 658 is moving independently, not waiting on anything from code-execution.",
+          "ts": "2025-05-08T11:16:31"
+        },
+        {
+          "userId": "emil",
+          "text": "The bigger issue right now is PR 654",
+          "ts": "2025-05-08T11:16:39"
+        },
+        {
+          "userId": "emil",
+          "text": "There's a serialization problem in the gemini batch processor and the GCS upload path looks off too",
+          "ts": "2025-05-08T11:16:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So PR 654 is basically stuck on two fronts then. A serialization bug and a bad GCS upload path in the same PR, that's not getting merged with just a review pass, it needs real fixes first. Once I'm added I'll dig in, but if both of those are confirmed problems, that one's not landing today.",
+          "ts": "2025-05-08T11:36:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the postmortem",
+          "ts": "2025-05-08T11:47:47"
+        },
+        {
+          "userId": "emil",
+          "text": "The capability mismatch traced back to the model support table, and there's an action item sitting unassigned about who owns it",
+          "ts": "2025-05-08T11:47:52"
+        },
+        {
+          "userId": "emil",
+          "text": "The re-implementation shouldn't merge until that's clear, and I'm not sure if that falls on me through provider-integrations or on Dario",
+          "ts": "2025-05-08T11:48:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Answering my own question actually - the support table tracks per-model capability, which sits squarely in provider-integrations. That's mine. I'll take that action item from the postmortem.",
+          "ts": "2025-05-08T11:48:30",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Checked the weekly notes while I was at it",
+          "ts": "2025-05-08T11:48:42"
+        },
+        {
+          "userId": "emil",
+          "text": "Three cookbook PRs flagged as stalled, multimodal and structured-output related, blocked on a review decision that apparently nobody has made",
+          "ts": "2025-05-08T11:48:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 and PR 653 are both still sitting open waiting on a reviewer, neither is blocked on anything from my end",
+          "ts": "2025-05-08T11:50:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "If anyone has a few minutes this afternoon those are both pretty contained changes",
+          "ts": "2025-05-08T11:50:52"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 654 is off the review queue for today while I work through the serialization and GCS issues",
+          "ts": "2025-05-08T12:01:52"
+        },
+        {
+          "userId": "emil",
+          "text": "No point in anyone picking it up until those are fixed",
+          "ts": "2025-05-08T12:02:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I was about to take a look at it once you added me, not sure pulling it off the queue makes sense at this point",
+          "ts": "2025-05-08T12:15:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Lot on your plate today Emil, you good?",
+          "ts": "2025-05-08T12:15:46",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-08T12:16:27"
+        },
+        {
+          "userId": "emil",
+          "text": "All good, just a busier Thursday than expected.",
+          "ts": "2025-05-08T12:16:27",
+          "reactions": [
+            {
+              "emoji": "💪",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-05-08T12:15:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "While I have you - any chance you can get to PR 663 or 653 this afternoon, or should I be hunting for someone else?",
+          "ts": "2025-05-08T12:16:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Can probably fit in PR 663 this afternoon, it's small. PR 653 I'd want Konrad to weigh in on first since it's his service.",
+          "ts": "2025-05-08T12:18:41"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 and PR 658 still need reviewers today, both are ready to go.",
+          "ts": "2025-05-08T12:18:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Weigh in how, just a read-through or does he need to approve it?",
+          "ts": "2025-05-08T12:19:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Can you loop me in when you ping Konrad about 653?",
+          "ts": "2025-05-08T12:19:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone run into serialization issues in the gemini batch processor when batches are lazy-loaded?",
+          "ts": "2025-05-08T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "That's one of the two things blocking PR 654 and I can't pin down where the state is going wrong",
+          "ts": "2025-05-08T12:41:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 is getting a look from Emil this afternoon. PR 653 is waiting on Konrad before it can move.",
+          "ts": "2025-05-08T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is Konrad around today or is he out?",
+          "ts": "2025-05-08T12:51:37"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad - got a PR 653 sitting open that touches your service, any chance you can get eyes on it today?",
+          "ts": "2025-05-08T13:57:37"
+        },
+        {
+          "userId": "emil",
+          "text": "Still stuck on the serialization issue for PR 654, no resolution yet. PR 652 and PR 658 are both open and ready if anyone gets a window this afternoon.",
+          "ts": "2025-05-08T14:19:37"
+        },
+        {
+          "userId": "emil",
+          "text": "Still no response on the gemini batch serialization question from earlier.",
+          "ts": "2025-05-08T14:19:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is still stuck waiting on Konrad, no response since I pinged him.",
+          "ts": "2025-05-08T14:37:53"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 and PR 658 both still have no reviewer assigned.",
+          "ts": "2025-05-08T15:06:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno, afternoon's running short - who's actually free to take one of those right now?",
+          "ts": "2025-05-08T15:13:53"
+        },
+        {
+          "userId": "emil",
+          "text": "Tied up on the gemini issue and can't review my own PRs",
+          "ts": "2025-05-08T15:18:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I can take PR 658 if nobody else is on it",
+          "ts": "2025-05-08T15:47:53",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 658 is yours, nobody else has it",
+          "ts": "2025-05-08T16:18:53"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is still sitting open with no one on it",
+          "ts": "2025-05-08T16:19:05"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is carrying to tomorrow, nobody picked it up today.",
+          "ts": "2025-05-08T16:19:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Going into end of day and both of my PRs are still sitting open",
+          "ts": "2025-05-08T16:22:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 was supposed to get a look from Emil this afternoon but I havent heard anything, and PR 653 is still blocked waiting on Konrad with no response all day",
+          "ts": "2025-05-08T16:22:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Neither is landing today at this rate",
+          "ts": "2025-05-08T16:22:42"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 663 didn't get done, that's on me",
+          "ts": "2025-05-08T16:34:42"
+        },
+        {
+          "userId": "emil",
+          "text": "The gemini serialization issue ran longer than I expected and I couldn't get free",
+          "ts": "2025-05-08T16:34:50"
+        },
+        {
+          "userId": "emil",
+          "text": "First thing tomorrow",
+          "ts": "2025-05-08T16:34:55"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 654 is ending the day with both issues still open - the serialization problem and the GCS upload path, no progress on either. PR 652 still has no reviewer. Both of those carry to tomorrow.",
+          "ts": "2025-05-08T16:35:22",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-08T17:20:45"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 658 is the one thing that actually moved today, Nikolai picked it up.",
+          "ts": "2025-05-08T16:35:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is also carrying to tomorrow, Konrad never got back to me.",
+          "ts": "2025-05-08T17:20:30"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The serialization issue carrying another day worries me a bit, two open bugs in the same PR is going to make that review harder to untangle tomorrow.",
+          "ts": "2025-05-08T17:20:45",
+          "threadParentTs": "2025-05-08T16:35:22"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure they're actually two separate bugs",
+          "ts": "2025-05-08T17:21:08"
+        },
+        {
+          "userId": "emil",
+          "text": "If I had to guess, the GCS issue is downstream of the serialization problem",
+          "ts": "2025-05-08T17:21:20"
+        },
+        {
+          "userId": "emil",
+          "text": "The serialization debugging question I put out earlier never got a response",
+          "ts": "2025-05-08T17:21:54"
+        },
+        {
+          "userId": "emil",
+          "text": "Going into tomorrow with no leads on the root cause",
+          "ts": "2025-05-08T17:22:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Rough day, Emil. Fresh eyes on it tomorrow might shake something loose.",
+          "ts": "2025-05-08T17:52:02",
+          "reactions": [
+            {
+              "emoji": "💙",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 and 653 are both still unreviewed, is anyone able to get to either of those first thing tomorrow before the day gets away from us again?",
+          "ts": "2025-05-08T17:52:21"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll take PR 663 first thing in the morning, that one I owe.",
+          "ts": "2025-05-08T18:04:21"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 653 is a different situation",
+          "ts": "2025-05-08T18:04:26"
+        },
+        {
+          "userId": "emil",
+          "text": "It's been stuck on Konrad all day and if he's not around tomorrow either that one needs a different plan, whether that's someone else signing off or formally deferring it",
+          "ts": "2025-05-08T18:04:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Fair enough on 653, if Konrad's not around tomorrow I'll ping whoever's next closest to that service and see if they can stand in.",
+          "ts": "2025-05-08T18:13:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 and PR 653 are both up and waiting on review",
+          "ts": "2025-05-09T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Neither is blocking a release but I'd like to get them cleared before the weekend if anyone has cycles",
+          "ts": "2025-05-09T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is there anyone lined up to look at either of those, or do I need to go assign someone?",
+          "ts": "2025-05-09T09:00:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "For PR 663, does that need a manual test in an environment without torch installed, or is CI coverage enough to get it approved?",
+          "ts": "2025-05-09T09:35:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil which of your three PRs are actually in a mergeable state right now, 652, 654, or 658?",
+          "ts": "2025-05-09T10:27:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Separate thing - is the test file mount supposed to be read-only in code-execution regardless of which image you're running on, or is that configurable?",
+          "ts": "2025-05-09T10:51:24"
+        },
+        {
+          "userId": "emil",
+          "text": "hmm, the mount question is the one I want to actually answer",
+          "ts": "2025-05-09T11:19:24"
+        },
+        {
+          "userId": "emil",
+          "text": "I'd assume always read-only, but is that actually enforced on custom images or just the standard one?",
+          "ts": "2025-05-09T11:19:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Not on custom images - and the read-only bind is half the point, a model physically can't edit the test file so grading actually means something.",
+          "ts": "2025-05-09T11:33:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ran last week's batch on an image someone handed me and three solutions passed by overwriting the assertions",
+          "ts": "2025-05-09T11:33:45"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I only caught it because the pass rate jumped",
+          "ts": "2025-05-09T11:33:57"
+        },
+        {
+          "userId": "emil",
+          "text": "So custom images aren't enforcing the read-only bind at all.",
+          "ts": "2025-05-09T11:49:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Which of my three - PR 652, 654, or 658 - is anyone actually in a position to review before the weekend?",
+          "ts": "2025-05-09T11:50:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Just pulled up the v0.1.24 release notes - 652 and 654 are both in there, but 658 isn't.",
+          "ts": "2025-05-09T11:50:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Is 658 targeting a separate release or just not written up yet?",
+          "ts": "2025-05-09T11:50:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 and PR 653 still have no reviewers assigned and neither has had any feedback yet",
+          "ts": "2025-05-09T12:00:36"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take PR 663 this afternoon if someone picks up PR 652 or 654 in return - anyone up for that swap?",
+          "ts": "2025-05-09T12:22:36"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That still leaves PR 653 without anyone, dunno if that's the right trade.",
+          "ts": "2025-05-09T12:27:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Is anyone else around to cover 653, or are we short on reviewers today?",
+          "ts": "2025-05-09T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Isn't 653 more naturally Konrad's to pick up - it's the finetuning client and that's his service",
+          "ts": "2025-05-09T12:41:15"
+        },
+        {
+          "userId": "emil",
+          "text": "I can still take 663 in exchange for one of mine",
+          "ts": "2025-05-09T12:41:20"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is blocked on Konrad then - he hasn't said anything and I dunno if he's around today.",
+          "ts": "2025-05-09T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does anyone have the build config for that custom image, or know who put it together?",
+          "ts": "2025-05-09T12:51:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I want to check what mount flags it was using",
+          "ts": "2025-05-09T12:51:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is there a checklist or any documented requirements for what a custom image needs configured before we run a batch on it?",
+          "ts": "2025-05-09T13:05:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Do you know who to ping for the image config, or are you having to track it down from scratch?",
+          "ts": "2025-05-09T14:21:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Tracking it from scratch, I'm around this afternoon so I'll dig into it.",
+          "ts": "2025-05-09T14:45:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we still doing the swap on 663 for one of mine, or does everything wait on Konrad first?",
+          "ts": "2025-05-09T15:09:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What does PR 652 actually touch - is it mostly the viewer layer or does it go deeper into the pipeline?",
+          "ts": "2025-05-09T15:51:47"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is viewer layer only - adds the download action to the curator viewer, nothing deeper into the pipeline.",
+          "ts": "2025-05-09T16:36:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Can you add me as a reviewer on PR 652?",
+          "ts": "2025-05-09T16:59:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Will do.",
+          "ts": "2025-05-09T17:44:47",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 has a reviewer now, 653 is still on Konrad - I'll chase him Monday if I don't hear anything today",
+          "ts": "2025-05-09T17:49:47"
+        },
+        {
+          "userId": "emil",
+          "text": "654 and 658 are still sitting - are we calling those next week at this point?",
+          "ts": "2025-05-09T17:59:47"
+        },
+        {
+          "userId": "emil",
+          "text": "652 is covered - 654 is in the release notes too but has no reviewer yet",
+          "ts": "2025-05-09T18:00:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Do we need to chase that down before the weekend or does it slide?",
+          "ts": "2025-05-09T18:00:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still at it, Emil?",
+          "ts": "2025-05-09T18:22:25",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -18439,6 +19358,74 @@
           "text": "@Konrad is your finetuning work in a PR yet?",
           "ts": "2025-04-25T17:39:02",
           "threadParentTs": "2025-04-25T17:26:20"
+        },
+        {
+          "userId": "dermot",
+          "text": "auth docs in examples-cookbooks are mostly there but I want someone to sanity check them before we sign off",
+          "ts": "2025-05-05T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "also not entirely sure which of the cookbooks still need response-object updates",
+          "ts": "2025-05-05T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can do the auth docs pass since that's mine",
+          "ts": "2025-05-05T09:12:05",
+          "reactions": [
+            {
+              "emoji": "✋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "The response-object question is the harder one, not entirely sure we can determine that without going through each cookbook manually, do we want to track that today or just flag as we hit them?",
+          "ts": "2025-05-05T09:12:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "spotted this in one of the examples already:\n```python\nrow[\"answer\"] = response.choices[0].message.content\n```\nprobaly worth grepping for `.choices` across the cookbooks dir when we triage",
+          "ts": "2025-05-05T09:27:13",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "What does the new response object actually look like, is there a reference for what `.choices[0].message.content` should map to now?",
+          "ts": "2025-05-05T10:01:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "let me check",
+          "ts": "2025-05-05T10:01:27"
+        },
+        {
+          "userId": "dermot",
+          "text": "is there a changelog entry for the response object change, or do we have to read the code?",
+          "ts": "2025-05-05T10:43:27"
+        },
+        {
+          "userId": "emil",
+          "text": "Still don't have a clear list of which cookbooks need response-object updates. ||| Dermot's `.choices` grep is probably the fastest way to surface them:\n```\ngrep -rn \"\\.choices\" examples-cookbooks/\n```",
+          "ts": "2025-05-05T11:21:55",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dario",
+          "text": "Honestly not sure `.choices` covers everything, there could be other parts of the response object that changed and we'd miss them",
+          "ts": "2025-05-05T11:50:00"
         }
       ],
       "projectSpec": {
@@ -30677,6 +31664,213 @@
           "userId": "nikolai",
           "text": "Not intentional, it just falls through to an unhandled case. I dunno if it should warn or raise, that's actually the bit I haven't decided yet.",
           "ts": "2025-05-01T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 is merged, torch import error is handled",
+          "ts": "2025-05-07T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Also got eyes on PR 653 this morning, finetuning client is in decent shape",
+          "ts": "2025-05-07T09:00:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "weekly notes for the week of may 5 are up on the wiki, under engineering",
+          "ts": "2025-05-07T09:12:05"
+        },
+        {
+          "userId": "dermot",
+          "text": "examples-cookbooks side: prescription example is drafted, I still need to confirm it fits cleanly into the suite before I mark it done",
+          "ts": "2025-05-07T09:12:10"
+        },
+        {
+          "userId": "dermot",
+          "text": "the three stalled cookbook PRs are the other thing I want to get resolved today, one way or another",
+          "ts": "2025-05-07T09:12:15"
+        },
+        {
+          "userId": "dermot",
+          "text": "postmortem for the examples/cookbooks lint and structured-output revert is up on the wiki, under postmortems",
+          "ts": "2025-05-07T09:27:02"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know if the prescription example is confirmed ready to go into the suite?",
+          "ts": "2025-05-07T09:27:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "dunno, that's what I was wondering too",
+          "ts": "2025-05-07T09:53:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "the three stalled cookbook PRs, can anyone get eyes on them today or should I just defer them to next week?",
+          "ts": "2025-05-07T10:16:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Prescription example still hasn't been confirmed as integrated into the suite, for what it's worth.",
+          "ts": "2025-05-07T12:58:53"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, is the suite confirmation blocked on my multimodal work landing, or is it just a structure/format check you can do independently?",
+          "ts": "2025-05-07T14:22:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "the prescription check I can do independently, it's not waiting on your multimodal work",
+          "ts": "2025-05-07T15:00:53"
+        },
+        {
+          "userId": "dermot",
+          "text": "the three stalled cookbook PRs are what I haven't resolved yet, @Emil - can you make a call on those by end of day, push them forward or defer them?",
+          "ts": "2025-05-07T15:01:01"
+        },
+        {
+          "userId": "emil",
+          "text": "My multimodal workstream is ready to land, prescription extraction example included.",
+          "ts": "2025-05-07T15:25:01",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Which three cookbook PRs are we talking about - are these the multimodal ones?",
+          "ts": "2025-05-07T15:25:13"
+        },
+        {
+          "userId": "dermot",
+          "text": "the review comment I keep leaving on these: if your branch depends on what a model can do, look it up in the support table and add the pattern there if it's missing. the table is cheap to extend and everything reading it improves at once. ||| this is what keeps showing up instead:\n```python\nVISION_CAPABLE = {\"gpt-4o\": True, \"claude-3-sonnet\": False}\n```\ndon't grow a fourth dict next to the one you're already writing.",
+          "ts": "2025-05-07T15:48:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the release notes - they cover PR 654, PR 652, and PR 468, nothing on the prescription example or multimodal work.",
+          "ts": "2025-05-07T16:02:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the prescription example targeting v0.1.24 or does it go in the next cut?",
+          "ts": "2025-05-07T16:02:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Ok",
+          "ts": "2025-05-07T16:02:55"
+        },
+        {
+          "userId": "emil",
+          "text": "answering my own question - if the notes are already published it has to be next cut",
+          "ts": "2025-05-07T16:03:00"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dermot, has the suite check actually happened yet or is it still on your list?",
+          "ts": "2025-05-07T16:03:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "still on my list, haven't run it yet.",
+          "ts": "2025-05-07T16:56:23",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-07T16:57:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still today, or is this slipping to tomorrow?",
+          "ts": "2025-05-07T16:57:05",
+          "threadParentTs": "2025-05-07T16:56:23"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Guessing it's slipping to tomorrow then?",
+          "ts": "2025-05-07T16:57:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "running it now, I'll have a result before I sign off",
+          "ts": "2025-05-07T17:20:39",
+          "reactions": [
+            {
+              "emoji": "⏱️",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-05-07T17:58:00"
+        },
+        {
+          "userId": "emil",
+          "text": "My side is wrapped - multimodal workstream and prescription extraction example are ready to go whenever Dermot's check comes back clean.",
+          "ts": "2025-05-07T17:57:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "nice",
+          "ts": "2025-05-07T17:58:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ],
+          "threadParentTs": "2025-05-07T17:20:39"
+        },
+        {
+          "userId": "dermot",
+          "text": "suite check is done, prescription example fits cleanly",
+          "ts": "2025-05-07T18:09:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil whenever you're ready to land it, I'm not blocking you",
+          "ts": "2025-05-07T18:09:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Do we land this tonight or hold it for tomorrow morning?",
+          "ts": "2025-05-07T18:22:45.370716"
+        },
+        {
+          "userId": "emil",
+          "text": "Ok",
+          "ts": "2025-05-07T18:23:00.370716"
+        },
+        {
+          "userId": "emil",
+          "text": "answering my own question - I'll land it now",
+          "ts": "2025-05-07T18:23:08.370716",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Still need a call on the three stalled cookbook PRs though, are we just deferring those to next week?",
+          "ts": "2025-05-07T18:23:20.370716"
         }
       ],
       "projectSpec": {
@@ -34318,6 +35512,73 @@
           "userId": "nikolai",
           "text": "What does code-execution actually hand off to you, do you know what the interface looks like?",
           "ts": "2025-04-18T13:01:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Revert is in and main is clean as far as I can tell",
+          "ts": "2025-05-06T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I want to get the reasoning written down somewhere before this gets forgotten, the structured output path has to go through `supports_structured_output()` and the change assumed it didn't",
+          "ts": "2025-05-06T09:00:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Nikolai Berresford you writing that up or do you need someone to?",
+          "ts": "2025-05-06T09:56:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I've got it. Just wrote it up in the wiki, \"Structured Output Revert, Why supports_structured_output() Is Not Optional\".",
+          "ts": "2025-05-06T10:23:50",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "main fully confirmed or still just \"as far as you can tell\"?",
+          "ts": "2025-05-06T11:20:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Nice that the reasoning is already in the wiki.",
+          "ts": "2025-05-06T11:47:57",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "For anyone reading the online processor: it calls supports_structured_output(model) before it puts response_format on the payload",
+          "ts": "2025-05-06T11:48:09"
+        },
+        {
+          "userId": "emil",
+          "text": "If the check says no you get plain text back and a warning.",
+          "ts": "2025-05-06T11:48:10.666667"
+        },
+        {
+          "userId": "emil",
+          "text": "Nothing louder happens on failure.",
+          "ts": "2025-05-06T11:48:12.333334"
+        },
+        {
+          "userId": "emil",
+          "text": "Just a membership check",
+          "ts": "2025-05-06T11:48:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "gotcha",
+          "ts": "2025-05-06T12:28:14"
         }
       ],
       "projectSpec": {
@@ -49118,6 +50379,119 @@
           "userId": "emil",
           "text": "Is that blocking anything for the v0.1.24 tag, or can I fill it in this afternoon after we cut?",
           "ts": "2025-05-02T11:44:55"
+        },
+        {
+          "userId": "nikolai",
+          "text": "CI is clean after the merges, tag looks solid. Just need the release notes wrapped up so we can get the announcement out today",
+          "ts": "2025-05-06T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "What three changes are going into the notes for this one?",
+          "ts": "2025-05-06T09:43:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Emil's the one to answer that, I only have eyes on the CI side of things.",
+          "ts": "2025-05-06T10:03:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "working on the notes now, but I'll need Emil to confirm the full list of what made it in before I can finalize them",
+          "ts": "2025-05-06T10:21:22"
+        },
+        {
+          "userId": "dermot",
+          "text": "planning to get that done this morning",
+          "ts": "2025-05-06T10:21:34"
+        },
+        {
+          "userId": "konrad",
+          "text": "Maybe, but if Emil hasn't confirmed the list yet we're probably looking at this afternoon at the earliest.",
+          "ts": "2025-05-06T10:57:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes are up, \"v0.1.24 Release Notes\" on the engineering wiki",
+          "ts": "2025-05-06T11:40:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Three changes: n samples in generation params (PR 468), lazy batch download in the gemini processor (PR 654), and download from viewer (PR 652)",
+          "ts": "2025-05-06T11:40:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Announcement mail is out to the team. Anyone need to be looped in who wasn't on that list?",
+          "ts": "2025-05-06T12:44:00",
+          "reactions": [
+            {
+              "emoji": "📢",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-05-06T13:21:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Looks good from here, CI side has been clean all day",
+          "ts": "2025-05-06T13:01:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the release notes link in the mail?",
+          "ts": "2025-05-06T13:21:08",
+          "threadParentTs": "2025-05-06T12:44:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "And that's just internal, not the full subscriber list?",
+          "ts": "2025-05-06T13:21:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "Got the mail, notes link is in there. Is this going to external subscribers as well or just the internal list?",
+          "ts": "2025-05-06T14:05:40"
+        },
+        {
+          "userId": "emil",
+          "text": "That went to the internal team only",
+          "ts": "2025-05-06T14:20:40"
+        },
+        {
+          "userId": "emil",
+          "text": "The ask at the end was just \"let us know if anything looks off.\"",
+          "ts": "2025-05-06T14:20:45"
+        },
+        {
+          "userId": "emil",
+          "text": "No external list on my end",
+          "ts": "2025-05-06T14:20:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Just pulled up the release notes - three changes are in there, issue 52 flagged as still open on the multi-sample side. Does that cover what everyone needed from this cut?",
+          "ts": "2025-05-06T14:21:38"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure the notes should flag issue 52 as open without at least a note on where that stands, presumably someone needs to know whether it's on the next cut or just being tracked.",
+          "ts": "2025-05-06T14:45:38",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-06T15:06:52"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is anyone actually committed to 52 for the next cut, or is it just unscheduled?",
+          "ts": "2025-05-06T15:06:52",
+          "threadParentTs": "2025-05-06T14:45:38"
         }
       ],
       "projectSpec": {
