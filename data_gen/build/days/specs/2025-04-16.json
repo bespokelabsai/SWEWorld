@@ -363,7 +363,8 @@
       "agenda": [
         "konrad walks through the diff in pass rate and the fact that the only thing that moved was what docker pulled",
         "nikolai says the Docker backend of CodeExecutor asks for the sandbox image by name with no tag, so whatever is newest wins, and states the shape of the feature: a pinned tag plus a way for callers to override it through backend_params",
-        "open question nobody answers: which tag to pin to, and whether the pinned value lives in code or somewhere a user can set without editing curator"
+        "open question nobody answers: which tag to pin to, and whether the pinned value lives in code or somewhere a user can set without editing curator",
+        "Docker code executor image pinning"
       ],
       "subjects": [
         "CodeExecutor",
@@ -389,7 +390,31 @@
           "wants": ""
         }
       ],
-      "goals": [],
+      "goals": [
+        {
+          "goal": "write up Docker code executor image pinning",
+          "owner": "nikolai",
+          "agenda_item": "Docker code executor image pinning",
+          "beats": [
+            "nikolai says they will write Docker code executor image pinning — the design for docker code executor image pinning"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "design-t4-plant"
+            },
+            {
+              "kind": "mail",
+              "id": "mail-t4-plant"
+            }
+          ],
+          "added_by": "attach",
+          "attached": [
+            "mail-t4-plant"
+          ]
+        }
+      ],
       "meetings": [],
       "event_ids": [],
       "referenced_objects": [],

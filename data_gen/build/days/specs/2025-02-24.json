@@ -85,7 +85,20 @@
             "Determine if this lands or needs a follow-up"
           ],
           "reads": [],
-          "writes": []
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "design-t2-plant"
+            },
+            {
+              "kind": "mail",
+              "id": "mail-t2-plant"
+            }
+          ],
+          "attached": [
+            "design-t2-plant",
+            "mail-t2-plant"
+          ]
         }
       ],
       "expected_outcome": "Both PRs get initial review; 468 and 532 may stay open pending other work landing first"

@@ -114,7 +114,20 @@
               "id": "design-ws-044-blocks-and-recipes"
             }
           ],
-          "writes": []
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "design-t3-plant"
+            },
+            {
+              "kind": "mail",
+              "id": "mail-t3-plant"
+            }
+          ],
+          "attached": [
+            "design-t3-plant",
+            "mail-t3-plant"
+          ]
         },
         {
           "goal": "Triage stale openai/deepseek backend PRs",

@@ -685,11 +685,21 @@ def plan_comments(docs: list[dict], inputs: Inputs, own: "Ownership",
                 "anchor": doc["hint"],
                 "intent": ("answers the question" if reply_to
                            else "questions or adds to the page"),
-                # A thread closes when the author has answered it.
-                "archived": bool(reply_to),
+                # A thread closes when the author has answered it — and in
+                # BookStack a thread is closed by archiving its ROOT, which
+                # hides the whole exchange. `ingest_comments.py` enforces
+                # exactly that and rejects `archived` on a reply, so putting
+                # the flag here (on the answer) failed the bake on every one
+                # of them. The root is marked below, once we know it was
+                # answered.
+                "archived": False,
             })
             if reply_to is None:
                 first_id = comment_id
+            else:
+                for earlier in out:
+                    if earlier["id"] == reply_to:
+                        earlier["archived"] = True
             posted += 1
         if posted:
             doc["has_comments"] = True

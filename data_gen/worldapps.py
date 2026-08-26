@@ -144,8 +144,17 @@ class Wiki(Store):
     }
 
     def __init__(self, root: Path, clock: Clock, *, collections: dict[str, str],
-                 scrub=None):
+                 scrub=None, planned_comments: list[dict] | None = None,
+                 doc_titles: dict[str, str] | None = None):
         super().__init__(root, clock)
+        # The plan says which comment replies to which, by ids of its own. The
+        # tool a persona calls carries only a page and some text, so the store
+        # matches the call back to the plan — by who is writing and which page
+        # — and takes the planned id. Otherwise `reply_to` names a comment that
+        # was never minted and the thread comes out flat.
+        self._comments: dict[str, str] = {}     # id -> text, for the clue gate
+        self.planned_comments = list(planned_comments or [])
+        self.doc_titles = dict(doc_titles or {})
         self.docs = self.root / "docs"
         self.docs.mkdir(parents=True, exist_ok=True)
         self.collections = collections
@@ -222,6 +231,17 @@ class Wiki(Store):
                      action="write", ts=when, doc_kind=kind, path=str(path))
         return rel
 
+    def claim_comment(self, uid: str, rel: str) -> dict:
+        """The planned comment this call is fulfilling, if it is fulfilling one."""
+        want = Path(rel).stem
+        for com in self.planned_comments:
+            if com.get("_used") or com.get("author") != uid:
+                continue
+            if slug(self.doc_titles.get(com.get("doc", ""), "")) == want:
+                com["_used"] = True
+                return com
+        return {}
+
     def rehydrate(self) -> int:
         """Load a corpus already on disk back into the store.
 
@@ -267,7 +287,8 @@ class Wiki(Store):
         return None
 
     def comment(self, *, uid: str, rel: str, text: str,
-                ts: str | None = None, reply_to: str = "") -> None:
+                ts: str | None = None, reply_to: str = "",
+                ident: str = "") -> None:
         """One line on `comments.jsonl`.
 
         No `quote`. The field is optional, and a quote has to appear exactly
@@ -277,10 +298,14 @@ class Wiki(Store):
         most comments are anyway.
         """
         when = ts or self.clock.iso()
-        row = {"id": f"c-{slug(rel)}-{len(self._made)}", "doc": rel,
+        # The plan's own id when there is one: it says `<doc>-c1` replies to
+        # `<doc>-c0`, and a minted `c-<slug>-<n>` is a name that `reply_to`
+        # cannot reach, so the thread would come out flat.
+        row = {"id": ident or f"c-{slug(rel)}-{len(self._made)}", "doc": rel,
                "author": uid, "created_at": when, "text": text.strip()}
         if reply_to:
             row["reply_to"] = reply_to
+        self._comments[row["id"]] = row["text"]
         with self.comments.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
         self._record(kind="comment", ident=row["id"], title=f"comment on {rel}",
@@ -339,7 +364,10 @@ class Wiki(Store):
             rel = self.find(args.get("page") or "")
             if not rel:
                 return ok("No page by that name. Try list_pages.")
-            self.comment(uid=uid, rel=rel, text=args.get("text") or "")
+            plan = self.claim_comment(uid, rel)
+            self.comment(uid=uid, rel=rel, text=args.get("text") or "",
+                         ident=plan.get("id", ""),
+                         reply_to=plan.get("reply_to") or "")
             self._touch(uid, "comment_on_page", rel, self.clock.iso())
             return ok(f"Commented on {rel}.")
 

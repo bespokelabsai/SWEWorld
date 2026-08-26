@@ -703,6 +703,13 @@ def apply_repair(messages: list[dict], patch: dict, planted: dict) -> list[dict]
     return messages
 
 
+# What "producing" one of these means, and the word a reader sees for it. Three
+# kinds now, and the doc/mail binary was hard-coded in four places — which is
+# how the comment kind came to have no branch anywhere at all.
+_ACTION = {"doc": "write", "comment": "comment", "mail": "send"}
+_WHERE = {"doc": "page", "comment": "comment", "mail": "mail"}
+
+
 def written_text(stores: list, kind: str, title: str, by: str) -> tuple[str, str]:
     """(what was written, where it landed) for an artifact somebody owed today.
 
@@ -715,11 +722,17 @@ def written_text(stores: list, kind: str, title: str, by: str) -> tuple[str, str
     for store in stores:
         for row in getattr(store, "inventory", lambda: [])() or []:
             if row.get("by") != by or not G._same_action(
-                    "write" if kind == "doc" else "send", row.get("action", "")):
+                    _ACTION.get(kind, "send"), row.get("action", "")):
                 continue
             if not (G._norm_key(row.get("title")) == G._norm_key(title)
                     or G._title_overlap(title, row.get("title"))):
                 continue
+            if kind == "comment":
+                # A comment's body is not a page and not a thread; it is the
+                # line the store appended to comments.jsonl, and the id it
+                # carries is the plan's own.
+                return (getattr(store, "_comments", {}) or {}).get(
+                    row.get("id"), ""), row.get("id", "")
             page = (getattr(store, "_pages", {}) or {}).get(row.get("id"))
             if page:
                 return page.get("body", ""), row.get("id", "")
@@ -770,7 +783,7 @@ def _artifact_row(world, llm, planted, owner, date, ref, title, body, where,
     writer is in is also the only retry that could help, since that is where
     they would write the page again.
     """
-    kind = "page" if ref["kind"] == "doc" else "mail"
+    kind = _WHERE.get(ref["kind"], "mail")
     if not body.strip():
         return {"clue": planted.get("clue", ""), "holder": owner, "date": date,
                 "channel": room, "wrote_into": f"{kind}:{ref['id']}",
@@ -1302,7 +1315,10 @@ def _stores(world, out: Path, clock: wa.Clock) -> list:
     domain = "world.local"
     return [
         wa.Wiki(out, clock, collections=collections,
-                scrub=__import__("bespoke_user").scrub_prose),
+                scrub=__import__("bespoke_user").scrub_prose,
+                planned_comments=world.artifacts.get("comments") or [],
+                doc_titles={d["id"]: d.get("title", "")
+                            for d in world.artifacts["docs"]}),
         wa.Mail(out, clock, domain=domain,
                 addresses={p: f"{p}@{domain}" for p in world.people}),
         wa.Forge(out, clock, items=world.forge),

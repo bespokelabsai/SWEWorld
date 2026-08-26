@@ -185,6 +185,11 @@ class World:
         self.services = {s["slug"]: s for s in self.company["services"]}
         self.docs = {d["id"]: d for d in self.artifacts["docs"]}
         self.threads = {t["id"]: t for t in self.artifacts["threads"]}
+        # Page comments are the fourth thing phase 2 plans and the only one
+        # phase 4 never read. Three clues were planted in them and had nowhere
+        # to be written, which no gate could see because nothing enumerated
+        # them in the first place.
+        self.comments = {c["id"]: c for c in self.artifacts.get("comments") or []}
         self.display: dict[str, str] = {}
 
         # Every clue, by id, so the per-clue report can say which task it
@@ -242,7 +247,24 @@ class World:
     def title_of(self, kind: str, ident: str) -> str:
         if kind == "doc":
             return (self.docs.get(ident) or {}).get("title") or ident
+        if kind == "comment":
+            # A comment has no title of its own; it is named by the page it
+            # hangs on, which is also the only name a persona could recognise.
+            com = self.comments.get(ident) or {}
+            return ("comment on " + self.title_of("doc", com.get("doc", ""))
+                    if com else ident)
         return (self.threads.get(ident) or {}).get("subject") or ident
+
+    def comments_due(self, date: str) -> list[dict]:
+        """Page comments the plan dates to this day.
+
+        Kept off the day specs on purpose. `goals[].writes[]` lives in the spec
+        files, and phase 3's plant lives in the same files — regenerating them
+        to add comments would destroy it. The plan already says who comments on
+        what and when, so the obligation is derived rather than stored.
+        """
+        return [c for c in self.comments.values()
+                if str(c.get("created_at", ""))[:10] == date]
 
 
 # =============================================================================
@@ -505,6 +527,8 @@ def planted_in(world: World, kind: str, ident: str) -> list[dict]:
     """
     if kind == "doc":
         return list((world.docs.get(ident) or {}).get("planted") or [])
+    if kind == "comment":
+        return list((world.comments.get(ident) or {}).get("planted") or [])
     thread = world.threads.get(ident) or {}
     return [p for message in thread.get("messages") or []
             for p in message.get("planted") or []]
@@ -542,7 +566,62 @@ def obligations_of(world: World, spec: dict) -> list[dict]:
                  for r in goal.get("reads") or []]
         if reads:
             out.append({"reads": reads})
+    for com in comments_here(world, spec):
+        out.append({"writes": {
+            "kind": "comment", "id": com["id"],
+            "title": world.title_of("comment", com["id"]),
+            "by": com["author"], "action": "comment", "doc_kind": "",
+            "planted": planted_in(world, "comment", com["id"]),
+        }})
     return out
+
+
+def comments_here(world: World, spec: dict) -> list[dict]:
+    """The page comments THIS conversation is responsible for today.
+
+    A comment is dated and has an author, but no channel — so it has to be
+    given to exactly one of the day's rooms or it is asked for once per
+    conversation the author is in. The room is chosen by a stable sort rather
+    than by whoever comes first out of a dict, because re-running one day must
+    place it where the last run placed it.
+    """
+    date = spec.get("date") or ""
+    rooms = sorted(_specs_for(world, date), key=lambda s: s.get("channel") or "")
+    mine = []
+    for com in world.comments_due(date):
+        here = next((s for s in rooms
+                     if com["author"] in {p["id"] for p in
+                                          (s.get("participants") or [])}), None)
+        if here is not None and here.get("channel") == spec.get("channel"):
+            mine.append(com)
+    return mine
+
+
+def _specs_for(world: World, date: str) -> list[dict]:
+    try:
+        return world.day(date)["specs"]
+    except SystemExit:
+        return []
+
+
+def _agenda_for_write(world: World, agenda: list, kind: str, ident: str) -> None:
+    """The clue an artifact has to carry, worded as writing rather than saying.
+
+    One body for page, mail and comment: the `where` word is the only thing
+    that differs, and three copies of this drifted apart once already — the
+    comment kind simply had no branch at all, so three clues were planted into
+    pages nobody was ever asked to comment on.
+    """
+    where = {"doc": "page", "comment": "comment"}.get(kind, "mail")
+    what = world.title_of(kind, ident)
+    for planted in planted_in(world, kind, ident):
+        agenda.append({
+            "about": f"the {where} you are writing, {what}, has to say "
+                     f"this in your own words: "
+                     f"{world.humanize(planted['text'])}",
+            "must_raise": True, "must_settle": True,
+            "verbatim": list(planted.get("verbatim") or []),
+            "leaf": planted.get("clue", "")})
 
 
 def member_grounding(world: World, day: dict, spec: dict, persona: str) -> dict:
@@ -589,18 +668,25 @@ def member_grounding(world: World, day: dict, spec: dict, persona: str) -> dict:
         if goal.get("owner") != persona:
             continue
         for ref in goal.get("writes") or []:
-            what = world.title_of(ref["kind"], ref["id"])
-            where = "page" if ref["kind"] == "doc" else "mail"
+            _agenda_for_write(world, agenda, ref["kind"], ref["id"])
             for planted in planted_in(world, ref["kind"], ref["id"]):
-                agenda.append({
-                    "about": f"the {where} you are writing, {what}, has to say "
-                             f"this in your own words: "
-                             f"{world.humanize(planted['text'])}",
-                    "must_raise": True, "must_settle": True,
-                    "verbatim": list(planted.get("verbatim") or []),
-                    "leaf": planted.get("clue", "")})
                 if not own_goal:
                     own_goal = world.humanize(planted["settles"])
+
+    # A comment is owed by a PERSON on a day, not by a goal in the spec — see
+    # `comments_here` — so its agenda item is added beside the goals rather
+    # than inside them.
+    for com in comments_here(world, spec):
+        if com["author"] != persona:
+            continue
+        _agenda_for_write(world, agenda, "comment", com["id"])
+        page = world.title_of("doc", com.get("doc", ""))
+        agenda.append({
+            "about": f"leave a comment on the wiki page \"{page}\" — you "
+                     f"{com.get('intent', 'have something to add')}, about "
+                     f"{com.get('anchor') or 'what it says'}",
+            "must_raise": True, "must_settle": False, "verbatim": [],
+            "leaf": ""})
 
     owned = sorted(person.get("services_owned") or [],
                    key=lambda s: -(s.get("share_of_service") or 0))

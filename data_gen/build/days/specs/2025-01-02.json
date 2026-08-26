@@ -144,7 +144,15 @@
             "Konrad same for #106; decide: keep open or close"
           ],
           "reads": [],
-          "writes": []
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "notes-2024-12-30"
+            }
+          ],
+          "attached": [
+            "notes-2024-12-30"
+          ]
         },
         {
           "goal": "Unblock at least one PR by identifying what review/reshape it needs",

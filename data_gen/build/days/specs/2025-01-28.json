@@ -87,7 +87,8 @@
       "agenda": [
         "What shipped in v0.1.17",
         "Release notes and announcement",
-        "Next release window"
+        "Next release window",
+        "Prompt-level response cache keying"
       ],
       "reason": "v0.1.17 shipped today; release notes are due; announcement goes out now.",
       "goals": [
@@ -128,6 +129,29 @@
               "kind": "mail",
               "id": "announce-v0-1-17"
             }
+          ]
+        },
+        {
+          "goal": "write up Prompt-level response cache keying",
+          "owner": "dario",
+          "agenda_item": "Prompt-level response cache keying",
+          "beats": [
+            "dario says they will write Prompt-level response cache keying — the design for prompt-level response cache keying"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "design-t1-plant"
+            },
+            {
+              "kind": "mail",
+              "id": "mail-t1-plant"
+            }
+          ],
+          "added_by": "attach",
+          "attached": [
+            "mail-t1-plant"
           ]
         }
       ],
