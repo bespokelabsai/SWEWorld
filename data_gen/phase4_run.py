@@ -1033,7 +1033,12 @@ def clue_index(world, rows: list[dict]) -> str:
         clue = world.clue_of.get(row["clue"], {})
         drift = row.get("said_by", "") if _drifted(world, row) else "—"
         fix = row.get("repair") or {}
-        mended = "+%d msg" % len(fix["added"]) if fix else "—"
+        # A chat repair is another bubble; an artifact repair is a sentence
+        # added to the document. Calling both "+1 msg" would tell a reader a
+        # page grew a message.
+        mended = ("—" if not fix else
+                  "+%d line" % len(fix["added"]) if fix.get("where")
+                  else "+%d msg" % len(fix["added"]))
         # A clue in a page and a clue in a room answer the same question of
         # different haystacks, and "NO" means something different in each — one
         # is a conversation that skirted it, the other a document that omitted
@@ -1202,7 +1207,7 @@ async def _run(world, days, built, people, root: Path, out: Path, args) -> int:
         # bubble, and re-simulating the day for it re-rolls every other clue in
         # the room that was already right.
         rows = _repair_day(world, llm, date, doc, out / f"day-{n}.json", rows,
-                           args.clue_repairs)
+                           args.clue_repairs, stores)
         for attempt in range(2, args.clue_tries + 1):
             missing = [r for r in rows if not r["said"]]
             if not missing:
@@ -1243,7 +1248,7 @@ async def _run(world, days, built, people, root: Path, out: Path, args) -> int:
                 _repair_day(world, llm, date, doc, out / f"day-{n}.json",
                             _check_day(world, llm, date, redo, doc,
                                        attempt=attempt),
-                            args.clue_repairs) + \
+                            args.clue_repairs, stores) + \
                 _check_artifacts(world, llm, date, redo, stores, attempt=attempt)
         clue_rows += rows
 
@@ -1367,8 +1372,108 @@ def _check_day(world, llm, date, channels, doc, attempt: int) -> list[dict]:
     return rows
 
 
+# The plan's word for a carrier, from the word the review document shows.
+_KIND_BACK = {"page": "doc", "mail": "mail", "comment": "comment"}
+
+
+def _reread(stores, world, row: dict) -> tuple[str, str]:
+    """The artifact's text after a repair, so the recheck judges what is there."""
+    kind, _, ident = (row.get("wrote_into") or "").partition(":")
+    _, body, _ = _artifact_body(stores, world, kind, ident)
+    return body, ""
+
+
+def repair_artifact(llm, world, stores, planted: dict, row: dict) -> dict | None:
+    """Add the missing half of a thinned clue to the artifact that carries it.
+
+    Artifact clues had no repair at all. `_repair_day` finds a clue through
+    `_planted_at`, which reads the SPEC's planted list, and an artifact clue is
+    planted on the page or the mail thread — so the lookup returned None, the
+    repair broke immediately, and the only remedy left was re-running the whole
+    channel-day. One clue in a live run spent all three attempts that way, each
+    a full re-simulation that re-rolled every other clue in the room.
+
+    A page is not chat, so this is not a second bubble: the missing point is
+    written into the document as a further sentence in the voice of what is
+    already there. Same rule as the chat repair, though — only ever a repair.
+    A clue the artifact does not gesture at has nothing to extend, and inventing
+    the whole point into a document is authorship, so that goes back to the
+    re-run path.
+    """
+    missing = row.get("missing") or []
+    if not missing or not row.get("quote"):
+        return None                      # nothing landed to extend; re-run it
+    where = row.get("wrote_into") or ""
+    kind, _, ident = where.partition(":")
+    store, body, handle = _artifact_body(stores, world, kind, ident)
+    if store is None or not body or not handle:
+        return None
+    said = llm.complete(
+        system="You extend a document one sentence at a time, in its own voice.",
+        prompt=(f"This document says:\n\n{body[-2500:]}\n\n"
+                f"It was supposed to also make this point:\n"
+                f"{world.humanize(planted['text'])}\n\n"
+                f"What is missing from it: {'; '.join(missing)}\n\n"
+                "Write ONE or TWO sentences that add ONLY what is missing, in "
+                "the document's own register, as if they had always been the "
+                "next lines. Do not restate what it already says. Do not "
+                "introduce a heading. Return the sentences alone."),
+        schema=None, max_tokens=400, label=f"artifact-repair:{row['clue']}")
+    said = (said or "").strip()
+    if not said:
+        return None
+    _extend_artifact(store, kind, handle, said)
+    return {"added": [said], "where": where}
+
+
+def _artifact_body(stores, world, kind: str, ident: str):
+    """(store, current text, the handle that store edits by).
+
+    The plan and the store name the same thing differently — the plan says
+    `mail-t1-plant`, the mailbox says a Message-ID, the wiki says a file path —
+    so the title is the only key they share, which is also how
+    `artifact_audit` matches.
+    """
+    title = world.title_of({"page": "doc", "mail": "mail",
+                            "comment": "comment"}.get(kind, "doc"), ident)
+    for store in stores:
+        if kind == "page":
+            for rel, page in (getattr(store, "_pages", {}) or {}).items():
+                if page.get("title") == title:
+                    return store, page.get("body", ""), rel
+        elif kind == "mail":
+            for thread in (getattr(store, "_threads", {}) or {}).values():
+                if thread.get("subject") == title:
+                    return store, thread.get("body", ""), thread.get("mid", "")
+        elif kind == "comment":
+            bag = getattr(store, "_comments", {}) or {}
+            if ident in bag:
+                return store, bag[ident], ident
+    return None, "", ""
+
+
+def _extend_artifact(store, kind: str, handle: str, said: str) -> None:
+    """Write the added sentences back where the ingest will read them."""
+    if kind == "page":
+        page = (getattr(store, "_pages", {}) or {}).get(handle)
+        if page is not None:
+            page["body"] = page["body"].rstrip() + "\n\n" + said
+        path = store.docs / handle
+        if path.exists():
+            path.write_text(path.read_text(encoding="utf-8").rstrip()
+                            + "\n\n" + said + "\n", encoding="utf-8")
+    elif kind == "comment":
+        bag = getattr(store, "_comments", {}) or {}
+        if handle in bag:
+            bag[handle] = bag[handle].rstrip() + " " + said
+    elif kind == "mail" and hasattr(store, "extend"):
+        # A sent message exists as several files — the sender's copy and one
+        # per recipient — so the store rewrites all of them.
+        store.extend(handle, said)
+
+
 def _repair_day(world, llm, date, doc, path: Path, rows: list[dict],
-                tries: int) -> list[dict]:
+                tries: int, stores=None) -> list[dict]:
     """Add the missing beat to each thinned clue, in the transcript that exists.
 
     Between the gate and the re-run, because the two failures it sits between
@@ -1384,6 +1489,29 @@ def _repair_day(world, llm, date, doc, path: Path, rows: list[dict],
     out = []
     for row in rows:
         if row["said"]:
+            out.append(row)
+            continue
+        # An artifact clue is planted on the page or the mail thread, not on
+        # the spec, so `_planted_at` never finds one — which is why these had
+        # no repair at all and each thin one cost a whole day re-run, three
+        # times over. Route them to the artifact repair instead.
+        if row.get("wrote_into") and stores is not None:
+            planted = next((p for p in ps.planted_in(
+                world, _KIND_BACK.get(row["wrote_into"].split(":")[0], "doc"),
+                row["wrote_into"].split(":", 1)[-1])
+                if p.get("clue") == row["clue"]), None)
+            fix = (repair_artifact(llm, world, stores, planted, row)
+                   if planted else None)
+            if fix:
+                rechecked = _artifact_row(
+                    world, llm, planted, row.get("holder", ""), date,
+                    {"kind": _KIND_BACK.get(row["wrote_into"].split(":")[0], "doc"),
+                     "id": row["wrote_into"].split(":", 1)[-1]},
+                    row.get("artifact", ""), *_reread(stores, world, row), 2,
+                    row.get("channel", ""))
+                rechecked["repair"] = fix
+                out.append(rechecked)
+                continue
             out.append(row)
             continue
         planted = next((p for p in _planted_at(world, date, row["channel"])

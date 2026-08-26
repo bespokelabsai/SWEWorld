@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import datetime as dt
 import email
+import email.header
 import json
 import re
 from email.message import EmailMessage
@@ -468,6 +469,30 @@ class Mail(Store):
                      to=", ".join(recipients))
         return mid
 
+    def extend(self, mid: str, said: str) -> int:
+        """Append sentences to a message already sent, in every copy of it.
+
+        One message is several files — the sender's `Sent` copy and one `INBOX`
+        copy per recipient — so a repair that edits only the thread record in
+        memory would leave the corpus disagreeing with itself. Every `.eml`
+        carrying this Message-ID is rewritten, and the ingest reads the files.
+        """
+        touched = 0
+        for path in sorted((self.root / "emails").rglob("*.eml")):
+            text = path.read_text(encoding="utf-8")
+            if mid not in text:
+                continue
+            head, sep, body = text.partition("\n\n")
+            if not sep:
+                continue
+            path.write_text(head + sep + body.rstrip() + "\n\n" + said + "\n",
+                            encoding="utf-8")
+            touched += 1
+        for thread in self._threads.values():
+            if thread.get("mid") == mid:
+                thread["body"] = thread.get("body", "").rstrip() + "\n\n" + said
+        return touched
+
     def rehydrate(self) -> int:
         """Load sent mail already on disk back into the store.
 
@@ -488,7 +513,13 @@ class Mail(Store):
             if not path.exists():
                 continue
             msg = email.message_from_string(path.read_text(encoding="utf-8"))
-            subject = msg.get("Subject", "")
+            # A Subject with a non-ASCII character is MIME-encoded and folded
+            # across lines, so the raw header reads
+            # `week of Jan 13 =?utf-8?b?4oCU?= v0.1.15 and\n v0.1.15...`.
+            # Compared against the plan's title that matches nothing, and the
+            # artifact was reported as never sent.
+            subject = " ".join(str(email.header.make_header(
+                email.header.decode_header(msg.get("Subject", "")))).split())
             uid = (msg.get("From", "").split("@")[0] or "").strip("<> ")
             body = msg.get_payload(decode=True)
             body = body.decode("utf-8", "replace") if body else msg.get_payload()
