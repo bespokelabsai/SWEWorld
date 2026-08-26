@@ -6,7 +6,7 @@ A clue is a fact the corpus has to teach. It does not have to be worded the way 
 
 **6 clue(s) leaked giveaway language.** Those landed, but state the hidden requirement plainly enough to make the task trivial — a worse outcome than a miss, because a miss is visible in this table and a leak is not.
 
-**23 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
+**24 clue(s) were repaired in place.** They came out thinner than they were planted — the observation said, the part that says why anybody minds dropped — and the holder was given one more message to finish the thought instead of the whole day being run again. Each one names the added message in its own page.
 
 | clue | task | holder | said by | date | where | kind | carried | leaked | repaired | attempt |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -51,7 +51,7 @@ A clue is a fact the corpus has to teach. It does not have to be worded the way 
 | [t1.r1.l_params_1](t1.r1.l_params_1.md) | t1 | gideon | — | 2025-02-28 | #help | chat | yes | cache key | +1 msg | 1 |
 | [t4.r1.L11](t4.r1.L11.md) | t4 | dario | — | 2025-02-28 | page:release-v0-1-20 | page | yes | — | — | 1 |
 | [t4.r2.L11](t4.r2.L11.md) | t4 | gideon | — | 2025-03-06 | #viewer | chat | yes | — | +3 msg | 1 |
-| [t2.r2.l7](t2.r2.l7.md) | t2 | dario | — | 2025-03-10 | #code-review | chat | yes | — | — | 1 |
+| [t2.r2.l7](t2.r2.l7.md) | t2 | dario | — | 2025-03-10 | #code-review | chat | yes | — | +2 msg | 1 |
 | [t4.r1.L1](t4.r1.L1.md) | t4 | konrad | — | 2025-03-10 | page:onboarding-nils | page | yes | — | — | 1 |
 | [t1.r1.l_unhash_1](t1.r1.l_unhash_1.md) | t1 | emil | — | 2025-03-11 | #cookbooks | chat | yes | — | +2 msg | 1 |
 | [t1.r1.l_schema_3](t1.r1.l_schema_3.md) | t1 | gideon | — | 2025-03-12 | #incidents | chat | yes | — | +3 msg | 1 |

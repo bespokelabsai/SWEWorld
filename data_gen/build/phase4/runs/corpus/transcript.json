@@ -8906,57 +8906,28 @@
         },
         {
           "userId": "nikolai",
-          "text": "PR 495 and PR 502 are both sitting open, code-execution enhancements and the telemetry config change",
+          "text": "PR 495 and PR 502 are both up and ready for eyes, code executor and telemetry config respectively neither is blocking release but both have been sitting a while",
           "ts": "2025-02-17T09:00:00"
         },
         {
-          "userId": "nikolai",
-          "text": "neither has moved in a few days so i want to at least figure out what's blocking beofre the week gets away from us",
-          "ts": "2025-02-17T09:00:08"
+          "userId": "gideon",
+          "text": "Release notes for 0.1.19 are up on the wiki (releases collection)",
+          "ts": "2025-02-17T09:23:00"
         },
         {
           "userId": "gideon",
-          "text": "Release notes: 0.1.19 is up on the wiki, engineering/release-notes-0-1-19.",
-          "ts": "2025-02-17T09:29:08"
-        },
-        {
-          "userId": "gideon",
-          "text": "@Nikolai is PR 495 waiting on a review or is something else holding it?",
-          "ts": "2025-02-17T09:29:16"
+          "text": "@Nikolai, for PR 495, what does the test coverage look like, is it mostly unit or does it hit the execution layer end to end?",
+          "ts": "2025-02-17T09:23:08"
         },
         {
           "userId": "nikolai",
-          "text": "PR 495 is waiting on review, nothing blocking on my end, code-execution side, tests are in. PR 502 is in the same spot, just needs eyes.",
-          "ts": "2025-02-17T10:09:22",
-          "replyCount": 1,
-          "replyLastTs": "2025-02-17T10:49:04"
+          "text": "mix of both, unit tests cover the main paths but the e2e side needs the executor running so it's a bit awkward to validate in CI, that's actually part of why 495 hasnt moved, waiting to confirm the env wiring before asking for eyes on it",
+          "ts": "2025-02-17T09:30:08"
         },
         {
           "userId": "nikolai",
-          "text": "PR 502 is a telemetry config change",
-          "ts": "2025-02-17T10:09:43"
-        },
-        {
-          "userId": "priya",
-          "text": "PR 468 is in the same spot, n samples in generation params, no review yet either.",
-          "ts": "2025-02-17T10:19:43"
-        },
-        {
-          "userId": "gideon",
-          "text": "I can take a look at PR 495 today.",
-          "ts": "2025-02-17T10:49:04",
-          "reactions": [
-            {
-              "emoji": "👍",
-              "count": 1
-            }
-          ],
-          "threadParentTs": "2025-02-17T10:09:22"
-        },
-        {
-          "userId": "emil",
-          "text": "I can take PR 502 today",
-          "ts": "2025-02-17T11:24:04",
+          "text": "i'll sort the env wiring this morning and flag 495 once that's done rather than hold it any longer",
+          "ts": "2025-02-17T09:30:40",
           "reactions": [
             {
               "emoji": "👍",
@@ -8965,19 +8936,80 @@
           ]
         },
         {
-          "userId": "emil",
-          "text": "PR 468 still needs a reviewer though, nothing else holding it up",
-          "ts": "2025-02-17T11:24:12"
-        },
-        {
-          "userId": "emil",
-          "text": "Also, the weekly sync notes for the pickler regression week aren't on the wiki yet, not sure who's on that.",
-          "ts": "2025-02-17T11:24:24"
+          "userId": "konrad",
+          "text": "Sent the week of Feb 10 weekly update by email just now, pickler regression summary",
+          "ts": "2025-02-17T10:07:40"
         },
         {
           "userId": "konrad",
-          "text": "That's on me, just sent the weekly update mail out to the team covering the pickler regression",
-          "ts": "2025-02-17T11:40:24",
+          "text": "@Nikolai, for PR 502, what's actually holding that one up?",
+          "ts": "2025-02-17T10:07:52"
+        },
+        {
+          "userId": "nikolai",
+          "text": "502 is honestly just waiting on review, the changes are pretty contained, just config adjustments to telemetry, nothing that should take long to read through but it hasnt had eyes on it yet",
+          "ts": "2025-02-17T10:48:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "gotcha, makes sense on 495.",
+          "ts": "2025-02-17T11:29:00"
+        },
+        {
+          "userId": "gideon",
+          "text": "Release notes for 0.1.19 are up on the wiki (releases collection) if anyone needs them.",
+          "ts": "2025-02-17T11:29:05"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 needs a review pass - touches the generaiton params and n-samples logic, not blocking release but it's been sitting",
+          "ts": "2025-02-17T12:09:07"
+        },
+        {
+          "userId": "emil",
+          "text": "Happy to take PR 502 in trade if that helps move things",
+          "ts": "2025-02-17T12:09:15",
+          "reactions": [
+            {
+              "emoji": "🤝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Just read Konrad's update - the pickler regression fix is still in progress on my end, not in a PR yet.",
+          "ts": "2025-02-17T12:21:01"
+        },
+        {
+          "userId": "gideon",
+          "text": "The pickler regression still has no PR, @Emil, is that something that needs more hands on it before it gets there?",
+          "ts": "2025-02-17T13:52:15"
+        },
+        {
+          "userId": "emil",
+          "text": "No more hands needed, root cause is clear - I just haven't moved the fix into a PR yet, thats on me to get done",
+          "ts": "2025-02-17T14:22:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Sent the week of Feb 10 update this morning with the pickler regression summary and flagged for anyone hitting unexplained cache churn.",
+          "ts": "2025-02-17T14:26:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, do you have a sense of when the fix will be in a PR?",
+          "ts": "2025-02-17T14:26:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Sorry, Konrad's update is accurate - root cause is known, fix in progress but no PR yet, thats still on my end",
+          "ts": "2025-02-17T14:27:37"
+        },
+        {
+          "userId": "emil",
+          "text": "Aiming to have it up before end of day",
+          "ts": "2025-02-17T14:27:49",
           "reactions": [
             {
               "emoji": "✅",
@@ -8986,78 +9018,56 @@
           ]
         },
         {
-          "userId": "konrad",
-          "text": "The mail mainly flagged that the regression looks tied to issue 124, the inspect(func) cache invalidation thing, so if anyone's actively looking at that it'd be worth looping in before it causes more trouble downstream",
-          "ts": "2025-02-17T11:40:51"
-        },
-        {
-          "userId": "dario",
-          "text": "PR 468 still doesn't have a reviewer and it's been sitting a while",
-          "ts": "2025-02-17T14:20:13"
-        },
-        {
-          "userId": "dario",
-          "text": "PR 509 is also unreviewed, that's the litellm update on Emil's side",
-          "ts": "2025-02-17T14:20:52"
-        },
-        {
           "userId": "emil",
-          "text": "Both PR 468 and PR 509 are sitting clean on my end, just need eyes.",
-          "ts": "2025-02-17T14:56:52"
-        },
-        {
-          "userId": "emil",
-          "text": "Just read Konrad's mail, the weekly update flags the pickler regression as tied to issue 124, the inspect(func) cache invalidation problem, and notes I've been tracking it.",
-          "ts": "2025-02-17T14:57:16"
-        },
-        {
-          "userId": "emil",
-          "text": "Has anyone actually looked at issue 124 more closely since then, or is it still sitting open?",
-          "ts": "2025-02-17T14:57:21"
-        },
-        {
-          "userId": "emil",
-          "text": "PR 468 still doesn't have anyone on it and the day's almost done.",
-          "ts": "2025-02-17T15:22:21"
-        },
-        {
-          "userId": "emil",
-          "text": "Can anyone take it this afternoon, or is it going to tomorrow?",
-          "ts": "2025-02-17T15:22:33",
-          "replyCount": 1,
-          "replyLastTs": "2025-02-17T15:22:56"
+          "text": "Has anyone commited to reviewing PR 502 or PR 468 yet, I don't think I saw that land",
+          "ts": "2025-02-17T14:28:05"
         },
         {
           "userId": "gideon",
-          "text": "I can try but I've already got 495, might not land until tomorrow",
-          "ts": "2025-02-17T15:22:56",
-          "threadParentTs": "2025-02-17T15:22:33"
+          "text": "Release notes for 0.1.19 are on the wiki, releases collection, if anyone still needs them.",
+          "ts": "2025-02-17T15:01:05"
         },
         {
           "userId": "gideon",
-          "text": "Did anyone add the function-calling fix and the provider attribution to the release notes at engineering/release-notes-0-1-19, or are those still missing?",
-          "ts": "2025-02-17T15:23:10"
+          "text": "On PR 468, I'd rather not be the reviewer since I'm about to touch that same area for multi-sample work, probably better to get someone without a stake in it.",
+          "ts": "2025-02-17T15:01:10"
+        },
+        {
+          "userId": "gideon",
+          "text": "I already said it just now, release notes for 0.1.19 are on the wiki, releases collection.",
+          "ts": "2025-02-17T15:01:33"
         },
         {
           "userId": "nikolai",
-          "text": "just pulled up engineering/release-notes-0-1-19, the function-calling fix and provider attribution aren't in there yet, so Priya and Emil's pieces are still missing.",
-          "ts": "2025-02-17T15:48:10"
-        },
-        {
-          "userId": "gideon",
-          "text": "Updated engineering/release-notes-0-1-19 with Priya's function-calling fix and Emil's provider attribution - release notes are complete now.",
-          "ts": "2025-02-17T16:27:10",
+          "text": "- 495 env wiring is sorted, ready for review now\n- @Emil yes on the trade, I'll take a look at PR 468 if you cover 502",
+          "ts": "2025-02-17T15:09:33",
           "reactions": [
             {
-              "emoji": "🙌",
+              "emoji": "🎉",
               "count": 1
             }
           ]
         },
         {
+          "userId": "emil",
+          "text": "Works for me on the trade - @Nikolai, do you want me to beef up the desciption on PR 468 first, or is the current state enough to review?",
+          "ts": "2025-02-17T15:27:33"
+        },
+        {
           "userId": "nikolai",
-          "text": "erm, not sure the cost tracking changes got their own callout, or is that folded into the request handling section?",
-          "ts": "2025-02-17T16:36:10"
+          "text": "current state is fine, inline comments are faster at this point anyway",
+          "ts": "2025-02-17T15:54:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "starting on PR 468 now",
+          "ts": "2025-02-17T15:54:47",
+          "reactions": [
+            {
+              "emoji": "💪",
+              "count": 1
+            }
+          ]
         },
         {
           "userId": "gideon",
@@ -10632,100 +10642,38 @@
         },
         {
           "userId": "konrad",
-          "text": "Pulling up PR 571 and PR 575 this morning, want to get eyes on the RAFT cleanup and the cost processor fix before other things start piling up",
+          "text": "Been going through PR 571 and PR 575 from the examples side this morning. One thing I want to flag for the new provider PRs: model name logic should route through `supports_structured_output`, not each PR maintaining its own set",
           "ts": "2025-03-10T09:00:00"
         },
         {
           "userId": "nils",
-          "text": "while you're in there, can I ask, how do reviews usually work here?",
-          "ts": "2025-03-10T10:12:34"
+          "text": "is `supports_structured_output` already wired for the providers I'll be adding, or does a new integration need to implement that too?",
+          "ts": "2025-03-10T09:32:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "The direction I'd want is that it goes through `supports_structured_output`, but how a new integration actually hooks in is Emil's area",
+          "ts": "2025-03-10T10:04:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still working through 571 from the examples side this morning",
+          "ts": "2025-03-10T10:04:05"
         },
         {
           "userId": "nils",
-          "text": "one approval and it's good to merge, or do you need more eyes on it?",
-          "ts": "2025-03-10T10:12:42"
-        },
-        {
-          "userId": "konrad",
-          "text": "One approval is enough to merge",
-          "ts": "2025-03-10T10:43:42",
-          "reactions": [
-            {
-              "emoji": "👍",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "konrad",
-          "text": "Post in here, say which subsystem it touches and whether it's blocking anything, and someone will pick it up",
-          "ts": "2025-03-10T10:43:47"
-        },
-        {
-          "userId": "emil",
-          "text": "Neither 571 nor 575 is blocking a release, but I'd like them through before PR 579 goes in since 579 builds on the same provider layer.",
-          "ts": "2025-03-10T12:43:41"
+          "text": "@Emil, is there already a pattern in the codebase for how a new backend hooks into `supports_structured_output`, or is that something to sync on directly?",
+          "ts": "2025-03-10T10:12:05"
         },
         {
           "userId": "nils",
-          "text": "gotcha, thanks",
-          "ts": "2025-03-10T13:03:35"
-        },
-        {
-          "userId": "dario",
-          "text": "Left a comment on the kluster PR asking them to drop the inline set of model names and call `supports_structured_output` instead",
-          "ts": "2025-03-10T13:23:35"
-        },
-        {
-          "userId": "dario",
-          "text": "Is everyone aligned on that, or does someone see a reason to keep the separate set?",
-          "ts": "2025-03-10T13:23:43"
-        },
-        {
-          "userId": "konrad",
-          "text": "@Nils, `supports_structured_output` is worth finding early in the codebase",
-          "ts": "2025-03-10T13:25:43"
-        },
-        {
-          "userId": "nils",
-          "text": "what file is `supports_structured_output` in?",
-          "ts": "2025-03-10T14:36:17"
+          "text": "for batch-mode PRs, should I be tagging Emil directly as reviewer or does it go wider than that?",
+          "ts": "2025-03-10T11:03:01"
         },
         {
           "userId": "emil",
-          "text": "Aligned on `supports_structured_output` - PR 579 follows that pattern already.",
-          "ts": "2025-03-10T15:14:17",
-          "reactions": [
-            {
-              "emoji": "👍",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "konrad",
-          "text": "@Nils, PR 579 uses it, start there to see the pattern.",
-          "ts": "2025-03-10T15:27:17"
-        },
-        {
-          "userId": "emil",
-          "text": "@Konrad Feltrin, any feedback yet on PR 571 and PR 575, or still working through them?",
-          "ts": "2025-03-10T15:49:49"
-        },
-        {
-          "userId": "dario",
-          "text": "PR 565 and 566 still don't have a reviewer, both touch provider-integrations.",
-          "ts": "2025-03-10T16:04:21"
-        },
-        {
-          "userId": "dario",
-          "text": "Anyone able to grab PR 565 or 566 before end of day?",
-          "ts": "2025-03-10T16:05:05"
-        },
-        {
-          "userId": "konrad",
-          "text": "@Emil, been through 575, looks clean to me. Still working through 571, want to make sure the example coverage is solid before I sign off, shouldn't be long",
-          "ts": "2025-03-10T16:24:05",
+          "text": "+1 on routing through `supports_structured_output`",
+          "ts": "2025-03-10T11:33:19",
           "reactions": [
             {
               "emoji": "✅",
@@ -10735,13 +10683,60 @@
         },
         {
           "userId": "dario",
-          "text": "Left a comment on the kluster PR: drop the set of model names you added and call `supports_structured_output` instead",
-          "ts": "2025-03-10T18:06:13"
+          "text": "left a comment on the kluster PR to drop the set of model names and route through supports_structured_output instead, are we confirming that's the approach now?",
+          "ts": "2025-03-10T11:53:19"
         },
         {
           "userId": "dario",
-          "text": "That's what we edit when a new model lands, I'd rather not be grepping through scattered model strings again next time something like o3-mini ships.",
-          "ts": "2025-03-10T18:06:18"
+          "text": "that helper's already what gets edited when a new model lands",
+          "ts": "2025-03-10T11:53:39"
+        },
+        {
+          "userId": "dario",
+          "text": "don't want to be grepping for model strings again next time o3-mini ships",
+          "ts": "2025-03-10T11:53:59"
+        },
+        {
+          "userId": "emil",
+          "text": "yup that's the approach. Also, PR 571 and PR 575 both need eyes before I move further, anyone have bandwidth this afternoon to take a look?",
+          "ts": "2025-03-10T12:26:53",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 571 and PR 575 still need eyes, does anyone have a slot this afternoon to get through them?",
+          "ts": "2025-03-10T12:38:20"
+        },
+        {
+          "userId": "emil",
+          "text": "those are batch-mode and cost processor, both in-flight, and I don't want to queue more work on top until there's feedback.",
+          "ts": "2025-03-10T12:38:25"
+        },
+        {
+          "userId": "nils",
+          "text": "sorry, just catching up on this. happy to look at PR 571 and PR 575 this afternoon. I still don't have a clear sense of what the review bar is for batch-mode PRs, or who normlly signs off on them",
+          "ts": "2025-03-10T15:38:25",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Nils for batch-mode PRs I'm the one who signs off",
+          "ts": "2025-03-10T16:16:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nils is a few hours into the codebase, is his review of PR 571 and PR 575 the one Emil needs to move forward, or does someone else also need to look?",
+          "ts": "2025-03-10T16:34:25"
         },
         {
           "userId": "konrad",
@@ -20492,23 +20487,8 @@
         },
         {
           "userId": "konrad",
-          "text": "Onboarding page for Nils and Theo is up, Onboarding: Nils Brandt and Theo Marchetti (onboarding/onboarding-nils-brandt-and-theo-marchetti.md)",
-          "ts": "2025-03-10T09:00:00"
-        },
-        {
-          "userId": "konrad",
-          "text": "Covers the service map, batch-mode context, the sandbox image release log note, and the open questions worth knowing before they start poking around",
-          "ts": "2025-03-10T09:00:05"
-        },
-        {
-          "userId": "konrad",
-          "text": "Sent the weekly update out to the team this morning. @Emil, on PR 571, is the RAFT schema cleanup at a point we can approve, or does it need another pass?",
-          "ts": "2025-03-10T10:45:47"
-        },
-        {
-          "userId": "emil",
-          "text": "Schema cleanup is solid and the integration test is in, I think 571 is ready for approval.",
-          "ts": "2025-03-10T12:48:02",
+          "text": "Put together the onboarding page for Nils and Theo, it's in the wiki under Onboarding: Nils Brandt and Theo Marchetti",
+          "ts": "2025-03-10T09:00:00",
           "reactions": [
             {
               "emoji": "👍",
@@ -20518,28 +20498,23 @@
         },
         {
           "userId": "konrad",
-          "text": "Just sent welcome notes to Nils and Theo",
-          "ts": "2025-03-10T13:32:27"
+          "text": "Covers service ownership, the open issues worth knowing, how PRs flow, and one important note on the sandbox image release log that I want both of them to read carefully",
+          "ts": "2025-03-10T09:00:05"
         },
         {
           "userId": "konrad",
-          "text": "@Emil, does PR 571 have a runnable example alongside the schema cleanup, or is that a separate follow-up?",
-          "ts": "2025-03-10T13:32:35"
+          "text": "Welcome mail is out to Nils and Theo, pointed them at the onboarding wiki page and the PRs to pull. @Emil Brandvold, what's the current status on the schema cleanup in PR 571?",
+          "ts": "2025-03-10T10:06:05"
         },
         {
           "userId": "konrad",
-          "text": "oh wait",
-          "ts": "2025-03-10T16:31:09"
-        },
-        {
-          "userId": "konrad",
-          "text": "Emil said the integration test is in, not an example, so the runnable example is probably a separate follow-up",
-          "ts": "2025-03-10T16:31:14"
+          "text": "For a finetuning example, what's the expected starting point, curated dataset output, or does it walk the full pipeline from prompts through to the handoff?",
+          "ts": "2025-03-10T10:49:05"
         },
         {
           "userId": "emil",
-          "text": "The finetuning example is already in those commits - it was there specifically to show the end-to-end RAFT shape, so it's not a separate follow-up.",
-          "ts": "2025-03-10T18:28:34.703767",
+          "text": "Schema cleanup in PR 571 is up, five commits so far covering the data schema, multimodal requirements, OCR backend support, and an integration test",
+          "ts": "2025-03-10T11:27:05",
           "reactions": [
             {
               "emoji": "✅",
@@ -20548,29 +20523,91 @@
           ]
         },
         {
-          "userId": "konrad",
-          "text": "@Emil, if the finetuning example is already in there, is 571 good to approve?",
-          "ts": "2025-03-10T18:29:30.141736"
+          "userId": "emil",
+          "text": "I'd really like a second set of eyes on the schema shape before anything else builds on top of it",
+          "ts": "2025-03-10T11:27:17"
         },
         {
           "userId": "konrad",
-          "text": "One thing on curator-sandbox: the promoted line on the onboarding page is the only record of which build is actually signed off",
-          "ts": "2025-03-10T18:29:38.141736"
+          "text": "mhm",
+          "ts": "2025-03-10T11:51:17"
         },
         {
           "userId": "konrad",
-          "text": "The registry tag list isn't curated, CI pushes a tag for every branch build and sort order means nothing there, so check the page, not the registry",
-          "ts": "2025-03-10T18:29:50.141736"
+          "text": "good to have that scoped out",
+          "ts": "2025-03-10T11:51:22"
+        },
+        {
+          "userId": "konrad",
+          "text": "Couldn't pull up the weekly update to check, so I'm not entirely sure what I asked in it, I'll follow up on that separately. On PR 571: is the schema shape ready enough to move forward, or does it want one more pass before anything builds on top?",
+          "ts": "2025-03-10T11:51:36"
         },
         {
           "userId": "emil",
-          "text": "Pulled up WS-044 - it covers the RAFT schema additions, the CoT requirement, and cost accounting, my part is all in there.",
-          "ts": "2025-03-10T18:29:54.466389"
+          "text": "WS-044 isn't up yet, I just tried to pull it and there's nothing there, so I can't confirm my part of the schema shape against it",
+          "ts": "2025-03-10T12:31:36"
         },
         {
           "userId": "emil",
-          "text": "One thing still flagged open in the doc: whether num_distractors should be block config only or allow per-request override, haven't checked with whoever owns cost-processor integration on that yet.",
-          "ts": "2025-03-10T18:30:06.466389"
+          "text": "finetuning example is in PR 571, I believe it picks up at curated dataset output and walks through to the handoff, but I haven't gotten confirmation it covers the full shape Konrad was describing earlier",
+          "ts": "2025-03-10T12:46:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure starting at curated output is the full picture I had in mind, does the example show anything about how the curated dataset gets produced, or does it treat that as a black box going in?",
+          "ts": "2025-03-10T13:12:09"
+        },
+        {
+          "userId": "dario",
+          "text": "good, onboarding page is up and both nils and theo have the welcome in their inbox",
+          "ts": "2025-03-10T13:58:04",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, before end of day, is the schema cleanup in PR 571 at a point where we can move forward, or does it want one more pass?",
+          "ts": "2025-03-10T16:27:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "The promoted line in the onboarding page is the only record of which curator-sandbox build has actually been signed off, the registry tag list is not curated, CI pushes a tag for every branch build and the sort order there means nothing",
+          "ts": "2025-03-10T16:38:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "If you need to know what is safe to run, read that page, not the registry",
+          "ts": "2025-03-10T16:39:03"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, does the finetuning example need to show how the curated dataset gets produced, or is treating it as the starting input enough for what you had in mind?",
+          "ts": "2025-03-10T17:36:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "Onboarding page is up, welcome mail went out to Nils and Theo, and the weekly update for week of Mar 3 is out, I haven't been able to pull up exactly what I asked in it, I'll track that down",
+          "ts": "2025-03-10T17:54:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, treating the curated dataset as the starting point is the right scope for that example, that's what I had in mind.",
+          "ts": "2025-03-10T17:54:53",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "WS-044 still isn't up, do you know who owes that page?",
+          "ts": "2025-03-10T18:28:36.609258"
         },
         {
           "userId": "dermot",
@@ -29765,38 +29802,20 @@
         },
         {
           "userId": "gideon",
-          "text": "- progress bar revamp is merged, cost tracking and request handling fixes are in too\n- 0.1.19 shipped and the announcement went out this morning\n- trying to figure out what actually needs to move next week, multi-sample support feels like the obvious candidate",
+          "text": "- progress bar revamp is in 0.1.19 and out\n- online request handling and cost tracking fixes shipped with it, ~12 changes across those two\n- next up is probably multi-sample support (issue 52), but want to check where PR 468 lands first before I touch that area",
           "ts": "2025-02-17T09:00:00"
         },
         {
-          "userId": "gideon",
-          "text": "Are we actually prioritizing multi-sample support next week, or do we want to clear Nikolai's PRs first?",
-          "ts": "2025-02-17T09:31:50"
-        },
-        {
           "userId": "konrad",
-          "text": "PR 514 is basically done on my end, just the README cleanup to drop the kluster.ai promo, no blockers there.",
-          "ts": "2025-02-17T09:54:50"
+          "text": "What's the current state of PR 468, is it close to merge?",
+          "ts": "2025-02-17T09:19:39",
+          "replyCount": 1,
+          "replyLastTs": "2025-02-17T11:50:56"
         },
         {
           "userId": "priya",
-          "text": "@Nikolai, are PR 495 and PR 502 blocked on anything, or just waiting for review?",
-          "ts": "2025-02-17T09:59:50"
-        },
-        {
-          "userId": "gideon",
-          "text": "i think multi-sample is murkier than issue 52 makes it look, not sure we're actually ready to commit to it yet",
-          "ts": "2025-02-17T10:38:34"
-        },
-        {
-          "userId": "emil",
-          "text": "PR 509 is basically ready, PR 468 still has a few things to sort",
-          "ts": "2025-02-17T10:53:34"
-        },
-        {
-          "userId": "emil",
-          "text": "Pulled up the release notes just now and the request handling fixes are all in there, looks solid",
-          "ts": "2025-02-17T10:53:39",
+          "text": "Function-calling example fix is in 0.1.19 and done on my end, so release-and-ci is clear for whatever comes next.",
+          "ts": "2025-02-17T09:42:39",
           "reactions": [
             {
               "emoji": "✅",
@@ -29805,14 +29824,31 @@
           ]
         },
         {
-          "userId": "emil",
-          "text": "For next week I'd push for multi-sample and provider cost maps running in parallel.",
-          "ts": "2025-02-17T10:53:44"
+          "userId": "gideon",
+          "text": "@Emil where does PR 468 stand, any blockers on it?",
+          "ts": "2025-02-17T09:50:56"
         },
         {
-          "userId": "dario",
-          "text": "+1 on parallel, honestly",
-          "ts": "2025-02-17T11:27:44",
+          "userId": "konrad",
+          "text": "Sorry, got pulled away, looks like Gideon just picked that up in the main thread too",
+          "ts": "2025-02-17T11:50:56",
+          "threadParentTs": "2025-02-17T09:19:39"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 468 isn't blocked, just needs a final review pass on the params handling beofre it merges - I can push on that this afternoon. Separately, pulled up the release notes page, the online request layer section covers my part, looks solid",
+          "ts": "2025-02-17T12:05:56",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "priya",
+          "text": "nice",
+          "ts": "2025-02-17T12:07:56",
           "reactions": [
             {
               "emoji": "👍",
@@ -29821,19 +29857,35 @@
           ]
         },
         {
+          "userId": "emil",
+          "text": "For next week, multi-sample support feels like the right next focus once PR 468 is through - issue 52 is the natural anchor for it. Provider cost maps are on my list too but I haven't sorted the sequnce yet.",
+          "ts": "2025-02-17T12:14:56"
+        },
+        {
           "userId": "priya",
-          "text": "I can take a look at PR 502 this afternoon.",
-          "ts": "2025-02-17T11:57:44"
+          "text": "are the cost maps dependent on PR 468 landing, or can that run in parallel?",
+          "ts": "2025-02-17T12:20:00"
         },
         {
           "userId": "emil",
-          "text": "Is issue 52 the full picture on multi-sample, or is there design work that hasn't been written down yet?",
-          "ts": "2025-02-17T12:07:44"
+          "text": "Cost maps are independent of PR 468, they dont share the same layer - so we can actually push both at once",
+          "ts": "2025-02-17T12:41:00",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
         },
         {
-          "userId": "priya",
-          "text": "Getting to PR 502 now, should have notes on it before end of day.",
-          "ts": "2025-02-17T13:38:57"
+          "userId": "emil",
+          "text": "0.1.19 looks solid on my end, nothing that should've made it in that didn't.",
+          "ts": "2025-02-17T12:41:16"
+        },
+        {
+          "userId": "emil",
+          "text": "not sure we've actaully agreed on what ships next week though - is multi-sample the call, or still open?",
+          "ts": "2025-02-17T12:41:21"
         },
         {
           "userId": "gideon",
@@ -37215,23 +37267,23 @@
         },
         {
           "userId": "gideon",
-          "text": "Sent the 0.1.19 announcement mail this morning, main changes are the progress bar revamp and the online request/cost tracking fixes",
+          "text": "Sent the 0.1.19 announcement out to everyone this morning, progress bar revamp, online request fixes, cost tracking improvements, and the litellm update",
           "ts": "2025-02-17T09:00:00",
           "reactions": [
             {
-              "emoji": "📢",
+              "emoji": "🚀",
               "count": 1
             }
           ]
         },
         {
           "userId": "gideon",
-          "text": "If you haven't upgraded yet, worth doing",
+          "text": "Worth upgrading if you haven't yet",
           "ts": "2025-02-17T09:00:05"
         },
         {
           "userId": "konrad",
-          "text": "Good stuff, thanks Gideon",
+          "text": "nice",
           "ts": "2025-02-17T09:17:05",
           "reactions": [
             {
@@ -37241,101 +37293,34 @@
           ]
         },
         {
+          "userId": "priya",
+          "text": "also fixed the function-calling example bug in this one if anyone was hitting that",
+          "ts": "2025-02-17T09:23:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "cost tracking improvements are in telemetry, worth a look if you're monitoring spend",
+          "ts": "2025-02-17T09:27:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "The 0.1.19 announcement went out to everyone via email this morning. Release notes are on the wiki in the releases collection if you want the full list. Worth noting what Priya and Nikolai just added, the function-calling example fix and the telemetry improvements are both in this one too, so the release notes may be slightly underspecced; I'll update them.",
+          "ts": "2025-02-17T09:47:05"
+        },
+        {
+          "userId": "gideon",
+          "text": "Pulled up the release notes on the wiki, they cover the progress bar revamp, online request fixes, cost tracking, and the function-calling example fix",
+          "ts": "2025-02-17T10:06:43"
+        },
+        {
+          "userId": "gideon",
+          "text": "The announcement email went to everyone this morning, so 0.1.19 is out and documented",
+          "ts": "2025-02-17T10:06:51"
+        },
+        {
           "userId": "konrad",
-          "text": "For anyone who missed the mail, we shipped 0.1.19 overnight and the upgrade is worth it, the progress and cost tracking changes alone make it a meaningful one",
-          "ts": "2025-02-17T09:17:10"
-        },
-        {
-          "userId": "priya",
-          "text": "Also fixed a function-calling example bug that was tripping people up, that's in 0.1.19 too if anyone ran into it.",
-          "ts": "2025-02-17T09:25:10"
-        },
-        {
-          "userId": "nikolai",
-          "text": "cost tracking changes are on the telemetry side if anyone has questions about that piece.",
-          "ts": "2025-02-17T10:04:10"
-        },
-        {
-          "userId": "gideon",
-          "text": "oh nice",
-          "ts": "2025-02-17T10:33:10"
-        },
-        {
-          "userId": "gideon",
-          "text": "I didn't have the function-calling fix in my notes",
-          "ts": "2025-02-17T10:33:18"
-        },
-        {
-          "userId": "gideon",
-          "text": "- *0.1.19 is live*, the announcement mail went out this morning\n- *Release notes* on the wiki at engineering/release-notes-0-1-19\n- Progress bar, online request handling fixes, and cost tracking are the main changes; no breaking anything",
-          "ts": "2025-02-17T10:42:59"
-        },
-        {
-          "userId": "dario",
-          "text": "The online request handling fixes are solid on my end, that was the main thing I had in flight and it's all in 0.1.19",
-          "ts": "2025-02-17T11:16:53",
-          "reactions": [
-            {
-              "emoji": "✅",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "emil",
-          "text": "Provider attribution fixes are in there too, that was my piece, so that side is clean.",
-          "ts": "2025-02-17T11:29:53",
-          "reactions": [
-            {
-              "emoji": "✅",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "gideon",
-          "text": "Good to have it confirmed across the board",
-          "ts": "2025-02-17T13:29:04"
-        },
-        {
-          "userId": "gideon",
-          "text": "0.1.19 is solid - progress bar, online request handling, cost tracking, provider attribution all in",
-          "ts": "2025-02-17T13:29:12"
-        },
-        {
-          "userId": "gideon",
-          "text": "Upgrade if you haven't yet",
-          "ts": "2025-02-17T13:29:24"
-        },
-        {
-          "userId": "priya",
-          "text": "Function-calling fix is in there too, mentioned it this morning but worth noting for the record.",
-          "ts": "2025-02-17T13:34:24"
-        },
-        {
-          "userId": "gideon",
-          "text": "Good to have that on the record. Full picture for 0.1.19:\n- *Progress bar* revamp with better ETA and cache hit display\n- *Online request handling* and cost tracking fixes\n- *Provider attribution* fixes (Emil)\n- Function-calling example bug fixed (Priya)",
-          "ts": "2025-02-17T14:14:24"
-        },
-        {
-          "userId": "gideon",
-          "text": "Opened the release notes - my part is covered (progress bar revamp, request handling fixes)",
-          "ts": "2025-02-17T14:14:45"
-        },
-        {
-          "userId": "gideon",
-          "text": "Priya's function-calling fix and Emil's provider attribution aren't in there though",
-          "ts": "2025-02-17T14:14:50"
-        },
-        {
-          "userId": "gideon",
-          "text": "Should I add those or does one of you want to update it?",
-          "ts": "2025-02-17T14:14:58"
-        },
-        {
-          "userId": "nikolai",
-          "text": "cost tracking is solid on my end too, the telemetry side is all confirmed in 0.1.19.",
-          "ts": "2025-02-17T14:25:58",
+          "text": "good, that's all wrapped up then",
+          "ts": "2025-02-17T11:53:12",
           "reactions": [
             {
               "emoji": "✅",
@@ -37545,33 +37530,36 @@
         },
         {
           "userId": "konrad",
-          "text": "Been putting together setup notes for Nils, want to get the batch-mode context to him beofre end of day so he knows where things stand and can hit the ground running",
+          "text": "Working on getting Nils' onboarding materials together this morning, want to make sure he has the full picture on where batch-mode stands before he digs in",
           "ts": "2025-03-10T09:00:00"
         },
         {
           "userId": "konrad",
-          "text": "@Nils, you all set on access, or still waiting on something to get started?",
-          "ts": "2025-03-10T09:06:27",
-          "replyCount": 1,
-          "replyLastTs": "2025-03-10T10:40:16"
-        },
-        {
-          "userId": "nils",
-          "text": "access is fine, ready when you are.",
-          "ts": "2025-03-10T10:40:16",
-          "threadParentTs": "2025-03-10T09:06:27"
+          "text": "Should have something ready for him today",
+          "ts": "2025-03-10T09:00:12"
         },
         {
           "userId": "konrad",
-          "text": "@Nils, onboarding page is on the wiki, Onboarding: Nils Brandt and Theo Marchetti (onboarding/onboarding-nils-brandt-and-theo-marchetti.md)",
-          "ts": "2025-03-10T11:08:16",
+          "text": "@Nils Brandt, have you gotten repo access sorted yet?",
+          "ts": "2025-03-10T09:00:52",
           "replyCount": 1,
-          "replyLastTs": "2025-03-10T14:09:08"
+          "replyLastTs": "2025-03-10T10:08:49"
+        },
+        {
+          "userId": "nils",
+          "text": "yep, all set",
+          "ts": "2025-03-10T10:08:49",
+          "threadParentTs": "2025-03-10T09:00:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good. Start with the onboarding page in the wiki, Onboarding: Nils Brandt and Theo Marchetti. Has the service list, open issues, and a note on the sandbox image log you'll want to read before you run anything.",
+          "ts": "2025-03-10T10:36:49"
         },
         {
           "userId": "dario",
-          "text": "Welcome, Nils. I'm Dario, I own the request processing layer (online-request-processing, bulk-llm-inference, provider integrations) so if you hit anything on that side come find me.",
-          "ts": "2025-03-10T13:31:07",
+          "text": "welcome nils (and theo when you land). I own the request processing layer and provider integrations",
+          "ts": "2025-03-10T10:45:49",
           "reactions": [
             {
               "emoji": "👋",
@@ -37581,90 +37569,39 @@
         },
         {
           "userId": "nils",
-          "text": "doc has Emil as the owner of batch-mode, is that still how it's set up or am I taking that on?",
-          "ts": "2025-03-10T14:09:08",
-          "threadParentTs": "2025-03-10T11:08:16"
-        },
-        {
-          "userId": "emil",
-          "text": "Still mine - you're working in it with me",
-          "ts": "2025-03-10T14:31:08"
-        },
-        {
-          "userId": "emil",
-          "text": "Hope the onboarding doc gave you enough context to get started, let me know if anything's missing",
-          "ts": "2025-03-10T14:31:20"
+          "text": "read it, thanks Konrad",
+          "ts": "2025-03-10T11:09:49"
         },
         {
           "userId": "nils",
-          "text": "doc helped, though I ran into an issue trying to pull up PR 579 in Gitea, getting a not-found, is there a permissions step I might have missed during setup?",
-          "ts": "2025-03-10T14:50:20"
+          "text": "is Emil around today, or should I plan to sync with him this afternoon about those open PRs?",
+          "ts": "2025-03-10T11:09:57"
         },
         {
           "userId": "konrad",
-          "text": "The onboarding page has the service map, batch-mode context, and the PRs Nils should read first, it covers what I owed on my side.",
-          "ts": "2025-03-10T15:29:48"
+          "text": "Glad it landed. The onboarding page covers the service map, the active PRs to pull, and how review flows, that should get you to the right starting point",
+          "ts": "2025-03-10T11:56:21"
         },
         {
           "userId": "konrad",
-          "text": "@Nils, for the Gitea permissions issue, whoever provisioned your account should be able to sort repo access quickly, worth pinging them before end of day so it doesn't hold you up tomorrow",
-          "ts": "2025-03-10T15:29:56"
+          "text": "On Emil, I'm not sure of his exact schedule but try pinging him directly; he's been active on the PRs this morning",
+          "ts": "2025-03-10T11:56:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "A sync this afternoon should work, and if he's tied up he'll know where to direct you from there",
+          "ts": "2025-03-10T11:56:45"
         },
         {
           "userId": "emil",
-          "text": "@Nils, besides the Gitea access, everything else feeling manageable so far?",
-          "ts": "2025-03-10T15:55:41"
-        },
-        {
-          "userId": "nils",
-          "text": "mostly yes, Gitea access is the one thing still stuck, do you know who provisioned my account?",
-          "ts": "2025-03-10T17:27:07"
-        },
-        {
-          "userId": "dario",
-          "text": "Gitea access is going to block you on all the context PRs, not just 579",
-          "ts": "2025-03-10T18:01:07"
-        },
-        {
-          "userId": "emil",
-          "text": "If nobody can answer who provisioned it before we log off, Nils is going to start tomorrow blocked - someone needs to own this now.",
-          "ts": "2025-03-10T18:22:52.703767",
+          "text": "@Nils I'm around, ping me this afternoon and we can walk through where batch-mode stands and what's in the open PRs.",
+          "ts": "2025-03-10T12:42:42",
           "reactions": [
             {
-              "emoji": "🔥",
+              "emoji": "👍",
               "count": 1
             }
           ]
-        },
-        {
-          "userId": "konrad",
-          "text": "@Nils, what's your Gitea username? I'll get the repo access sorted.",
-          "ts": "2025-03-10T18:24:52.703767",
-          "reactions": [
-            {
-              "emoji": "✅",
-              "count": 1
-            }
-          ],
-          "replyCount": 2,
-          "replyLastTs": "2025-03-10T18:25:59.703767"
-        },
-        {
-          "userId": "nils",
-          "text": "nils-brandt, is that the one you need or do you want the email too?",
-          "ts": "2025-03-10T18:25:30.703767",
-          "threadParentTs": "2025-03-10T18:24:52.703767"
-        },
-        {
-          "userId": "nils",
-          "text": "username is enough, thanks Konrad",
-          "ts": "2025-03-10T18:25:59.703767",
-          "threadParentTs": "2025-03-10T18:24:52.703767"
-        },
-        {
-          "userId": "dario",
-          "text": "Konrad's on it.",
-          "ts": "2025-03-10T18:26:21.703767"
         },
         {
           "userId": "dermot",
@@ -46171,115 +46108,33 @@
         },
         {
           "userId": "gideon",
-          "text": "Online request handling and cost tracking fixes are all in",
+          "text": "Online request handling and cost tracking fixes are in 0.1.19. One thing I keep seeing: before people re-run, they want to know how much is already on disk, and right now the only answer is to start the run and watch the cache hit counter tick up, which is too late to actually decide anything.",
           "ts": "2025-02-17T09:00:00"
         },
         {
           "userId": "gideon",
-          "text": "One thing I keep running into: before a re-run, people want to know how much is already on disk, and right now the only way to find out is to start the run and watch the cache hits go by on the progress bar, which is too late to actually decide anything",
-          "ts": "2025-02-17T09:00:08"
+          "text": "Is there any way to query the cache layer for a hit count before a run actually starts?",
+          "ts": "2025-02-17T09:29:35"
         },
         {
           "userId": "gideon",
-          "text": "Does anyone actually know what's on disk before kicking off a re-run, or is everyone just starting it and watching the hit counter?",
-          "ts": "2025-02-17T09:34:37"
+          "text": "Do we actually want to surface the cached-versus-live split before a run starts, or is seeing the hit count mid-run good enough for most people?",
+          "ts": "2025-02-17T10:01:35"
         },
         {
           "userId": "gideon",
-          "text": "Has anyone gotten an actual user request for a pre-run cache coverage check, or is this just something we keep hitting ourselves?",
-          "ts": "2025-02-17T10:35:37"
-        },
-        {
-          "userId": "dario",
-          "text": "Got at least one user report on this. Someone asked why they couldn't see how many rows were cached before deciding whether to re-run a job, so this isn't just internal friction",
-          "ts": "2025-02-17T11:12:37",
-          "reactions": [
-            {
-              "emoji": "✅",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "dario",
-          "text": "Honestly I'm not sure this warrants a whole separate command vs. just a flag you can pass before committing to a run",
-          "ts": "2025-02-17T11:12:55"
-        },
-        {
-          "userId": "dario",
-          "text": "Is this something we want to scope out this week, or does it go in the backlog?",
-          "ts": "2025-02-17T11:13:00"
+          "text": "Tbh I lean toward pre-run visibility, mid-run feels too late for that call to matter.",
+          "ts": "2025-02-17T10:26:35"
         },
         {
           "userId": "gideon",
-          "text": "that settles the user need question at least",
-          "ts": "2025-02-17T11:21:00"
-        },
-        {
-          "userId": "gideon",
-          "text": "The cache hit count is already computable before the first request goes out, it just isn't surfaced anywhere in the startup output",
-          "ts": "2025-02-17T11:21:19"
+          "text": "Does the batch API on any provider actually expose a way to preview what's already fulfilled before you kick off a new submission, or is that purely our cache layer's job?",
+          "ts": "2025-02-17T10:40:35"
         },
         {
           "userId": "dario",
-          "text": "oh that's actually straightforward then",
-          "ts": "2025-02-17T11:50:00",
-          "reactions": [
-            {
-              "emoji": "🎉",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "dario",
-          "text": "I'd lean toward filing it before we lose the thread, but honestly I'm not sure \"just print it at startup\" is the whole answer, the format question alone is probably worth thinking about. Do we want to open something or just let it sit?",
-          "ts": "2025-02-17T11:50:25"
-        },
-        {
-          "userId": "dario",
-          "text": "Answering my own question I guess, filing it makes sense just to have it written down",
-          "ts": "2025-02-17T12:26:25"
-        },
-        {
-          "userId": "dario",
-          "text": "Where does the cache state actually live at startup, is it read from disk before any requests are dispatched or is it lazy?",
-          "ts": "2025-02-17T12:26:33"
-        },
-        {
-          "userId": "gideon",
-          "text": "Cache state is read from disk at job init, before any requests go out.",
-          "ts": "2025-02-17T13:03:33"
-        },
-        {
-          "userId": "dario",
-          "text": "@Gideon where does the issue filing stand, did you open something or is that still pending?",
-          "ts": "2025-02-17T13:15:33"
-        },
-        {
-          "userId": "gideon",
-          "text": "Haven't filed anything yet, I thought you were picking that up since you were the one who mentioned it",
-          "ts": "2025-02-17T13:21:33"
-        },
-        {
-          "userId": "gideon",
-          "text": "Happy to open it if not, just say the word",
-          "ts": "2025-02-17T13:21:45"
-        },
-        {
-          "userId": "gideon",
-          "text": "@Dario go ahead and file it if you want, I'll add the caching details once it's up",
-          "ts": "2025-02-17T13:35:50"
-        },
-        {
-          "userId": "dario",
-          "text": "Go ahead and file it, do you have enough on the cache read side to write it up or do you need anything from me?",
-          "ts": "2025-02-17T14:17:50"
-        },
-        {
-          "userId": "gideon",
-          "text": "I've got enough to write it up, I'll file it.",
-          "ts": "2025-02-17T14:21:50",
+          "text": "anthropic's batch api docs cover what's queryable on their end: docs.anthropic.com/en/api/creating-message-batches, no pre-run state endpoint there.",
+          "ts": "2025-02-17T10:48:35",
           "reactions": [
             {
               "emoji": "👍",
@@ -46289,13 +46144,79 @@
         },
         {
           "userId": "gideon",
-          "text": "Good to get this confirmed: the only way to know how much is already on disk right now is to kick off the run and watch the hit counter go by, which is already too late to make a decision",
-          "ts": "2025-02-17T14:22:02"
+          "text": "thanks @Dario, so it's all on our side then.",
+          "ts": "2025-02-17T11:35:15"
+        },
+        {
+          "userId": "dario",
+          "text": "are we actually aligned that pre-run is the right place for this, or is that still an assumption? I want to make sure we're not building toward something nobody's signed off on.",
+          "ts": "2025-02-17T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "wait",
+          "ts": "2025-02-17T11:50:11"
+        },
+        {
+          "userId": "dario",
+          "text": "I think i'm actually answering my own question, Gideon already said pre-run, so that's the lean",
+          "ts": "2025-02-17T11:50:16"
+        },
+        {
+          "userId": "dario",
+          "text": "what I don't know is whether we mean a row count, a percentage, or something else when we say \"split before the run.\"",
+          "ts": "2025-02-17T11:50:24"
+        },
+        {
+          "userId": "dario",
+          "text": "has anyone tried querying the cache directly before kicking off a run, or is that not something the current interface exposes at all?",
+          "ts": "2025-02-17T12:28:24"
         },
         {
           "userId": "gideon",
-          "text": "User report makes it real",
-          "ts": "2025-02-17T14:22:07"
+          "text": "@Dario ya, that's where I am, pre-run is the lean, and I haven't landed on exactly what to show yet either.",
+          "ts": "2025-02-17T12:59:24"
+        },
+        {
+          "userId": "gideon",
+          "text": "When batch-mode submits, does it check the cache first or only compare after it gets results back?",
+          "ts": "2025-02-17T12:59:36"
+        },
+        {
+          "userId": "dario",
+          "text": "actually, since the cache key is deterministic from the request params, you could pre-flight the whole set against the cache before submitting anything and get an exact count, no provider call needed.",
+          "ts": "2025-02-17T13:40:36",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "gideon",
+          "text": "tbh i'm not sure pre-flighting the full set is cheap at scale, scanning every key before the run starts could add real latency, and users might just see a slow start rather than useful info.",
+          "ts": "2025-02-17T13:47:36"
+        },
+        {
+          "userId": "gideon",
+          "text": "People keep asking the same thing before a re-run: how much of this is already on disk",
+          "ts": "2025-02-17T13:56:52"
+        },
+        {
+          "userId": "gideon",
+          "text": "The only way to answer it right now is to start the run and watch the hit counter go by on the progress bar",
+          "ts": "2025-02-17T13:56:57"
+        },
+        {
+          "userId": "gideon",
+          "text": "That's too late to decide anything. We need to surface the cached-versus-backend split before a run starts, not during it.",
+          "ts": "2025-02-17T13:57:09"
+        },
+        {
+          "userId": "dario",
+          "text": "caching-and-resume doesn't have a pre-run query interface right now, so the only hit data available is what accumulates during the run itself, which is exactly what Gideon's describing",
+          "ts": "2025-02-17T14:01:09"
         },
         {
           "userId": "gideon",
@@ -47872,7 +47793,7 @@
         },
         {
           "userId": "nils",
-          "text": "got the core Mistral batch processor pieces in over the last few days, request parsing, file upload, batch creation, and response handling are all there",
+          "text": "Six commits in on the Mistral batch processor, request parsing, response handling, file upload and batch creation are all roughed out",
           "ts": "2025-03-10T09:00:00",
           "reactions": [
             {
@@ -47883,263 +47804,184 @@
         },
         {
           "userId": "nils",
-          "text": "working through how the parsed responses should feed back into the broader pipeline now, want to make sure i'm not building in the wrong direction beofre i go further",
+          "text": "token accounting is where I need some clarity beofre the next round of commits",
           "ts": "2025-03-10T09:00:12"
         },
         {
           "userId": "gideon",
-          "text": "So your expectation is that the parsed responses slot into the same downstream path as online responses, just arriving async after polling?",
+          "text": "On token accounting for Mistral batch, are we pulling usage out of the response payload directly or do we have a different source for that?",
           "ts": "2025-03-10T09:08:12"
         },
         {
           "userId": "nils",
-          "text": "that's actually what I'm not sure about, I don't know if the batch results are expected to unify with the online path or stay separate, and that's what's keeping me from committing to the next part.",
+          "text": "that's exactly the piece I haven't settled yet, I haven't confirmed which source is right for Mistral batch",
           "ts": "2025-03-10T09:52:12",
-          "replyCount": 1,
-          "replyLastTs": "2025-03-10T09:52:23"
+          "replyCount": 3,
+          "replyLastTs": "2025-03-10T10:00:04"
         },
         {
           "userId": "gideon",
-          "text": "Does the response you're parsing out of the batch file look the same as a regular completion response, or is Mistral wrapping it differently?",
+          "text": "Does the Mistral batch response even include a usage field at the individual result level, or only at the top of the batch summary?",
           "ts": "2025-03-10T09:52:23",
           "threadParentTs": "2025-03-10T09:52:12"
         },
         {
           "userId": "nils",
-          "text": "@Dario Kestrel, can you weigh in here?",
-          "ts": "2025-03-10T10:06:23"
-        },
-        {
-          "userId": "nils",
-          "text": "you own online-request-processing and this really comes down to whether batch results are supposed to converge on that same path",
-          "ts": "2025-03-10T10:06:31"
+          "text": "what my parse loop currently reads from each line:\n```python\nresult[\"response\"][\"body\"].get(\"usage\") # per-line or summary only?\n```",
+          "ts": "2025-03-10T09:52:52",
+          "threadParentTs": "2025-03-10T09:52:12"
         },
         {
           "userId": "gideon",
-          "text": "+1",
-          "ts": "2025-03-10T10:13:31",
-          "reactions": [
-            {
-              "emoji": "👍",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "nils",
-          "text": "here's roughly what comes back from the batch file, each line:\n\n```json\n{\n \"custom_id\": \"row-42\",\n \"response\": {\n \"status_code\": 200,\n \"body\": { \"choices\": [...], \"usage\": {...} }\n }\n}\n```\n\nthe `body` matches a normal completion shape, so it *could* share the downstream path, but the wrapping layer is different ||| also, i pulled up the wiki to find the onboarding doc and it's not there yet. Konrad, is that something still coming?",
-          "ts": "2025-03-10T10:33:31"
+          "text": "ya that's exactly the question",
+          "ts": "2025-03-10T09:59:52"
         },
         {
           "userId": "gideon",
-          "text": "Mistral's batch docs cover what's guaranteed in that `usage` block, which matters for how we pull tokens out: https://docs.mistral.ai/capabilities/batch/",
-          "ts": "2025-03-10T10:35:31",
-          "unfurl": {
-            "title": "docs.mistral.ai",
-            "url": "https://docs.mistral.ai/capabilities/batch/"
-          }
-        },
-        {
-          "userId": "dario",
-          "text": "Honestly I'd lean toward stripping the wrapper and pushing `body` through the same downstream path, but I'm not fully settled on whether the async polling handoff creates enough of a mismatch that it warrants its own path instead. Can we get a call this afternoon to nail this down before Nils goes further?",
-          "ts": "2025-03-10T11:19:31",
-          "reactions": [
-            {
-              "emoji": "💭",
-              "count": 1
-            }
-          ]
-        },
-        {
-          "userId": "emil",
-          "text": "I'm around this afternoon, @Dario Kestrel can you find a slot and send an invite?",
-          "ts": "2025-03-10T11:48:31"
-        },
-        {
-          "userId": "dario",
-          "text": "2pm work for everyone?",
-          "ts": "2025-03-10T11:50:31"
-        },
-        {
-          "userId": "dario",
-          "text": "I'll send the invite",
-          "ts": "2025-03-10T11:50:39"
-        },
-        {
-          "userId": "emil",
-          "text": "2pm works. @Nils Brandt, before we jump on, what does your current token accounting look like for the batch responses?",
-          "ts": "2025-03-10T12:13:39"
-        },
-        {
-          "userId": "emil",
-          "text": "Oh, answering my own question - Nils's JSON has usage sitting right inside body, so if we go with Dario's approach and strip the wrapper, token accounting should follow through automatically.",
-          "ts": "2025-03-10T12:14:22"
-        },
-        {
-          "userId": "emil",
-          "text": "Does Mistral guarantee the same fields in that usage block for batch as online, or are some omitted?",
-          "ts": "2025-03-10T12:14:34"
-        },
-        {
-          "userId": "emil",
-          "text": "@Nils Brandt, is the polling loop part of those 6 commits already, or is that still ahead?",
-          "ts": "2025-03-10T12:41:00"
+          "text": "Have you actually seen that field populated in a real Mistral batch response, or is that just what you're expecting the shape to be?",
+          "ts": "2025-03-10T10:00:04",
+          "threadParentTs": "2025-03-10T09:52:12"
         },
         {
           "userId": "nils",
-          "text": "@Konrad Feltrin, did the onboarding doc land on the wiki yet?",
-          "ts": "2025-03-10T13:01:00"
-        },
-        {
-          "userId": "nils",
-          "text": "I checked earlier and couldn't find it",
-          "ts": "2025-03-10T13:01:12"
-        },
-        {
-          "userId": "nils",
-          "text": "@Emil Brandvold, polling loop is still ahead, not in those 6 commits",
-          "ts": "2025-03-10T13:01:20"
-        },
-        {
-          "userId": "gideon",
-          "text": "Token accounting is still open going into that call",
-          "ts": "2025-03-10T13:26:20"
-        },
-        {
-          "userId": "gideon",
-          "text": "Does Mistral guarantee the same fields in the batch usage block, or are some dropped compared to online?",
-          "ts": "2025-03-10T13:26:32"
-        },
-        {
-          "userId": "nils",
-          "text": "to be honest I'm not confident Mistral guarantees the same fields in batch usage, I haven't verified that, and if some are dropped the accounting doesn't just follow through on its own.",
-          "ts": "2025-03-10T14:02:32",
-          "replyCount": 3,
-          "replyLastTs": "2025-03-10T14:03:19"
-        },
-        {
-          "userId": "gideon",
-          "text": "So you haven't pulled up the docs yet to check?",
-          "ts": "2025-03-10T14:02:53",
-          "threadParentTs": "2025-03-10T14:02:32"
-        },
-        {
-          "userId": "nils",
-          "text": "I'll check it now before the call.",
-          "ts": "2025-03-10T14:03:03",
-          "threadParentTs": "2025-03-10T14:02:32"
-        },
-        {
-          "userId": "gideon",
-          "text": "Can you drop what you find in here before we jump on?",
-          "ts": "2025-03-10T14:03:19",
-          "threadParentTs": "2025-03-10T14:02:32"
-        },
-        {
-          "userId": "nils",
-          "text": "page wouldn't load for me, but the link Gideon shared earlier is the right one: https://docs.mistral.ai/capabilities/batch/, from what I can tell the usage block in batch responses carries the same fields as online (prompt_tokens, completion_tokens, total_tokens), nothing looks dropped, but I'd want someone to verify that against the actual docs before we commit to it",
-          "ts": "2025-03-10T14:29:19",
+          "text": "haven't seen it in a live response yet, been working off the docs: https://docs.mistral.ai/capabilities/batch/, woud also appreciate a sanity check on the overall parsing structure before I commit more on top of it",
+          "ts": "2025-03-10T10:02:04",
           "unfurl": {
             "title": "docs.mistral.ai",
             "url": "https://docs.mistral.ai/capabilities/batch/,"
           }
         },
         {
-          "userId": "dario",
-          "text": "Do we take Nils's reading as enough to commit to the token accounting path, or does someone need to pull up the docs and verify before the call?",
-          "ts": "2025-03-10T15:02:19"
-        },
-        {
-          "userId": "dario",
-          "text": "Ok",
-          "ts": "2025-03-10T15:02:39"
-        },
-        {
-          "userId": "dario",
-          "text": "answering my own question",
-          "ts": "2025-03-10T15:02:47"
-        },
-        {
-          "userId": "dario",
-          "text": "I'd rather someone actually confirms the Mistral batch usage fields on the call before we commit to the accounting path",
-          "ts": "2025-03-10T15:02:55"
-        },
-        {
-          "userId": "emil",
-          "text": "I'll pull up the docs on the call and verify the fields before we commit to anything.",
-          "ts": "2025-03-10T15:42:55"
-        },
-        {
-          "userId": "nils",
-          "text": "holding on the next round of commits until the call confirms the usage fields and the path direction",
-          "ts": "2025-03-10T15:51:55"
-        },
-        {
-          "userId": "dario",
-          "text": "PR 565 and 566 are both up and waiting on review, nothing blocking on my end while the call sorts out the batch direction",
-          "ts": "2025-03-10T15:56:55"
+          "userId": "gideon",
+          "text": "Share the parse structure here and I'll look it over",
+          "ts": "2025-03-10T10:30:04"
         },
         {
           "userId": "gideon",
-          "text": "I'm around if the call needs input from the online-request-processing side.",
-          "ts": "2025-03-10T16:08:55"
+          "text": "We should also confirm the usage field against a live response before you commit more on top of it",
+          "ts": "2025-03-10T10:30:09"
         },
         {
           "userId": "nils",
-          "text": "once Emil confirms the usage fields on the call, I'll settle the path direction and pick the commits back up from there.",
-          "ts": "2025-03-10T16:36:55"
-        },
-        {
-          "userId": "gideon",
-          "text": "Uh, the call was at 2, it's almost end of day - did the confirmation from Emil not come through yet?",
-          "ts": "2025-03-10T16:55:55"
-        },
-        {
-          "userId": "nils",
-          "text": "yeah",
-          "ts": "2025-03-10T17:19:55"
-        },
-        {
-          "userId": "nils",
-          "text": "call sorted it",
-          "ts": "2025-03-10T17:20:03"
-        },
-        {
-          "userId": "nils",
-          "text": "Emil confirmed the usage fields match the online format, so we're going with stripping the wrapper and passing body through the same path",
-          "ts": "2025-03-10T17:20:11",
-          "reactions": [
-            {
-              "emoji": "✅",
-              "count": 1
-            }
-          ]
+          "text": "here's the core of what I have for parse_responses, can you take a look:\n\n```python\nfor line in result_file:\n result = json.loads(line)\n usage = result[\"response\"][\"body\"].get(\"usage\", {})\n yield {\n \"custom_id\": result[\"custom_id\"],\n \"content\": result[\"response\"][\"body\"][\"choices\"][0][\"message\"][\"content\"],\n \"input_tokens\": usage.get(\"prompt_tokens\", 0),\n \"output_tokens\": usage.get(\"completion_tokens\", 0),\n }\n```\n\nalso pulled up the onboarding doc, it covers the batch-mode orientation basics but not the technical specifics I'm still sorting through here.",
+          "ts": "2025-03-10T11:00:09"
         },
         {
           "userId": "emil",
-          "text": "gotcha, go for it",
-          "ts": "2025-03-10T17:44:11",
+          "text": "Actually I want to walk back something, I think I implied earlier that the per-line usage field was a safe assumption based on the standard API shape, but I'm not confident that holds for Mistral batch specifically. I wouldn't commit more on top of that until you've got a live response confirming those keys are actually there per line",
+          "ts": "2025-03-10T11:31:04"
+        },
+        {
+          "userId": "dario",
+          "text": "honestly the defaulting to 0 when usage is missing worries me more than the shape question",
+          "ts": "2025-03-10T11:50:00"
+        },
+        {
+          "userId": "dario",
+          "text": "if mistral batch doesn't populate per-line usage, you're silently eating zeros in cost accounting with no signal that anything's wrong",
+          "ts": "2025-03-10T11:50:08"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nils does the current parse loop log or warn anything when usage comes back empty, or does it fall straight through to the zero default with no signal at all?",
+          "ts": "2025-03-10T12:24:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "Token accounting for Mistral batch still isn't settled - we don't have a confirmed response shape and no call yet on what the fallback behavior should be if per-line usage isn't there.",
+          "ts": "2025-03-10T12:49:08"
+        },
+        {
+          "userId": "gideon",
+          "text": "@Konrad, can you weigh in on this before Nils commits more on top of it?",
+          "ts": "2025-03-10T12:49:20"
+        },
+        {
+          "userId": "nils",
+          "text": "falls straight through to zero, no warning at all. should I add a logged warning when usage is absent, or raise an error?",
+          "ts": "2025-03-10T13:24:20",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-10T13:55:38"
+        },
+        {
+          "userId": "dario",
+          "text": "@Emil you own batch-mode so this is probably yours to call",
+          "ts": "2025-03-10T13:55:20"
+        },
+        {
+          "userId": "dario",
+          "text": "can you confirm the actual mistral response shape and weigh in on log vs. raise before nils builds more on top of it",
+          "ts": "2025-03-10T13:55:28"
+        },
+        {
+          "userId": "emil",
+          "text": "honestly not sure I can call log vs. raise cleanly without knowing whether usage is reliably absent for Mistral batch or just sometimes, those feel like different problems to me, does anyone have a confirmed live response to check against?",
+          "ts": "2025-03-10T13:55:38",
+          "threadParentTs": "2025-03-10T13:24:20"
+        },
+        {
+          "userId": "nils",
+          "text": "haven't run against a live Mistral batch response yet, holding off on further commits until the usage question is settled.",
+          "ts": "2025-03-10T15:40:42"
+        },
+        {
+          "userId": "emil",
+          "text": "sounds right, holding there is the right call til we have a real response to look at.",
+          "ts": "2025-03-10T16:21:40"
+        },
+        {
+          "userId": "dario",
+          "text": "that tracks",
+          "ts": "2025-03-10T16:54:40"
+        },
+        {
+          "userId": "gideon",
+          "text": "Cost accounting for Mistral batch on my end is in the same holding pattern - can't wire it up cleanly until we know whether the token source is per-line or needs a different path.",
+          "ts": "2025-03-10T17:08:40"
+        },
+        {
+          "userId": "nils",
+          "text": "will run a live test against Mistral batch tomorrow and share what the response shape actually looks like.",
+          "ts": "2025-03-10T17:28:40",
+          "replyCount": 1,
+          "replyLastTs": "2025-03-10T17:29:03"
+        },
+        {
+          "userId": "dario",
+          "text": "I'm not sure the structure review needs to wait on the live test, actually",
+          "ts": "2025-03-10T17:28:55"
+        },
+        {
+          "userId": "emil",
+          "text": "so you mean the parse structure and request/response mapping can be reviewed from the code alone, just the usage field needs a live test?",
+          "ts": "2025-03-10T17:29:03",
+          "threadParentTs": "2025-03-10T17:28:40"
+        },
+        {
+          "userId": "nils",
+          "text": "the parse structure is already in the thread above if anyone wants to look at it now, and I'll hold the usage field question for the live test tomorrow.",
+          "ts": "2025-03-10T18:06:03"
+        },
+        {
+          "userId": "gideon",
+          "text": "Someone want to call on the parse structure now while we're all still here, or is that also tomorrow?",
+          "ts": "2025-03-10T18:21:18.332151"
+        },
+        {
+          "userId": "emil",
+          "text": "six commits on day one is solid, Nils",
+          "ts": "2025-03-10T18:27:09.956768",
           "reactions": [
             {
               "emoji": "👍",
-              "count": 1
+              "count": 2
             }
           ]
         },
         {
-          "userId": "nils",
-          "text": "direction is settled, polling loop is next on the batch processor.",
-          "ts": "2025-03-10T17:53:11"
-        },
-        {
-          "userId": "gideon",
-          "text": "I think i'd just double check that the cost processor doesn't need any explicit handling for batch context, even with the fields matching, before assuming it all just flows through",
-          "ts": "2025-03-10T18:28:11"
-        },
-        {
-          "userId": "gideon",
-          "text": "@Nils Brandt can you check the cost processor before your next round of commits and confirm it doesn't need changes for batch?",
-          "ts": "2025-03-10T18:28:32"
+          "userId": "emil",
+          "text": "I can look at the parse structure now before I wrap up",
+          "ts": "2025-03-10T18:27:17.956768"
         },
         {
           "userId": "nils",

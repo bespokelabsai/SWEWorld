@@ -6,81 +6,69 @@ created_at: 2025-03-10T09:14:00+00:00
 
 # Onboarding: Nils Brandt and Theo Marchetti
 
-Welcome to the team. This page is meant to get you oriented fast, not cover everything, so ask in the relevant channel when you hit something that isnt here and we will add it.
+Welcome to Millrow. This page covers what you need to get oriented, where the work stands, and a few things that will save you real debugging time.
 
----
+## Who You Are and What You Are Here For
 
-## The project
+**Nils** is joining as the batch-backend contractor. Your work lives primarily in the batch-mode service, which is currently in flight under Emil Brandvold. Coordinate with Emil on the open PRs before doing much else, particularly:
 
-Millrow is a synthetic training-data pipeline. The goal is one million rows of generated training examples with full provenance tracked on every row. We are on v0.1.20 right now, 285 changes merged.
+- PR 468: n samples in generation params
+- PR 571: RAFT
+- PR 575: model name from config in cost processor
+- PR 579: OpenAI/DeepSeek API
 
-The current milestone is *Consolidation and Provider Breadth: Pruning After the Sprint*. In practical terms that means two things happening in parallel: adding new inference providers (OpenAI, DeepSeek) and tightening up the existing services before we open the floor to anything bigger. PRs 468 and 579 are both part of that push.
+Emil owns batch-mode and blocks-and-recipes, so he is your first call on anything touching either of those.
 
----
+**Theo** is contributing Mistral-batch examples. The examples-cookbooks service is owned by Dario Kestrel. Pull PR 565 (OpenAI client backend) and PR 566 (DeepSeek API) for reference before writing new examples, they show the pattern the team is converging on for provider expansion.
 
-## Services and ownership
+## Project State
 
-These are the services that exist today. If something is not on this list, it does not exist yet. Do not assume something is in flight unless it shows up here or in an open PR.
+We are at v0.1.20, with 285 changes merged. Current milestone is Consolidation and Provider Breadth: Pruning After the Sprint.
 
-- batch-mode, Emil Brandvold
-- blocks-and-recipes, Emil Brandvold
-- bulk-llm-inference, Dario Kestrel
-- caching-and-resume, Dario Kestrel
-- code-execution, Nikolai Berresford
-- curator-viewer, Dario Kestrel
-- examples-cookbooks, Dario Kestrel
-- local-offline-inference, Emil Brandvold
-- multimodal-prompts, Emil Brandvold
-- online-request-processing, Dario Kestrel
+The full list of open PRs is in the weekly update. Ask in #general if you have not received it yet.
 
----
+Services and owners as of today:
 
-## For Nils: getting into batch-mode
+| Service | Owner |
+|---|---|
+| batch-mode | Emil Brandvold |
+| blocks-and-recipes | Emil Brandvold |
+| bulk-llm-inference | Dario Kestrel |
+| caching-and-resume | Dario Kestrel |
+| code-execution | Nikolai Berresford |
+| curator-viewer | Dario Kestrel |
+| examples-cookbooks | Dario Kestrel |
+| local-offline-inference | Emil Brandvold |
+| multimodal-prompts | Emil Brandvold |
+| online-request-processing | Dario Kestrel |
 
-batch-mode is owned by Emil and is actively moving. The public interface is not settled yet, so sync with Emil before you write code against it, not after. Things shift and you dont want to build on top of something that is about to change shape.
+## How PRs Flow
 
-Two PRs to read before you touch anything in that area:
+Post new PRs in #code-review. Include which subsystem it touches and whether it is blocking a release.
 
-- PR 468, n-samples support in generation params
-- PR 579, OpenAI/DeepSeek API integration
+When referencing a PR or issue in chat, always use the full form (PR 571, issue 52). A bare #number opens the channel autocomplete in Mattermost, which is not what anyone wants.
 
-Both are live right now. Read them so you know what is already in motion.
+Review turnaround on this team is generally fast. If something sits more than a day without a response, ping the owner directly.
 
-Once you have the lay of the land, start with something small and self-contained. Put up a PR early so we can see the direction before there is too much to unwind if we need to push back on the approach.
+## Open Issues Worth Knowing
 
----
+Several issues are open team-wide and not owned by any one person right now:
+
+- issue 52: support multiple samples per request
+- issue 102: clarify that we must return a dictionary without Pydantic objects for each row
+- issue 121: should we handle pydantic-to-dict and back for the user when adding to a row?
+- issue 124: `inspect(func)` is sensitive to comments and whitespace, so cache invalidates unexpectedly
+- issue 128: curator-viewer does not display the output of parse_func
+
+None of these are blockers for your own work, but they will come up and it is better to know they exist than to spend time thinking you found something new.
 
 ## Sandbox Image Release Log
 
-Read this before running any curator-sandbox image.
+The promoted line on the Sandbox Image Release Log page is the only authoritative statement of which curator-sandbox build has been signed off. Do not read the registry tag list to answer this question. CI pushes a tag for every branch build and the sort order there means nothing. Read the log page.
 
-The promoted line on this page is the only statement of which curator-sandbox build has actually been signed off. CI pushes a tag for every branch build and the registry sort order means nothing. If you need to know what is safe to run, read this page. Do not read the registry tag list.
+## Getting Help
 
----
-
-## How PRs work
-
-No formal review-assignment process. Post your PR in #code-review, say which subsystem it touches and whether it is blocking anything, and someone will pick it up. If it sits more than a day without a look, ping in the thread. We are a small team and things slip through sometimes.
-
-Expect comments on both correctness and shape. We care about where code lives. If a function could belong to a more general layer someone will say so, and that is not a criticism of the change, just how we think about the codebase.
-
----
-
-## Open issues worth knowing about
-
-A few things are unresolved that affect day-to-day work. Read these so you know where the edges are. Do not try to resolve them on your own, they need a team decision.
-
-- issue 52, support for multiple samples per request
-- issue 102, whether we must return a plain dictionary (no Pydantic objects) per row
-- issue 121, whether we handle pydantic-to-dict automatically for the user
-- issue 124, inspect(func) cache invalidates on comments and whitespace changes (this one is annoying in practice)
-
----
-
-## Where to find things
-
-- Email, weekly updates and the welcome notes went out there, check your inbox if you havent seen them
-- Mattermost, day-to-day coordination, main channels are #general, #cookbooks, and #code-review
-- This wiki, longer-lived reference material
-
-If something isnt here, ask. We would rather answer than have you stuck.
+- batch-mode questions -> Emil Brandvold
+- examples and cookbooks -> Dario Kestrel
+- code-execution and verifiers -> Nikolai Berresford
+- onboarding logistics -> me (Konrad)

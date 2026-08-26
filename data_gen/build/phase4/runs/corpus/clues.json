@@ -1249,53 +1249,6 @@
     ]
   },
   {
-    "clue": "t1.r2.L13",
-    "holder": "gideon",
-    "date": "2025-02-17",
-    "channel": "pipeline",
-    "attempt": 1,
-    "said": true,
-    "quote": "One thing I keep running into: before a re-run, people want to know how much is already on disk, and right now the only way to find out is to start the run and watch the cache hits go by on the progress bar, which is too late to actually decide anything",
-    "said_by": "Gideon Halloway",
-    "why": "All parts of the remark are stated plainly by Gideon, reinforced again at 14:22",
-    "elements": [
-      {
-        "part": "people keep asking the same question before a re-run",
-        "present": true,
-        "why": "Gideon says people want to know this before a re-run, framed as a recurring ask"
-      },
-      {
-        "part": "the question is how much of this is already on disk",
-        "present": true,
-        "why": "Gideon states this directly at 09:00 and again at 14:22"
-      },
-      {
-        "part": "right now the only way to answer it is to run the thing",
-        "present": true,
-        "why": "Gideon says you have to kick off the run to find out"
-      },
-      {
-        "part": "and watch the hit counter go by on the progress bar",
-        "present": true,
-        "why": "Gideon names the hit counter on the progress bar as the only visibility"
-      },
-      {
-        "part": "which is too late to decide anything",
-        "present": true,
-        "why": "Gideon says this is already too late to make a decision, at both 09:00 and 14:22"
-      }
-    ],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [
-      "09:00  gideon    Online request handling and cost tracking fixes are all in",
-      "09:00  gideon    One thing I keep running into: before a re-run, people want to know how much is already    <-- the clue",
-      "09:34  gideon    Does anyone actually know what's on disk before kicking off a re-run, or is everyone jus",
-      "10:35  gideon    Has anyone gotten an actual user request for a pre-run cache coverage check, or is this "
-    ]
-  },
-  {
     "clue": "t1.r1.l_prompt_1",
     "holder": "dermot",
     "date": "2025-02-19",
@@ -1972,66 +1925,6 @@
     }
   },
   {
-    "clue": "t2.r2.l7",
-    "holder": "dario",
-    "date": "2025-03-10",
-    "channel": "code-review",
-    "attempt": 1,
-    "said": true,
-    "quote": "Left a comment on the kluster PR: drop the set of model names you added and call `supports_structured_output` instead. That's what we edit when a new model lands, I'd rather not be grepping through scattered model strings again next time something like o3-mini ships.",
-    "said_by": "Dario Kestrel",
-    "why": "Dario's 18:06 messages give the objection, the requested alternative, the reason it's the standing fix, and the concrete worry about scattered strings next time a new model ships.",
-    "elements": [
-      {
-        "part": "the reviewer left a comment on the kluster PR objecting to the inline set of model names added",
-        "present": true,
-        "why": "Dario says he left a comment asking them to drop the inline set of model names."
-      },
-      {
-        "part": "the reviewer wants the code to call supports_structured_output instead",
-        "present": true,
-        "why": "Dario states to call supports_structured_output instead."
-      },
-      {
-        "part": "supports_structured_output is the existing helper that is already updated when a new model lands",
-        "present": true,
-        "why": "Dario says 'That's what we edit when a new model lands.'"
-      },
-      {
-        "part": "the reviewer does not want to be grepping through scattered model strings again next time a new model like o3-mini ships",
-        "present": true,
-        "why": "Dario explicitly says he'd rather not be grepping through scattered model strings again next time something like o3-mini ships."
-      }
-    ],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [
-      "16:05  dario     Anyone able to grab PR 565 or 566 before end of day?",
-      "16:24  konrad    @Emil, been through 575, looks clean to me. Still working through 571, want to make sure",
-      "18:06  dario     Left a comment on the kluster PR: drop the set of model names you added and call `suppor   <-- the clue",
-      "18:06  dario     That's what we edit when a new model lands, I'd rather not be grepping through scattered"
-    ]
-  },
-  {
-    "clue": "t4.r1.L1",
-    "holder": "konrad",
-    "date": "2025-03-10",
-    "channel": "cookbooks",
-    "wrote_into": "page:onboarding-nils",
-    "attempt": 1,
-    "said": true,
-    "quote": "The promoted line on this page is the only statement of which curator-sandbox build has actually been signed off. CI pushes a tag for every branch build and the registry sort order means nothing. If you need to know what is safe to run, read this page. Do not read the registry tag list.",
-    "said_by": "konrad",
-    "why": "The page plainly asserts this wiki page's promoted-build record is the sole authoritative source for signed-off sandbox builds, explicitly rejecting the registry as authoritative — the same substance as the target point, stated as fact by the author.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "Onboarding: nils and theo",
-    "written_as": "onboarding/onboarding-nils-brandt-and-theo-marchetti.md"
-  },
-  {
     "clue": "t1.r1.l_unhash_1",
     "holder": "emil",
     "date": "2025-03-11",
@@ -2388,5 +2281,116 @@
     "context": [],
     "artifact": "Runbook: handling curator.LLM incidents",
     "written_as": "engineering/runbook-handling-curator-llm-incidents.md"
+  },
+  {
+    "clue": "t1.r2.L13",
+    "holder": "gideon",
+    "date": "2025-02-17",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "That's too late to decide anything. We need to surface the cached-versus-backend split before a run starts, not during it.",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 13:56-13:57 messages state the recurring question, the current inadequate answer, and why it's too late, matching the required content.",
+    "elements": [
+      {
+        "part": "people keep asking the same question before a re-run: how much is already on disk",
+        "present": true,
+        "why": "Gideon states this exactly at 13:56"
+      },
+      {
+        "part": "the only way to answer it right now is to run the thing and watch the hit counter go by on the progress bar",
+        "present": true,
+        "why": "Gideon states this at 13:56-13:57"
+      },
+      {
+        "part": "that is too late to decide anything",
+        "present": true,
+        "why": "Gideon says this at 13:57"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:56  gideon    People keep asking the same thing before a re-run: how much of this is already on disk",
+      "13:56  gideon    The only way to answer it right now is to start the run and watch the hit counter go by ",
+      "13:57  gideon    That's too late to decide anything. We need to surface the cached-versus-backend split b   <-- the clue",
+      "14:01  dario     caching-and-resume doesn't have a pre-run query interface right now, so the only hit dat"
+    ]
+  },
+  {
+    "clue": "t2.r2.l7",
+    "holder": "dario",
+    "date": "2025-03-10",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "left a comment on the kluster PR to drop the set of model names and route through supports_structured_output instead, are we confirming that's the approach now?",
+    "said_by": "Dario Kestrel",
+    "why": "All parts of Dario's remark are present across his consecutive messages at 11:53.",
+    "elements": [
+      {
+        "part": "Dario left a comment on the kluster PR",
+        "present": true,
+        "why": "Dario states he left a comment on the kluster PR"
+      },
+      {
+        "part": "the ask is to drop the set of model names added",
+        "present": true,
+        "why": "Dario says to drop the set of model names"
+      },
+      {
+        "part": "the ask is to call supports_structured_output instead",
+        "present": true,
+        "why": "Dario says to route through supports_structured_output instead"
+      },
+      {
+        "part": "that helper is already what gets edited when a new model lands",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "he doesn't want to be grepping for model strings again next time o3-mini ships",
+        "present": true,
+        "why": "Dario states this directly"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:03  nils      for batch-mode PRs, should I be tagging Emil directly as reviewer or does it go wider th",
+      "11:33  emil      +1 on routing through `supports_structured_output`",
+      "11:53  dario     left a comment on the kluster PR to drop the set of model names and route through suppor   <-- the clue",
+      "11:53  dario     that helper's already what gets edited when a new model lands",
+      "11:53  dario     don't want to be grepping for model strings again next time o3-mini ships"
+    ],
+    "repair": {
+      "attempts": 1,
+      "added": [
+        "that helper's already what gets edited when a new model lands",
+        "don't want to be grepping for model strings again next time o3-mini ships"
+      ],
+      "rewrote": false
+    }
+  },
+  {
+    "clue": "t4.r1.L1",
+    "holder": "konrad",
+    "date": "2025-03-10",
+    "channel": "cookbooks",
+    "wrote_into": "page:onboarding-nils",
+    "attempt": 1,
+    "said": true,
+    "quote": "The promoted line on the Sandbox Image Release Log page is the only authoritative statement of which curator-sandbox build has been signed off. Do not read the registry tag list to answer this question.",
+    "said_by": "konrad",
+    "why": "The author plainly asserts the wiki release log page is the authoritative record of signed-off sandbox builds, which is the same information as 'the team agrees' framing.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Onboarding: nils and theo",
+    "written_as": "onboarding/onboarding-nils-brandt-and-theo-marchetti.md"
   }
 ]

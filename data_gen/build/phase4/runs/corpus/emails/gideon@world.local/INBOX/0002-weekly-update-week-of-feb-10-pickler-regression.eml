@@ -1,24 +1,31 @@
 From: konrad@world.local
-To: emil@world.local, dario@world.local, nikolai@world.local,
- gideon@world.local, priya@world.local
+To:
+ emil@world.local, dario@world.local, nikolai@world.local, gideon@world.local
 Subject: Weekly update: week of Feb 10 =?utf-8?b?4oCU?= pickler regression
-Date: Mon, 17 Feb 2025 09:49:00 +0000
-Message-ID: <178767266458.2014360.16647351902353724792@world.local>
+Date: Mon, 17 Feb 2025 09:42:00 +0000
+Message-ID: <178777397949.2918913.6024094928441666835@world.local>
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Quick sync from the week of Feb 10.
+Team,
 
-Main thing worth flagging: pickler regression that surfaced during Emil's wor=
-k. The short version is that cache invalidation is triggering more than it sh=
-ould =E2=80=94 looks connected to the known issue where inspect(func) is sens=
-itive to comments and whitespace (issue 124). Emil has been tracking it; wort=
-h keeping an eye on as we move into the next release cycle.
+Quick sync on the week of Feb 10.
 
-Rest of the week was steady. Milestone work is in motion across batch-mode, l=
-ocal-offline-inference, and multimodal-prompts. No other blockers to call out.
+Main item: pickler regression surfaced in batch-mode. Emil has been tracking =
+it down. The short version is that cache invalidation is triggering more aggr=
+essively than expected when function source includes minor whitespace or comm=
+ent changes =E2=80=94 this is related to the inspect(func) sensitivity we alr=
+eady have open as issue 124. Not blocking releases but it is causing unexpect=
+ed cache misses in longer runs.
 
-Reply if anything here needs more context.
+Status as of end of last week:
+- Root cause identified, fix in progress with Emil
+- No data loss, just wasted recompute
+- PR 468 (n samples support) is still moving forward in parallel and is not a=
+ffected
+
+If anyone ran into unexplained slowdowns or cache churn last week, this is li=
+kely why. Will flag when the fix is in.
 
 Konrad

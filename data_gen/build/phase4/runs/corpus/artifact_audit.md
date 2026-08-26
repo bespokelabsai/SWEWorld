@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-118 of 120 obligations met.
+119 of 120 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -9,7 +9,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | date | who | action | artifact |
 |---|---|---|---|
 | 2025-02-17 | gideon | send | 0.1.19 is out |
-| 2025-03-10 | konrad | send | Welcome nils (and theo) |
 
 ## Everything
 
@@ -102,9 +101,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-02-10 | emil | write | 09:56 | Postmortem: v0.1.18.post4 hotfix |
 | 2025-02-11 | emil | write | 09:14 | Postmortem: pickler revert on Feb 10 |
 | 2025-02-12 | emil | write | 09:21 | Weekly sync notes: week of Feb 10 — pickler regression |
-| 2025-02-17 | gideon | write | 09:28 | Release notes: 0.1.19 |
-| 2025-02-17 | konrad | send | 09:49 | Weekly update: week of Feb 10 — pickler regression |
-| 2025-02-17 | gideon | send | NO | 0.1.19 is out |
 | 2025-02-19 | gideon | write | 09:14 | Weekly sync notes: week of Feb 17 — 0.1.19 shipped |
 | 2025-02-24 | emil | send | 09:07 | Weekly update: week of Feb 17 — 0.1.19 shipped |
 | 2025-02-26 | nikolai | write | 09:14 | Release notes: v0.1.19.post1 |
@@ -119,9 +115,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-03-03 | konrad | send | 09:28 | Weekly update: week of Feb 24 |
 | 2025-03-05 | emil | write | 09:28 | Weekly Notes — Week of Mar 3 |
 | 2025-03-07 | emil | write | 09:14 | WS-044: Blocks & Recipes (RAFT, SimpleStrat) |
-| 2025-03-10 | konrad | write | 09:14 | Onboarding: nils and theo |
-| 2025-03-10 | konrad | send | 09:28 | Weekly update: week of Mar 3 |
-| 2025-03-10 | konrad | send | NO | Welcome nils (and theo) |
 | 2025-03-12 | nils | write | 09:14 | Weekly Notes — Week of Mar 10 |
 | 2025-03-17 | konrad | send | 09:07 | Weekly update: week of Mar 10 |
 | 2025-03-18 | nils | write | 09:14 | WS-047: Release Engineering, CI & Test Suite |
@@ -135,3 +128,9 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-12-16 | konrad | send | 09:56 | Weekly update: week of Dec 9 |
 | 2024-12-17 | dario | write | 09:14 | v0.1.12 release notes |
 | 2024-12-17 | dario | send | 09:28 | v0.1.12 is out |
+| 2025-02-17 | gideon | write | 09:28 | Release notes: 0.1.19 |
+| 2025-02-17 | konrad | send | 09:42 | Weekly update: week of Feb 10 — pickler regression |
+| 2025-02-17 | gideon | send | NO | 0.1.19 is out |
+| 2025-03-10 | konrad | write | 09:14 | Onboarding: nils and theo |
+| 2025-03-10 | konrad | send | 09:42 | Weekly update: week of Mar 3 |
+| 2025-03-10 | konrad | send | 09:28 | Welcome nils (and theo) |

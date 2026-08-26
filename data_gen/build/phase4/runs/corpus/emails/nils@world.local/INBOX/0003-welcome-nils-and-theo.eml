@@ -1,0 +1,38 @@
+From: konrad@world.local
+To: nils@world.local, theo@world.local
+Subject: Welcome nils (and theo)
+Date: Mon, 10 Mar 2025 09:28:00 +0000
+Message-ID: <178777461040.2918913.17117661670697989410@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Welcome to both of you.
+
+I have put together an onboarding page on the wiki =E2=80=94 Onboarding: Nils=
+ Brandt and Theo Marchetti, in the onboarding collection. Start there. It cov=
+ers service ownership, the open issues you should know about, how PRs flow th=
+rough the team, and one note about the sandbox image release log that I want =
+you both to read carefully before you run anything.
+
+Nils =E2=80=94 your main contact for batch-mode work is Emil Brandvold. The a=
+ctive PRs to get familiar with are PR 468, PR 571, PR 575, and PR 579. Emil o=
+wns batch-mode and blocks-and-recipes, so go to him first on anything touchin=
+g those services. When your first PRs are ready, post them in #code-review wi=
+th the subsystem they touch.
+
+Theo =E2=80=94 examples-cookbooks is Dario Kestrel's area. Pull PR 565 and PR=
+ 566 for reference on how the provider expansion work is being structured bef=
+ore you write new examples.
+
+A few quick things worth knowing early:
+
+When referencing a PR or issue in any of the chat channels, always write it i=
+n full =E2=80=94 PR 571, issue 52, not a bare hash number. Mattermost will op=
+en a channel autocomplete on a bare hash, which is not what you want.
+
+We are currently at v0.1.20 with 285 changes merged. The milestone is Consoli=
+dation and Provider Breadth: Pruning After the Sprint.
+
+Any questions, find me in #general or #cookbooks. Emil and Dario are in those=
+ channels too.
