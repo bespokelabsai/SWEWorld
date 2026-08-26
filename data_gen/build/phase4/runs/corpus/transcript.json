@@ -15939,6 +15939,215 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 is ready for eyes, it's a straightforward torch import guard and shouldn't take long to review. PR 653 is still in progress, probably end of day before it's reviewable.",
+          "ts": "2025-05-13T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone know what's holding up PR 652 and PR 654, are those just waiting on review or is there something blocking them?",
+          "ts": "2025-05-13T09:00:15"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What's the state of PR 658, is that one actually ready to review or still in progress?",
+          "ts": "2025-05-13T09:14:15"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Can we figure out which of the five open PRs are actually sitting there waiting on review vs. waiting on something else? Even just a rough split would help.",
+          "ts": "2025-05-13T09:24:15"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold what do PR 652, 654, and 658 need to get over the line?",
+          "ts": "2025-05-13T10:18:15"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is any of these five PRs blocking another PR or a release, or are they all independent?",
+          "ts": "2025-05-13T11:25:15"
+        },
+        {
+          "userId": "emil",
+          "text": "- *PR 652* - waiting on review, just needs eyes. Touches the viewer download path, nothing blocking it.\n- *PR 654* - also waiting on review. Gemini processor perf change, pretty contained.\n- *PR 658* - still in progress on my end, not reviewable yet.\n\nNone of mine are blocking a release right now. PR 652 and 654 are the ones that could move today if someone has a few minutes.",
+          "ts": "2025-05-13T12:00:15",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "So we've got three PRs ready for eyes (663, 652, 654), does anyone actually have bandwidth to get through those this afternoon or are we just hoping?",
+          "ts": "2025-05-13T12:35:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning PR is in review, no blockers on my end. Will circle back this afternoon once Nikolai's torch fix (PR 663) settles.",
+          "ts": "2025-05-22T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "On PR 667, does the multiturn agent handling assume each turn gets a fresh context, or is state expected to carry across?",
+          "ts": "2025-05-22T09:00:15"
+        },
+        {
+          "userId": "nikolai",
+          "text": "good question actually, dunno if 667 is explicit about that",
+          "ts": "2025-05-22T09:37:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's best placed to clarify that, is there anything in the PR description that addresses it, or do we need to pull in the author?",
+          "ts": "2025-05-22T10:19:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Would someone mind taking a pass at PR 667 directly? The multiturn context question is still open and I think a second read would settle it faster than waiting on the author.",
+          "ts": "2025-05-22T10:20:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 667 probably shouldn't land until Emil confirms that directly, a second read won't settle it if the description doesn't address it.",
+          "ts": "2025-05-22T10:37:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Fair",
+          "ts": "2025-05-22T11:13:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "hold 667 then",
+          "ts": "2025-05-22T11:13:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Any thought on how we handle the PRs that have been sitting a while, do we want to set aside time next week to triage them?",
+          "ts": "2025-05-22T11:13:16"
+        },
+        {
+          "userId": "emil",
+          "text": "On 667, state carries across turns by design, so the multiturn context question shouldn't be a blocker to landing it",
+          "ts": "2025-05-22T11:45:16",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "For the stale PR triage, probably worth pulling in @Dario Kestrel before we set a process, he'll have a view on what's safe to close versus what needs to stay open",
+          "ts": "2025-05-22T11:45:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do we actually need Dario before we can at least identify which PRs are stale, or is that loop-in more for the close-versus-keep call?",
+          "ts": "2025-05-22T11:50:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-05-22T12:10:24"
+        },
+        {
+          "userId": "emil",
+          "text": "the list we can put together without him - @Nikolai Berresford, can you pull together which ones have been sitting longest?",
+          "ts": "2025-05-22T12:10:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Dario's input is more for the close-or-keep call once we have something concrete",
+          "ts": "2025-05-22T12:10:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Good, that finally unblocks it. I'll have the list ready this afternoon.",
+          "ts": "2025-05-22T12:34:44",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 667 isn't in the weekly notes as active.",
+          "ts": "2025-05-22T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Who's keeping that updated, or is it just not tracked there?",
+          "ts": "2025-05-22T12:41:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 674 is done on my end, environment variable removal is clean and straightforward",
+          "ts": "2025-05-23T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "What's the actual status on PR 652 at this point?",
+          "ts": "2025-05-23T09:06:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ok",
+          "ts": "2025-05-23T09:58:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "pulled it up myself",
+          "ts": "2025-05-23T09:58:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 652 has been open 28 days and the description is pretty thin",
+          "ts": "2025-05-23T09:58:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure we should just let PR 652 drift into next week without a call on it",
+          "ts": "2025-05-23T10:32:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does someone want to either pick it up or close it out, or is this getting deferred indefinitely?",
+          "ts": "2025-05-23T10:32:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Presumably a tomorrow problem at this point",
+          "ts": "2025-05-23T11:23:31"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is mine so I'll take the call on it - deferring to next week, it needs more work before it's actually reviewable. The five agentic-curation commits are all merged clean though, response format and viewer trace links both in.",
+          "ts": "2025-05-23T11:59:31",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Is PR 663 blocking anything, or can it land whenever Nikolai has it ready?",
+          "ts": "2025-05-23T12:15:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Is PR 653 anywhere close to review-ready?",
+          "ts": "2025-05-23T12:55:34"
         }
       ],
       "projectSpec": {
@@ -19426,6 +19635,86 @@
           "userId": "dario",
           "text": "Honestly not sure `.choices` covers everything, there could be other parts of the response object that changed and we'd miss them",
           "ts": "2025-05-05T11:50:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Reviewed the provider-swap and agentic examples after the cleanup and they look current to me",
+          "ts": "2025-05-23T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still want to confirm they actually run clean against the live APIs before we call them release-ready",
+          "ts": "2025-05-23T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there a regular cadence for running the examples against live APIs, or is that done ad hoc before releases?",
+          "ts": "2025-05-23T09:14:03"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do the agentic examples in the corpus currently reflect the API surface from the sprint, or are they behind?",
+          "ts": "2025-05-23T10:12:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's actually responsible for verifying the examples run against live APIs before we ship?",
+          "ts": "2025-05-23T11:16:35"
+        },
+        {
+          "userId": "emil",
+          "text": "The provider and agentic examples are current - I refreshed them against the sprint's API surface, so what's in hte corpus lines up with what shipped.",
+          "ts": "2025-05-23T11:40:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Live verification against the actual APIs is still ad hoc as far as I know, which is the piece that keeps these from being fully release-ready.",
+          "ts": "2025-05-23T11:40:40",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-23T11:41:03"
+        },
+        {
+          "userId": "konrad",
+          "text": "So do we flag them as release-ready now and accept the live testing gap, or hold off until someone actually runs them?",
+          "ts": "2025-05-23T11:41:03",
+          "threadParentTs": "2025-05-23T11:40:40"
+        },
+        {
+          "userId": "emil",
+          "text": "The v0.1.24 Release Notes doc doesn't exist yet - I'll get it written this afernoon.",
+          "ts": "2025-05-23T12:11:27",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Who's going to own the live API run before we can actually call these ready?",
+          "ts": "2025-05-23T12:48:46"
+        },
+        {
+          "userId": "konrad",
+          "text": "The examples look current and the API surface lines up with what shipped.",
+          "ts": "2025-05-23T14:07:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "Live verification is still not done",
+          "ts": "2025-05-23T14:08:09"
+        },
+        {
+          "userId": "emil",
+          "text": "The v0.1.24 Release Notes still isn't written - does it go on the wiki or somewhere else?",
+          "ts": "2025-05-23T14:52:09"
         }
       ],
       "projectSpec": {
@@ -31871,6 +32160,629 @@
           "userId": "emil",
           "text": "Still need a call on the three stalled cookbook PRs though, are we just deferring those to next week?",
           "ts": "2025-05-07T18:23:20.370716"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 is wrapped, the torch check was pretty straighforward in the end",
+          "ts": "2025-05-20T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still working through PR 653 but that's moving along",
+          "ts": "2025-05-20T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Also been poking at a lazy loading thing in the Gemini download path, not totally sure yet if that's the right fix or just papering over something deeper",
+          "ts": "2025-05-20T09:00:24"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, that lazy loading fix in the Gemini download path, is that something you've run into elsewhere in batch-mode or is it pretty specific to Gemini?",
+          "ts": "2025-05-20T09:00:51"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, while I'm waiting, what did the batch-mode perf fix actually change at a high level?",
+          "ts": "2025-05-20T09:36:51"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, still sitting on that lazy loading question if you get a minute this afternoon",
+          "ts": "2025-05-20T10:36:51"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno if anyone's looked at issue 290 recently but is that the same class of thing as the torch error, or completely separate?",
+          "ts": "2025-05-20T11:24:51"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is moving, mostly cleanup left on the viewer download side",
+          "ts": "2025-05-20T11:56:51"
+        },
+        {
+          "userId": "emil",
+          "text": "The perf fix in the Gemini batch path was a lazy load on the response iterator, was hitting a blocking fetch on every row instead of streaming",
+          "ts": "2025-05-20T11:56:59",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, on that lazy load - is it definitely fixing the underlying problem or just moving where the block shows up?",
+          "ts": "2025-05-20T11:57:12"
+        },
+        {
+          "userId": "emil",
+          "text": "If it's legit, I'm wondering whether this is a Gemini-only thing or if other providers in that download path have the same issue.",
+          "ts": "2025-05-20T11:57:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning service is in decent shape, mostly threading through some edge cases this morning",
+          "ts": "2025-05-21T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 653 is Nikolai's client work so that's his lane, but I want to make sure the response object shape is settled before it goes too far",
+          "ts": "2025-05-21T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What's the current thinking on the shape, is it a flat dict or are we wrapping it in something?",
+          "ts": "2025-05-21T09:18:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Actually, answering my own question a bit - if we're already requiring plain dicts for row output (that's basically what issue 102 is about), wrapping the agent response in anything heavier feels inconsistent with that",
+          "ts": "2025-05-21T09:18:30",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "The consistency argument makes sense to me",
+          "ts": "2025-05-21T09:37:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "What does the agent response actually need to carry that a plain dict wouldn't cover?",
+          "ts": "2025-05-21T09:37:35",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-21T11:20:18"
+        },
+        {
+          "userId": "nikolai",
+          "text": "dunno, honestly",
+          "ts": "2025-05-21T10:22:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel, what does bulk-llm-inference actually return today, is there anything in the output beyond the generated text?",
+          "ts": "2025-05-21T10:55:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Weekly notes for the week of May 19 are up in the engineering wiki (engineering/weekly-notes-week-of-may-19.md) if anyone wants the full rundown",
+          "ts": "2025-05-21T11:19:35",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Included a note on the response shape discussion since PR 653 and code-execution are both downstream of that",
+          "ts": "2025-05-21T11:19:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Depends on whether we're talking about what the caller sees vs. what lands in each row, right? The row output being a plain dict makes sense, but the agent response itself might still need metadata like token counts or finish reason.",
+          "ts": "2025-05-21T11:20:18",
+          "threadParentTs": "2025-05-21T09:37:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone decided whether usage metadata (token counts, cost) is in scope for the agent response shape, or is that getting parked under issue 293?",
+          "ts": "2025-05-21T11:55:18"
+        },
+        {
+          "userId": "emil",
+          "text": "If we're leaving that for later, I think we can call it plain dict now and unblock PR 653.",
+          "ts": "2025-05-21T11:55:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Do the examples in examples-cookbooks already need updating, or is that only once the response shape is locked?",
+          "ts": "2025-05-21T12:34:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The examples are already stale, but I can't really fix them properly until the shape is settled",
+          "ts": "2025-05-21T12:51:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm not entirely sure calling it plain dict now is the right move if issue 293 ends up requiring usage data in the response, that could mean a breaking change later",
+          "ts": "2025-05-21T13:24:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Can we get a quick read on whether 293 is near-term or definitely parked before we commit?",
+          "ts": "2025-05-21T13:24:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ok",
+          "ts": "2025-05-21T13:24:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "answering my own question a bit, issue 293 is about OpenAI's cost reporting API, not about embedding metadata in the response shape",
+          "ts": "2025-05-21T13:24:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does that mean it's actually separable from this decision?",
+          "ts": "2025-05-21T13:25:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Yeah, I think it is separable actually. So is anyone opposed to calling agent response plain dict and unblocking PR 653?",
+          "ts": "2025-05-21T14:24:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the weekly notes, my four services are all listed as in flight and the response shape discussion is in there, including the note that examples and PR 653 are downstream of it",
+          "ts": "2025-05-21T14:38:00"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, code-execution and both your PRs are in there too, does that cover what you needed?",
+          "ts": "2025-05-21T14:38:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil yeah that covers it. If plain dict gets called I can move on PR 653 and queue up the examples update this afternoon",
+          "ts": "2025-05-21T15:11:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'm still not entirely sure we've heard from Dario on this",
+          "ts": "2025-05-21T15:16:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does anyone know if he has a stake in the response shape from the bulk-llm-inference side?",
+          "ts": "2025-05-21T15:16:20"
+        },
+        {
+          "userId": "emil",
+          "text": "I can ping Dario, if he doesn't have a stake we can call it today.",
+          "ts": "2025-05-21T15:44:20"
+        },
+        {
+          "userId": "emil",
+          "text": "If Dario's clear, plain dict is the call, Nikolai unblocks PR 653, examples get queued for update, and code-execution can move forward.",
+          "ts": "2025-05-21T15:44:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Examples are ready to update on my end once the shape is confirmed",
+          "ts": "2025-05-21T15:59:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Dario pinged, waiting on his reply.",
+          "ts": "2025-05-21T16:06:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 658 is also still open, for what it's worth.",
+          "ts": "2025-05-21T16:10:35"
+        },
+        {
+          "userId": "nikolai",
+          "text": "idk, if Dario doesn't come back soon we're not actually landing this today",
+          "ts": "2025-05-21T16:23:35",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-21T17:26:01"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is ready on my end, just waiting on review.",
+          "ts": "2025-05-21T17:05:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Same situation on examples, can't update them without the shape locked.",
+          "ts": "2025-05-21T17:25:35"
+        },
+        {
+          "userId": "nikolai",
+          "text": "+1",
+          "ts": "2025-05-21T17:26:01",
+          "threadParentTs": "2025-05-21T16:23:35"
+        },
+        {
+          "userId": "emil",
+          "text": "Same on my end with multimodal-prompts, holding on the response shape before touching anything there.",
+          "ts": "2025-05-21T17:54:01"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Going to treat plain dict as the working assumption and keep moving on PR 653, we can revisit if Dario comes back with something from bulk-llm-inference that changes the picture.",
+          "ts": "2025-05-21T18:20:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is in a decent spot this morning, mostly waiting on PR 653 to land before I move the next piece forward",
+          "ts": "2025-05-22T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil Brandvold what does the agentic curation flow actually look like end to end right now?",
+          "ts": "2025-05-22T09:08:15"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold, same from me, I've been fuzzy on how code-execution ties into the agentic flow and would appreciate the walkthrough.",
+          "ts": "2025-05-22T09:52:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "While we're getting that walkthrough, I'd also want to understand what the factory cleanup actually touches, is it just internal plumbing or does it change anything downstream?",
+          "ts": "2025-05-22T10:22:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That one's really @Konrad Feltrin's to answer, finetuning is his territory",
+          "ts": "2025-05-22T10:58:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Agentic curation is in a workable state, core loop is running. Still have a couple of things I need to unblock before the next phase. Happy to walk through the whole flow now if this is a good time.",
+          "ts": "2025-05-22T11:36:29",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Checked the weekly notes, agentic curation isn't in there.",
+          "ts": "2025-05-22T11:47:54"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is holding steady, waiting on PR 653 before the next step",
+          "ts": "2025-05-22T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "And yes to the walkthrough, @Emil Brandvold, this is a good time",
+          "ts": "2025-05-22T11:52:12",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Agentic curation has a working loop. The pattern routes each row through an agent pass - accept, revise, or reject - and the curator tracks state across turns. The part I'm still unclear on is how far the factory cleanup reaches, which is what's blocking the next phase.",
+          "ts": "2025-05-22T12:16:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "When you say the curator tracks state across turns, is that per-row state or shared across the whole batch?",
+          "ts": "2025-05-22T12:41:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "The factory cleanup scope being unclear is a problem for me too, I can't plan the next piece of finetuning work until I know what that touches.",
+          "ts": "2025-05-22T12:54:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil Brandvold what specifically is still unclear about the cleanup scope, is it what it touches or how deep it goes?",
+          "ts": "2025-05-22T12:54:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does anyone else have context on the factory cleanup scope, or is Emil the only one who can answer that?",
+          "ts": "2025-05-22T14:00:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still no answer on factory cleanup scope",
+          "ts": "2025-05-22T14:29:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "Can we at least get that logged as technical debt so the next phase isn't held up waiting on it?",
+          "ts": "2025-05-22T14:29:45",
+          "reactions": [
+            {
+              "emoji": "💡",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "State is per-row, not shared across the batch - each row gets its own agent pass and its own context",
+          "ts": "2025-05-22T15:07:45"
+        },
+        {
+          "userId": "emil",
+          "text": "On factory cleanup, I'm in the same spot as Konrad, scope is still unclear to me, so logging it as debt makes sense for now",
+          "ts": "2025-05-22T15:07:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "Logging it as debt is fine for now, but who actually owns resolving it?",
+          "ts": "2025-05-22T15:30:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "If nobody owns it yet, logging it under code-execution debt might at least give it a home until the scope clears up.",
+          "ts": "2025-05-22T15:47:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Maybe log it under agentic-curation instead, that's where it's actually blocking.",
+          "ts": "2025-05-22T16:10:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "Emil's call on that, presumably, it's blocking agentic-curation, so log it there and let's move on.",
+          "ts": "2025-05-22T16:38:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold, worth a quick sync tomorrow to nail down what the next phase actually looks like once that debt is logged?",
+          "ts": "2025-05-22T16:40:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Sync tomorrow works",
+          "ts": "2025-05-22T17:07:57",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "I'll log the factory cleanup under agentic-curation",
+          "ts": "2025-05-22T17:08:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning holds until PR 653 lands, nothing else blocking on my end today",
+          "ts": "2025-05-22T17:14:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 674 is clean on my end, the environment variable removal was straightforward",
+          "ts": "2025-05-23T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Keeping an eye on how the agentic response format lands today, want to make sure the OpenAI-compatible shape doesn't break anything downstream",
+          "ts": "2025-05-23T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil did the viewer trace links make it into the agentic-curation merge, or is that still outstanding?",
+          "ts": "2025-05-23T09:11:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "Separate question since nobody got back to me on the trace links yet: has anyone checked whether the OpenAI-compatible response format breaks anything for existing callers?",
+          "ts": "2025-05-23T10:04:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil how many of the agentic-curation commits are actually merged at this point?",
+          "ts": "2025-05-23T11:13:35"
+        },
+        {
+          "userId": "emil",
+          "text": "All five are merged. Trace links came in with the agentic-curation changes, nothing outstanding there.",
+          "ts": "2025-05-23T11:18:35",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "On the OpenAI format, existing callers should be fine - the response shape maps cleanly and I haven't seen anything break on my end.",
+          "ts": "2025-05-23T11:18:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, has anyone actually pulled up the v0.1.24 Release Notes yet? I haven't opened it, want to make sure my part's covered before the day closes.",
+          "ts": "2025-05-23T11:18:55"
+        },
+        {
+          "userId": "emil",
+          "text": "nice",
+          "ts": "2025-05-23T12:05:33"
+        },
+        {
+          "userId": "emil",
+          "text": "- Agentic multi-turn is merged and stable - five commits in, OpenAI-compatible response format and viewer trace links both landed\n- Existing callers look fine, the response shape maps cleanly and nothing downstream apears broken\n- Cleanup work like PR 652 is deferred separately, not blocking this milestone",
+          "ts": "2025-05-23T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "\"I haven't seen anything break on my end\" is maybe not entirely the same as having actually tested it against existing user code. Is there anything more concrete on the compatibility check?",
+          "ts": "2025-05-23T13:08:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Did the existing tests actually cover the response shape, or is this manual?",
+          "ts": "2025-05-23T13:08:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, has anything in curator-viewer or bulk-llm-inference touched the response shape that would confirm it's compatible?",
+          "ts": "2025-05-23T14:01:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Fair point, \"nothing broke on my end\" isn't an actual compatibility check.",
+          "ts": "2025-05-23T14:40:14"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll go through the existing tests against the response shape this afternoon and come back with something concrete.",
+          "ts": "2025-05-23T14:40:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone put together the v0.1.24 Release Notes yet, or is that still not written?",
+          "ts": "2025-05-23T14:54:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Friday afternoon and we're still writing release notes. classic",
+          "ts": "2025-05-23T15:05:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Once Emil comes back with the test results on the response shape, we should be in a position to call the format locked in and close out the sprint.",
+          "ts": "2025-05-23T15:06:05"
+        },
+        {
+          "userId": "emil",
+          "text": "- Working through the response shape compatiblity check now\n- Release notes still not done",
+          "ts": "2025-05-23T15:35:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "End of day is close, not entirely sure we're going to get both of those done before the weekend",
+          "ts": "2025-05-23T16:14:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Compat check looks clean",
+          "ts": "2025-05-23T16:41:05",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes isn't getting done today, that's Monday",
+          "ts": "2025-05-23T16:41:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good on the compat check",
+          "ts": "2025-05-23T17:15:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Fair on the notes",
+          "ts": "2025-05-23T17:15:29"
+        },
+        {
+          "userId": "emil",
+          "text": "Release notes Monday, everything else is clear to close out.",
+          "ts": "2025-05-23T17:25:29",
+          "replyCount": 1,
+          "replyLastTs": "2025-05-23T17:25:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 652 and the stale work, though, is that also Monday, or are we just leaving those open with no decision?",
+          "ts": "2025-05-23T17:25:39",
+          "threadParentTs": "2025-05-23T17:25:29"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is deferred, I called that earlier - not closing it, just not touching it this week.",
+          "ts": "2025-05-23T17:39:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Agentic multi-turn is shipped, OpenAI format is locked in.",
+          "ts": "2025-05-23T17:39:47",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 674 is also done on my side, so between that and the agentic-curation sprint landing clean, the milestone cleanup is in good shape",
+          "ts": "2025-05-23T17:42:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 652 deferred and release notes Monday is a reasonable place to end the week",
+          "ts": "2025-05-23T17:42:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Good week.",
+          "ts": "2025-05-23T18:27:55",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "\"Locked in\" meaning tested and confirmed, not just presumed clean?",
+          "ts": "2025-05-23T18:28:32"
         }
       ],
       "projectSpec": {
@@ -46547,6 +47459,94 @@
           "reactions": [
             {
               "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "bulk-llm-inference is in good shape and the examples-cookbooks are updated",
+          "ts": "2025-05-13T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "I still need to confirm the logger.warning migration is clean in the provider/request layer, not entirely sure that landed without any stragglers",
+          "ts": "2025-05-13T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "does anyone know if the logger.warning migration is fully merged in the provider/request layer, or are there still open calls in there?",
+          "ts": "2025-05-13T09:00:42"
+        },
+        {
+          "userId": "dermot",
+          "text": "examples-cookbooks is wrapped up on my end",
+          "ts": "2025-05-13T10:15:42"
+        },
+        {
+          "userId": "dermot",
+          "text": "ok answering my own question, PR 666 is the migration. has anyone had a chance to review it?",
+          "ts": "2025-05-13T10:50:42"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 654 is merged and batch-mode is solid on my end. I can take a look at PR 666 if nobody else has eyes on it yet.",
+          "ts": "2025-05-13T11:17:42",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Just reviewing PR 666 might not tell us the whole story, if there were stragglers outside the scope of that PR, they wouldn't show up in the diff.",
+          "ts": "2025-05-13T11:17:56"
+        },
+        {
+          "userId": "emil",
+          "text": "Did anyone actually grep the provider and request layer for leftover logger.warning calls, or are we just assuming PR 666 caught everything?",
+          "ts": "2025-05-13T11:57:56"
+        },
+        {
+          "userId": "emil",
+          "text": "If nobody has, I can run a quick check this afternoon before we close this out.",
+          "ts": "2025-05-13T11:58:01"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario Emil's raised a fair question about stragglers in the provider layer, worth having your eyes on this too.",
+          "ts": "2025-05-13T12:30:01"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll run the grep this afternoon and post what I find.",
+          "ts": "2025-05-13T12:41:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, is there a specific path or module in the provider layer you'd want me to focus on, or just grep the whole thing?",
+          "ts": "2025-05-13T12:41:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually I'll just grep the whole provider layer, no reason to wait on that. Does PR 666 have a list of what it actually changed, or do I need to pull the diff to know what was in scope?",
+          "ts": "2025-05-13T13:05:08"
+        },
+        {
+          "userId": "dermot",
+          "text": "+1 on just grepping the whole thing.",
+          "ts": "2025-05-13T14:04:08",
+          "reactions": [
+            {
+              "emoji": "👍",
               "count": 1
             }
           ]
