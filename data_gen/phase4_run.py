@@ -757,18 +757,26 @@ def _check_artifacts(world, llm, date: str, channels: list, stores: list,
     for channel in channels:
         for spec in [x for x in world.day(date)["specs"]
                      if x["channel"] == channel["name"]]:
-            for goal in spec.get("goals") or []:
-                owner = goal.get("owner")
-                for ref in goal.get("writes") or []:
-                    planted = ps.planted_in(world, ref["kind"], ref["id"])
-                    if not planted or not owner:
-                        continue
-                    title = world.title_of(ref["kind"], ref["id"])
-                    body, where = written_text(stores, ref["kind"], title, owner)
-                    for one in planted:
-                        rows.append(_artifact_row(world, llm, one, owner, date,
-                                                  ref, title, body, where,
-                                                  attempt, channel["name"]))
+            # Enumerated through `obligations_of`, not by walking the spec's
+            # goals. A page comment is owed by a person on a day and never
+            # appears in `goals[].writes[]` — the plan holds it and phase 4
+            # derives it — so walking the goals judged documents and mail and
+            # silently skipped every comment. The day reported 0/0 with a clue
+            # sitting in it, which is the one thing this gate exists to stop.
+            for item in ps.obligations_of(world, spec):
+                ref = item.get("writes")
+                if not ref:
+                    continue
+                owner = ref.get("by")
+                planted = ref.get("planted") or []
+                if not planted or not owner:
+                    continue
+                title = ref.get("title") or world.title_of(ref["kind"], ref["id"])
+                body, where = written_text(stores, ref["kind"], title, owner)
+                for one in planted:
+                    rows.append(_artifact_row(world, llm, one, owner, date,
+                                              ref, title, body, where,
+                                              attempt, channel["name"]))
     return rows
 
 
