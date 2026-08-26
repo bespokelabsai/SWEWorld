@@ -928,6 +928,17 @@ def clue_report(world, row: dict, run: Path | None = None) -> str:
         L += [f"**{row.get('said_by') or row['holder']}**, {row['date']}, "
               f"{seen_in}", "",
               "> " + row["quote"].replace("\n", "\n> "), ""]
+    elif row.get("rendered") is False:
+        # Not "searched and not found" — never searched, because there was
+        # nothing to search. Phase 3 seats some of its own pages and mail, and
+        # no day spec's `goals[].writes[]` claims them, so nobody was ever
+        # asked to write one. Saying "the page does not carry it" about a page
+        # that does not exist sends a reader looking for a file.
+        L += [f"**Never rendered.** {row.get('why', '')}", "",
+              "This is not a persona who left something out — the carrier was "
+              "never written at all, so there was never anything to judge. The "
+              "clue is absent from the corpus and the requirement is that much "
+              "harder to recover.", ""]
     else:
         # Name the haystack that was actually searched. For an artifact clue
         # that is the page or the mail — saying "nothing in #code-review
@@ -1560,14 +1571,185 @@ def merge_days(out: Path, workspace: str) -> dict:
     return merged
 
 
-def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args) -> int:
+def _specs_on(world, date: str) -> list[dict]:
+    """That day's conversation specs, or none if the day never had a file."""
+    try:
+        return world.day(date)["specs"]
+    except SystemExit:
+        return []
+
+
+def _day_slice(doc: dict, date: str) -> dict:
+    """One day's messages, in the shape the gates already read.
+
+    `transcript_of` wants a workspace, so an audit that replays a finished
+    corpus hands it the same thing a live day would have: the channels, but
+    holding only the messages stamped with this date.
+    """
+    return {"channels": [{**ch, "messages": [m for m in ch.get("messages") or []
+                                             if str(m.get("ts", ""))[:10] == date]}
+                         for ch in doc.get("channels") or []]}
+
+
+def audit_corpus(world, root: Path, out: Path, args) -> int:
+    """Re-judge a finished corpus from its own transcript. No simulation.
+
+    The ledgers are written at the END of a run, after the render — so when one
+    corrupt timestamp killed `render.render()`, `_finish` died before writing
+    either of them, for every batch after it appeared. The transcript kept
+    growing (it is written first) and the batch loop swallowed the exception,
+    so 61 of 161 simulated days were never audited at all while the ledger they
+    left behind still read as a complete 49/49.
+
+    Nothing here needs the personas back: `check_clue` takes a plain list of
+    messages, and the pages and mail are on disk. So the whole corpus can be
+    re-judged for the price of the judge calls.
+    """
+    import bespoke_user.sim_engine as G
+    import phase4_simulate as ps                       # see this module's note
+
+    doc = json.loads((out / "transcript.json").read_text())
+    dates = sorted({str(m.get("ts", ""))[:10]
+                    for ch in doc.get("channels") or []
+                    for m in ch.get("messages") or []} - {""})
+    llm = rl.LLM(rl.DEFAULT_CACHE_DIR / "llm", model=rl.MODEL, effort="low",
+                 backend="sdk", auth="api-key", verbose=args.verbose)
+
+    # Every clue the plant put on a day this corpus actually simulated. The
+    # denominator is the point: a ledger that counts only what it happened to
+    # look at cannot tell you it looked at a third of the corpus.
+    planned = [(d, s["channel"], p) for d in dates
+               for s in world.day(d)["specs"] for p in (s.get("planted") or [])]
+    stores = _stores(world, out, clock=wa.Clock())
+    for store in stores:
+        if hasattr(store, "rehydrate"):
+            store.rehydrate()
+
+    rl.heading(f"Auditing {len(dates)} simulated day(s) — "
+               f"{len(planned)} planted clue(s), no simulation")
+
+    clue_rows, art_rows = [], []
+    for n, date in enumerate(dates, 1):
+        day = _day_slice(doc, date)
+        spoke = {ch["name"] for ch in day["channels"] if ch.get("messages")}
+        # The obligations have to come along, not just the name: `artifact_audit`
+        # reads them off the channel to know what the day OWED. A channel dict
+        # carrying only a name audits cleanly against nothing and reports 0/0,
+        # which is how a rewrite once replaced 120 artifact rows with none.
+        channels = [{"name": s["channel"],
+                     "obligations": ps.obligations_of(world, s)}
+                    for s in _specs_on(world, date) if s["channel"] in spoke]
+        if not channels:
+            continue
+        rows = _check_day(world, llm, date, channels, day, attempt=1)
+        rows += _check_artifacts(world, llm, date, channels, stores, attempt=1)
+        clue_rows += rows
+        art_rows += [{**r, "date": date} for c in channels
+                     for r in G.artifact_audit(c, stores) if r["action"] != "read"]
+        if rows or n % 20 == 0:
+            said = sum(1 for r in rows if r["said"])
+            rl.info(f"{date}: {said}/{len(rows)} clue(s) said "
+                    f"({n}/{len(dates)} days)")
+
+    # A clue the audit never reached still needs a row, or the ledger counts
+    # only what it happened to look at — which is how 49/49 came to describe a
+    # third of the corpus. These are clues whose CARRIER was never written:
+    # phase 3 seats some of its own pages and mail, and no day spec's
+    # `goals[].writes[]` claims them, so nobody was ever asked to produce one.
+    seen = {r["clue"] for r in clue_rows}
+    for cid, where in sorted(_every_planted(world).items()):
+        if cid in seen:
+            continue
+        clue_rows.append({
+            "clue": cid, "holder": where.get("holder", ""),
+            "date": where.get("date", ""), "channel": "",
+            "wrote_into": where.get("where", ""),
+            "artifact": where.get("where", "").split(":", 1)[-1], "attempt": 0,
+            "said": False, "rendered": False, "quote": "", "said_by": "",
+            "why": f"never rendered: the {where.get('kind', 'artifact')} it was "
+                   f"planted in ({where.get('where', '?')}) was never written, "
+                   "so there was nothing to judge",
+            "elements": [], "missing": [], "missing_verbatim": [],
+            "leaked": [], "context": "",
+        })
+    unrendered = [r for r in clue_rows if r.get("rendered") is False]
+    if unrendered:
+        rl.warn(f"{len(unrendered)} clue(s) were never rendered — their carrier "
+                "was never written: " +
+                ", ".join(sorted(r["clue"] for r in unrendered)))
+    return _finish(world, root, out, clue_rows, art_rows, stores, args,
+                   planted_total=len(_every_planted(world)), rewrite=True)
+
+
+def _every_planted(world) -> dict[str, dict]:
+    """Every clue the plant seated anywhere, by id.
+
+    The specs are only one of four surfaces phase 3 uses. Counting just those
+    is what made a ledger of 49 look complete beside a plant of 99.
+    """
+    out: dict[str, dict] = {}
+
+    def take(items, kind, where, date=""):
+        for p in items or []:
+            cid = p.get("clue")
+            if cid:
+                out.setdefault(cid, {"kind": kind, "where": where, "date": date,
+                                     "holder": p.get("holder", "")})
+
+    for date in world.days:
+        # `world.days` spans the calendar, not the days that got a spec file;
+        # asking for one that has none is fatal, and a missing spec is simply
+        # a day nothing was planted on.
+        try:
+            specs = world.day(date)["specs"]
+        except SystemExit:
+            continue
+        for spec in specs:
+            take(spec.get("planted"), "conversation",
+                 f"#{spec.get('channel')}", date)
+    for doc in world.artifacts["docs"]:
+        take(doc.get("planted"), "page", f"page:{doc['id']}",
+             doc.get("created_at", "")[:10])
+    for thread in world.artifacts["threads"]:
+        for msg in thread.get("messages") or []:
+            take(msg.get("planted"), "mail", f"mail:{thread['id']}",
+                 str(msg.get("date", ""))[:10])
+    for com in world.artifacts.get("comments") or []:
+        take(com.get("planted"), "comment", f"comment:{com['id']}",
+             str(com.get("created_at", ""))[:10])
+    return out
+
+
+def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args,
+            planted_total: int | None = None, rewrite: bool = False) -> int:
+    """Write everything a finished run owes: transcript, ledgers, reports.
+
+    `planted_total` is how many clues the plant put on the days this run
+    covered, which is not the same as how many it managed to judge — see the
+    coverage warning below. `rewrite` replaces the ledgers instead of merging
+    into them, which is what an audit of the whole corpus wants: a `_carry`
+    merge is exactly what let a ledger covering 37 days go on reading as a
+    complete account of 161.
+    """
     import bespoke_user as bu
 
     # -- one transcript, then the shape the ingest reads --------------------
+    # The ledgers below are EVIDENCE; this render is a projection of it. One
+    # corrupt timestamp used to kill the render and take the artifact audit and
+    # the clue ledger down with it — for fifteen batches, silently, while the
+    # batch loop reported success. A projection failing must never cost us the
+    # evidence, so it is contained here and re-raised at the very end.
     merged = merge_days(out, args.workspace or "SWEWorld")
-    rows = render.render(merged) if merged else []
-    size = render.write(rows, out / "messages.jsonl")
-    rl.ok(f"{out / 'messages.jsonl'} ({rl.human_bytes(size)}) — {len(rows)} message(s)")
+    render_failed = None
+    try:
+        rows = render.render(merged) if merged else []
+        size = render.write(rows, out / "messages.jsonl")
+        rl.ok(f"{out / 'messages.jsonl'} ({rl.human_bytes(size)}) — {len(rows)} message(s)")
+    except Exception as exc:                       # noqa: BLE001 - re-raised below
+        render_failed, rows = exc, []
+        rl.fail(f"render failed: {exc}")
+        rl.warn("writing the ledgers anyway — they are the evidence, "
+                "messages.jsonl is only a projection of it")
 
     # -- the wiki's own manifest, from the shelves that got used ------------
     for store in stores:
@@ -1576,8 +1758,11 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args) -> 
             rl.ok(f"{store.docs / 'collections.yaml'} — {shelves} collection(s)")
 
     # -- did the planned artifacts get made? --------------------------------
-    art_rows = _carry(out / "artifacts.json", art_rows, key=lambda r: (
-        r["date"], r["by"], r["action"], r["title"]))
+    art_rows = art_rows if rewrite else _carry(
+        out / "artifacts.json", art_rows,
+        key=lambda r: (r["date"], r["by"], r["action"], r["title"]))
+    if rewrite:
+        rl.write_json(out / "artifacts.json", art_rows)
     made = sum(1 for r in art_rows if r["done"])
     (out / "artifact_audit.md").write_text(
         _artifact_report(art_rows), encoding="utf-8")
@@ -1590,7 +1775,10 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args) -> 
     # corpus; one left behind from a run of different days is a claim about a
     # conversation that is no longer anywhere, and it looks exactly like the
     # real ones. The index said six while the directory held eleven.
-    clue_rows = _carry(out / "clues.json", clue_rows, key=lambda r: r["clue"])
+    clue_rows = clue_rows if rewrite else _carry(
+        out / "clues.json", clue_rows, key=lambda r: r["clue"])
+    if rewrite:
+        rl.write_json(out / "clues.json", clue_rows)
     clues_dir = out / "clues"
     clues_dir.mkdir(parents=True, exist_ok=True)
     keep = {"index.md"}
@@ -1607,6 +1795,15 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args) -> 
     lost = [r for r in clue_rows if not r["said"]]
     rl.ok(f"{clues_dir}/ — {len(clue_rows) - len(lost)}/{len(clue_rows)} clue(s) "
           "said, one file each")
+    # Said-out-of-judged is a ratio that flatters: it can read 49/49 while
+    # saying nothing about the 58 clues nobody looked at. Report the plant's
+    # own total whenever we know it, and shout when the two disagree.
+    if planted_total is not None and planted_total != len(clue_rows):
+        rl.warn(f"COVERAGE: {len(clue_rows)} of {planted_total} planted clue(s) "
+                f"were judged — {planted_total - len(clue_rows)} were not "
+                "looked at, so this ledger is not an account of the whole corpus")
+    elif planted_total is not None:
+        rl.ok(f"coverage: every one of {planted_total} planted clue(s) was judged")
 
     # Split, because the total is misleading. The persona turns are the bulk
     # of the tokens and they run on the subscription, but the ledger prices
@@ -1640,6 +1837,12 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args) -> 
         "artifacts": {"made": made, "of": len(art_rows)},
         "args": {k: str(v) for k, v in sorted(vars(args).items())},
     }, indent=2), encoding="utf-8")
+
+    if render_failed is not None:
+        raise RuntimeError(
+            "the ledgers were written, but messages.jsonl was not — "
+            f"re-render once the transcript is fixed: {render_failed}"
+        ) from render_failed
 
     if args.install:
         _install(out)

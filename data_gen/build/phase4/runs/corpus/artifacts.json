@@ -92,7 +92,7 @@
     "to": "",
     "doc_kind": "onboarding",
     "done": true,
-    "at": "2024-11-04T09:49:00+00:00",
+    "at": "2025-01-06T09:35:00+00:00",
     "date": "2024-11-04"
   },
   {
@@ -140,7 +140,7 @@
     "to": "",
     "doc_kind": "postmortem",
     "done": true,
-    "at": "2024-11-06T09:42:00+00:00",
+    "at": "2024-11-12T09:14:00+00:00",
     "date": "2024-11-06"
   },
   {
@@ -404,7 +404,7 @@
     "to": "",
     "doc_kind": "postmortem",
     "done": true,
-    "at": "2024-12-05T09:14:00+00:00",
+    "at": "2024-12-16T10:31:00+00:00",
     "date": "2024-12-05"
   },
   {
@@ -416,7 +416,7 @@
     "to": "",
     "doc_kind": "release-notes",
     "done": true,
-    "at": "2024-12-06T09:21:00+00:00",
+    "at": "2024-12-06T10:24:00+00:00",
     "date": "2024-12-06"
   },
   {
@@ -454,6 +454,114 @@
     "done": true,
     "at": "2024-12-09T09:14:00+00:00",
     "date": "2024-12-09"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2024-12-09",
+    "title": "Weekly notes: week of Dec 9 - two reverts",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2024-12-11T09:42:00+00:00",
+    "date": "2024-12-11"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2024-12-10",
+    "title": "Postmortem: Dec 10 revert of batch auto-delete",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "postmortem",
+    "done": true,
+    "at": "2024-12-11T09:14:00+00:00",
+    "date": "2024-12-11"
+  },
+  {
+    "kind": "doc",
+    "id": "runbook-bulk-llm-inference",
+    "title": "Runbook: handling curator.LLM incidents",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "runbook",
+    "done": true,
+    "at": "2024-12-16T09:35:00+00:00",
+    "date": "2024-12-16"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2024-12-13",
+    "title": "Postmortem: Dec 13 revert of batch context-manager refactor (PR #254)",
+    "by": "konrad",
+    "action": "write",
+    "to": "",
+    "doc_kind": "postmortem",
+    "done": true,
+    "at": "2024-12-16T09:14:00+00:00",
+    "date": "2024-12-16"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2024-12-09",
+    "title": "Weekly update: week of Dec 9",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-12-16T09:28:00+00:00",
+    "date": "2024-12-16"
+  },
+  {
+    "kind": "mail",
+    "id": "welcome-petar-2024-12-16",
+    "title": "Welcome petar to the team",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-11-04T09:07:00+00:00",
+    "date": "2024-12-16"
+  },
+  {
+    "kind": "doc",
+    "id": "onboarding-petar",
+    "title": "Onboarding: petar on request-processing internals",
+    "by": "konrad",
+    "action": "write",
+    "to": "",
+    "doc_kind": "onboarding",
+    "done": true,
+    "at": "2025-01-06T09:35:00+00:00",
+    "date": "2024-12-16"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-12",
+    "title": "v0.1.12 release notes",
+    "by": "dario",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2024-12-17T10:10:00+00:00",
+    "date": "2024-12-17"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-12",
+    "title": "v0.1.12 is out",
+    "by": "dario",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-12-17T09:28:00+00:00",
+    "date": "2024-12-17"
   },
   {
     "kind": "doc",
@@ -584,7 +692,7 @@
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2025-01-06T10:45:00+00:00",
+    "at": "2024-11-04T09:07:00+00:00",
     "date": "2025-01-06"
   },
   {
@@ -596,7 +704,7 @@
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2025-01-06T10:45:00+00:00",
+    "at": "2024-11-04T09:07:00+00:00",
     "date": "2025-01-06"
   },
   {
@@ -644,7 +752,7 @@
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2025-01-13T09:07:00+00:00",
+    "at": "2024-11-04T10:03:00+00:00",
     "date": "2025-01-13"
   },
   {
@@ -704,7 +812,7 @@
     "to": "",
     "doc_kind": "release-notes",
     "done": true,
-    "at": "2025-01-15T09:28:00+00:00",
+    "at": "2025-01-21T10:03:00+00:00",
     "date": "2025-01-15"
   },
   {
@@ -752,7 +860,7 @@
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2025-01-20T09:07:00+00:00",
+    "at": "2024-11-04T10:03:00+00:00",
     "date": "2025-01-20"
   },
   {
@@ -800,7 +908,7 @@
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2025-01-27T09:07:00+00:00",
+    "at": "2024-11-04T10:03:00+00:00",
     "date": "2025-01-27"
   },
   {
@@ -1045,6 +1153,42 @@
   },
   {
     "kind": "doc",
+    "id": "release-0-1-19",
+    "title": "Release notes: 0.1.19",
+    "by": "gideon",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-02-17T09:28:00+00:00",
+    "date": "2025-02-17"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-02-10",
+    "title": "Weekly update: week of Feb 10 — pickler regression",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2024-11-04T10:03:00+00:00",
+    "date": "2025-02-17"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-0-1-19",
+    "title": "0.1.19 is out",
+    "by": "gideon",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": false,
+    "at": "",
+    "date": "2025-02-17"
+  },
+  {
+    "kind": "doc",
     "id": "notes-2025-02-17",
     "title": "Weekly sync notes: week of Feb 17 — 0.1.19 shipped",
     "by": "gideon",
@@ -1064,7 +1208,7 @@
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2025-02-24T09:07:00+00:00",
+    "at": "2025-02-10T09:14:00+00:00",
     "date": "2025-02-24"
   },
   {
@@ -1124,7 +1268,7 @@
     "to": "",
     "doc_kind": "release-notes",
     "done": true,
-    "at": "2025-02-28T09:14:00+00:00",
+    "at": "2025-02-28T09:42:00+00:00",
     "date": "2025-02-28"
   },
   {
@@ -1148,7 +1292,7 @@
     "to": "",
     "doc_kind": "postmortem",
     "done": true,
-    "at": "2025-03-03T10:24:00+00:00",
+    "at": "2025-03-18T09:49:00+00:00",
     "date": "2025-03-03"
   },
   {
@@ -1213,6 +1357,42 @@
   },
   {
     "kind": "doc",
+    "id": "onboarding-nils",
+    "title": "Onboarding: nils and theo",
+    "by": "konrad",
+    "action": "write",
+    "to": "",
+    "doc_kind": "onboarding",
+    "done": true,
+    "at": "2025-03-10T09:14:00+00:00",
+    "date": "2025-03-10"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-03-03",
+    "title": "Weekly update: week of Mar 3",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-10T09:28:00+00:00",
+    "date": "2025-03-10"
+  },
+  {
+    "kind": "mail",
+    "id": "welcome-nils-2025-03-10",
+    "title": "Welcome nils (and theo)",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-10T09:28:00+00:00",
+    "date": "2025-03-10"
+  },
+  {
+    "kind": "doc",
     "id": "notes-2025-03-10",
     "title": "Weekly Notes — Week of Mar 10",
     "by": "nils",
@@ -1256,7 +1436,7 @@
     "to": "",
     "doc_kind": "release-notes",
     "done": true,
-    "at": "2025-03-19T09:14:00+00:00",
+    "at": "2025-03-20T09:14:00+00:00",
     "date": "2025-03-19"
   },
   {
@@ -1284,159 +1464,447 @@
     "date": "2025-03-19"
   },
   {
+    "kind": "mail",
+    "id": "weekly-2025-03-17",
+    "title": "Weekly update: week of Mar 17",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-24T09:07:00+00:00",
+    "date": "2025-03-24"
+  },
+  {
     "kind": "doc",
-    "id": "notes-2024-12-09",
-    "title": "Weekly notes: week of Dec 9 - two reverts",
-    "by": "dario",
+    "id": "notes-2025-03-24",
+    "title": "Weekly Notes — Week of Mar 24",
+    "by": "konrad",
     "action": "write",
     "to": "",
     "doc_kind": "meeting-notes",
     "done": true,
-    "at": "2024-12-11T09:42:00+00:00",
-    "date": "2024-12-11"
+    "at": "2025-03-26T09:14:00+00:00",
+    "date": "2025-03-26"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-22",
+    "title": "v0.1.22 is out",
+    "by": "emil",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-31T09:56:00+00:00",
+    "date": "2025-03-31"
   },
   {
     "kind": "doc",
-    "id": "postmortem-2024-12-10",
-    "title": "Postmortem: Dec 10 revert of batch auto-delete",
+    "id": "design-ws-050-batch-mode",
+    "title": "WS-050: Batch Mode (50%-Cost Async Batch APIs)",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "design",
+    "done": true,
+    "at": "2025-03-31T09:42:00+00:00",
+    "date": "2025-03-31"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-22",
+    "title": "v0.1.22 Release Notes",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-03-31T10:17:00+00:00",
+    "date": "2025-03-31"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-03-24",
+    "title": "Weekly update: week of Mar 24",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-03-31T09:14:00+00:00",
+    "date": "2025-03-31"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-03-31",
+    "title": "Weekly Notes — Week of Mar 31",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-04-02T09:28:00+00:00",
+    "date": "2025-04-02"
+  },
+  {
+    "kind": "doc",
+    "id": "design-ws-055-release-and-ci",
+    "title": "WS-055: Release Engineering, CI & Test Suite",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "design",
+    "done": true,
+    "at": "2025-04-07T10:24:00+00:00",
+    "date": "2025-04-07"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-03-31",
+    "title": "Weekly update: week of Mar 31",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-04-07T09:35:00+00:00",
+    "date": "2025-04-07"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-04-07",
+    "title": "Weekly Notes — Week of Apr 7",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-04-09T09:14:00+00:00",
+    "date": "2025-04-09"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-23",
+    "title": "v0.1.23 Release Notes",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-04-25T09:14:00+00:00",
+    "date": "2025-04-11"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-23",
+    "title": "v0.1.23 is out",
+    "by": "emil",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-04-11T09:42:00+00:00",
+    "date": "2025-04-11"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-23-post1",
+    "title": "v0.1.23.post1 Release Notes",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-04-11T10:10:00+00:00",
+    "date": "2025-04-11"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-23-post1",
+    "title": "v0.1.23.post1 is out",
+    "by": "emil",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-04-11T09:07:00+00:00",
+    "date": "2025-04-11"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2025-04-11",
+    "title": "Postmortem: v0.1.23.post1 Hotfix",
     "by": "dermot",
     "action": "write",
     "to": "",
     "doc_kind": "postmortem",
     "done": true,
-    "at": "2024-12-11T09:14:00+00:00",
-    "date": "2024-12-11"
+    "at": "2025-04-14T09:14:00+00:00",
+    "date": "2025-04-14"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-04-07",
+    "title": "Weekly update: week of Apr 7",
+    "by": "dermot",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-04-14T09:56:00+00:00",
+    "date": "2025-04-14"
   },
   {
     "kind": "doc",
-    "id": "runbook-bulk-llm-inference",
-    "title": "Runbook: handling curator.LLM incidents",
-    "by": "dario",
+    "id": "notes-2025-04-14",
+    "title": "Weekly Notes — Week of Apr 14",
+    "by": "gideon",
     "action": "write",
     "to": "",
-    "doc_kind": "runbook",
+    "doc_kind": "meeting-notes",
     "done": true,
-    "at": "2024-12-16T09:35:00+00:00",
-    "date": "2024-12-16"
+    "at": "2025-04-16T09:14:00+00:00",
+    "date": "2025-04-16"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-04-14",
+    "title": "Weekly update: week of Apr 14",
+    "by": "emil",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-04-21T09:07:00+00:00",
+    "date": "2025-04-21"
   },
   {
     "kind": "doc",
-    "id": "postmortem-2024-12-13",
-    "title": "Postmortem: Dec 13 revert of batch context-manager refactor (PR #254)",
+    "id": "notes-2025-04-21",
+    "title": "Weekly Notes — Week of Apr 21",
+    "by": "gideon",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-04-23T09:14:00+00:00",
+    "date": "2025-04-23"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-04-21",
+    "title": "Weekly update: week of Apr 21",
+    "by": "emil",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-04-28T09:07:00+00:00",
+    "date": "2025-04-28"
+  },
+  {
+    "kind": "doc",
+    "id": "handover-status-tracking-cost-reporting-and-the-v",
+    "title": "Handover: Status Tracking, Cost Reporting & the Viewer Surface",
+    "by": "gideon",
+    "action": "write",
+    "to": "",
+    "doc_kind": "handover",
+    "done": true,
+    "at": "2025-05-01T09:14:00+00:00",
+    "date": "2025-05-01"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-04-28",
+    "title": "Weekly update: week of Apr 28",
     "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-05-05T09:07:00+00:00",
+    "date": "2025-05-05"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-24",
+    "title": "v0.1.24 Release Notes",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "release-notes",
+    "done": true,
+    "at": "2025-05-06T09:35:00+00:00",
+    "date": "2025-05-06"
+  },
+  {
+    "kind": "mail",
+    "id": "announce-v0-1-24",
+    "title": "v0.1.24 is out",
+    "by": "emil",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-05-06T09:49:00+00:00",
+    "date": "2025-05-06"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-05-05",
+    "title": "Weekly Notes — Week of May 5",
+    "by": "dermot",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-05-07T09:14:00+00:00",
+    "date": "2025-05-07"
+  },
+  {
+    "kind": "doc",
+    "id": "postmortem-2025-05-06",
+    "title": "Postmortem: Examples/Cookbooks Lint & Structured-Output Revert",
+    "by": "dermot",
     "action": "write",
     "to": "",
     "doc_kind": "postmortem",
     "done": true,
-    "at": "2024-12-16T09:14:00+00:00",
-    "date": "2024-12-16"
-  },
-  {
-    "kind": "mail",
-    "id": "weekly-2024-12-09",
-    "title": "Weekly update: week of Dec 9",
-    "by": "konrad",
-    "action": "send",
-    "to": "",
-    "doc_kind": "",
-    "done": true,
-    "at": "2024-12-16T09:56:00+00:00",
-    "date": "2024-12-16"
+    "at": "2025-05-07T09:35:00+00:00",
+    "date": "2025-05-07"
   },
   {
     "kind": "doc",
-    "id": "release-v0-1-12",
-    "title": "v0.1.12 release notes",
-    "by": "dario",
+    "id": "notes-2025-05-19",
+    "title": "Weekly Notes — Week of May 19",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-05-28T09:49:00+00:00",
+    "date": "2025-05-21"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-05-26",
+    "title": "Weekly Notes — Week of May 26",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-05-28T09:28:00+00:00",
+    "date": "2025-05-28"
+  },
+  {
+    "kind": "doc",
+    "id": "release-v0-1-25",
+    "title": "v0.1.25 Release Notes",
+    "by": "emil",
     "action": "write",
     "to": "",
     "doc_kind": "release-notes",
     "done": true,
-    "at": "2024-12-17T09:14:00+00:00",
-    "date": "2024-12-17"
+    "at": "2025-05-30T09:14:00+00:00",
+    "date": "2025-05-30"
   },
   {
     "kind": "mail",
-    "id": "announce-v0-1-12",
-    "title": "v0.1.12 is out",
-    "by": "dario",
+    "id": "announce-v0-1-25",
+    "title": "v0.1.25 is out",
+    "by": "emil",
     "action": "send",
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2024-12-17T09:28:00+00:00",
-    "date": "2024-12-17"
+    "at": "2025-05-30T09:35:00+00:00",
+    "date": "2025-05-30"
+  },
+  {
+    "kind": "mail",
+    "id": "weekly-2025-05-26",
+    "title": "Week of May 26 recap: v0.1.25 shipped",
+    "by": "konrad",
+    "action": "send",
+    "to": "",
+    "doc_kind": "",
+    "done": true,
+    "at": "2025-06-02T09:28:00+00:00",
+    "date": "2025-06-02"
   },
   {
     "kind": "doc",
-    "id": "release-0-1-19",
-    "title": "Release notes: 0.1.19",
-    "by": "gideon",
+    "id": "plan-lights-left-on-dormancy",
+    "title": "Winding down to maintenance mode after v0.1.26",
+    "by": "konrad",
     "action": "write",
     "to": "",
-    "doc_kind": "release-notes",
+    "doc_kind": "planning",
     "done": true,
-    "at": "2025-02-17T09:28:00+00:00",
-    "date": "2025-02-17"
-  },
-  {
-    "kind": "mail",
-    "id": "weekly-2025-02-10",
-    "title": "Weekly update: week of Feb 10 — pickler regression",
-    "by": "konrad",
-    "action": "send",
-    "to": "",
-    "doc_kind": "",
-    "done": true,
-    "at": "2025-02-17T09:42:00+00:00",
-    "date": "2025-02-17"
-  },
-  {
-    "kind": "mail",
-    "id": "announce-0-1-19",
-    "title": "0.1.19 is out",
-    "by": "gideon",
-    "action": "send",
-    "to": "",
-    "doc_kind": "",
-    "done": false,
-    "at": "",
-    "date": "2025-02-17"
+    "at": "2025-07-10T10:10:00+00:00",
+    "date": "2025-06-02"
   },
   {
     "kind": "doc",
-    "id": "onboarding-nils",
-    "title": "Onboarding: nils and theo",
-    "by": "konrad",
+    "id": "notes-2025-06-02",
+    "title": "Weekly sync notes: week of Jun 2 (release + CI)",
+    "by": "emil",
     "action": "write",
     "to": "",
-    "doc_kind": "onboarding",
+    "doc_kind": "meeting-notes",
     "done": true,
-    "at": "2025-03-10T09:14:00+00:00",
-    "date": "2025-03-10"
+    "at": "2025-06-04T09:14:00+00:00",
+    "date": "2025-06-04"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-06-09",
+    "title": "Weekly sync notes: week of Jun 9 (bulk LLM inference)",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-06-11T09:28:00+00:00",
+    "date": "2025-06-11"
   },
   {
     "kind": "mail",
-    "id": "weekly-2025-03-03",
-    "title": "Weekly update: week of Mar 3",
-    "by": "konrad",
+    "id": "weekly-2025-06-09",
+    "title": "Week of Jun 9 recap: bulk inference fix",
+    "by": "nikolai",
     "action": "send",
     "to": "",
     "doc_kind": "",
     "done": true,
-    "at": "2025-02-17T09:42:00+00:00",
-    "date": "2025-03-10"
+    "at": "2025-06-16T09:07:00+00:00",
+    "date": "2025-06-16"
   },
   {
-    "kind": "mail",
-    "id": "welcome-nils-2025-03-10",
-    "title": "Welcome nils (and theo)",
-    "by": "konrad",
-    "action": "send",
+    "kind": "doc",
+    "id": "notes-2025-06-16",
+    "title": "Weekly sync notes: week of Jun 16",
+    "by": "nikolai",
+    "action": "write",
     "to": "",
-    "doc_kind": "",
+    "doc_kind": "meeting-notes",
     "done": true,
-    "at": "2025-03-10T09:28:00+00:00",
-    "date": "2025-03-10"
+    "at": "2025-06-18T09:14:00+00:00",
+    "date": "2025-06-18"
+  },
+  {
+    "kind": "doc",
+    "id": "notes-2025-06-23",
+    "title": "Weekly sync notes: week of Jun 23 (batch mode)",
+    "by": "emil",
+    "action": "write",
+    "to": "",
+    "doc_kind": "meeting-notes",
+    "done": true,
+    "at": "2025-06-25T09:28:00+00:00",
+    "date": "2025-06-25"
   }
 ]

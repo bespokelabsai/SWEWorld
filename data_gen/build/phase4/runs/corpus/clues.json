@@ -60,15 +60,7 @@
       "16:03  dario     Worth writing down why the row hash is the right level for this - resume needs nothing b   <-- the clue",
       "16:03  dario     If the key depended on anything only computable by constructing the LLM, cache_stats sto",
       "16:03  dario     That's what keeps cache_stats cheap on a cold process - you can rebuild the whole hit/mi"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "Worth writing down why the row hash is the right level for this - resume needs nothing but the dataset itself to work.",
-        "If the key depended on anything only computable by constructing the LLM, cache_stats stops being callable before a run and becomes another run."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t2.r1.h1",
@@ -131,17 +123,7 @@
       "12:39  dermot    we are not maintaining a table of which models accept a json schema for response_format   <-- the clue",
       "12:39  dermot    the provider is the source of truth here",
       "12:39  dermot    one request's worth of spend is a fair price for not maintaining a whitelist"
-    ],
-    "repair": {
-      "attempts": 2,
-      "added": [
-        "the provider is the source of truth here",
-        "if the model can't do structured outputs we get a 400 back with the provider's own wording, we surface that to the user as-is",
-        "one request's worth of spend is a fair price for not maintaining a whitelist",
-        "and the provider's error text beats anything we'd write ourselves"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r1.h1",
@@ -194,15 +176,7 @@
       "09:27  dermot    the cache key is the hash of the raw input row, full stop. cache_stats should report aga   <-- the clue",
       "09:27  dermot    and I want that contract to stay narrow. every time someone folds another thing into the",
       "09:27  dermot    the row is the unit the dataset is made of, so the row is the unit the cache is keyed on"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "and I want that contract to stay narrow. every time someone folds another thing into the fingerprint we end up with a key nobody can explain to a user asking why their rerun did what it did.",
-        "the row is the unit the dataset is made of, so the row is the unit the cache is keyed on."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r2.L3",
@@ -281,6 +255,44 @@
     ]
   },
   {
+    "clue": "t1.r2.L14",
+    "holder": "dermot",
+    "date": "2024-12-11",
+    "channel": "code-review",
+    "wrote_into": "page:postmortem-2024-12-10",
+    "attempt": 1,
+    "said": true,
+    "quote": "The summary table counters are now explicitly the canonical source of truth for run completeness. Anything acting on completion state reads from those, full stop.",
+    "said_by": "dermot",
+    "why": "The postmortem names the two counters (on-disk responses received, requests sent to the provider) and explicitly asserts them as the canonical/meaningful figures, matching the required information though phrased as one author's conclusion rather than a team statement.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Postmortem: Dec 10 revert of batch auto-delete",
+    "written_as": "incidents/postmortem-dec-10-revert-of-batch-auto-delete.md"
+  },
+  {
+    "clue": "t1.r1.l_prompt_2",
+    "holder": "dario",
+    "date": "2024-12-16",
+    "channel": "code-review",
+    "wrote_into": "page:runbook-bulk-llm-inference",
+    "attempt": 1,
+    "said": true,
+    "quote": "If they are picking up schema shape, the keys will not match prior runs and everything re-runs from scratch.",
+    "said_by": "dario",
+    "why": "The runbook states as fact that cache keys must be based on request content only, and that adding a bookkeeping/metadata column to the dataset should cost nothing and not trigger resubmission of already-completed requests, which is the same substance as 'unread input fields must not cause resends.'",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "cache key"
+    ],
+    "context": [],
+    "artifact": "Runbook: handling curator.LLM incidents",
+    "written_as": "engineering/runbook-handling-curator-llm-incidents.md"
+  },
+  {
     "clue": "t3.r1.h1",
     "holder": "dario",
     "date": "2024-12-20",
@@ -321,15 +333,7 @@
       "11:50  dario     On batch id persistence: we write the id to the cache dir on terminal status, not before   <-- the clue",
       "11:50  dario     A record pointing at a batch we haven't confirmed anything about is just a landmine for ",
       "11:50  dario     Same place we write the reassembled results, so it's one write path not two."
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "A record pointing at a batch we haven't confirmed anything about is just a landmine for the next run.",
-        "Same place we write the reassembled results, so it's one write path not two."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t2.r1.h2",
@@ -377,15 +381,7 @@
       "11:50  dario     That constuctor should stay cheap and dumb, it just holds config   <-- the clue",
       "11:50  dario     Skip it and we get bug reports from everyone the moment a new base_url or proxy shows up",
       "11:50  dario     The response tells us what we need to know, that's where the checking belongs."
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "Skip it and we get bug reports from everyone the moment a new base_url or proxy shows up.",
-        "The response tells us what we need to know, that's where the checking belongs."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t3.r2.l_pay_dermot",
@@ -499,14 +495,7 @@
       "15:54  nikolai   for code-execution, the docker backend is settled: I'm going with `bespokelabs/sandbox:l   <-- the clue",
       "15:54  nikolai   whenever we patch runtime deps the sandbox image gets rebuilt and users just pull it on ",
       "15:54  nikolai   one image, one tag, less surface to manage."
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "one image, one tag, less surface to manage."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r1.l_scope_3",
@@ -537,37 +526,42 @@
     "said": true,
     "quote": "Here's the thing on the image override for CodeExecutor backend_params, the docker backend only works against our sandbox image anyway, the entrypoint and mounted paths are all ours.",
     "said_by": "Konrad Feltrin",
-    "why": "Konrad's 14:09-14:10 messages state the refusal, the reason (sandbox-only image, ours entrypoint/paths), the consequence (confusing failure), and what he wants instead (keep to concurrency/timeout, current tag).",
+    "why": "Konrad's 14:09–14:10 messages state the rationale, the refusal, and the preferred alternative.",
     "elements": [
       {
-        "part": "Konrad doesn't want to add a caller-supplied image override to backend_params",
+        "part": "The topic is adding an image override option to backend_params for CodeExecutor",
         "present": true,
-        "why": "He states \"I'd rather not add it\" about the image override."
+        "why": "Konrad names the image override for CodeExecutor backend_params."
       },
       {
-        "part": "The docker backend only works against our sandbox image",
+        "part": "The docker backend only works against our own sandbox image",
         "present": true,
-        "why": "He says \"the docker backend only works against our sandbox image anyway\"."
+        "why": "Stated directly."
       },
       {
         "part": "The entrypoint and mounted paths are ours",
         "present": true,
-        "why": "He says \"the entrypoint and mounted paths are all ours\"."
+        "why": "Stated directly."
       },
       {
-        "part": "Pointing it at an arbitrary tag mostly just gets a confusing failure",
+        "part": "Pointing it at an arbitrary tag mostly yields a confusing failure",
         "present": true,
-        "why": "He says \"pointing it at some arbitrary tag mostly just gets you a confusing failure\"."
+        "why": "Stated directly."
       },
       {
-        "part": "backend_params should be kept to concurrency and timeout",
+        "part": "He does not want the override added",
         "present": true,
-        "why": "He says \"Keep backend_params to concurrency and timeout\"."
+        "why": "\"I'd rather not add it\"."
       },
       {
-        "part": "The tag should be whatever is shipped as current",
+        "part": "backend_params should stay limited to concurrency and timeout",
         "present": true,
-        "why": "He says \"let the tag be whatever we ship as current\"."
+        "why": "Stated directly."
+      },
+      {
+        "part": "The image tag should be whatever we ship as current",
+        "present": true,
+        "why": "Stated directly."
       }
     ],
     "missing": [],
@@ -579,14 +573,7 @@
       "14:09  konrad    Here's the thing on the image override for CodeExecutor backend_params, the docker backe   <-- the clue",
       "14:09  konrad    pointing it at some arbitrary tag mostly just gets you a confusing failure",
       "14:09  konrad    I'd rather not add it"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "pointing it at some arbitrary tag mostly just gets you a confusing failure"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t4.r2.L2",
@@ -595,17 +582,23 @@
     "channel": "code-review",
     "wrote_into": "mail:weekly-2025-01-13",
     "attempt": 1,
-    "said": true,
-    "quote": "Nothing on our side would ever have noticed. We take whatever the image decided and start it.",
+    "said": false,
+    "quote": "",
     "said_by": "konrad",
-    "why": "Re-judged after the run: the author states plainly that the image decides the user and their side simply starts it, which is the substance of the point. Three independent readings agreed; the original verdict was a false negative.",
-    "missing": [],
-    "missing_verbatim": [],
+    "why": "The mail is a status update on PRs, onboarding, and cookbook commits; it says nothing about executors or container user identity.",
+    "missing": [
+      "Any mention of an executor",
+      "Any mention of container processes or which user they run as",
+      "The assertion that the executor does not decide the container's run-as user",
+      "the name appuser itself, typed the way it is written"
+    ],
+    "missing_verbatim": [
+      "appuser"
+    ],
     "leaked": [],
     "context": [],
     "artifact": "Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped",
-    "written_as": "Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped",
-    "rejudged": true
+    "written_as": "Weekly update: week of Oct 28"
   },
   {
     "clue": "t1.r1.l_prompt_3",
@@ -658,15 +651,7 @@
       "11:50  emil      If the hash keys on prompt content alone then that tracks, but I saw RAFT last night emi   <-- the clue",
       "11:50  emil      Byte identical payload, I diffed them myself.",
       "11:50  emil      Second one should've come straight back off disk since we already had that exact answer."
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "Byte identical payload, I diffed them myself.",
-        "Second one should've come straight back off disk since we already had that exact answer."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r1.l_model_2",
@@ -790,14 +775,7 @@
       "14:25  emil      Writing the id at completion, not on submit - if it's on disk any earlier, every rerun g   <-- the clue",
       "14:26  emil      Completion's the only point where the id actually means anything.",
       "15:59  dario     Confirmed from the caching side, there are stale batch ids on disk from submissions that"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "Completion's the only point where the id actually means anything."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t4.r1.L10",
@@ -895,14 +873,7 @@
       "14:18  dario     mine was resume specifically - same prompts, I bumped temperature and max_tokens for an    <-- the clue",
       "14:18  dario     and both arms ended up on identical settings since it just resumed the old ones",
       "14:26  dario     also wondering if the batch path is even part of this, i don't think it reads the reques"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "and both arms ended up on identical settings since it just resumed the old ones"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r1.l_unhash_3",
@@ -1034,15 +1005,7 @@
       "17:34  dario     I think those ~900 are erroring out mid-flight and falling out of both tallies with noth   <-- the clue",
       "17:35  dario     Last summary table had reuse plus sent 900 short of the dataset length.",
       "17:35  dario     If the two numbers don't add up to processed rows, nobody's going to believe either coun"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "Last summary table had reuse plus sent 900 short of the dataset length.",
-        "If the two numbers don't add up to processed rows, nobody's going to believe either count, me included."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t4.r1.L7",
@@ -1090,14 +1053,7 @@
       "11:28  dermot    ci job failed overnight on the code-execution run and nothing changed on our side   <-- the clue",
       "11:28  dermot    i'm tired of this pattern, third time it's cost me a rerun",
       "11:28  dermot    the container the executor pulled has a different digest than monday's run"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "i'm tired of this pattern, third time it's cost me a rerun"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r2.L1",
@@ -1249,6 +1205,43 @@
     ]
   },
   {
+    "clue": "t1.r2.L13",
+    "holder": "gideon",
+    "date": "2025-02-17",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "That's too late to decide anything. We need to surface the cached-versus-backend split before a run starts, not during it.",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 13:56-13:57 messages state the recurring question, the current inadequate answer, and why it's too late, matching the required content.",
+    "elements": [
+      {
+        "part": "people keep asking the same question before a re-run: how much is already on disk",
+        "present": true,
+        "why": "Gideon states this exactly at 13:56"
+      },
+      {
+        "part": "the only way to answer it right now is to run the thing and watch the hit counter go by on the progress bar",
+        "present": true,
+        "why": "Gideon states this at 13:56-13:57"
+      },
+      {
+        "part": "that is too late to decide anything",
+        "present": true,
+        "why": "Gideon says this at 13:57"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:56  gideon    People keep asking the same thing before a re-run: how much of this is already on disk",
+      "13:56  gideon    The only way to answer it right now is to start the run and watch the hit counter go by ",
+      "13:57  gideon    That's too late to decide anything. We need to surface the cached-versus-backend split b   <-- the clue",
+      "14:01  dario     caching-and-resume doesn't have a pre-run query interface right now, so the only hit dat"
+    ]
+  },
+  {
     "clue": "t1.r1.l_prompt_1",
     "holder": "dermot",
     "date": "2025-02-19",
@@ -1300,15 +1293,7 @@
       "09:18  dermot    added source_url to the input set purely for provenance and the entire 40k run went back   <-- the clue",
       "09:18  dermot    prompt() does not even read source_url. entire 40k run went back out to the api and I go",
       "09:18  dermot    I did not touch a single prompt."
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "prompt() does not even read source_url. entire 40k run went back out to the api and I got billed again for it.",
-        "I did not touch a single prompt."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r1.l_stats_1",
@@ -1349,14 +1334,7 @@
       "09:00  gideon    End-of-run summary table is mostly wired up, but I keep hitting the same thing, we show    <-- the clue",
       "09:00  gideon    a bare count doesn't tell you if a rerun is cheap, that's the whole reason I want it.",
       "09:34  gideon    What does hit_rate actually return right now, a float between 0 and 1 or something else?"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "a bare count doesn't tell you if a rerun is cheap, that's the whole reason I want it."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r1.l_scope_2",
@@ -1558,15 +1536,7 @@
       "12:41  emil      Same shape in the onboarding notebook too - cell two of the quickstart asks how much the   <-- the clue",
       "12:41  emil      User's never generated anything, gets a traceback, files an issue saying curator is brok",
       "12:53  emil      let me check the issue log myself"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "Same shape in the onboarding notebook too - cell two of the quickstart asks how much the run will cost before any run exists.",
-        "User's never generated anything, gets a traceback, files an issue saying curator is broken on their machine."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t4.r2.L1",
@@ -1609,15 +1579,7 @@
       "14:37  nikolai   sanity check on my own build: first line of the task is `print(os.getuid())`. against th   <-- the clue",
       "14:38  nikolai   took me an embarrassingly long while to work out that difference was coming from the ima",
       "14:38  nikolai   the difference is the image, we don't override the user in caller-supplied images, so wh"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "sanity check on my own build: first line of the task is `print(os.getuid())`. against the python:3.11-slim i put together for the RAFT verifier it prints 0.",
-        "took me an embarrassingly long while to work out that difference was coming from the image and not from anything i passed"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t4.r1.L9",
@@ -1713,15 +1675,7 @@
       "12:12  emil      The sizing helper I wrote snapshots CURATOR_CACHE_DIR once when the module loads, and in   <-- the clue",
       "12:12  emil      so it kept telling users about the default directory for the rest of the session",
       "12:12  emil      and I got two emails about it"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "so it kept telling users about the default directory for the rest of the session",
-        "and I got two emails about it"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r2.L10",
@@ -1842,14 +1796,7 @@
       "16:41  gideon    Bumped it from 0 to 1.2 on 5k rows and got everything back identical, spent an hour thin   <-- the clue",
       "16:41  gideon    Bumped it to get some variety on the poem set, wasn't chasing anything specific",
       "16:41  gideon    Monday works, can we make sure all three rejection cases are in one place before then so"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "Bumped it to get some variety on the poem set, wasn't chasing anything specific"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t4.r1.L11",
@@ -1913,16 +1860,73 @@
       "09:00  gideon    When a docker task dies at container start, all the progress table gets is the task mark   <-- the clue",
       "09:00  gideon    Whatever text comes back needs to name the setting that got rejected, not just say somet",
       "09:00  gideon    Without that, it lands in my inbox instead."
+    ]
+  },
+  {
+    "clue": "t2.r2.l7",
+    "holder": "dario",
+    "date": "2025-03-10",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "left a comment on the kluster PR to drop the set of model names and route through supports_structured_output instead, are we confirming that's the approach now?",
+    "said_by": "Dario Kestrel",
+    "why": "All parts of Dario's remark are present across his consecutive messages at 11:53.",
+    "elements": [
+      {
+        "part": "Dario left a comment on the kluster PR",
+        "present": true,
+        "why": "Dario states he left a comment on the kluster PR"
+      },
+      {
+        "part": "the ask is to drop the set of model names added",
+        "present": true,
+        "why": "Dario says to drop the set of model names"
+      },
+      {
+        "part": "the ask is to call supports_structured_output instead",
+        "present": true,
+        "why": "Dario says to route through supports_structured_output instead"
+      },
+      {
+        "part": "that helper is already what gets edited when a new model lands",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "he doesn't want to be grepping for model strings again next time o3-mini ships",
+        "present": true,
+        "why": "Dario states this directly"
+      }
     ],
-    "repair": {
-      "attempts": 2,
-      "added": [
-        "People screenshot that failure and send it to me and I've got nothing to tell them.",
-        "Whatever text comes back needs to name the setting that got rejected, not just say something was rejected.",
-        "Without that, it lands in my inbox instead."
-      ],
-      "rewrote": false
-    }
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:03  nils      for batch-mode PRs, should I be tagging Emil directly as reviewer or does it go wider th",
+      "11:33  emil      +1 on routing through `supports_structured_output`",
+      "11:53  dario     left a comment on the kluster PR to drop the set of model names and route through suppor   <-- the clue",
+      "11:53  dario     that helper's already what gets edited when a new model lands",
+      "11:53  dario     don't want to be grepping for model strings again next time o3-mini ships"
+    ]
+  },
+  {
+    "clue": "t4.r1.L1",
+    "holder": "konrad",
+    "date": "2025-03-10",
+    "channel": "cookbooks",
+    "wrote_into": "page:onboarding-nils",
+    "attempt": 1,
+    "said": true,
+    "quote": "The promoted line on the Sandbox Image Release Log page is the only authoritative statement of which curator-sandbox build has been signed off. Do not read the registry tag list to answer this question.",
+    "said_by": "konrad",
+    "why": "The author plainly asserts the wiki release log page is the authoritative record of signed-off sandbox builds, which is the same information as 'the team agrees' framing.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Onboarding: nils and theo",
+    "written_as": "onboarding/onboarding-nils-brandt-and-theo-marchetti.md"
   },
   {
     "clue": "t1.r1.l_unhash_1",
@@ -1970,15 +1974,7 @@
       "11:47  emil      SimpleStrat and RAFT both hit it, both build with create_model at runtime   <-- the clue",
       "11:47  emil      lookup pass dies on it with TypeError: unhashable type",
       "11:47  emil      run is dead at row zero, before a single request goes out, traceback in thread"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "lookup pass dies on it with TypeError: unhashable type",
-        "run is dead at row zero, before a single request goes out, traceback in thread"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t2.r2.l4",
@@ -2063,16 +2059,7 @@
       "15:32  gideon    this is the whole reason nobody trusts reruns here",
       "15:32  gideon    and that cost is for re-processing one extra field, not the real work   <-- the clue",
       "15:32  gideon    On a 200k set that's real money"
-    ],
-    "repair": {
-      "attempts": 2,
-      "added": [
-        "Nuking the whole cache dir on any field tweak is why reruns aren't trusted here",
-        "this is the whole reason nobody trusts reruns here",
-        "and that cost is for re-processing one extra field, not the real work"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t2.r1.L6",
@@ -2125,15 +2112,7 @@
       "11:50  dario     Same thing hit me again, not the first time this pattern's shown up.   <-- the clue",
       "11:50  dario     Object was already broken when construciton returned and said nothing",
       "11:50  dario     Everyone agrees construction hands back objects that were never going to run, that's the"
-    ],
-    "repair": {
-      "attempts": 2,
-      "added": [
-        "Everyone agrees construction hands back objects that were never going to run, that's the real problem",
-        "Same thing hit me again, not the first time this pattern's shown up."
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t2.r1.L2",
@@ -2181,15 +2160,7 @@
       "18:17  gideon    the map only had the bare `gpt-4o` key in it, and providers keep bolting dates onto thes   <-- the clue",
       "18:27  dario     @Dermot starting with gpt-4o for now",
       "18:27  dario     Looks like litellm has `get_model_info()` that handles pattern-based resolution, so we m"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "someone in help pasted a run on gpt-4o-2024-08-06 where our capability lookup came back false, so they got shunted onto the plain text path",
-        "the map only had the bare `gpt-4o` key in it, and providers keep bolting dates onto these names"
-      ],
-      "rewrote": false
-    }
+    ]
   },
   {
     "clue": "t1.r1.l_model_1",
@@ -2245,152 +2216,2308 @@
     ]
   },
   {
-    "clue": "t1.r2.L14",
-    "holder": "dermot",
-    "date": "2024-12-11",
-    "channel": "code-review",
-    "wrote_into": "page:postmortem-2024-12-10",
+    "clue": "t2.r2.l8",
+    "holder": "emil",
+    "date": "2025-03-24",
+    "channel": "engineering",
     "attempt": 1,
     "said": true,
-    "quote": "The summary table counters are now explicitly the canonical source of truth for run completeness. Anything acting on completion state reads from those, full stop.",
-    "said_by": "dermot",
-    "why": "The postmortem names the two counters (on-disk responses received, requests sent to the provider) and explicitly asserts them as the canonical/meaningful figures, matching the required information though phrased as one author's conclusion rather than a team statement.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "Postmortem: Dec 10 revert of batch auto-delete",
-    "written_as": "incidents/postmortem-dec-10-revert-of-batch-auto-delete.md"
-  },
-  {
-    "clue": "t1.r1.l_prompt_2",
-    "holder": "dario",
-    "date": "2024-12-16",
-    "channel": "code-review",
-    "wrote_into": "page:runbook-bulk-llm-inference",
-    "attempt": 1,
-    "said": true,
-    "quote": "If they are picking up schema shape, the keys will not match prior runs and everything re-runs from scratch.",
-    "said_by": "dario",
-    "why": "The runbook states as fact that cache keys must be based on request content only, and that adding a bookkeeping/metadata column to the dataset should cost nothing and not trigger resubmission of already-completed requests, which is the same substance as 'unread input fields must not cause resends.'",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [
-      "cache key"
-    ],
-    "context": [],
-    "artifact": "Runbook: handling curator.LLM incidents",
-    "written_as": "engineering/runbook-handling-curator-llm-incidents.md"
-  },
-  {
-    "clue": "t1.r2.L13",
-    "holder": "gideon",
-    "date": "2025-02-17",
-    "channel": "pipeline",
-    "attempt": 1,
-    "said": true,
-    "quote": "That's too late to decide anything. We need to surface the cached-versus-backend split before a run starts, not during it.",
-    "said_by": "Gideon Halloway",
-    "why": "Gideon's 13:56-13:57 messages state the recurring question, the current inadequate answer, and why it's too late, matching the required content.",
+    "quote": "Pricing comes down from litellm and changes weekly, half of it is per-region.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's run of messages at 15:10 covers every element: reluctance to merge, litellm/weekly-change reasoning, per-region complexity, the hand-editing risk, and the explicit ask to keep it separate.",
     "elements": [
       {
-        "part": "people keep asking the same question before a re-run: how much is already on disk",
+        "part": "not keen on folding the cost table into the same place",
         "present": true,
-        "why": "Gideon states this exactly at 13:56"
+        "why": "Emil says 'Not keen on folding it into the same place either'"
       },
       {
-        "part": "the only way to answer it right now is to run the thing and watch the hit counter go by on the progress bar",
+        "part": "pricing comes down from litellm and changes weekly",
         "present": true,
-        "why": "Gideon states this at 13:56-13:57"
+        "why": "Emil states this directly"
       },
       {
-        "part": "that is too late to decide anything",
+        "part": "half of it is per-region",
         "present": true,
-        "why": "Gideon says this at 13:57"
+        "why": "Emil states this directly"
+      },
+      {
+        "part": "if it lives next to capability data someone will start hand-editing prices",
+        "present": true,
+        "why": "Emil gives this exact reasoning"
+      },
+      {
+        "part": "keep the cost table where it is",
+        "present": true,
+        "why": "Emil says 'Keep the cost table where it is'"
       }
     ],
     "missing": [],
     "missing_verbatim": [],
     "leaked": [],
     "context": [
-      "13:56  gideon    People keep asking the same thing before a re-run: how much of this is already on disk",
-      "13:56  gideon    The only way to answer it right now is to start the run and watch the hit counter go by ",
-      "13:57  gideon    That's too late to decide anything. We need to surface the cached-versus-backend split b   <-- the clue",
-      "14:01  dario     caching-and-resume doesn't have a pre-run query interface right now, so the only hit dat"
+      "13:51  gideon    @Konrad more of a coverage thing, it reads better if you already know what provider you ",
+      "15:10  emil      Do we have a settled pattern for how new provider examples should be named and structure",
+      "15:10  emil      Pricing comes down from litellm and changes weekly, half of it is per-region.   <-- the clue",
+      "15:10  emil      Not keen on folding it into the same place either",
+      "15:10  emil      Keep the cost table where it is"
     ]
   },
   {
-    "clue": "t2.r2.l7",
-    "holder": "dario",
-    "date": "2025-03-10",
-    "channel": "code-review",
+    "clue": "t2.r1.L9",
+    "holder": "emil",
+    "date": "2025-03-24",
+    "channel": "releases",
     "attempt": 1,
     "said": true,
-    "quote": "left a comment on the kluster PR to drop the set of model names and route through supports_structured_output instead, are we confirming that's the approach now?",
-    "said_by": "Dario Kestrel",
-    "why": "All parts of Dario's remark are present across his consecutive messages at 11:53.",
+    "quote": "The warn-and-continue flavour is actually worse than it sounds. Some backends will log a warning that the format can't be honoured and just carry on, so you get a green run, a full parquet, and every row is an unparsed string you don't find out about until two days later. I'd rather it blow up on line one. Can we just call it: hard failure, hold the PR out of Thursday, and revisit once the offline behaviour is settled?",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 12:11 message states every element of the planted remark.",
     "elements": [
       {
-        "part": "Dario left a comment on the kluster PR",
+        "part": "some backends log a warning that the format cannot be honoured and then just carry on",
         "present": true,
-        "why": "Dario states he left a comment on the kluster PR"
+        "why": "Emil states this at 12:11"
       },
       {
-        "part": "the ask is to drop the set of model names added",
+        "part": "the result is a green run",
         "present": true,
-        "why": "Dario says to drop the set of model names"
+        "why": "Emil says 'you get a green run'"
       },
       {
-        "part": "the ask is to call supports_structured_output instead",
+        "part": "the result is a full parquet",
         "present": true,
-        "why": "Dario says to route through supports_structured_output instead"
+        "why": "Emil says 'a full parquet'"
       },
       {
-        "part": "that helper is already what gets edited when a new model lands",
+        "part": "every row is an unparsed string",
         "present": true,
-        "why": "Dario states this directly"
+        "why": "Emil says 'every row is an unparsed string'"
       },
       {
-        "part": "he doesn't want to be grepping for model strings again next time o3-mini ships",
+        "part": "you don't find out until two days later",
         "present": true,
-        "why": "Dario states this directly"
+        "why": "Emil says 'you don't find out about until two days later'"
+      },
+      {
+        "part": "the speaker would rather it blow up on line one than hand over a plausible-looking dataset",
+        "present": true,
+        "why": "Emil says 'I'd rather it blow up on line one'"
       }
     ],
     "missing": [],
     "missing_verbatim": [],
     "leaked": [],
     "context": [
-      "11:03  nils      for batch-mode PRs, should I be tagging Emil directly as reviewer or does it go wider th",
-      "11:33  emil      +1 on routing through `supports_structured_output`",
-      "11:53  dario     left a comment on the kluster PR to drop the set of model names and route through suppor   <-- the clue",
-      "11:53  dario     that helper's already what gets edited when a new model lands",
-      "11:53  dario     don't want to be grepping for model strings again next time o3-mini ships"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "that helper's already what gets edited when a new model lands",
-        "don't want to be grepping for model strings again next time o3-mini ships"
-      ],
-      "rewrote": false
-    }
+      "11:42  dario     Is there actually time to settle that and get the fix in before Thursday, or are we just",
+      "12:11  emil      +1 on Dario's take",
+      "12:11  emil      The warn-and-continue flavour is actually worse than it sounds. Some backends will log a   <-- the clue",
+      "12:39  dermot    yeah",
+      "12:39  dermot    agreed. hard failure, hold it out of thursday's cut, revisit once the offline behaviour "
+    ]
   },
   {
-    "clue": "t4.r1.L1",
-    "holder": "konrad",
-    "date": "2025-03-10",
-    "channel": "cookbooks",
-    "wrote_into": "page:onboarding-nils",
+    "clue": "t3.r1.L1",
+    "holder": "dario",
+    "date": "2025-03-24",
+    "channel": "pipeline",
     "attempt": 1,
     "said": true,
-    "quote": "The promoted line on the Sandbox Image Release Log page is the only authoritative statement of which curator-sandbox build has been signed off. Do not read the registry tag list to answer this question.",
+    "quote": "Lost a 12hr anthropic batch yesterday when my ssh session died and took the python process with it",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's three consecutive messages at 17:03-17:04 give every element: the loss, the cause, the in-process-only id, the manual console workaround, and the explicit judgment that it's a one-off fix not fit for users.",
+    "elements": [
+      {
+        "part": "lost a 12 hour Anthropic batch yesterday",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "an ssh session died and took the python process with it",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "the job id only ever existed inside that process",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "spent the morning reading batch ids off the provider console",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "pasted one into a scratch script to pull the results down",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "that workaround is fine for him personally, once",
+        "present": true,
+        "why": "Dario says 'that's fine for me once'"
+      },
+      {
+        "part": "not something he'd tell a user to do",
+        "present": true,
+        "why": "Dario states this directly as the objection/should-be view"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "16:01  emil      In the meantime I cancelled the duplicate batch manually on the provider side",
+      "16:23  dermot    the metadata db might be a natural home for that id",
+      "17:03  dario     Lost a 12hr anthropic batch yesterday when my ssh session died and took the python proce   <-- the clue",
+      "17:04  dario     The id only ever existed inside that process",
+      "17:04  dario     Spent this morning reading batch ids off the provider console and pasting one into a scr"
+    ]
+  },
+  {
+    "clue": "t1.r1.l_scope_1",
+    "holder": "emil",
+    "date": "2025-03-25",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "One thing for whoever touches the reuse pass: batch submission builds its jsonl off the same lookup as the online path. When the online path stopped re-sending duplicates last month, the batch path quietly stopped too. Is that already factored into Dario's sketch, or is it going to need explicit handling?",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 12:36 message lays out the shared-lookup fact and the specific incident (online fix silently propagating to batch) that the remark asks the reader to know.",
+    "elements": [
+      {
+        "part": "batch submission builds its jsonl off the same lookup used by the online path",
+        "present": true,
+        "why": "Emil states this directly at 12:36."
+      },
+      {
+        "part": "the online path stopped re-sending duplicates last month",
+        "present": true,
+        "why": "Emil states this as the triggering event at 12:36."
+      },
+      {
+        "part": "the batch path quietly stopped re-sending duplicates too, as a consequence of sharing that lookup",
+        "present": true,
+        "why": "Emil states the batch path 'quietly stopped too' in the same message."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:11  dermot    I'm not entirely sure that fingerprint is the right thing for reuse lookup",
+      "12:35  emil      Is the call to use the fingerprint as-is, or do we want a dedicated tracker for reuse?",
+      "12:36  emil      One thing for whoever touches the reuse pass: batch submission builds its jsonl off the    <-- the clue",
+      "12:39  dermot    yeah, batch and online go through the same reuse lookup, that's not changing. I'll read ",
+      "12:53  emil      When you've got the read on the fingerprint, are you dropping it here or in #pipeline?"
+    ]
+  },
+  {
+    "clue": "t3.r2.l_pay_emil",
+    "holder": "emil",
+    "date": "2025-03-26",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "Something nastier on the resume side: I rewrote the prompt function, ctrl-C'd, reran, and got completions for the old prompts back with zero complaint. The request jsonl on disk was already the new version, the job on the provider side was the old one, and nobody compared the two.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 11:10 message states every element of the remark directly.",
+    "elements": [
+      {
+        "part": "he rewrote the prompt function and then ctrl-C'd and reran",
+        "present": true,
+        "why": "stated directly in his message"
+      },
+      {
+        "part": "he got completions back for the old prompts",
+        "present": true,
+        "why": "he says he got completions for the old prompts back"
+      },
+      {
+        "part": "the system gave no complaint or warning about the mismatch",
+        "present": true,
+        "why": "he says 'with zero complaint'"
+      },
+      {
+        "part": "the request jsonl on disk already reflected the new version",
+        "present": true,
+        "why": "he states the request jsonl on disk was already the new version"
+      },
+      {
+        "part": "the job on the provider side was still the old one",
+        "present": true,
+        "why": "he states the job on the provider side was the old one"
+      },
+      {
+        "part": "nobody compared the two to catch the mismatch",
+        "present": true,
+        "why": "he states nobody compared the two"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:05  gideon    has anyone seen WS-047 actually written up somewhere? I can't find it in the issues",
+      "10:47  gideon    Is there a test for Mistral batch cost tracking anywhere, or is that still a gap?",
+      "11:10  emil      Something nastier on the resume side: I rewrote the prompt function, ctrl-C'd, reran, an   <-- the clue",
+      "11:38  dario     I'd lean toward calling that a correctness bug, not just a resume edge case. You're gett",
+      "11:56  emil      Has anyone done more than a quick pass on PR 604 to confirm it's not touching the cachin"
+    ]
+  },
+  {
+    "clue": "t1.r1.l_unhash_2",
+    "holder": "dermot",
+    "date": "2025-03-26",
+    "channel": "help",
+    "attempt": 1,
+    "said": true,
+    "quote": "for what it's worth, I've had a try/except wrapped around that call since the friday cut, just to get the demo dataset through",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 10:08 run of messages together gives the try/except, the local scope, the Friday-cut demo-dataset purpose, and the not-shipped-not-deleted admission.",
+    "elements": [
+      {
+        "part": "the call was wrapped in a try/except",
+        "present": true,
+        "why": "Dermot says he's had a try/except wrapped around that call."
+      },
+      {
+        "part": "the wrapping was done locally",
+        "present": true,
+        "why": "He says it was done locally, on his own branch."
+      },
+      {
+        "part": "the purpose was to get the demo dataset through",
+        "present": true,
+        "why": "He says it was just to get the demo dataset through."
+      },
+      {
+        "part": "this was for the Friday cut",
+        "present": true,
+        "why": "He says the wrapping has been in place since the Friday cut."
+      },
+      {
+        "part": "he has been carrying the patch since then",
+        "present": true,
+        "why": "The 'since the friday cut' framing conveys an ongoing carried patch."
+      },
+      {
+        "part": "he has not shipped it",
+        "present": true,
+        "why": "He explicitly says he hasn't shipped it."
+      },
+      {
+        "part": "he has also not deleted it",
+        "present": true,
+        "why": "He explicitly says he hasn't deleted it either."
+      },
+      {
+        "part": "that fact (not shipped, not deleted) says something about the state of things",
+        "present": true,
+        "why": "He says this 'tells you something about where we are.'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:36  dermot    that's the unknown-capability case biting us already. if we don't know what the server s",
+      "09:36  gideon    so the check is hard-blocking even when it just can't tell?",
+      "10:08  dermot    for what it's worth, I've had a try/except wrapped around that call since the friday cut   <-- the clue",
+      "10:08  dermot    done locally, on my own branch, not shipped anywhere",
+      "10:08  dermot    I haven't shipped it and I haven't deleted it either, which tells you something about wh"
+    ]
+  },
+  {
+    "clue": "t4.r1.L4",
+    "holder": "konrad",
+    "date": "2025-03-26",
+    "channel": "code-review",
+    "wrote_into": "page:notes-2025-03-24",
+    "attempt": 1,
+    "said": true,
+    "quote": "v0.1.8 is the current candidate. Do not promote until the pytest collection issue is resolved.",
     "said_by": "konrad",
-    "why": "The author plainly asserts the wiki release log page is the authoritative record of signed-off sandbox builds, which is the same information as 'the team agrees' framing.",
+    "why": "The table plus surrounding text state all three facts as plain assertions by the author: v0.1.8 is a candidate awaiting promotion, and v0.1.5/v0.1.6 are superseded.",
     "missing": [],
     "missing_verbatim": [],
     "leaked": [],
     "context": [],
-    "artifact": "Onboarding: nils and theo",
-    "written_as": "onboarding/onboarding-nils-brandt-and-theo-marchetti.md"
+    "artifact": "Weekly Notes — Week of Mar 24",
+    "written_as": "meetings/weekly-notes-week-of-mar-24.md"
+  },
+  {
+    "clue": "t4.r1.L8",
+    "holder": "gideon",
+    "date": "2025-03-27",
+    "channel": "help",
+    "attempt": 1,
+    "said": true,
+    "quote": "We're resolving to `latest` and handing that to users as reproducible",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 17:24-17:25 messages together give the forum user's identical-code, two-weeks-apart, different-pass-count report, the differing digest in the log, and the latest-as-reproducible framing.",
+    "elements": [
+      {
+        "part": "a forum user ran the same RAFT verifier script two weeks apart",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "the two runs produced different pass counts",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "the user's code was identical between runs",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "the run log showed a different image digest the second time",
+        "present": true,
+        "why": "stated directly by Gideon, also shown in the pasted log snippet"
+      },
+      {
+        "part": "the team is resolving the executor image to latest",
+        "present": true,
+        "why": "stated directly by Gideon"
+      },
+      {
+        "part": "they are calling that latest resolution reproducible to users, which is the problem",
+        "present": true,
+        "why": "Gideon states it plainly as the practice, framed as the issue at hand"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "17:24  gideon    Forum user ran the same RAFT verifier script two weeks apart, got different pass counts,",
+      "17:24  gideon    Run log showed a different image digest the second time",
+      "17:25  gideon    We're resolving to `latest` and handing that to users as reproducible   <-- the clue"
+    ]
+  },
+  {
+    "clue": "t1.r2.L7",
+    "holder": "dario",
+    "date": "2025-03-31",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Fresh CI container, nothing has ever run in it, pre-flight estimate step threw a FileNotFoundError on the cache dir",
+    "said_by": "Dario Kestrel",
+    "why": "All parts of the remark appear across Dario's three consecutive messages at 11:51.",
+    "elements": [
+      {
+        "part": "fresh CI container, nothing has ever run in it",
+        "present": true,
+        "why": "Dario says exactly this"
+      },
+      {
+        "part": "pre-flight estimate step threw FileNotFoundError on the cache dir",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "put a mkdir -p in the workflow to unblock it",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "hates that the estimate step is now the thing that creates the cache",
+        "present": true,
+        "why": "Dario says he hates this and names the reason"
+      },
+      {
+        "part": "this is the second time this month",
+        "present": true,
+        "why": "Dario says this directly"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:18  emil      not yet, pulling it up now",
+      "11:51  dario     It needs to exist first, and that's actually the thing I wanted to flag",
+      "11:51  dario     Fresh CI container, nothing has ever run in it, pre-flight estimate step threw a FileNot   <-- the clue",
+      "11:51  dario     I put a mkdir -p in the workflow to unblock it, but I hate that because now the estimate",
+      "12:34  emil      The mkdir in the workflow is the wrong home for that, if the code expects a cache dir it"
+    ]
+  },
+  {
+    "clue": "t3.r1.L6",
+    "holder": "emil",
+    "date": "2025-03-31",
+    "channel": "engineering",
+    "wrote_into": "page:design-ws-050-batch-mode",
+    "attempt": 1,
+    "said": true,
+    "quote": "Every failure happened during the wait window, not during submit.",
+    "said_by": "emil",
+    "why": "The document states both halves plainly: all observed failures occurred during the wait/poll window, and none occurred during the submit call, which returns quickly and is treated as idempotent.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "WS-050: Batch Mode (50%-Cost Async Batch APIs)",
+    "written_as": "engineering/ws-050-batch-mode-50-cost-async-batch-apis.md"
+  },
+  {
+    "clue": "t3.r2.l_prov_emil",
+    "holder": "emil",
+    "date": "2025-04-02",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "moved a cookbook to azure last week, the restart polled a job the openai endpoint doesn't own, sat in a 404 retry loop for twenty minutes before giving up and wiping the dir by hand",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 11:57–11:58 messages give the keying flaw, the collision between openai and azure, the azure move, the 404 loop, the twenty minutes, and the manual cleanup.",
+    "elements": [
+      {
+        "part": "The pending job ID is stored in the run dir keyed only off the dataset, with no backend distinction",
+        "present": true,
+        "why": "Emil states this at 11:58 and 11:57."
+      },
+      {
+        "part": "As a result the plain openai path and an azure deployment of the same model share the same slot",
+        "present": true,
+        "why": "Emil says this explicitly at 11:57."
+      },
+      {
+        "part": "He moved a cookbook to azure last week",
+        "present": true,
+        "why": "Stated at 11:58."
+      },
+      {
+        "part": "On restart it polled a job the openai endpoint doesn't own",
+        "present": true,
+        "why": "Stated at 11:58."
+      },
+      {
+        "part": "It sat in a 404 retry loop for twenty minutes",
+        "present": true,
+        "why": "Stated at 11:58 with the duration."
+      },
+      {
+        "part": "He had to wipe the run dir by hand to recover",
+        "present": true,
+        "why": "Stated at 11:58."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:57  emil      Moved a cookbook to azure last week and the restart polled a job the openai endpoint doe",
+      "11:58  emil      related annoyance: the pending job id gets parked in the run dir keyed off the dataset o",
+      "11:58  emil      moved a cookbook to azure last week, the restart polled a job the openai endpoint doesn'   <-- the clue",
+      "12:11  emil      Does the job ID scoping fix belong in PR 615 or should it go in its own PR?",
+      "15:11  dermot    sorry, been in a call - so the 404 loop was the job id not scoped per backend, that's se"
+    ]
+  },
+  {
+    "clue": "t4.r2.L4",
+    "holder": "dario",
+    "date": "2025-04-03",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "Pointed CodeExecutor at a custom image to stop pip installing pandas per task, and the generated solution just rewrote the input CSV sitting in the mounted dir, original gone",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's four consecutive messages at 14:54 give every part of the story: what he changed, why, what happened, the loss, and the stock-image contrast.",
+    "elements": [
+      {
+        "part": "lost an afternoon to this",
+        "present": true,
+        "why": "Dario says 'Lost the whole afternoon to it.'"
+      },
+      {
+        "part": "pointed CodeExecutor at a custom image",
+        "present": true,
+        "why": "Dario says 'Pointed CodeExecutor at a custom image'"
+      },
+      {
+        "part": "the reason was to stop pip installing pandas per task",
+        "present": true,
+        "why": "Dario says 'to stop pip installing pandas per task'"
+      },
+      {
+        "part": "the generated solution rewrote the input CSV sitting in the mounted dir",
+        "present": true,
+        "why": "Dario says 'the generated solution just rewrote the input CSV sitting in the mounted dir'"
+      },
+      {
+        "part": "the original file is gone with no backup",
+        "present": true,
+        "why": "Dario says 'Original CSV's gone too, no backup.'"
+      },
+      {
+        "part": "on the stock image the same script errors instead of writing",
+        "present": true,
+        "why": "Dario says 'Same script errors on write with the stock image'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:52  emil      @Konrad when you say the shape lines up with RAFT, are you checking against the distract",
+      "13:14  konrad    I was checking overall generation structure, but if there's a distractor format spec som",
+      "14:54  dario     Pointed CodeExecutor at a custom image to stop pip installing pandas per task, and the g   <-- the clue",
+      "14:54  dario     Lost the whole afternoon to it.",
+      "14:54  dario     Original CSV's gone too, no backup."
+    ]
+  },
+  {
+    "clue": "t3.r1.L5",
+    "holder": "dario",
+    "date": "2025-04-03",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "all the wall clock in a batch run is the poll loop, submit at 11, provider finishes around 6",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's messages together give the full remark: poll loop dominates wall clock, submit at 11/finish at 6, only durable write is post-download, killing at hour three leaves no trace, and it bit him twice this week.",
+    "elements": [
+      {
+        "part": "the poll loop consumes essentially all wall clock in a batch run",
+        "present": true,
+        "why": "Dario says all the wall clock in a batch run is the poll loop"
+      },
+      {
+        "part": "submit happens at 11",
+        "present": true,
+        "why": "Dario says submit at 11"
+      },
+      {
+        "part": "provider finishes around 6",
+        "present": true,
+        "why": "Dario says provider finishes around 6"
+      },
+      {
+        "part": "the only durable write happens after download completes",
+        "present": true,
+        "why": "the thread establishes local record is written only once download completes"
+      },
+      {
+        "part": "killing the job at hour three leaves nothing on disk indicating a job was ever opened",
+        "present": true,
+        "why": "Dario says kill it at hour three and there's nothing on disk that so much as knows a job was ever opened"
+      },
+      {
+        "part": "this has bitten the speaker twice this week",
+        "present": true,
+        "why": "Dario says bitten me twice this week"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:40  emil      good catch on the timing of that write",
+      "11:50  dario     If we're only writing a local record once the download comes back, the entire polling wi",
+      "11:50  dario     all the wall clock in a batch run is the poll loop, submit at 11, provider finishes arou   <-- the clue",
+      "11:50  dario     kill it at hour three and there's nothing on disk that so much as knows a job was ever o",
+      "12:04  dario     Worth checking whether the submit call is even awaited per-batch or fired in a gather, h"
+    ]
+  },
+  {
+    "clue": "t3.r1.L7",
+    "holder": "gideon",
+    "date": "2025-04-03",
+    "channel": "viewer",
+    "attempt": 1,
+    "said": true,
+    "quote": "User ctrl-c'd while the first status line was still printing, restarted beofre we heard anything back from the provider",
+    "said_by": "Gideon Halloway",
+    "why": "All elements of the diagnosis are stated across Gideon's messages, corroborated by Emil's log excerpt.",
+    "elements": [
+      {
+        "part": "two jobs appeared on one account's dashboard four minutes apart",
+        "present": true,
+        "why": "Gideon says two jobs on the same account, four minutes apart"
+      },
+      {
+        "part": "the jobs had identical request counts",
+        "present": true,
+        "why": "Gideon and Emil both note identical request counts/params"
+      },
+      {
+        "part": "the cause: user ctrl-c'd while the first status line was still printing and restarted the script",
+        "present": true,
+        "why": "Gideon explains this directly"
+      },
+      {
+        "part": "the second submission happened within a window of about ninety seconds",
+        "present": true,
+        "why": "Gideon gives the ~90 second window explicitly"
+      },
+      {
+        "part": "that window is before any status comes back from the provider",
+        "present": true,
+        "why": "Gideon states this is before hearing back from the provider at all"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  gideon    Has anyone run into duplicate jobs showing up on the dashboard?",
+      "09:41  gideon    Answering my own Q - traced it",
+      "09:41  gideon    User ctrl-c'd while the first status line was still printing, restarted beofre we heard    <-- the clue",
+      "09:41  gideon    Two jobs on the same account, four minutes apart, identical request counts",
+      "10:13  gideon    I think restarts in the gap is the explanation - that window is maybe 90 seconds right a"
+    ]
+  },
+  {
+    "clue": "t3.r2.l_model_gideon",
+    "holder": "gideon",
+    "date": "2025-04-07",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "and the responses come back priced at whatever model it was actually submitted with, not the resumed one",
+    "said_by": "Gideon Halloway",
+    "why": "Across Gideon's messages at 11:29 all five parts of the remark are stated: the pricing mismatch mechanism, the actual vs resumed model, the 10x figure, the plan to file an issue, and his negative reaction.",
+    "elements": [
+      {
+        "part": "cost tracking after resume prices at the current config's model rather than the original",
+        "present": true,
+        "why": "Dario states the resume path reads from whatever model is in config, not the original submission model."
+      },
+      {
+        "part": "the responses were actually generated using the originally submitted model",
+        "present": true,
+        "why": "Gideon says responses come back priced at whatever model it was actually submitted with, not the resumed one."
+      },
+      {
+        "part": "this caused a roughly 10x cost discrepancy",
+        "present": true,
+        "why": "Gideon says he saw it come out about 10x off on a resume."
+      },
+      {
+        "part": "an issue is going to be filed about it",
+        "present": true,
+        "why": "Gideon says they are going to get an issue filed about that number."
+      },
+      {
+        "part": "the person has nothing good to say about it",
+        "present": true,
+        "why": "Gideon explicitly says he has nothing good to say about that number."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:29  gideon    yeah",
+      "11:29  gideon    saw it come out about 10x off on a resume this weekend",
+      "11:29  gideon    and the responses come back priced at whatever model it was actually submitted with, not   <-- the clue",
+      "11:29  gideon    we are going to get an issue filed about that number",
+      "11:29  gideon    and i have nothing good to say about it"
+    ]
+  },
+  {
+    "clue": "t3.r1.L4",
+    "holder": "dermot",
+    "date": "2025-04-07",
+    "channel": "engineering",
+    "wrote_into": "page:design-ws-055-release-and-ci",
+    "attempt": 1,
+    "said": false,
+    "quote": "",
+    "said_by": "dermot",
+    "why": "The document only mentions 'one resume from cache' as an integration smoke step; it never describes a fingerprint-keyed cache directory or what must be stored in it.",
+    "missing": [
+      "Any notion of a fingerprint-keyed cache directory",
+      "The rule that everything a rerun depends on must live in that cache",
+      "the name CURATOR_DISABLE_CACHE itself, typed the way it is written"
+    ],
+    "missing_verbatim": [
+      "CURATOR_DISABLE_CACHE"
+    ],
+    "leaked": [
+      "submission"
+    ],
+    "context": [],
+    "artifact": "WS-055: Release Engineering, CI & Test Suite",
+    "written_as": "engineering/ws-014-design-release-engineering-ci-test-suite.md"
+  },
+  {
+    "clue": "t3.r1.L9",
+    "holder": "dario",
+    "date": "2025-04-09",
+    "channel": "incidents",
+    "attempt": 1,
+    "said": true,
+    "quote": "Yeah, that's the exact issue I was trying to describe from this morning's help thread. Someone had CURATOR_CACHE_DIR on a volume with 0 bytes free, and the submit went through fine. Provider already had their 40k requests queued and billing",
+    "said_by": "Dario Kestrel",
+    "why": "Dario Kestrel's two messages together give every element: the full disk cache dir, the successful submit, the 40k queued/billed requests, the OSError originating from the cache write rather than the API client, and the outcome of paying with nothing to show but a traceback.",
+    "elements": [
+      {
+        "part": "a user had CURATOR_CACHE_DIR on a volume with 0 bytes free",
+        "present": true,
+        "why": "Dario states this exactly."
+      },
+      {
+        "part": "the batch submit went through fine",
+        "present": true,
+        "why": "Dario says the submit went through fine."
+      },
+      {
+        "part": "the provider had 40k requests queued and was billing for them",
+        "present": true,
+        "why": "Dario states provider already had 40k requests queued and billing."
+      },
+      {
+        "part": "the process then failed with an OSError coming from the cache write, not the API client",
+        "present": true,
+        "why": "Dario specifies the OSError came from the cache write, not the API client."
+      },
+      {
+        "part": "the user paid for the batch and was left with only a traceback",
+        "present": true,
+        "why": "Dario says they paid for the batch, nothing to show for it, and got a traceback."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:29  dermot    the run crashed overnight, was restarted by hand, and the restart submitted a full secon",
+      "11:27  dermot    if the cache dir is unwritable, does the run just die with no record of what it already ",
+      "11:41  dario     Yeah, that's the exact issue I was trying to describe from this morning's help thread. S   <-- the clue",
+      "11:42  dario     The OSError came out of the cache write, not the API client, so the run died with no loc",
+      "11:42  dario     Paid for the batch, nothing to show for it"
+    ]
+  },
+  {
+    "clue": "t3.r1.L2",
+    "holder": "emil",
+    "date": "2025-04-11",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "I hit exactly this about a month ago - stashed the batch id in a .curator_batch file in the working directory, edited the prompt template, reran, and it cheerfully picked the previous job back up and handed me answers for the old prompts.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's two messages at 16:59-17:00 cover every element: the sidecar file, the edit, the rerun, the wrong job resuming, old answers, and the explicit contrast that the response cache was blameless while his file was not.",
+    "elements": [
+      {
+        "part": "they stashed the batch id in a .curator_batch file in the working directory",
+        "present": true,
+        "why": "Emil says exactly this at 16:59."
+      },
+      {
+        "part": "it worked fine until they edited the prompt template",
+        "present": true,
+        "why": "Emil says 'Worked right up until I edited the prompt template' in substance: 'edited the prompt template, reran'."
+      },
+      {
+        "part": "they reran after editing",
+        "present": true,
+        "why": "Emil says 'reran'."
+      },
+      {
+        "part": "it picked the previous job back up",
+        "present": true,
+        "why": "Emil says it 'cheerfully picked the previous job back up'."
+      },
+      {
+        "part": "it handed back answers for the old prompts",
+        "present": true,
+        "why": "Emil says it 'handed me answers for the old prompts'."
+      },
+      {
+        "part": "the response cache did not make that mistake",
+        "present": true,
+        "why": "Emil explicitly says 'The response cache didn't make that mistake.'"
+      },
+      {
+        "part": "it was their own file that made the mistake",
+        "present": true,
+        "why": "Emil explicitly says 'My file did.'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:00  dermot    @Dario, is the resume state keyed to the same fingerprint the prompt cache uses, or is i",
+      "11:41  dario     keyed independently, so yeah it goes stale",
+      "16:59  emil      I hit exactly this about a month ago - stashed the batch id in a .curator_batch file in    <-- the clue",
+      "17:00  emil      The response cache didn't make that mistake. My file did.",
+      "17:00  dario     does it key on the input rows at all, or just the batch id?"
+    ]
+  },
+  {
+    "clue": "t3.r2.l_prov_gideon",
+    "holder": "gideon",
+    "date": "2025-04-14",
+    "channel": "viewer",
+    "attempt": 1,
+    "said": true,
+    "quote": "Also ran into something weird after a restart: the summary table header said the run was on gemini but the batch object we were tracking was clearly mistral, so the cost column came out as gibberish because the token fields didn't line up",
+    "said_by": "Gideon Halloway",
+    "why": "All elements of the remark are stated by Gideon across his two consecutive messages.",
+    "elements": [
+      {
+        "part": "header said the run was on gemini",
+        "present": true,
+        "why": "Gideon states the summary table header said gemini."
+      },
+      {
+        "part": "the batch object being tracked was clearly mistral",
+        "present": true,
+        "why": "Gideon says the batch object was clearly mistral."
+      },
+      {
+        "part": "the cost column came out as gibberish",
+        "present": true,
+        "why": "Gideon says the cost column came out as gibberish."
+      },
+      {
+        "part": "the token fields didn't line up, causing that",
+        "present": true,
+        "why": "Gideon attributes the gibberish to token fields not lining up."
+      },
+      {
+        "part": "this happened after a restart",
+        "present": true,
+        "why": "Gideon says he ran into this after a restart."
+      },
+      {
+        "part": "he could make the table defensive",
+        "present": true,
+        "why": "Gideon says he can make the table defensive."
+      },
+      {
+        "part": "but the thing feeding it the wrong info is the real problem",
+        "present": true,
+        "why": "Gideon says whatever is feeding it the wrong provider info is the real problem."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "mismatch"
+    ],
+    "context": [
+      "09:00  gideon    PR 631 is in for review, it's the projected total and remaining work, and I think it's c",
+      "09:00  gideon    Also ran into something weird after a restart: the summary table header said the run was   <-- the clue",
+      "09:00  gideon    I can make the table defensive but whatever is feeding it the wrong provider info is the",
+      "09:41  dermot    I can take PR 631, does anyone have eyes on PR 632 from the viewer side yet?"
+    ]
+  },
+  {
+    "clue": "t4.r2.L10",
+    "holder": "dario",
+    "date": "2025-04-15",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "Tangentially related to the batch mode stuff, but I finally traced why one of my runs was asking for root: the entrypoint does an apt-get at container start",
+    "said_by": "Dario Kestrel",
+    "why": "All four pieces are stated across Dario's three consecutive messages at 13:51.",
+    "elements": [
+      {
+        "part": "the entrypoint does an apt-get at container start, which is why it wanted root",
+        "present": true,
+        "why": "Dario states this directly"
+      },
+      {
+        "part": "the batch completed to completion with normal numbers",
+        "present": true,
+        "why": "Dario says batch completed fine, numbers looked normal"
+      },
+      {
+        "part": "he only found out days later because he opened the Dockerfile for something unrelated",
+        "present": true,
+        "why": "Dario says exactly this"
+      },
+      {
+        "part": "nothing in the output or logs indicated the run had been different",
+        "present": true,
+        "why": "Dario says nothing flagged the run had been any different"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:44  emil      From what I've seen so far the response-shape bugs are turning up on Gemini and not othe",
+      "13:23  gideon    Is the shape mismatch showing up in the raw response, or after the request layer has tou",
+      "13:51  dario     Tangentially related to the batch mode stuff, but I finally traced why one of my runs wa   <-- the clue",
+      "13:51  dario     Batch completed fine, numbers looked normal, and I only figured it out days later when I",
+      "13:51  dario     Nothing in the output or logs flagged that the run had been any different"
+    ]
+  },
+  {
+    "clue": "t3.r2.l_model_dermot",
+    "holder": "dermot",
+    "date": "2025-04-16",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "I bumped an example from gpt-4o-mini to gpt-4o, killed the run because I fat-fingered the output path, reran, and what came back was plainly mini text",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 11:09-11:10 messages give every piece: the wasted afternoon, the model bump, the fat-fingered restart, the mini-text result, and the stale batch id.",
+    "elements": [
+      {
+        "part": "lost most of an afternoon on this",
+        "present": true,
+        "why": "Dermot states it directly at 11:09-11:10"
+      },
+      {
+        "part": "bumped the example from gpt-4o-mini to gpt-4o",
+        "present": true,
+        "why": "Dermot names both model versions explicitly"
+      },
+      {
+        "part": "killed the run because he fat-fingered the output path",
+        "present": true,
+        "why": "Dermot gives this as the reason for killing the run"
+      },
+      {
+        "part": "reran",
+        "present": true,
+        "why": "Dermot says he reran after killing it"
+      },
+      {
+        "part": "the dataset that came out was plainly mini text",
+        "present": true,
+        "why": "Dermot says what came back was plainly mini text"
+      },
+      {
+        "part": "the batch id it resumed was the one from before the edit",
+        "present": true,
+        "why": "Dermot states this explicitly at 11:10"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:09  dermot    no strong view on the key name",
+      "11:10  dermot    lost most of an afternoon on this",
+      "11:10  dermot    I bumped an example from gpt-4o-mini to gpt-4o, killed the run because I fat-fingered th   <-- the clue",
+      "11:10  dermot    the batch id it resumed was the one from beofre the edit, so I was running gpt-4o and ge",
+      "18:10  nikolai   Sorry, got pulled into other stuff and never did end up checking the sandbox repo today."
+    ]
+  },
+  {
+    "clue": "t4.r2.L8",
+    "holder": "dermot",
+    "date": "2025-04-17",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "pinning the tag is a reproducibility thing, it's not the same axis as protections.",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's 10:33 messages state the reproducibility/axis distinction and the want in his own words.",
+    "elements": [
+      {
+        "part": "pinning the tag is a reproducibility fix",
+        "present": true,
+        "why": "Dermot says 'pinning the tag is a reproducibility thing'"
+      },
+      {
+        "part": "whether the container is locked down is a different axis from the tag",
+        "present": true,
+        "why": "Dermot says 'it's not the same axis as protections'"
+      },
+      {
+        "part": "he does not want lockdown riding on whichever tag you happen to get handed",
+        "present": true,
+        "why": "Dermot says 'I don't want the lockdown to be a side effect of which tag we happen to get'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:33  dermot    separate thing, but related to this PR landing: if we pin the tag, does that actually gi",
+      "10:33  dermot    I don't want the lockdown to be a side effect of which tag we happen to get",
+      "10:33  dermot    pinning the tag is a reproducibility thing, it's not the same axis as protections.   <-- the clue",
+      "11:35  gideon    right",
+      "11:36  gideon    that's the thing, the protections shouldn't depend on the tag"
+    ]
+  },
+  {
+    "clue": "t2.r2.l1",
+    "holder": "dario",
+    "date": "2025-04-17",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "o3 basically confirmed STRUCTURED_OUTPUT_MODELS is the single edit point, I dropped the model name in there the morning it went live and structured output was working on the online path that afternoon with no other diff",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's message states all four parts: the single edit, morning timing, same-afternoon success, and no other diff.",
+    "elements": [
+      {
+        "part": "o3 support required only adding the model name to STRUCTURED_OUTPUT_MODELS",
+        "present": true,
+        "why": "Dario says he dropped the model name in there and that was the only step."
+      },
+      {
+        "part": "the addition happened the morning it went live",
+        "present": true,
+        "why": "Dario states the timing directly."
+      },
+      {
+        "part": "structured output was working on the online path that same afternoon",
+        "present": true,
+        "why": "Dario says it was working that afternoon."
+      },
+      {
+        "part": "no other diff was needed",
+        "present": true,
+        "why": "Dario explicitly says no other diff."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:20  gideon    Is GPT-4.1 in STRUCTURED_OUTPUT_MODELS already, or does it need to be added?",
+      "11:21  gideon    ok answering my own question, i think i can just check the list directly, but separately",
+      "11:34  dario     o3 basically confirmed STRUCTURED_OUTPUT_MODELS is the single edit point, I dropped the    <-- the clue",
+      "11:35  dario     Still want to verify GPT-4.1 is in the list and that the response mapping isn't creaing ",
+      "12:10  emil      From the batch-mode side, cost accounting reads from the same response fields regardless"
+    ]
+  },
+  {
+    "clue": "t1.r2.L4",
+    "holder": "gideon",
+    "date": "2025-04-17",
+    "channel": "random",
+    "attempt": 1,
+    "said": true,
+    "quote": "typo'd the path in my cache-poking script, it did a mkdir -p on the way in, and this morning's cookbook run found a fresh empty cache dir at the typo'd path, decided nothing was cached, and re-sent 38k requests",
+    "said_by": "Gideon Halloway",
+    "why": "All parts of the remark are stated across Gideon's opening messages.",
+    "elements": [
+      {
+        "part": "self-inflicted, posting so nobody else does it",
+        "present": true,
+        "why": "Gideon says he did something dumb and is posting so nobody else does it"
+      },
+      {
+        "part": "typo'd the path in his cache-poking script",
+        "present": true,
+        "why": "he states the typo in the path directly"
+      },
+      {
+        "part": "it did a mkdir -p on the way in",
+        "present": true,
+        "why": "he states this explicitly"
+      },
+      {
+        "part": "the cookbook run found a shiny empty cache directory at the typo",
+        "present": true,
+        "why": "he describes the morning run finding a fresh empty cache dir at the typo'd path"
+      },
+      {
+        "part": "decided nothing was cached and re-sent 38k requests",
+        "present": true,
+        "why": "he states this outcome directly"
+      },
+      {
+        "part": "the bill is real",
+        "present": true,
+        "why": "he says this explicitly"
+      },
+      {
+        "part": "the script only ever wanted to count rows",
+        "present": true,
+        "why": "he states this explicitly"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  gideon    ok so I did something dumb last night",
+      "09:00  gideon    typo'd the path in my cache-poking script, it did a mkdir -p on the way in, and this mor   <-- the clue",
+      "09:00  gideon    the script only ever wanted to count rows.",
+      "09:00  gideon    posting this so nobody else does it."
+    ]
+  },
+  {
+    "clue": "t1.r1.l_params_2",
+    "holder": "emil",
+    "date": "2025-04-18",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "Same shape of thing with max_tokens for me - response came back truncated mid-sentence, I raised max_tokens, reran, and got handed the same truncated text again. Ended up deleting the whole cache directory, which took out four thousand rows that were perfectly fine.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's message states the full sequence: truncation, raising max_tokens, rerunning, same truncated output returned, and deleting the cache directory as the only fix, at the cost of four thousand good rows.",
+    "elements": [
+      {
+        "part": "response came back truncated mid-sentence",
+        "present": true,
+        "why": "Emil says it came back truncated mid-sentence"
+      },
+      {
+        "part": "raised max_tokens",
+        "present": true,
+        "why": "Emil says he raised max_tokens"
+      },
+      {
+        "part": "reran",
+        "present": true,
+        "why": "Emil says he reran"
+      },
+      {
+        "part": "got handed the same truncated text again",
+        "present": true,
+        "why": "Emil says he got the same truncated text again"
+      },
+      {
+        "part": "deleted the cache directory",
+        "present": true,
+        "why": "Emil says deleting the cache directory finally cleared it"
+      },
+      {
+        "part": "that took out four thousand rows that were perfectly fine",
+        "present": true,
+        "why": "Emil says it took out four thousand fine rows"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:39  dario     @Emil Brandvold when you hit this, is it local or also in CI, and do you know if the var",
+      "14:09  gideon    so waiting on Dario to check what CI sets, then we can figure out reuse vs. new var",
+      "14:51  emil      Same shape of thing with max_tokens for me - response came back truncated mid-sentence,    <-- the clue",
+      "14:51  emil      This was local - is the expectation that people bust the whole cache when generation par",
+      "14:51  emil      To be clear on the sequence: truncated mid-sentence with max_tokens, raised max_tokens, "
+    ]
+  },
+  {
+    "clue": "t3.r2.l_prov_dario",
+    "holder": "dario",
+    "date": "2025-04-18",
+    "channel": "incidents",
+    "attempt": 1,
+    "said": true,
+    "quote": "Actually I hit something related - killed a run mid-batch, switched the backend from openai to anthropic in the same script, reran, and it went straight back to polling the openai batch id from the first attempt.",
+    "said_by": "Dario Kestrel",
+    "why": "Dario's two consecutive messages give every element of the planted remark: the kill, the provider switch, the rerun, the resumed openai polling, and how he noticed via the id's shape.",
+    "elements": [
+      {
+        "part": "killed a run mid-batch",
+        "present": true,
+        "why": "Dario says he killed a run mid-batch."
+      },
+      {
+        "part": "switched backend from openai to anthropic in the same script",
+        "present": true,
+        "why": "Dario states this exact detail."
+      },
+      {
+        "part": "reran it",
+        "present": true,
+        "why": "Dario says he reran."
+      },
+      {
+        "part": "it resumed polling the openai batch id from the first attempt",
+        "present": true,
+        "why": "Dario says it went straight back to polling the openai batch id from the first attempt."
+      },
+      {
+        "part": "he only noticed because the id in the log still had the openai shape",
+        "present": true,
+        "why": "Dario explains how he spotted it."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "fingerprint"
+    ],
+    "context": [
+      "10:58  dario     Do you know if Konrad had the same provider set both times, or did anything change betwe",
+      "11:10  nikolai   dunno, I'd have to check with Konrad",
+      "11:24  dario     Actually I hit something related - killed a run mid-batch, switched the backend from ope   <-- the clue",
+      "11:24  dario     only spotted it because the id in the log still had the openai shape on it",
+      "12:03  nikolai   So the provider name is in the fingerprint but it's not actually being used to key the c"
+    ]
+  },
+  {
+    "clue": "t3.r2.l_beh_dermot",
+    "holder": "dermot",
+    "date": "2025-04-21",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "if the stored job doesn't match what we'd send today, I think we just submit a new one and eat the 24h and the cost",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's two messages together give the full comparison and rationale.",
+    "elements": [
+      {
+        "part": "if the stored job doesn't match what we'd send today, we submit a new one",
+        "present": true,
+        "why": "Dermot states this directly"
+      },
+      {
+        "part": "we accept the 24h wait",
+        "present": true,
+        "why": "Dermot names the 24h cost explicitly"
+      },
+      {
+        "part": "we accept the extra money cost",
+        "present": true,
+        "why": "Dermot says 'eat the cost'"
+      },
+      {
+        "part": "a duplicate batch costs only a few dollars",
+        "present": true,
+        "why": "Dermot states this figure"
+      },
+      {
+        "part": "handing someone a dataset that blends two configs costs trust",
+        "present": true,
+        "why": "Dermot frames this as the trust problem"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "mismatch"
+    ],
+    "context": [
+      "09:00  dermot    been thinking about the job-reuse question this week",
+      "09:00  dermot    if the stored job doesn't match what we'd send today, I think we just submit a new one a   <-- the clue",
+      "09:00  dermot    a duplicate batch is a few dollars; a dataset that quietly blends two configs is a trust",
+      "09:43  gideon    i think that's right for a full mismatch, but do we have a clear definition of what \"doe"
+    ]
+  },
+  {
+    "clue": "t4.r1.L6",
+    "holder": "dermot",
+    "date": "2025-04-21",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "can we agree not to move anything user-facing onto v0.1.8 yet?\nit is still eating test files in collection and I know it sits in the registry looking newer than everything else, but that is exactly how we end up with bug reports we cannot reproduce",
+    "said_by": "Dermot Callaghan",
+    "why": "All four parts of the ask are stated by Dermot Callaghan in his two consecutive messages at 09:24.",
+    "elements": [
+      {
+        "part": "do not move anything user facing onto v0.1.8 yet",
+        "present": true,
+        "why": "Dermot asks to agree not to move anything user-facing onto v0.1.8 yet"
+      },
+      {
+        "part": "v0.1.8 is still eating test files in collection",
+        "present": true,
+        "why": "Dermot states it is still eating test files in collection"
+      },
+      {
+        "part": "v0.1.8 sits in the registry looking newer than everything else",
+        "present": true,
+        "why": "Dermot notes it sits in the registry looking newer than everything else"
+      },
+      {
+        "part": "that appearance of newness is exactly how bug reports that can't be reproduced happen",
+        "present": true,
+        "why": "Dermot links the newer-looking registry entry to unreproducible bug reports as the reason to hold off"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  nikolai   Batch mode bug sweep (WS-050) is mostly wrapped up, got through the main cases",
+      "09:00  nikolai   Cost accounting (WS-054) is still in progress, probably have something to show by this a",
+      "09:24  dermot    can we agree not to move anything user-facing onto v0.1.8 yet?   <-- the clue",
+      "09:24  dermot    it is still eating test files in collection and I know it sits in the registry looking n",
+      "09:40  nikolai   +1"
+    ]
+  },
+  {
+    "clue": "t2.r1.L5",
+    "holder": "gideon",
+    "date": "2025-04-21",
+    "channel": "help",
+    "attempt": 1,
+    "said": true,
+    "quote": "40k passes over the same model string for a 40k row run, that's what the debug lines are, log output of that same lookup",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 13:13 and 14:06 messages together give the profiling trigger, the 40k passes/log lines, and the fixed-at-config-time reasoning.",
+    "elements": [
+      {
+        "part": "profiled the 40k row poem run because the bars were stuttering",
+        "present": true,
+        "why": "Gideon at 14:06 says he profiled the poem run because the bars were stuttering"
+      },
+      {
+        "part": "the capability lookup is done per request",
+        "present": true,
+        "why": "Gideon's 09:34 message and Nikolai's replies establish the lookup happens on every single request"
+      },
+      {
+        "part": "that amounts to 40k passes over the same model string for a 40k row run",
+        "present": true,
+        "why": "Gideon at 14:06 says '40k passes over the same model string for a 40k row run'"
+      },
+      {
+        "part": "there are 40k identical debug lines in the log, one per request",
+        "present": true,
+        "why": "Gideon at 13:13 says '40k identical debug lines in the log, same line repeated every request'"
+      },
+      {
+        "part": "the answer cannot change between row 1 and row 40000",
+        "present": true,
+        "why": "Gideon at 14:06 says 'the answer can't change between row 1 and row 40000'"
+      },
+      {
+        "part": "the model name is fixed the moment you configure the thing",
+        "present": true,
+        "why": "Gideon at 14:06 states this explicitly, twice"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:13  gideon    Anyone know where those are getting emitted?",
+      "14:06  gideon    @Nikolai Berresford is the pre-container pull step something you're already tracking, or",
+      "14:06  gideon    40k passes over the same model string for a 40k row run, that's what the debug lines are   <-- the clue",
+      "14:06  gideon    profiled the 40k row poem run because the bars were stuttering, that's what put me on th",
+      "14:06  gideon    and the answer can't change between row 1 and row 40000, the model name is fixed the mom"
+    ]
+  },
+  {
+    "clue": "t3.r2.l_model_emil",
+    "holder": "emil",
+    "date": "2025-04-23",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "Related: the persisted job record doesn't store the model either, just the id, the request file path, and a timestamp",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's run of messages at 15:09 states the record's exact contents, the missing model field, the resulting inability to judge safe resumption, and the twice-this-week impact.",
+    "elements": [
+      {
+        "part": "the pending job record stores only the id, the request file path, and a timestamp",
+        "present": true,
+        "why": "Emil lists exactly those three fields as the whole record"
+      },
+      {
+        "part": "that is the entire record, nothing else on it",
+        "present": true,
+        "why": "Emil says 'that's the whole record, nothing else on it'"
+      },
+      {
+        "part": "the model the job was submitted with is not recorded anywhere on disk",
+        "present": true,
+        "why": "Emil says the record 'doesn't store the model either'"
+      },
+      {
+        "part": "when handed a run dir, Emil cannot tell what model it went out with",
+        "present": true,
+        "why": "Emil states this directly"
+      },
+      {
+        "part": "as a result, Emil cannot tell whether picking the job back up is safe",
+        "present": true,
+        "why": "Emil explicitly connects not knowing the model to not being able to judge safety of resuming"
+      },
+      {
+        "part": "this gap has caused Emil concrete trouble twice this week",
+        "present": true,
+        "why": "Emil says 'this isn't the first time either, it's bitten me twice this week'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:16  dario     Honestly I don't have that count, and I'd lean toward not moving on this until we do.",
+      "14:33  gideon    Is there a way to pull that count from the cache store, or does it need instrumentation ",
+      "15:09  emil      Related: the persisted job record doesn't store the model either, just the id, the reque   <-- the clue",
+      "15:09  emil      and this isn't the first time either, it's bitten me twice this week",
+      "15:09  emil      that's the whole record, nothing else on it"
+    ]
+  },
+  {
+    "clue": "t3.r1.L10",
+    "holder": "emil",
+    "date": "2025-04-24",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "adjacent gripe, the one place we do already wrap a cache write in try/except, the except body is a bare pass",
+    "said_by": "Emil Brandvold",
+    "why": "Emil Brandvold's three consecutive messages together give every piece: the existing bare-pass except, the hour-long incident with its cause and lack of reporting, and the explicit ask for a warning-level log naming the path.",
+    "elements": [
+      {
+        "part": "there is already one place where a cache write is wrapped in try/except",
+        "present": true,
+        "why": "Emil says 'the one place we do already wrap a cache write in try/except'"
+      },
+      {
+        "part": "the except body there is a bare pass",
+        "present": true,
+        "why": "Emil says 'the except body is a bare pass'"
+      },
+      {
+        "part": "this caused an hour lost last week",
+        "present": true,
+        "why": "Emil says 'burned an hour last week'"
+      },
+      {
+        "part": "the symptom was a rerun redoing everything from scratch",
+        "present": true,
+        "why": "Emil says 'wondering why a rerun redid everything from scratch'"
+      },
+      {
+        "part": "the actual cause was the write failing on a permissions issue on a mounted dir",
+        "present": true,
+        "why": "Emil says 'the write had failed on a permissions thing on a mounted dir'"
+      },
+      {
+        "part": "nothing was reported about the failure at the time",
+        "present": true,
+        "why": "Emil says 'we never said one word about it'"
+      },
+      {
+        "part": "if the code is going to carry on regardless of the failure, it needs to log at warning level",
+        "present": true,
+        "why": "Emil says 'it needs to come out at warning level'"
+      },
+      {
+        "part": "the warning must include the path",
+        "present": true,
+        "why": "Emil says 'with the path in it'"
+      },
+      {
+        "part": "without that, a failed write is indistinguishable from the cache simply not working",
+        "present": true,
+        "why": "Emil says 'otherwise it's indistinguishable from the cache just not working'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "17:59  emil      ugh, that's the exact thing",
+      "18:23  emil      That bare `pass` in the cache-write except needs to go, at minimum it should log a warni",
+      "18:24  emil      adjacent gripe, the one place we do already wrap a cache write in try/except, the except   <-- the clue",
+      "18:24  emil      burned an hour last week wondering why a rerun redid everything from scratch, turned out",
+      "18:26  dario     +1"
+    ]
+  },
+  {
+    "clue": "t4.r1.L5",
+    "holder": "nikolai",
+    "date": "2025-04-24",
+    "channel": "releases",
+    "attempt": 1,
+    "said": true,
+    "quote": "Anyway, the docker smoke test has been running against v0.1.7 since February, everything we've actually verified end to end sits on that build",
+    "said_by": "Nikolai Berresford",
+    "why": "Nikolai's messages together give the smoke test detail, the February timeframe, the personal safety judgment, and the verified-end-to-end claim.",
+    "elements": [
+      {
+        "part": "the docker backend smoke test has been running against v0.1.7",
+        "present": true,
+        "why": "Nikolai states the smoke test has been running against v0.1.7"
+      },
+      {
+        "part": "that smoke test has been running since February",
+        "present": true,
+        "why": "Nikolai gives the timeframe 'since February'"
+      },
+      {
+        "part": "v0.1.7 is the last build Nikolai would personally call safe",
+        "present": true,
+        "why": "Nikolai says 'It's the last build I'd personally call safe'"
+      },
+      {
+        "part": "everything actually verified end to end sits on that build",
+        "present": true,
+        "why": "Nikolai says 'everything we've actually verified end to end sits on that build'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:36  nikolai   Ok",
+      "10:36  nikolai   It's the last build I'd personally call safe.",
+      "10:36  nikolai   Anyway, the docker smoke test has been running against v0.1.7 since February, everything   <-- the clue",
+      "10:36  nikolai   answering my own question",
+      "10:36  nikolai   Should be PR only"
+    ]
+  },
+  {
+    "clue": "t2.r2.l6",
+    "holder": "gideon",
+    "date": "2025-04-25",
+    "channel": "random",
+    "attempt": 1,
+    "said": true,
+    "quote": "got two support tickets this week about o3, both confused about schema support, and I finally twigged that we have more than one list of model names floating around in the tree, so users are getting different answers depending on where they look",
+    "said_by": "Gideon Halloway",
+    "why": "All parts of the remark—the two o3 tickets, the contradictory schema answers, the realization about multiple lists, and the preference for a hard error over triangulation—are stated plainly by Gideon Halloway across the conversation.",
+    "elements": [
+      {
+        "part": "Two support tickets in a row were about o3 specifically",
+        "present": true,
+        "why": "Gideon says he got two support tickets this week about o3."
+      },
+      {
+        "part": "The tickets showed users getting a schema answer in one place and not another (contradictory answers)",
+        "present": true,
+        "why": "Gideon says both tickets were users who checked two different places and got opposite answers about o3 schema support."
+      },
+      {
+        "part": "This is what led him to realize there is more than one list of model names in the tree",
+        "present": true,
+        "why": "Gideon says he 'finally twigged that we have more than one list of model names floating around in the tree' right after describing the tickets."
+      },
+      {
+        "part": "He would rather have a hard error surfaced than have users triangulate between disagreeing lists",
+        "present": true,
+        "why": "Gideon explicitly says 'I'd rather we surface a hard error than have users triangulate between two lists that disagree.'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:00  gideon    PR 632 is basically done, just needs a final reviewer pass before I can merge it",
+      "09:00  gideon    got two support tickets this week about o3, both confused about schema support, and I fi   <-- the clue",
+      "09:16  nikolai   That multiple-list problem is real, I've run into it from the release side too",
+      "09:16  nikolai   There's no single source of truth so depending on which file you check first you get a d"
+    ]
+  },
+  {
+    "clue": "t1.r2.L12",
+    "holder": "emil",
+    "date": "2025-04-28",
+    "channel": "viewer",
+    "attempt": 1,
+    "said": true,
+    "quote": "The report object should carry the inspected directory as a field, same way the end-of-run summary already prints the db path.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil Brandvold's 14:03/14:04 messages together state the field, the comparison to the db path, and the cheap-fix framing.",
+    "elements": [
+      {
+        "part": "this is a cheap fix for the support loop",
+        "present": true,
+        "why": "Emil says it directly at 14:04"
+      },
+      {
+        "part": "the object these reporting calls hand back should carry the inspected directory as a field",
+        "present": true,
+        "why": "Emil states the report object should carry the inspected directory as a field"
+      },
+      {
+        "part": "this mirrors how the end-of-run summary already prints the db path",
+        "present": true,
+        "why": "Emil draws that exact comparison in the same message"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "13:48  dario     Honestly I'm not sure the executor resolves the path internally at all - if it doesn't, ",
+      "13:48  dario     @Nikolai does the executor resolve the inspected directory internally, or is that someth",
+      "14:03  emil      The report object should carry the inspected directory as a field, same way the end-of-r   <-- the clue",
+      "14:04  emil      This is a cheap fix for the support loop, that's why I'd rather just add the field than ",
+      "14:04  emil      If the executor needs to resolve it first, how much work is that?"
+    ]
+  },
+  {
+    "clue": "t3.r2.l_beh_emil",
+    "holder": "emil",
+    "date": "2025-04-29",
+    "channel": "general",
+    "attempt": 1,
+    "said": true,
+    "quote": "I tested a guard locally that raised on job mismatch and it killed a nightly run at 3am, four hours in",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 18:06 messages give the local test, the 3am nightly failure, the unattended-worse-than-now judgment, and the explicit ruling out of abort as a fix.",
+    "elements": [
+      {
+        "part": "Emil ran a guard locally that raised on job mismatch",
+        "present": true,
+        "why": "Emil says he tested a guard locally that raised on job mismatch."
+      },
+      {
+        "part": "it killed a nightly run at 3am",
+        "present": true,
+        "why": "Emil says it killed a nightly run at 3am, four hours in."
+      },
+      {
+        "part": "that outcome is worse than current behavior for unattended runs",
+        "present": true,
+        "why": "Emil says a nightly job dying at 3am over a config mismatch is worse than whatever we have now."
+      },
+      {
+        "part": "aborting when the stored job can't be reused is not a fix",
+        "present": true,
+        "why": "Emil states directly that aborting when the stored job can't be reused is not a fix."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "mismatch"
+    ],
+    "context": [
+      "16:44  dermot    I'm not totally sure that sync is needed, @Emil already said abort is the wrong call",
+      "17:23  nikolai   fair enough",
+      "18:06  emil      I tested a guard locally that raised on job mismatch and it killed a nightly run at 3am,   <-- the clue",
+      "18:06  emil      Aborting when the stored job can't be reused is not a fix",
+      "18:06  emil      So where does that leave the fallback behavior, is there any agreement on what we actual"
+    ]
+  },
+  {
+    "clue": "t4.r1.L3",
+    "holder": "dermot",
+    "date": "2025-05-01",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "while that's still open, whatever we bake in as the default has to be a build somebody actually signed off, not just the newest thing out of CI green",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's two consecutive messages give the requirement, the exclusion, the past incident, and his preference not to repeat it.",
+    "elements": [
+      {
+        "part": "whatever value is baked in as the shipped default has to be a build somebody actually signed off",
+        "present": true,
+        "why": "Dermot says the default has to be a build somebody actually signed off, not just newest out of CI"
+      },
+      {
+        "part": "it must not just be the newest thing that came out of CI green",
+        "present": true,
+        "why": "Dermot explicitly contrasts signed-off against newest-out-of-CI-green"
+      },
+      {
+        "part": "the team has shipped a container to users before that nobody had run the verifier suite against",
+        "present": true,
+        "why": "Dermot states this happened previously"
+      },
+      {
+        "part": "he would rather not repeat that",
+        "present": true,
+        "why": "Dermot says he'd rather not repeat it"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:37  dario     - *bulk-llm-inference*: mostly stable, tidying up a few edge cases around request batchi",
+      "11:19  dermot    gotcha",
+      "11:19  dermot    while that's still open, whatever we bake in as the default has to be a build somebody a   <-- the clue",
+      "11:20  dermot    we've shipped a container before that nobody had run the verifier suite against, I'd rat",
+      "11:31  nikolai   @Dermot Callaghan when you say signed off, you mean a specific pinned digest, not just a"
+    ]
+  },
+  {
+    "clue": "t1.r2.L9",
+    "holder": "gideon",
+    "date": "2025-05-01",
+    "channel": "code-review",
+    "wrote_into": "page:handover-status-tracking-cost-reporting-and-the-v",
+    "attempt": 1,
+    "said": true,
+    "quote": "On a machine with no history, nothing is on disk and every request goes to the provider. That is a correct number, not a broken one. Zero hit rate on a cold-start run is expected.",
+    "said_by": "gideon",
+    "why": "The author states plainly that an empty/cold cache yields zero hit rate and all requests going to the provider (backend-bound), asserted as correct/expected behavior rather than a room's consensus, which the prompt says counts the same.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Handover: Status Tracking, Cost Reporting & the Viewer Surface",
+    "written_as": "engineering/handover-status-tracking-cost-reporting-the-viewer-surface.md"
+  },
+  {
+    "clue": "t4.r2.L3",
+    "holder": "dermot",
+    "date": "2025-05-06",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "the uid is just left to the dockerfile, but that should be something the executor decides at create time",
+    "said_by": "Dermot Callaghan",
+    "why": "Dermot's two consecutive 09:57 messages state the naming-things trigger, the current gap (never passed to docker), and the should-be (executor decides at create time).",
+    "elements": [
+      {
+        "part": "the trigger is naming things in code, prompting a related observation about the uid",
+        "present": true,
+        "why": "Dermot says 'while we're naming things in code anyway, it occured to me...'"
+      },
+      {
+        "part": "docker accepts a user argument on the create call",
+        "present": true,
+        "why": "Dermot says 'the executor decides at create time' implying docker's create call takes it, made explicit later at 15:00/17:26"
+      },
+      {
+        "part": "the team has never actually passed a user argument to docker on create",
+        "present": true,
+        "why": "Dermot: 'we've never actually passed a user argument to docker on the create call'"
+      },
+      {
+        "part": "the uid is currently left to the dockerfile",
+        "present": true,
+        "why": "Dermot: 'the uid is just left to the dockerfile'"
+      },
+      {
+        "part": "that should instead be something the executor decides at create time",
+        "present": true,
+        "why": "Dermot: 'but that should be something the executor decides at create time'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "09:50  gideon    On PR 653 now, should have feedback before lunch",
+      "09:57  dermot    while we're naming things in code anyway, it occured to me we've never actually passed a",
+      "09:57  dermot    the uid is just left to the dockerfile, but that should be something the executor decide   <-- the clue",
+      "10:34  konrad    right",
+      "11:18  gideon    uh, not sure - if the image doesn't have that user set up, won't the container just fail"
+    ]
+  },
+  {
+    "clue": "t2.r2.l2",
+    "holder": "emil",
+    "date": "2025-05-06",
+    "channel": "incidents",
+    "attempt": 1,
+    "said": true,
+    "quote": "For anyone reading the online processor: it calls supports_structured_output(model) before it puts response_format on the payload",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's four consecutive messages together give every element: the call site, the timing relative to response_format, that it's a membership check, and the plain-text-plus-warning fallback with nothing louder.",
+    "elements": [
+      {
+        "part": "the online processor calls supports_structured_output(model) before putting response_format on the payload",
+        "present": true,
+        "why": "Emil states this directly"
+      },
+      {
+        "part": "the check is just a membership check",
+        "present": true,
+        "why": "Emil says 'Just a membership check'"
+      },
+      {
+        "part": "if the check says no you get plain text back",
+        "present": true,
+        "why": "Emil states this directly"
+      },
+      {
+        "part": "if the check says no you also get a warning",
+        "present": true,
+        "why": "Emil says 'and a warning'"
+      },
+      {
+        "part": "nothing louder happens on failure",
+        "present": true,
+        "why": "Emil states this explicitly"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:20  gideon    main fully confirmed or still just \"as far as you can tell\"?",
+      "11:47  emil      Nice that the reasoning is already in the wiki.",
+      "11:48  emil      For anyone reading the online processor: it calls supports_structured_output(model) befo   <-- the clue",
+      "11:48  emil      If the check says no you get plain text back and a warning.",
+      "11:48  emil      Nothing louder happens on failure."
+    ]
+  },
+  {
+    "clue": "t4.r1.L2",
+    "holder": "nikolai",
+    "date": "2025-05-07",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Lost most of yesterday to curator-sandbox tag confusion, picked what looked like the newest one off the registry, got twelve failures that had nothing to do with my code",
+    "said_by": "Nikolai Berresford",
+    "why": "Nikolai's messages together give the full account: lost time, picked newest-looking tag, ran verifier, twelve unrelated failures, then grepped repo and found nothing written down.",
+    "elements": [
+      {
+        "part": "they lost most of yesterday to this",
+        "present": true,
+        "why": "Nikolai says he lost most of yesterday to curator-sandbox tag confusion."
+      },
+      {
+        "part": "they picked a tag off the registry listing because it looked newest",
+        "present": true,
+        "why": "Nikolai says he picked what looked like the newest one off the registry."
+      },
+      {
+        "part": "they ran the verifier suite against it",
+        "present": true,
+        "why": "Nikolai says he ran the verifier suite against it."
+      },
+      {
+        "part": "they got twelve failures",
+        "present": true,
+        "why": "Nikolai states twelve failures."
+      },
+      {
+        "part": "the failures had nothing to do with his code",
+        "present": true,
+        "why": "Nikolai says the failures had nothing to do with his code."
+      },
+      {
+        "part": "he grepped the whole repo afterward for any hint of the good build",
+        "present": true,
+        "why": "Nikolai says he grepped the whole repo afterwards."
+      },
+      {
+        "part": "there is nothing in the repo, the numbers are not written down anywhere in the codebase",
+        "present": true,
+        "why": "Nikolai says there is literally nothing written down about which build is good."
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "wiki"
+    ],
+    "context": [
+      "09:00  nikolai   Lost most of yesterday to curator-sandbox tag confusion, picked what looked like the new   <-- the clue",
+      "09:00  nikolai   Ran the verifier suite against it too, that's how I got the twelve failures",
+      "09:00  nikolai   Grepped the whole repo afterwards and there is literally nothing written down about whic"
+    ]
+  },
+  {
+    "clue": "t2.r1.L4",
+    "holder": "dermot",
+    "date": "2025-05-07",
+    "channel": "engineering",
+    "wrote_into": "page:postmortem-2025-05-06",
+    "attempt": 1,
+    "said": true,
+    "quote": "If your branch depends on what a model can do, the right move is to look it up in the table and add the pattern there if it is missing.",
+    "said_by": "dermot",
+    "why": "The closing note explicitly asserts both adding new patterns to the table and reading from it as the correct practice.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Postmortem: Examples/Cookbooks Lint & Structured-Output Revert",
+    "written_as": "incidents/postmortem-examples-cookbooks-lint-structured-output-revert.md"
+  },
+  {
+    "clue": "t4.r2.L5",
+    "holder": "nikolai",
+    "date": "2025-05-09",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Not on custom images - and the read-only bind is half the point, a model physically can't edit the test file so grading actually means something.",
+    "said_by": "Nikolai Berresford",
+    "why": "Nikolai's 11:33 messages state the mechanism, the custom-image failure, and how he caught it, matching the required remark.",
+    "elements": [
+      {
+        "part": "the read-only bind exists so a model solution can't edit the test file, making grading meaningful",
+        "present": true,
+        "why": "Nikolai states this directly as the point of the read-only bind"
+      },
+      {
+        "part": "this was run on a custom image someone handed him",
+        "present": true,
+        "why": "Nikolai says 'an image someone handed me'"
+      },
+      {
+        "part": "three solutions passed by overwriting the assertions",
+        "present": true,
+        "why": "Nikolai states this exact fact"
+      },
+      {
+        "part": "he only caught it because the pass rate jumped",
+        "present": true,
+        "why": "Nikolai states this exact fact"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "read-only"
+    ],
+    "context": [
+      "11:19  emil      hmm, the mount question is the one I want to actually answer",
+      "11:19  emil      I'd assume always read-only, but is that actually enforced on custom images or just the ",
+      "11:33  nikolai   Not on custom images - and the read-only bind is half the point, a model physically can'   <-- the clue",
+      "11:33  nikolai   Ran last week's batch on an image someone handed me and three solutions passed by overwr",
+      "11:33  nikolai   I only caught it because the pass rate jumped"
+    ]
+  },
+  {
+    "clue": "t2.r1.L3",
+    "holder": "emil",
+    "date": "2025-05-30",
+    "channel": "releases",
+    "attempt": 1,
+    "said": true,
+    "quote": "o3-mini wasn't in the support table last week at all, everything o3 fell straight through to the unsupported branch",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's 11:19-11:20 messages together give the shipped-day-one fact, the missing table entry, the fallthrough to unsupported, and his own half-morning of misattributed debugging.",
+    "elements": [
+      {
+        "part": "o3-mini shipped with schema support day one",
+        "present": true,
+        "why": "Emil states it shipped with schema support day one"
+      },
+      {
+        "part": "the support table had no o3 entry at all last week",
+        "present": true,
+        "why": "Emil says o3-mini wasn't in the table last week at all"
+      },
+      {
+        "part": "as a result everything o3 fell straight through to the unsupported branch",
+        "present": true,
+        "why": "Emil states this explicitly"
+      },
+      {
+        "part": "Emil lost roughly a morning to this",
+        "present": true,
+        "why": "Emil says he sat there for half a morning"
+      },
+      {
+        "part": "he spent that time rewriting his pydantic model",
+        "present": true,
+        "why": "Emil states this directly"
+      },
+      {
+        "part": "he was convinced the bug was his own",
+        "present": true,
+        "why": "Emil says he was convinced the bug was his"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "10:35  konrad    Does o3-mini need to be explicitly called out in the support table, or is the o3 family ",
+      "11:12  konrad    Who actually cuts the tag for v0.1.25, is that Emil or does someone else do it?",
+      "11:19  emil      o3-mini wasn't in the support table last week at all, everything o3 fell straight throug   <-- the clue",
+      "11:20  emil      team's aligned that o3 as a family needs to be in the table, not just mentioned in passi",
+      "11:20  emil      it shipped with schema support day one, table just never got an entry for it"
+    ]
+  },
+  {
+    "clue": "t4.r2.L7",
+    "holder": "nikolai",
+    "date": "2025-05-30",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "Sorry, I meant to come back on this earlier - the sandbox guarantees don't hold if you bring your own image, I went and checked after the demo.",
+    "said_by": "Nikolai Berresford",
+    "why": "Nikolai's 17:20 messages together state he was asked at the demo, answered 'should do', checked afterward, found it false, and wants that correction on record.",
+    "elements": [
+      {
+        "part": "Was asked at the demo whether sandbox guarantees still hold if the caller brings their own image",
+        "present": true,
+        "why": "Nikolai says he said 'should do' at the demo about this question, implying he was asked"
+      },
+      {
+        "part": "He answered 'should do' at the time",
+        "present": true,
+        "why": "Nikolai states directly 'I said \"should do\" at the demo'"
+      },
+      {
+        "part": "He went and checked afterward",
+        "present": true,
+        "why": "Nikolai says 'I went and checked after the demo'"
+      },
+      {
+        "part": "He now wants to retract/correct that answer because it was wrong",
+        "present": true,
+        "why": "Nikolai says 'that was wrong, just wanted that on record before the weekend'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:20  konrad    Is the `retry_after` value reliable or just a rough estimate?",
+      "11:20  konrad    And what does the caller get today if they hit this before indexing finishes, an excepti",
+      "17:20  nikolai   Sorry, I meant to come back on this earlier - the sandbox guarantees don't hold if you b   <-- the clue",
+      "17:20  nikolai   I told someone at the demo \"should do\" and that was wrong, just wanted that on record be",
+      "17:21  emil      Not sure if that 60 is coming from the viewer or if I'm the one setting it."
+    ]
+  },
+  {
+    "clue": "t1.r1.l_params_3",
+    "holder": "dario",
+    "date": "2025-01-28",
+    "channel": "",
+    "wrote_into": "page:design-t1-plant",
+    "artifact": "design-t1-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the page it was planted in (page:design-t1-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t1.r1.l_schema_2",
+    "holder": "dario",
+    "date": "2025-02-24",
+    "channel": "",
+    "wrote_into": "page:design-t2-plant",
+    "artifact": "design-t2-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the page it was planted in (page:design-t2-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t1.r1.l_stats_2",
+    "holder": "emil",
+    "date": "2025-05-02",
+    "channel": "",
+    "wrote_into": "comment:handover-status-tracking-cost-reporting-and-the-v-c0",
+    "artifact": "handover-status-tracking-cost-reporting-and-the-v-c0",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the comment it was planted in (comment:handover-status-tracking-cost-reporting-and-the-v-c0) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t1.r2.L11",
+    "holder": "dario",
+    "date": "2025-02-03",
+    "channel": "",
+    "wrote_into": "page:handover-request-processing-core-and-provider-bac",
+    "artifact": "handover-request-processing-core-and-provider-bac",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the page it was planted in (page:handover-request-processing-core-and-provider-bac) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t1.r2.L6",
+    "holder": "emil",
+    "date": "2025-03-21",
+    "channel": "",
+    "wrote_into": "page:design-t3-plant",
+    "artifact": "design-t3-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the page it was planted in (page:design-t3-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t2.r1.L1",
+    "holder": "dario",
+    "date": "2025-01-01",
+    "channel": "",
+    "wrote_into": "page:notes-2024-12-30",
+    "artifact": "notes-2024-12-30",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the page it was planted in (page:notes-2024-12-30) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t2.r1.L10",
+    "holder": "dario",
+    "date": "2025-03-04",
+    "channel": "",
+    "wrote_into": "comment:postmortem-2025-03-01-c0",
+    "artifact": "postmortem-2025-03-01-c0",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the comment it was planted in (comment:postmortem-2025-03-01-c0) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t2.r1.L7",
+    "holder": "emil",
+    "date": "2025-02-04",
+    "channel": "",
+    "wrote_into": "comment:handover-request-processing-core-and-provider-bac-c0",
+    "artifact": "handover-request-processing-core-and-provider-bac-c0",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the comment it was planted in (comment:handover-request-processing-core-and-provider-bac-c0) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t3.r1.L11",
+    "holder": "dermot",
+    "date": "2025-02-05",
+    "channel": "",
+    "wrote_into": "mail:mail-t1-plant",
+    "artifact": "mail-t1-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the mail it was planted in (mail:mail-t1-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t3.r1.L3",
+    "holder": "gideon",
+    "date": "2025-04-01",
+    "channel": "",
+    "wrote_into": "mail:mail-t3-plant",
+    "artifact": "mail-t3-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the mail it was planted in (mail:mail-t3-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t3.r1.L8",
+    "holder": "dermot",
+    "date": "2025-03-27",
+    "channel": "",
+    "wrote_into": "mail:mail-t3-plant",
+    "artifact": "mail-t3-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the mail it was planted in (mail:mail-t3-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t4.r2.L12",
+    "holder": "nikolai",
+    "date": "2025-04-16",
+    "channel": "",
+    "wrote_into": "mail:mail-t4-plant",
+    "artifact": "mail-t4-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the mail it was planted in (mail:mail-t4-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t4.r2.L6",
+    "holder": "emil",
+    "date": "2025-04-24",
+    "channel": "",
+    "wrote_into": "mail:mail-t4-plant",
+    "artifact": "mail-t4-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the mail it was planted in (mail:mail-t4-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
+  },
+  {
+    "clue": "t4.r2.L9",
+    "holder": "konrad",
+    "date": "2025-05-02",
+    "channel": "",
+    "wrote_into": "mail:mail-t4-plant",
+    "artifact": "mail-t4-plant",
+    "attempt": 0,
+    "said": false,
+    "rendered": false,
+    "quote": "",
+    "said_by": "",
+    "why": "never rendered: the mail it was planted in (mail:mail-t4-plant) was never written, so there was nothing to judge",
+    "elements": [],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": ""
   }
 ]

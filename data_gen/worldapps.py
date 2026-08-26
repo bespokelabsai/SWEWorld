@@ -20,6 +20,7 @@ store what it holds rather than asking a persona what they did.
 from __future__ import annotations
 
 import datetime as dt
+import email
 import json
 import re
 from email.message import EmailMessage
@@ -221,6 +222,36 @@ class Wiki(Store):
                      action="write", ts=when, doc_kind=kind, path=str(path))
         return rel
 
+    def rehydrate(self) -> int:
+        """Load a corpus already on disk back into the store.
+
+        A run reports what it wrote from memory, so re-judging a FINISHED
+        corpus would otherwise see an empty wiki and call every page it ever
+        made a page nobody wrote. The frontmatter carries author and date,
+        which is everything the audit matches on.
+        """
+        for path in sorted(self.docs.glob("*/*.md")):
+            rel = f"{path.parent.name}/{path.name}"
+            if rel in self._pages:
+                continue
+            head, _, body = path.read_text(encoding="utf-8").partition("---\n")[2] \
+                .partition("\n---\n")
+            meta = {}
+            for line in head.splitlines():
+                key, _, value = line.partition(":")
+                if value.strip():
+                    try:
+                        meta[key.strip()] = json.loads(value.strip())
+                    except ValueError:
+                        meta[key.strip()] = value.strip()
+            title = str(meta.get("title") or path.stem)
+            by = str(meta.get("author") or "")
+            self._pages[rel] = {"title": title, "author": by, "body": body.strip()}
+            self._record(kind="doc", ident=rel, title=title, by=by,
+                         action="write", ts=str(meta.get("created_at") or ""),
+                         path=str(path))
+        return len(self._pages)
+
     def read(self, rel: str) -> str:
         page = self._pages.get(rel)
         if page:
@@ -408,6 +439,44 @@ class Mail(Store):
                      action="reply" if in_reply_to else "send", ts=when,
                      to=", ".join(recipients))
         return mid
+
+    def rehydrate(self) -> int:
+        """Load sent mail already on disk back into the store.
+
+        Only the sender's own copy: every recipient holds a duplicate of the
+        same message, and counting those would report one mail as several.
+        """
+        if not self.index.exists():
+            return 0
+        seen = 0
+        for raw in self.index.read_text(encoding="utf-8").splitlines():
+            raw = raw.strip()
+            if not raw or raw.startswith("#"):
+                continue
+            row = json.loads(raw)
+            if (row.get("folder") or "") != "Sent":
+                continue
+            path = self.root / "emails" / row["path"]
+            if not path.exists():
+                continue
+            msg = email.message_from_string(path.read_text(encoding="utf-8"))
+            subject = msg.get("Subject", "")
+            uid = (msg.get("From", "").split("@")[0] or "").strip("<> ")
+            body = msg.get_payload(decode=True)
+            body = body.decode("utf-8", "replace") if body else msg.get_payload()
+            key = slug(subject)
+            if key in self._threads:
+                continue
+            self._threads[key] = {
+                "mid": msg.get("Message-ID", ""), "subject": subject,
+                "from": uid, "to": [a.strip() for a in
+                                    msg.get("To", "").split(",") if a.strip()],
+                "body": body or "", "ts": row.get("date", "")}
+            self._record(kind="mail", ident=msg.get("Message-ID", ""),
+                         title=subject, by=uid, action="send",
+                         ts=row.get("date", ""), to=msg.get("To", ""))
+            seen += 1
+        return seen
 
     def inbox_of(self, uid: str) -> list[dict]:
         return [t for t in self._threads.values() if uid in t["to"]]

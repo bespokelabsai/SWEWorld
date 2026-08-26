@@ -853,6 +853,12 @@ def main(argv: list[str] | None = None) -> int:
                              "proof against what the personas ACTUALLY said in "
                              "the run named by --run, falling back to the "
                              "planned clue text for days not yet simulated")
+    parser.add_argument("--audit-only", action="store_true",
+                        help="do not simulate. Re-judge the corpus named by "
+                             "--run against its own transcript and the pages "
+                             "and mail on disk, and REWRITE the ledgers. Use "
+                             "when a run's clue or artifact ledger covers "
+                             "fewer days than the transcript does")
     parser.add_argument("--install", action="store_true",
                         help="copy the result into data/ once it is good")
     parser.add_argument("-v", "--verbose", action="count", default=0)
@@ -880,9 +886,12 @@ def run(world: World, days: list[str], only: set[str] | None, args) -> int:
     # Imported here, not at module scope: this reaches `bespoke_user`, which
     # resolves auth the moment it is touched, and `resolve_auth` has to have run
     # first. See this module's docstring.
-    from phase4_run import prove_corpus, simulate      # noqa: E402
+    from phase4_run import audit_corpus, prove_corpus, simulate   # noqa: E402
     if args.prove_solvable:
         return prove_corpus(world, Path(args.out) / "runs" / args.run, args)
+    if args.audit_only:
+        root = Path(args.out)
+        return audit_corpus(world, root, root / "runs" / args.run, args)
     return simulate(world, days, only, args)
 
 
