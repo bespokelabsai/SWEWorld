@@ -2034,14 +2034,29 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args,
     if args.install:
         _install(out)
 
+    # An artifact that was planned and never made fails the run the same way a
+    # lost clue does. It used to warn and exit 0 — so a corpus missing pages
+    # the world is supposed to contain reported success, and the gap only
+    # showed up if somebody read the audit. A plan is a promise about what the
+    # world holds; a promise the run did not keep is a broken run.
+    unmade = [r for r in art_rows if not r["done"]]
+    if unmade:
+        for row in unmade:
+            rl.warn(f"never made: {row['date']} {row['by']} {row['action']} "
+                    f"{row.get('doc_kind') or row['kind']} — {row['title'][:60]}")
     if lost:
         for row in lost:
             rl.warn(f"{row['clue']} ({row['holder']}, #{row['channel']} "
                     f"{row['date']}): {row['why'][:90]}")
-        rl.fail(f"{len(lost)} planted clue(s) never got said. A clue nobody "
-                "carries is a requirement the corpus cannot teach, so the task "
-                "would be unscoreable. The transcripts are still on disk and "
-                f"still worth reading — see {clues_dir}/index.md.")
+    if lost or unmade:
+        rl.fail(
+            (f"{len(lost)} planted clue(s) never got said. " if lost else "")
+            + (f"{len(unmade)} planned artifact(s) were never made. " if unmade else "")
+            + "A clue nobody carries is a requirement the corpus cannot teach, "
+              "and a document nobody wrote is a world that does not match its "
+              "own plan. The transcripts are still on disk and still worth "
+              f"reading — see {clues_dir}/index.md and "
+              f"{out / 'artifact_audit.md'}.")
     return 0
 
 

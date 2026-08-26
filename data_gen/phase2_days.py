@@ -963,6 +963,77 @@ def sanitize(packet: dict, specs: dict) -> list[str]:
     return notes
 
 
+# Where a quiet day's paperwork gets posted. Not everything belongs in
+# #engineering: a release note announced there and a postmortem filed there
+# read like the channels do not mean anything.
+ROOM_FOR = {
+    "release-notes": "releases", "postmortem": "incidents",
+    "onboarding": "general", "meeting-notes": "engineering",
+    "planning": "engineering", "handover": "engineering",
+    "design": "engineering", "runbook": "engineering",
+}
+
+
+def workroom_for_orphans(world: "World", date: str, due: list[tuple],
+                         people: list[dict]) -> dict | None:
+    """A day file for a date that owes artifacts and has no conversation.
+
+    Thirteen artifacts were dated on days phase 2 chose not to generate specs
+    for — a holiday, a quiet Monday — and so had no producer, no obligation and
+    no way of ever being written. One of them carried a clue, which is how a
+    requirement went missing from the corpus with nothing anywhere saying so.
+
+    The answer is not to move the date. A person who owes a write-up on a quiet
+    day still writes it; they just do not hold a stand-up about it first. So
+    the day gets a small room whose whole business is producing what is owed:
+    the author, a short thread, and a goal per artifact. It reads as somebody
+    posting what they finished rather than a meeting that never happened.
+    """
+    if not due:
+        return None
+    known = {p["id"] for p in people}
+    specs = []
+    for kind, item_id, author, label, channel in due:
+        if author not in known:
+            continue
+        others = [p for p in people if p["id"] != author][:2]
+        verb = "write up" if kind == "doc" else "send"
+        specs.append({
+            "date": date, "channel": channel,
+            "channel_name": f"#{channel}",
+            "purpose_class": "housekeeping",
+            "purpose": f"{author} posts {label}, which is due today",
+            "reason": "the calendar owes this artifact today and nothing else "
+                      "is happening; without a room for it, nobody is ever "
+                      "asked to produce it",
+            "expected_outcome": f"{label} exists and is linked here",
+            "agenda": [label], "subjects": [label],
+            "participants": [
+                {"id": author, "label": author, "why": "owes this today",
+                 "brings": f"the {kind} itself", "wants": f"{label} posted"}
+            ] + [{"id": o["id"], "label": o["id"], "why": "in this channel",
+                  "brings": "", "wants": ""} for o in others],
+            "goals": [{"goal": f"{verb} {label}", "owner": author,
+                       "agenda_item": label,
+                       "beats": [f"{author} says they will {verb} {label}"],
+                       "reads": [], "writes": [{"kind": kind, "id": item_id}],
+                       "added_by": "workroom"}],
+            "meetings": [], "event_ids": [], "referenced_objects": [],
+            "must_not_mention": [], "absent_owners": [], "stand_in": None,
+            "norms": [], "role": "the quiet day's paperwork",
+            # Small on purpose. This is a person posting what they finished,
+            # not a meeting; a long thread here would invent a working day out
+            # of one that the calendar says was quiet.
+            "max_turns": 6,
+        })
+    if not specs:
+        return None
+    return {"schema_version": SCHEMA_VERSION, "date": date,
+            "weekday": dt.date.fromisoformat(date).strftime("%A"),
+            "phase_id": "phase2_days.workroom", "people": people,
+            "specs": specs}
+
+
 def attach_artifacts(packet: dict, specs: dict,
                      world: "World" = None) -> list[str]:
     """Bind today's documents and mail to the conversation that produced them.

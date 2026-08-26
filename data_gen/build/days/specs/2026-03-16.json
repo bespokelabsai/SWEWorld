@@ -3,7 +3,73 @@
   "date": "2026-03-16",
   "weekday": "Mon",
   "phase_id": "solo-maintainer-second-act",
-  "specs": [],
+  "specs": [
+    {
+      "date": "2026-03-16",
+      "channel": "releases",
+      "channel_name": "#releases",
+      "purpose_class": "housekeeping",
+      "purpose": "konrad posts v0.1.27 release notes, which is due today",
+      "reason": "the calendar owes this artifact today and nothing else is happening; without a room for it, nobody is ever asked to produce it",
+      "expected_outcome": "v0.1.27 release notes exists and is linked here",
+      "agenda": [
+        "v0.1.27 release notes"
+      ],
+      "subjects": [
+        "v0.1.27 release notes"
+      ],
+      "participants": [
+        {
+          "id": "konrad",
+          "label": "konrad",
+          "why": "owes this today",
+          "brings": "the doc itself",
+          "wants": "v0.1.27 release notes posted"
+        },
+        {
+          "id": "dario",
+          "label": "dario",
+          "why": "in this channel",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "dermot",
+          "label": "dermot",
+          "why": "in this channel",
+          "brings": "",
+          "wants": ""
+        }
+      ],
+      "goals": [
+        {
+          "goal": "write up v0.1.27 release notes",
+          "owner": "konrad",
+          "agenda_item": "v0.1.27 release notes",
+          "beats": [
+            "konrad says they will write up v0.1.27 release notes"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "release-v0-1-27"
+            }
+          ],
+          "added_by": "workroom"
+        }
+      ],
+      "meetings": [],
+      "event_ids": [],
+      "referenced_objects": [],
+      "must_not_mention": [],
+      "absent_owners": [],
+      "stand_in": null,
+      "norms": [],
+      "role": "the quiet day's paperwork",
+      "max_turns": 6
+    }
+  ],
   "people": [
     {
       "id": "dario",

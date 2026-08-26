@@ -1,75 +1,8 @@
 {
   "schema_version": 1,
-  "date": "2026-03-13",
-  "weekday": "Fri",
-  "phase_id": "solo-maintainer-second-act",
-  "specs": [
-    {
-      "date": "2026-03-13",
-      "channel": "engineering",
-      "channel_name": "#engineering",
-      "purpose_class": "housekeeping",
-      "purpose": "konrad posts ws-085: reworking release engineering and CI, which is due today",
-      "reason": "the calendar owes this artifact today and nothing else is happening; without a room for it, nobody is ever asked to produce it",
-      "expected_outcome": "ws-085: reworking release engineering and CI exists and is linked here",
-      "agenda": [
-        "ws-085: reworking release engineering and CI"
-      ],
-      "subjects": [
-        "ws-085: reworking release engineering and CI"
-      ],
-      "participants": [
-        {
-          "id": "konrad",
-          "label": "konrad",
-          "why": "owes this today",
-          "brings": "the doc itself",
-          "wants": "ws-085: reworking release engineering and CI posted"
-        },
-        {
-          "id": "dario",
-          "label": "dario",
-          "why": "in this channel",
-          "brings": "",
-          "wants": ""
-        },
-        {
-          "id": "dermot",
-          "label": "dermot",
-          "why": "in this channel",
-          "brings": "",
-          "wants": ""
-        }
-      ],
-      "goals": [
-        {
-          "goal": "write up ws-085: reworking release engineering and CI",
-          "owner": "konrad",
-          "agenda_item": "ws-085: reworking release engineering and CI",
-          "beats": [
-            "konrad says they will write up ws-085: reworking release engineering and CI"
-          ],
-          "reads": [],
-          "writes": [
-            {
-              "kind": "doc",
-              "id": "design-ws-085-release-and-ci"
-            }
-          ],
-          "added_by": "workroom"
-        }
-      ],
-      "meetings": [],
-      "event_ids": [],
-      "referenced_objects": [],
-      "must_not_mention": [],
-      "absent_owners": [],
-      "stand_in": null,
-      "norms": [],
-      "role": "the quiet day's paperwork",
-      "max_turns": 6
-    }
-  ],
+  "date": "2025-07-09",
+  "weekday": "Wednesday",
+  "phase_id": "phase2_days.workroom",
   "people": [
     {
       "id": "dario",
@@ -77,8 +10,8 @@
       "seniority": "senior",
       "title": "Core Engineer, Request Processing",
       "available": false,
-      "state": "absent",
-      "reason": "no commit, review or comment 2025-11-04..2026-03-14",
+      "state": "not-yet-joined",
+      "reason": "first active 2024-10-31",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -104,22 +37,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "bulk-llm-inference",
@@ -130,7 +49,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": []
       }
     },
@@ -140,8 +74,8 @@
       "seniority": "senior",
       "title": "Founding Software Engineer — Core Pipeline & Release",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2025-06-26",
+      "state": "not-yet-joined",
+      "reason": "first active 2024-10-29",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -167,22 +101,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "examples-cookbooks",
@@ -193,7 +113,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": []
       }
     },
@@ -203,8 +138,8 @@
       "seniority": "senior",
       "title": "Core Platform Engineer, Request Processing",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2026-01-05",
+      "state": "not-yet-joined",
+      "reason": "first active 2025-01-07",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -230,22 +165,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "release-and-ci",
@@ -256,7 +177,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": []
       }
     },
@@ -266,8 +202,8 @@
       "seniority": "senior",
       "title": "Core Engineer — Dataset Viewer & Run Observability",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2025-05-06",
+      "state": "not-yet-joined",
+      "reason": "first active 2024-11-04",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -291,22 +227,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "online-request-processing",
@@ -317,7 +239,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": [
           "cookbooks",
           "releases"
@@ -330,8 +267,8 @@
       "seniority": "contractor",
       "title": "Contributor, Local Inference Backends (vLLM)",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2025-01-28",
+      "state": "not-yet-joined",
+      "reason": "first active 2025-01-05",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -353,22 +290,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "local-offline-inference"
@@ -377,7 +300,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": [
           "cookbooks",
           "incidents",
@@ -394,13 +332,15 @@
       "available": true,
       "state": "present",
       "reason": "",
-      "working_on": "nothing scheduled",
-      "driving": [],
-      "blocked_on": [],
-      "recently_completed": [],
-      "writing_today": [
-        "design-ws-085-release-and-ci"
+      "working_on": "First Housekeeping Pass: Deps, Format, Docs",
+      "driving": [
+        "ws-001-release-and-ci"
       ],
+      "blocked_on": [],
+      "recently_completed": [
+        "Initial examples scaffold commit"
+      ],
+      "writing_today": [],
       "did_today": {
         "commits": 2,
         "reviews": 0,
@@ -420,22 +360,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "examples-cookbooks",
@@ -446,7 +372,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": [
           "pipeline"
         ]
@@ -458,8 +399,8 @@
       "seniority": "senior",
       "title": "Research Platform Engineer — Code Execution & Data-Generation Recipes",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2026-02-09",
+      "state": "not-yet-joined",
+      "reason": "first active 2025-01-06",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -483,22 +424,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "code-execution",
@@ -509,7 +436,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": [
           "pipeline",
           "viewer"
@@ -522,8 +464,8 @@
       "seniority": "contractor",
       "title": "Batch Backend Engineer (short-term contract)",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2025-03-25",
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-10",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -545,22 +487,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "batch-mode",
@@ -570,7 +498,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": [
           "cookbooks",
           "incidents",
@@ -585,8 +528,8 @@
       "seniority": "contractor",
       "title": "Contributor — Install UX & README Polish",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2024-11-26",
+      "state": "not-yet-joined",
+      "reason": "first active 2024-11-14",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -607,6 +550,15 @@
       "speaking_in": [],
       "knows": {
         "services": [
+          "examples-cookbooks",
+          "release-and-ci"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
           "agentic-curation",
           "batch-mode",
           "blocks-and-recipes",
@@ -614,22 +566,14 @@
           "caching-and-resume",
           "code-execution",
           "curator-viewer",
-          "examples-cookbooks",
           "finetuning",
           "local-offline-inference",
           "multimodal-prompts",
           "online-request-processing",
           "progress-and-cli",
           "provider-integrations",
-          "release-and-ci",
           "telemetry"
         ],
-        "owns": [],
-        "prs": [],
-        "issues": []
-      },
-      "unaware_of": {
-        "services": [],
         "channels": [
           "code-review",
           "incidents",
@@ -645,8 +589,8 @@
       "seniority": "mid",
       "title": "Engineer, Request-Processing Internals",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2025-01-14",
+      "state": "not-yet-joined",
+      "reason": "first active 2024-12-14",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -669,6 +613,15 @@
       "speaking_in": [],
       "knows": {
         "services": [
+          "examples-cookbooks",
+          "release-and-ci"
+        ],
+        "owns": [],
+        "prs": [],
+        "issues": []
+      },
+      "unaware_of": {
+        "services": [
           "agentic-curation",
           "batch-mode",
           "blocks-and-recipes",
@@ -676,22 +629,14 @@
           "caching-and-resume",
           "code-execution",
           "curator-viewer",
-          "examples-cookbooks",
           "finetuning",
           "local-offline-inference",
           "multimodal-prompts",
           "online-request-processing",
           "progress-and-cli",
           "provider-integrations",
-          "release-and-ci",
           "telemetry"
         ],
-        "owns": [],
-        "prs": [],
-        "issues": []
-      },
-      "unaware_of": {
-        "services": [],
         "channels": [
           "cookbooks",
           "releases",
@@ -705,8 +650,8 @@
       "seniority": "mid",
       "title": "Software Engineer, LLM Interface",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2025-02-17",
+      "state": "not-yet-joined",
+      "reason": "first active 2025-01-15",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -728,22 +673,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "multimodal-prompts",
@@ -753,7 +684,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": [
           "cookbooks",
           "incidents",
@@ -768,8 +714,8 @@
       "seniority": "contractor",
       "title": "Provider Examples Contributor (Mistral Batch)",
       "available": false,
-      "state": "departed",
-      "reason": "last active 2025-03-31",
+      "state": "not-yet-joined",
+      "reason": "first active 2025-03-30",
       "working_on": "nothing scheduled",
       "driving": [],
       "blocked_on": [],
@@ -790,22 +736,8 @@
       "speaking_in": [],
       "knows": {
         "services": [
-          "agentic-curation",
-          "batch-mode",
-          "blocks-and-recipes",
-          "bulk-llm-inference",
-          "caching-and-resume",
-          "code-execution",
-          "curator-viewer",
           "examples-cookbooks",
-          "finetuning",
-          "local-offline-inference",
-          "multimodal-prompts",
-          "online-request-processing",
-          "progress-and-cli",
-          "provider-integrations",
-          "release-and-ci",
-          "telemetry"
+          "release-and-ci"
         ],
         "owns": [
           "provider-integrations"
@@ -814,7 +746,22 @@
         "issues": []
       },
       "unaware_of": {
-        "services": [],
+        "services": [
+          "agentic-curation",
+          "batch-mode",
+          "blocks-and-recipes",
+          "bulk-llm-inference",
+          "caching-and-resume",
+          "code-execution",
+          "curator-viewer",
+          "finetuning",
+          "local-offline-inference",
+          "multimodal-prompts",
+          "online-request-processing",
+          "progress-and-cli",
+          "provider-integrations",
+          "telemetry"
+        ],
         "channels": [
           "code-review",
           "cookbooks",
@@ -823,6 +770,73 @@
           "viewer"
         ]
       }
+    }
+  ],
+  "specs": [
+    {
+      "date": "2025-07-09",
+      "channel": "engineering",
+      "channel_name": "#engineering",
+      "purpose_class": "housekeeping",
+      "purpose": "emil posts Weekly sync notes: week of Jul 7 (bulk LLM inference), which is due today",
+      "reason": "the calendar owes this artifact today and nothing else is happening; without a room for it, nobody is ever asked to produce it",
+      "expected_outcome": "Weekly sync notes: week of Jul 7 (bulk LLM inference) exists and is linked here",
+      "agenda": [
+        "Weekly sync notes: week of Jul 7 (bulk LLM inference)"
+      ],
+      "subjects": [
+        "Weekly sync notes: week of Jul 7 (bulk LLM inference)"
+      ],
+      "participants": [
+        {
+          "id": "emil",
+          "label": "emil",
+          "why": "owes this today",
+          "brings": "the doc itself",
+          "wants": "Weekly sync notes: week of Jul 7 (bulk LLM inference) posted"
+        },
+        {
+          "id": "dario",
+          "label": "dario",
+          "why": "in this channel",
+          "brings": "",
+          "wants": ""
+        },
+        {
+          "id": "dermot",
+          "label": "dermot",
+          "why": "in this channel",
+          "brings": "",
+          "wants": ""
+        }
+      ],
+      "goals": [
+        {
+          "goal": "write up Weekly sync notes: week of Jul 7 (bulk LLM inference)",
+          "owner": "emil",
+          "agenda_item": "Weekly sync notes: week of Jul 7 (bulk LLM inference)",
+          "beats": [
+            "emil says they will write up Weekly sync notes: week of Jul 7 (bulk LLM inference)"
+          ],
+          "reads": [],
+          "writes": [
+            {
+              "kind": "doc",
+              "id": "notes-2025-07-07"
+            }
+          ],
+          "added_by": "workroom"
+        }
+      ],
+      "meetings": [],
+      "event_ids": [],
+      "referenced_objects": [],
+      "must_not_mention": [],
+      "absent_owners": [],
+      "stand_in": null,
+      "norms": [],
+      "role": "the quiet day's paperwork",
+      "max_turns": 6
     }
   ]
 }
