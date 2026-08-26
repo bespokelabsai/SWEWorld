@@ -484,6 +484,55 @@ def clue_problems(world: World, spec: dict) -> list[str]:
     return out
 
 
+# What phase 4 knows how to turn into something a persona is asked to produce.
+# Named rather than inferred: the point of the gate below is to notice a kind
+# nobody wired up, and a set computed from the code would grow silently along
+# with the bug.
+CONSUMES = {"docs", "threads", "comments"}
+# Declared in artifacts.json but not content: `collections` is the shelf list,
+# `counts` is phase 2's own tally, `skipped` is what it deliberately declined.
+NOT_CONTENT = {"collections", "counts", "skipped"}
+
+
+def check_plan_covered(world: World, allowed: set[str]) -> int:
+    """Refuse to run when the plan declares a kind nothing here can deliver.
+
+    Phase 2 planned 26 page comments. Phase 4 had no code that read them, so
+    they were generated and dropped, and nobody noticed across a 33-batch run —
+    the corpus reported pages and emails and simply never mentioned comments.
+    Three planted clues went with them.
+
+    A kind nothing consumes cannot fail later: every downstream count is over
+    what was asked for, so the gap is invisible by construction. This is the
+    only place it can be seen, and it costs nothing to look.
+    """
+    missing = []
+    for kind, items in sorted(world.artifacts.items()):
+        if kind in NOT_CONTENT or not isinstance(items, list) or not items:
+            continue
+        if kind not in CONSUMES and kind not in allowed:
+            missing.append((kind, len(items)))
+    for kind, n in missing:
+        # Warn per kind, fail once at the end: `rl.fail` exits, so failing
+        # inside the loop would name the first offender and hide the rest.
+        rl.warn(f"the plan declares {kind!r} ({n} item(s)) and phase 4 has no "
+                "consumer for it — those would be generated and dropped")
+    if missing:
+        rl.fail("nothing here can deliver "
+                + ", ".join(f"{k} ({n})" for k, n in missing)
+                + ". A kind nothing consumes cannot fail later — every count "
+                  "downstream is over what was asked for, so its absence is "
+                  "invisible by construction. Wire up a consumer, or pass "
+                  "--allow-unconsumed=" + ",".join(k for k, _ in missing)
+                + " to run without them on purpose.")
+    for kind in sorted(allowed & {k for k, v in world.artifacts.items()
+                                  if isinstance(v, list) and v}):
+        if kind not in CONSUMES:
+            rl.warn(f"{kind!r} is declared by the plan and deliberately not "
+                    "delivered this run")
+    return len(missing)
+
+
 def check_clues_runnable(world: World, days: list[str],
                          only: set[str] | None) -> int:
     """Say which clues cannot pass, before a token is spent. Returns the count."""
@@ -939,6 +988,11 @@ def main(argv: list[str] | None = None) -> int:
                              "proof against what the personas ACTUALLY said in "
                              "the run named by --run, falling back to the "
                              "planned clue text for days not yet simulated")
+    parser.add_argument("--allow-unconsumed", default="",
+                        help="comma-separated artifact kinds the plan declares "
+                             "that this run should skip on purpose, e.g. "
+                             "`comments`. Without this a kind phase 4 cannot "
+                             "deliver stops the run rather than being dropped")
     parser.add_argument("--audit-only", action="store_true",
                         help="do not simulate. Re-judge the corpus named by "
                              "--run against its own transcript and the pages "
@@ -949,6 +1003,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="copy the result into data/ once it is good")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     args = parser.parse_args(argv)
+    args.allow_unconsumed = {k.strip() for k in
+                             (args.allow_unconsumed or "").split(",") if k.strip()}
 
     # A run directory is named the moment the process starts, never derived
     # later from anything that has since moved on.

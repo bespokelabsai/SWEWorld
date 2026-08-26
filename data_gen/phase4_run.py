@@ -37,7 +37,8 @@ import repolib as rl          # noqa: E402
 import worldapps as wa        # noqa: E402
 import phase4_render as render  # noqa: E402
 from phase4_simulate import (DAY_OPEN_HOUR, build_channel,  # noqa: E402
-                             check_auth, check_clues_runnable, people_specs)
+                             check_auth, check_clues_runnable,
+                             check_plan_covered, people_specs)
 
 UTC = dt.timezone.utc
 
@@ -1096,6 +1097,11 @@ def simulate(world, days: list[str], only: set[str] | None, args) -> int:
 
     # Before anything is spent. A clue that cannot pass does not become able to
     # pass by being re-run, and the re-run is what costs.
+    # Before the clue pre-flight, because a kind nothing consumes is not a
+    # clue that will fail — it is content that will never be asked for, and no
+    # later count can show its absence.
+    if check_plan_covered(world, set(getattr(args, "allow_unconsumed", []) or [])):
+        return 1
     check_clues_runnable(world, days, only)
 
     if args.dry_run:
