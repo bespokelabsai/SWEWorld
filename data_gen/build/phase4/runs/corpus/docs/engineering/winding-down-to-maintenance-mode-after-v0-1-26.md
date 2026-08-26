@@ -1,32 +1,78 @@
 ---
 title: "Winding down to maintenance mode after v0.1.26"
 author: konrad
-created_at: 2025-06-02T09:14:00+00:00
+created_at: 2025-06-04T09:35:00+00:00
 ---
 
 # Winding down to maintenance mode after v0.1.26
 
-## What changes after the cutover
+Milestone target for v0.1.26 is the last coordinated release before Millrow services move to dormancy. Once it ships, no new features enter any of the services below. This page is the record of what that means in practice and who is responsible for what.
 
-Team capacity drops sharply once v0.1.26 ships. Most contributors are moving onto other priorities and will not have regular bandwidth for Millrow. Reviews will be slower, expect days rather than hours for a response on a PR. That is the new normal, not a sign something went wrong.
+## What maintenance mode means
 
-Scope is narrowed to bug fixes and small maintenance changes only. New features are not being accepted in this period. If you open a feature PR it will sit, and I will eventually close it with a note.
+- No new features merged, no non-critical PRs
+- Incoming issues triaged by the service owner, but not actioned unless they are blocking (i.e., breaking a current workflow, not just inconvenient)
+- Each service owner signs off that their service is stable and documented before we close the milestone
+  - "documented" means the README and any relevant wiki pages reflect current behavior, not a prior version
+- PRs already in-flight at the time v0.1.26 ships are reviewed on a case-by-case basis, the default is to defer them unless the author makes a case for criticality
 
-## Work still in flight
+The intent is that after this point the services run, but they do not grow.
 
-These PRs are active and will be worked through before or shortly after the cutover:
+## Per-service status
 
-- PR 653: Shreyas/finetuning client
-- PR 663: fix error when torch isn't installed
-- PR 675: add default app id parameter for curator llm
-- PR 681: if the model is not known, let the cost be None
+**finetuning** (Konrad Feltrin)
+In maintenance mode as of v0.1.26. PR 653 (Shreyas's finetuning client work) is the last in-flight item before dormancy. I have reviewed the README and it reflects current behavior. No further feature work is planned on my end.
 
-Open issues 52, 102, 121, 124, 207, 233, 290, and 293 remain unresolved. None of them are blocked on anyone in particular, they are simply deferred. I would not expect movement on them during dormancy unless a contributor picks one up on their own initiative.
+**agentic-curation** (Emil Brandvold)
+Stopping criterion integrated. PR 685 covers the multi-turn agent changes, which are heading into the next sprint before the milestone closes. Emil to confirm sign-off once 685 is merged.
 
-## Expectations going forward
+**batch-mode** (Emil Brandvold)
+[Emil to fill in]
 
-If you open a PR, assume the review cycle is slow. A PR sitting for a week with no comment is in the queue, not abandoned.
+**blocks-and-recipes** (Emil Brandvold)
+[Emil to fill in]
 
-If you find a regression, file it. We will triage. Silence does not mean it is off our radar.
+**bulk-llm-inference** (Dario Kestrel)
+[Dario to fill in]
 
-There will be periodic lightweight check-ins from maintainers, but no standing weekly cadence after v0.1.26 ships.
+**caching-and-resume** (Dario Kestrel)
+[Dario to fill in]
+
+**code-execution** (Nikolai Berresford)
+[Nikolai to fill in]
+
+**curator-viewer** (Dario Kestrel)
+[Dario to fill in]
+
+**examples-cookbooks** (Dario Kestrel)
+[Dario to fill in]
+
+**local-offline-inference** (Emil Brandvold)
+[Emil to fill in]
+
+## Release and CI notes
+
+TBD, Emil owns this section. He mentioned there are notes from the Jun 2 sync on the wiki, so presumably those cover the release checklist and any CI gate changes. Emil to fill in here before we close the milestone.
+
+## Open issues going into dormancy
+
+These are known and open. The decision to enter maintenance mode does not resolve them, it just means they sit. If any of them turn out to be blocking in practice, that is the bar for revisiting.
+
+- issue 52: support for multiple samples per request
+- issue 124: `inspect(func)` cache invalidation on comments / whitespace changes
+- issue 233: automatic rate limit detection
+
+My read is that none of these are blocking for v0.1.26, but I have not checked whether Dario or Nikolai see issue 233 differently given how bulk-llm-inference behaves under load. Worth a quick check before we sign off.
+
+## Sign-off checklist
+
+- [x] finetuning (Konrad Feltrin)
+- [ ] agentic-curation (Emil Brandvold)
+- [ ] batch-mode (Emil Brandvold)
+- [ ] blocks-and-recipes (Emil Brandvold)
+- [ ] bulk-llm-inference (Dario Kestrel)
+- [ ] caching-and-resume (Dario Kestrel)
+- [ ] code-execution (Nikolai Berresford)
+- [ ] curator-viewer (Dario Kestrel)
+- [ ] examples-cookbooks (Dario Kestrel)
+- [ ] local-offline-inference (Emil Brandvold)

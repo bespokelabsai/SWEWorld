@@ -16569,6 +16569,713 @@
           "userId": "emil",
           "text": "Not sure if that 60 is coming from the viewer or if I'm the one setting it.",
           "ts": "2025-05-30T17:21:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "- *PR 681* (finetuning): ready for review, touches the finetuning subsystem, not blocking release but I'd like to get it merged today\n- *PR 663*: Nikolai's torch fix is in flight, keeping an eye on it\n- PR 683 still needs eyes from someone with litellm depth",
+          "ts": "2025-06-03T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Who on the team has enough litellm depth to actually review PR 683?",
+          "ts": "2025-06-03T09:05:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Has PR 675 had any activity lately, or is it basically sitting?",
+          "ts": "2025-06-03T09:25:22"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, can you take a pass at PR 681 this morning? Finetuning subsystem, not blocking but I want to get it merged today",
+          "ts": "2025-06-03T09:58:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What's the status on PR 653, is there still intent to merge it or has it been superseded?",
+          "ts": "2025-06-03T10:17:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Almost noon and the review queue is already longer than my morning :slightly_smiling_face:",
+          "ts": "2025-06-03T11:45:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Already reviewed PR 681",
+          "ts": "2025-06-03T12:06:26",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 683 is the one I need eyes on, it's provider-integrations, specifically the litellm structured-output detection path, and it's sitting without a reviewer",
+          "ts": "2025-06-03T12:06:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Is anyone actually going to take PR 683 today, or should I flag it as waiting until after dormancy?",
+          "ts": "2025-06-03T12:45:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653, 663, and 675 are all still sitting with no decision and I'd like to get that sorted before end of day",
+          "ts": "2025-06-03T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad, 653 is finetuning so that one's probably yours to call.",
+          "ts": "2025-06-03T12:51:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure 653 is mine to call unilaterally, I don't know enough about what Shreyas had in mind there",
+          "ts": "2025-06-03T13:25:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "What's the actual state of it, is it close to mergeable or more of a design question?",
+          "ts": "2025-06-03T13:25:29"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, what was the outcome of your PR 681 review, approved or are there comments to address?",
+          "ts": "2025-06-03T13:38:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "ok I just pulled it up myself",
+          "ts": "2025-06-03T14:16:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does 681 need a second approver to merge, or is Emil's review sufficient?",
+          "ts": "2025-06-03T14:16:21"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 683 still has no reviewer and the day's almost done, either someone picks it up before EOD or we need to explicitly call it as waiting until after dormancy.",
+          "ts": "2025-06-03T14:56:21"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, did the call with Konrad resolve anything on PR 663, or still open questions?",
+          "ts": "2025-06-03T15:06:01"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, call was fine on PR 663, it just needs someone to confirm whether the guard covers more than the import or only that, then it's ready.",
+          "ts": "2025-06-03T15:23:01"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 683 still has no reviewer and no path forward decided.",
+          "ts": "2025-06-03T15:39:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, you hanging in there?",
+          "ts": "2025-06-03T15:53:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "683 being stuck all day with no reviewer is genuinely annoying and I don't blame you for flagging it twice",
+          "ts": "2025-06-03T15:53:13",
+          "reactions": [
+            {
+              "emoji": "❤️",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-06-03T16:18:13"
+        },
+        {
+          "userId": "emil",
+          "text": "no reviewer and EOD is close, either someone picks it up in the next hour or it carries to tomorrow unresolved.",
+          "ts": "2025-06-03T16:18:21"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is rushing a reviewer onto PR 683 in the next hour actually better than just explicitly calling it deferred until after dormancy?",
+          "ts": "2025-06-03T16:25:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "+1 to deferring, a forced review in the next hour isn't worth it",
+          "ts": "2025-06-03T16:31:21",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 683 is deferred until after dormancy, that's settled based on this thread",
+          "ts": "2025-06-03T16:55:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 681 still needs to merge today, and 653, 663, 675 still need decisions before we close out.",
+          "ts": "2025-06-03T17:20:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 681 is ready to merge on my end, just need Emil's review confirmed",
+          "ts": "2025-06-03T17:21:08"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 681 review is in, approved it earlier today.",
+          "ts": "2025-06-03T18:13:12",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Does one approval get PR 681 over the line, or do we need a second?",
+          "ts": "2025-06-03T18:24:06.039038"
+        },
+        {
+          "userId": "konrad",
+          "text": "Going to merge PR 681 on Emil's approval, one reviewer is enough for a change this size",
+          "ts": "2025-06-03T18:24:43.039038",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is wrapped for the wind-down, nothing blocking on my side",
+          "ts": "2025-06-04T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 653 is the last open piece touching that service",
+          "ts": "2025-06-04T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Anyone have bandwidth to look over stopping criterion design? Touches agentic-curation",
+          "ts": "2025-06-04T09:00:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil Brandvold, can you take a look at stopping criterion design when you're free?",
+          "ts": "2025-06-04T09:10:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Touches agentic-curation so you're likely the right reviewer",
+          "ts": "2025-06-04T09:10:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there a doc anywhere capturing what wind-down actually means per service? Went to pull it up and the wiki is empty",
+          "ts": "2025-06-04T10:26:52"
+        },
+        {
+          "userId": "konrad",
+          "text": "welp",
+          "ts": "2025-06-04T11:23:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Is this PR 685 you want eyes on, or is there a separate design doc floating around somewhere?",
+          "ts": "2025-06-04T12:34:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Stopping criterion is finally integrated - PR 685 is up if anyone has time this afternoon before the next wave of agentic-curation work lands.",
+          "ts": "2025-06-04T12:46:37",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil Brandvold, does the criterion check fire inside a turn or between turns?",
+          "ts": "2025-06-04T13:29:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wind-down doc doesn't exist yet, wiki came up empty when I looked.",
+          "ts": "2025-06-04T13:37:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there a PR or issue tracking that work anywhere, or does it need one?",
+          "ts": "2025-06-04T13:37:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "Between-turns makes sense from my end.",
+          "ts": "2025-06-04T14:01:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does PR 685 still need another reviewer before we call stopping criterion signed off?",
+          "ts": "2025-06-04T14:01:59",
+          "replyCount": 2,
+          "replyLastTs": "2025-06-04T17:45:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure one read is enough to call it signed off - PR 685 touches agentic-curation and I'd want at least one more reviewer on it.",
+          "ts": "2025-06-04T16:12:14",
+          "threadParentTs": "2025-06-04T14:01:59"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who do you have in mind?",
+          "ts": "2025-06-04T16:40:03"
+        },
+        {
+          "userId": "emil",
+          "text": "Nikolai, probably - he's been closest to this side of the work.",
+          "ts": "2025-06-04T17:45:02",
+          "threadParentTs": "2025-06-04T14:01:59"
+        },
+        {
+          "userId": "emil",
+          "text": "Konrad, the between-turns call actually helped settle something I wasn't sure about.",
+          "ts": "2025-06-04T17:45:14",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Good.",
+          "ts": "2025-06-04T17:45:53"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 685 is on Nikolai for a second look, then we can call stopping criterion signed off.",
+          "ts": "2025-06-04T18:06:53",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning and wind-down doc are both wrapped on my end",
+          "ts": "2025-06-04T18:23:48.869469"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still not entirely comfortable calling stopping criterion done through PR 685 given everything else that's in it",
+          "ts": "2025-06-04T18:29:43.304739"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is clean on my end, the multiturn stopping criterion refactor is ready for review. It's coming in from the agentic-curation work, would appreciate eyes on it this mornig if anyone has a moment",
+          "ts": "2025-06-06T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone opened a PR for the multiturn stopping criterion refactor yet, or is it still being prepped?",
+          "ts": "2025-06-06T09:00:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "Oh",
+          "ts": "2025-06-06T09:09:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "answered my own question - PR 684 and PR 685 are both up for the stopping criterion work",
+          "ts": "2025-06-06T09:09:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll get eyes on them this morning",
+          "ts": "2025-06-06T09:10:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is PR 684 meant to land in 0.1.26 or is it going in after the cut?",
+          "ts": "2025-06-06T09:45:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "let me check",
+          "ts": "2025-06-06T10:33:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 684, is that ready for review or still being worked on?",
+          "ts": "2025-06-06T11:32:47"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, need a quick confirmation from you on PR 653 before we can call v0.1.26 ready to cut.",
+          "ts": "2025-06-06T11:49:47"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 684 and 685 for the stopping criterion, are those going in before the 0.1.26 cut?",
+          "ts": "2025-06-06T12:01:10",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-06T13:37:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the weekly sync notes from Jun 2 - they say the stopping criterion placement on PR 685 still wasn't settled at that point",
+          "ts": "2025-06-06T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that resolved now?",
+          "ts": "2025-06-06T12:41:12"
+        },
+        {
+          "userId": "emil",
+          "text": "The Weekly Notes from May 26 page doesn't exist yet - was anyone else at that sync who can help fill it in, or is it all on me?",
+          "ts": "2025-06-06T13:37:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Actually, maybe not 685 - if the placement still wasn't settled at the Jun 2 sync I'm not entirely sure that's resolved now",
+          "ts": "2025-06-06T13:37:50",
+          "threadParentTs": "2025-06-06T12:01:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone taken a look at PR 684 this afternoon?",
+          "ts": "2025-06-06T13:46:15"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 684 is up and ready, hasn't had a reviewer on it yet.",
+          "ts": "2025-06-06T14:13:01"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 684 needs a reviewer today if it's going in 0.1.26.",
+          "ts": "2025-06-06T14:25:20",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-06T14:43:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Anyone free to pick it up this afternoon?",
+          "ts": "2025-06-06T14:43:02",
+          "threadParentTs": "2025-06-06T14:25:20"
+        },
+        {
+          "userId": "emil",
+          "text": "I can take a look at PR 684 this afternoon.",
+          "ts": "2025-06-06T15:22:02",
+          "replyCount": 2,
+          "replyLastTs": "2025-06-06T15:39:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "Just 684, or are you covering 685 as well?",
+          "ts": "2025-06-06T15:22:26",
+          "threadParentTs": "2025-06-06T15:22:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Just 684.",
+          "ts": "2025-06-06T15:39:53",
+          "threadParentTs": "2025-06-06T15:22:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is wrapped and clean on my end",
+          "ts": "2025-06-06T16:19:59"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll take a pass at PR 685 since Emil's covering 684",
+          "ts": "2025-06-06T16:20:04"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 684 is approved, good to merge.",
+          "ts": "2025-06-06T17:01:45",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 684 is merged, refactor is in for 0.1.26.",
+          "ts": "2025-06-06T17:19:36",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Does PR 685 still need to go in, or are we good with just 684 for 0.1.26?",
+          "ts": "2025-06-06T17:47:39"
+        },
+        {
+          "userId": "emil",
+          "text": "684 is in, 685 missed the cut.",
+          "ts": "2025-06-06T18:13:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good enough, refactor is stable for 0.1.26.",
+          "ts": "2025-06-06T18:22:39",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 has been sitting for about six weeks now, want to get eyes on it today and figure out if it can acutally land or we just close it.",
+          "ts": "2025-06-11T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Did PR 653 ever actually get a proper review, or has it just been waitng on one this whole time?",
+          "ts": "2025-06-11T09:00:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad, has PR 653 come across your radar at all?",
+          "ts": "2025-06-11T10:15:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Pulled up the winding down doc, PR 653 is listed as the last in-flgiht item before finetuning goes dormant",
+          "ts": "2025-06-11T10:51:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone able to get eyes on it this afternoon?",
+          "ts": "2025-06-11T10:51:43"
+        },
+        {
+          "userId": "emil",
+          "text": "I can pull it up with you this afternoon, Nikolai, if you've got an hour free after lunch.",
+          "ts": "2025-06-11T11:20:43",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "After lunch works for me",
+          "ts": "2025-06-11T11:48:43"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The v0.1.25 release notes page isn't up on the wiki yet - did you start it somewhere, Emil?",
+          "ts": "2025-06-11T11:48:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Not up yet, still drafting it.",
+          "ts": "2025-06-11T12:30:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Also, week of Jun 9 bulk LLM inference sync notes are done and posted in engineering on the wiki if anyone hasn't seen them.",
+          "ts": "2025-06-11T12:31:07",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "My code-exectution section in the winding down doc is still blank",
+          "ts": "2025-06-11T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is there a deadline for owners to get those filled in before the milestone closes?",
+          "ts": "2025-06-11T12:51:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 690 and 691 are both up and waiting on reviews, neither is blocking a release on its own but I'd like to get them landed today before they start conflicting with each other",
+          "ts": "2025-06-13T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone free to take a look at PR 690 and PR 691 today?",
+          "ts": "2025-06-13T09:00:45"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Both are Emil's batch and multimodal work, I'd like to see them land before the end of the day",
+          "ts": "2025-06-13T09:00:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does PR 653 need to rebase on top of 691 once that lands, or can it go in as-is?",
+          "ts": "2025-06-13T10:02:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold does PR 653 touch any of the same batch-mode paths that 691 is changing?",
+          "ts": "2025-06-13T10:39:50"
+        },
+        {
+          "userId": "emil",
+          "text": "653 is finetuning, 691 is batch-mode, they're not touching the same paths so it should be fine to merge as-is once we know what Konrad needs from it",
+          "ts": "2025-06-13T11:02:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Still need eyes on 690 and 691 though, hoping to get both landed this afternoon",
+          "ts": "2025-06-13T11:02:58"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 and PR 691 still need reviews - both touch batch and multimodal work, hoping to get them merged before the weekend.",
+          "ts": "2025-06-13T11:50:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad Feltrin got a few minutes this afternoon to talk through what you need from PR 653?",
+          "ts": "2025-06-13T12:32:56"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the Jun 9 sync notes, it's all bulk LLM, rate limits and cost tracking both deferred past dormancy.",
+          "ts": "2025-06-13T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Nothing in there that should affect 690 or 691?",
+          "ts": "2025-06-13T12:41:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Around all afternoon if Konrad's free for that sync",
+          "ts": "2025-06-13T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is still up in the air on our end, no clarity yet on whether it goes in after 690 and 691 or needs rework first",
+          "ts": "2025-06-13T12:51:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Has anyone had a chance to start on PR 690 or 691 yet?",
+          "ts": "2025-06-13T13:31:41"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 and 691 still have no reviews, and the afternoon is moving fast.",
+          "ts": "2025-06-13T14:27:41"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai Berresford you said you're around this afternoon - any chance you can take one of 690 or 691?",
+          "ts": "2025-06-13T14:27:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I can take PR 690, looking at it now.",
+          "ts": "2025-06-13T14:54:56",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone else's Friday afternoon crawling, or is it just me sitting here waiting on review pings",
+          "ts": "2025-06-13T15:06:26"
+        },
+        {
+          "userId": "emil",
+          "text": "That leaves 691 still needing a reviewer - anyone free to take it before end of day?",
+          "ts": "2025-06-13T15:14:26",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-13T15:22:01"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I can take 691 after I finish 690.",
+          "ts": "2025-06-13T15:22:01",
+          "threadParentTs": "2025-06-13T15:14:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Both PRs are standing by, no changes since I last pushed.",
+          "ts": "2025-06-13T15:41:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Emil, can you add me as a reviewer on both 690 and 691 so I can approve formally?",
+          "ts": "2025-06-13T16:00:40"
+        },
+        {
+          "userId": "emil",
+          "text": "On it.",
+          "ts": "2025-06-13T16:12:40"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Done with PR 690, approved it, moving to 691 now before the day's out",
+          "ts": "2025-06-13T16:50:40",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 691's description is pretty thin, if i had to guess I'm missing some context on what the automation is actually doing under the hood.",
+          "ts": "2025-06-13T17:41:02"
+        },
+        {
+          "userId": "emil",
+          "text": "What's the gap specifically - the detection logic, or what it does once it switches modes?",
+          "ts": "2025-06-13T18:23:02"
         }
       ],
       "projectSpec": {
@@ -20136,6 +20843,177 @@
           "userId": "emil",
           "text": "The v0.1.24 Release Notes still isn't written - does it go on the wiki or somewhere else?",
           "ts": "2025-05-23T14:52:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "- Torch-dependency fix is in good shape, code-execution side is stable\n- Test modifications are done but I want to make sure we're not inadvertently hiding failures in the cookbook verification path\n- Going to dig into that today, just want to flag it beofre it gets buried",
+          "ts": "2025-06-04T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does the verifier actually invoke the full code-execution path end to end, or does it short-circuit anywhere?",
+          "ts": "2025-06-04T09:00:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Are the weekly notes for the week of May 26 up anywhere yet?",
+          "ts": "2025-06-04T10:00:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is there any way to run the cookbook verifier locally, or does it only run through CI right now?",
+          "ts": "2025-06-04T10:18:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do the test modifications touch any of the same execution paths the cookbook verifier actually exercises?",
+          "ts": "2025-06-04T10:29:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The cookbook CI actually executes the examples end to end, right? Not just a parse/lint pass?",
+          "ts": "2025-06-04T11:17:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Weekly Notes for May 26 arent on the wiki yet, I just checked.",
+          "ts": "2025-06-04T12:18:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil, are those going up this afternoon?",
+          "ts": "2025-06-04T12:18:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Working on the May 26 notes, should be up this afternoon.",
+          "ts": "2025-06-04T12:23:47"
+        },
+        {
+          "userId": "emil",
+          "text": "On the verifier concern, same question from my side too - I want to know the test changes aren't hiding real failures before we call this done.",
+          "ts": "2025-06-04T12:23:52"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone with cookbook CI context able to look at the test refactoring changes in release-and-ci this afternoon?",
+          "ts": "2025-06-04T12:39:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Specifically the part that touches the verifier path - want to confirm we're not masking failures before these land",
+          "ts": "2025-06-04T12:39:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Those changes in release-and-ci are mine, for what it's worth.",
+          "ts": "2025-06-04T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What does the cookbook verifier actually call into on the code-execution side?",
+          "ts": "2025-06-04T12:51:42",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-04T14:05:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario, can you take a look at the test changes in release-and-ci and confirm they don't touch the verifier path?",
+          "ts": "2025-06-04T14:04:42",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-04T14:05:46"
+        },
+        {
+          "userId": "emil",
+          "text": "The CI job that runs the cookbooks, or something inside code-execution itself?",
+          "ts": "2025-06-04T14:05:26",
+          "threadParentTs": "2025-06-04T12:51:42"
+        },
+        {
+          "userId": "emil",
+          "text": "Does Dario have enough context on the verifier path, or do you need to sketch it out first?",
+          "ts": "2025-06-04T14:05:46",
+          "threadParentTs": "2025-06-04T14:04:42"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Might be quicker if I just walk Dario through the changes directly.",
+          "ts": "2025-06-04T14:50:46"
+        },
+        {
+          "userId": "emil",
+          "text": "Torch fix is ready on my end.",
+          "ts": "2025-06-04T15:32:46",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-06-04T15:33:03"
+        },
+        {
+          "userId": "nikolai",
+          "text": "nice",
+          "ts": "2025-06-04T15:33:03",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-06-04T15:32:46"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Torch fix is done and the test changes are in, just waiting on Dario's eyes to confirm we're not hiding anything in the verifier path",
+          "ts": "2025-06-04T15:33:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Do we hold this until Dario confirms, or call it compatible and flag it if something turns up?",
+          "ts": "2025-06-04T16:01:48"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Torch fix lands clean, I'm comfortable calling it compatible",
+          "ts": "2025-06-04T16:35:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Did Dario get back to you on the test changes side?",
+          "ts": "2025-06-04T16:45:48"
+        },
+        {
+          "userId": "emil",
+          "text": "My side is wrapped. Just waiting on Dario to close the loop on the test changes.",
+          "ts": "2025-06-04T16:46:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Nothing from Dario yet, but my side is wrapped.",
+          "ts": "2025-06-04T17:19:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario, we're close to end of day, can you take a quick look at the test changes in release-and-ci before you're out?",
+          "ts": "2025-06-04T17:19:40"
+        },
+        {
+          "userId": "emil",
+          "text": "I wouldn't call the test changes cleared without Dario actually looking - if he's out, this carries to tomorrow.",
+          "ts": "2025-06-04T17:39:40"
+        },
+        {
+          "userId": "emil",
+          "text": "Heading out - torch fix is confirmed, test changes still open pending Dario.",
+          "ts": "2025-06-04T17:40:21"
+        },
+        {
+          "userId": "nikolai",
+          "text": "fair enough, same from me",
+          "ts": "2025-06-04T18:03:21"
         }
       ],
       "projectSpec": {
@@ -33440,6 +34318,454 @@
           "userId": "konrad",
           "text": "Do we mark ws-069 for close-out now or wait until 678 actually merges?",
           "ts": "2025-05-29T17:07:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Cost-safety fix on the finetuning side is in, and I want to make sure we're aligned on the safeguard approach before anything else moves forward today",
+          "ts": "2025-06-03T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Happy to walk through it with whoever has eyes on the broader dormancy plan",
+          "ts": "2025-06-03T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 is my piece of that picture on the code-execution side, torch safety fix, and I want it in before we call dormancy locked",
+          "ts": "2025-06-03T09:18:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nikolai, what does the fix actually do when torch isn't present, does it fall back cleanly or just skip the import?",
+          "ts": "2025-06-03T09:49:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Around this morning if you want to walk through it together rather than back-and-forth in comments",
+          "ts": "2025-06-03T10:08:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Quick call or just a thread where we can drop code?",
+          "ts": "2025-06-03T10:34:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "call works",
+          "ts": "2025-06-03T11:03:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Does PR 663 guard just the import, or does it also cover any torch calls further down the stack?",
+          "ts": "2025-06-03T12:10:45"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 683's litellm structured-output detection hasn't been validated against actual provider responses, and it's sitting without a reviewer.",
+          "ts": "2025-06-03T12:50:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, for PR 683, what would a validation against actual provider responses actually look like?",
+          "ts": "2025-06-03T13:17:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there a test setup already or would someone need to wire one up?",
+          "ts": "2025-06-03T13:18:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are we aligned that guarding at the pricing lookup is enough, or does the viewer need its own layer on top?",
+          "ts": "2025-06-03T13:33:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nikolai, did anything come up from the call that changes the picture on PR 663?",
+          "ts": "2025-06-03T14:02:07"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That provider-validation gap in PR 683 is a real find, @Emil, that's exactly the kind of thing that bites you on a provider you haven't tested against",
+          "ts": "2025-06-03T14:18:07",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-03T15:01:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Which providers are you thinking, the ones litellm supports but we haven't actually run against, or something more specific?",
+          "ts": "2025-06-03T15:01:00",
+          "threadParentTs": "2025-06-03T14:18:07"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone actually run the litellm structured-output detection in PR 683 against a real provider response, or is it untested so far?",
+          "ts": "2025-06-03T15:09:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The guard in PR 663 only covers the import",
+          "ts": "2025-06-03T15:37:34"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, you own code-execution, worth a look at whether the torch guard in PR 663 needs to extend past the import before it merges.",
+          "ts": "2025-06-03T15:52:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone know why the litellm structured-output check in PR 683 would return inconsistent results on the same provider across runs?",
+          "ts": "2025-06-03T16:22:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That's my subsystem, not Dario's - I already surfaced the guard gap on 663 and I'm extending it past the import now",
+          "ts": "2025-06-03T16:49:08",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "With 663's guard getting extended and 683 still unresolved, are we actually able to call all three fixes safe today, or is that slipping?",
+          "ts": "2025-06-03T17:13:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Guard extension on PR 663 is done and I've pushed the update, so that one's ready for eyes when someone has a chance.",
+          "ts": "2025-06-03T17:48:08",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "If PR 683 isn't getting reviewed today, we could at least mark it explicitly as post-dormancy so it's not just floating.",
+          "ts": "2025-06-03T18:09:08"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 683 is open and unreviewed, calling it explicitly post-dormancy for now, will pick it back up after the milestone.",
+          "ts": "2025-06-03T18:09:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "Cost fix on my end is solid, the guard on the pricing lookup is in and unknown models return None cleanly",
+          "ts": "2025-06-03T18:18:49.571079",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "With 663's guard now extended and 683 explicitly deferred, the two active fixes look sound to me",
+          "ts": "2025-06-03T18:19:01.571079",
+          "replyCount": 2,
+          "replyLastTs": "2025-06-03T18:19:42.571079"
+        },
+        {
+          "userId": "nikolai",
+          "text": "663 is updated but nobody's actually reviewed the extension yet, dunno if \"sound\" is quite the right word before that happens.",
+          "ts": "2025-06-03T18:19:11.571079",
+          "threadParentTs": "2025-06-03T18:19:01.571079"
+        },
+        {
+          "userId": "emil",
+          "text": "Right, \"sound\" and \"reviewed\" are two different things.",
+          "ts": "2025-06-03T18:19:42.571079",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-06-03T18:19:01.571079"
+        },
+        {
+          "userId": "emil",
+          "text": "Someone should take a look at the updated PR 663 before we call torch safety confirmed, Nikolai pushed the guard extension and it needs actual eyes on it.",
+          "ts": "2025-06-03T18:19:58.571079"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is in good shape for the wind-down",
+          "ts": "2025-06-04T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning changes for the wind-down are done",
+          "ts": "2025-06-04T09:07:14",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Been looking at the agent loop more closley this morning. My read is the criterion check belongs between turns, but not entirely sure that holds for the multi-turn case.",
+          "ts": "2025-06-04T10:20:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil Brandvold, where in the multi-turn loop is stopping criterion supposed to fire?",
+          "ts": "2025-06-04T11:16:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Between turns is right - fires after each response, before the loop decides whether to continue",
+          "ts": "2025-06-04T12:31:04"
+        },
+        {
+          "userId": "emil",
+          "text": "That's what PR 685 has",
+          "ts": "2025-06-04T12:31:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Also got the week of Jun 2 release and CI notes up on the wiki if anyone needs them.",
+          "ts": "2025-06-04T12:31:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Stopping criterion is integrated and PR 685 is up for review - that's the multi-turn agent piece heading into the next sprint.",
+          "ts": "2025-06-04T12:48:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Also pulled up the wiki looking for the wind-down doc and it's not there. @Konrad Feltrin, I think \"Winding down to maintenance mode after v0.1.26\" is still yours.",
+          "ts": "2025-06-04T12:48:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "What's the expected scope for the wind-down doc, one page covering everything or broken out per service?",
+          "ts": "2025-06-04T13:31:38"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is stopping criterion getting its own PR or staying bundled into PR 685?",
+          "ts": "2025-06-04T13:44:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Stopping criterion is staying in PR 685. Wind-down doc structure is yours to call, @Konrad Feltrin - from release-and-ci I just need a section I can fill in.",
+          "ts": "2025-06-04T15:40:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Checked the wiki and \"Winding down to maintenance mode after v0.1.26\" isn't up yet.",
+          "ts": "2025-06-04T16:09:19"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad Feltrin, is that getting done today or sliding to next week?",
+          "ts": "2025-06-04T16:09:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "Done, it's up on the wiki as \"Winding down to maintenance mode after v0.1.26\"",
+          "ts": "2025-06-04T16:33:24",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Left a release-and-CI section for you, @Emil Brandvold",
+          "ts": "2025-06-04T16:33:29"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wind-down doc is on the wiki now with sections for each owner to fill in. Finetuning is done on my end.",
+          "ts": "2025-06-04T16:43:40"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 685 has it bundled - does that work for what you need on the wind-down side?",
+          "ts": "2025-06-04T17:48:55"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure bundling works, stopping criterion probably wants its own PR for the wind-down",
+          "ts": "2025-06-04T18:19:55",
+          "replyCount": 2,
+          "replyLastTs": "2025-06-04T18:29:31.869469"
+        },
+        {
+          "userId": "emil",
+          "text": "It's pretty tightly coupled with the multi-turn changes - I'm not sure splitting it out at this point is worth the churn.",
+          "ts": "2025-06-04T18:20:14",
+          "threadParentTs": "2025-06-04T18:19:55"
+        },
+        {
+          "userId": "konrad",
+          "text": "Tightly coupled is fair, though I'd still want it to stand alone.",
+          "ts": "2025-06-04T18:29:31.869469",
+          "threadParentTs": "2025-06-04T18:19:55"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Pydantic fix is done across five services, committing it today, want to make sure nobody hits a surprise on the integration side before it goes in",
+          "ts": "2025-06-13T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does the Pydantic fix touch anything in bulk-llm-inference or caching-and-resume, or is it contained to the five services I already have?",
+          "ts": "2025-06-13T09:04:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold what's the trigger for auto batch mode in PR 691, is it a config flag or does it detect automatically?",
+          "ts": "2025-06-13T10:10:04"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario Kestrel does bulk-llm-inference do its own Pydantic serialization on row data, or does it rely on whatever the caller passes in?",
+          "ts": "2025-06-13T11:08:04"
+        },
+        {
+          "userId": "emil",
+          "text": "691 detects automatically, no config flag.",
+          "ts": "2025-06-13T11:46:04",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "From my side, the Pydantic fix doesn't conflict with anything in batch-mode or the multimodal work.",
+          "ts": "2025-06-13T11:46:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Still waiting on Dario to confirm bulk-llm-inference and caching-and-resume are clean on the Pydantic fix?",
+          "ts": "2025-06-13T11:55:48"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 and 691 together cover Gemini multimodal batch creation and auto-batch detection.",
+          "ts": "2025-06-13T12:50:48"
+        },
+        {
+          "userId": "emil",
+          "text": "Does either of those touch anything on Dario's side that he'd want heads up on before they merge?",
+          "ts": "2025-06-13T12:50:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Pydantic fix is clean on the code-execution and telemetry side too, no changes needed there",
+          "ts": "2025-06-13T13:27:56",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Looked at the Jun 9 sync notes - rate limits and cost tracking both deferred to post-dormancy, nothing in there about my batch or multimodal work. Has Dario confirmed his side is clean on the Pydantic fix yet?",
+          "ts": "2025-06-13T14:08:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still nothing from Dario on that. Issue 102 has the exact Arrow error that motivated this fix if anyone wants the context.",
+          "ts": "2025-06-13T14:35:56",
+          "replyCount": 2,
+          "replyLastTs": "2025-06-13T14:58:53"
+        },
+        {
+          "userId": "emil",
+          "text": "I'm not sure we want this going in without Dario's confirmation first.",
+          "ts": "2025-06-13T14:36:19",
+          "threadParentTs": "2025-06-13T14:35:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Fair enough, dunno if we can wait much longer on a Friday though",
+          "ts": "2025-06-13T14:58:53",
+          "threadParentTs": "2025-06-13T14:35:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Waiting over the weekend seems worse to me",
+          "ts": "2025-06-13T15:14:26"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario any update on the Pydantic check?",
+          "ts": "2025-06-13T15:37:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad Feltrin you around, how's the finetuning side looking today?",
+          "ts": "2025-06-13T15:43:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "End of day Friday and I'm still waiting on two review pings, a Dario confirmation, and a Konrad reply. Classic",
+          "ts": "2025-06-13T16:07:41",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "690 and 691 are both sitting ready, Nikolai has them.",
+          "ts": "2025-06-13T16:37:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 690 approved, working through 691 now",
+          "ts": "2025-06-13T17:03:41",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-06-13T17:04:02"
+        },
+        {
+          "userId": "emil",
+          "text": "If you find anything in 691 that needs changes, I'd rather hold it to Monday than push a fix through at this hour.",
+          "ts": "2025-06-13T17:04:02",
+          "threadParentTs": "2025-06-13T17:03:41"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is approved, waiting on 691.",
+          "ts": "2025-06-13T17:04:28"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still on 691, nearly done",
+          "ts": "2025-06-13T17:37:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Dario's confirmation on the Pydantic fix is still open heading into the weekend.",
+          "ts": "2025-06-13T18:03:28"
         }
       ],
       "projectSpec": {
@@ -52380,6 +53706,149 @@
           "userId": "emil",
           "text": "Konrad, is that section enough to ship as-is or does it need more before Monday?",
           "ts": "2025-05-30T18:20:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning looks good from my side for 0.1.26, the wind-down work is on track. I presume PR 653 is the last thing to land before we tag, but not entirely sure where Nikolai is on that.",
+          "ts": "2025-06-06T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's actually cutting the tag for 0.1.26, is that Emil?",
+          "ts": "2025-06-06T09:06:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the changelog for 0.1.26 being assembled somewhere already, or does that happen after the tag?",
+          "ts": "2025-06-06T09:32:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we need PR 653 merged before we tag, or can we cut 0.1.26 without it?",
+          "ts": "2025-06-06T10:27:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has the version bump PR for 0.1.26 been opened yet?",
+          "ts": "2025-06-06T10:38:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Waiting on Nikolai to confirm where PR 653 is before I feel comfortable calling the tag.",
+          "ts": "2025-06-06T10:47:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we holding the tag for PR 653, or are we cutting 0.1.26 without it?",
+          "ts": "2025-06-06T11:56:19"
+        },
+        {
+          "userId": "emil",
+          "text": "The v0.1.25 release notes page isn't up yet - is there a format from a previous release I can work off of?",
+          "ts": "2025-06-06T12:36:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Opened the maintenance mode doc - I've still got four sections to fill in, including the release and CI notes piece that's on me.",
+          "ts": "2025-06-06T12:53:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Does all that need to be done before we cut 0.1.26, or can it happen after the tag?",
+          "ts": "2025-06-06T12:53:31"
+        },
+        {
+          "userId": "konrad",
+          "text": "The maintenance doc doesn't need to block the cut, that can land after the tag.",
+          "ts": "2025-06-06T13:05:31"
+        },
+        {
+          "userId": "konrad",
+          "text": "Once Nikolai confirms on PR 653, what does the actual tag process look like from there?",
+          "ts": "2025-06-06T13:43:53"
+        },
+        {
+          "userId": "emil",
+          "text": "Once Nikolai confirms, I tag, bump the version in tree, and get the release notes started - can turn that around same day if I hear back this afternoon.",
+          "ts": "2025-06-06T14:07:53"
+        },
+        {
+          "userId": "emil",
+          "text": "If Nikolai doesn't check in this afternoon, do we cut without PR 653 or hold the tag to next week?",
+          "ts": "2025-06-06T14:18:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "If nothing from Nikolai by end of afternoon, I'd cut without PR 653 and he can follow on in a patch",
+          "ts": "2025-06-06T14:40:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Works for me",
+          "ts": "2025-06-06T14:56:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Ready to cut on my end - I'll give Nikolai a bit more time and move without PR 653 if nothing comes through",
+          "ts": "2025-06-06T14:56:55"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is clear for the cut",
+          "ts": "2025-06-06T15:02:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Still waiting on Nikolai, but everything on my end is ready to go.",
+          "ts": "2025-06-06T15:31:55"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are we cutting today regardless, or is this sliding to Monday?",
+          "ts": "2025-06-06T16:14:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Cutting today - going ahead without PR 653.",
+          "ts": "2025-06-06T16:56:55",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "0.1.26 is go.",
+          "ts": "2025-06-06T16:58:55",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Tagging now, bump and release notes to follow.",
+          "ts": "2025-06-06T17:16:55"
+        },
+        {
+          "userId": "konrad",
+          "text": "right",
+          "ts": "2025-06-06T17:39:55"
+        },
+        {
+          "userId": "emil",
+          "text": "Tagged, version bumped, release notes are in draft.",
+          "ts": "2025-06-06T17:56:55",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -53903,6 +55372,88 @@
           "userId": "emil",
           "text": "Who's filing the download path issue, Dario or Gideon?",
           "ts": "2025-06-02T18:30:06.300172"
+        },
+        {
+          "userId": "konrad",
+          "text": "Fixed cost reporting on my end for the unknown-model case, but I'm not sure how the viewer handles it when cost comes back as None",
+          "ts": "2025-06-03T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Worth someone checking that the cost counter and the summary table don't break on that path",
+          "ts": "2025-06-03T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Change is minimal, just a guard on the pricing lookup when model is unrecognized.",
+          "ts": "2025-06-03T09:02:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, does the cost counter in curator-viewer do any null check before it tries to display, or does it assume the value is always a number?",
+          "ts": "2025-06-03T09:53:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does the end-of-run summary table pull cost from the same field, or does it have its own aggregation path?",
+          "ts": "2025-06-03T10:31:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, you still around?",
+          "ts": "2025-06-03T11:41:53"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wanted to make sure my questions above didn't get lost",
+          "ts": "2025-06-03T11:42:01"
+        },
+        {
+          "userId": "emil",
+          "text": "Does the viewer render None cost as a dash or empty string, or does it just try to format it as a number?",
+          "ts": "2025-06-03T11:59:01"
+        },
+        {
+          "userId": "emil",
+          "text": "That path needs to be confirmed before end of day, becuase if the display just assumes a float it'll break on any unrecognized model.",
+          "ts": "2025-06-03T11:59:09"
+        },
+        {
+          "userId": "emil",
+          "text": "The guard on the pricing lookup doesn't tell us much about what the viewer does when it receives None, those are two separate failure points.",
+          "ts": "2025-06-03T11:59:26"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll pull up the curator-viewer code this afternoon and check the null handling myself.",
+          "ts": "2025-06-03T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "My side is done, the guard is in and cost comes back as None for unrecognized models rather than blowing up",
+          "ts": "2025-06-03T12:57:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Emil picking up the viewer check is exactly what was needed",
+          "ts": "2025-06-03T12:57:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Emil, when you're in the code, can you check the progress table too, not just the cost counter?",
+          "ts": "2025-06-03T12:57:32"
         }
       ],
       "projectSpec": {
