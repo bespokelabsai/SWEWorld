@@ -2085,16 +2085,41 @@ def _artifact_report(rows: list[dict]) -> str:
 
 
 def _install(out: Path) -> None:
-    """Copy the result into data/, where the ingest scripts read from."""
+    """Copy the result into data/, where the ingest scripts read from.
+
+    Say what was skipped, not just what was copied. Every copy here is guarded
+    on the source existing, and a run that produced no comments.jsonl left
+    data/comments.jsonl as the one-line placeholder while reporting a clean
+    install — so the world baked with a wiki nobody had ever commented on and
+    nothing said so.
+
+    What this does NOT write: identities.yaml and channels.yaml come from phase
+    1 and are already real; commits.jsonl has no producer at all (the world's
+    git history arrives through data/history/ and ingest_history.py, and an
+    empty commits.jsonl is a warning, not an error); data/history/ itself is
+    built on the host by `make history`.
+    """
     data = rl.REPO_ROOT / "data"
+    copied, skipped = [], []
     for name in ("docs", "emails"):
         src, dst = out / name, data / name
-        if src.exists():
-            if dst.exists():
-                shutil.rmtree(dst)
-            shutil.copytree(src, dst)
+        if not src.exists():
+            skipped.append(name)
+            continue
+        if dst.exists():
+            shutil.rmtree(dst)
+        shutil.copytree(src, dst)
+        copied.append(f"{name}/ ({sum(1 for _ in src.rglob('*') if _.is_file())} files)")
     for name in ("messages.jsonl", "comments.jsonl"):
         src = out / name
-        if src.exists():
-            shutil.copy2(src, data / name)
+        if not src.exists():
+            skipped.append(name)
+            continue
+        shutil.copy2(src, data / name)
+        copied.append(f"{name} ({sum(1 for _ in src.open())} lines)")
+    for one in copied:
+        rl.ok(f"  data/{one}")
+    for name in skipped:
+        rl.warn(f"data/{name} NOT written — this run produced none. Whatever is "
+                "in data/ stays, placeholder included.")
     rl.ok(f"installed into {data}/ — run the ingest scripts, or make bake-image")
