@@ -1372,6 +1372,21 @@ def _check_day(world, llm, date, channels, doc, attempt: int) -> list[dict]:
     return rows
 
 
+ARTIFACT_REPAIR_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "lines": {"type": "string",
+                  "description": "one or two sentences adding ONLY what is "
+                                 "missing, in the document's own register, as "
+                                 "if they had always been the next lines. "
+                                 "Empty if it cannot be added without "
+                                 "restating what is already there."},
+    },
+    "required": ["lines"],
+    "additionalProperties": False,
+}
+
+
 # The plan's word for a carrier, from the word the review document shows.
 _KIND_BACK = {"page": "doc", "mail": "mail", "comment": "comment"}
 
@@ -1408,7 +1423,7 @@ def repair_artifact(llm, world, stores, planted: dict, row: dict) -> dict | None
     store, body, handle = _artifact_body(stores, world, kind, ident)
     if store is None or not body or not handle:
         return None
-    said = llm.complete(
+    got = llm.complete(
         system="You extend a document one sentence at a time, in its own voice.",
         prompt=(f"This document says:\n\n{body[-2500:]}\n\n"
                 f"It was supposed to also make this point:\n"
@@ -1418,8 +1433,9 @@ def repair_artifact(llm, world, stores, planted: dict, row: dict) -> dict | None
                 "the document's own register, as if they had always been the "
                 "next lines. Do not restate what it already says. Do not "
                 "introduce a heading. Return the sentences alone."),
-        schema=None, max_tokens=400, label=f"artifact-repair:{row['clue']}")
-    said = (said or "").strip()
+        schema=ARTIFACT_REPAIR_SCHEMA, max_tokens=400,
+        label=f"artifact-repair:{row['clue']}")
+    said = ((got or {}).get("lines") or "").strip()
     if not said:
         return None
     _extend_artifact(store, kind, handle, said)
@@ -1486,6 +1502,7 @@ def _repair_day(world, llm, date, doc, path: Path, rows: list[dict],
     Repairs are recorded on the row, never silently: a transcript edited after
     the fact must be visible in the review document as an edit.
     """
+    import phase4_simulate as ps                # see this module's docstring
     out = []
     for row in rows:
         if row["said"]:

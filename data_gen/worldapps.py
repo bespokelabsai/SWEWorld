@@ -233,12 +233,29 @@ class Wiki(Store):
         return rel
 
     def claim_comment(self, uid: str, rel: str) -> dict:
-        """The planned comment this call is fulfilling, if it is fulfilling one."""
-        want = Path(rel).stem
-        for com in self.planned_comments:
-            if com.get("_used") or com.get("author") != uid:
-                continue
-            if slug(self.doc_titles.get(com.get("doc", ""), "")) == want:
+        """The planned comment this call is fulfilling, if it is fulfilling one.
+
+        Matched on the page, loosely. An exact `slug(plan title) == file stem`
+        test looks right and fails in practice: the persona writes the page's
+        headline themselves, so the file is named after THEIR title, not the
+        plan's — "WS-055 release engineering" against "ws-055-release-
+        engineering-ci-test-suite". A missed match mints an id of our own, and
+        then the reply the plan says answers this comment names a parent that
+        does not exist, which the ingest rejects.
+        """
+        stem = Path(rel).stem
+        mine = [c for c in self.planned_comments
+                if not c.get("_used") and c.get("author") == uid]
+        for com in mine:                       # the exact name first
+            if slug(self.doc_titles.get(com.get("doc", ""), "")) == stem:
+                com["_used"] = True
+                return com
+        words = {w for w in stem.split("-") if len(w) > 3}
+        for com in mine:                       # then a shared-word overlap
+            theirs = {w for w in slug(
+                self.doc_titles.get(com.get("doc", ""), "")).split("-")
+                if len(w) > 3}
+            if theirs and len(words & theirs) >= max(2, len(theirs) // 2):
                 com["_used"] = True
                 return com
         return {}
