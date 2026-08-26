@@ -16148,6 +16148,427 @@
           "userId": "emil",
           "text": "Is PR 653 anywhere close to review-ready?",
           "ts": "2025-05-23T12:55:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 (torch import fix) and PR 653 (finetuning client) have both been sitting without reviews for a while, 21 and 32 days respectively. If anyone has bandwidth today it'd be good to get eyes on them",
+          "ts": "2025-05-28T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad do either of those PRs need to be in before v0.1.25, or is the release independent of them?",
+          "ts": "2025-05-28T09:00:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does anyone have time this morning to take a look at PR 663? It's a contained fix, shouldn't take long to review",
+          "ts": "2025-05-28T10:13:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is PR 663 related to issue 290, or are those two separate things?",
+          "ts": "2025-05-28T11:01:26"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 652 is at 33 days with no reviewer on it.",
+          "ts": "2025-05-28T11:33:26"
+        },
+        {
+          "userId": "emil",
+          "text": "Also put up the Week of May 26 notes in the engineering wiki if anyone wants them.",
+          "ts": "2025-05-28T11:33:34"
+        },
+        {
+          "userId": "emil",
+          "text": "Week of May 19 notes don't exist yet, that one's still on me.",
+          "ts": "2025-05-28T11:33:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Ok, answering my own thing, just wrote the May 19 notes too, they're up in the engineering wiki alongside the May 26 ones.",
+          "ts": "2025-05-28T11:34:23"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Same situation on PR 663 and PR 653, 21 and 32 days with no reviews and no feedback at all. I still don't know if either of them is expected to land before v0.1.25, and Konrad hasn't weighed in on that yet. At some point we need someone to either look at them or explicitly say they're not blocking anything, because right now they're just sitting",
+          "ts": "2025-05-28T11:43:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Same on PR 652, 33 days with no reviewer and nothing from anyone on whether it needs to land before v0.1.25.",
+          "ts": "2025-05-28T11:58:23"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad which of PR 663 and PR 653 actually need to land before v0.1.25?",
+          "ts": "2025-05-28T12:25:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Nice catch on the torch import fix in PR 663.",
+          "ts": "2025-05-28T12:41:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Can you take it as a reviewer then?",
+          "ts": "2025-05-28T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "And for PR 653, does that need Konrad specifically or can anyone pick it up?",
+          "ts": "2025-05-28T12:51:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is CI green on both PR 663 and PR 653 right now, or is something failing?",
+          "ts": "2025-05-28T13:08:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Sorry, was heads-down, I can take a look at PR 663 this afternoon.",
+          "ts": "2025-05-28T14:53:32",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "It's yours, ping me if anything needs context.",
+          "ts": "2025-05-28T15:16:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Still no reviewer on PR 652.",
+          "ts": "2025-05-28T15:33:32"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad can you give us a call on PR 653 before end of day, we still don't know if it needs to land for v0.1.25.",
+          "ts": "2025-05-28T15:37:32"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, any time today to take a look at PR 652?",
+          "ts": "2025-05-28T16:05:32"
+        },
+        {
+          "userId": "emil",
+          "text": "On PR 663 now.",
+          "ts": "2025-05-28T16:06:09",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad can you assign yourself on PR 653 so it shows up in your queue?",
+          "ts": "2025-05-28T16:14:09"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, any chance you can assign yourself on PR 652 before end of day?",
+          "ts": "2025-05-28T16:49:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno, we're basically at end of day and still no word from Konrad on whether PR 653 gates v0.1.25.",
+          "ts": "2025-05-28T17:32:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Same here, Dario hasn't responded on PR 652 either.",
+          "ts": "2025-05-28T17:45:09"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, PR 652 still has no reviewer.",
+          "ts": "2025-05-28T17:45:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad PR 653 and the v0.1.25 gating question are also still open on my end",
+          "ts": "2025-05-28T17:55:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "- PR 679 is up, adds o3 to the structured outputs model list in finetuning\n- Noticed it overlaps with PR 678 (Emil's), need to sort out which one we're keeping before either merges",
+          "ts": "2025-05-29T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, is PR 678 meant to supersede PR 679, or did they land independently?",
+          "ts": "2025-05-29T09:00:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "ok",
+          "ts": "2025-05-29T09:26:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "answering my own question a bit, does PR 678 already cover everything 679 was adding, or are they touching different things?",
+          "ts": "2025-05-29T09:26:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "Anyone know when this week's notes are going out, I checked my inbox and nothing came through yet.",
+          "ts": "2025-05-29T10:22:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, where are we on PR 678?",
+          "ts": "2025-05-29T10:38:44"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 678 is the refactor, it covers the structured output side",
+          "ts": "2025-05-29T10:55:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Before we merge either one though, does 678 have test coverage for o3?",
+          "ts": "2025-05-29T10:55:49"
+        },
+        {
+          "userId": "emil",
+          "text": "I want to confirm that before we close 679 out",
+          "ts": "2025-05-29T10:55:54"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad can you point me at which tests in 679 cover the o3 case?",
+          "ts": "2025-05-29T10:56:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "If 678 is the canonical refactor, that test coverage question falls on you, not 679",
+          "ts": "2025-05-29T11:16:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "Once you confirm 678 has it covered I'll close mine out",
+          "ts": "2025-05-29T11:16:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "Also, this week's notes still aren't in my inbox. Who owes those?",
+          "ts": "2025-05-29T11:58:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Fair point. Pulling up 678 now to verify the o3 test coverage is actually in there, I'll confirm here once I've checked.",
+          "ts": "2025-05-29T12:27:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Does adding o3 to the model list pick up the existing structured output tests, or does it need its own case?",
+          "ts": "2025-05-29T12:40:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Ok",
+          "ts": "2025-05-29T13:39:57"
+        },
+        {
+          "userId": "emil",
+          "text": "answering my own question - if the structured output tests are parameterized against the model list, adding o3 should pick up coverage automatically.",
+          "ts": "2025-05-29T13:40:09",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Can anyone confirm that's actually how 678 is wired before we merge?",
+          "ts": "2025-05-29T13:40:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "nice catch on the parameterization, that's the right thing to verify before merge",
+          "ts": "2025-05-29T14:20:17",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Does 679 close on 678's merge, or can I just close it now that we've settled which is canonical?",
+          "ts": "2025-05-29T14:40:25"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, got 20 minutes this afternoon to look at the test file together and get 678 merged?",
+          "ts": "2025-05-29T14:57:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "Yes, around now works.",
+          "ts": "2025-05-29T15:17:25"
+        },
+        {
+          "userId": "emil",
+          "text": "Free now, around for the next hour.",
+          "ts": "2025-05-29T16:00:25"
+        },
+        {
+          "userId": "emil",
+          "text": "- PR 678 is the canonical add, 679 ready to close\n- test coverage still needs eyes on the actual test file before we merge\n- syncing with Konrad now to confirm",
+          "ts": "2025-05-29T16:01:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "Once we confirm the test file, Emil merges 678 and I close 679.",
+          "ts": "2025-05-29T16:16:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not sure we should merge 678 today without actually opening the test file first, assuming it's parameterized is what got us stuck here",
+          "ts": "2025-05-29T16:16:09"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, still around?",
+          "ts": "2025-05-29T16:41:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Wanted to make sure we actually get eyes on that file before end of day",
+          "ts": "2025-05-29T16:41:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still here, yes.",
+          "ts": "2025-05-29T17:09:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Looked at 678, tests are there for structured outputs but I want a second set of eyes on the parameterization before I call it confirmed - you've seen both PRs, can you take a quick look?",
+          "ts": "2025-05-29T17:29:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not sure I'm the right second pair of eyes here, I haven't actually opened the test file, only the PR descriptions",
+          "ts": "2025-05-29T17:53:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone able to open the test file in PR 678 and confirm the structured output tests are parameterized to cover o3?",
+          "ts": "2025-05-29T18:06:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is moving along on my end, but PR 653 and PR 663 have been sitting unreviewed for a while now and both touch my service",
+          "ts": "2025-05-30T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Both 653 and 663 are ready on my end, no blockers, just waiting on someone to take a look",
+          "ts": "2025-05-30T09:11:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "The torch fix is pretty contained but the finetuning client is the one I'd rather not let drift much longer",
+          "ts": "2025-05-30T09:11:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil Brandvold what's the situation with PR 652, that one's been open the longest by a fair margin.",
+          "ts": "2025-05-30T09:54:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil Brandvold if you've got cycles, 653 and 663 are both ready for a look too.",
+          "ts": "2025-05-30T10:18:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Actually, separate thing: does anyone know for certain whether the sandbox guarantees survive if you bring your own image?",
+          "ts": "2025-05-30T10:18:28"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I said \"should do\" at the demo and I'm not confident that was right",
+          "ts": "2025-05-30T10:18:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "oh, that's actually my area",
+          "ts": "2025-05-30T10:26:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So does it?",
+          "ts": "2025-05-30T10:45:33"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Survive a caller-supplied image?",
+          "ts": "2025-05-30T10:45:38"
+        },
+        {
+          "userId": "emil",
+          "text": "652's been on me, the viewer returns this for datasets that haven't finished indexing and I've been going back and forth on whether to retry or let the caller decide:\n\n```json\n{\"error\": \"dataset_not_ready\", \"retry_after\": 60}\n```\n\nIf the team wants to defer it past consolidation that's fine, just want a call made on it.",
+          "ts": "2025-05-30T11:04:38",
+          "replyCount": 2,
+          "replyLastTs": "2025-05-30T11:20:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the `retry_after` value reliable or just a rough estimate?",
+          "ts": "2025-05-30T11:20:20",
+          "threadParentTs": "2025-05-30T11:04:38"
+        },
+        {
+          "userId": "konrad",
+          "text": "And what does the caller get today if they hit this before indexing finishes, an exception?",
+          "ts": "2025-05-30T11:20:43",
+          "threadParentTs": "2025-05-30T11:04:38"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Sorry, I meant to come back on this earlier - the sandbox guarantees don't hold if you bring your own image, I went and checked after the demo.",
+          "ts": "2025-05-30T17:20:43",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "I told someone at the demo \"should do\" and that was wrong, just wanted that on record before the weekend.",
+          "ts": "2025-05-30T17:20:51",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure if that 60 is coming from the viewer or if I'm the one setting it.",
+          "ts": "2025-05-30T17:21:18"
         }
       ],
       "projectSpec": {
@@ -32783,6 +33204,242 @@
           "userId": "konrad",
           "text": "\"Locked in\" meaning tested and confirmed, not just presumed clean?",
           "ts": "2025-05-23T18:28:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is moving steadily",
+          "ts": "2025-05-27T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finished the main datset integration points yesterday and am working through few remaining edge cases this morning",
+          "ts": "2025-05-27T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "What does the null value fix actually cover?",
+          "ts": "2025-05-27T09:00:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 663 is merged, PR 653 is still in review. Nothing blocking me this morning.",
+          "ts": "2025-05-27T09:21:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does this touch the multimodal or bulk-inference paths at all?",
+          "ts": "2025-05-27T09:28:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Got through those edge cases, finetuning is looking soild now",
+          "ts": "2025-05-27T09:29:22",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "The multimodal and bulk-inference question is probably one for Dario, I'll follow up with him",
+          "ts": "2025-05-27T09:29:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno if anyone's actually looked at PR 675 yet, but what does the null fix specifically target?",
+          "ts": "2025-05-27T10:06:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Like is it a narrow edge case or something that could show up anywhere a value comes through?",
+          "ts": "2025-05-27T10:06:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Probably worth Nolan confirming the scope before that merges.",
+          "ts": "2025-05-27T10:43:42"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nolan, still trying to nail down scope on PR 675 - is the null handling contained to the default app id parameter, or could it affect how values get passed through the request path more broadly?",
+          "ts": "2025-05-27T11:24:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Right",
+          "ts": "2025-05-27T11:38:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still need to hear from Dario on whether this touches the multimodal or bulk-inference paths.",
+          "ts": "2025-05-27T11:38:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Checked my inbox - the weekly notes for May 19 aren't there yet. Who's owning those?",
+          "ts": "2025-05-27T11:42:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "o3 structured-output support is done, PR 679 is up on the finetuning side. Hoping to get it merged and close out the workstream today",
+          "ts": "2025-05-29T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone sent the weekly notes out yet, I don't see them in my inbox.",
+          "ts": "2025-05-29T09:04:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who handles marking a workstream for close-out, is that on me or someone else?",
+          "ts": "2025-05-29T09:56:11"
+        },
+        {
+          "userId": "konrad",
+          "text": "o3 structured-output support is complete on my end, PR 679 is up",
+          "ts": "2025-05-29T10:26:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ready to mark ws-069 for close-out once that's merged",
+          "ts": "2025-05-29T10:26:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure whether ws-069 closes on merge or just when the PR is up, presumably it's merge?",
+          "ts": "2025-05-29T11:13:10"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 678 is still open on my end, working through the overlap with 679 in code-review before either one merges.",
+          "ts": "2025-05-29T11:50:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "Notes for this week aren't out yet, I checked and nothing came through",
+          "ts": "2025-05-29T11:52:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's on those this week?",
+          "ts": "2025-05-29T11:52:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Planning to get the 678/679 overlap sorted this afternoon once Konrad gets back to me on the test coverage question.",
+          "ts": "2025-05-29T12:20:12"
+        },
+        {
+          "userId": "emil",
+          "text": "If test coverage checks out in 678, we could close 679 and mark ws-069 done in the same pass this afternoon.",
+          "ts": "2025-05-29T12:32:50",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, test coverage is in 678 for o3 - once it's merged, ws-069 close-out is on you to mark.",
+          "ts": "2025-05-29T13:35:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, where are you on merging 678?",
+          "ts": "2025-05-29T14:13:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Still waiting on someone to confirm the test coverage is wired right in 678, then it's ready to merge.",
+          "ts": "2025-05-29T14:35:50",
+          "replyCount": 4,
+          "replyLastTs": "2025-05-29T14:44:36"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone actually looked at the test file, or is the parameterization still just an assumption?",
+          "ts": "2025-05-29T14:36:35",
+          "threadParentTs": "2025-05-29T14:35:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-05-29T14:36:50",
+          "threadParentTs": "2025-05-29T14:35:50"
+        },
+        {
+          "userId": "emil",
+          "text": "fair, it was an assumption on my part",
+          "ts": "2025-05-29T14:36:55",
+          "threadParentTs": "2025-05-29T14:35:50"
+        },
+        {
+          "userId": "emil",
+          "text": "I haven't actually opened the test file",
+          "ts": "2025-05-29T14:37:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll pull it up",
+          "ts": "2025-05-29T14:44:36",
+          "threadParentTs": "2025-05-29T14:35:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 679 is ready to close on my end",
+          "ts": "2025-05-29T14:45:19"
+        },
+        {
+          "userId": "konrad",
+          "text": "Waiting on the test coverage confirmation in 678 before I do",
+          "ts": "2025-05-29T14:45:27"
+        },
+        {
+          "userId": "emil",
+          "text": "On it, pulling up the test file now.",
+          "ts": "2025-05-29T15:14:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "Should be able to close 679 and mark ws-069 done before end of day once Emil confirms the test wiring in 678",
+          "ts": "2025-05-29T15:59:27"
+        },
+        {
+          "userId": "emil",
+          "text": "Tests are wired correctly, PR 678 is good to merge",
+          "ts": "2025-05-29T16:35:27",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "o3 structured output support is in",
+          "ts": "2025-05-29T16:35:35",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we mark ws-069 for close-out now or wait until 678 actually merges?",
+          "ts": "2025-05-29T17:07:35"
         }
       ],
       "projectSpec": {
@@ -34244,6 +34901,125 @@
           "userId": "emil",
           "text": "@Dario, do you have a view on fallback behavior when the stored job can't be reused?",
           "ts": "2025-04-29T18:25:41.588023"
+        },
+        {
+          "userId": "konrad",
+          "text": "Winding down to maintenance mode after v0.1.26 is up on the wiki",
+          "ts": "2025-06-02T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Covers what the dormancy era means for review pace, what stays open, and what to expect from here",
+          "ts": "2025-06-02T09:00:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Worth flagging alongside that: review turnaround is going to be a lot slower from here",
+          "ts": "2025-06-02T09:03:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai are PR 653 and PR 663 likely to land before the v0.1.26 cutover, or should we expect them to carry into the dormancy period?",
+          "ts": "2025-06-02T09:37:05",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-02T15:37:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Good question, let me take a proper look at where both of those stand and get back to you by end of day",
+          "ts": "2025-06-02T15:37:05",
+          "threadParentTs": "2025-06-02T09:37:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Slow turnaround is fine, but I'd want to make sure Nikolai's two PRs aren't just sitting indefinitely, if they're close, it's worth a quick push to get them in before cutover rather than leaving them to stall out in dormancy.",
+          "ts": "2025-06-02T15:51:05",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "The recap is out, it covers the in-flight PRs, the dormancy plan, and I put a question to Dario and Gideon about the viewer download path before cutover",
+          "ts": "2025-06-02T15:53:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Haven't had a reply on that yet, so not entirey sure where it stands",
+          "ts": "2025-06-02T15:53:13"
+        },
+        {
+          "userId": "emil",
+          "text": "Leaving that question unanswered going into cutover feels like it's going to quietly carry into dormancy unresolved.",
+          "ts": "2025-06-02T16:24:13",
+          "replyCount": 3,
+          "replyLastTs": "2025-06-02T16:42:35"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno, that might just be how dormancy works in practice. Forcing a resolution this afternoon when Dario and Gideon haven't had a chance to look at it seems worse than letting it sit as a known open item",
+          "ts": "2025-06-02T16:24:26",
+          "threadParentTs": "2025-06-02T16:24:13"
+        },
+        {
+          "userId": "emil",
+          "text": "I'd feel better about it if it were written down somewhere as an explicit open item, not just understood.",
+          "ts": "2025-06-02T16:42:14",
+          "threadParentTs": "2025-06-02T16:24:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Should that go in the dormancy doc, or does it warrant an actual issue?",
+          "ts": "2025-06-02T16:42:35",
+          "threadParentTs": "2025-06-02T16:24:13"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Pretty sure my brain checked out about twenty minutes ago, anyone else just staring at the same line of code?",
+          "ts": "2025-06-02T17:19:35",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Calling it here, back tomorrow.",
+          "ts": "2025-06-02T18:03:35",
+          "reactions": [
+            {
+              "emoji": "👋",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2025-06-02T18:04:09"
+        },
+        {
+          "userId": "nikolai",
+          "text": "same",
+          "ts": "2025-06-02T18:04:09",
+          "threadParentTs": "2025-06-02T18:03:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "Dormancy doc is on the wiki",
+          "ts": "2025-06-02T18:29:09"
+        },
+        {
+          "userId": "konrad",
+          "text": "Anything that doesn't close before v0.1.26 carries into slow-review mode, that's the expectation",
+          "ts": "2025-06-02T18:29:17"
+        },
+        {
+          "userId": "nikolai",
+          "text": "For anyone who hasn't found it yet, it's up as \"Winding down to maintenance mode after v0.1.26\" on the wiki.",
+          "ts": "2025-06-02T18:29:47.520709"
         }
       ],
       "projectSpec": {
@@ -51492,6 +52268,118 @@
           "text": "Is anyone actually committed to 52 for the next cut, or is it just unscheduled?",
           "ts": "2025-05-06T15:06:52",
           "threadParentTs": "2025-05-06T14:45:38"
+        },
+        {
+          "userId": "konrad",
+          "text": "- *o3 support*, merged this morning, finetuning is good on my end\n- *release notes*, haven't seen a draft yet, want to make sure the o3 family is in the support table before we announce",
+          "ts": "2025-05-30T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil Brandvold is the v0.1.25 release notes draft up anywhere?",
+          "ts": "2025-05-30T09:04:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the plan to get the announcement out today or are we holding for something?",
+          "ts": "2025-05-30T09:59:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does o3-mini need to be explicitly called out in the support table, or is the o3 family covered as a group?",
+          "ts": "2025-05-30T10:35:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who actually cuts the tag for v0.1.25, is that Emil or does someone else do it?",
+          "ts": "2025-05-30T11:12:57"
+        },
+        {
+          "userId": "emil",
+          "text": "o3-mini wasn't in the support table last week at all, everything o3 fell straight through to the unsupported branch",
+          "ts": "2025-05-30T11:19:57"
+        },
+        {
+          "userId": "emil",
+          "text": "team's aligned that o3 as a family needs to be in the table, not just mentioned in passing",
+          "ts": "2025-05-30T11:20:00"
+        },
+        {
+          "userId": "emil",
+          "text": "it shipped with schema support day one, table just never got an entry for it",
+          "ts": "2025-05-30T11:20:03"
+        },
+        {
+          "userId": "emil",
+          "text": "I sat there for half a morning rewriting my pydantic model convinced the bug was mine",
+          "ts": "2025-05-30T11:20:09"
+        },
+        {
+          "userId": "emil",
+          "text": "I've put o3-mini in as an explicit entry",
+          "ts": "2025-05-30T11:20:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Announcement is out, mailed the team just now, asked if anyone spots something missing before Monday.",
+          "ts": "2025-05-30T17:27:56",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone actually looked at the release notes yet, or are we getting feedback next week?",
+          "ts": "2025-05-30T17:28:04"
+        },
+        {
+          "userId": "emil",
+          "text": "v0.1.25 Release Notes is up in the engineering section of the wiki.",
+          "ts": "2025-05-30T17:52:04"
+        },
+        {
+          "userId": "emil",
+          "text": "Anything missing from it before we call this done for the week?",
+          "ts": "2025-05-30T17:52:09"
+        },
+        {
+          "userId": "emil",
+          "text": "Answering my own question, v0.1.24 release notes page doesn't exist yet.",
+          "ts": "2025-05-30T17:53:11",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "That one's on me",
+          "ts": "2025-05-30T17:53:23"
+        },
+        {
+          "userId": "emil",
+          "text": "Anything you want included before I pick it up Monday?",
+          "ts": "2025-05-30T17:53:28"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the v0.1.25 notes, o3-mini is in as an explicit entry, torch fix is there, curator LLM default app ID is there",
+          "ts": "2025-05-30T18:20:28"
+        },
+        {
+          "userId": "emil",
+          "text": "The finetuning client section is thin, I flagged in it that a usage guide is still needed",
+          "ts": "2025-05-30T18:20:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Konrad, is that section enough to ship as-is or does it need more before Monday?",
+          "ts": "2025-05-30T18:20:41"
         }
       ],
       "projectSpec": {
@@ -52939,6 +53827,82 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Sent the Week of May 26 recap this morning",
+          "ts": "2025-06-02T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Asked Dario and Gideon in it whether the download plumbing in the viewer surface is clean and testable before we go quiet on v0.1.26",
+          "ts": "2025-06-02T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Gideon is there a way to manually exercise the download path end to end, or does it require a full run to verify?",
+          "ts": "2025-06-02T09:44:04"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does the viewer pick up finetuning run output at all, or is it scoped only to curation runs?",
+          "ts": "2025-06-02T15:57:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the wiki just now and Gideon's handover doc isn't there yet, so the download plumbing question Konrad raised might not have a written answer to point at either.",
+          "ts": "2025-06-02T16:36:31"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the download endpoint meant to expose output mid-run, or does it only surface once a run finishes?",
+          "ts": "2025-06-02T16:49:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still no answer on the download plumbing question I raised this morning",
+          "ts": "2025-06-02T17:08:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "With Gideon's handover doc not up yet, I'm treating it as a known open item going into dormancy",
+          "ts": "2025-06-02T17:08:07"
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone actually verified the download path end to end, or is it just assumed to be working?",
+          "ts": "2025-06-02T18:11:19"
+        },
+        {
+          "userId": "emil",
+          "text": "If not, should that be a filed issue rather than just a note in the dormancy doc?",
+          "ts": "2025-06-02T18:11:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "Put the question to Dario and Gideon in the recap this morning, still nothing back",
+          "ts": "2025-06-02T18:29:48.300172"
+        },
+        {
+          "userId": "konrad",
+          "text": "Filing it is the right call - a note in the dormancy doc is too easy to miss",
+          "ts": "2025-06-02T18:30:00.300172",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Gideon's handover doc isn't on the wiki yet, so nothing written down covers what the viewer surface actually exposes.",
+          "ts": "2025-06-02T18:30:01.300172"
+        },
+        {
+          "userId": "emil",
+          "text": "Who's filing the download path issue, Dario or Gideon?",
+          "ts": "2025-06-02T18:30:06.300172"
         }
       ],
       "projectSpec": {
