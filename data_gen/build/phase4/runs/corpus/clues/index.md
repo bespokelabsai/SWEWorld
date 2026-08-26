@@ -1,6 +1,6 @@
 # Phase 4: every planted clue, and whether its information landed
 
-47 of 49 carried.
+49 of 49 carried.
 
 A clue is a fact the corpus has to teach. It does not have to be worded the way it was planted — the persona saying it has their own vocabulary — but the information has to be there, or the requirement it serves becomes unrecoverable and the task unscoreable. Each row links to the line that carried it, in the conversation around it.
 
@@ -15,8 +15,8 @@ A clue is a fact the corpus has to teach. It does not have to be worded the way 
 | [t1.r1.h1](t1.r1.h1.md) | t1 | dermot | — | 2024-11-27 | #engineering | chat | yes | — | +2 msg | 1 |
 | [t1.r2.L3](t1.r2.L3.md) | t1 | dermot | — | 2024-12-09 | page:design-ws-012-bulk-llm-inference | page | yes | — | — | 1 |
 | [t2.r2.l9](t2.r2.l9.md) | t2 | gideon | — | 2024-12-10 | #engineering | chat | yes | — | — | 1 |
-| [t1.r2.L14](t1.r2.L14.md) | t1 | dermot | — | 2024-12-11 | page:postmortem-2024-12-10 | page | **NO** | — | — | 1 |
-| [t1.r1.l_prompt_2](t1.r1.l_prompt_2.md) | t1 | dario | — | 2024-12-16 | page:runbook-bulk-llm-inference | page | **NO** | cache key | — | 1 |
+| [t1.r2.L14](t1.r2.L14.md) | t1 | dermot | — | 2024-12-11 | page:postmortem-2024-12-10 | page | yes | — | — | 1 |
+| [t1.r1.l_prompt_2](t1.r1.l_prompt_2.md) | t1 | dario | — | 2024-12-16 | page:runbook-bulk-llm-inference | page | yes | cache key | — | 1 |
 | [t3.r1.h1](t3.r1.h1.md) | t3 | dario | — | 2024-12-20 | #code-review | chat | yes | — | +2 msg | 1 |
 | [t2.r1.h2](t2.r1.h2.md) | t2 | dario | — | 2024-12-27 | #code-review | chat | yes | — | +2 msg | 1 |
 | [t1.r1.l_scope_3](t1.r1.l_scope_3.md) | t1 | dermot | — | 2025-01-14 | page:postmortem-2025-01-13 | page | yes | cache key | — | 1 |

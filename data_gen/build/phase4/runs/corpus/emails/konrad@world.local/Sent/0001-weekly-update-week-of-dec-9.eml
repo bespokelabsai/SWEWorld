@@ -1,39 +1,39 @@
 From: konrad@world.local
 To: emil@world.local, dario@world.local, gideon@world.local,
- dermot@world.local, otto@world.local
+ dermot@world.local, otto@world.local, petar@world.local
 Subject: Weekly update: week of Dec 9
-Date: Mon, 16 Dec 2024 09:28:00 +0000
-Message-ID: <178764535560.1827306.16935637423319683425@world.local>
+Date: Mon, 16 Dec 2024 09:56:00 +0000
+Message-ID: <178777284294.2892162.9526822245337177095@world.local>
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Hey all, quick recap of the week of Dec 9.
+Team,
 
-**What shipped / merged**
-- Several PRs landed across batch-mode, caching-and-resume, and curator-viewe=
-r. We're holding at v0.1.11 while the recent reverts stabilize.
+Quick wrap-up from the week of Dec 9.
 
-**What got reverted**
-This was a rough week for batch-mode stability:
-- Dec 10: batch auto-delete logic reverted (Dermot is writing that postmortem)
-- Dec 13: batch context-manager refactor (PR 254) reverted same day it merged=
- =E2=80=94 re-init on context manager entry dropped pre-configured state, and=
- there was a concurrent teardown race under parallel runs. I've written up th=
-e postmortem on this one; it's on the wiki.
+The big thing: we had two reverts in five days. Dec 10 was the batch auto-del=
+ete revert (Dermot is writing that up), and Dec 13 was the batch context-mana=
+ger refactor in PR 254. The context-manager postmortem is done and on the wik=
+i under incidents. Short version: the PR bundled structural and behavioral ch=
+anges together, which made it impossible to isolate what broke, so the whole =
+thing had to go. The pattern across both reverts is the same =E2=80=94 batch =
+parameter interactions are fragile and we need smaller, independently reverta=
+ble steps going forward.
 
-**In flight**
-PR 78, 90, 106, 133, 161, and 163 are all open. None of these are blocking a =
-release right now but a few are getting close to review-ready.
+On the examples side, PR 106 (text message summarization example) is nearly r=
+eady for review.
 
-**One question for everyone**
-Given the two batch reverts in one week, I want to make sure we're aligned on=
- what "ready to merge" means for anything that touches batch-mode or shared p=
-rocessor state going forward. Do we want to add an explicit concurrent-teardo=
-wn test as a gate before anything in that area lands, or is that too heavy fo=
-r the current milestone? Would be good to settle this before 0.1.12 scope get=
-s locked.
+A few things I am still trying to get answered heading into this week:
 
-Let me know if I missed anything.
+- What specifically misfired in PR 254's teardown sequence? Emil, if you have=
+ more detail on this I would appreciate it before we plan any SimpleLLM confi=
+g changes that touch the same area.
+- PR 266 (retry on format failure) is sitting in review. Needs eyes before it=
+ can land, and someone should confirm the 263-266 sequence is clean against t=
+he metadata and cache verification path.
+- Timeout defaults for 0.1.12 =E2=80=94 Dario confirmed these are online-only=
+ and batch paths are unaffected, which is good, but want to make sure that's =
+captured in the release notes before we cut.
 
 Konrad

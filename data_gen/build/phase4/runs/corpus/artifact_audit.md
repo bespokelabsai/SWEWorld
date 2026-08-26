@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-117 of 120 obligations met.
+118 of 120 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -8,7 +8,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 
 | date | who | action | artifact |
 |---|---|---|---|
-| 2024-12-17 | dario | send | v0.1.12 is out |
 | 2025-02-17 | gideon | send | 0.1.19 is out |
 | 2025-03-10 | konrad | send | Welcome nils (and theo) |
 
@@ -54,13 +53,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-12-06 | dario | send | 09:35 | v0.1.11 is out |
 | 2024-12-09 | konrad | send | 09:28 | Weekly update: week of Dec 2 |
 | 2024-12-09 | dermot | write | 09:14 | Bulk LLM Inference: next-phase design |
-| 2024-12-11 | dario | write | 09:42 | Weekly notes: week of Dec 9 - two reverts |
-| 2024-12-11 | dermot | write | 09:14 | Postmortem: Dec 10 revert of batch auto-delete |
-| 2024-12-16 | dario | write | 09:49 | Runbook: handling curator.LLM incidents |
-| 2024-12-16 | konrad | write | 09:14 | Postmortem: Dec 13 revert of batch context-manager refactor (PR #254) |
-| 2024-12-16 | konrad | send | 09:28 | Weekly update: week of Dec 9 |
-| 2024-12-17 | dario | write | 09:14 | v0.1.12 release notes |
-| 2024-12-17 | dario | send | NO | v0.1.12 is out |
 | 2024-12-18 | dario | write | 09:14 | Weekly notes: week of Dec 16 - v0.1.12 out |
 | 2024-12-23 | konrad | write | 09:14 | 0.1.13 release notes |
 | 2024-12-23 | konrad | send | 09:28 | 0.1.13 is out |
@@ -136,3 +128,10 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-03-19 | dermot | write | 09:14 | v0.1.21 Release Notes |
 | 2025-03-19 | dermot | send | 09:49 | v0.1.21 is out |
 | 2025-03-19 | nils | write | 09:35 | Weekly Notes — Week of Mar 17 |
+| 2024-12-11 | dario | write | 09:42 | Weekly notes: week of Dec 9 - two reverts |
+| 2024-12-11 | dermot | write | 09:14 | Postmortem: Dec 10 revert of batch auto-delete |
+| 2024-12-16 | dario | write | 09:35 | Runbook: handling curator.LLM incidents |
+| 2024-12-16 | konrad | write | 09:14 | Postmortem: Dec 13 revert of batch context-manager refactor (PR #254) |
+| 2024-12-16 | konrad | send | 09:56 | Weekly update: week of Dec 9 |
+| 2024-12-17 | dario | write | 09:14 | v0.1.12 release notes |
+| 2024-12-17 | dario | send | 09:28 | v0.1.12 is out |

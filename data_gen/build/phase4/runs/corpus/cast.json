@@ -8,8 +8,8 @@
         "gender": "Male",
         "occupation": "computer or information systems manager",
         "personality": [
-          "meticulous",
-          "reserved",
+          "methodical",
+          "understated",
           "disciplined",
           "introspective"
         ],
@@ -23,10 +23,10 @@
           "VMware virtualization"
         ],
         "gaps": [
-          "People management and conflict resolution in heated team situations",
-          "Cloud migration strategies and multi-cloud environments compared to on-premises expertise",
-          "Security compliance frameworks like SOC 2 or ISO 27001 certification requirements",
-          "Vendor negotiation and license optimization across enterprise contracts"
+          "cloud migration strategy and modern containerization platforms like kubernetes",
+          "navigating organizational change management and persuading stakeholders to adopt new systems",
+          "staying current with emerging security threat vectors and compliance frameworks",
+          "troubleshooting user-facing software issues outside the core infrastructure domain"
         ],
         "hobbies": [
           "Model building",
@@ -47,34 +47,36 @@
         ]
       },
       "voice": {
-        "cadence": "burst",
-        "formality": "casual",
-        "capitalization": "normal",
+        "cadence": "considered",
+        "formality": "semi-formal",
+        "capitalization": "always lowercase",
         "punctuation": "inconsistent",
         "vocabulary": "verbose",
-        "typo_tendency": "light",
+        "typo_tendency": "frequent",
         "register": "native",
-        "reaction_style": "restrained",
+        "reaction_style": "expressive",
         "agreeableness": "neutral",
         "signature_words": [
-          "anyway",
-          "so basically"
+          "in any case",
+          "best we can do"
         ],
         "emoji_tendency": {
-          "frequency": "never",
-          "preferred": [],
-          "trigger": "humor"
+          "frequency": "rare",
+          "preferred": [
+            "\ud83d\ude24"
+          ],
+          "trigger": "frustration"
         },
         "hedge_words": [
-          "honestly",
-          "i dunno",
-          "hold on",
-          "i'd lean"
+          "i think",
+          "actually",
+          "to be honest",
+          "honestly"
         ],
         "affirm_words": [
           "makes sense",
-          "fair",
-          "fair enough"
+          "that tracks",
+          "mhm"
         ],
         "question_style": "either-or"
       },
@@ -100,7 +102,7 @@
           "pragmatic",
           "meticulous",
           "impulsive",
-          "perfectionist"
+          "balanced"
         ],
         "background": "",
         "strengths": [
@@ -112,10 +114,10 @@
           "Team leadership and mentorship"
         ],
         "gaps": [
-          "emerging cloud-native frameworks and containerization nuances",
-          "real-time compliance audit procedures for newer regulations",
-          "deep troubleshooting of distributed system race conditions",
-          "modern hr policy compliance in remote team scaling"
+          "cloud infrastructure cost optimization\u2014tends to defer to specialists",
+          "compliance frameworks like SOC 2 or ISO 27001\u2014knows the outline, fuzzy on execution",
+          "modern container orchestration beyond basics",
+          "stakeholder communication during ambiguous early-stage projects"
         ],
         "hobbies": [
           "Woodworking",
@@ -136,119 +138,33 @@
         ]
       },
       "voice": {
-        "cadence": "burst",
-        "formality": "formal",
-        "capitalization": "always lowercase",
-        "punctuation": "inconsistent",
-        "vocabulary": "plain",
-        "typo_tendency": "frequent",
+        "cadence": "considered",
+        "formality": "semi-formal",
+        "capitalization": "normal",
+        "punctuation": "standard",
+        "vocabulary": "clipped/terse",
+        "typo_tendency": "light",
         "register": "esl",
         "reaction_style": "restrained",
         "agreeableness": "neutral",
         "signature_words": [
-          "look we need to",
-          "that said"
+          "let's lock that down",
+          "ship it"
         ],
         "emoji_tendency": {
           "frequency": "never",
           "preferred": [],
-          "trigger": "emphasis"
+          "trigger": "warmth"
         },
         "hedge_words": [
-          "not entirely sure",
-          "so",
-          "i mean"
+          "let me think",
+          "hold on",
+          "i'd say"
         ],
         "affirm_words": [
-          "yeah",
-          "gotcha"
-        ],
-        "question_style": "blunt-direct"
-      },
-      "identity": {
-        "situation_type": "casual",
-        "goal": "just chatting",
-        "emotional_state": {
-          "label": "calm",
-          "intensity": 0.2,
-          "source": "exogenous"
-        },
-        "project_spec": null,
-        "project_context": null
-      }
-    },
-    "emil": {
-      "core": {
-        "name": "Emil Brandvold",
-        "age": 40,
-        "gender": "Male",
-        "occupation": "computer or information systems manager",
-        "personality": [
-          "pragmatic",
-          "community-minded",
-          "detail-oriented",
-          "grounded"
-        ],
-        "background": "",
-        "strengths": [
-          "Network Design & Administration",
-          "Server Virtualization (VMware, Hyper\u2011V)",
-          "Cloud Migration (AWS, Azure)",
-          "IT Budgeting & Vendor Management",
-          "Agile Project Management",
-          "ITIL Service Management"
-        ],
-        "gaps": [
-          "cloud migration strategy and multi-cloud architecture decisions",
-          "advanced security frameworks like zero-trust implementation",
-          "keeping current with emerging monitoring and observability tools",
-          "formal project management methodologies beyond basic planning"
-        ],
-        "hobbies": [
-          "Hiking in the Pacific Northwest",
-          "Trout fishing",
-          "Woodworking (furniture building)",
-          "Home brewing craft beer",
-          "Chess",
-          "Historical non\u2011fiction reading",
-          "Community theater attendance",
-          "Volunteer work at food bank and farmers market"
-        ],
-        "travel_habits": "A strategic road\u2011trip planner, Alexander Leppert prefers mapping scenic drives through Oregon\u2019s coastline and Cascade peaks, they have trekked to Crater Lake, explored Seattle\u2019s Pike Place Market, and dream of hiking Norway\u2019s fjords and strolling Kyoto\u2019s historic temples, balancing adventure with budget constraints by booking modest lodgings and using a well\u2011stocked camper van.",
-        "dining_preferences": "A devoted home\u2011brewer and woodworker, Alexander Leppert crafts seasonal IPAs with Cascade hops, they cook cedar\u2011plank smoked trout seasoned with rosemary and wild mushrooms, perfect their family\u2019s traditional holiday roast served with apple\u2011cinnamon crumble, and routinely experiment with foraged ingredients like pine nuts and juniper berries, showcasing a blend of rustic flavors and meticulous technique.",
-        "spending_habits": "",
-        "other": [
-          "Alexander is a white American of German and English descent, raised in a small Midwestern town where self\u2011reliance and community involvement were core values. After completing a STEM bachelor's degree, he relocated to Oregon for career opportunities, embracing the Pacific Northwest's love of nature and outdoor recreation. He maintains family traditions such as holiday gatherings with homemade recipes, while actively participating in local events like the Jackson County Fair and supporting regional farmers markets. His cultural outlook blends Midwestern practicality with Oregon's environmental appreciation and a strong commitment to volunteerism.",
-          "Alexander aims to advance to a regional IT Director role, overseeing technology strategy for a health\u2011care network or municipal government in the Pacific Northwest. He plans to earn the CISSP certification and an AWS Solutions Architect Professional credential to deepen his security and cloud expertise. His ambition includes leading a comprehensive digital transformation that modernizes legacy systems, enhances remote\u2011work capabilities, and strengthens cybersecurity posture. Additionally, he seeks to mentor emerging IT talent and cultivate a workplace culture centered on reliability, teamwork, and employee well\u2011being."
-        ]
-      },
-      "voice": {
-        "cadence": "burst",
-        "formality": "semi-formal",
-        "capitalization": "normal",
-        "punctuation": "standard",
-        "vocabulary": "plain",
-        "typo_tendency": "frequent",
-        "register": "native",
-        "reaction_style": "restrained",
-        "agreeableness": "blunt",
-        "signature_words": [
-          "let's circle back on that",
-          "works for me"
-        ],
-        "emoji_tendency": {
-          "frequency": "never",
-          "preferred": [],
-          "trigger": "never"
-        },
-        "hedge_words": [
-          "if i had to guess",
-          "maybe",
-          "i guess"
-        ],
-        "affirm_words": [
-          "got it",
-          "gotcha"
+          "gotcha",
+          "totally",
+          "no doubt"
         ],
         "question_style": "either-or"
       },
@@ -273,8 +189,8 @@
         "personality": [
           "curious",
           "disciplined",
-          "high-energy",
-          "resilient"
+          "resilient",
+          "ambitious"
         ],
         "background": "",
         "strengths": [
@@ -286,10 +202,10 @@
           "SQL"
         ],
         "gaps": [
-          "DevOps and infrastructure-as-code tooling (Terraform, Kubernetes)",
-          "frontend state management libraries when they drift from her core stack",
-          "remembering which deprecated APIs she swore she'd never use again",
-          "estimating timeline impact of her own over-commitment"
+          "DevOps and infrastructure-as-code tooling (terraform, Kubernetes specifics)",
+          "real-time systems and low-latency optimization constraints",
+          "legacy codebase refactoring strategies when timeline is compressed",
+          "setting realistic scope boundaries before committing to new projects or talks"
         ],
         "hobbies": [
           "Tech meetups and conferences",
@@ -315,31 +231,33 @@
         "cadence": "burst",
         "formality": "casual",
         "capitalization": "normal",
-        "punctuation": "inconsistent",
-        "vocabulary": "technical",
+        "punctuation": "standard",
+        "vocabulary": "verbose",
         "typo_tendency": "frequent",
-        "register": "native",
-        "reaction_style": "restrained",
-        "agreeableness": "agreeable",
+        "register": "esl",
+        "reaction_style": "expressive",
+        "agreeableness": "neutral",
         "signature_words": [
-          "anyway",
-          "so like"
+          "so basically",
+          "honestly though"
         ],
         "emoji_tendency": {
-          "frequency": "never",
-          "preferred": [],
-          "trigger": "warmth"
+          "frequency": "rare",
+          "preferred": [
+            "\ud83d\ude05"
+          ],
+          "trigger": "humor"
         },
         "hedge_words": [
-          "i think",
-          "uh",
-          "off the top of my head"
+          "tbh",
+          "i dunno",
+          "um"
         ],
         "affirm_words": [
-          "yeah ok",
-          "for real"
+          "exactly",
+          "ya"
         ],
-        "question_style": "restate-guess"
+        "question_style": "plain-what"
       },
       "identity": {
         "situation_type": "casual",
@@ -356,61 +274,62 @@
     "konrad": {
       "core": {
         "name": "Konrad Feltrin",
-        "age": 40,
+        "age": 59,
         "gender": "Male",
         "occupation": "computer or information systems manager",
         "personality": [
-          "pragmatic",
-          "community-oriented",
-          "methodical",
-          "grounded"
+          "ambitious",
+          "reactive",
+          "curious",
+          "sociable"
         ],
         "background": "",
         "strengths": [
-          "Network Design & Administration",
-          "Server Virtualization (VMware, Hyper\u2011V)",
-          "Cloud Migration (AWS, Azure)",
-          "IT Budgeting & Vendor Management",
-          "Agile Project Management",
-          "ITIL Service Management"
+          "Strategic IT Planning",
+          "Project Management",
+          "Vendor Management",
+          "Network Architecture",
+          "Cybersecurity Fundamentals",
+          "Cloud Services (AWS, Azure)"
         ],
         "gaps": [
-          "cloud architecture patterns \u2014 keeps defaulting to on-prem mental models",
-          "advanced database optimization and query tuning specifics",
-          "staying current with rapid shifts in container orchestration tooling",
-          "security compliance frameworks like SOC 2 audit requirements"
+          "cloud infrastructure cost optimization and reserved instance modeling",
+          "contemporary containerization and Kubernetes deployment patterns",
+          "advanced SQL query optimization and database performance tuning",
+          "compliance frameworks like SOC 2 audit procedures"
         ],
         "hobbies": [
-          "Hiking in the Pacific Northwest",
-          "Trout fishing",
-          "Woodworking (furniture building)",
-          "Home brewing craft beer",
-          "Chess",
-          "Historical non\u2011fiction reading",
-          "Community theater attendance",
-          "Volunteer work at food bank and farmers market"
+          "Golfing",
+          "Bowling league",
+          "Hiking in the Sonoran Desert",
+          "Community volunteering",
+          "Tech Meetup participation",
+          "Photography",
+          "Cooking Southwestern dishes",
+          "Reading historical non-fiction",
+          "Mindfulness meditation"
         ],
-        "travel_habits": "A strategic road\u2011trip planner, Alexander Leppert prefers mapping scenic drives through Oregon\u2019s coastline and Cascade peaks, they have trekked to Crater Lake, explored Seattle\u2019s Pike Place Market, and dream of hiking Norway\u2019s fjords and strolling Kyoto\u2019s historic temples, balancing adventure with budget constraints by booking modest lodgings and using a well\u2011stocked camper van.",
-        "dining_preferences": "A devoted home\u2011brewer and woodworker, Alexander Leppert crafts seasonal IPAs with Cascade hops, they cook cedar\u2011plank smoked trout seasoned with rosemary and wild mushrooms, perfect their family\u2019s traditional holiday roast served with apple\u2011cinnamon crumble, and routinely experiment with foraged ingredients like pine nuts and juniper berries, showcasing a blend of rustic flavors and meticulous technique.",
+        "travel_habits": "John Whitman, an adventurous yet organized traveler, has trekked the Grand Canyon, explored Santa Fe\u2019s historic plaza, and taken a road\u2011trip through Utah\u2019s national parks, while dreaming of kayaking the coastal fjords of Norway and scheduling future visits to the vineyards of Napa Valley with a mix of meticulous itineraries and spontaneous detours for local cuisine.",
+        "dining_preferences": "John Whitman, a home\u2011cook who experiments with southwestern flavors, frequently prepares green\u2011chile enchiladas, carne asada tacos, and prickly\u2011pear sorbet, sourcing fire\u2011roasted chiles and fresh cilantro from the local farmer\u2019s market, and though they pride themselves on balanced meals, they sometimes over\u2011salt their sauces in a quest for boldness.",
         "spending_habits": "",
         "other": [
-          "Alexander is a white American of German and English descent, raised in a small Midwestern town where self\u2011reliance and community involvement were core values. After completing a STEM bachelor's degree, he relocated to Oregon for career opportunities, embracing the Pacific Northwest's love of nature and outdoor recreation. He maintains family traditions such as holiday gatherings with homemade recipes, while actively participating in local events like the Jackson County Fair and supporting regional farmers markets. His cultural outlook blends Midwestern practicality with Oregon's environmental appreciation and a strong commitment to volunteerism.",
-          "Alexander aims to advance to a regional IT Director role, overseeing technology strategy for a health\u2011care network or municipal government in the Pacific Northwest. He plans to earn the CISSP certification and an AWS Solutions Architect Professional credential to deepen his security and cloud expertise. His ambition includes leading a comprehensive digital transformation that modernizes legacy systems, enhances remote\u2011work capabilities, and strengthens cybersecurity posture. Additionally, he seeks to mentor emerging IT talent and cultivate a workplace culture centered on reliability, teamwork, and employee well\u2011being."
+          "John is a white American born in the early 1960s, part of the Baby Boomer generation. He grew up in the Midwest, where a strong work ethic, community involvement, and self\u2011reliance were core values. Relocating to Mesa, Arizona in his thirties, he embraced the Southwest\u2019s blend of desert lifestyle, Hispanic culinary influences, and a growing tech ecosystem. He celebrates traditional holidays such as Thanksgiving and the Fourth of July, and participates in local cultural events like the annual Arizona State Fair. His upbringing instilled a respect for both established business practices and the innovative spirit of the digital age, reflected in his balanced approach to technology and management. John\u2019s cultural identity is further shaped by his active church participation and his role as a family man, fostering a sense of continuity between his personal heritage and the evolving regional community.",
+          "Looking ahead, John aims to transition into a Chief Information Officer role within a midsize organization\u2014preferably in the healthcare or retail sector\u2014where he can champion enterprise\u2011wide digital transformation while safeguarding operational stability. He is passionate about integrating emerging technologies such as AI\u2011driven analytics and automated workflow tools to boost efficiency. Simultaneously, he seeks to formalize a mentorship program for junior IT staff, passing on his blend of curiosity and pragmatism. As he approaches retirement, John plans to scale back day\u2011to\u2011day management responsibilities and evolve into a consulting advisor, helping regional businesses navigate technology adoption without compromising their core processes. Balancing his ambitious career trajectory, he also prioritizes reducing work\u2011related anxiety through better delegation and work\u2011life integration."
         ]
       },
       "voice": {
         "cadence": "burst",
-        "formality": "casual",
+        "formality": "formal",
         "capitalization": "normal",
         "punctuation": "inconsistent",
-        "vocabulary": "verbose",
+        "vocabulary": "plain",
         "typo_tendency": "frequent",
         "register": "esl",
         "reaction_style": "restrained",
         "agreeableness": "neutral",
         "signature_words": [
-          "so here's the thing",
-          "makes sense"
+          "anyway",
+          "look"
         ],
         "emoji_tendency": {
           "frequency": "rare",
@@ -420,14 +339,16 @@
           "trigger": "frustration"
         },
         "hedge_words": [
-          "so",
-          "well"
+          "maybe",
+          "presumably",
+          "not entirely sure",
+          "off the top of my head"
         ],
         "affirm_words": [
-          "definitely",
-          "totally"
+          "right",
+          "mhm"
         ],
-        "question_style": "either-or"
+        "question_style": "plain-what"
       },
       "identity": {
         "situation_type": "casual",
@@ -441,9 +362,9 @@
         "project_context": null
       }
     },
-    "nikolai": {
+    "petar": {
       "core": {
-        "name": "Nikolai Berresford",
+        "name": "Petar Kovalenko",
         "age": 50,
         "gender": "Male",
         "occupation": "software developer",
@@ -451,7 +372,7 @@
           "methodical",
           "pragmatic",
           "grounded",
-          "detail-oriented"
+          "deliberate"
         ],
         "background": "",
         "strengths": [
@@ -463,10 +384,10 @@
           "Angular"
         ],
         "gaps": [
-          "front-end UI/UX frameworks and modern CSS approaches",
-          "containerization and orchestration (Docker, Kubernetes specifics)",
-          "staying current with rapidly shifting JavaScript ecosystem tooling",
-          "optimizing database queries under high load scenarios"
+          "Frontend frameworks and CSS layouts trip him up frequently",
+          "DevOps and container orchestration feel foreign without docs",
+          "Real time systems and concurrency primitives beyond his wheelhouse",
+          "Modern JS ecosystem churn leaves him perpetually catching up"
         ],
         "hobbies": [
           "Fly-fishing",
@@ -492,123 +413,31 @@
       },
       "voice": {
         "cadence": "considered",
-        "formality": "casual",
+        "formality": "formal",
         "capitalization": "normal",
-        "punctuation": "inconsistent",
-        "vocabulary": "verbose",
-        "typo_tendency": "frequent",
-        "register": "native",
+        "punctuation": "no punctuation at all",
+        "vocabulary": "clipped/terse",
+        "typo_tendency": "none",
+        "register": "esl",
         "reaction_style": "restrained",
-        "agreeableness": "blunt",
+        "agreeableness": "neutral",
         "signature_words": [
-          "anyway",
-          "look"
+          "seems solid",
+          "works for me"
         ],
         "emoji_tendency": {
           "frequency": "never",
           "preferred": [],
-          "trigger": "frustration"
-        },
-        "hedge_words": [
-          "dunno",
-          "if i had to guess"
-        ],
-        "affirm_words": [
-          "true",
-          "fair enough"
-        ],
-        "question_style": "plain-what"
-      },
-      "identity": {
-        "situation_type": "casual",
-        "goal": "just chatting",
-        "emotional_state": {
-          "label": "calm",
-          "intensity": 0.2,
-          "source": "exogenous"
-        },
-        "project_spec": null,
-        "project_context": null
-      }
-    },
-    "nils": {
-      "core": {
-        "name": "Nils Brandt",
-        "age": 50,
-        "gender": "Male",
-        "occupation": "software developer",
-        "personality": [
-          "methodical",
-          "pragmatic",
-          "grounded",
-          "reliable"
-        ],
-        "background": "",
-        "strengths": [
-          "Java",
-          "C#",
-          "Python",
-          ".NET",
-          "Spring",
-          "Angular"
-        ],
-        "gaps": [
-          "frontend frameworks and modern UI/UX patterns\u2014gets lost in React hooks and state management",
-          "cloud infrastructure and containerization\u2014hasn't kept up with Docker/Kubernetes deeply",
-          "machine learning and data science concepts don't stick naturally",
-          "real-time collaborative features and websocket architecture"
-        ],
-        "hobbies": [
-          "Fly-fishing",
-          "Hiking",
-          "Camping",
-          "Woodworking",
-          "Gardening",
-          "Reading historical novels",
-          "Reading technology magazines",
-          "Chess",
-          "Volunteer computing instructor",
-          "Model railroading",
-          "Listening to classic rock and blues",
-          "Craft-beer tasting"
-        ],
-        "travel_habits": "Sean Buckley is a meticulous planner who prefers structured, nature\u2011focused trips, having already explored Yellowstone, Glacier, and Banff National Parks, and now dreams of hiking the Patagonia Torres del Paine circuit and the Scottish Highlands, arranging each itinerary months in advance while balancing a modest travel budget with his commitment to maintain work\u2011life equilibrium.",
-        "dining_preferences": "Sean Buckley is a competent home cook who transforms garden\u2011grown vegetables into roasted root medleys, grills fresh river trout with rosemary and lemon, prepares a hearty wild\u2011mushroom risotto, and pairs these dishes with craft\u2011beer selections from local breweries such as Great Divide and BridgePort, reflecting his love for rustic, flavorful meals.",
-        "spending_habits": "",
-        "other": [
-          "Sean\u2019s cultural background blends a Midwestern Irish\u2011American heritage with the rugged, community\u2011centered ethos of Montana\u2019s \u201cBig Sky\u201d country. Raised in a small town, he grew up valuing self\u2011reliance, neighborly cooperation, and a deep respect for nature. His family traditions include modest celebrations of Irish holidays like St. Patrick\u2019s Day, and a strong work ethic passed down through generations of labor\u2011focused parents. Since moving to Livingston, he has embraced the local culture of outdoor recreation, frontier hospitality, and a modest, pragmatic approach to life, while integrating his technical career into the region\u2019s growing digital economy.",
-          "Sean aims to transition into a lead software architect role within the next three to five years, focusing on building scalable, maintainable systems for his employer and local businesses. He seeks to obtain AWS Solutions Architect certification to broaden his cloud expertise and to mentor a small cohort of junior developers, fostering a culture of quality and predictability. Over the longer term, he envisions moving into a technical leadership position that balances architectural oversight with hands-on coding, while maintaining a stable work\u2011life balance that allows him to spend ample time outdoors. He also hopes to contribute to open\u2011source projects that emphasize reliability and to develop a community\u2011oriented tech workshop series in Livingston."
-        ]
-      },
-      "voice": {
-        "cadence": "burst",
-        "formality": "formal",
-        "capitalization": "inconsistent",
-        "punctuation": "inconsistent",
-        "vocabulary": "plain",
-        "typo_tendency": "frequent",
-        "register": "esl",
-        "reaction_style": "restrained",
-        "agreeableness": "agreeable",
-        "signature_words": [
-          "solid foundation",
-          "gets the job done"
-        ],
-        "emoji_tendency": {
-          "frequency": "rare",
-          "preferred": [
-            "\ud83d\ude42"
-          ],
           "trigger": "warmth"
         },
         "hedge_words": [
           "off the top of my head",
-          "hold on",
-          "to be honest"
+          "not entirely sure",
+          "maybe"
         ],
         "affirm_words": [
-          "true",
-          "right on"
+          "for real",
+          "yup"
         ],
         "question_style": "plain-what"
       },

@@ -1,49 +1,46 @@
 ---
 title: "Weekly notes: week of Dec 9 - two reverts"
 author: dario
-created_at: 2024-12-11T09:42:00+00:00
+created_at: 2024-12-11T09:35:00+00:00
 ---
 
 # Weekly notes: week of Dec 9 - two reverts
 
-Rougher than usual. Two reverts, both now postmortem'd. Writing this up Wednesday so people have context before the end of week.
+## Reverts
 
-## The reverts
+Two reverts landed this week, both in the pipeline layer. Neither caused data loss, which is fortunate, but both affected correctness of output in ways that would have been hard to debug downstream.
 
-**Dec 4 - end-of-run retry logic**
+**End-of-run retry logic** (reverted Dec 4, postmortem by Gideon Halloway)
+- retry logic was firing after a run completed and re-sending requests that had already been counted
+- result: inflated output numbers
+- caught quickly because the summary looked wrong at the terminal
 
-Retry logic at end-of-run was interacting badly with how we close out a run. Reverted to stabilize. Gideon has the postmortem (ref: Postmortem: Dec 4 revert of end-of-run retry logic). The interaction wasnt obvious from the code, which is partly why it got through review.
+**Batch auto-delete** (reverted Dec 10, postmortem by Dermot Callaghan)
+- auto-delete was wiping per-run response and request files before the end-of-run summary had a chance to read them
+- result: all counts printed as zero
+- again, obvious immediately from the terminal
 
-**Dec 10 - batch auto-delete**
+## What these two have in common
 
-Auto-delete keyed on counters that were technically correct, but correct counters alone don't make auto-cleanup safe. Dermot has the postmortem (ref: Postmortem: Dec 10 revert of batch auto-delete).
+Both failures come down to ordering. In the first case, an end-of-run hook ran before summary completion when it should have run after. In the second, file cleanup ran before summary read when it should have been gated on summary completion. I think the general lesson is that anything touching files the summary depends on, or anything that fires "at end of run", needs an explicit dependency on summary completion rather than relying on timing or assumed order.
 
-The main thing to take out of this one: any cleanup has to be opt-in, not default. That's now written down. It should apply to anything we touch in the artifact lifecycle going forward, not just batch auto-delete specifically.
+The other thing worth noting: we caught both of these from the terminal output alone. No additional instrumentation was needed. The current observability surface is sufficient for this class of bug.
 
-## What shipped
+## Open follow-ups
 
-Still on v0.1.11. 111 changes merged to date. The reverts didn't push the release back, but they did add review load and opened some questions about what's in scope for 0.1.12 that we haven't answered yet.
+Re-introducing batch auto-delete is still open. Tracking in Dermot's postmortem, not here.
 
 ## PRs in flight this week
 
-- PR 78: vLLM example for OpenAIOnlineParallelProcessor (mine)
-- PR 90: Add an argument to disable cache for Prompter (mine)
-- PR 106: summarizing text messages between two people example (Konrad)
-- PR 133: env example file (Otto)
-- PR 161: Curator Usage Example, Prometheus LLM Judge evaluation (Gideon)
-- PR 163: curator-viewer getCacheDir helper + cache dir param (Gideon)
+- PR 78: vLLM example
+- PR 90: disable cache for Prompter
+- PR 106: text messages summarization example
+- PR 133: env example file
+- PR 161: Prometheus LLM judge example
+- PR 163: curator-viewer cache dir
 
-## Carrying over
+Haven't looked closely at most of these this week, the revert work took priority.
 
-- issue 48: README docs on batch. Ownership still unclear. The postmortem flagged artifact lifecycle as in scope but nobody formally picked this up.
-- issue 88: disabling caching for curator. Related to PR 90 above, probably.
-- issue 86: retry on structured output failure. Feels more relevant now given the retry revert. Not sure if we deprioritize this or treat the revert as a reason to look at it more carefully before we bring retry logic back.
+## Release
 
-## Where things stand
-
-The instability this week came from two independent areas, batch lifecycle and retry logic, not one systemic problem. That's actually somewhat reassuring. The pipeline isn't broken, we took the hits, documented them, and the counters are fine.
-
-What's not settled going into next week:
-- release scope for 0.1.12 (the reverts added open questions we haven't resolved)
-- stale PR triage, backlog is accumulating
-- issue 48 ownership
+No release this week. v0.1.11 holds.

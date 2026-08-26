@@ -1,64 +1,87 @@
 ---
 title: "Runbook: handling curator.LLM incidents"
 author: dario
-created_at: 2024-12-16T09:49:00+00:00
+created_at: 2024-12-16T09:35:00+00:00
 ---
 
-# Runbook: curator.LLM incident handling
+# Runbook: curator.LLM pipeline incidents
 
-For whoever is on call. Assumes nothing, covers the failure modes that actually come up.
-
----
-
-## Online request timeouts
-
-**Symptom:** Online requests failing or hanging, errors referencing a timeout, users seeing no response or a hard error.
-
-**Default:** 10 minutes. That applies to online request processing only. Batch and offline pipelines have their own timeout handling and are not covered here.
-
-**Checks before touching anything:**
-- Did the model change recently?
-- Did prompt size grow? (longer prompts take longer, obviously)
-- Did concurrency go up? More parallel requests can exhaust capacity and cause individual requests to stall
-
-**Fix:** Address whichever of the above changed. If nothing changed and timeouts are sudden and consistent, escalate (see bottom of page).
-
-Adjusting the default timeout is a last resort and should not be the first move. If you do change it, note what you changed and why.
+For whoever is on call. This covers the failure modes that come up most often. If your incident is not here, skip to Escalation.
 
 ---
 
-## Retries and format failures
+## Metadata columns attached to a dataset
 
-**Symptom:** Requests failing repeatedly, logs showing retries firing, possibly budget being burned faster than expected.
+**Symptom:** A run with extra bookkeeping columns added to the input dataset treats the work as new, re-submitting requests that were already completed and cached.
 
-Retries fire on two conditions: response format failures and transient errors. The sequence is: request fails, exception is caught, request retries with the same parameters, up to the configured limit.
+**What is happening:** Cache keys are supposed to be keyed on request content only, not on the dataset metadata schema. If they are picking up schema shape, the keys will not match prior runs and everything re-runs from scratch.
 
-**If retries are exhausting and requests still fail:**
-- Check whether the prompt or schema changed between runs
-- A schema change that is backward-incompatible with the prompt will retry indefinitely and never resolve, increasing the retry limit does nothing here
-- Fix is to correct the schema or prompt so they agree, then re-run
+**Checks:**
+- Confirm the cache key logic is not including the metadata schema. The reference for what should and should not be in a key is in the caching-and-resume wiki page.
+- If you cannot get to that page, the short version: adding a bookkeeping column to a dataset should cost nothing on the next run. Same requests, same content, same keys.
 
-Do not raise the retry limit as a first response. If requests are failing on every attempt, more retries just burns budget on requests that wont succeed. Find out why they're failing first.
+**Fix:**
+- If the keys are wrong, do not manually clear the cache. Find out why the schema is being included, correct that, and re-run. A cache clear forces every request to re-run and is expensive.
+- If the keys look correct but the run is still treating it as new work, escalate. Do not guess at this one.
 
 ---
 
-## Cache behavior and metadata columns
+## Request timeout
 
-**Symptom:** A run appears to be re-doing work that was already completed, after metadata columns were added to a dataset.
+**Symptom:** Requests failing with a timeout error. The 10-minute default timeout is showing up in log lines for a batch or offline pipeline run.
 
-Adding metadata columns for bookkeeping should have zero effect on what work gets done. The same requests go to the same place, nothing about the actual work changed.
+**What is happening:** The 10-minute default applies to online requests only. Batch and offline pipelines are on separate code paths and do not inherit this default. If you are seeing this on a batch or offline run, something is misconfigured in that pipeline's timeout settings specifically.
 
-**Check the cache key.** Metadata columns should not be part of it. If they are, that is a configuration problem, not expected behavior, and the fix is to correct the cache key definition rather than re-running.
+**Checks:**
+- Confirm which mode is running: online, batch, or offline. This matters.
+- If it is online: timeout, retry, and eventual failure is the expected path. Check that retry logic fired (it should be visible in the logs) and that the run continued past the failed request rather than halting.
+- If it is batch or offline: the default timeout should not apply at all. Look at the pipeline-specific timeout configuration for that path.
 
-**On cache verification generally:** Cache hits are checked against request metadata before being returned. A metadata mismatch will cause a cache miss and trigger a fresh request. This is intentional. Do not disable verification to speed up re-runs unless you have confirmed the metadata change is cosmetic and you're certain the cached response is still valid for the new metadata.
+**Fix:**
+- For online: let retry logic run. If all retries exhaust, the request is marked failed and the run continues. This is expected behavior.
+- For batch/offline: do not adjust the online timeout default. Those paths require their own configuration and changing the shared default will not help and may break online behavior.
+
+**If that does not work:** If retries are exhausting on online requests at a rate that looks wrong (not just one or two), that is worth escalating. Note the error text, which mode was running, and how many requests hit the limit.
+
+---
+
+## Structured output / response format failures
+
+**Symptom:** Hard errors on structured output failures, run halting rather than retrying.
+
+**What is happening:** Retry on response format failure is the behavior introduced by PR 266. Until that PR is merged, format failures may surface as hard errors. As of the time this runbook was written (December 2024), check whether 266 has landed before doing anything else.
+
+**Fix:**
+- If PR 266 is not yet merged: treat structured output failures as transient. Re-run the pipeline. Do not attempt workarounds that bypass response validation, even if the failure looks easy to route around.
+- If PR 266 is merged and you are still seeing hard errors on format failures, that is a bug and should be escalated.
+
+**Checks:**
+- Look at the error message. If it names a response format or structured output parse failure specifically, this is probably the issue.
+- Do not skip response validation. The format check is there for a reason and working around it at 3am is a good way to make a bigger problem.
+
+---
+
+## Cache state and resume behavior
+
+A run that was interrupted resumes from the last cached point. Already-completed requests are not re-submitted. This is the expected behavior and generally means a restart after an interruption is safe and cheap.
+
+If a resumed run looks like it is re-doing completed work:
+- Check the cache key issue under "Metadata columns" above, it is the most common cause.
+- If that is not it, verify the cache key logic in caching-and-resume before clearing anything.
+
+A full cache clear is a last resort. It forces every request to re-run and on a large dataset that is a significant cost. I would not do it without confirming with whoever owns the pipeline first.
 
 ---
 
 ## Escalation
 
-If the incident doesnt match anything above, bring it to #pipeline with:
-- The request ID
-- The exact error text
-- Which pipeline mode was affected (online / batch / offline)
+If none of the above covers the failure, bring it to the request-processing team. They need:
 
-Do not escalate without those three things if you can avoid it, it saves a round-trip.
+- The full error message or stack trace, not a paraphrase
+- Which mode was running: online, batch, or offline
+- Whether the run was a fresh start or a resume
+- Roughly how far into the run the failure occurred, if you can tell
+
+Questions still open:
+- Who specifically owns the caching-and-resume configuration for the batch path? I dont have a name for that one.
+- Is there a dashboard for retry rate on online requests? Would be useful to know what a normal rate looks like before calling something anomalous.

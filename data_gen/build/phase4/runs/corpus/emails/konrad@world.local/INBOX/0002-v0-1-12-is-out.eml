@@ -1,0 +1,25 @@
+From: dario@world.local
+To: emil@world.local, gideon@world.local, konrad@world.local,
+ dermot@world.local, otto@world.local
+Subject: v0.1.12 is out
+Date: Tue, 17 Dec 2024 09:28:00 +0000
+Message-ID: <178777336440.2892162.3232262825243765718@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.12 is tagged and out. eight PRs in this cut, all in the request pipeline.
+
+full release notes are on the wiki under releases / "v0.1.12 release notes". =
+they cover what shipped across bulk-llm-inference, caching-and-resume, online=
+-request-processing, and provider-integrations, and call out what did NOT mak=
+e it in (batch auto-delete revert, context-manager revert) plus the open issu=
+es we're still carrying.
+
+three postmortems are in progress for the dec 4, dec 10, and dec 13 reverts. =
+those are tracked separately and not blocking this release.
+
+nothing urgent needed from you. if anything in the notes looks wrong or incom=
+plete, reply here.
+
+- Dario

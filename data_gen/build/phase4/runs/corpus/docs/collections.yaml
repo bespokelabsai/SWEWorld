@@ -1,0 +1,17 @@
+version: 1
+collections:
+  - dir: engineering
+    name: Engineering
+    description: "Design docs, plans, runbooks and handovers."
+  - dir: incidents
+    name: Incidents
+    description: "Postmortems and incident write-ups."
+  - dir: meetings
+    name: Meetings
+    description: "Notes from recurring and one-off meetings."
+  - dir: onboarding
+    name: Onboarding
+    description: "How the team works, for people who just joined."
+  - dir: releases
+    name: Releases
+    description: "Release notes, version by version."

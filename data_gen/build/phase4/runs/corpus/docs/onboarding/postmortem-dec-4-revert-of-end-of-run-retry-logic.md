@@ -1,72 +1,69 @@
 ---
-title: "Postmortem: Dec 4 revert of end-of-run retry logic"
+title: "Postmortem: Dec 4 Revert of End-of-Run Retry Logic"
 author: gideon
-created_at: 2024-12-05T09:14:00+00:00
+created_at: 2024-12-16T10:31:00+00:00
 ---
 
 # Postmortem: Dec 4 Revert of End-of-Run Retry Logic
 
-Dec 5 2024. Written by Gideon Halloway.
+**Date of incident:** Dec 4, 2024
+**Resolved:** same day, via revert
+**Status:** open action items (see below)
 
 ---
 
-## What Happened
+## What happened
 
-On Dec 4 we reverted a change to the retry logic in online-request-processing. The retry block was re-entering the asyncio event loop after a run had already finished, causing the processor to take a second pass over completed requests. That second pass occasionally re-submitted requests that had already settled, producing duplicate cost entries downstream.
+The end-of-run retry logic, which was meant to catch requests that stalled or timed out before a run completed, started re-queuing requests that had already finished successfully. On resume, any request that had not explicitly set itself to exhausted was treated as eligible for retry, regardless of whether a cache entry had already been written for it. So basically, completed requests got re-entered into the queue, ran again, and produced duplicate completions.
 
-The revert was clean and is confirmed stable as of this morning.
+The immediate visible effect was inflated token counts in cost tracking. The retry logs themselves showed nothing obviously wrong because they were missing the fields that would have made the duplicates visible (more on that below).
+
+We reverted on Dec 4 once the cost anomalies were traced back to the retry path.
+
+---
 
 ## Impact
 
-- Duplicate cost entries created during the window the bad logic was live
-- Affected only runs that hit the retry path at or near completion (not every run)
-- Exact count of affected runs and duplicate entries: I do not have this yet, need whoever owns the billing/cost dashboard to pull the numbers for the window the bad code was deployed
-- No data loss, no requests dropped, no auth or session impact that I am aware of
+- Duplicate completions for an unknown number of requests during affected resume windows. I dont have a count yet, need whoever owns the cost dashboard to pull the exact figure for the impact window.
+- Token counts in cost tracking were inflated. The magnitude depends on how many resumes happened between the deploy and the revert, which I'm also not certain of.
+- No user-facing errors. Completions that were already cached were served correctly; the duplicates were happening behind the cache layer.
+
+---
 
 ## Timeline
 
-The exact deploy and revert timestamps are approximate here, I am reconstructing from memory and should verify against deploy logs.
+- Dec 3 or so: retry logic deployed (I'd want to confirm the exact deploy time from the deploy log)
+- Dec 4: cost anomalies flagged, traced to retry path
+- Dec 4: reverted
 
-- Dec 3, sometime in the afternoon: retry logic merged into online-request-processing
-- Dec 4, morning: first reports of duplicate cost entries
-- Dec 4, mid-morning: root cause identified as double-spin in the asyncio event loop
-- Dec 4, afternoon: revert merged and deployed
-- Dec 4, end of day: duplicate entries confirmed stopped; no new incidents reported overnight
+---
 
-TBD: actual timestamps from CI/CD logs. Someone on the infra side would have those.
+## Root cause
 
-## Root Cause
+The retry eligibility check did not consult cache state. It was essentially: if this request is not marked exhausted, it can be retried. That logic is fine in the steady state where exhausted gets set reliably, but on resume the transition was not guaranteed, so requests that had completed and written a cache entry could still look eligible.
 
-The retry block was keying its scheduling decision off the raw response error code, not the run's completion state. So when a run finished but the final response carried a retriable error code (which is a legitimate combination), the retry logic would schedule another attempt. That attempt re-entered the asyncio event loop after the run's completion flag had already been set.
+The fix gates retry eligibility on a cache lookup. If a cache entry exists for the request, it is skipped, regardless of the exhausted flag.
 
-The problem is that nothing gated the retry on whether the run was actually done. The completion flag existed and was being set correctly; the retry path simply was not consulting it.
+The reason this was not caught during review: retry events were logged without failure reason or outcome fields. There was also no request id or attempt number on these events. So when duplicates were happening, the retry log looked normal, and the signal only appeared in cost aggregates downstream. If the events had included outcome, the duplicate completions would have been visible directly in the logs rather than requiring a trace back from cost anomalies.
 
-PR 202 is the fix. It adds an explicit check against run state before scheduling any retry, so a completed run cannot be re-queued regardless of the error code on the last response.
+---
 
-A secondary issue that contributed: the asyncio loop lifecycle was not confirmed closed before cleanup callbacks fired. I want to be careful here because honestly this is the part I am less certain about mechanically. My understanding is that the cleanup callbacks ran while the loop was still technically schedulable, which is what made the re-entry possible in the first place. Need to confirm this with whoever owns the asyncio plumbing in this service before we write it into guidance.
+## What went well
 
-## What Went Well
+- Cost tracking caught this. Honestly though, it was the right place to catch it given the logging gaps, but it's also the slowest possible detection path. Worth noting that without that anomaly surfacing when it did, this could have run longer.
+- Revert was straightforward once the cause was identified. No complicated rollback, no schema migration, just reverting the retry path.
 
-- Revert was straightforward, no partial state to unwind
-- Root cause was identified the same day without a lot of back-and-forth
-- PR 202 addresses the direct cause and is already in
+---
 
-## What Changes
+## Action items
 
-**Immediate rule for retry paths:** any retry logic that touches end-of-run state must gate on the completion flag explicitly, not on the response error code alone. The error code is not a reliable proxy for run state.
+- [ ] Add request id, attempt number, failure reason, and outcome to retry and timeout events. This is the main thing. Without these fields, this class of issue is invisible at the event level.
+- [ ] Confirm exact impact window (deploys to revert) and get a count of affected requests from cost dashboard. TBD on who owns that, I'd check with whoever triaged the cost anomaly.
+- [ ] Review whether the exhausted flag is being set reliably in all exit paths, or if there are other places where completed requests could look eligible under the current (post-fix) logic. I'm not fully confident the cache lookup covers every edge case here.
 
-**asyncio loop lifecycle:** before any cleanup callbacks fire, the loop should be confirmed closed. I am not confident I know exactly what that enforcement looks like in practice, this needs a short design note from whoever owns that layer.
+---
 
-## Action Items
+## Open questions
 
-- [ ] Pull duplicate cost entry count for Dec 3-4 from the billing dashboard (need someone with access, not me)
-- [ ] Verify timeline timestamps against deploy logs
-- [ ] Write short guidance note on retry path requirements (completion flag gate) to live somewhere in the engineering wiki under online-request-processing
-- [ ] Follow up on asyncio loop lifecycle enforcement, needs input from whoever owns that part of the service
-- [ ] Audit other retry paths in online-request-processing for the same pattern (I can do this pass but it will take a day or two)
-
-## Open Questions
-
-- How many runs were actually affected? And of those, how many produced duplicates vs. how many hit the retry path but did not re-submit? The distinction matters for assessing blast radius.
-- Are duplicate cost entries being corrected, and if so, how? That is outside what I own.
-- Is there a test we could have written that would have caught this before merge? My instinct is yes, something that exercises the retry path with the completion flag already set. Worth discussing before PR 202 closes if it hasnt already.
+- Are there other places in the retry path that assume exhausted is a reliable signal, where a similar gap could exist?
+- What is the right detection latency target for this kind of issue? Cost aggregates are slow. If retry logs had the fields they needed, we'd catch it faster, but I don't know if there's a monitoring expectation I should be writing against.

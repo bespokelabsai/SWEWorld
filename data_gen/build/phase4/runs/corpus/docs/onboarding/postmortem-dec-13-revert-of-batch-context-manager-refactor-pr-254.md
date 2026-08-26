@@ -6,67 +6,53 @@ created_at: 2024-12-16T09:14:00+00:00
 
 # Postmortem: Dec 13 revert of batch context-manager refactor (PR #254)
 
-**Date:** Dec 13, 2024
-**Status:** revert complete, runs stable as of Dec 13 afternoon
-
----
+Dec 16, 2024
 
 ## What happened
 
-PR #254 refactored the batch subsystem to use a context manager for lifecycle management, wrapping the previous explicit open/submit/wait/close calls in a `with` block. The goal was cleaner teardown and more predictable resource cleanup.
+PR #254 refactored the batch-mode context manager to consolidate resource setup and teardown, previously spread across several call sites, into a single managed block. The goal was cleaner resource lifecycle management and less duplication. Reasonable intent.
 
-Within hours of merging, batch runs started failing intermittently. The failure pattern: parameters configured on a batch object before entering the `with` block were silently dropped inside it. The context manager's `__enter__` was re-initializing state on entry rather than carrying forward the existing instance configuration. Callers that set up the batch object and then immediately opened the context assumed they were handing control of the same object. They were not.
+During multi-request batch runs after the merge, the consolidated block failed to restore batch parameters correctly when an inner operation raised an exception mid-flight. Parameters set on entry were not reset on exit through the failure path. Subsequent requests in the same batch then inherited stale configuration from the failed request, silently.
 
-A second failure mode appeared under concurrent load. Two runs sharing a processor could each acquire the context manager on their own copy of state, then race on the underlying batch queue at teardown. Neither `__exit__` yielded the queue gracefully because each run believed it had sole ownership.
+The failure path in question only triggers when a request errors out inside an already-running batch. The existing test fixtures did not cover that combination, so the problem did not surface in review.
 
-The revert was cut the same day. Runs stabilized.
+Revert merged Dec 13.
 
 ## Timeline
 
-```
-Dec 13 AM    PR #254 merged
-Dec 13       intermittent batch failures reported
-Dec 13       root cause identified (re-init on __enter__)
-Dec 13 PM    revert merged, runs confirmed stable
-```
-
-Three days since then, no further instability.
-
-## Impact
-
-Batch runs were unreliable for a window of a few hours on Dec 13. I dont have an exact count of failed runs from that window, need to check with whoever owns the batch run logs or dashboard. No data was corrupted as far as we can tell, the failures were execution failures not silent bad output.
+- Dec 12: PR #254 merged
+- Dec 13 morning: reports of inconsistent batch behavior on multi-request runs
+- Dec 13 afternoon: root cause identified, stale parameter leak confirmed
+- Dec 13: revert merged
 
 ## Root cause
 
-The context manager's `__enter__` returned `self` but had already reset `self` before returning. This is a subtle Python footgun: the returned object looks like the configured instance but has lost all pre-entry state. Callers had no way to see this at the call site.
+The context manager's exit path did not unconditionally reset batch parameters. In the success path, teardown ran correctly. In the exception path, teardown was skipped or partially skipped depending on where the exception originated. Whatever state the failed request had written to shared parameters was left in place for the next request to read.
 
-The concurrent teardown problem was a secondary consequence of the same design: because each worker believed it held independent state, the shared queue was not released cleanly on exit.
+This is a known hazard with context managers that touch shared mutable state. The consolidated block introduced a single exit path without ensuring that path was truly unconditional.
 
-The original code had no tests asserting that pre-configured state survived context entry. That gap meant the re-init behavior went undetected in review.
+## Impact
 
-The two issues, the state re-init and the concurrent teardown race, were both products of a refactor that changed how state was held AND changed the lifecycle pattern in the same PR. Those were bundled together, which made it harder to reason about either in isolation.
+- Batch runs containing any failing request mid-sequence could silently pick up wrong parameters for all subsequent requests
+- No data loss; affected runs produced outputs with incorrect configuration rather than crashing or erroring visibly
+- Scope limited to multi-request batch runs with at least one mid-sequence failure
 
-## What to avoid in SimpleLLM folding
+The silent nature of this is the part I find most uncomfortable. A run completing with wrong configuration is harder to catch than one that fails loudly.
 
-The batch revert is directly relevant to the planned SimpleLLM folding work. A few specific things:
+## What went well
 
-- **Re-initializing state on entry.** Any wrapper or lifecycle object that takes ownership of a configured instance must carry that configuration forward. This needs an explicit test, not a code review eyeball.
-- **Bundling lifecycle and state changes in one PR.** Separate the state refactor from the lifecycle wrapper. Each should be reviewable and revertable on its own.
-- **No before/after behavioral assertion.** Any folding PR should include a test that asserts a caller-configured object produces the same behavior after the wrapper is applied. Not just that it runs, that it produces the same result with the same configuration.
-- **Concurrent teardown assumptions.** If SimpleLLM folding touches anything shared across parallel workers, teardown ordering must be explicit and tested under load. Dont rely on GC or `__exit__` order under concurrency.
-
-I'm not deep enough into the SimpleLLM internals to say exactly which pieces are shared across workers right now. That's worth mapping before the folding work starts.
+- Root cause identified within hours of the first reports
+- Revert was straightforward, no secondary breakage
+- The discussion in the issue thread was quick and stayed focused on the mechanism rather than anything else
 
 ## Action items
 
-- [ ] SimpleLLM folding PRs should be one behavioral change at a time, small enough to revert cleanly
-- [ ] Any lifecycle wrapper touching batch-mode or shared processor state needs a concurrent teardown test before merge
-- [ ] Pre-context configuration survival should be a standing test case in batch-mode going forward
-- [ ] Get a count of failed runs from Dec 13 impact window (need whoever owns the batch dashboard)
-- [ ] Map which SimpleLLM state is shared across parallel workers before folding work begins
+- [ ] Any context manager touching shared mutable state must reset that state unconditionally in its exit path, exception case included. This should become a review checklist item for batch-mode changes, not just an informal expectation.
+- [ ] Tests for batch-mode changes must cover the mid-batch failure path before merge. Need to decide where that fixture lives and who owns keeping it current.
+- [ ] Review other context managers in batch-mode for the same exit-path pattern. I do not know how many there are off the top of my head, need someone to do a sweep.
+- [ ] Confirm the replacement approach for the context-manager consolidation is safe before re-attempting the refactor. The underlying goal of PR #254 was valid, the implementation just needs the failure path closed.
 
 ## Open questions
 
-- Do we have a count of affected runs from the Dec 13 window? I don't have visibility into that directly.
-- Is there existing test infrastructure for concurrent batch scenarios, or would that need to be built? I'm assuming we'd need to build it but not sure.
-- Who's taking the SimpleLLM folding work? The action items above should probably be assigned before that PR is opened, not after.
+- Who is taking the sweep of other batch-mode context managers? I would like that done before end of week if possible.
+- The replacement approach for the consolidation: is there a proposal yet, or is that still open? I have not seen anything in the issue tracker as of today.
