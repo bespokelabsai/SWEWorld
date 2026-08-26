@@ -18143,6 +18143,76 @@
           "userId": "konrad",
           "text": "Chekcing my identifiers against that now, will push a correction to PR 704 if anything doesn't line up.",
           "ts": "2026-01-23T10:39:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 709 is up, GEPA integration into curator, touches code-execution. Got the core wiring done but I'm not fully happy with how the integration point is structured, want some eyes on the approach beofre I push further.",
+          "ts": "2026-01-27T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not sure we have the reviewr bandwidth for a full cycle right now",
+          "ts": "2026-01-27T09:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is directional feedback on the integration approach enough to keep you moving?",
+          "ts": "2026-01-27T09:41:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Yeah, directional is enough for now. I'd rather get a sanity check on the approach than block on a full cycle",
+          "ts": "2026-01-27T10:10:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "One thing I ran into in PR 709, the integration point I'm using in code-execution doesn't behave consistently when GEPA returns a null score, it's silently swallowing it instead of surfacing the failure. Still figuring out if that's a design gap in my approach or something that needs to be handled upstream",
+          "ts": "2026-01-27T10:10:26"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not sure the upstream framing is right for the null score issue. If code-execution is swallowing it silently, that seems like it should be caught at the integration layer, not pushed up.",
+          "ts": "2026-01-27T10:54:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'm not totally sure that's right though",
+          "ts": "2026-01-27T11:06:26"
+        },
+        {
+          "userId": "nikolai",
+          "text": "If GEPA is supposed to always produce a score, a null coming back feels like something GEPA should be signaling explicitly rather than something I patch over in the integration layer",
+          "ts": "2026-01-27T11:06:31"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Who's the right person to make a call on that, Konrad or does this need Dario to weigh in given bulk-llm-inference is involved?",
+          "ts": "2026-01-27T11:06:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario Kestrel, probably needs your eyes on this given the bulk-llm-inference angle.",
+          "ts": "2026-01-27T11:39:39",
+          "replyCount": 1,
+          "replyLastTs": "2026-01-27T11:40:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "+1",
+          "ts": "2026-01-27T11:40:16",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2026-01-27T11:39:39"
         }
       ],
       "projectSpec": {
