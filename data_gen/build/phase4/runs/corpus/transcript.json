@@ -17276,6 +17276,478 @@
           "userId": "emil",
           "text": "What's the gap specifically - the detection logic, or what it does once it switches modes?",
           "ts": "2025-06-13T18:23:02"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Week of Jun 9 recap just went out to the team",
+          "ts": "2025-06-16T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Main thing I asked about is PR 653, whether it's still worth finishing before we wind down after 0.1.26, or if the honest answer is just to close it",
+          "ts": "2025-06-16T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Are PR 690 and 691 actually ready for review or still being worked?",
+          "ts": "2025-06-16T09:00:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ok, answering my own question on 690 and 691, 690 has a proper write-up with test instructions so that one looks reviewable, but 691 is just \"this pr is for batch size automation.\" @emil is that one actually ready or still in progress?",
+          "ts": "2025-06-16T09:48:39",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Has anyone actually looked at PR 653 before, or would a reviewer be coming to it completely cold?",
+          "ts": "2025-06-16T10:26:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ok",
+          "ts": "2025-06-16T11:17:39"
+        },
+        {
+          "userId": "nikolai",
+          "text": "ansering my own question, PR 653 has basically no description so any reviewer would be starting cold",
+          "ts": "2025-06-16T11:17:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Worth writing it up first, or just make the call to close it?",
+          "ts": "2025-06-16T11:17:49"
+        },
+        {
+          "userId": "emil",
+          "text": "still being worked on, 691 isn't write-up ready yet",
+          "ts": "2025-06-16T11:56:49",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "If someone can get to PR 690 this afternoon that'd be useful, but I'm not sure it matters much if neither 690 nor 691 actually needs to land before 0.1.26.",
+          "ts": "2025-06-16T12:08:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 has no description and is sitting on a decision from Konrad.",
+          "ts": "2025-06-16T12:22:51"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is in the same boat, reviewable on paper but nobody's confirmed it needs to land.",
+          "ts": "2025-06-16T12:48:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does anyone actually know which PRs need to land for 0.1.26, or is that Konrad's call?",
+          "ts": "2025-06-16T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Where does PR 675 stand, is that one review-ready?",
+          "ts": "2025-06-16T12:51:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Ok, answering my own question on 675, it has a write-up but it's pretty sparse. Is Nolan around to add more context on what it actually changes?",
+          "ts": "2025-06-16T13:43:22"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Wrote up the sync notes for the week of Jun 16, they're in the engineering wiki if anyone wants to check them",
+          "ts": "2025-06-18T09:00:00",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is still in review on my end, no blockers there",
+          "ts": "2025-06-18T09:00:05"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil is PR 691 meant to land before we cut v0.1.26, or can it slip past the release?",
+          "ts": "2025-06-18T09:00:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What's the actual blocker on PR 690, is it waiting on review or is there something still broken in the Gemini batch request logic?",
+          "ts": "2025-06-18T09:41:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyone know where PR 675 stands, has Nolan gotten eyes on it yet?",
+          "ts": "2025-06-18T10:47:25"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is just waiting on review, nothing broken in the logic from my end.",
+          "ts": "2025-06-18T10:54:25"
+        },
+        {
+          "userId": "emil",
+          "text": "nice, I'll pull those up",
+          "ts": "2025-06-18T10:54:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still not clear on PR 691, do we call it a blocker for v0.1.26 or just let it slip to the next one?",
+          "ts": "2025-06-18T11:13:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Haven't made a call on that yet, I want to look at the release scope this afternoon before I commit either way.",
+          "ts": "2025-06-18T12:13:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So PR 690 just needs someone to pick it up for review, and 691 stays open until Emil's looked at the scope this afternoon",
+          "ts": "2025-06-18T12:18:57",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Still no answer on whether PR 691 is a blocker - does auto batch mode actually need to be in v0.1.26, or can it slip to the next cut?",
+          "ts": "2025-06-18T12:23:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone have bandwidth to pick up PR 690 for review this afternoon?",
+          "ts": "2025-06-18T12:24:31"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is sitting in review, touches the finetuning client so not my code but I'm tracking it for release. PR 675 looks straightforward from what I can see, needs an approval before we can move it.",
+          "ts": "2025-06-25T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does PR 675 have a reviewer assigned yet?",
+          "ts": "2025-06-25T09:00:11"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad have you had a chance to look at PR 653?",
+          "ts": "2025-06-25T10:08:11"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Is PR 690 ready for review or still being worked?",
+          "ts": "2025-06-25T10:38:11"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is ready for review, Gemini multimodal batch path in provider-integrations",
+          "ts": "2025-06-25T11:10:11",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Also got the batch mode weekly sync notes up on the wiki (engineering/weekly-sync-notes-week-of-jun-23-batch-mode) if that's useful context",
+          "ts": "2025-06-25T11:10:16",
+          "reactions": [
+            {
+              "emoji": "📝",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Batch mode itself is ready for v0.1.26, PR 690 is just the Gemini multimodal fix on top of it. PR 675 still needs an approval but that's not on the batch path, so it can be handled independently.",
+          "ts": "2025-06-25T11:47:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Good to know on batch mode",
+          "ts": "2025-06-25T11:56:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "From the release side, that clears the main blocker for v0.1.26",
+          "ts": "2025-06-25T11:56:21",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is still sitting without a review though",
+          "ts": "2025-06-25T11:56:33"
+        },
+        {
+          "userId": "emil",
+          "text": "Do we defer PR 653 past v0.1.26 or hold the release for it?",
+          "ts": "2025-06-25T12:09:33"
+        },
+        {
+          "userId": "dermot",
+          "text": "PR 693 is up for streaming support on the online requests path, touching bulk-llm-inference. Would appreciate a first pass from anyone familair with how we handle the online concurent request flow.",
+          "ts": "2025-06-26T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, is PR 693 a separate code path for streaming or is it integrated with the existing online request handling?",
+          "ts": "2025-06-26T09:04:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "Ok",
+          "ts": "2025-06-26T10:17:17"
+        },
+        {
+          "userId": "dermot",
+          "text": "answering my own question - looked at the PR and `fetch_response_streamed` unifies the output to look like a normal response, so it's essentially a separate path within the online processor",
+          "ts": "2025-06-26T10:17:29",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "Does it handle a mid-stream drop, or does that just fail outright?",
+          "ts": "2025-06-26T10:17:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "The retry behavior on a mid-stream drop is still an open question for me, not sure if that's addressed somewhere in PR 693 or if it's left for a follow-up.",
+          "ts": "2025-06-26T10:26:41"
+        },
+        {
+          "userId": "dermot",
+          "text": "That one's still open, presumably a follow-up commit",
+          "ts": "2025-06-26T11:22:58"
+        },
+        {
+          "userId": "emil",
+          "text": "When you say \"separate path within the online processor\", is `fetch_response_streamed` a parallel implementation, or does it share the upstream routing and only diverge at the response-handling step?",
+          "ts": "2025-06-26T12:05:32",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Pulled up the Jun 23 sync notes, nothing in there about streaming",
+          "ts": "2025-06-26T12:16:31"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, might be worth your eyes on PR 693 given the retry question, if the stream drops mid-response, I'm not entirely sure how that interacts with caching-and-resume",
+          "ts": "2025-06-26T12:35:48"
+        },
+        {
+          "userId": "emil",
+          "text": "In PR 693, does streaming bypass the auto batch decision entirely, or does it go through the same routing and just always land on online?",
+          "ts": "2025-06-26T12:48:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is in good shape heading into the wind-down. Went throught it this morning and nothing looks like it would block us from moving to maintenance after v0.1.26",
+          "ts": "2025-07-10T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Did anyone review PR 696 before it went in?",
+          "ts": "2025-07-10T09:00:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does the wind-down milestone say anything about how to handle PRs that are still in flight?",
+          "ts": "2025-07-10T10:00:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "Which of PR 653, 675, 690, 693 should we look at next?",
+          "ts": "2025-07-10T10:28:10"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ok, answering my own question, looked at all four. PR 653 has almost no description. What state is it actually in?",
+          "ts": "2025-07-10T11:05:10"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 and 693 are both moving, should have updates this afternoon",
+          "ts": "2025-07-10T11:25:10"
+        },
+        {
+          "userId": "emil",
+          "text": "On PR 696: version tag belongs in lib, that change is correct",
+          "ts": "2025-07-10T11:25:22"
+        },
+        {
+          "userId": "emil",
+          "text": "The v0.1.25 Release Notes page doesn't exist yet.",
+          "ts": "2025-07-10T11:25:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "Good, that settles 696",
+          "ts": "2025-07-10T11:51:58",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Couldn't find wind-down milestone page in the wiki.",
+          "ts": "2025-07-10T11:52:29"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who owns it?",
+          "ts": "2025-07-10T11:52:37"
+        },
+        {
+          "userId": "emil",
+          "text": "That's yours, Konrad.",
+          "ts": "2025-07-10T12:09:37"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get the v0.1.25 release notes drafted this afternoon.",
+          "ts": "2025-07-10T12:10:08"
+        },
+        {
+          "userId": "emil",
+          "text": "Is the plan to sort PR 653 first, or do we tackle PR 675 while we wait on Nikolai to clarify 653's state?",
+          "ts": "2025-07-10T12:22:08"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nolan, is PR 675 ready to review or still in progress?",
+          "ts": "2025-07-10T12:41:00",
+          "replyCount": 1,
+          "replyLastTs": "2025-07-10T12:41:35"
+        },
+        {
+          "userId": "konrad",
+          "text": "+1",
+          "ts": "2025-07-10T12:41:35",
+          "threadParentTs": "2025-07-10T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Wind-down plan is in the wiki: engineering/winding-down-to-maintenance-mode-after-v0-1-26.md",
+          "ts": "2025-07-10T12:42:10",
+          "reactions": [
+            {
+              "emoji": "🙌",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Anyone seen CI on PR 693 failing in a way that looks like it predates the branch?",
+          "ts": "2025-07-10T12:49:10"
+        },
+        {
+          "userId": "emil",
+          "text": "Trying to figure out if it's my streaming changes or something already broken on main",
+          "ts": "2025-07-10T12:49:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Sounds like a full afternoon for you, Emil",
+          "ts": "2025-07-10T12:57:15",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai, what's the state of PR 653?",
+          "ts": "2025-07-10T12:57:34"
+        },
+        {
+          "userId": "konrad",
+          "text": "If 653 stays quiet today, is PR 675 the one to pull in next?",
+          "ts": "2025-07-10T13:49:34"
+        },
+        {
+          "userId": "emil",
+          "text": "If Nikolai doesn't respond today, 675 makes sense as the next one, assuming Nolan confirms it's ready.",
+          "ts": "2025-07-10T14:01:34"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 696 is confirmed and PR 675 is next once Nolan weighs in",
+          "ts": "2025-07-10T14:04:34"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we actually need Nolan to confirm, or can we just pull PR 675 in and review it ourselves?",
+          "ts": "2025-07-10T14:04:53"
+        },
+        {
+          "userId": "emil",
+          "text": "The v0.1.25 release notes page doesn't exist yet.",
+          "ts": "2025-07-10T14:14:53"
+        },
+        {
+          "userId": "emil",
+          "text": "That's mine to write, I'll have a draft up this afternoon.",
+          "ts": "2025-07-10T14:15:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "Need another coffee before this afternoon gets away from me.",
+          "ts": "2025-07-10T14:58:01",
+          "reactions": [
+            {
+              "emoji": "☕",
+              "count": 2
+            }
+          ]
         }
       ],
       "projectSpec": {
@@ -34766,6 +35238,335 @@
           "userId": "emil",
           "text": "Dario's confirmation on the Pydantic fix is still open heading into the weekend.",
           "ts": "2025-06-13T18:03:28"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Merged main into PR 653 this morning, there are real conflicts to work through still, but I'm not sure it's worth the effort if we're heading into maintenance mode after 0.1.26. Already asked about it in the weekly recap but the question stands here too",
+          "ts": "2025-06-16T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@konrad has the maintenance mode write-up landed anywhere yet? Couldn't find it on the wiki",
+          "ts": "2025-06-16T09:02:54"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@konrad any thoughts on PR 653 while I have your attention, does finetuning still need that client work before the wind-down?",
+          "ts": "2025-06-16T09:52:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Does anyone have a sense of which open PRs actually need to land before 0.1.26 and which can just be closed out?",
+          "ts": "2025-06-16T10:54:53"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 and 691 are both in review, not totally sure either one needs to land for 0.1.26 but I'd rather not close them out without a second set of eyes first.",
+          "ts": "2025-06-16T11:04:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still no answer on PR 653, nobody's weighed in on whether it's worth finishing or just needs to be closed",
+          "ts": "2025-06-16T11:46:53"
+        },
+        {
+          "userId": "emil",
+          "text": "Same question on my end, I can't tell if PR 653 is still actively being worked or just stalled, and Konrad hasn't surfaced yet.",
+          "ts": "2025-06-16T12:01:53"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I've got it, merged main in this morning, but I'm not going further until someone decides if it actually needs to land.",
+          "ts": "2025-06-16T12:18:53"
+        },
+        {
+          "userId": "emil",
+          "text": "Same situation on 690, I'm not going to push for review if nobody can tell me whether it actually needs to be in 0.1.26.",
+          "ts": "2025-06-16T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "Most of what's stuck today is waiting on people who aren't around",
+          "ts": "2025-06-16T12:41:37",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Code-execution side is stable, nothing blocking from my end. Release and CI are in good shape going into this week, just waiting to see where batch mode lands before we cut anything.",
+          "ts": "2025-06-25T09:00:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Emil is auto batch mode good to go, or are there still open items on it?",
+          "ts": "2025-06-25T09:07:56"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Once we're in maintenance mode after v0.1.26, what's the expected release cadence?",
+          "ts": "2025-06-25T10:12:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "What's the plan for open PRs once we shift to maintenance mode, do we try to land them first or defer?",
+          "ts": "2025-06-25T11:12:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Auto batch mode is done, good to ship in v0.1.26.",
+          "ts": "2025-06-25T11:42:41",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "That doc doesn't exist yet, so I can't say what's in it",
+          "ts": "2025-06-25T11:53:37"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, is \"Winding down to maintenance mode after v0.1.26\" written up anywhere?",
+          "ts": "2025-06-25T11:53:45"
+        },
+        {
+          "userId": "emil",
+          "text": "I need to know what the release cadence looks like on my side once we go dormant",
+          "ts": "2025-06-25T11:53:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Auto batch mode is confirmed for v0.1.26, release side is clear from my end.",
+          "ts": "2025-06-25T12:29:50"
+        },
+        {
+          "userId": "emil",
+          "text": "Batch mode supports automatic provider selection now",
+          "ts": "2025-06-25T12:41:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Weekly sync notes for batch mode are on the wiki at engineering/weekly-sync-notes-week-of-jun-23-batch-mode if anyone wants the full picture.",
+          "ts": "2025-06-25T12:41:31"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 and PR 675 are still open with no reviewers, worth flagging before we go dormant",
+          "ts": "2025-06-25T12:51:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do we want to make a call on those this afternoon or just let them carry into maintenance mode?",
+          "ts": "2025-06-25T12:51:34"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do Emil's batch mode notes say anything about post-dormancy cadence?",
+          "ts": "2025-06-25T13:51:34"
+        },
+        {
+          "userId": "emil",
+          "text": "The notes don't cover post-dormancy cadence, that's still an open question on my end.",
+          "ts": "2025-06-25T13:52:33"
+        },
+        {
+          "userId": "emil",
+          "text": "I'd want to know what maintenance mode actually means for release frequency before we commit to anything on the stalled PRs.",
+          "ts": "2025-06-25T13:52:45"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad the \"Winding down to maintenance mode after v0.1.26\" doc doesn't exist yet on the wiki",
+          "ts": "2025-06-25T13:53:14"
+        },
+        {
+          "userId": "emil",
+          "text": "Is that written up somewhere?",
+          "ts": "2025-06-25T13:53:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anyway, batch mode landing for v0.1.26 is solid at least, that's the main thing.",
+          "ts": "2025-06-25T14:20:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "dunno if I'd call it \"solid\" without knowing what happens to the stalled PRs post-dormancy",
+          "ts": "2025-06-25T14:20:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Yeah",
+          "ts": "2025-06-25T14:20:52"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 653 and 675 are the loose end. Do we try to get those reviewed before v0.1.26 or just accept they carry over?",
+          "ts": "2025-06-25T14:46:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That's really a call for Konrad and Nolan to make, they own those PRs",
+          "ts": "2025-06-25T15:21:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Fair. From my side batch mode is wrapped, notes are up, PR 690 is in review. That's everything I can close today.",
+          "ts": "2025-06-25T15:28:47",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Good week for you then, Emil",
+          "ts": "2025-06-25T15:52:47"
+        },
+        {
+          "userId": "emil",
+          "text": "Not bad. Batch mode is done and v0.1.26 has a clear path, that's what I wanted out of this week.",
+          "ts": "2025-06-25T16:27:47",
+          "reactions": [
+            {
+              "emoji": "🎉",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Release side is clear, PR 653 is still hanging out there unreviewed",
+          "ts": "2025-06-25T16:47:47"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Not sure I'd call the path clear when we still don't know what maintenance mode means for review turnaround.",
+          "ts": "2025-06-25T16:48:19",
+          "replyCount": 1,
+          "replyLastTs": "2025-06-25T16:49:00"
+        },
+        {
+          "userId": "emil",
+          "text": "That's fair, I don't have an answer on that either.",
+          "ts": "2025-06-25T16:49:00",
+          "threadParentTs": "2025-06-25T16:48:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Leaving PR 653 open, that one's going to need Konrad to weigh in before we can do anything with it",
+          "ts": "2025-06-25T17:34:00"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 675 is in the same spot, no reviewer and no decision on whether it makes v0.1.26.",
+          "ts": "2025-06-25T17:34:44"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is in the same state, waiting on review, also not confirmed for v0.1.26 yet.",
+          "ts": "2025-06-25T17:53:44"
+        },
+        {
+          "userId": "nikolai",
+          "text": "So we've got three PRs sitting unreviewed going into end of day",
+          "ts": "2025-06-25T18:18:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "- *finetuning*: stable, no active changes right now\n- *examples-cookbooks*: small doc-only update in progress, adding version tag reference across two services. Want to confirm the approach is correct before we land it",
+          "ts": "2025-07-10T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "For the version tag reference I'm adding, should it pin to a specific release or is a floating reference the better call for documentation?",
+          "ts": "2025-07-10T09:07:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Ok",
+          "ts": "2025-07-10T10:04:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "answering my own question there, pinned probably makes more sense given where we are in the cycle",
+          "ts": "2025-07-10T10:04:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "What tag format are we using for the release, v0.1.26 or without the v prefix?",
+          "ts": "2025-07-10T10:04:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'll check the existing tags and sort the format out myself, then get the reference in",
+          "ts": "2025-07-10T10:39:59"
+        },
+        {
+          "userId": "emil",
+          "text": "We've always used the v prefix, so v0.1.26, but worth double-checking against the tags on the release-and-ci side if you want to be sure.",
+          "ts": "2025-07-10T10:48:59"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, since the tag reference is going into two services, that's two spots to update every time we cut a release.",
+          "ts": "2025-07-10T10:49:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure that's a real concern given where we are",
+          "ts": "2025-07-10T11:19:23"
+        },
+        {
+          "userId": "konrad",
+          "text": "Release cadence drops off significantly after v0.1.26, so two spots to update won't come up very often",
+          "ts": "2025-07-10T11:19:35"
+        },
+        {
+          "userId": "emil",
+          "text": "That's fair - if the release cadence is dropping off after v0.1.26, two spots to update is a non-issue",
+          "ts": "2025-07-10T11:59:35"
+        },
+        {
+          "userId": "emil",
+          "text": "The approach looks correct and there's no real maintenance burden here",
+          "ts": "2025-07-10T11:59:47",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Also just checked: the weekly sync notes for the week of Jul 7 don't exist as a wiki page yet. That's on me.",
+          "ts": "2025-07-10T11:59:55"
+        },
+        {
+          "userId": "emil",
+          "text": "The winding down doc doesn't exist yet - Konrad already flagged that in #code-review, and that's still on him.",
+          "ts": "2025-07-10T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Version tag reference going in this afternoon",
+          "ts": "2025-07-10T13:19:00"
         }
       ],
       "projectSpec": {
@@ -49652,6 +50453,144 @@
               "count": 1
             }
           ]
+        },
+        {
+          "userId": "dermot",
+          "text": "Been looking at PR 693 against the bulk-llm-inference side and I'm not entirely sure whether streaming runs through a separate code path or shares the same routing logic as the standard online requests",
+          "ts": "2025-06-26T09:00:00"
+        },
+        {
+          "userId": "dermot",
+          "text": "Wanted to flag that before we get too far along",
+          "ts": "2025-06-26T09:00:12"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Emil, after the auto batch mode changes, does streaming go through the same routing decision or is it treated separately?",
+          "ts": "2025-06-26T09:08:23"
+        },
+        {
+          "userId": "dermot",
+          "text": "Ok",
+          "ts": "2025-06-26T10:23:09"
+        },
+        {
+          "userId": "dermot",
+          "text": "partly answering my own question, from the PR it looks like streaming stays within the online processor and the output is unified, so presumably the routing decision happens before that",
+          "ts": "2025-06-26T10:23:14"
+        },
+        {
+          "userId": "dermot",
+          "text": "Is the batch vs online split still just based on provider support, or did auto batch mode change that logic?",
+          "ts": "2025-06-26T10:23:19"
+        },
+        {
+          "userId": "dermot",
+          "text": "Still waiting on that one",
+          "ts": "2025-06-26T11:20:19"
+        },
+        {
+          "userId": "emil",
+          "text": "My read is that streaming forces online anyway, so the auto batch decision tree doesn't really apply to it at all",
+          "ts": "2025-06-26T12:00:19",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Does your question extend to cache behavior too, or is it strictly about the routing split?",
+          "ts": "2025-06-26T12:00:24"
+        },
+        {
+          "userId": "emil",
+          "text": "Think that answers itself actually - streaming always forces online, so auto batch routing just doesn't come into it.",
+          "ts": "2025-06-26T12:08:32"
+        },
+        {
+          "userId": "dermot",
+          "text": "Routing makes sense now, though I'm not entirely sure cache behavior is the same story, does a streamed response get cached the same way a normal online response would, or does it bypass that?",
+          "ts": "2025-06-26T12:32:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Routing's settled - streaming forces online, auto batch doesn't apply to it. Cache behavior is the remaining open piece; I pulled up the Jun 23 sync notes and they don't touch streaming at all, so probably worth looping in Dario since he owns caching-and-resume.",
+          "ts": "2025-06-26T12:41:00"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 693's routing side is sorted from my end - streaming always goes online, so the batch decision doesn't touch it",
+          "ts": "2025-06-26T12:55:02",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Dario's take on the cache question is the last open piece before I'd call this fully scoped",
+          "ts": "2025-06-26T12:55:07"
+        },
+        {
+          "userId": "dermot",
+          "text": "@Dario, does caching-and-resume have any handling for a response that starts streaming and then drops, or is that currently a gap?",
+          "ts": "2025-06-26T13:51:07"
+        },
+        {
+          "userId": "emil",
+          "text": "Should've flagged this earlier - pulled up the Jun 23 sync notes and they don't cover streaming at all.",
+          "ts": "2025-06-26T13:53:13"
+        },
+        {
+          "userId": "emil",
+          "text": "So the cache behavior piece is still on us, sync notes aren't going to help there.",
+          "ts": "2025-06-26T13:53:18"
+        },
+        {
+          "userId": "dermot",
+          "text": "The OpenAI streaming API reference has some detail on how partial responses should be handled, not sure if that's factored into PR 693 or still a gap.",
+          "ts": "2025-06-26T14:30:18"
+        },
+        {
+          "userId": "emil",
+          "text": "The API reference covers the streaming format, not mid-stream failure behavior - not sure it's going to tell us what we need there.",
+          "ts": "2025-06-26T14:49:18"
+        },
+        {
+          "userId": "emil",
+          "text": "Does streaming change how cache invalidation works, or does it behave the same as a normal online response?",
+          "ts": "2025-06-26T14:49:57"
+        },
+        {
+          "userId": "dermot",
+          "text": "Routing's confirmed on my end. Cache behavior is still on Dario, once he weighs in we should have enough to scope the streaming work properly",
+          "ts": "2025-06-26T14:51:57"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is still sitting in review, nothing blocking it from my end.",
+          "ts": "2025-06-26T15:00:57"
+        },
+        {
+          "userId": "emil",
+          "text": "Local offline inference is moving, no blockers on that side.",
+          "ts": "2025-06-26T15:01:38",
+          "reactions": [
+            {
+              "emoji": "🚀",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "dermot",
+          "text": "Still waiting on Dario for the cache behavior question, that's the last piece before streaming is fully scoped.",
+          "ts": "2025-06-26T15:09:38"
         }
       ],
       "projectSpec": {
@@ -55454,6 +56393,179 @@
           "userId": "konrad",
           "text": "Emil, when you're in the code, can you check the progress table too, not just the cost counter?",
           "ts": "2025-06-03T12:57:32"
+        },
+        {
+          "userId": "konrad",
+          "text": "Adding a version tag reference as part of examples-cookbooks, and it looks like that change touches the viewer surface too",
+          "ts": "2025-07-10T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Want to make sure it displays cleanly before we land it",
+          "ts": "2025-07-10T09:00:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure the version tag is going to display cleanly in the viewer without someone actually pulling it up. Worth holding this until we get eyes on it, or are people comfortable landing it as is?",
+          "ts": "2025-07-10T09:13:33"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario can you take a look at the viewer side before we land this?",
+          "ts": "2025-07-10T10:11:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'd rather not ship it without someone actually pulling it up",
+          "ts": "2025-07-10T10:11:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there a staging version of the viewer I can check this against, or does it need a full deploy to see how it renders?",
+          "ts": "2025-07-10T10:44:42"
+        },
+        {
+          "userId": "emil",
+          "text": "I can pull it up and check how it renders.",
+          "ts": "2025-07-10T10:54:42",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone confirmed yet how the version tag actually renders in the viewer?",
+          "ts": "2025-07-10T11:31:45"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, is there anything from the viewer side this week that should go in the sync notes? I haven't put that page together yet.",
+          "ts": "2025-07-10T12:32:45"
+        },
+        {
+          "userId": "emil",
+          "text": "@Dario, still waiting on your eyes on the viewer side - has the version tag rendered cleanly or not?",
+          "ts": "2025-07-10T13:13:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "Version tag reference confirmed correct on the engineering side, going in this afternoon",
+          "ts": "2025-07-10T13:58:45"
+        },
+        {
+          "userId": "emil",
+          "text": "Still haven't heard back on whether it renders cleanly in the viewer though.",
+          "ts": "2025-07-10T14:11:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "Holding the change pending confirmation on the viewer side",
+          "ts": "2025-07-10T14:22:45",
+          "replyCount": 2,
+          "replyLastTs": "2025-07-10T14:23:19"
+        },
+        {
+          "userId": "emil",
+          "text": "Good call",
+          "ts": "2025-07-10T14:23:11",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "threadParentTs": "2025-07-10T14:22:45"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll chase Dario on it.",
+          "ts": "2025-07-10T14:23:19",
+          "threadParentTs": "2025-07-10T14:22:45"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 and 693 are both still in progress on my side, nothing blocked there",
+          "ts": "2025-07-10T14:23:36"
+        },
+        {
+          "userId": "emil",
+          "text": "Waiting on Dario to confirm the viewer display before this afternoon's change can land",
+          "ts": "2025-07-10T14:23:48",
+          "replyCount": 1,
+          "replyLastTs": "2025-07-10T14:24:27"
+        },
+        {
+          "userId": "konrad",
+          "text": "If you're able to pull it up yourself, not sure we need to wait on Dario.",
+          "ts": "2025-07-10T14:24:27",
+          "threadParentTs": "2025-07-10T14:23:48"
+        },
+        {
+          "userId": "emil",
+          "text": "I don't own curator-viewer so I'm not sure I'm the right person to call it clean - do we just proceed without a sign-off from Dario, or hold until he responds?",
+          "ts": "2025-07-10T14:24:49"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still holding for Dario",
+          "ts": "2025-07-10T15:05:49"
+        },
+        {
+          "userId": "konrad",
+          "text": "If he's quiet by end of day I'll land it anyway since it's doc-only",
+          "ts": "2025-07-10T15:05:54",
+          "replyCount": 1,
+          "replyLastTs": "2025-07-10T15:06:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "I've got it from here.",
+          "ts": "2025-07-10T15:06:07",
+          "threadParentTs": "2025-07-10T15:05:54"
+        },
+        {
+          "userId": "emil",
+          "text": "Works for me.",
+          "ts": "2025-07-10T15:18:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "Version tag reference is ready to go, just watching for Dario before I put it in",
+          "ts": "2025-07-10T15:26:07"
+        },
+        {
+          "userId": "emil",
+          "text": "You already said you'd land it anyway if he's quiet by end of day - that's pretty close.",
+          "ts": "2025-07-10T15:58:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "Landing it now.",
+          "ts": "2025-07-10T16:03:07"
+        },
+        {
+          "userId": "konrad",
+          "text": "Version tag reference is in.",
+          "ts": "2025-07-10T16:03:38",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 and 693 are still in progress on my end, nothing else to flag today.",
+          "ts": "2025-07-10T16:22:38"
+        },
+        {
+          "userId": "konrad",
+          "text": "Same on my end, nothing else to flag",
+          "ts": "2025-07-10T16:38:38"
         }
       ],
       "projectSpec": {

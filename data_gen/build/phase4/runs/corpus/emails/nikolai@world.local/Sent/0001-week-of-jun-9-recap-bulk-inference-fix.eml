@@ -1,0 +1,19 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, konrad@world.local, nolan@world.local
+Subject: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 09:07:00 +0000
+Message-ID: <178771578160.2500381.12817086076544913041@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Quick recap from last week. Dario's fix in bulk-llm-inference for multimodal =
+Gemini batch request creation is the main thing worth knowing about =E2=80=94=
+ it's non-trivial and the two batch-related PRs (690 and 691) are close enoug=
+h in scope that whoever reviews them will want to look at both at once.
+
+One thing I want an answer on: PR 653, the finetuning client Shreyas original=
+ly opened, has been sitting with me. I've merged main in and there's still wo=
+rk to do. But if we're heading into maintenance mode after 0.1.26, does this =
+PR actually need to land, or should it just be closed? Don't want to keep car=
+rying it if the answer is abandon.

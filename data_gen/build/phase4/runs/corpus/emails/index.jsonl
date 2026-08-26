@@ -459,3 +459,8 @@
 {"path": "nikolai@world.local/INBOX/0002-week-of-may-26-recap-v0-1-25-shipped.eml", "mailbox": "nikolai@world.local", "folder": "INBOX", "date": "2025-06-02T09:28:00+00:00", "flags": []}
 {"path": "nolan@world.local/INBOX/0002-week-of-may-26-recap-v0-1-25-shipped.eml", "mailbox": "nolan@world.local", "folder": "INBOX", "date": "2025-06-02T09:28:00+00:00", "flags": []}
 {"path": "gideon@world.local/INBOX/0002-week-of-may-26-recap-v0-1-25-shipped.eml", "mailbox": "gideon@world.local", "folder": "INBOX", "date": "2025-06-02T09:28:00+00:00", "flags": []}
+{"path": "nikolai@world.local/Sent/0001-week-of-jun-9-recap-bulk-inference-fix.eml", "mailbox": "nikolai@world.local", "folder": "Sent", "date": "2025-06-16T09:07:00+00:00", "flags": ["\\Seen"]}
+{"path": "dario@world.local/INBOX/0001-week-of-jun-9-recap-bulk-inference-fix.eml", "mailbox": "dario@world.local", "folder": "INBOX", "date": "2025-06-16T09:07:00+00:00", "flags": []}
+{"path": "emil@world.local/INBOX/0001-week-of-jun-9-recap-bulk-inference-fix.eml", "mailbox": "emil@world.local", "folder": "INBOX", "date": "2025-06-16T09:07:00+00:00", "flags": []}
+{"path": "konrad@world.local/INBOX/0001-week-of-jun-9-recap-bulk-inference-fix.eml", "mailbox": "konrad@world.local", "folder": "INBOX", "date": "2025-06-16T09:07:00+00:00", "flags": []}
+{"path": "nolan@world.local/INBOX/0001-week-of-jun-9-recap-bulk-inference-fix.eml", "mailbox": "nolan@world.local", "folder": "INBOX", "date": "2025-06-16T09:07:00+00:00", "flags": []}
