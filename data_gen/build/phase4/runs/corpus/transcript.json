@@ -17748,6 +17748,401 @@
               "count": 2
             }
           ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning side is in decent shape coming out of last week, been going through few things on the examples front this morning",
+          "ts": "2025-12-29T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Also looking to get PR 704 scoped out today, not entirely sure if it's shippable as is",
+          "ts": "2025-12-29T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 704 touches finetuning, could use another set of eyes on it. Want to get a sense of wether it's in shape to ship or if there's more work needed.",
+          "ts": "2025-12-29T09:00:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does the Anthropic processor change in PR 704 need Dario's sign-off, or is the finetuning scope enough to merge?",
+          "ts": "2025-12-29T10:15:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is the `importorskip` change in PR 704 the test fix that needs to land, or is that a separate thing?",
+          "ts": "2025-12-29T10:27:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "Oh wait",
+          "ts": "2025-12-29T11:22:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "I think the conftest change in PR 704 is the test fix, not something separate.",
+          "ts": "2025-12-29T11:22:58"
+        },
+        {
+          "userId": "emil",
+          "text": "So the conftest change in PR 704 is the whole test fix, not a partial thing that needs more work on top?",
+          "ts": "2025-12-29T11:56:58"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, I pulled up PR 704 myself",
+          "ts": "2025-12-29T12:06:37"
+        },
+        {
+          "userId": "emil",
+          "text": "The conftest change is the whole test fix, it's self-contained",
+          "ts": "2025-12-29T12:06:42"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll go through the Anthropic processor changes this afternoon and flag whether the rest of it is shippable",
+          "ts": "2025-12-29T12:06:50",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Has anyone validated the new model prefixes in PR 704 against the actual Anthropic API, or is that based purely on the naming pattern?",
+          "ts": "2025-12-29T12:37:50"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 706 is up for review",
+          "ts": "2025-12-30T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "It touches finetuning and test suite is currently broken without it, so would appreciate eyes this morning",
+          "ts": "2025-12-30T09:00:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does one approval get PR 706 over the line, or do we need two?",
+          "ts": "2025-12-30T09:00:46"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's the right person to ping for a finetuning review, is there someone who's looked at that code before?",
+          "ts": "2025-12-30T09:14:46"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone started the \"Winding down to maintenance mode after v0.1.26\" write-up?",
+          "ts": "2025-12-30T09:43:46"
+        },
+        {
+          "userId": "konrad",
+          "text": "Went to find it on the wiki and couldn't find anything",
+          "ts": "2025-12-30T09:43:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 706 still needs eyes if anyone has bandwidth this morning",
+          "ts": "2025-12-30T09:44:03"
+        },
+        {
+          "userId": "konrad",
+          "text": "hmm",
+          "ts": "2025-12-30T10:34:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who has merge access on this repo?",
+          "ts": "2025-12-30T11:47:39"
+        },
+        {
+          "userId": "emil",
+          "text": "- *PR 706* reviewed, fix looks sufficient to me\n- I have merge access, will pull the trigger once CI passes\n- One approval clears it for a change this scoped",
+          "ts": "2025-12-30T12:20:39",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Has CI finished on PR 706 yet?",
+          "ts": "2025-12-30T12:37:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning is moving along this mornign, the handoff doc is taking shape and I should have something to share later today.",
+          "ts": "2026-01-02T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure PR 690 and 693 should carry into next week - do we want to call them todya?",
+          "ts": "2026-01-02T09:00:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Pulled them up - 690 is a clear fix, no real questions there",
+          "ts": "2026-01-02T09:37:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "693 is pretty sparse though, not sure if it's actually ready or still being worked",
+          "ts": "2026-01-02T09:37:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "What's the statsu on 675, 653, 698, and 701 - are those getting cleared this week or carrying over?",
+          "ts": "2026-01-02T10:52:25"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is good to merge from my side",
+          "ts": "2026-01-02T11:13:25",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "693 I'm still sitting on, it needs a bit more before I'd call it ready",
+          "ts": "2026-01-02T11:13:37"
+        },
+        {
+          "userId": "emil",
+          "text": "675, 653, 698, 701, haven't had eyes on all of them but let's circle back on that after we settle 690 and 693.",
+          "ts": "2026-01-02T11:13:49"
+        },
+        {
+          "userId": "konrad",
+          "text": "Right",
+          "ts": "2026-01-02T11:32:49"
+        },
+        {
+          "userId": "konrad",
+          "text": "let's merge 690 and hold 693 until Emil has it where he wants it",
+          "ts": "2026-01-02T11:32:57",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Also tried to pull up the 2026 fine-tuning handoff plan just now and the page isn't there yet - not sure who owes that doc.",
+          "ts": "2026-01-02T11:33:05"
+        },
+        {
+          "userId": "emil",
+          "text": "Works for me on 690 and 693",
+          "ts": "2026-01-02T12:47:01",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Do we want to call 675, 653, 698, and 701 today or push them to next week?",
+          "ts": "2026-01-02T12:47:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "I'd push 675, 653, 698, and 701 to next week",
+          "ts": "2026-01-02T13:13:18"
+        },
+        {
+          "userId": "konrad",
+          "text": "What's still needed on 693 before it's ready?",
+          "ts": "2026-01-02T13:24:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, is 693 landing today or should we call it a defer to next week?",
+          "ts": "2026-01-02T14:32:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Defer 693 to next week",
+          "ts": "2026-01-02T14:43:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Good call getting 690 sorted today, that one needed to move",
+          "ts": "2026-01-02T14:43:29"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 704 is merged and the README now reflects the Claude 4.x and 3.7 model support",
+          "ts": "2026-01-22T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 707 merged, so the README is current on my end for code-execution.",
+          "ts": "2026-01-22T09:05:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 has been sitting without movement for a while and I haven't been able to get to it properly yet",
+          "ts": "2026-01-22T09:05:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 653 touches finetuning so I have a stake in it. Do we defer it to next sync or does someone need to take a proper look at it this week?",
+          "ts": "2026-01-22T09:30:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'm around today if we decide not to defer it, but haven't carved out time for a proper review yet",
+          "ts": "2026-01-22T09:33:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Not sure deferring PR 653 again is the right move, it's already been sitting a while",
+          "ts": "2026-01-22T09:43:50"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Who's actually going to pick it up if we punt to next sync?",
+          "ts": "2026-01-22T09:43:55"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nice work getting the README current on code-execution, Nikolai",
+          "ts": "2026-01-22T09:47:55",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning side is covered too so between those two the docs are in good shape",
+          "ts": "2026-01-22T09:48:03"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Decent morning for crossing things off, anyway.",
+          "ts": "2026-01-22T10:26:43",
+          "reactions": [
+            {
+              "emoji": "🎯",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "Before this thread goes quiet, has anyone actually decided what we're doing with the stale PRs?",
+          "ts": "2026-01-22T10:27:25"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 is still unassigned for review and I haven't seen anyone claim PR 675 or PR 698 either",
+          "ts": "2026-01-22T10:27:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 704 is up, three commits adding Claude 4.x and 3.7 model support to the finetuning subsystem",
+          "ts": "2026-01-23T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not blocking a release, but I'd like to get eyes on it beofre the weekend",
+          "ts": "2026-01-23T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll take a look at PR 704 this morning, @Konrad.",
+          "ts": "2026-01-23T09:05:12",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Appreciate it.",
+          "ts": "2026-01-23T09:11:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "Three commits, all contained within finetuning, adding model identifer support for Claude 4.x and 3.7. No structural changes",
+          "ts": "2026-01-23T09:11:24"
+        },
+        {
+          "userId": "konrad",
+          "text": "The identifiers themselves are the part I'd most want confirmed against what Anthropic has published.",
+          "ts": "2026-01-23T09:11:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Makes sense",
+          "ts": "2026-01-23T09:22:29"
+        },
+        {
+          "userId": "nikolai",
+          "text": "I'll double-check the identifiers against the Anthropic docs",
+          "ts": "2026-01-23T09:22:37"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno that the 4.x identifiers are fully settled in Anthropic's published docs yet, that's the part I'm not confident about.",
+          "ts": "2026-01-23T09:23:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "Same on my end, the 4.x ones are the part I wasn't confident about either.",
+          "ts": "2026-01-23T10:03:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Anthropic keeps the current model list here: https://docs.anthropic.com/en/docs/about-claude/models, that's probably the source of truth for the 4.x strings.",
+          "ts": "2026-01-23T10:05:14",
+          "reactions": [
+            {
+              "emoji": "👌",
+              "count": 1
+            }
+          ],
+          "unfurl": {
+            "title": "docs.anthropic.com",
+            "url": "https://docs.anthropic.com/en/docs/about-claude/models,"
+          }
+        },
+        {
+          "userId": "konrad",
+          "text": "Chekcing my identifiers against that now, will push a correction to PR 704 if anything doesn't line up.",
+          "ts": "2026-01-23T10:39:14"
         }
       ],
       "projectSpec": {
@@ -21486,6 +21881,316 @@
           "userId": "nikolai",
           "text": "fair enough, same from me",
           "ts": "2025-06-04T18:03:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "Test fix that came in over the weekend touches code-execution, so I'm going through verifier side this mornign to make sure nothing's broken",
+          "ts": "2025-12-29T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Need to confirm cookbooks depending on those verifiers are still clean before we're good",
+          "ts": "2025-12-29T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has CI run the full verifier suite since that test fix landed? Want to be sure before any cookbook that depends on code-exectuion is considered clean",
+          "ts": "2025-12-29T09:04:44"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai, where does code-execution stand since the test fix went in?",
+          "ts": "2025-12-29T10:18:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Dario, did cookbooks CI come back clean over the weekend?",
+          "ts": "2025-12-29T10:37:15"
+        },
+        {
+          "userId": "konrad",
+          "text": "Where would I look to pull up the CI verifier results myself for this repo?",
+          "ts": "2025-12-29T11:40:15"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 704's conftest change wraps the skip helper rather than calling `pytest.importorskip` directly:\n```\ntests.conftest.importorskip(\"ray\") # logs on skip\ntests.conftest.importorskip(\"vllm\")\n```\n|||\nStill need someone to confirm the code-execution verifier suite ran clean after that, haven't seen CI results on it yet.",
+          "ts": "2025-12-29T12:03:21"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, how's code-execution holding up since the test fix went in?",
+          "ts": "2025-12-29T12:11:32"
+        },
+        {
+          "userId": "emil",
+          "text": "Does code-execution have a separate CI gate, or does it run under the main test suite?",
+          "ts": "2025-12-29T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "same question on the CI gate, I've been trying to get that answer all morning",
+          "ts": "2025-12-29T13:10:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Which cookbooks actually invoke the code-execution verifiers, all of them or just specific ones?",
+          "ts": "2025-12-29T13:10:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone run the cookbook suite manually since the fix went in?",
+          "ts": "2025-12-29T13:20:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "How do I run just the code-execution verifier tests locally?",
+          "ts": "2025-12-29T13:37:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do the code-execution verifiers actually depend on ray or vllm?",
+          "ts": "2025-12-29T14:22:17"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, you around this afternoon? We're both waiting on you for code-execution.",
+          "ts": "2025-12-29T14:53:17"
+        },
+        {
+          "userId": "emil",
+          "text": "Not sure this closes today if Nikolai's offline.",
+          "ts": "2025-12-29T14:53:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do we know what was actually failing before the importorskip change?",
+          "ts": "2025-12-29T14:58:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Verifiers presumably don't touch ray or vllm at all",
+          "ts": "2025-12-29T14:59:01"
+        },
+        {
+          "userId": "emil",
+          "text": "The new wrapper doesn't change the skip behavior, just adds logging, so even if verifiers hit it they won't start failing.",
+          "ts": "2025-12-29T15:23:01",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "right",
+          "ts": "2025-12-29T15:25:01"
+        },
+        {
+          "userId": "konrad",
+          "text": "so the verifier behavior is unchanged either way",
+          "ts": "2025-12-29T15:25:13",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ],
+          "replyCount": 2,
+          "replyLastTs": "2025-12-29T15:26:02"
+        },
+        {
+          "userId": "emil",
+          "text": "Are we sure the verifiers don't call `pytest.importorskip` directly anywhere?",
+          "ts": "2025-12-29T15:25:39",
+          "threadParentTs": "2025-12-29T15:25:13"
+        },
+        {
+          "userId": "emil",
+          "text": "And does the conftest even get loaded for the verifier suite, or does it run in a different test scope?",
+          "ts": "2025-12-29T15:26:02",
+          "threadParentTs": "2025-12-29T15:25:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Been going through verifier side this afternoon and can't find direct importorskip calls in there, but not entirely sure whether the conftest actually loads for that scope.",
+          "ts": "2025-12-29T15:40:02",
+          "replyCount": 1,
+          "replyLastTs": "2025-12-29T15:40:45"
+        },
+        {
+          "userId": "emil",
+          "text": "If there are no direct calls in the verifiers, does the conftest scope question still matter?",
+          "ts": "2025-12-29T15:40:45",
+          "threadParentTs": "2025-12-29T15:40:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Code-execution side is in decent shape, been going through the cookbook examlpes this morning to make sure they're all running cleanly ahead of the next release",
+          "ts": "2026-01-02T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Do the code-execution verifiers actualy run in CI?",
+          "ts": "2026-01-02T09:04:45"
+        },
+        {
+          "userId": "konrad",
+          "text": "Which cookbook examples are we targeting for the next release?",
+          "ts": "2026-01-02T09:45:20"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does code-execution feed into the fine-tuning handoff, or does that pipeline treat it separatley?",
+          "ts": "2026-01-02T10:59:12"
+        },
+        {
+          "userId": "emil",
+          "text": "Good questions, especially the CI one, I'd need to pull up the pipeline config to answer that properly. Will circle back this afternoon.",
+          "ts": "2026-01-02T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Code-execution is essentially the quality gate before curated data goes to fine-tuning",
+          "ts": "2026-01-02T13:07:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does that step belong inside the handoff pipeline, or is it assumed to have already run by the time we hand off?",
+          "ts": "2026-01-02T13:07:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "I pulled up the wiki for the 2026 fine-tuning handoff plan and nothing is there yet",
+          "ts": "2026-01-02T13:19:30"
+        },
+        {
+          "userId": "konrad",
+          "text": "Who's supposed to own that doc?",
+          "ts": "2026-01-02T13:19:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "Oh",
+          "ts": "2026-01-02T13:33:42"
+        },
+        {
+          "userId": "konrad",
+          "text": "actually - I think that doc is mine to write, I'm the one listed on it.",
+          "ts": "2026-01-02T13:33:54"
+        },
+        {
+          "userId": "konrad",
+          "text": "What does the cookbook side of the fine-tuning handoff plan actually need to cover?",
+          "ts": "2026-01-02T13:33:59"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, did you get a chance to look at that pipline config yet?",
+          "ts": "2026-01-02T14:36:51",
+          "replyCount": 2,
+          "replyLastTs": "2026-01-02T14:48:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Not yet. Honestly I'm not sure those verifiers are in CI at all, I'd expect to see them but I haven't confirmed it.",
+          "ts": "2026-01-02T14:48:30",
+          "threadParentTs": "2026-01-02T14:36:51"
+        },
+        {
+          "userId": "emil",
+          "text": "Are these verifiers wired to a specific test job, or just expected to run as part of the main suite?",
+          "ts": "2026-01-02T14:48:44",
+          "threadParentTs": "2026-01-02T14:36:51"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai, can you confirm how the code-execution verifiers are wired in CI?",
+          "ts": "2026-01-02T15:03:44"
+        },
+        {
+          "userId": "emil",
+          "text": "@Nikolai, if anything's missing or misconfigured on the CI side, flag it my way and I'll sort it.",
+          "ts": "2026-01-02T15:32:44"
+        },
+        {
+          "userId": "emil",
+          "text": "Actually, did Konrad's commits add them, or were they there before?",
+          "ts": "2026-01-02T15:33:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "I can dig into that - let me pull the commit log and check.",
+          "ts": "2026-01-02T15:33:43"
+        },
+        {
+          "userId": "konrad",
+          "text": "Going to start the fine-tuning handoff plan this weekend - the wiki page isn't there yet and that one's mine to write",
+          "ts": "2026-01-02T15:34:20"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is merging today",
+          "ts": "2026-01-02T16:12:20",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "693 is deferred to next week, still needs work on my end before it's ready",
+          "ts": "2026-01-02T16:12:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "Finetuning handoff doc is mine and I'll get to it this weekend",
+          "ts": "2026-01-02T16:25:25"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still waiting on the CI answer before I close out for the week",
+          "ts": "2026-01-02T16:25:37"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 690 is merged, 693 and the backlog carry to next week. CI coverage is still unconfirmed, that one's open going into the weekend.",
+          "ts": "2026-01-02T17:00:37",
+          "reactions": [
+            {
+              "emoji": "📋",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Is Nikolai still looking at that today, or is it genuinely carrying to next week?",
+          "ts": "2026-01-02T17:04:37"
+        },
+        {
+          "userId": "konrad",
+          "text": "CI open, handoff doc on for the weekend.",
+          "ts": "2026-01-02T17:04:58"
+        },
+        {
+          "userId": "emil",
+          "text": "CI carries to next week on my end too.",
+          "ts": "2026-01-02T17:30:58"
+        },
+        {
+          "userId": "konrad",
+          "text": "What's the target for the next release - do I have a date to plan the cookbook examples around?",
+          "ts": "2026-01-02T17:40:58"
+        },
+        {
+          "userId": "emil",
+          "text": "I don't have a release date locked yet, I'm around next week and can nail that down once 693 and the CI question are settled.",
+          "ts": "2026-01-02T18:00:58"
         }
       ],
       "projectSpec": {
@@ -35567,6 +36272,385 @@
           "userId": "konrad",
           "text": "Version tag reference going in this afternoon",
           "ts": "2025-07-10T13:19:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Tests are broken and I've tracked down what went wrong, PR 706 has the fix",
+          "ts": "2025-12-30T09:00:00",
+          "reactions": [
+            {
+              "emoji": "🔍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Need that merged before dormancy work can move foward",
+          "ts": "2025-12-30T09:00:05"
+        },
+        {
+          "userId": "konrad",
+          "text": "Managed to track down root cause of the test failures. Fix is in PR 706",
+          "ts": "2025-12-30T09:21:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Has anyone put together the \"Winding down to maintenance mode after v0.1.26\" doc?",
+          "ts": "2025-12-30T10:31:13"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nothing on the wiki yet",
+          "ts": "2025-12-30T10:31:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "Not entirely sure what dormancy means for finetuning specifically, are we supposed to freeze merges or just stop prioritizing new work?",
+          "ts": "2025-12-30T11:35:21"
+        },
+        {
+          "userId": "emil",
+          "text": "Got eyes on PR 706 now, @Konrad Feltrin, can you do a quick sync this afternoon if I have questions on the fix?",
+          "ts": "2025-12-30T12:14:21",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "What was actually failing in CI, was it the vllm path collision or the missing skip guards that triggered it?",
+          "ts": "2025-12-30T12:14:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Is PR 706 the only thing keeping CI red right now, or are there other failures in the suite?",
+          "ts": "2025-12-30T12:33:43"
+        },
+        {
+          "userId": "emil",
+          "text": "Did something land after v0.1.26 that broke the tests, or were these already flaky before the release?",
+          "ts": "2025-12-30T12:41:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Around this afternoon, @Emil",
+          "ts": "2025-12-30T13:09:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "Also, I looked for 'Winding down to maintenance mode after v0.1.26' write-up on the wiki and nothing is there yet. Not sure who owes that.",
+          "ts": "2025-12-30T13:09:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, are you mostly looking for context on what broke, or is there something in the fix that looks off to you?",
+          "ts": "2025-12-30T13:09:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "Is there anything else blocking the dormancy work beyond PR 706?",
+          "ts": "2025-12-30T13:26:39",
+          "replyCount": 1,
+          "replyLastTs": "2025-12-30T14:44:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, still expecting to get to PR 706 today?",
+          "ts": "2025-12-30T14:16:39"
+        },
+        {
+          "userId": "emil",
+          "text": "Tuesday afternoons always feel like the week forgot what it was doing.",
+          "ts": "2025-12-30T14:43:39",
+          "reactions": [
+            {
+              "emoji": "😅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "You mean beyond the test suite, or counting that?",
+          "ts": "2025-12-30T14:44:08",
+          "threadParentTs": "2025-12-30T13:26:39"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 706 is ready, that's the only blocker I'm aware of.",
+          "ts": "2025-12-30T15:17:08",
+          "replyCount": 1,
+          "replyLastTs": "2025-12-30T15:17:41"
+        },
+        {
+          "userId": "emil",
+          "text": "Got it.",
+          "ts": "2025-12-30T15:17:41",
+          "threadParentTs": "2025-12-30T15:17:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "Fix in PR 706 addresses root cause, suite should be clean once it's in",
+          "ts": "2025-12-30T15:28:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Still happy to walk through what broke if it helps with the review",
+          "ts": "2025-12-30T15:28:46"
+        },
+        {
+          "userId": "emil",
+          "text": "PR 706 needs one more set of eyes before I merge, touches test infra and is blocking dormancy work.",
+          "ts": "2025-12-30T16:06:46"
+        },
+        {
+          "userId": "emil",
+          "text": "@Konrad, how are you holding up with the dormancy wind-down?",
+          "ts": "2025-12-30T16:07:02"
+        },
+        {
+          "userId": "konrad",
+          "text": "Managing fine. Wind-down is paused until the tests go green.",
+          "ts": "2025-12-30T16:47:02"
+        },
+        {
+          "userId": "emil",
+          "text": "I'll get PR 706 merged before I wrap up today.",
+          "ts": "2025-12-30T17:26:02",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "emil",
+          "text": "Came across this while reviewing the PR, pytest docs on importorskip are pretty clear on when it skips vs errors, useful if we add more optional-backend guards: https://docs.pytest.org/en/stable/reference/reference.html#pytest.importorskip",
+          "ts": "2025-12-30T17:26:47",
+          "replyCount": 1,
+          "replyLastTs": "2025-12-30T17:27:06",
+          "unfurl": {
+            "title": "docs.pytest.org",
+            "url": "https://docs.pytest.org/en/stable/reference/reference.html#pytest.importorskip"
+          }
+        },
+        {
+          "userId": "konrad",
+          "text": "Is this a suggested change to PR 706, or just future reference?",
+          "ts": "2025-12-30T17:27:06",
+          "threadParentTs": "2025-12-30T17:26:47"
+        },
+        {
+          "userId": "konrad",
+          "text": "README refresh is done, finetuning section and model support are both updated",
+          "ts": "2026-01-22T09:00:00",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "konrad",
+          "text": "Let me know if anything looks off before end of day",
+          "ts": "2026-01-22T09:00:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Dario where does examples-cookbooks stand?",
+          "ts": "2026-01-22T09:08:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Might be worth checking whether the examples in examples-cookbooks actually cover the code-execution paths that went into the README update, rather than just assuming they line up",
+          "ts": "2026-01-22T09:38:57",
+          "reactions": [
+            {
+              "emoji": "🤔",
+              "count": 1
+            }
+          ],
+          "replyCount": 1,
+          "replyLastTs": "2026-01-22T09:39:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "Which paths specifically are you thinking of?",
+          "ts": "2026-01-22T09:39:16",
+          "threadParentTs": "2026-01-22T09:38:57"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Mainly the sandboxed eval and subprocess execution paths in code-execution, I don't think either of those have examples in cookbooks yet",
+          "ts": "2026-01-22T10:20:16",
+          "replyCount": 1,
+          "replyLastTs": "2026-01-22T10:20:57"
+        },
+        {
+          "userId": "konrad",
+          "text": "Are those in the README now or just in the code?",
+          "ts": "2026-01-22T10:20:57",
+          "threadParentTs": "2026-01-22T10:20:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "Three commits in this morning, bulk of it in code-execution",
+          "ts": "2026-01-23T09:00:00"
+        },
+        {
+          "userId": "konrad",
+          "text": "PR 704 is now up in #code-review if anyone has bandwith to take a look",
+          "ts": "2026-01-23T09:00:12"
+        },
+        {
+          "userId": "nikolai",
+          "text": "@Konrad what's the scope of the code-execution changes in those three commits?",
+          "ts": "2026-01-23T09:12:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "One commit in code-execution, relatively minor, mainly updating model suport to include the 4.x and 3.7 identifiers",
+          "ts": "2026-01-23T09:25:12"
+        },
+        {
+          "userId": "konrad",
+          "text": "The heavier work was in the other two",
+          "ts": "2026-01-23T09:25:17"
+        },
+        {
+          "userId": "konrad",
+          "text": "Once PR 704 is through, I want to get ahead of some cleanup in finetuning that's starting to accumulte, nothing blocking but I'd rather not let it sit over the weekend.",
+          "ts": "2026-01-23T10:05:16",
+          "replyCount": 1,
+          "replyLastTs": "2026-01-23T10:46:27"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Gotcha",
+          "ts": "2026-01-23T10:15:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "that's reassuring on my end",
+          "ts": "2026-01-23T10:15:21"
+        },
+        {
+          "userId": "konrad",
+          "text": "Went looking for the 2026 plan doc, fine-tuning handoff and drive-by PR triage, and there's nothing on hte wiki yet",
+          "ts": "2026-01-23T10:45:56"
+        },
+        {
+          "userId": "konrad",
+          "text": "Does it live somewhere else or has it not been started?",
+          "ts": "2026-01-23T10:46:08"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Dunno that I'd start on cleanup before the plan doc exists, honestly",
+          "ts": "2026-01-23T10:46:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "That's the kind of thing that tends to drift without it",
+          "ts": "2026-01-23T10:46:27",
+          "threadParentTs": "2026-01-23T10:05:16"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Also not sure what \"cleanup\" covers here specifically, if it's anything that touches the structure of finetuning it probably should wait until the plan is written.",
+          "ts": "2026-01-23T10:46:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Right, that's fair, I'll hold off on the cleanup. You still planning to get through PR 704 this afternoon?",
+          "ts": "2026-01-23T10:57:41"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Yes, planning to get to it this afternoon. Can you add me as a reviewer on PR 704 so I can leave it formally?",
+          "ts": "2026-01-23T11:07:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "On it.",
+          "ts": "2026-01-23T11:23:41"
+        },
+        {
+          "userId": "konrad",
+          "text": "Nikolai is reviewing PR 704 this afternoon, and cleanup in finetuning is on hold until the plan doc is in palce",
+          "ts": "2026-01-23T11:24:14"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Still working through PR 653 this morning, will pivot to the PR 704 review after lunch.",
+          "ts": "2026-01-23T11:33:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "After lunch works, I just worry about PR 653 running long",
+          "ts": "2026-01-23T11:45:14"
+        },
+        {
+          "userId": "konrad",
+          "text": "If it does, PR 704 might end up sitting over the weekend",
+          "ts": "2026-01-23T11:45:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "PR 653 isn't that deep at this point, I don't think it's going to eat the afternoon.",
+          "ts": "2026-01-23T12:26:19"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Do you want me to flip the order and do PR 704 first, just in case?",
+          "ts": "2026-01-23T12:26:28"
+        },
+        {
+          "userId": "nikolai",
+          "text": "Actually, answering my own question - I'll just start with PR 704, makes more sense given the timing",
+          "ts": "2026-01-23T12:51:00",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "userId": "nikolai",
+          "text": "What do the other two commits touch, the ones outside code-execution?",
+          "ts": "2026-01-23T12:51:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "The other two are both in finetuning, that's where the main mdoel support changes are",
+          "ts": "2026-01-23T13:01:08"
+        },
+        {
+          "userId": "konrad",
+          "text": "The code-execution commit was the smaller piece",
+          "ts": "2026-01-23T13:01:16"
+        },
+        {
+          "userId": "konrad",
+          "text": "- *PR 704*: up for review, Nikolai is on it this afternoon\n- *Finetuning cleanup*: holding off until the plan doc is writen\n- *Plan doc*: not on the wiki yet, still needs to be created",
+          "ts": "2026-01-23T13:01:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Emil, the 2026 plan doc for the fine-tuning handoff hasn't been started yet, and cleanup in finetuning is on hold until it is. Wanted to make sure you're in the loop",
+          "ts": "2026-01-23T13:37:40"
+        },
+        {
+          "userId": "konrad",
+          "text": "@Nikolai any early feedback from the PR 704 review?",
+          "ts": "2026-01-23T14:48:40"
         }
       ],
       "projectSpec": {
