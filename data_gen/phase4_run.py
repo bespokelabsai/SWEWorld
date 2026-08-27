@@ -1411,6 +1411,13 @@ def _stores(world, out: Path, clock: wa.Clock) -> list:
         wa.Mail(out, clock, domain=domain,
                 addresses={p: f"{p}@{domain}" for p in world.people}),
         wa.Forge(out, clock, items=world.forge),
+        # The source tree, so a persona quoting code can look at it first. Only
+        # when the checkout is actually there: `curator/` is gitignored, and a
+        # fresh clone should still be able to run phase 4 — without a repo the
+        # app simply is not offered, rather than every tool call erroring.
+        *([wa.Repo(out, clock, repo=rl.DEFAULT_REPO,
+                   git=rl.Git(rl.DEFAULT_REPO))]
+          if (rl.DEFAULT_REPO / ".git").exists() else []),
     ]
 
 

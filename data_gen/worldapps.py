@@ -696,6 +696,25 @@ class Forge(Store):
     def tool_names(self) -> list[str]:
         return ["find_issue", "read_issue"]
 
+    def visible(self) -> dict:
+        """The issues and pull requests that exist TODAY.
+
+        Neither tool used to consult the clock, so every item was readable on
+        every day: 731 of them are dated and they run to 2026-08-07, which meant
+        somebody simulating November 2024 could open a dependency bump from
+        twenty-one months in their own future and quote it back. A forge with no
+        sense of time is a worse lie than no forge at all.
+        """
+        today = self.clock.iso()[:10]
+        out = {}
+        for number, item in self.items.items():
+            made = item.get("created")
+            if isinstance(made, (int, float)):
+                made = dt.datetime.utcfromtimestamp(made).date().isoformat()
+            if not made or str(made)[:10] <= today:
+                out[number] = item
+        return out
+
     def mcp_server(self, uid: str, clock):
         @tool("find_issue", "Search issues and pull requests by words in the "
                             "title.", {"words": str})
@@ -703,7 +722,7 @@ class Forge(Store):
             want = {w for w in slug(args.get("words") or "").split("-") if len(w) > 3}
             if not want:
                 return ok("Say a word or two from the title.")
-            hits = [i for i in self.items.values()
+            hits = [i for i in self.visible().values()
                     if want & set(slug(i.get("title") or "").split("-"))]
             if not hits:
                 return ok("Nothing matches.")
@@ -713,7 +732,7 @@ class Forge(Store):
         @tool("read_issue", "Read one issue or pull request by number.",
               {"number": int})
         async def read_issue(args):
-            item = self.items.get(int(args.get("number") or 0))
+            item = self.visible().get(int(args.get("number") or 0))
             if item is None:
                 return ok("No such issue or pull request.")
             self._touch(uid, "read_issue", f"#{item['number']}", self.clock.iso())
@@ -722,6 +741,141 @@ class Forge(Store):
 
         return create_sdk_mcp_server(name=self.app, version="1.0.0",
                                      tools=[find_issue, read_issue])
+
+
+# =============================================================================
+# Repository
+# =============================================================================
+class Repo(Store):
+    """The curator repository, as it stood on the day being simulated.
+
+    Before this existed the only thing a persona could learn about the code was
+    an issue TITLE and the first 2500 characters of its body — `Forge` reads the
+    issue record, never the tree. So every snippet in the corpus was the model's
+    idea of what curator looks like, and a reviewer quoting `cache_stats()` had
+    no way to know whether that function was real, or real yet.
+
+    Everything here is bounded by the clock. A file added in July does not exist
+    in March, a directory listing shows what was there that day, and `git log`
+    stops at midnight. A world where somebody quotes code that will not be
+    written for three months is worse than one where nobody quotes code at all:
+    the first is wrong in a way a reader cannot detect.
+    """
+
+    app = "repo"
+    summary = "the curator source tree, read-only, as of today."
+    # Enough to answer a question, short enough that a chat message quoting it
+    # stays a chat message.
+    MAX_LINES = 160
+
+    def __init__(self, root: Path, clock: Clock, *, repo: Path, git=None):
+        super().__init__(root, clock)
+        self.git = git
+        self.repo = Path(repo)
+        self._rev: dict[str, str | None] = {}      # date -> commit
+        self._read: dict[tuple, str | None] = {}   # (rev, path) -> content
+
+    def tool_names(self) -> list[str]:
+        return ["list_repo", "read_repo", "search_repo", "recent_commits"]
+
+    # -- the operations -----------------------------------------------------
+    def rev(self) -> str | None:
+        """The commit this world is standing on today."""
+        day = self.clock.iso()[:10]
+        if day not in self._rev:
+            self._rev[day] = self.git.rev_at(day) if self.git else None
+        return self._rev[day]
+
+    def read(self, path: str) -> str | None:
+        rev = self.rev()
+        if not rev:
+            return None
+        key = (rev, path)
+        if key not in self._read:
+            self._read[key] = self.git.file_at(rev, path)
+        return self._read[key]
+
+    def mcp_server(self, uid: str, clock):
+        def as_of() -> str:
+            return self.clock.iso()[:10]
+
+        @tool("read_repo",
+              "Read a file from the curator repository as it is TODAY. Use this "
+              "before quoting or describing code — the tree changes, and what "
+              "you remember may not be what is there yet.",
+              {"path": str})
+        async def read_repo(args):
+            path = (args.get("path") or "").strip().lstrip("/")
+            if not path:
+                return ok("Give a path, e.g. src/bespokelabs/curator/llm/llm.py")
+            body = self.read(path)
+            if body is None:
+                return ok(f"There is no {path} in the repository as of "
+                          f"{as_of()}. It may not exist yet, or the path may be "
+                          "wrong — try list_repo on the directory above it.")
+            self._touch(uid, "read_repo", path, self.clock.iso())
+            lines = body.splitlines()
+            head = "\n".join(lines[:self.MAX_LINES])
+            more = ("" if len(lines) <= self.MAX_LINES else
+                    f"\n\n... {len(lines) - self.MAX_LINES} more line(s); "
+                    "read a narrower path if you need them.")
+            return ok(f"{path} as of {as_of()} ({len(lines)} lines):\n\n"
+                      f"{head}{more}")
+
+        @tool("list_repo",
+              "List what is in a directory of the curator repository today.",
+              {"path": str})
+        async def list_repo(args):
+            path = (args.get("path") or "").strip().strip("/")
+            rev = self.rev()
+            if not rev:
+                return ok("The repository has nothing this old.")
+            names = self.git.tree_at(rev, path)
+            if not names:
+                return ok(f"Nothing at {path or '/'} as of {as_of()}.")
+            self._touch(uid, "list_repo", path or "/", self.clock.iso())
+            return ok(f"{path or '/'} as of {as_of()}:\n" +
+                      "\n".join(f"  {n}" for n in names[:80]))
+
+        @tool("search_repo",
+              "Find which files mention a word or symbol, as of today.",
+              {"words": str})
+        async def search_repo(args):
+            want = (args.get("words") or "").strip()
+            rev = self.rev()
+            if not want or not rev:
+                return ok("Say what to look for.")
+            hits = self.git.lines("grep", "-l", "-I", "--fixed-strings",
+                                  want, rev) if self.git else []
+            hits = [h.split(":", 1)[-1] for h in hits][:25]
+            self._touch(uid, "search_repo", want, self.clock.iso())
+            if not hits:
+                return ok(f"Nothing mentions {want!r} as of {as_of()}.")
+            return ok(f"{want!r} appears in, as of {as_of()}:\n" +
+                      "\n".join(f"  {h}" for h in hits))
+
+        @tool("recent_commits",
+              "What changed in the repository lately, up to today.",
+              {"path": str})
+        async def recent_commits(args):
+            path = (args.get("path") or "").strip().lstrip("/")
+            rev = self.rev()
+            if not rev:
+                return ok("The repository has nothing this old.")
+            args_ = ["log", "-12", "--date=short",
+                     "--pretty=%h %ad %an: %s", rev]
+            if path:
+                args_ += ["--", path]
+            out = self.git.lines(*args_) if self.git else []
+            self._touch(uid, "recent_commits", path or "/", self.clock.iso())
+            if not out:
+                return ok(f"No commits touching {path or 'the repository'} "
+                          f"by {as_of()}.")
+            return ok(f"Up to {as_of()}:\n" + "\n".join(f"  {l}" for l in out))
+
+        return create_sdk_mcp_server(
+            name=self.app, version="1.0.0",
+            tools=[read_repo, list_repo, search_repo, recent_commits])
 
 
 async def _maybe_await(value):

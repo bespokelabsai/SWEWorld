@@ -109,6 +109,46 @@ class Git:
     def is_shallow(self) -> bool:
         return self.run("rev-parse", "--is-shallow-repository").strip() == "true"
 
+    def rev_at(self, when: str, branch: str = "") -> str | None:
+        """The last commit on or before `when` (a YYYY-MM-DD date).
+
+        Two things git will get wrong if you let it. A bare date means midnight,
+        which excludes everything committed during the day you asked about, so
+        the bound is the END of that day. And a bound with no timezone is read
+        in the machine's local time, which makes the answer depend on where the
+        laptop is: a commit at 19:00 -0700 belongs to the next UTC day, and
+        without `+0000` it appeared or vanished depending on the reader's TZ.
+
+        The corpus stamps everything in UTC, so the day boundary is UTC too.
+
+        Returns None when the repository has nothing that old — a date before
+        the first commit is a real answer, not an error.
+        """
+        rev = self.run("rev-list", "-1", f"--before={when} 23:59:59 +0000",
+                       branch or "HEAD", check=False).strip()
+        return rev or None
+
+    def tree_at(self, rev: str, path: str = "") -> list[str]:
+        """Paths under `path` at a revision, one level deep.
+
+        Directories come back with a trailing slash, the way a person reading a
+        listing expects to be able to tell them apart.
+        """
+        spec = f"{rev}:{path}" if path else rev
+        out = []
+        for line in self.lines("ls-tree", "--name-only", "-z", spec):
+            for name in line.split("\0"):
+                if name:
+                    out.append(name)
+        if not out:                      # -z on some versions returns one blob
+            out = [n for n in self.run("ls-tree", "--name-only", spec,
+                                       check=False).splitlines() if n]
+        kinds = self.run("ls-tree", spec, check=False)
+        dirs = {ln.split("\t", 1)[1] for ln in kinds.splitlines()
+                if "\t" in ln and " tree " in ln}
+        return sorted((f"{n}/" if n in dirs or f"{path}/{n}".strip("/") in dirs
+                       else n) for n in out)
+
     def file_at(self, rev: str, path: str) -> str | None:
         """File content at a revision, or None if it does not exist there."""
         proc = subprocess.run(
