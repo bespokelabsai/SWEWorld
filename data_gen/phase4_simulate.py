@@ -996,6 +996,10 @@ def main(argv: list[str] | None = None) -> int:
                              "proof against what the personas ACTUALLY said in "
                              "the run named by --run, falling back to the "
                              "planned clue text for days not yet simulated")
+    parser.add_argument("--no-repo-tool", action="store_true",
+                        help="do not offer the repository tools. For measuring "
+                             "what they cost: the same days with and without, "
+                             "everything else equal")
     parser.add_argument("--allow-unconsumed", default="",
                         help="comma-separated artifact kinds the plan declares "
                              "that this run should skip on purpose, e.g. "

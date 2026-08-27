@@ -24,6 +24,7 @@ to reword straight into giving the requirement away.
 from __future__ import annotations
 
 import asyncio
+import collections
 import datetime as dt
 import json
 import re
@@ -1195,7 +1196,7 @@ async def _run(world, days, built, people, root: Path, out: Path, args) -> int:
 
     bu.reset_cost_ledger()
     clock = wa.Clock()
-    stores = _stores(world, out, clock)
+    stores = _stores(world, out, clock, args)
     tools = G.attach_tools(stores, clock)
 
     # ONE prepared cast for the whole run: every day is the same people, and a
@@ -1397,7 +1398,7 @@ def _landing_extra(channel: dict) -> int:
                for item in (ctx.get("agenda") or []) if item.get("must_raise"))
 
 
-def _stores(world, out: Path, clock: wa.Clock) -> list:
+def _stores(world, out: Path, clock: wa.Clock, args=None) -> list:
     collections = {}
     for doc in world.artifacts["docs"]:
         collections.setdefault(doc.get("collection") or "engineering", "")
@@ -1417,7 +1418,8 @@ def _stores(world, out: Path, clock: wa.Clock) -> list:
         # app simply is not offered, rather than every tool call erroring.
         *([wa.Repo(out, clock, repo=rl.DEFAULT_REPO,
                    git=rl.Git(rl.DEFAULT_REPO))]
-          if (rl.DEFAULT_REPO / ".git").exists() else []),
+          if (rl.DEFAULT_REPO / ".git").exists()
+          and not getattr(args, "no_repo_tool", False) else []),
     ]
 
 
@@ -2033,6 +2035,20 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args,
         if isinstance(store, wa.Wiki):
             shelves = store.manifest().count("- dir:")
             rl.ok(f"{store.docs / 'collections.yaml'} — {shelves} collection(s)")
+
+    # -- who opened what ----------------------------------------------------
+    # Every store already records its reads through `Store._touch`, and nothing
+    # ever wrote them down: `activity()` returned a list that died with the
+    # process. So "did anyone look at the repository before quoting code" — the
+    # question the repo tools exist to make answerable — could not be answered
+    # after a run, only guessed at from whether the output happened to be right.
+    seen = [{**row, "app": store.app}
+            for store in stores for row in store.activity()]
+    rl.write_json(out / "activity.json", seen)
+    if seen:
+        kinds = collections.Counter(r.get("name") for r in seen)
+        rl.ok(f"{out / 'activity.json'} — {len(seen)} tool read(s): " +
+              ", ".join(f"{k} x{v}" for k, v in kinds.most_common(5)))
 
     # -- did the planned artifacts get made? --------------------------------
     art_rows = art_rows if rewrite else _carry(

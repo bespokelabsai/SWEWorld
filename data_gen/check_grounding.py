@@ -267,7 +267,10 @@ def looked(activity: list[dict]) -> dict[tuple, list[str]]:
     """(date, who) -> the repo paths they opened that day."""
     out: dict[tuple, list[str]] = defaultdict(list)
     for row in activity:
-        if row.get("app") != "repo" and row.get("name") not in (
+        # `Store._touch` names the field `tool`, not `name`. Reading the wrong
+        # key made every lookup miss, so "did they look" answered no for
+        # everybody — including a run where somebody plainly had.
+        if row.get("app") != "repo" and row.get("tool") not in (
                 "read_repo", "list_repo", "search_repo", "recent_commits"):
             continue
         day = str(row.get("ts") or "")[:10]
@@ -276,7 +279,38 @@ def looked(activity: list[dict]) -> dict[tuple, list[str]]:
     return out
 
 
-def check(run: Path, git: rl.Git, limit: int = 0) -> dict:
+def planted_names(build: Path) -> set[str]:
+    """Identifiers the plant deliberately requires.
+
+    A hidden requirement names the API the task is asking somebody to BUILD —
+    `cache_stats()` appears nowhere in 1,734 commits because writing it is the
+    task. Counting those as invented would score the corpus down for doing
+    exactly what it was designed to do, so they are reported apart from real
+    inventions rather than mixed in with them.
+    """
+    clues = build / "clues.json"
+    if not clues.exists():
+        return set()
+    out: set[str] = set()
+
+    def walk(node):
+        if isinstance(node, dict):
+            for v in node.get("verbatim") or []:
+                token = str(v).strip("`").strip()
+                out.add(token)
+                out.add(token.split("(")[0].split("=")[0].split(".")[-1])
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    walk(json.loads(clues.read_text()))
+    return {o for o in out if o}
+
+
+def check(run: Path, git: rl.Git, limit: int = 0,
+          planted: set[str] | None = None) -> dict:
     doc = json.loads((run / "transcript.json").read_text())
     tree = Tree(git)
     seen = looked(json.loads((run / "activity.json").read_text())
@@ -301,14 +335,18 @@ def check(run: Path, git: rl.Git, limit: int = 0) -> dict:
                 claimed_paths |= {m.group(1) for m in FILENAME.finditer(span)}
             if not claimed_names and not claimed_paths:
                 continue
-            bad_names = sorted(n for n in claimed_names
-                               if not tree.has_name(date, n))
+            planted = planted or set()
+            missing = [n for n in claimed_names if not tree.has_name(date, n)]
+            by_design = sorted(n for n in missing
+                               if n in planted or n.split(".")[-1] in planted)
+            bad_names = sorted(n for n in missing if n not in by_design)
             bad_paths = sorted(p for p in claimed_paths
                                if not tree.has_path(date, p))
             totals["messages"] += 1
             totals["names"] += len(claimed_names)
             totals["paths"] += len(claimed_paths)
             totals["bad_names"] += len(bad_names)
+            totals["by_design"] += len(by_design)
             totals["bad_paths"] += len(bad_paths)
             opened = seen.get((date, who), [])
             if opened:
@@ -320,6 +358,7 @@ def check(run: Path, git: rl.Git, limit: int = 0) -> dict:
                 "text": text[:400],
                 "names": sorted(claimed_names), "paths": sorted(claimed_paths),
                 "ungrounded_names": bad_names, "ungrounded_paths": bad_paths,
+                "by_design": by_design,
                 "looked_first": bool(opened), "opened": opened[:6],
                 "grounded": not bad_names and not bad_paths,
             })
@@ -342,7 +381,10 @@ def report(result: dict, run: Path) -> str:
               f"({100 * t.get('looked', 0) // n}%)",
               f"- {t.get('bad_names', 0)} of {t.get('names', 0)} symbol(s) and "
               f"{t.get('bad_paths', 0)} of {t.get('paths', 0)} path(s) do not "
-              "resolve", ""]
+              "resolve",
+              f"- {t.get('by_design', 0)} further symbol(s) are absent BY "
+              "DESIGN — the plant names them because building them is the "
+              "task", ""]
     worst = Counter()
     for row in result["rows"]:
         for name in row["ungrounded_names"]:
@@ -387,7 +429,8 @@ def main(argv=None) -> int:
         rl.fail(f"{args.repo} is not a git repository — grounding needs the "
                 "real tree to compare against")
 
-    result = check(run, rl.Git(args.repo), args.limit)
+    result = check(run, rl.Git(args.repo), args.limit,
+                   planted_names(rl.DEFAULT_BUILD_DIR))
     (run / "grounding.json").write_text(
         json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
     (run / "grounding.md").write_text(report(result, run), encoding="utf-8")

@@ -786,6 +786,34 @@ class Repo(Store):
             self._rev[day] = self.git.rev_at(day) if self.git else None
         return self._rev[day]
 
+    def nearest(self, path: str) -> str:
+        """What DOES exist near a path that does not.
+
+        nikolai asked `recent_commits` for `src/curator/bulk_llm_inference`,
+        got a bare "no commits touching that", and gave up — the real root is
+        `src/bespokelabs/curator`. A tool that answers a wrong guess with only
+        a negative teaches the caller nothing and they stop asking. So a miss
+        walks up to the closest directory that does exist and shows what is in
+        it, which is the one piece of information that turns a wrong guess into
+        a right one.
+        """
+        rev = self.rev()
+        if not rev or not self.git:
+            return ""
+        parts = [p for p in path.strip("/").split("/") if p]
+        while parts:
+            parts.pop()
+            here = "/".join(parts)
+            try:
+                names = self.git.tree_at(rev, here)
+            except SystemExit:
+                names = []
+            if names:
+                return (f"{here or '/'} does contain: "
+                        + ", ".join(names[:15])
+                        + ("" if len(names) <= 15 else ", ..."))
+        return ""
+
     def read(self, path: str) -> str | None:
         rev = self.rev()
         if not rev:
@@ -799,6 +827,21 @@ class Repo(Store):
         def as_of() -> str:
             return self.clock.iso()[:10]
 
+        def safely(what, fallback):
+            """Run a git query; a failure is an answer, not the end of the run.
+
+            These are reads against a repository, driven by whatever a persona
+            types. `git grep` alone exits non-zero for "no matches", and one
+            unmatched search used to abort a whole simulation through
+            `Git.run`'s check=True and `rl.fail`.
+            """
+            try:
+                return what()
+            except SystemExit:
+                return fallback
+            except Exception as exc:                      # noqa: BLE001
+                return f"{fallback} ({type(exc).__name__})"
+
         @tool("read_repo",
               "Read a file from the curator repository as it is TODAY. Use this "
               "before quoting or describing code — the tree changes, and what "
@@ -808,11 +851,13 @@ class Repo(Store):
             path = (args.get("path") or "").strip().lstrip("/")
             if not path:
                 return ok("Give a path, e.g. src/bespokelabs/curator/llm/llm.py")
-            body = self.read(path)
+            body = safely(lambda: self.read(path), None)
             if body is None:
+                hint = self.nearest(path)
                 return ok(f"There is no {path} in the repository as of "
-                          f"{as_of()}. It may not exist yet, or the path may be "
-                          "wrong — try list_repo on the directory above it.")
+                          f"{as_of()}. It may not exist yet, or the path may "
+                          "be wrong."
+                          + (f" {hint}" if hint else ""))
             self._touch(uid, "read_repo", path, self.clock.iso())
             lines = body.splitlines()
             head = "\n".join(lines[:self.MAX_LINES])
@@ -830,9 +875,11 @@ class Repo(Store):
             rev = self.rev()
             if not rev:
                 return ok("The repository has nothing this old.")
-            names = self.git.tree_at(rev, path)
+            names = safely(lambda: self.git.tree_at(rev, path), []) or []
             if not names:
-                return ok(f"Nothing at {path or '/'} as of {as_of()}.")
+                hint = self.nearest(path)
+                return ok(f"Nothing at {path or '/'} as of {as_of()}."
+                          + (f" {hint}" if hint else ""))
             self._touch(uid, "list_repo", path or "/", self.clock.iso())
             return ok(f"{path or '/'} as of {as_of()}:\n" +
                       "\n".join(f"  {n}" for n in names[:80]))
@@ -845,12 +892,19 @@ class Repo(Store):
             rev = self.rev()
             if not want or not rev:
                 return ok("Say what to look for.")
-            hits = self.git.lines("grep", "-l", "-I", "--fixed-strings",
-                                  want, rev) if self.git else []
+            # check=False, and it matters: `git grep` exits 1 when nothing
+            # matches, `Git.run` treats a non-zero exit as fatal, and rl.fail
+            # exits the process. A persona searching for a word that is not in
+            # the tree killed the entire run.
+            out = self.git.run("grep", "-l", "-I", "--fixed-strings",
+                               want, rev, check=False) if self.git else ""
+            hits = [ln for ln in out.splitlines() if ln]
             hits = [h.split(":", 1)[-1] for h in hits][:25]
             self._touch(uid, "search_repo", want, self.clock.iso())
             if not hits:
-                return ok(f"Nothing mentions {want!r} as of {as_of()}.")
+                return ok(f"Nothing mentions {want!r} as of {as_of()}. "
+                          "Try a shorter or differently-spelled term, or "
+                          "list_repo to see the layout.")
             return ok(f"{want!r} appears in, as of {as_of()}:\n" +
                       "\n".join(f"  {h}" for h in hits))
 
@@ -866,11 +920,14 @@ class Repo(Store):
                      "--pretty=%h %ad %an: %s", rev]
             if path:
                 args_ += ["--", path]
-            out = self.git.lines(*args_) if self.git else []
+            out = (safely(lambda: self.git.lines(*args_), []) or []
+                   if self.git else [])
             self._touch(uid, "recent_commits", path or "/", self.clock.iso())
             if not out:
+                hint = self.nearest(path) if path else ""
                 return ok(f"No commits touching {path or 'the repository'} "
-                          f"by {as_of()}.")
+                          f"by {as_of()}."
+                          + (f" {hint}" if hint else ""))
             return ok(f"Up to {as_of()}:\n" + "\n".join(f"  {l}" for l in out))
 
         return create_sdk_mcp_server(
