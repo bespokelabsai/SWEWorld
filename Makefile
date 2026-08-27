@@ -32,6 +32,14 @@ BOOKSTACK_PORT ?= 7090
 ROUNDCUBE_PORT ?= 7080
 PASS_PORT      ?= 7250
 
+# Which image `run` and `shell` boot. Defaults to the newest bake, because the
+# empty base is the single most confusing thing to land in by accident — you
+# open BookStack, find nothing, and conclude the corpus failed to generate.
+# Falls back to :dev so a fresh clone with no bake still works, and any tag can
+# be named directly: `make run RUN_IMAGE=sweworld:0.2.0`.
+RUN_IMAGE ?= $(shell docker image inspect $(IMAGE):latest >/dev/null 2>&1 \
+                     && echo $(IMAGE):latest || echo $(IMAGE):dev)
+
 # Bake boots the base image, populates it, then commits the result.
 RELEASE_SOURCE    ?= $(IMAGE):dev
 RELEASE_CONTAINER ?= sweworld-bake
@@ -67,7 +75,7 @@ run: ## Boot the world and publish every service so you can browse it
 	  -p $(GITEA_PORT):3300 -p $(MM_PORT):8065 \
 	  -p $(BOOKSTACK_PORT):7090 -p $(ROUNDCUBE_PORT):7080 -p $(PASS_PORT):7250 \
 	  -p 2525:25 -p 1143:143 -p 1587:587 \
-	  $(IMAGE):dev
+	  $(RUN_IMAGE)
 	@echo ">> waiting for the world to come up..."
 	@docker exec $(CONTAINER) wait-for-service --all
 	@echo
@@ -111,6 +119,11 @@ bake-image: ## Boot base, ingest data/, gate on verify, commit $(IMAGE):TAG
 	@echo ">> [bake] ingesting data/ into the world..."
 	docker cp data $(RELEASE_CONTAINER):/opt/world-state/data
 	docker cp scripts $(RELEASE_CONTAINER):/opt/world-state/scripts
+	# The gate too, from the working tree. It is baked into $(IMAGE):dev at
+	# build time, so without this a change to the acceptance checks needs a
+	# full image rebuild before it can ever gate anything.
+	docker cp world/bin/world-verify $(RELEASE_CONTAINER):/usr/local/bin/world-verify
+	docker exec $(RELEASE_CONTAINER) chmod 0755 /usr/local/bin/world-verify
 	docker exec $(RELEASE_CONTAINER) bash -c 'cd /opt/world-state && \
 	  python3 scripts/ingest_history.py --data-dir data && \
 	  python3 scripts/ingest_forge.py   --data-dir data && \
@@ -124,8 +137,11 @@ bake-image: ## Boot base, ingest data/, gate on verify, commit $(IMAGE):TAG
 	@echo ">> [bake] gate PASSED -> stopping services and committing $(IMAGE):$(TAG)"
 	docker exec $(RELEASE_CONTAINER) bash -c 'supervisorctl -c /etc/supervisor/supervisord.conf stop all || true'
 	docker commit $(RELEASE_CONTAINER) $(IMAGE):$(TAG)
+	# `latest` moves to the newest bake so `make run` picks the corpus up
+	# without anybody remembering a tag; $(TAG) stays immutable to roll back to.
+	docker tag $(IMAGE):$(TAG) $(IMAGE):latest
 	-docker rm -f $(RELEASE_CONTAINER)
-	@echo ">> [bake] committed $(IMAGE):$(TAG) — not published."
+	@echo ">> [bake] committed $(IMAGE):$(TAG) and moved $(IMAGE):latest — not published."
 
 push-image: ## Tag $(IMAGE):TAG into $(REGISTRY) and push (deliberate, manual)
 	@test -n "$(TAG)"      || { echo "!! push-image: TAG is required"; exit 1; }

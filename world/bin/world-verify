@@ -144,6 +144,62 @@ else
   bad "curator repo missing from Gitea"
 fi
 
+head_ "The corpus"
+# Everything above this line passes on an EMPTY world. Services answer, the
+# vhosts route, the admin can log in, the privilege model holds — and BookStack
+# has no pages, Mattermost no messages, the mailboxes nothing. That is exactly
+# the world `make run` gives you, by design, and for a long time it was also a
+# world `make bake-image` would happily commit and publish.
+#
+# So these are the checks that make a baked image mean something. Thresholds
+# sit well under the real numbers on purpose: the question is "did the corpus
+# get in", not "is it byte-identical to the one I generated".
+#
+# Each query is the one the service itself uses, not the one that looks right:
+# BookStack keeps books and pages in ONE `entities` table discriminated by
+# `type`, maddy keeps mail in an SQLite store and not in maildirs, and there is
+# no `sudo` in this image — postgres is reached the way 10-datastores.sh does.
+#
+# Set WORLD_EXPECT_CORPUS=0 to bake a deliberately empty, services-only image.
+if [ "${WORLD_EXPECT_CORPUS:-1}" = "0" ]; then
+  note "WORLD_EXPECT_CORPUS=0 — not checking for corpus content"
+else
+  MARIA="mariadb --socket=/run/mysqld/mysqld.sock -N -B -s -D bookstack"
+  PAGES="$($MARIA -e "SELECT COUNT(*) FROM entities WHERE type='page' AND deleted_at IS NULL;" 2>/dev/null)"
+  BOOKS="$($MARIA -e "SELECT COUNT(*) FROM entities WHERE type='book' AND deleted_at IS NULL;" 2>/dev/null)"
+  if [ "${PAGES:-0}" -ge "${CORPUS_MIN_PAGES:-100}" ] \
+     && [ "${BOOKS:-0}" -ge "${CORPUS_MIN_BOOKS:-5}" ]; then
+    ok "wiki has $PAGES page(s) across $BOOKS book(s)"
+  else
+    bad "wiki has ${PAGES:-0} page(s) in ${BOOKS:-0} book(s) — expected at least ${CORPUS_MIN_PAGES:-100} in ${CORPUS_MIN_BOOKS:-5}; did ingest_docs.py run?"
+  fi
+
+  # Posts, not channels: an empty world already HAS the channels, because the
+  # bootstrap creates them. Only the posts prove the chat corpus landed.
+  POSTS="$(su -s /bin/bash postgres -c \
+    "psql -h /tmp -tAq -d mattermost -c 'SELECT COUNT(*) FROM posts WHERE deleteat = 0;'" \
+    2>/dev/null | tr -d ' ')"
+  if [ "${POSTS:-0}" -ge "${CORPUS_MIN_POSTS:-9000}" ]; then
+    ok "chat has $POSTS message(s)"
+  else
+    bad "chat has ${POSTS:-0} message(s) — expected at least ${CORPUS_MIN_POSTS:-9000}; did ingest_chat.py run?"
+  fi
+
+  MAILS="$(sqlite3 /var/lib/world/maddy/imapsql.db 'SELECT COUNT(*) FROM msgs;' 2>/dev/null)"
+  if [ "${MAILS:-0}" -ge "${CORPUS_MIN_MAILS:-500}" ]; then
+    ok "mail store holds $MAILS message(s)"
+  else
+    bad "mail store holds ${MAILS:-0} message(s) — expected at least ${CORPUS_MIN_MAILS:-500}; did ingest_mail.py run?"
+  fi
+
+  ISSUES="$(sqlite3 /var/lib/world/gitea/gitea.db 'SELECT COUNT(*) FROM issue;' 2>/dev/null)"
+  if [ "${ISSUES:-0}" -ge "${CORPUS_MIN_ISSUES:-100}" ]; then
+    ok "forge has $ISSUES issue(s) and pull request(s)"
+  else
+    bad "forge has ${ISSUES:-0} issue(s)/PR(s) — expected at least ${CORPUS_MIN_ISSUES:-100}; did ingest_forge.py run?"
+  fi
+fi
+
 head_ "Privilege model"
 # The whole point: the agent cannot escalate, deploy, or inspect world state.
 su -s /bin/bash ubuntu -c 'sudo -n true' >/dev/null 2>&1 \

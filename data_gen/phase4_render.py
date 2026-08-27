@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import re
 import json
 import sys
 from collections import Counter
@@ -33,6 +34,65 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import repolib as rl  # noqa: E402
 
 UTC = dt.timezone.utc
+EMOJI_NAME_OK = re.compile(r"^[a-zA-Z0-9_+-]+$")
+
+
+# Mattermost stores a reaction as an `emoji_name`, matching
+# `^[a-zA-Z0-9_+-]+$` — never the glyph. The engine's personas react with the
+# character itself, and `ingest_chat.py` only rejects colons, so a glyph passes
+# every offline check and then fails the Mattermost IMPORT JOB, which is the
+# last and most expensive step of a bake.
+#
+# These twenty carry 1,286 of 1,353 reactions in the current corpus. The tail
+# is thirty-one glyphs used three times or fewer; an unmapped one is dropped
+# and counted rather than guessed at, because a wrong name fails the import
+# exactly as a glyph does.
+EMOJI_NAMES = {
+    "\U0001F44D": "thumbsup",          "\u2705": "white_check_mark",
+    "\U0001F389": "tada",              "\U0001F605": "sweat_smile",
+    "\U0001F4A1": "bulb",              "\U0001F680": "rocket",
+    "\U0001F4DD": "memo",              "\U0001F440": "eyes",
+    "\U0001F4CB": "clipboard",         "\U0001F604": "smile",
+    "\U0001F3AF": "dart",              "\U0001F50D": "mag",
+    "\U0001F914": "thinking_face",     "\U0001F62C": "grimacing",
+    "\U0001F44F": "clap",              "\U0001F4AA": "muscle",
+    "\U0001F64C": "raised_hands",      "\u26A0\uFE0F": "warning",
+    "\U0001F64F": "pray",              "\U0001F4AF": "100",
+    # cheap tail, all unambiguous
+    "\U0001F602": "joy",               "\U0001F41B": "bug",
+    "\U0001F4DA": "books",             "\U0001F44B": "wave",
+    "\U0001F6A8": "rotating_light",    "\U0001F527": "wrench",
+    "\u2615": "coffee",                "\U0001F91D": "handshake",
+    "\u2728": "sparkles",              "\U0001F44E": "thumbsdown",
+    "\U0001F525": "fire",              "\U0001F517": "link",
+    "\U0001F4CC": "pushpin",           "\u2699\uFE0F": "gear",
+    "\u26A1": "zap",                   "\u2764\uFE0F": "heart",
+    "\U0001F44C": "ok_hand",           "\U0001F4E2": "loudspeaker",
+    "\u2753": "question",              "\U0001F6A2": "ship",
+    "\U0001F514": "bell",              "\U0001F4AD": "thought_balloon",
+    "\u23F3": "hourglass_flowing_sand", "\u23F1\uFE0F": "stopwatch",
+    "\u2139\uFE0F": "information_source", "\U0001F198": "sos",
+    "\U0001F629": "weary",             "\U0001F624": "triumph",
+    "\u270B": "hand",                  "\u2713": "heavy_check_mark",
+    "\U0001F499": "blue_heart",
+}
+
+# Filled in by `render`, reported by its caller: a dropped reaction is a fact
+# about the corpus, not an implementation detail to swallow.
+DROPPED_EMOJI: "collections.Counter" = __import__("collections").Counter()
+
+
+def emoji_name(raw: str) -> str:
+    """A Mattermost emoji name, or "" if we have none for this glyph."""
+    got = (raw or "").strip().strip(":")
+    if not got:
+        return ""
+    if EMOJI_NAME_OK.match(got):
+        return got                      # already a name, e.g. "+1"
+    name = EMOJI_NAMES.get(got) or EMOJI_NAMES.get(got.rstrip("\uFE0F"))
+    if not name:
+        DROPPED_EMOJI[got] += 1
+    return name or ""
 
 
 def stamped(ts: str, where: str = "") -> str:
@@ -128,7 +188,7 @@ def render(workspace: dict, *, channels_wanted: set[str] | None = None) -> list[
                 taken: set[tuple[str, str]] = set()
                 got = []
                 for reaction in reactions:
-                    emoji = (reaction.get("emoji") or "").strip(":")
+                    emoji = emoji_name(reaction.get("emoji") or "")
                     if not emoji:
                         continue
                     for who in reactors(members, author, emoji,

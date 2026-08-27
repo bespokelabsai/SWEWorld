@@ -457,7 +457,7 @@ def _job_id(output: str) -> str | None:
     return match.group(1) if match else None
 
 
-def wait_for_job(job_id: str, timeout: int = 300, verbose: bool = False) -> str:
+def wait_for_job(job_id: str, timeout: int = 1800, verbose: bool = False) -> str:
     """Poll an import job until it leaves the pending/in_progress states."""
     deadline = time.time() + timeout
     last = ""
@@ -523,6 +523,11 @@ def verify_threads(world: wl.World, team: str, messages: list[dict],
 # =============================================================================
 def main(argv: list[str] | None = None) -> int:
     parser = wl.base_parser(__doc__)
+    parser.add_argument("--import-timeout", type=int, default=1800,
+                        help="seconds to wait for Mattermost's import job "
+                             "(default 1800). The old 300 was under the time "
+                             "a full corpus takes, and timing out aborts the "
+                             "bake while the job is still succeeding")
     parser.add_argument("--keep-archive", type=Path,
                         help="write the import archive here instead of a temp dir")
     parser.add_argument("--no-verify-threads", action="store_true",
@@ -579,7 +584,8 @@ def main(argv: list[str] | None = None) -> int:
     job_id = _job_id(output)
     if not job_id:
         raise RuntimeError(f"could not parse an import job id from: {output}")
-    status = wait_for_job(job_id, verbose=args.verbose)
+    status = wait_for_job(job_id, timeout=args.import_timeout,
+                          verbose=args.verbose)
     if status != "success":
         raise RuntimeError(
             f"import job {job_id} finished with status {status!r} — inspect with: "
