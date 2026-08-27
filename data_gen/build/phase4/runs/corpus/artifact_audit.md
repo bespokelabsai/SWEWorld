@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-158 of 159 obligations met.
+167 of 170 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -9,6 +9,8 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | date | who | action | artifact |
 |---|---|---|---|
 | 2025-02-17 | gideon | send | 0.1.19 is out |
+| 2025-03-04 | dario | comment | comment on Postmortem: kluster.ai DeepSeek Output-Token Default |
+| 2025-05-02 | emil | comment | comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface |
 
 ## Everything
 
@@ -90,15 +92,11 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-01-21 | dermot | send | 09:28 | v0.1.16 is out |
 | 2025-01-22 | nikolai | write | 09:14 | Weekly sync notes: week of Jan 20 — v0.1.16 shipped |
 | 2025-01-27 | konrad | send | 10:03 | Weekly update: week of Jan 20 — v0.1.16 shipped |
-| 2025-01-28 | dermot | write | 09:14 | Release notes: v0.1.17 |
-| 2025-01-28 | dermot | send | 09:35 | v0.1.17 is out |
 | 2025-01-29 | nikolai | write | 09:14 | Weekly sync notes: week of Jan 27 — v0.1.17 and v0.1.17.post1 shipped |
 | 2025-01-30 | dermot | write | 09:49 | Release notes: v0.1.17.post1 |
 | 2025-01-30 | dermot | send | 09:28 | v0.1.17.post1 hotfix is out |
 | 2025-01-30 | dermot | write | 09:14 | WS-028 design: Release Engineering, CI & Test Suite, round two |
 | 2025-01-31 | nikolai | write | 09:14 | Postmortem: v0.1.17.post1 hotfix |
-| 2025-02-03 | konrad | send | 09:07 | Weekly update: week of Jan 27 — v0.1.17 and v0.1.17.post1 shipped |
-| 2025-02-03 | dario | send | 09:21 | Handing off request-processing core and provider backends |
 | 2025-02-05 | emil | write | 09:14 | Weekly sync notes: week of Feb 3 — v0.1.18 and v0.1.18.post4 shipped |
 | 2025-02-06 | emil | write | 09:14 | Release notes: v0.1.18 |
 | 2025-02-06 | dario | send | 09:28 | v0.1.18 is out |
@@ -114,7 +112,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-02-17 | konrad | send | 10:03 | Weekly update: week of Feb 10 — pickler regression |
 | 2025-02-17 | gideon | send | NO | 0.1.19 is out |
 | 2025-02-19 | gideon | write | 09:14 | Weekly sync notes: week of Feb 17 — 0.1.19 shipped |
-| 2025-02-24 | emil | send | 09:14 | Weekly update: week of Feb 17 — 0.1.19 shipped |
 | 2025-02-26 | nikolai | write | 09:14 | Release notes: v0.1.19.post1 |
 | 2025-02-26 | nikolai | send | 09:49 | v0.1.19.post1 hotfix is out |
 | 2025-02-26 | gideon | write | 09:35 | Weekly sync notes: week of Feb 24 — v0.1.19.post1 and v0.1.20 shipped |
@@ -143,8 +140,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-03-31 | emil | write | 10:17 | v0.1.22 Release Notes |
 | 2025-03-31 | konrad | send | 09:14 | Weekly update: week of Mar 24 |
 | 2025-04-02 | emil | write | 09:28 | Weekly Notes — Week of Mar 31 |
-| 2025-04-07 | dermot | write | 10:24 | WS-055: Release Engineering, CI & Test Suite |
-| 2025-04-07 | konrad | send | 09:35 | Weekly update: week of Mar 31 |
 | 2025-04-09 | dermot | write | 09:14 | Weekly Notes — Week of Apr 7 |
 | 2025-04-11 | emil | write | 09:14 | v0.1.23 Release Notes |
 | 2025-04-11 | emil | send | 09:42 | v0.1.23 is out |
@@ -152,7 +147,6 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-04-11 | emil | send | 09:07 | v0.1.23.post1 is out |
 | 2025-04-14 | dermot | write | 09:14 | Postmortem: v0.1.23.post1 Hotfix |
 | 2025-04-14 | dermot | send | 09:56 | Weekly update: week of Apr 7 |
-| 2025-04-16 | gideon | write | 09:14 | Weekly Notes — Week of Apr 14 |
 | 2025-04-21 | emil | send | 09:07 | Weekly update: week of Apr 14 |
 | 2025-04-23 | gideon | write | 09:14 | Weekly Notes — Week of Apr 21 |
 | 2025-04-28 | emil | send | 09:07 | Weekly update: week of Apr 21 |
@@ -173,3 +167,22 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-06-16 | nikolai | send | 09:07 | Week of Jun 9 recap: bulk inference fix |
 | 2025-06-18 | nikolai | write | 09:14 | Weekly sync notes: week of Jun 16 |
 | 2025-06-25 | emil | write | 09:28 | Weekly sync notes: week of Jun 23 (batch mode) |
+| 2025-01-28 | dermot | write | 09:14 | Release notes: v0.1.17 |
+| 2025-01-28 | dermot | send | 09:28 | v0.1.17 is out |
+| 2025-01-28 | dario | write | 09:56 | Prompt-level response cache keying |
+| 2025-01-28 | dario | send | 10:10 | Re: Prompt-level response cache keying |
+| 2025-02-03 | konrad | send | 09:07 | Weekly update: week of Jan 27 — v0.1.17 and v0.1.17.post1 shipped |
+| 2025-02-03 | dario | send | 09:21 | Handing off request-processing core and provider backends |
+| 2025-02-04 | emil | comment | 09:35 | comment on Handover doc: Request-processing core and provider backends, dario to emil |
+| 2025-02-24 | emil | send | 09:07 | Weekly update: week of Feb 17 — 0.1.19 shipped |
+| 2025-02-24 | dario | write | 09:28 | Structured output schema validation before dispatch |
+| 2025-02-24 | dario | send | 09:42 | Re: Structured output schema validation before dispatch |
+| 2025-03-04 | dario | comment | NO | comment on Postmortem: kluster.ai DeepSeek Output-Token Default |
+| 2025-03-21 | emil | write | 09:14 | Batch job status persistence across process restarts |
+| 2025-03-21 | emil | send | 09:28 | Re: Batch job status persistence across process restarts |
+| 2025-04-07 | dermot | write | 09:14 | WS-055: Release Engineering, CI & Test Suite |
+| 2025-04-07 | konrad | send | 09:07 | Weekly update: week of Mar 31 |
+| 2025-04-16 | gideon | write | 10:03 | Weekly Notes — Week of Apr 14 |
+| 2025-04-16 | nikolai | write | 09:14 | Docker code executor image pinning |
+| 2025-04-16 | nikolai | send | 09:28 | Re: Docker code executor image pinning |
+| 2025-05-02 | emil | comment | NO | comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface |

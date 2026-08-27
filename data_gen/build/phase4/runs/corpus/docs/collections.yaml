@@ -1,5 +1,8 @@
 version: 1
 collections:
+  - dir: design
+    name: Design
+    description: "Product and interface design."
   - dir: engineering
     name: Engineering
     description: "Design docs, plans, runbooks and handovers."

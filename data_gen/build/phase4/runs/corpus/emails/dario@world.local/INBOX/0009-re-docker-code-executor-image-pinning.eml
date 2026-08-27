@@ -1,0 +1,33 @@
+From: nikolai@world.local
+To: emil@world.local, dario@world.local
+Subject: Re: Docker code executor image pinning
+Date: Wed, 16 Apr 2025 09:28:00 +0000
+Message-ID: <178778890300.3143269.15171802653801680503@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Put the design doc up on the wiki this morning (design collection, "Docker co=
+de executor image pinning") so wanted to send a few notes while I had it open.
+
+Reading the docker backend before I review this: when a caller sets backend_p=
+arams=3D{'image': ...} the create call goes down a shorter path than the defa=
+ult one, and the extra kwargs we assemble for our own tag never get near it. =
+I do not think anybody chose that, it is just where the code ended up.
+
+On failure behaviour =E2=80=94 if we do tighten this, my preference is the fi=
+rst task blows up at create. Quiet wrong environment at execution is much har=
+der to catch than a loud error up front.
+
+On the thread with the team who want their own image: they want it purely so =
+scipy and their internal client lib are already there, they are not asking us=
+ to change how the container runs. I told them the workspace still comes in r=
+ead-only from our side and they said fine, they write everything to stdout an=
+yway.
+
+Main thing I still need to sort out: what does the sandbox repo actually publ=
+ish? Do either of you know what tags are available there, or who to ask?
+
+Nikolai
+
+To be clear, the read-only constraint isn't a concession I made for this one team — any caller-supplied image is expected to treat the workspace as read-only, full stop.

@@ -4,56 +4,36 @@ author: dermot
 created_at: 2025-01-28T09:14:00+00:00
 ---
 
-# Release notes: Millrow v0.1.17
+# Release Notes: Millrow v0.1.17 (Stratos Crunch)
+
+12th release. 207 total merged changes across the project to date.
 
 ---
 
-## Highlights
+## Batch Mode
 
-- Expanded provider support, several new integrations added via the provider-integrations track
-- More robust resume behavior, particularly around interrupted runs and partial cache states
-- Progress output and CLI polish pass
-- JSON parser fix for curly-brace handling (was silently dropping content in some inputs)
+Emil extended the batch processing pipeline to support queued job execution without blocking the main thread. Jobs now persist across restarts, so a crashed or restarted process will pick up where it left off rather than requiring a full resubmit. A few edge cases around empty batches and malformed job specs were also tightened up.
 
----
+## Bulk LLM Inference and Provider Integrations
 
-## Provider integrations
+Dario shipped the bulk inference layer along with integrations for multiple upstream providers. The provider abstraction sits behind a unified interface, so swapping or adding a backend shouldn't require changes outside the integration layer itself. Rate-limit handling and retry logic are included, though I'd want to keep an eye on how the retry backoff behaves under sustained load.
 
-- Added support for additional providers, TBD which exact ones are documented elsewhere (i need to check the merged PRs before listing them explicitly here, dont want to misattribute)
-- Configuration surface for new providers follows the same pattern as existing ones
-- Some edge cases in credential resolution fixed, these were showing up when a provider returned unexpected header shapes
+## Multimodal Prompts
 
-## Caching and resume
+Also from Emil. Prompt construction now accepts image inputs alongside text, passed through to providers that support multimodal payloads. Providers that don't support it will surface an error at prompt time rather than silently dropping the image.
 
-The resume behavior was the main thing that needed attention in this release. Interrupted runs were not always picking up cleanly from the last good checkpoint, particularly when the cache directory had a partial write from a previous run. That is now handled more defensively.
+## Progress Reporting and CLI
 
-- Cache invalidation logic tightened
-- Resume detection now checks for partial state files explicitly rather than relying on directory presence alone
-- Not entirely sure if this covers every edge case for very large runs, should be tested at scale before anyone relies on it heavily
+Gideon reworked the progress output so long-running operations give meaningful feedback rather than going quiet. A few CLI flags were cleaned up in the same pass. Not sure if all the new flags made it into the help text yet, worth checking before anyone writes external docs against this.
 
-## Curator viewer
+## CI Cache (PR 411)
 
-- Various small fixes to the viewer interface
-- Progress display improvements, output is less noisy on repeated updates
-
-## JSON fix
-
-Curly-brace handling in the JSON parser was producing silent data loss in certain inputs. Fixed. If you were running v0.1.16 or earlier against inputs with nested object literals, worth re-running.
-
-## CI
-
-- Several CI improvements merged, mostly around test reliability
-- Nothing user-facing
+Dependency caching added to the CI pipeline. Build times should come down noticeably, though I don't have numbers in front of me to say by how much. Check the pipeline run history if you need a before/after.
 
 ---
 
-## Numbers
+## Known Issues / Open Items
 
-207 changes merged across 12 releases to date (including this one).
-
----
-
-## Known issues / open questions
-
-- Resume at scale: not yet validated on runs over a certain size (need whoever is running the big integration tests to confirm)
-- Provider list: i will update this page once I have gone through the full diff list
+- [ ] Confirm multimodal error path behavior against all listed providers, not just the two tested in the PR
+- [ ] Verify CLI help text reflects the new flags from Gideon's pass
+- Bulk inference retry backoff under load: TBD, no one has stress-tested this end-to-end yet

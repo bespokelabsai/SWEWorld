@@ -1,0 +1,24 @@
+From: dario@world.local
+To: emil@world.local, gideon@world.local, nikolai@world.local,
+ dermot@world.local, konrad@world.local
+Subject: Re: Structured output schema validation before dispatch
+Date: Mon, 24 Feb 2025 09:42:00 +0000
+Message-ID: <178778574959.3143269.1299031843761142040@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+put the design and troubleshooting notes up on the engineering wiki under "st=
+ructured output schema validation before dispatch" -- the short version is th=
+at if you change response_format between runs, cached rows are still shaped t=
+o the old schema, and the mismatch just comes back as 400s from the api with =
+no warning.
+
+asking because i think a pre-dispatch check is worth building: what would you=
+ consider an incompatible schema change? changing a field type, removing a re=
+quired field, renaming a key -- those are obvious ones, but i'd rather gather=
+ the full list from people who've actually hit edge cases before we spec anyt=
+hing out.
+
+if you've run into a schema change that silently broke a resume run (or that =
+you'd expect to), reply with what it was.

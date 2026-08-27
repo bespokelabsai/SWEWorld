@@ -92,6 +92,93 @@
         "project_context": null
       }
     },
+    "dermot": {
+      "core": {
+        "name": "Dermot Callaghan",
+        "age": 51,
+        "gender": "Male",
+        "occupation": "computer or information systems manager",
+        "personality": [
+          "pragmatic",
+          "meticulous",
+          "impulsive",
+          "perfectionist"
+        ],
+        "background": "",
+        "strengths": [
+          "Network infrastructure management",
+          "Cybersecurity strategy",
+          "Cloud services implementation",
+          "IT project management",
+          "Budgeting and financial planning",
+          "Team leadership and mentorship"
+        ],
+        "gaps": [
+          "cloud migration strategies\u2014understands the theory but rarely handles implementation details himself",
+          "modern containerization and kubernetes orchestration\u2014keeps meaning to get hands-on but hasn't",
+          "psychological safety frameworks and newer talent retention methodologies in tech teams",
+          "budget forecasting for emerging tech like ai/ml infrastructure costs"
+        ],
+        "hobbies": [
+          "Woodworking",
+          "Fishing",
+          "Reading historical non-fiction",
+          "Playing classic rock vinyl records",
+          "Sailing",
+          "Community theater attendance",
+          "Cooking",
+          "Board game evenings"
+        ],
+        "travel_habits": "Nelson Rice prefers low\u2011key, family\u2011oriented travel, planning weekend getaways to historic coastal towns like Newport, Rhode Island, and Mystic, Connecticut, while also dreaming of a summer sailing charter in the Greek Islands, though budget and work commitments keep most voyages within the New England corridor.",
+        "dining_preferences": "Nelson Rice cooks family\u2011style meals with a solid intermediate skill level, favoring New England clam chowder, rosemary\u2011roasted chicken, and grilled swordfish topped with lemon\u2011butter, and he delights in pairing these dishes with locally sourced apples for a classic apple pie, while occasionally indulging in a weekend steak\u2011house brunch where the side of truffle\u2011infused mac and cheese satisfies his occasional food\u2011ie indulgence.",
+        "spending_habits": "",
+        "other": [
+          "Nelson grew up in a working\u2011class family in Lynn, Massachusetts, with Irish\u2011American roots that emphasized hard work, modesty, and community service. He attended the local public high school and entered the technology field through apprenticeships and industry certifications rather than a formal college degree. The multicultural fabric of Essex County, combined with deep ties to neighborhood events, church gatherings, and seasonal festivals, shaped his pragmatic yet open\u2011minded worldview. This blend of New England values and exposure to diverse cultures informs his balanced approach to both professional challenges and personal relationships.",
+          "Nelson aims to advance from his current managerial role to a Director of IT position within the next five years, where he can oversee enterprise\u2011wide digital transformation and strengthen organizational cybersecurity posture. He plans to earn advanced certifications such as CISSP and PMP to bolster his strategic credibility. A passionate mentor, he also strives to formalize a junior\u2011staff development program and become a recognized leader in the local tech community through guest speaking and participation in industry meet\u2011ups. Ultimately, he envisions leveraging his experience to launch a boutique consulting firm that helps small businesses in Essex County modernize their IT operations while preserving the personal touch he values."
+        ]
+      },
+      "voice": {
+        "cadence": "considered",
+        "formality": "formal",
+        "capitalization": "always lowercase",
+        "punctuation": "inconsistent",
+        "vocabulary": "technical",
+        "typo_tendency": "none",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "agreeable",
+        "signature_words": [
+          "that said",
+          "late night"
+        ],
+        "emoji_tendency": {
+          "frequency": "never",
+          "preferred": [],
+          "trigger": "frustration"
+        },
+        "hedge_words": [
+          "if i had to guess",
+          "not entirely sure"
+        ],
+        "affirm_words": [
+          "mhm",
+          "yeah ok",
+          "yeah"
+        ],
+        "question_style": "restate-guess"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
     "emil": {
       "core": {
         "name": "Emil Brandvold",
@@ -257,6 +344,99 @@
         "affirm_words": [
           "exactly",
           "ya"
+        ],
+        "question_style": "plain-what"
+      },
+      "identity": {
+        "situation_type": "casual",
+        "goal": "just chatting",
+        "emotional_state": {
+          "label": "calm",
+          "intensity": 0.2,
+          "source": "exogenous"
+        },
+        "project_spec": null,
+        "project_context": null
+      }
+    },
+    "ilse": {
+      "core": {
+        "name": "Ilse Vandekerckhove",
+        "age": 50,
+        "gender": "Male",
+        "occupation": "software developer",
+        "personality": [
+          "methodical",
+          "pragmatic",
+          "grounded",
+          "detail-oriented"
+        ],
+        "background": "",
+        "strengths": [
+          "Java",
+          "C#",
+          "Python",
+          ".NET",
+          "Spring",
+          "Angular"
+        ],
+        "gaps": [
+          "frontend frameworks and their latest tooling ecosystem",
+          "devops/containerization workflows like docker compose configurations",
+          "async patterns and concurrent programming subtleties",
+          "setting up ci/cd pipelines from scratch"
+        ],
+        "hobbies": [
+          "Fly-fishing",
+          "Hiking",
+          "Camping",
+          "Woodworking",
+          "Gardening",
+          "Reading historical novels",
+          "Reading technology magazines",
+          "Chess",
+          "Volunteer computing instructor",
+          "Model railroading",
+          "Listening to classic rock and blues",
+          "Craft-beer tasting"
+        ],
+        "travel_habits": "Sean Buckley is a meticulous planner who prefers structured, nature\u2011focused trips, having already explored Yellowstone, Glacier, and Banff National Parks, and now dreams of hiking the Patagonia Torres del Paine circuit and the Scottish Highlands, arranging each itinerary months in advance while balancing a modest travel budget with his commitment to maintain work\u2011life equilibrium.",
+        "dining_preferences": "Sean Buckley is a competent home cook who transforms garden\u2011grown vegetables into roasted root medleys, grills fresh river trout with rosemary and lemon, prepares a hearty wild\u2011mushroom risotto, and pairs these dishes with craft\u2011beer selections from local breweries such as Great Divide and BridgePort, reflecting his love for rustic, flavorful meals.",
+        "spending_habits": "",
+        "other": [
+          "Sean\u2019s cultural background blends a Midwestern Irish\u2011American heritage with the rugged, community\u2011centered ethos of Montana\u2019s \u201cBig Sky\u201d country. Raised in a small town, he grew up valuing self\u2011reliance, neighborly cooperation, and a deep respect for nature. His family traditions include modest celebrations of Irish holidays like St. Patrick\u2019s Day, and a strong work ethic passed down through generations of labor\u2011focused parents. Since moving to Livingston, he has embraced the local culture of outdoor recreation, frontier hospitality, and a modest, pragmatic approach to life, while integrating his technical career into the region\u2019s growing digital economy.",
+          "Sean aims to transition into a lead software architect role within the next three to five years, focusing on building scalable, maintainable systems for his employer and local businesses. He seeks to obtain AWS Solutions Architect certification to broaden his cloud expertise and to mentor a small cohort of junior developers, fostering a culture of quality and predictability. Over the longer term, he envisions moving into a technical leadership position that balances architectural oversight with hands-on coding, while maintaining a stable work\u2011life balance that allows him to spend ample time outdoors. He also hopes to contribute to open\u2011source projects that emphasize reliability and to develop a community\u2011oriented tech workshop series in Livingston."
+        ]
+      },
+      "voice": {
+        "cadence": "considered",
+        "formality": "semi-formal",
+        "capitalization": "always lowercase",
+        "punctuation": "inconsistent",
+        "vocabulary": "technical",
+        "typo_tendency": "frequent",
+        "register": "native",
+        "reaction_style": "restrained",
+        "agreeableness": "agreeable",
+        "signature_words": [
+          "let me think through that",
+          "seems solid"
+        ],
+        "emoji_tendency": {
+          "frequency": "rare",
+          "preferred": [
+            "\ud83d\ude42"
+          ],
+          "trigger": "warmth"
+        },
+        "hedge_words": [
+          "hold on",
+          "i suppose",
+          "i think"
+        ],
+        "affirm_words": [
+          "gotcha",
+          "totally"
         ],
         "question_style": "plain-what"
       },

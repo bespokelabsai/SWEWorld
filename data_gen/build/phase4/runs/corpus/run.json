@@ -84,7 +84,6 @@
     "2025-03-26",
     "2025-03-27",
     "2025-03-31",
-    "2025-04-01",
     "2025-04-02",
     "2025-04-03",
     "2025-04-07",
@@ -129,24 +128,25 @@
     "releases",
     "viewer"
   ],
-  "messages": 9569,
+  "messages": 9591,
   "clues": {
-    "said": 91,
+    "said": 100,
     "of": 107
   },
   "artifacts": {
-    "made": 158,
-    "of": 159
+    "made": 167,
+    "of": 170
   },
   "args": {
-    "audit_only": "True",
-    "auth": "api-key",
+    "allow_unconsumed": "set()",
+    "audit_only": "False",
+    "auth": "split",
     "channels": "None",
     "clue_repairs": "2",
-    "clue_tries": "3",
-    "concurrency": "6",
+    "clue_tries": "2",
+    "concurrency": "24",
     "day_count": "3",
-    "days": "None",
+    "days": "2025-01-28,2025-02-03,2025-02-04,2025-02-24,2025-03-04,2025-03-21,2025-04-07,2025-04-16,2025-05-02",
     "dry_run": "False",
     "install": "False",
     "model": "None",

@@ -1,0 +1,25 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, nikolai@world.local,
+ gideon@world.local, ilse@world.local, dermot@world.local
+Subject: Weekly update: week of Jan 27 =?utf-8?b?4oCU?= v0.1.17 and
+ v0.1.17.post1 shipped
+Date: Mon, 03 Feb 2025 09:07:00 +0000
+Message-ID: <178778403561.3143269.690691804223481739@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Team,
+
+We shipped v0.1.17 and v0.1.17.post1 last week. Both are out and stable as fa=
+r as I can tell, no reported regressions so far.
+
+In flight this week: PR 438 (general refactor, Emil) and PR 439 (anon telemet=
+ry, Nikolai) are both up and need review. PR 430 (OpenRouter examples, Dario)=
+ is still blocked and waiting on whatever is holding it up there.
+
+On the open questions front, issues 92=E2=80=9394 around the UI and run statu=
+s tracking are still unresolved. Would be good to find time to move on at lea=
+st one of those.
+
+Konrad

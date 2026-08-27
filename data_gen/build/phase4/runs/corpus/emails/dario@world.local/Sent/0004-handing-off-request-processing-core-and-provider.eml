@@ -1,0 +1,51 @@
+From: dario@world.local
+To: emil@world.local
+Subject: Handing off request-processing core and provider backends
+Date: Mon, 03 Feb 2025 09:21:00 +0000
+Message-ID: <178778417583.3143269.12323392419973166707@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Emil,
+
+Handing off ownership of bulk-llm-inference, caching-and-resume, online-reque=
+st-processing, and the provider-integrations layer to you. Here's what's in f=
+light and what I'd flag as the things to watch.
+
+What's in decent shape:
+- online-request-processing: the main request loop is stable. PR 435 (token e=
+stimation fix) and PR 437 (cost-map defaults) both merged this morning =E2=80=
+=94 output cost prediction should be tracking correctly now, though we're sti=
+ll doing final validation on the online path.
+- caching-and-resume: cache invalidation on inspect(func) is still sensitive =
+to comments and whitespace (issue 124), that one's open and hasn't been addre=
+ssed yet.
+- bulk-llm-inference: solid, no active blockers.
+
+Provider-integrations gaps to know about:
+- togetherai and klusterai rate limits are not fully mapped. I built the orig=
+inal cost-accounting layer but those two providers don't have complete defaul=
+ts yet =E2=80=94 PR 437 gets us closer but there's still work here for the ne=
+xt sprint or the release after.
+- When we add a new model, the expectation is: add it to the maintained suppo=
+rt list AND add a price entry. That's not documented anywhere obvious, but it=
+ needs to be a routine step, not an afterthought.
+
+What's still open that affects you:
+- issue 52 (multiple samples per request) =E2=80=94 open
+- issue 102 (must return a dict without Pydantic objects per row) =E2=80=94 o=
+pen
+- issue 121 (pydantic to dict and back) =E2=80=94 open
+- PR 430 (reasoning with OpenRouter examples) is mine and still in review, I'=
+ll close that out
+
+Multimodal:
+You're already deep in PR 427 so you know this better than I do at this point=
+. The cost-accounting work (435, 437) was partly a prerequisite for multimoda=
+l =E2=80=94 image serialization in the online path is the logical next entry =
+point once validation is done.
+
+Happy to sync this week if anything needs more context.
+
+Dario

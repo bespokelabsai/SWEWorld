@@ -1,40 +1,40 @@
 ---
 title: "Weekly Notes \u2014 Week of Apr 14"
 author: gideon
-created_at: 2025-04-16T09:14:00+00:00
+created_at: 2025-04-16T10:03:00+00:00
 ---
 
 # Weekly Notes, Week of Apr 14
 
-## In flight
+## Merged
 
-- WS-050 (Emil): batch mode work ongoing
-  - async batch API support at ~50% cost reduction
-  - PR 468 (n samples in generation params) still open, not merged yet
-- PR 632 (me): CLI batch update frequency fix
-  - blocking CLI observability finalization, needs review before that work can close out
-  - if youre waiting on something here, please prioritize it
-- PR 640 (Tomas): OpenAI + DeepSeek API support, in review
-- PR 642 (Devraj): GPT-4.1 structured output support, open for review
-- PR 643 (Emil): Response object in curator, open
-  - potential overlap with PR 642 on the structured output mapping side, need to confirm before either merges
+- PR 632, CLI batch update frequency fix, merged earlier this week
+  - was blocking some local testing so glad thats out
 
-## Decisions / notes
+## In Flight
 
-Milestone focus stays on provider breadth and consolidation. We're not expanding scope this sprint.
+- PR 640, OpenAI and DeepSeek API support
+  - still open, needs review
+- PR 642, GPT-4.1 structured output
+  - tied somewhat to 640 in terms of ordering, not a hard dependency but makes sense to sequence them
+- PR 643, CuratorResponse object
+  - early but moving
 
-The GPT-4.1 structured output path needs a call or at least an async thread before PR 642 and the batch work (mine) both land. I dont think they diverge badly but i haven't looked closely enough at Devraj's mapping layer to be sure. Someone needs to own that check and it probably shouldn't be me, since im too close to the batch side.
+## WS-050 Batch Mode (with Emil)
 
-Cost streaming pattern, we agreed this needs to be documented for future provider integrations. Nobody wrote that doc yet. TBD on who picks it up.
+Ongoing work here. Emil is taking the lead on some of the infrastructure side, I'm handling the API layer and how cost gets surfaced. Not blocked but there are open questions I havent pinned down yet (see below).
 
-## Open issues (no resolution this week)
+## Gemini 2.0 / 2.5 API Incompatibility
 
-- issue 52: multiple samples per request
-- issue 207: `has_capacity` via rate limit headers
-- issue 233: auto-detect rate limits
-- issue 102, 121, 124, 290, 293: (haven't pulled these up, carrying them forward from last week)
+Triaged this. The short version is that there's a breaking difference in how the Gemini 2.0 and 2.5 APIs behave compared to what we currently expect, but it doesnt block anything in the current sprint. Moved to backlog as non-blocking. We'll need to come back to it before doing a serious Gemini push.
 
-## Questions
+## Cost-Streaming Pattern, Needs Docs Before Next Sprint
 
-- PR 643 vs PR 642 overlap: confirmed or not? who's checking?
-- cost streaming doc: who owns this?
+I want to flag this before we get into next sprint's provider work. The cost-streaming pattern we're using is not documented anywhere and it will matter the moment someone else tries to add a provider. I think we should write it down this week or early next, before the PRs in flight land and the pattern starts spreading. I can draft it but want to check if Emil has context I'm missing first.
+
+## Open Questions
+
+- Projected-remaining readout: what should the UI show when cost-streaming is delayed or incomplete? Does it show last known? Does it block? I dont have a clear answer here and I'm not sure who owns that decision.
+- Batch vs online cost representation: how do we align the cost number the user sees in batch mode with what they'd see in online mode? They probably should not be directly comparable but I dont know if thats documented as intentional anywhere.
+
+These two are related and probably need a short sync before PR 640 goes much further.

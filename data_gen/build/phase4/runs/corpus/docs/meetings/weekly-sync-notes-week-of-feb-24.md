@@ -1,34 +1,40 @@
 ---
 title: "Weekly sync notes: week of Feb 24"
 author: gideon
-created_at: 2025-03-04T10:03:00+00:00
+created_at: 2025-03-04T09:14:00+00:00
 ---
 
 # Weekly sync notes: week of Feb 24
 
-## Releases
+## Shipped
 
-Two out this week: v0.1.19.post1 and v0.1.20. That puts us at 18 total releases and 283 changes merged.
+- v0.1.20 - includes the online processor cost revamp (PR 546)
+- v0.1.19.post1 - patch release
 
-- v0.1.19.post1 was a patch to fix a regression in v0.1.19, went out quickly
-- v0.1.20 followed with the full milestone changeset
+## Milestone: Consolidation and Provider Breadth
 
-Also: Dermot is taking over release cutting going forward. That's been a single-person dependency for too long so this is good.
+Post-sprint pruning done. Team is spread across a lot of areas right now:
 
-## In flight
+- batch-mode
+- blocks-and-recipes
+- bulk-llm-inference
+- caching-and-resume
+- code-execution
+- curator-viewer
+- examples-cookbooks
+- local-offline-inference
+- multimodal-prompts
+- online-request-processing
 
-- Cost revamp on the online processor, still in progress
-- Provider backend work
-    - OpenAI client
-    - DeepSeek API
-- kluster.ai DeepSeek output token incident, postmortem being written now
-    - I dont have details on timeline for that yet
+Not going to list every thread per area here, most of it is in the individual PRs.
 
-## Q2 planning
+## Carrying into next week
 
-Konrad is driving this. Still early, not much to report from my side.
+- token-field fixes - need these to close the cost estimation loop properly, still open
+- PR 565, PR 566 - provider backend PRs, both pending review
+- Gemini rate limit handling - path not decided yet, needs a decision before anyone picks it up
+    - I dont think we agreed on who owns this call, somebody needs to
 
-## Open questions
+## Questions
 
-- Postmortem timeline for the kluster.ai incident?
-- Any scope changes coming out of Q2 planning that touch the processor work?
+- Who is picking up the Gemini rate limit question? I want to make sure its not just sitting there next sync.

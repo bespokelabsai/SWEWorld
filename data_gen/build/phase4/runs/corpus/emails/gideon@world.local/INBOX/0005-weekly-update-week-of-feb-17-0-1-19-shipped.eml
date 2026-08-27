@@ -1,0 +1,25 @@
+From: emil@world.local
+To: dario@world.local, nikolai@world.local, gideon@world.local
+Subject: Weekly update: week of Feb 17 =?utf-8?b?4oCU?= 0.1.19 shipped
+Date: Mon, 24 Feb 2025 09:07:00 +0000
+Message-ID: <178778560563.3143269.2513433582787632379@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Week of Feb 17 wrap.
+
+0.1.19 shipped, 267 changes merged total.
+
+My end:
+- PR 468 (n samples in generation params) =E2=80=94 open, needs eyes
+- PR 532 (batch response file async refactor) =E2=80=94 open, needs eyes
+- PR 533 (viewer resume integration) =E2=80=94 open, this one I'd most like r=
+eviewed this week
+
+Question for the group: issue 124 (inspect() cache invalidating on comments a=
+nd whitespace) =E2=80=94 does anyone have a sense of how often that's actuall=
+y hitting in practice? Want to know if it's worth prioritizing a fix now or w=
+hether it's a known rough edge we live with for a bit.
+
+=E2=80=94 Emil

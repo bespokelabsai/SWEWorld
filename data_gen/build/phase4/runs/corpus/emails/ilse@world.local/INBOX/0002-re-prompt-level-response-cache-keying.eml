@@ -1,0 +1,21 @@
+From: dario@world.local
+To: emil@world.local, gideon@world.local, ilse@world.local,
+ nikolai@world.local, dermot@world.local, otto@world.local
+Subject: Re: Prompt-level response cache keying
+Date: Tue, 28 Jan 2025 10:10:00 +0000
+Message-ID: <178778395245.3143269.5820508031317902647@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+line I'd like us to actually hold to, since it keeps coming up in review.
+
+a cache write is an optimisation for the next run. failing one makes the next=
+ run more expensive, it does not make this run invalid. so nothing that has a=
+lready cost the user money gets aborted because we couldn't put a file on dis=
+k =E2=80=94 we take the hit on the rerun and carry on.
+
+fuller write-up is in the wiki under design/prompt-level-response-cache-keyin=
+g if you want the context on how keying should work. the short version is tha=
+t if generation_params differ from the stored run, only those rows go back ou=
+t to the provider, not the whole cache dir.
