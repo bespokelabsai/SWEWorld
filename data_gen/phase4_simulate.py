@@ -362,7 +362,15 @@ def forbidden(day: dict, spec: dict | None = None) -> list[str]:
             f"{counts.get('files_not_yet', 0)} files that this codebase only "
             "grows LATER. Do not name a function, class or file unless it has "
             "already come up in this conversation or you own the code it is in."
-            + exception)
+            + exception
+            # The rule used to end here, and it was a rule with no way to obey
+            # it: a persona asked not to name a symbol that does not exist yet
+            # had no means of finding out which those were. `read_repo` shows
+            # the tree as of today, so the rule now comes with the answer.
+            + " If you are about to quote or describe code, open it first with "
+              "read_repo — the tree on this date is the only thing that "
+              "settles what exists, and what you remember may not be there "
+              "yet.")
     return unborn
 
 
