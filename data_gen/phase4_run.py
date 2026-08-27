@@ -1033,6 +1033,46 @@ def clue_report(world, row: dict, run: Path | None = None) -> str:
     return "\n".join(L)
 
 
+def clue_path(clues_dir: Path, clue_id: str) -> Path:
+    """Where one clue's file lives: `<task>/<requirement>/<leaf>.md`.
+
+    A hundred and seven files in one directory is a list you scroll, not a
+    thing you read. The id already says which task and which hidden
+    requirement a clue belongs to, so the directories say it too and the
+    filename is left as the part that distinguishes it.
+    """
+    bits = clue_id.split(".")
+    if len(bits) != 3:
+        return clues_dir / f"{clue_id}.md"          # anything unexpected: flat
+    task, req, leaf = bits
+    return clues_dir / task / req / f"{leaf}.md"
+
+
+def requirement_index(world, task: str, req: str, rows: list[dict]) -> str:
+    """One hidden requirement: what it is, and every remark carrying it."""
+    first = world.clue_of.get(rows[0]["clue"], {}) if rows else {}
+    L = [f"# {task}.{req} — {first.get('task', task)}", ""]
+    want = first.get("requirement") or {}
+    if want:
+        L += ["## The hidden requirement", ""]
+        for field, value in want.items():
+            if value:
+                L.append(f"- **{field}** — {value}")
+        L.append("")
+    said = sum(1 for r in rows if r["said"])
+    L += [f"{said} of {len(rows)} carried.", "",
+          "| clue | said | holder | where | subconclusion |",
+          "|---|---|---|---|---|"]
+    for row in sorted(rows, key=lambda r: r["clue"]):
+        meta = world.clue_of.get(row["clue"], {})
+        leaf = row["clue"].split(".")[-1]
+        where = row.get("wrote_into") or f"#{row.get('channel') or '?'}"
+        L.append(f"| [{leaf}]({leaf}.md) | {'yes' if row['said'] else '**NO**'} "
+                 f"| {row.get('holder', '')} | {where} "
+                 f"| {meta.get('subconclusion', '')} |")
+    return "\n".join(L) + "\n"
+
+
 def clue_index(world, rows: list[dict]) -> str:
     said = sum(1 for r in rows if r["said"])
     leaks = [r for r in rows if r.get("leaked")]
@@ -1077,7 +1117,10 @@ def clue_index(world, rows: list[dict]) -> str:
         kind = into.split(":")[0] if into else "chat"
         room = (f"{(clue.get('carrier') or {}).get('room', into)}"
                 if into else f"#{row['channel']}")
-        L.append(f"| [{row['clue']}]({row['clue']}.md) | {clue.get('task_id', '')} "
+        rel = "/".join(row["clue"].split(".")[:2] + [
+            row["clue"].split(".")[-1] + ".md"]) \
+            if row["clue"].count(".") == 2 else f"{row['clue']}.md"
+        L.append(f"| [{row['clue']}]({rel}) | {clue.get('task_id', '')} "
                  f"| {row['holder']} | {drift} | {row['date']} "
                  f"| {room} | {kind} | {'yes' if row['said'] else '**NO**'} "
                  f"| {', '.join(row.get('leaked') or []) or '—'} "
@@ -2008,17 +2051,31 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args,
         rl.write_json(out / "clues.json", clue_rows)
     clues_dir = out / "clues"
     clues_dir.mkdir(parents=True, exist_ok=True)
-    keep = {"index.md"}
+    keep = {clues_dir / "index.md"}
+    by_req: dict[tuple, list] = {}
     for row in clue_rows:
-        keep.add(f"{row['clue']}.md")
-        (clues_dir / f"{row['clue']}.md").write_text(
-            clue_report(world, row, out), encoding="utf-8")
+        path = clue_path(clues_dir, row["clue"])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        keep.add(path)
+        path.write_text(clue_report(world, row, out), encoding="utf-8")
+        bits = row["clue"].split(".")
+        if len(bits) == 3:
+            by_req.setdefault((bits[0], bits[1]), []).append(row)
+    for (task, req), rows_here in by_req.items():
+        where = clues_dir / task / req / "index.md"
+        keep.add(where)
+        where.write_text(requirement_index(world, task, req, rows_here),
+                         encoding="utf-8")
     (clues_dir / "index.md").write_text(clue_index(world, clue_rows),
                                         encoding="utf-8")
-    for stale in clues_dir.glob("*.md"):
-        if stale.name not in keep:
+    for stale in clues_dir.rglob("*.md"):
+        if stale not in keep:
             stale.unlink()
-            rl.warn(f"removed {stale.name} — no clue in this run accounts for it")
+            rl.warn(f"removed {stale.relative_to(clues_dir)} — no clue in this "
+                    "run accounts for it")
+    for empty in sorted(clues_dir.rglob("*"), reverse=True):
+        if empty.is_dir() and not any(empty.iterdir()):
+            empty.rmdir()
     lost = [r for r in clue_rows if not r["said"]]
     rl.ok(f"{clues_dir}/ — {len(clue_rows) - len(lost)}/{len(clue_rows)} clue(s) "
           "said, one file each")
