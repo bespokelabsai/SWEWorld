@@ -24,21 +24,74 @@ Everything is plain HTTP behind one nginx vhost ingress on port 80.
 ```bash
 make build-image      # build sweworld:dev
 make run              # boot it and publish every service
-make verify           # acceptance checks (28 at last count)
+make verify           # acceptance checks (33 at last count, incl. corpus content)
 make shell            # a shell as the agent (ubuntu, no sudo)
 make stop             # tear it down
 ```
 
-**`make run` gives you an empty world** — services up, no content. That is the
-base image by design, and it is the single thing most likely to confuse someone
-opening BookStack for the first time and finding nothing there. To populate it,
-either bake a release image:
+**`make run` boots the newest baked image** (`sweworld:latest`), falling back to
+the empty `sweworld:dev` when nothing has been baked. Name another with
+`make run RUN_IMAGE=sweworld:0.2.0`.
+
+**A world with no bake is an empty world** — services up, no content. That is
+the base image by design, and it is the single thing most likely to confuse
+someone opening BookStack for the first time and finding nothing there.
+
+## From a phase-4 run to a populated world
+
+Three commands, no image rebuild:
 
 ```bash
-make bake-image TAG=0.1.0    # boot, ingest data/, gate on world-verify, commit
+python3 data_gen/install_corpus.py     # newest phase-4 run -> data/
+make bake-image TAG=0.4.0              # ingest, gate, commit; moves :latest
+make run                               # boot it
 ```
 
-or ingest into the container you already have running:
+`install_corpus.py` **replaces** what it owns in `data/` — `docs/`, `emails/`,
+`messages.jsonl`, `comments.jsonl` — so a regenerated corpus, or one changed
+page, overwrites cleanly with nothing stale left beside it. It never touches
+`identities.yaml` or `channels.yaml` (phase 1 writes those), `commits.jsonl`,
+`history/` (host-only `make history`) or `schemas/`. It validates the shape
+before you spend twenty minutes on a bake: frontmatter keys, every `.eml`
+indexed and every indexed path present, comments resolving to real pages and to
+parents that exist. Use `--dry-run` to see what it would do, `--run NAME` for a
+run other than the newest.
+
+Then `bake-image` boots `sweworld:dev`, copies `data/` and `scripts/` in, runs
+the seven ingests in order, and refuses to commit unless `world-verify` passes —
+including the content checks, so an image that lost the corpus cannot ship.
+Each bake keeps its own immutable tag; `:latest` moves to the newest.
+
+Things worth knowing before you do it:
+
+- **Always bake from `sweworld:dev`.** Baking a baked image ingests everything
+  twice *and* nests `scripts/` inside itself, so the run silently executes the
+  previous bake's code. The guard in the recipe stops you; heed it rather than
+  working around it.
+- **Each bake is about 7GB.** Check `df -h /` first. Old tags are worth keeping
+  for rollback, but they add up.
+- **Nothing lives in a volume.** The data is in the image, which is exactly why
+  every container started from that tag has it, and equally why replacing the
+  corpus means a new bake rather than editing a running world.
+- **Tasks do not follow `:latest`.** See below.
+
+### Making task images use the new world
+
+`harbor_tasks/_env/Dockerfile` pins its base **inline**, and today that is
+`sweworld:0.3.1-forge` — repository and history, deliberately no corpus. A new
+bake does not reach it. To build tasks on the corpus, edit that `FROM` line to
+the tag you baked.
+
+Spell the tag out literally. Do not reintroduce `ARG WORLD_IMAGE` +
+`FROM ${WORLD_IMAGE}`: Horizon rewrites `FROM` lines through a pull-through
+cache with a textual pass that cannot resolve an ARG, and the hosted build then
+dies resolving a literal `${WORLD_IMAGE}`.
+
+### Populating a container you already have running
+
+Only for a world you are experimenting with — the ingests are **not**
+idempotent (`ingest_docs.py` and `ingest_mail.py` will happily import
+everything a second time), so this is a one-shot on a fresh container:
 
 ```bash
 docker cp data sweworld:/opt/world-state/data
