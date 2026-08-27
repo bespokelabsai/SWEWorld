@@ -1,0 +1,37 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, gideon@world.local,
+ dermot@world.local, petar@world.local, otto@world.local
+Subject: Weekly update: week of Jan 6 =?utf-8?b?4oCU?= v0.1.14 shipped
+Date: Mon, 13 Jan 2025 09:07:00 +0000
+Message-ID: <178765519113.1896701.17016214479760586445@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all,
+
+Quick recap for the week of Jan 6.
+
+v0.1.14 shipped =E2=80=94 that's release 8, with 175 changes merged to date. =
+Good milestone.
+
+What's moving this week:
+- batch-mode and local-offline-inference (Emil) =E2=80=94 both in flight
+- bulk-llm-inference, caching-and-resume, curator-viewer, online-request-proc=
+essing, provider-integrations (Dario) =E2=80=94 all active
+- multimodal-prompts (Emil) =E2=80=94 in flight
+- progress-and-cli (Gideon) =E2=80=94 in flight
+- WS-014 (Dermot) and WS-016 (Dario) designs ongoing
+
+Open PRs worth eyes: PR 133 (env example file, Otto), PR 161 and PR 163 (Gide=
+on), PR 248 (Dermot), PR 307 (token counting unification), PR 359 (fix_json c=
+heck, Petar), and PR 360 (LLM interface, Dermot =E2=80=94 up this morning).
+
+A few open questions still sitting: issue 52 (multiple samples per request), =
+issue 92=E2=80=9394 (UI/metadata), issue 105 (distribution graph), issue 121=
+=E2=80=93122 (pydantic handling, Prompter class). Nothing blocking release bu=
+t worth keeping on radar.
+
+Let me know if anything looks off.
+
+Konrad

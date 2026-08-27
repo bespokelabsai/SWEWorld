@@ -1,0 +1,19 @@
+From: emil@world.local
+To:
+ dario@world.local, nikolai@world.local, konrad@world.local, nolan@world.local
+Subject: v0.1.25 is out
+Date: Fri, 30 May 2025 09:35:00 +0000
+Message-ID: <178771231294.2429685.16422717852636840981@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.25 shipped. Release notes are in the engineering wiki under "v0.1.25 Rel=
+ease Notes."
+
+One thing to know: o3-mini is now listed as an explicit entry in the provider=
+ support table. If you've been relying on group fallback for anything in the =
+o3 family it won't work =E2=80=94 use the explicit row.
+
+Anything you think is missing from the notes, let me know before Monday. Happ=
+y to update before we close out the milestone.

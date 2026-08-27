@@ -1,0 +1,27 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, nikolai@world.local,
+ nolan@world.local, gideon@world.local
+Subject: Week of May 26 recap: v0.1.25 shipped
+Date: Mon, 02 Jun 2025 09:28:00 +0000
+Message-ID: <178771259923.2429685.8918976446565480852@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.25 is out. 359 changes merged to date across 24 releases.
+
+Still in flight heading into this week:
+- PR 653: Shreyas/finetuning client (Nikolai)
+- PR 663: fix error when torch isn't installed (Nikolai)
+- PR 675: add default app id parameter for curator llm (Nolan)
+- PR 681: If the model is not known, let the cost be None. (me)
+
+Next up is v0.1.26, after which we move to maintenance mode. I put the plan f=
+or that up on the wiki this morning (Winding down to maintenance mode after v=
+0.1.26) if anyone wants the details on what the dormancy era looks like.
+
+One thing I want to confirm before we cut over: is the download plumbing in t=
+he viewer surface actually clean and testable? I am not entirely sure where t=
+hings stand there. Dario, Gideon, can either of you say whether that path is =
+in good shape or whether there are gaps we should know about before we go qui=
+et?

@@ -1,0 +1,21 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, nikolai@world.local, nils@world.local,
+ theo@world.local, dermot@world.local
+Subject: Weekly update: week of Mar 24
+Date: Mon, 31 Mar 2025 09:14:00 +0000
+Message-ID: <178769079773.2148437.15641281796500021364@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Quick one from my side this week:
+
+- Authentication flow is live and verified on my end
+- Mistral batch is now a first-class provider, examples updated to match
+- All examples and docs are current for v0.1.22
+
+One thing I wanted to flag before we cut the release: is the announcement dra=
+ft ready to go, and are the release notes getting published today? Want to ma=
+ke sure we're not holding anything back on the comms side.
+
+Konrad

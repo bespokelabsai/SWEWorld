@@ -1,0 +1,28 @@
+From: dermot@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, otto@world.local,
+ ilse@world.local, konrad@world.local, nikolai@world.local, bram@world.local,
+ devraj@world.local, dorian@world.local, julian@world.local, nils@world.local,
+ nolan@world.local, petar@world.local, priya@world.local, rafael@world.local,
+ rasmus@world.local, theo@world.local, tobias@world.local, tomas@world.local,
+ tomasz@world.local
+Subject: v0.1.16 is out
+Date: Tue, 21 Jan 2025 09:28:00 +0000
+Message-ID: <178765952788.1915810.13979223750976570914@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.16 shipped. Five changes in this release:
+
+- Anthropic online capacity guard: requests now blocked against output-token =
+limits before sending
+- Max-parallel request processor: configurable concurrency limit in the onlin=
+e processor
+- Gemini batch request processor: initial Gemini support in the batch layer
+- JSON output fix: curly-brace handling corrected in the JSON repair path
+- Version bump and release cut
+
+No breaking changes to the public API. Full details in Release notes: v0.1.16=
+ on the engineering wiki.
+
+Dermot

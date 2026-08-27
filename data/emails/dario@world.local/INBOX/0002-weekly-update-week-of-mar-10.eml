@@ -1,0 +1,31 @@
+From: konrad@world.local
+To:
+ dario@world.local, emil@world.local, nikolai@world.local, gideon@world.local
+Subject: Weekly update: week of Mar 10
+Date: Mon, 17 Mar 2025 09:07:00 +0000
+Message-ID: <178768570671.2096191.17936041921391442283@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hi all,
+
+Quick update heading into the week. On my end I've been cleaning up the examp=
+les-cookbooks and code-execution work, and I have a PR up (PR 592) that I'd l=
+ike to get merged this week, it's mostly cleanup so shouldn't block anyone.
+
+Two things I'd like input on before things get too busy:
+
+1. The openai/deepseek PRs (PR 565, PR 566, PR 579, PR 585) - I'm trying to m=
+ap where each one actually stands and what's blocking them. Does anyone have =
+clear picture of the depedencies between these, or who's taking point on reso=
+lving conflicts? Dario and Emil, probably you two know most here.
+
+2. There are few lower-priority config PRs that have been sitting for a while=
+ (PR 581, PR 583). Worth merging now, deferring past the release cut, or clos=
+ing? Would be good to triage these today or tomorrow so we know what's actual=
+ly in scope for this release.
+
+Let me know, happy to jump on quick call if easier than going back and forth.
+
+Konrad

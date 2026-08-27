@@ -1,0 +1,16 @@
+From: gideon@world.local
+To: dario@world.local, emil@world.local, konrad@world.local, otto@world.local
+Subject: Weekly update: week of Nov 25
+Date: Mon, 02 Dec 2024 09:07:00 +0000
+Message-ID: <178763908083.1786257.11608634383907975260@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+PR 141 (LiteLLM+instructor backend for curator) is still in review =E2=80=94 =
+feedback has been coming in and I'm working through the open comments, but I =
+don't yet have a clear picture of what's actually blocking merge. If anyone h=
+as context on that I'd appreciate a quick note. PR 161 (Prometheus LLM Judge =
+usage example) is also open and waiting on review eyes. No releases blocked o=
+n my end as far as I know, but I want to get PR 141 resolved this week one wa=
+y or another.

@@ -1,0 +1,27 @@
+From: nikolai@world.local
+To: emil@world.local, dario@world.local, dermot@world.local
+Subject: Re: Docker code executor image pinning
+Date: Wed, 16 Apr 2025 10:38:00 +0000
+Message-ID: <178778985170.3143269.12933420250823233973@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Reading the docker backend before I review this: when a caller sets backend_p=
+arams=3D{'image': ...} the create call goes down a shorter path than the defa=
+ult one, and the extra kwargs we assemble for our own tag never get near it. =
+I do not think anybody chose that, it is just where the code ended up.
+
+On the thread with the team who want their own image: they want it purely so =
+scipy and their internal client lib are already there, they are not asking us=
+ to change how the container runs. I told them the workspace still comes in r=
+ead-only from our side and they said fine, they write everything to stdout an=
+yway.
+
+If we do tighten this, my preference is the first task blows up at create.
+
+Still need to check what the sandbox repo actually publishes =E2=80=94 will f=
+ollow up on that.
+
+Notes are on the wiki at engineering/docker-code-executor-image-pinning.md if=
+ useful.

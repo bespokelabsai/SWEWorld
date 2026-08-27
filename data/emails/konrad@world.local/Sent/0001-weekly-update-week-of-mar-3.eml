@@ -1,0 +1,35 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, nikolai@world.local, nils@world.local,
+ theo@world.local
+Subject: Weekly update: week of Mar 3
+Date: Mon, 10 Mar 2025 09:28:00 +0000
+Message-ID: <178768329317.2077659.613105740807147794@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hi team,
+
+Here is where things stand coming out of last week.
+
+The main thing I want to get resolved this week is PR 571 (Feat/raft). I need=
+ to know whether the data schema cleanup there is in a state we can approve, =
+or whether it needs another pass. If anyone has been close to the blocks-and-=
+recipes design and has an opinion, please say so. I would rather know now tha=
+n after it sits another few days.
+
+On the finetuning example: I am still working through what the end-to-end sha=
+pe should look like for the handoff from a curated dataset into fine-tuning. =
+Not blocked yet, but if anyone has a strong opinion on that shape I'd like to=
+ hear it before I get too far in one direction.
+
+Nils Brandt and Theo Marchetti are joining us this week starting Monday. I've=
+ put an onboarding page on the wiki and sent a separate welcome note to each =
+of them. Emil, Nils will be coming up to speed on batch-mode, so expect some =
+early questions from him in that area.
+
+Open PRs right now: 468, 565, 566, 571, 575, 579. Several of these have been =
+sitting a while. If you have bandwidth this week, 571 and 575 are the ones I =
+would call out as priority.
+
+Konrad

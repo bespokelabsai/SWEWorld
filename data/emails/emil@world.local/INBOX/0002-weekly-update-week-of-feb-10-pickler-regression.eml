@@ -1,0 +1,31 @@
+From: konrad@world.local
+To:
+ emil@world.local, dario@world.local, nikolai@world.local, gideon@world.local
+Subject: Weekly update: week of Feb 10 =?utf-8?b?4oCU?= pickler regression
+Date: Mon, 17 Feb 2025 09:42:00 +0000
+Message-ID: <178777397949.2918913.6024094928441666835@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Team,
+
+Quick sync on the week of Feb 10.
+
+Main item: pickler regression surfaced in batch-mode. Emil has been tracking =
+it down. The short version is that cache invalidation is triggering more aggr=
+essively than expected when function source includes minor whitespace or comm=
+ent changes =E2=80=94 this is related to the inspect(func) sensitivity we alr=
+eady have open as issue 124. Not blocking releases but it is causing unexpect=
+ed cache misses in longer runs.
+
+Status as of end of last week:
+- Root cause identified, fix in progress with Emil
+- No data loss, just wasted recompute
+- PR 468 (n samples support) is still moving forward in parallel and is not a=
+ffected
+
+If anyone ran into unexplained slowdowns or cache churn last week, this is li=
+kely why. Will flag when the fix is in.
+
+Konrad

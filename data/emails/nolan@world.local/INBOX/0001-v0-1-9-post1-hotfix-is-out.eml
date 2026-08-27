@@ -1,0 +1,23 @@
+From: dario@world.local
+To: bram@world.local, dermot@world.local, devraj@world.local,
+ dorian@world.local, emil@world.local, gideon@world.local, ilse@world.local,
+ julian@world.local, konrad@world.local, nikolai@world.local, nils@world.local,
+ nolan@world.local, otto@world.local, petar@world.local, priya@world.local,
+ rafael@world.local, rasmus@world.local, theo@world.local, tobias@world.local,
+ tomas@world.local, tomasz@world.local
+Subject: v0.1.9.post1 hotfix is out
+Date: Tue, 19 Nov 2024 09:28:00 +0000
+Message-ID: <178763415868.1775581.12121393511797338037@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.9.post1 is out. This is a targeted hotfix on top of v0.1.9 =E2=80=94 it =
+fixes an edge case in caching-and-resume where cached results were not correc=
+tly matched under certain prompt configurations, causing unnecessary re-reque=
+sts to the provider.
+
+No API or interface changes, no new features. Safe to upgrade from v0.1.9.
+
+Release notes are in the engineering collection on the wiki (v0.1.9.post1 rel=
+ease notes). Shout if anything looks off.

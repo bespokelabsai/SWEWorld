@@ -1,0 +1,44 @@
+From: dario@world.local
+To: emil@world.local
+Subject: Handing off request-processing core and provider backends
+Date: Mon, 03 Feb 2025 09:21:00 +0000
+Message-ID: <178766487638.1957902.1953571829137639938@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Emil,
+
+Passing ownership of bulk-llm-inference, caching-and-resume, online-request-p=
+rocessing, and provider-integrations to you. Here's where things actually sta=
+nd.
+
+What's merged and stable:
+- Token estimation fix (PR 435) and cost-map defaults (PR 437) are both in. C=
+ost accounting should be solid now, though I haven't validated togetherai and=
+ klusterai rate-limit defaults end to end =E2=80=94 those are the two I'd wat=
+ch.
+- PR 430 (reasoning with OpenRouter examples) is mine and still open, mostly =
+done.
+
+What's in flight that'll land on your plate:
+- PR 438 (general refactor) is Emil's but I've been reviewing it. It's the on=
+e I'd want eyes on soonest.
+- Multimodal path (PR 427) touches the online request layer, so you'll need t=
+o think through how image/file content flows through online-request-processin=
+g once that merges.
+
+Known gaps I haven't closed:
+- togetherai and klusterai cost/rate-limit defaults are incomplete. I flagged=
+ this but didn't get to it.
+- issue 124 (cache invalidation on inspect) is real and annoying =E2=80=94 it=
+'ll bite whoever's doing caching work next.
+- issue 52 (multiple samples per request) is open and hasn't been designed.
+
+What I'd prioritize first: get PR 438 merged, then make sure multimodal and c=
+ost-map work are sequenced correctly before you touch the online path.
+
+Happy to do a sync call if anything here is unclear. What questions do you ha=
+ve?
+
+Dario

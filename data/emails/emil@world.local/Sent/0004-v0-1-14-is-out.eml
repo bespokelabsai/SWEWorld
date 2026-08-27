@@ -1,0 +1,16 @@
+From: emil@world.local
+To: dario@world.local, dermot@world.local, gideon@world.local,
+ konrad@world.local, otto@world.local, nikolai@world.local, ilse@world.local
+Subject: v0.1.14 is out
+Date: Tue, 07 Jan 2025 09:35:00 +0000
+Message-ID: <178765296364.1878812.7492562932410245058@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.14 shipped. Release notes are on the wiki (engineering collection, "Rele=
+ase notes: v0.1.14") =E2=80=94 five changes: docstring pass, getCacheDir help=
+er, special tokens fix, test file movement, GenericRequest coverage.
+
+If anything in those notes doesn't match what you saw merge, shout before we =
+cut the next one.

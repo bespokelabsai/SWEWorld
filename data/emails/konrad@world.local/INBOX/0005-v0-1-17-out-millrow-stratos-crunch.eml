@@ -1,0 +1,28 @@
+From: dermot@world.local
+To: bram@world.local, dario@world.local, devraj@world.local,
+ dorian@world.local, emil@world.local, gideon@world.local, ilse@world.local,
+ julian@world.local, konrad@world.local, nikolai@world.local, nils@world.local,
+ nolan@world.local, otto@world.local, petar@world.local, priya@world.local,
+ rafael@world.local, rasmus@world.local, theo@world.local, tobias@world.local,
+ tomas@world.local, tomasz@world.local
+Subject: v0.1.17 out =?utf-8?b?4oCU?= Millrow / Stratos Crunch
+Date: Tue, 28 Jan 2025 10:45:00 +0000
+Message-ID: <178778095067.3039647.6702175486265469170@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.17 is out. 12th release, 207 changes merged to date.
+
+This is a broad progression release across the milestone =E2=80=94 work conti=
+nued across batch-mode, bulk-llm-inference, caching-and-resume, curator-viewe=
+r, examples-cookbooks, local-offline-inference, multimodal-prompts, online-re=
+quest-processing, progress-and-cli, and provider-integrations. No single head=
+line feature.
+
+Five PRs were open at release time and are not included: PR 133, PR 161, PR 3=
+62, PR 407, PR 411. PR 362 and PR 407 look close.
+
+Full release notes are on the wiki under releases/release-notes-v0-1-17.
+
+CI is clean.

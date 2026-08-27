@@ -1,0 +1,46 @@
+From: konrad@world.local
+To:
+ dermot@world.local, emil@world.local, gideon@world.local, dario@world.local
+Subject: Weekly update: week of Oct 28
+Date: Mon, 04 Nov 2024 10:03:00 +0000
+Message-ID: <178762347044.1674015.3817025151811341682@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all,
+
+Quick update on where things stand heading into this week.
+
+**Where we are**
+
+We're still in the "Everything Through a Reviewed PR" milestone. Six changes =
+merged to date. Two PRs open right now:
+
+- PR 7: Add flatten_list() to bella (Dermot) =E2=80=94 in review
+- PR 8: init commit on bespoke-dataset-viewer (Gideon) =E2=80=94 in review
+
+**New this week**
+
+Gideon Halloway is joining the team. He's picking up request processing and t=
+he bespoke-dataset-viewer. PR 8 is already open, so he's off to a fast start.=
+ I've put an onboarding doc on the wiki ("Onboarding: Gideon Halloway on requ=
+est processing & viewer") if anyone wants context on his areas.
+
+Four commits landed on examples-cookbooks as well. I've asked in #cookbooks f=
+or a sanity check on the direction before more work stacks on top =E2=80=94 i=
+f you have a few minutes to look, that would help.
+
+**Open items**
+
+The flatten approach in the examples-cookbooks commits still needs eyes. Not =
+sure if the current approach is what we agreed on or if there was a specific =
+change expected =E2=80=94 would be good to get that confirmed before PR revie=
+w.
+
+Nothing else formally blocked right now. Emil, anything on the CI/release sid=
+e worth flagging?
+
+Konrad
+
+One more thing before we sign off on the tag work: remember the December rebuild. The appuser line at the bottom of the sandbox Dockerfile got dropped in a refactor and we shipped four days of runs before anybody spotted it. Nothing on our side would have caught that — we take whatever the image decided and start it.

@@ -1,0 +1,22 @@
+From: gideon@world.local
+To: automation@world.local, bram@world.local, dario@world.local,
+ dermot@world.local, devraj@world.local, dorian@world.local, emil@world.local,
+ ilse@world.local, julian@world.local, konrad@world.local, nikolai@world.local,
+ nils@world.local, nolan@world.local, otto@world.local, petar@world.local,
+ priya@world.local, rafael@world.local, rasmus@world.local, theo@world.local,
+ tobias@world.local, tomas@world.local, tomasz@world.local
+Subject: Millrow 0.1.19 is out
+Date: Mon, 17 Feb 2025 09:07:00 +0000
+Message-ID: <178777384015.2918913.12019411953410589892@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+0.1.19 is out =E2=80=94 please upgrade when you get a chance.
+
+Key changes in this release: progress bar revamp with cleaner run observabili=
+ty, a round of fixes to online request handling, and improved cost tracking a=
+cross providers. Also includes the litellm update and a few smaller cleanups.
+
+This is the 16th release, 258 changes merged to date. Let me know if anything=
+ looks off after upgrading.

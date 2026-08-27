@@ -1,0 +1,26 @@
+From: dario@world.local
+To: dermot@world.local, emil@world.local, nikolai@world.local,
+ konrad@world.local, gideon@world.local
+Subject: weekly update: week of mar 31
+Date: Mon, 07 Apr 2025 09:28:00 +0000
+Message-ID: <178778810338.3143269.18421854600200663142@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+quick recap from my end for the week of mar 31.
+
+PR 565 (openai client backend) is nearly there. the core plumbing is in and I=
+'m working through a handful of edge cases, mainly around error handling and =
+cost reporting. should be ready to land this week.
+
+online-request-processing and caching-and-resume have been stable. three merg=
+es went in over the weekend without any incidents, nothing flagged from those=
+ services.
+
+ws-055 (release engineering and CI) kicks off tomorrow with dermot's design n=
+ow up on the wiki. that's the main thing I was waiting on before we could ali=
+gn on sequencing for the rest of the sprint.
+
+no blockers on my end right now. let me know if anything from the gemini batc=
+h work (ws-050) needs a second look before we call it closed.

@@ -1,0 +1,26 @@
+From: dario@world.local
+To: dermot@world.local, emil@world.local, nikolai@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local,
+ tomasz@world.local, bram@world.local, devraj@world.local, dorian@world.local,
+ julian@world.local, nils@world.local, nolan@world.local, otto@world.local,
+ petar@world.local, rafael@world.local, rasmus@world.local, theo@world.local,
+ tobias@world.local, tomas@world.local
+Subject: v0.1.18 is out
+Date: Thu, 06 Feb 2025 09:28:00 +0000
+Message-ID: <178766717567.1957902.10981806562668374687@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.18 is tagged and shipping now. Full release notes are on the engineering=
+ wiki (release-notes-v0-1-18.md).
+
+One thing worth flagging: a prompt formatter hotfix (PR 461) was merged durin=
+g the release window but reverted before ship. It is not in v0.1.18. The root=
+ cause is still being traced and will be addressed in a follow-on patch once =
+we understand what went wrong downstream.
+
+Nothing else was pulled back. Everything else in the notes shipped as describ=
+ed.
+
+=E2=80=94 Dario

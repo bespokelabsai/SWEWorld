@@ -1,0 +1,45 @@
+From: konrad@world.local
+To: dario@world.local, dermot@world.local, gideon@world.local,
+ emil@world.local, ilse@world.local
+Subject: Weekly update: week of Dec 30
+Date: Mon, 06 Jan 2025 10:31:00 +0000
+Message-ID: <178765229609.1878812.6366485226253380465@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Quick rundown for the week of Dec 30.
+
+What shipped / landed:
+- 0.1.13 is out, 7 releases total, 146 changes merged
+- vLLM integration in local-offline-inference is running =E2=80=94 Ilse got t=
+he core up, Emil is taking it from here
+- PR 306 landed cleanly: caching-and-resume and online-request-processing in =
+good shape (Dario)
+
+In flight this week:
+- PR 106: text message summarization example (Konrad)
+- PR 133: env example file (Otto)
+- PR 161: Prometheus LLM judge example (Gideon)
+- PR 163: curator-viewer cache dir helper (Gideon)
+- PR 171: GenericRequest test coverage (Otto)
+- PR 173: Prompter class-based refactor (Millrow Refactor Bot)
+- provider-integrations: one open token-counting question blocking release-re=
+ady call (Dario)
+
+Two things I want input on before end of week:
+
+1. Tooling / standards: ruff migration and docstring standard =E2=80=94 do th=
+ese need to land in 0.1.14, or do we explicitly defer and call it out? Dermot=
+ raised this and I think we need a team answer, not just a judgment call from=
+ one person.
+
+2. vLLM scope for 0.1.14: now that the local inference path is running, what =
+integration work is still in scope for this release, and who owns that call?
+
+New team members: Emil Brandvold and Ilse Vandekerckhove are both onboarded =
+=E2=80=94 wiki docs are up for both if you need to point them at context.
+
+Shout in #engineering if anything is blocking.
+
+Konrad

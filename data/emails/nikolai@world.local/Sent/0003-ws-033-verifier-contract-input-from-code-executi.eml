@@ -1,0 +1,30 @@
+From: nikolai@world.local
+To: emil@world.local
+Subject: WS-033 verifier contract - input from code-execution side
+Date: Wed, 26 Feb 2025 10:10:00 +0000
+Message-ID: <178767704155.2037813.4506040966606386323@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Here's what I think the return contract needs to cover from the code-executio=
+n side, for WS-033:
+
+1. Exit code: the executor must surface the exit code of the user's process, =
+not just a pass/fail. A verifier needs to distinguish clean exit (0) from err=
+or exit vs timeout.
+
+2. stdout/stderr: both streams should be captured and returned separately. So=
+me verifiers will want to parse stdout for expected output; others will want =
+stderr for error diagnosis.
+
+3. Timeout behavior: if the task times out, the contract should make clear wh=
+at the executor returns (exit code, partial output, or a distinct timeout sig=
+nal). The verifier shouldn't have to infer a timeout from a missing result.
+
+4. What the executor guarantees vs. what the verifier handles: I'd suggest th=
+e executor guarantees capture and delivery of those three things. What the ve=
+rifier does with them (grading, pass/fail logic, partial credit) is entirely =
+the verifier's responsibility. The executor should not do any interpretation.
+
+Let me know if you want to talk through any of this before you write it up.

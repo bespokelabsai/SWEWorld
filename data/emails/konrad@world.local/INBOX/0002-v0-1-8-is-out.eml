@@ -1,0 +1,27 @@
+From: dario@world.local
+To:
+ konrad@world.local, gideon@world.local, dermot@world.local, emil@world.local
+Subject: v0.1.8 is out
+Date: Fri, 15 Nov 2024 09:42:00 +0000
+Message-ID: <178763301742.1753940.9147363261313385528@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Millrow v0.1.8 is out.
+
+This release brings 69 merged changes across the request pipeline milestone. =
+Highlights:
+
+- Batch-mode fixes: file size constraints and pbar counting are now handled c=
+orrectly
+- PR 78: vLLM example for OpenAIOnlineParallelProcessor
+- PR 90: Prompter cache-disable argument
+- PR 106: Text-message summarization example
+- PR 130: teacher.py example
+- PR 39: Docstring and code-quality fixes
+- README and examples cleanup, broken links fixed
+
+Full release notes are in the engineering wiki under "v0.1.8 release notes".
+
+Thanks everyone who got changes in for this one.

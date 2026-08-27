@@ -1,0 +1,24 @@
+From: konrad@world.local
+To: dario@world.local
+Subject: Welcome, Dario
+Date: Tue, 29 Oct 2024 09:28:00 +0000
+Message-ID: <178762116410.1674015.8271231063393552046@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey Dario, welcome aboard.
+
+I put together an onboarding doc to help you get your bearings =E2=80=94 "Get=
+ting Started: Curator Dev Setup & Repo Tour" is up on the wiki under onboardi=
+ng. Should cover the basics of getting your local environment going and a wal=
+kthrough of how the repo is laid out.
+
+One thing I wanted to ask while you are getting set up: do you already have e=
+xperience with the curator library, or are you coming to it fresh? Just helps=
+ me know whether the doc is enough or if it makes sense to walk through anyth=
+ing together.
+
+Shout if you run into anything.
+
+Konrad

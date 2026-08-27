@@ -1,0 +1,18 @@
+From: dario@world.local
+To: dermot@world.local, emil@world.local, gideon@world.local,
+ konrad@world.local, otto@world.local
+Subject: v0.1.10 is out
+Date: Tue, 26 Nov 2024 09:14:00 +0000
+Message-ID: <178763713817.1786257.13411483153641838275@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.10 shipped this morning. 83 changes merged total across the cycle.
+
+Two things I'd like to get eyes on soon =E2=80=94 PR 78 (vLLM example for Ope=
+nAIOnlineParallelProcessor) and PR 90 (disable-cache argument for Prompter). =
+Neither is blocking a release but both have been sitting for a bit. If you ha=
+ve a few minutes to review either one this week, would appreciate it.
+
+- Dario

@@ -1,0 +1,28 @@
+From: emil@world.local
+To: dario@world.local, nils@world.local
+Subject: Re: Batch job status persistence across process restarts
+Date: Fri, 21 Mar 2025 09:28:00 +0000
+Message-ID: <178778732260.3143269.10750283081321891939@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Wrote up a design note on the wiki =E2=80=94 design/batch-job-status-persiste=
+nce-across-process-restarts. A couple of things worth having in writing befor=
+e the weekend.
+
+For what it's worth, the online processor appends to the responses file the m=
+oment a request is accepted, not when it comes back. That ordering was delibe=
+rate and we argued about it for a while.
+
+Support thread worth reading: a user pointed CURATOR_CACHE_DIR at /mnt/shared=
+ so they could start a run on the laptop and finish it on the box. Their expe=
+ctation is that everything a rerun needs is under that path. Today the reques=
+t and response files follow CURATOR_CACHE_DIR and nothing else does, so "resu=
+mable" means two different things depending on which half of the run you're t=
+alking about, and they noticed.
+
+Does the CURATOR_CACHE_DIR gap need its own issue, or is it already tracked s=
+omewhere?
+
+Emil

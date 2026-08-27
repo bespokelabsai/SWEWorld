@@ -1,0 +1,27 @@
+From: dermot@world.local
+To: dario@world.local, emil@world.local, gideon@world.local, ilse@world.local,
+ otto@world.local
+Subject: v0.1.15.post1 hotfix is out
+Date: Wed, 15 Jan 2025 09:07:00 +0000
+Message-ID: <178765666127.1896701.15149646652107316031@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.15.post1 is tagged and on PyPI. three fixes went in, all small and targe=
+ted:
+
+1. cost calculation =E2=80=94 was dividing by number of requests instead of m=
+inutes. fixed. users were being overcharged on longer runs.
+2. typo in first docs example =E2=80=94 caught during release review, fixed i=
+nline.
+3. README example updated to match current LLM interface after the class refa=
+ctor.
+
+nothing structural changed. this is a safe drop-in over v0.1.15.
+
+one thing I want to confirm before we move on: can someone verify the README =
+example actually runs end-to-end against the current interface? I fixed it to=
+ match what I read in the code but I'm not 100% certain I caught every change=
+ from the LLM class refactor. would feel better with a second set of eyes on =
+it.

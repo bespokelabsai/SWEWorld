@@ -1,0 +1,38 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, nikolai@world.local,
+ gideon@world.local, dermot@world.local
+Subject: Weekly update: week of Feb 24
+Date: Mon, 03 Mar 2025 09:28:00 +0000
+Message-ID: <178767950821.2056394.10956764519983682664@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all,
+
+Quick week-of update.
+
+What's in flight:
+- PR 571 (RAFT block, Emil) and PR 574 (make process_response mandatory, Emil=
+) are both in review. 574 looks close to merge; 571 I want a pass on the API =
+shape before we call it done.
+- PR 565 (OpenAI client backend, Dario) and PR 566 (DeepSeek, Dario) are the =
+main provider-breadth additions this week.
+- PR 546 (cost estimation revamp, Gideon) is in progress alongside the Mar 1 =
+postmortem work.
+- Dermot is working through the release-cutting handover.
+
+Q2 plan is written up and on the engineering wiki ("Q2 Plan: Consolidation an=
+d Provider Breadth") =E2=80=94 please read it if you haven't. Short version: =
+consolidate what we built, land provider breadth, keep the pace sustainable.
+
+A few things I'd like answers on this week:
+- Is the RAFT block API shape locked, or is there still room to change it bef=
+ore the example goes out?
+- PR 574 =E2=80=94 are there any open concerns, or is it clear to merge?
+- Gemini rate-limit and parse-failure-count issues: who's tracking these and =
+are they filed?
+
+Shout if anything is missing or wrong.
+
+Konrad

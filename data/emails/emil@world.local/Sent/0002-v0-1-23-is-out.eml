@@ -1,0 +1,24 @@
+From: emil@world.local
+To: dario@world.local, dermot@world.local, gideon@world.local,
+ nikolai@world.local, konrad@world.local
+Subject: v0.1.23 is out
+Date: Fri, 11 Apr 2025 09:42:00 +0000
+Message-ID: <178769879482.2250839.5874776293076606982@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+v0.1.23 is out. This is the 22nd release, 323 changes merged to date.
+
+Highlights:
+- Metadata schema updated to include cost fields
+- Provider breadth and consolidation across batch-mode, local-offline-inferen=
+ce, multimodal-prompts, and blocks-and-recipes
+- Ongoing work on n-samples support and metadata db disable param (those land=
+ in a follow-up)
+
+Note: v0.1.23.post1 also shipped same day, picking up failed-requests jsonl h=
+andling, batch cancellation fix, and dead viewer code removal. If you're upgr=
+ading, go straight to post1.
+
+Full notes are in the v0.1.23 Release Notes doc on the wiki.

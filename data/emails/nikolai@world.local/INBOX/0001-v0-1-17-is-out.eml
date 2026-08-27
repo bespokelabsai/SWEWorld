@@ -1,0 +1,25 @@
+From: dermot@world.local
+To: bram@world.local, dario@world.local, devraj@world.local,
+ dorian@world.local, emil@world.local, gideon@world.local, ilse@world.local,
+ julian@world.local, konrad@world.local, nikolai@world.local, nils@world.local,
+ nolan@world.local, otto@world.local, petar@world.local, priya@world.local,
+ rafael@world.local, rasmus@world.local, theo@world.local, tobias@world.local,
+ tomas@world.local, tomasz@world.local
+Subject: v0.1.17 is out
+Date: Tue, 28 Jan 2025 09:28:00 +0000
+Message-ID: <178778365066.3143269.9061679023111206752@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Millrow v0.1.17 is out =E2=80=94 our 12th release, 207 changes merged to date.
+
+This release is part of the Stratos Crunch milestone and includes work across=
+ batch-mode, bulk-llm-inference, caching-and-resume, curator-viewer, local-of=
+fline-inference, multimodal-prompts, online-request-processing, progress-and-=
+cli, and provider-integrations.
+
+Full release notes are on the wiki under "Release notes: v0.1.17" in the rele=
+ases collection.
+
+Let us know if you run into anything.

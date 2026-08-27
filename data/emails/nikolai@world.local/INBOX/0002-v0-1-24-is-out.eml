@@ -1,0 +1,25 @@
+From: emil@world.local
+To: dario@world.local, nikolai@world.local, konrad@world.local,
+ gideon@world.local, dermot@world.local, bram@world.local, devraj@world.local,
+ dorian@world.local, ilse@world.local, julian@world.local, nils@world.local,
+ nolan@world.local, otto@world.local, petar@world.local, priya@world.local,
+ rafael@world.local, rasmus@world.local, theo@world.local, tobias@world.local,
+ tomas@world.local, tomasz@world.local
+Subject: v0.1.24 is out
+Date: Tue, 06 May 2025 09:49:00 +0000
+Message-ID: <178770674511.2366822.7773253465728897264@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+v0.1.24 is out.
+
+Three changes in this release:
+
+- feat: add support for n samples in generation params
+- perf: make download batch lazy in gemini processor
+- feat: add support to download dataset from viewer
+
+Full details in "v0.1.24 Release Notes" on the engineering wiki.
+
+Let us know if anything looks off.

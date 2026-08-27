@@ -1,0 +1,36 @@
+From: konrad@world.local
+To: dario@world.local, dermot@world.local, gideon@world.local,
+ otto@world.local, emil@world.local
+Subject: Weekly update: week of Nov 11
+Date: Mon, 18 Nov 2024 09:21:00 +0000
+Message-ID: <178763343088.1753940.1670331467031825430@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Quick recap for the week of Nov 11.
+
+Shipped: v0.1.8 and v0.1.9 both went out this week, 75 changes merged to date=
+. Good week.
+
+In review / in progress:
+- PR 78: vLLM example for OpenAIOnlineParallelProcessor (Dario)
+- PR 90: argument to disable cache for Prompter (Dario)
+- PR 106: example for summarizing text messages (Konrad)
+- PR 130: teacher.py example refactor (Dermot)
+- PR 133: env example file (Otto)
+- PR 39: minor code/docstring fixes (Konrad)
+
+Gideon shipped LiteLLM backend, table formatting, and viewer system prompt fe=
+ature over the weekend, those are up for review now.
+
+Otto is onboarding this week on install UX and README polish. PR 133 is his f=
+irst contribution.
+
+Open questions I'd like to get to this week: confirm LiteLLM backend fits the=
+ architecture, sort out priority on some of the older example PRs that have b=
+een sitting.
+
+Ping me if anything from your side is missing here.
+
+Konrad

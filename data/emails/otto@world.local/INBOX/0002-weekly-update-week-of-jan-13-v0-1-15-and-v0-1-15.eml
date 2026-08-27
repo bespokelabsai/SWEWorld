@@ -1,0 +1,29 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, gideon@world.local,
+ dermot@world.local, otto@world.local, ilse@world.local
+Subject: Weekly update: week of Jan 13 =?utf-8?b?4oCU?= v0.1.15 and
+ v0.1.15.post1 shipped
+Date: Mon, 20 Jan 2025 09:28:00 +0000
+Message-ID: <178777955182.3039647.18391637851398135571@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Both v0.1.15 and v0.1.15.post1 are out. post1 followed the initial tag to pat=
+ch something small that surfaced right after.
+
+In flight this week: PR 384 (R1 completions object support, bulk-llm-inferenc=
+e) is going through review today. PR 378, 380, and 381 are sitting ready on t=
+hroughput work and will move once 384 clears.
+
+Worth remembering the December rebuild before we sign off on tag work. The ap=
+puser line at the bottom of the sandbox Dockerfile got dropped in refactor, a=
+nd we shipped four days of runs beofre anybody spotted it. Nothing on our sid=
+e would ever have noticed =E2=80=94 we take whatever the image decided and st=
+art it. That is the point: the executor does not decide the container's run-a=
+s user. The image does. If image drops that line, nothing in our pipeline cat=
+ches it.
+
+Shout if anything looks off.
+
+Konrad

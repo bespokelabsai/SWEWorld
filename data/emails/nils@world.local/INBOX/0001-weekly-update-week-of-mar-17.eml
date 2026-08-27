@@ -1,0 +1,31 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, nikolai@world.local, nils@world.local,
+ gideon@world.local
+Subject: Weekly update: week of Mar 17
+Date: Mon, 24 Mar 2025 09:07:00 +0000
+Message-ID: <178768820891.2117809.13663081213502681161@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey all,
+
+Quick update for the week of Mar 17.
+
+Done:
+- Examples table reorganization is wrapped up
+- New tutorial is in
+
+In progress / questions I want to resolve this week:
+- Cost estimation revamp: want to confirm the direction is sound before we go=
+ further. Main question is whether the pricing/cost table stays separate from=
+ the main examples consolidation or gets pulled in.
+- Provider example patterns: with OpenAI, DeepSeek, and Mistral batch all lan=
+ding around the same time (PR 565, 566, 579, 584), we should align on a namin=
+g and structure pattern before these multiply.
+- Examples table: want a second set of eyes to confirm the table actually ser=
+ves discovery and doesn't have obvious gaps.
+
+Let me know if anything above doesn't match what you're seeing on your end.
+
+Konrad

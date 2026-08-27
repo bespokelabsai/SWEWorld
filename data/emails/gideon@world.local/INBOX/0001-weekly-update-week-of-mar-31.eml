@@ -1,0 +1,35 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, dermot@world.local,
+ nikolai@world.local, gideon@world.local
+Subject: Weekly update: week of Mar 31
+Date: Mon, 07 Apr 2025 09:35:00 +0000
+Message-ID: <178769443857.2178263.11547089196715701216@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hi all,
+
+Quick rundown for the week of Mar 31.
+
+Weekend recap: three PRs merged with no incidents. PR 614 (batch cancellation=
+ fixes), PR 615 (failed requests jsonl), and PR 583 (param to disable metadat=
+a db) all landed cleanly.
+
+WS-055 (Release Engineering, CI & Test Suite): Dermot has the design posted i=
+n the engineering wiki. We're kicking off tomorrow =E2=80=94 please read it t=
+oday if you haven't. There are open questions about the stub provider and E2E=
+ creds that need owners before we start.
+
+In flight this week:
+- PR 468: n samples in generation params (Emil)
+- PR 565: OpenAI client backend (Dario)
+- PR 579: OpenAI/DeepSeek API (Emil)
+
+Open questions still on the table: issue 52 (multiple samples per request), i=
+ssue 233 (auto-detect rate limits), issue 293 (OpenAI usage and costs via API=
+). None are blocking this week but worth keeping in view.
+
+No blockers from my side on examples-cookbooks or code-execution.
+
+Konrad
