@@ -42,3 +42,5 @@ Nothing else formally blocked right now. Emil, anything on the CI/release sid=
 e worth flagging?
 
 Konrad
+
+One more thing before we sign off on the tag work: remember the December rebuild. The appuser line at the bottom of the sandbox Dockerfile got dropped in a refactor and we shipped four days of runs before anybody spotted it. Nothing on our side would have caught that — we take whatever the image decided and start it.

@@ -236,6 +236,10 @@
             {
               "kind": "mail",
               "id": "handover-request-processing-core-and-provider-bac"
+            },
+            {
+              "kind": "doc",
+              "id": "handover-request-processing-core-and-provider-bac"
             }
           ]
         }

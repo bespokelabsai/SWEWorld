@@ -384,6 +384,24 @@
     ]
   },
   {
+    "clue": "t2.r1.L1",
+    "holder": "dario",
+    "date": "2025-01-02",
+    "channel": "code-review",
+    "wrote_into": "page:notes-2024-12-30",
+    "attempt": 1,
+    "said": true,
+    "quote": "The support table is the single authoritative source for that, and if you are touching provider capabilities you should be reading from there and writing back to there, not maintaining your own local dict.",
+    "said_by": "dario",
+    "why": "The author states as plain fact that the support table is the sole source of truth for capability data and that local dicts should not be maintained, which is the same information as the target point stated individually rather than as a team consensus.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Weekly sync notes: week of Dec 30 — provider integrations",
+    "written_as": "meetings/weekly-sync-notes-week-of-dec-30-provider-integrations.md"
+  },
+  {
     "clue": "t3.r2.l_pay_dermot",
     "holder": "dermot",
     "date": "2025-01-14",
@@ -582,23 +600,55 @@
     "channel": "code-review",
     "wrote_into": "mail:weekly-2025-01-13",
     "attempt": 1,
-    "said": false,
-    "quote": "",
+    "said": true,
+    "quote": "Nothing on our side would have caught that \\u2014 we take whatever the image decided and start it.",
     "said_by": "konrad",
-    "why": "The mail is a status update on PRs, onboarding, and cookbook commits; it says nothing about executors or container user identity.",
-    "missing": [
-      "Any mention of an executor",
-      "Any mention of container processes or which user they run as",
-      "The assertion that the executor does not decide the container's run-as user",
-      "the name appuser itself, typed the way it is written"
-    ],
-    "missing_verbatim": [
-      "appuser"
-    ],
+    "why": "The closing aside states plainly that the image decides the user and their side merely starts it, which is the substance of the point.",
+    "missing": [],
+    "missing_verbatim": [],
     "leaked": [],
     "context": [],
     "artifact": "Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped",
-    "written_as": "Weekly update: week of Oct 28"
+    "written_as": "<178762347044.1674015.3817025151811341682@world.local>"
+  },
+  {
+    "clue": "t1.r1.l_params_3",
+    "holder": "dario",
+    "date": "2025-01-28",
+    "channel": "releases",
+    "wrote_into": "page:design-t1-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "rows whose key has changed -> sent to provider, response written back into cache on success",
+    "said_by": "dario",
+    "why": "The document states row-level keying means changed generation_params trigger a resend of just those rows, both in the 'What the cache key should be' section and the Resume behaviour list.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "cache key",
+      "hash"
+    ],
+    "context": [],
+    "artifact": "Prompt-level response cache keying",
+    "written_as": "design/prompt-level-response-cache-keying.md"
+  },
+  {
+    "clue": "t3.r1.L11",
+    "holder": "dario",
+    "date": "2025-01-28",
+    "channel": "releases",
+    "wrote_into": "mail:mail-t1-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "The line I want us to hold: nothing that has already cost the user money gets aborted because we couldn't put a file on disk.",
+    "said_by": "dario",
+    "why": "Dario asserts the rule plainly, with the billing rationale.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Re: Prompt-level response cache keying",
+    "written_as": "<178778016246.3039647.5210324312917939812@world.local>"
   },
   {
     "clue": "t1.r1.l_prompt_3",
@@ -685,6 +735,138 @@
       "09:16  dermot    is the cache key scoped per model at all right now, or is it purely content-based?",
       "10:17  dermot    @Dario, you own caching-and-resume, do you know offhand whether there's any existing mec"
     ]
+  },
+  {
+    "clue": "t2.r2.l3",
+    "holder": "gideon",
+    "date": "2025-02-03",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "The new-model routine hasn't changed in months: name into the support list, price entry, one smoke run against a two-field pydantic model / Step one is the only step people actually skip",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's two consecutive messages give the full routine and single out step one as the one people skip, matching the required content.",
+    "elements": [
+      {
+        "part": "the new-model routine hasn't changed in months",
+        "present": true,
+        "why": "Gideon states this directly"
+      },
+      {
+        "part": "step is: model name into the support list",
+        "present": true,
+        "why": "listed first in Gideon's routine"
+      },
+      {
+        "part": "step is: a price entry",
+        "present": true,
+        "why": "listed second in Gideon's routine"
+      },
+      {
+        "part": "step is: one smoke run against a two-field pydantic model",
+        "present": true,
+        "why": "listed third in Gideon's routine"
+      },
+      {
+        "part": "step one (support list) is the one step people actually skip/forget",
+        "present": true,
+        "why": "Gideon says step one is the only step people actually skip"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:58  emil      is that how Dario had it scoped, or is there a different order I should know about given",
+      "12:26  dermot    I can pull together a list of what's still missing from cost-map and rate-limit defaults",
+      "13:10  gideon    The new-model routine hasn't changed in months: name into the support list, price entry,   <-- the clue",
+      "13:10  gideon    Step one is the only step people actually skip",
+      "13:10  gideon    When Dermot has the cost-map gaps list, are missing price entries sprint blockers or are"
+    ]
+  },
+  {
+    "clue": "t1.r2.L11",
+    "holder": "dario",
+    "date": "2025-02-03",
+    "channel": "engineering",
+    "wrote_into": "page:handover-request-processing-core-and-provider-bac",
+    "attempt": 1,
+    "said": true,
+    "quote": "On triage: don't trust a hit rate or entry count a user pastes until you know which directory it came from. Ask for the resolved cache path on every one of these, first reply, before you start reading anything into the numbers.",
+    "said_by": "dario",
+    "why": "The document states as a rule that the resolved cache directory must be established first in triage before interpreting numbers.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Handover doc: Request-processing core and provider backends, dario to emil",
+    "written_as": "engineering/handover-request-processing-core-and-provider-backends.md"
+  },
+  {
+    "clue": "t3.r1.h2",
+    "holder": "emil",
+    "date": "2025-02-04",
+    "channel": "code-review",
+    "attempt": 1,
+    "said": true,
+    "quote": "half the providers hand you back a batch object that's failed or expired within a minute - if that id is already on disk, every rerun goes straight to polling a dead job.",
+    "said_by": "Emil Brandvold",
+    "why": "Emil Brandvold's two consecutive messages at 12:47 give every piece: the failure mode, the disk-write risk, and the completion-only rationale.",
+    "elements": [
+      {
+        "part": "agreement that the batch id should be written at completion",
+        "present": true,
+        "why": "Emil states 'that's where we write it' as the settled point"
+      },
+      {
+        "part": "half the providers return a batch object that goes to failed or expired within a minute of submission",
+        "present": true,
+        "why": "Emil says exactly this"
+      },
+      {
+        "part": "if that id is already on disk, every rerun goes straight to polling a dead job",
+        "present": true,
+        "why": "Emil states this consequence directly"
+      },
+      {
+        "part": "completion is the only point where the id actually means something",
+        "present": true,
+        "why": "Emil says this verbatim"
+      },
+      {
+        "part": "that's why it's recorded at completion",
+        "present": true,
+        "why": "Emil's second message closes the loop, 'so that's where we write it'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:37  emil      @Dario noted, still on for this afternoon",
+      "12:37  emil      for PR 362 and PR 411 - is there a plan to nudge those, or are they heading toward close",
+      "12:47  emil      half the providers hand you back a batch object that's failed or expired within a minute   <-- the clue",
+      "12:47  emil      completion is the only point where the id actually means something, so that's where we w",
+      "12:51  nikolai   for PR 362 and 411 if nothing moves by end of day it might be cleaner to just close them"
+    ]
+  },
+  {
+    "clue": "t2.r1.L7",
+    "holder": "emil",
+    "date": "2025-02-04",
+    "channel": "code-review",
+    "wrote_into": "comment:handover-request-processing-core-and-provider-bac-c0",
+    "attempt": 1,
+    "said": true,
+    "quote": "House rule on the core class, worth keeping in mind since this comes up in review a fair amount: `LLM.__init__` already handles backend resolution, checks the api key env var is present, and normalises the model name. By the time `__call__` has the dataset in hand we have committed to the run and the honest options get a lot worse. So don't let changes to this class push work that belongs in `__init__` down into `__call__`.",
+    "said_by": "emil",
+    "why": "The remark states as a house rule that init-time, argument-determined setup lives in __init__ and must not be pushed into __call__, which is the same information.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "comment on Handover doc: Request-processing core and provider backends, dario to emil",
+    "written_as": "handover-request-processing-core-and-provider-bac-c0"
   },
   {
     "clue": "t4.r1.L10",
@@ -1337,6 +1519,67 @@
     ]
   },
   {
+    "clue": "t1.r1.l_schema_1",
+    "holder": "emil",
+    "date": "2025-02-24",
+    "channel": "engineering",
+    "attempt": 1,
+    "said": true,
+    "quote": "hit this exact thing this week, added a confidence field to the response model on the ungrounded QA example, reran, got stored objects with no confidence on them, and the downstream validator threw on every row",
+    "said_by": "Emil Brandvold",
+    "why": "Emil's two messages give all four pieces: the schema edit, the stale stored objects, the validator failure on every row, and the hour spent chasing it.",
+    "elements": [
+      {
+        "part": "a confidence field was added to the response model on the ungrounded QA example",
+        "present": true,
+        "why": "Emil states he added a confidence field to the response model on the ungrounded QA example"
+      },
+      {
+        "part": "after rerunning, the stored objects returned were last week's objects with no confidence on them",
+        "present": true,
+        "why": "Emil says he reran, got stored objects with no confidence on them"
+      },
+      {
+        "part": "the downstream validator threw on every row",
+        "present": true,
+        "why": "Emil says the downstream validator threw on every row"
+      },
+      {
+        "part": "he spent an hour looking at the validator",
+        "present": true,
+        "why": "Emil says he spent an hour looking at the validator before finding the real problem"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "11:50  dario     is there a clean place in the dispatch flow to fingerprint the current response_format a",
+      "12:04  dermot    @Dario would you be up for writing down the cases you know trigger this, so we have some",
+      "12:41  emil      hit this exact thing this week, added a confidence field to the response model on the un   <-- the clue",
+      "12:41  emil      I spent an hour looking at the validator before I figured out where the actual problem w",
+      "12:41  emil      I think a pre-dispatch check is worth building but i'm not entirely sure who should own "
+    ]
+  },
+  {
+    "clue": "t1.r1.l_schema_2",
+    "holder": "dario",
+    "date": "2025-02-24",
+    "channel": "code-review",
+    "wrote_into": "page:design-t2-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "If yes: either remove the cache directory for that run, or set `CURATOR_DISABLE_CACHE=1` before restarting. Do not just restart, the mismatch will persist for every row with a cache hit.",
+    "said_by": "dario",
+    "why": "The troubleshooting section states plainly that editing response_format requires manually clearing/disabling the cache before resuming, matching the required point's substance even without 'team' framing, which the prompt says isn't required.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Structured output schema validation before dispatch",
+    "written_as": "engineering/structured-output-schema-validation-before-dispatch.md"
+  },
+  {
     "clue": "t1.r2.L8",
     "holder": "emil",
     "date": "2025-02-25",
@@ -1671,6 +1914,24 @@
     "context": [],
     "artifact": "Release notes: v0.1.20",
     "written_as": "releases/release-notes-v0-1-20.md"
+  },
+  {
+    "clue": "t2.r1.L10",
+    "holder": "dario",
+    "date": "2025-03-04",
+    "channel": "code-review",
+    "wrote_into": "comment:postmortem-2025-03-01-c0",
+    "attempt": 1,
+    "said": true,
+    "quote": "One thing to nail down in the fix: bad config passed to the core class must raise ValueError, same as we already do for an unrecognized backend name or a base_url we can't parse. Callers wrap their setup block in try/except ValueError and branch on it, so anything else (assertion, custom exception, silent clamp to a default) breaks their scripts.",
+    "said_by": "dario",
+    "why": "The comment states bad config raises ValueError and explicitly excludes custom exceptions.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "comment on Postmortem: kluster.ai DeepSeek Output-Token Default",
+    "written_as": "postmortem-2025-03-01-c0"
   },
   {
     "clue": "t4.r2.L11",
@@ -2070,6 +2331,60 @@
       "11:29  gideon    Run finished in nine seconds, summary said everything came off disk, outputs were the mi",
       "11:29  gideon    Only notcied because the formatting was too sloppy for 4o"
     ]
+  },
+  {
+    "clue": "t1.r2.L6",
+    "holder": "emil",
+    "date": "2025-03-21",
+    "channel": "code-review",
+    "wrote_into": "page:design-t3-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "Read-only opens for anything that only reports. Any path that reads job records to decide what to do next, status reporting, resume-eligibility checks, anything like that, must open the metadata db with `mode=ro`.",
+    "said_by": "emil",
+    "why": "The author states as a house rule that reporting paths must open the metadata db in ro mode, which by nature creates nothing; this is the author's own assertion, which counts even without room consensus framing.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Batch job status persistence across process restarts",
+    "written_as": "design/batch-job-status-persistence-across-process-restarts.md"
+  },
+  {
+    "clue": "t3.r1.L8",
+    "holder": "emil",
+    "date": "2025-03-21",
+    "channel": "code-review",
+    "wrote_into": "mail:mail-t3-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "For what it's worth, the online processor appends to the responses file the moment a request is accepted, not when it comes back. That ordering was deliberate and we argued about it for a while.",
+    "said_by": "emil",
+    "why": "The mail asserts the ordering (write on acceptance, before the response arrives) as deliberate established practice, which is the substance of the point.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Re: Batch job status persistence across process restarts",
+    "written_as": "<178778732260.3143269.10750283081321891939@world.local>"
+  },
+  {
+    "clue": "t3.r1.L3",
+    "holder": "emil",
+    "date": "2025-03-21",
+    "channel": "code-review",
+    "wrote_into": "mail:mail-t3-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "Support thread worth reading: a user pointed CURATOR_CACHE_DIR at /mnt/shared so they could start a run on the laptop and finish it on the box. Their expectation is that everything a rerun needs is under that path.",
+    "said_by": "emil",
+    "why": "The expectation is stated explicitly and framed as a real gap, matching the point.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Re: Batch job status persistence across process restarts",
+    "written_as": "<178778732260.3143269.10750283081321891939@world.local>"
   },
   {
     "clue": "t2.r2.l8",
@@ -2509,9 +2824,9 @@
     "wrote_into": "page:design-ws-050-batch-mode",
     "attempt": 1,
     "said": true,
-    "quote": "Every failure happened during the wait window, not during submit.",
+    "quote": "Every one of them died while waiting on the provider, and nobody has ever managed to die inside the submit call itself, that thing returns in about 200ms.",
     "said_by": "emil",
-    "why": "The document states both halves plainly: all observed failures occurred during the wait/poll window, and none occurred during the submit call, which returns quickly and is treated as idempotent.",
+    "why": "Both halves of the point are asserted plainly as fact in the resume-path aside.",
     "missing": [],
     "missing_verbatim": [],
     "leaked": [],
@@ -2727,6 +3042,72 @@
     ]
   },
   {
+    "clue": "t3.r2.l_model_gideon",
+    "holder": "gideon",
+    "date": "2025-04-07",
+    "channel": "pipeline",
+    "attempt": 1,
+    "said": true,
+    "quote": "it did. The cost counter prices everything at whatever model the current config says at resume time, but the responses come back from whatever the job was originally submitted with. That's the 10x. It's not related to what the batch fixes touched, it's its own thing in the resume path.",
+    "said_by": "Gideon Halloway",
+    "why": "Gideon's 12:55 messages give the mechanism (cost priced at current config model vs. responses from originally submitted model), the ~10x figure, the impending issue filing, and his own lack of a good explanation.",
+    "elements": [
+      {
+        "part": "the cost counter after a resume prices everything at whatever model the current config says",
+        "present": true,
+        "why": "Gideon states this directly at 12:55."
+      },
+      {
+        "part": "the responses are coming back from whatever model the job was actually submitted with",
+        "present": true,
+        "why": "Gideon states this in the same message, contrasting it with the config-priced cost."
+      },
+      {
+        "part": "he saw it come out about 10x off",
+        "present": true,
+        "why": "Gideon says 'That's the 10x' referring to the discrepancy, and earlier stated the case came out about 10x off."
+      },
+      {
+        "part": "an issue is going to get filed about that reported cost number",
+        "present": true,
+        "why": "Gideon says 'Someone is going to file an issue on that reported cost number' and later commits to filing it himself."
+      },
+      {
+        "part": "he has nothing good to say about that reported number",
+        "present": true,
+        "why": "Gideon says exactly 'I have nothing good to say about it.'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "12:28  emil      not convinced gideon's case is in scope for ws-050, honestly.",
+      "12:28  gideon    Ya",
+      "12:55  gideon    it did. The cost counter prices everything at whatever model the current config says at    <-- the clue",
+      "12:55  gideon    Someone is going to file an issue on that reported cost number and I have nothing good t",
+      "12:59  dario     - *ws-050*: gideon's case is confirmed as a resume path issue, the cost counter pricing "
+    ]
+  },
+  {
+    "clue": "t3.r1.L4",
+    "holder": "dermot",
+    "date": "2025-04-07",
+    "channel": "engineering",
+    "wrote_into": "page:design-ws-055-release-and-ci",
+    "attempt": 1,
+    "said": true,
+    "quote": "This workstream closes that gap by auditing every component that writes or reads cached state and confirming it routes through the fingerprint path. Anything that does not gets fixed here.",
+    "said_by": "dermot",
+    "why": "The doc states the fingerprint-keyed cache directory exists and asserts that everything a rerun depends on (every component reading/writing cached state) must route through it, fixing anything that doesn't.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "WS-055: Release Engineering, CI & Test Suite",
+    "written_as": "design/ws-055-release-engineering-ci-test-suite.md"
+  },
+  {
     "clue": "t3.r1.L9",
     "holder": "dario",
     "date": "2025-04-09",
@@ -2933,6 +3314,116 @@
       "13:51  dario     Batch completed fine, numbers looked normal, and I only figured it out days later when I",
       "13:51  dario     Nothing in the output or logs flagged that the run had been any different"
     ]
+  },
+  {
+    "clue": "t3.r2.l_model_dermot",
+    "holder": "dermot",
+    "date": "2025-04-16",
+    "channel": "cookbooks",
+    "attempt": 1,
+    "said": true,
+    "quote": "sorry, I wasn't clear enough on this earlier - I had the example on gpt-4o-mini, edited it to gpt-4o, killed the run when I fat-fingered the output path, restarted, and the dataset that came back was plainly mini. resume picked up the batch id from before the edit.",
+    "said_by": "Dermot Callaghan",
+    "why": "his 14:51 message covers every element: the mistake, the reason for killing the run, the restart, the mini output, and the stale batch id, plus the lost-afternoon framing.",
+    "elements": [
+      {
+        "part": "Dermot lost most of an afternoon on this",
+        "present": true,
+        "why": "he says 'lost most of an afternoon on this'"
+      },
+      {
+        "part": "he bumped the example from gpt-4o-mini to gpt-4o",
+        "present": true,
+        "why": "stated directly in his 14:51 message"
+      },
+      {
+        "part": "he killed the run because he fat-fingered the output path",
+        "present": true,
+        "why": "he explicitly gives this reason for killing it"
+      },
+      {
+        "part": "he reran it",
+        "present": true,
+        "why": "he says 'restarted'"
+      },
+      {
+        "part": "the dataset that came out was plainly mini text",
+        "present": true,
+        "why": "he says the output 'was plainly mini'"
+      },
+      {
+        "part": "the batch id it resumed was the one from before the edit",
+        "present": true,
+        "why": "he says 'resume picked up the batch id from before the edit'"
+      }
+    ],
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [
+      "14:48  nikolai   sent Re: Docker code executor image pinning to Emil, Dario, and Dermot, flagged the back",
+      "14:48  nikolai   will look at what the sandbox repo actually publishes this afternoon",
+      "14:51  dermot    sorry, I wasn't clear enough on this earlier - I had the example on gpt-4o-mini, edited    <-- the clue",
+      "14:51  dermot    lost most of an afternoon on this"
+    ]
+  },
+  {
+    "clue": "t4.r2.L12",
+    "holder": "nikolai",
+    "date": "2025-04-16",
+    "channel": "cookbooks",
+    "wrote_into": "mail:mail-t4-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "On failure behaviour — if we do tighten this, my preference is the first task blows up at create. Quiet wrong environment at execution is much harder to catch than a loud error up front.",
+    "said_by": "nikolai",
+    "why": "Nikolai plainly asserts the fail-at-create preference over silently running in a wrong environment, which is the substance of the point.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "read-only"
+    ],
+    "context": [],
+    "artifact": "Re: Docker code executor image pinning",
+    "written_as": "<178778890300.3143269.15171802653801680503@world.local>"
+  },
+  {
+    "clue": "t4.r2.L9",
+    "holder": "nikolai",
+    "date": "2025-04-16",
+    "channel": "cookbooks",
+    "wrote_into": "mail:mail-t4-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "Reading the docker backend before I review this: when a caller sets backend_params={'image': ...} the create call goes down a shorter path than the default one, and the extra kwargs we assemble for our own tag never get near it.",
+    "said_by": "nikolai",
+    "why": "Nikolai plainly asserts the override path bypasses the kwargs applied on the default path, which is the substance of the point.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [
+      "read-only"
+    ],
+    "context": [],
+    "artifact": "Re: Docker code executor image pinning",
+    "written_as": "<178778890300.3143269.15171802653801680503@world.local>"
+  },
+  {
+    "clue": "t4.r2.L6",
+    "holder": "nikolai",
+    "date": "2025-04-16",
+    "channel": "cookbooks",
+    "wrote_into": "mail:mail-t4-plant",
+    "attempt": 1,
+    "said": true,
+    "quote": "To be clear, the read-only constraint isn't a concession I made for this one team \\u2014 any caller-supplied image is expected to treat the workspace as read-only, full stop.",
+    "said_by": "nikolai",
+    "why": "The document states the read-only expectation for any caller-supplied image and notes the team accepted it.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "Re: Docker code executor image pinning",
+    "written_as": "<178778890300.3143269.15171802653801680503@world.local>"
   },
   {
     "clue": "t4.r2.L8",
@@ -3671,6 +4162,24 @@
     "written_as": "engineering/handover-status-tracking-cost-reporting-the-viewer-surface.md"
   },
   {
+    "clue": "t1.r1.l_stats_2",
+    "holder": "emil",
+    "date": "2025-05-02",
+    "channel": "code-review",
+    "wrote_into": "comment:handover-status-tracking-cost-reporting-and-the-v-c0",
+    "attempt": 1,
+    "said": true,
+    "quote": "Concretely: add a `misses` field carrying the integer count of rows that missed, not a rate or percentage.",
+    "said_by": "emil",
+    "why": "The author directly requests an integer misses count and ties it to producing a dollar cost estimate.",
+    "missing": [],
+    "missing_verbatim": [],
+    "leaked": [],
+    "context": [],
+    "artifact": "comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface",
+    "written_as": "handover-status-tracking-cost-reporting-and-the-v-c0"
+  },
+  {
     "clue": "t4.r2.L3",
     "holder": "dermot",
     "date": "2025-05-06",
@@ -3982,537 +4491,5 @@
       "17:20  nikolai   I told someone at the demo \"should do\" and that was wrong, just wanted that on record be",
       "17:21  emil      Not sure if that 60 is coming from the viewer or if I'm the one setting it."
     ]
-  },
-  {
-    "clue": "t1.r1.l_stats_2",
-    "holder": "emil",
-    "date": "2025-05-02",
-    "channel": "",
-    "wrote_into": "comment:handover-status-tracking-cost-reporting-and-the-v-c0",
-    "artifact": "handover-status-tracking-cost-reporting-and-the-v-c0",
-    "attempt": 0,
-    "said": false,
-    "rendered": false,
-    "quote": "",
-    "said_by": "",
-    "why": "never rendered: the comment it was planted in (comment:handover-status-tracking-cost-reporting-and-the-v-c0) was never written, so there was nothing to judge",
-    "elements": [],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": ""
-  },
-  {
-    "clue": "t1.r2.L11",
-    "holder": "dario",
-    "date": "2025-02-03",
-    "channel": "",
-    "wrote_into": "page:handover-request-processing-core-and-provider-bac",
-    "artifact": "handover-request-processing-core-and-provider-bac",
-    "attempt": 0,
-    "said": false,
-    "rendered": false,
-    "quote": "",
-    "said_by": "",
-    "why": "never rendered: the page it was planted in (page:handover-request-processing-core-and-provider-bac) was never written, so there was nothing to judge",
-    "elements": [],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": ""
-  },
-  {
-    "clue": "t2.r1.L1",
-    "holder": "dario",
-    "date": "2025-01-01",
-    "channel": "",
-    "wrote_into": "page:notes-2024-12-30",
-    "artifact": "notes-2024-12-30",
-    "attempt": 0,
-    "said": false,
-    "rendered": false,
-    "quote": "",
-    "said_by": "",
-    "why": "never rendered: the page it was planted in (page:notes-2024-12-30) was never written, so there was nothing to judge",
-    "elements": [],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": ""
-  },
-  {
-    "clue": "t2.r1.L10",
-    "holder": "dario",
-    "date": "2025-03-04",
-    "channel": "",
-    "wrote_into": "comment:postmortem-2025-03-01-c0",
-    "artifact": "postmortem-2025-03-01-c0",
-    "attempt": 0,
-    "said": false,
-    "rendered": false,
-    "quote": "",
-    "said_by": "",
-    "why": "never rendered: the comment it was planted in (comment:postmortem-2025-03-01-c0) was never written, so there was nothing to judge",
-    "elements": [],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": ""
-  },
-  {
-    "clue": "t2.r1.L7",
-    "holder": "emil",
-    "date": "2025-02-04",
-    "channel": "",
-    "wrote_into": "comment:handover-request-processing-core-and-provider-bac-c0",
-    "artifact": "handover-request-processing-core-and-provider-bac-c0",
-    "attempt": 0,
-    "said": false,
-    "rendered": false,
-    "quote": "",
-    "said_by": "",
-    "why": "never rendered: the comment it was planted in (comment:handover-request-processing-core-and-provider-bac-c0) was never written, so there was nothing to judge",
-    "elements": [],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": ""
-  },
-  {
-    "clue": "t1.r1.l_params_3",
-    "holder": "dario",
-    "date": "2025-01-28",
-    "channel": "releases",
-    "wrote_into": "page:design-t1-plant",
-    "attempt": 1,
-    "said": true,
-    "quote": "rows whose key has changed -> sent to provider, response written back into cache on success",
-    "said_by": "dario",
-    "why": "The document states row-level keying means changed generation_params trigger a resend of just those rows, both in the 'What the cache key should be' section and the Resume behaviour list.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [
-      "cache key",
-      "hash"
-    ],
-    "context": [],
-    "artifact": "Prompt-level response cache keying",
-    "written_as": "design/prompt-level-response-cache-keying.md"
-  },
-  {
-    "clue": "t3.r1.L11",
-    "holder": "dario",
-    "date": "2025-01-28",
-    "channel": "releases",
-    "wrote_into": "mail:mail-t1-plant",
-    "attempt": 1,
-    "said": true,
-    "quote": "A write failure on the cache is not a reason to abort the run.",
-    "said_by": "dario",
-    "why": "The author asserts as fact that a cache write failure must not abort a run that has already incurred cost, which is the substance requested regardless of 'team agrees' framing.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "Re: Prompt-level response cache keying",
-    "written_as": "design/prompt-level-response-cache-keying.md"
-  },
-  {
-    "clue": "t2.r2.l3",
-    "holder": "gideon",
-    "date": "2025-02-03",
-    "channel": "pipeline",
-    "attempt": 1,
-    "said": true,
-    "quote": "The new-model routine hasn't changed in months: name into the support list, price entry, one smoke run against a two-field pydantic model / Step one is the only step people actually skip",
-    "said_by": "Gideon Halloway",
-    "why": "Gideon's two consecutive messages give the full routine and single out step one as the one people skip, matching the required content.",
-    "elements": [
-      {
-        "part": "the new-model routine hasn't changed in months",
-        "present": true,
-        "why": "Gideon states this directly"
-      },
-      {
-        "part": "step is: model name into the support list",
-        "present": true,
-        "why": "listed first in Gideon's routine"
-      },
-      {
-        "part": "step is: a price entry",
-        "present": true,
-        "why": "listed second in Gideon's routine"
-      },
-      {
-        "part": "step is: one smoke run against a two-field pydantic model",
-        "present": true,
-        "why": "listed third in Gideon's routine"
-      },
-      {
-        "part": "step one (support list) is the one step people actually skip/forget",
-        "present": true,
-        "why": "Gideon says step one is the only step people actually skip"
-      }
-    ],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [
-      "11:58  emil      is that how Dario had it scoped, or is there a different order I should know about given",
-      "12:26  dermot    I can pull together a list of what's still missing from cost-map and rate-limit defaults",
-      "13:10  gideon    The new-model routine hasn't changed in months: name into the support list, price entry,   <-- the clue",
-      "13:10  gideon    Step one is the only step people actually skip",
-      "13:10  gideon    When Dermot has the cost-map gaps list, are missing price entries sprint blockers or are"
-    ]
-  },
-  {
-    "clue": "t3.r1.h2",
-    "holder": "emil",
-    "date": "2025-02-04",
-    "channel": "code-review",
-    "attempt": 1,
-    "said": true,
-    "quote": "half the providers hand you back a batch object that's failed or expired within a minute - if that id is already on disk, every rerun goes straight to polling a dead job.",
-    "said_by": "Emil Brandvold",
-    "why": "Emil Brandvold's two consecutive messages at 12:47 give every piece: the failure mode, the disk-write risk, and the completion-only rationale.",
-    "elements": [
-      {
-        "part": "agreement that the batch id should be written at completion",
-        "present": true,
-        "why": "Emil states 'that's where we write it' as the settled point"
-      },
-      {
-        "part": "half the providers return a batch object that goes to failed or expired within a minute of submission",
-        "present": true,
-        "why": "Emil says exactly this"
-      },
-      {
-        "part": "if that id is already on disk, every rerun goes straight to polling a dead job",
-        "present": true,
-        "why": "Emil states this consequence directly"
-      },
-      {
-        "part": "completion is the only point where the id actually means something",
-        "present": true,
-        "why": "Emil says this verbatim"
-      },
-      {
-        "part": "that's why it's recorded at completion",
-        "present": true,
-        "why": "Emil's second message closes the loop, 'so that's where we write it'"
-      }
-    ],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [
-      "12:37  emil      @Dario noted, still on for this afternoon",
-      "12:37  emil      for PR 362 and PR 411 - is there a plan to nudge those, or are they heading toward close",
-      "12:47  emil      half the providers hand you back a batch object that's failed or expired within a minute   <-- the clue",
-      "12:47  emil      completion is the only point where the id actually means something, so that's where we w",
-      "12:51  nikolai   for PR 362 and 411 if nothing moves by end of day it might be cleaner to just close them"
-    ]
-  },
-  {
-    "clue": "t1.r1.l_schema_1",
-    "holder": "emil",
-    "date": "2025-02-24",
-    "channel": "engineering",
-    "attempt": 1,
-    "said": true,
-    "quote": "hit this exact thing this week, added a confidence field to the response model on the ungrounded QA example, reran, got stored objects with no confidence on them, and the downstream validator threw on every row",
-    "said_by": "Emil Brandvold",
-    "why": "Emil's two messages give all four pieces: the schema edit, the stale stored objects, the validator failure on every row, and the hour spent chasing it.",
-    "elements": [
-      {
-        "part": "a confidence field was added to the response model on the ungrounded QA example",
-        "present": true,
-        "why": "Emil states he added a confidence field to the response model on the ungrounded QA example"
-      },
-      {
-        "part": "after rerunning, the stored objects returned were last week's objects with no confidence on them",
-        "present": true,
-        "why": "Emil says he reran, got stored objects with no confidence on them"
-      },
-      {
-        "part": "the downstream validator threw on every row",
-        "present": true,
-        "why": "Emil says the downstream validator threw on every row"
-      },
-      {
-        "part": "he spent an hour looking at the validator",
-        "present": true,
-        "why": "Emil says he spent an hour looking at the validator before finding the real problem"
-      }
-    ],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [
-      "11:50  dario     is there a clean place in the dispatch flow to fingerprint the current response_format a",
-      "12:04  dermot    @Dario would you be up for writing down the cases you know trigger this, so we have some",
-      "12:41  emil      hit this exact thing this week, added a confidence field to the response model on the un   <-- the clue",
-      "12:41  emil      I spent an hour looking at the validator before I figured out where the actual problem w",
-      "12:41  emil      I think a pre-dispatch check is worth building but i'm not entirely sure who should own "
-    ]
-  },
-  {
-    "clue": "t1.r1.l_schema_2",
-    "holder": "dario",
-    "date": "2025-02-24",
-    "channel": "code-review",
-    "wrote_into": "page:design-t2-plant",
-    "attempt": 1,
-    "said": true,
-    "quote": "If yes: either remove the cache directory for that run, or set `CURATOR_DISABLE_CACHE=1` before restarting. Do not just restart, the mismatch will persist for every row with a cache hit.",
-    "said_by": "dario",
-    "why": "The troubleshooting section states plainly that editing response_format requires manually clearing/disabling the cache before resuming, matching the required point's substance even without 'team' framing, which the prompt says isn't required.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "Structured output schema validation before dispatch",
-    "written_as": "engineering/structured-output-schema-validation-before-dispatch.md"
-  },
-  {
-    "clue": "t1.r2.L6",
-    "holder": "emil",
-    "date": "2025-03-21",
-    "channel": "code-review",
-    "wrote_into": "page:design-t3-plant",
-    "attempt": 1,
-    "said": true,
-    "quote": "Read-only opens for anything that only reports. Any path that reads job records to decide what to do next, status reporting, resume-eligibility checks, anything like that, must open the metadata db with `mode=ro`.",
-    "said_by": "emil",
-    "why": "The author states as a house rule that reporting paths must open the metadata db in ro mode, which by nature creates nothing; this is the author's own assertion, which counts even without room consensus framing.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "Batch job status persistence across process restarts",
-    "written_as": "design/batch-job-status-persistence-across-process-restarts.md"
-  },
-  {
-    "clue": "t3.r1.L8",
-    "holder": "emil",
-    "date": "2025-03-21",
-    "channel": "code-review",
-    "wrote_into": "mail:mail-t3-plant",
-    "attempt": 1,
-    "said": true,
-    "quote": "an entry is appended the moment a request is accepted, not when the response arrives back",
-    "said_by": "emil",
-    "why": "The author states plainly, as a fact about the system's design, that the accepted side effect (submission) is recorded before waiting on the response, and explains why that ordering matters — this is the same information as the target point, just stated by one person rather than framed as a team decision.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [
-      "resume"
-    ],
-    "context": [],
-    "artifact": "Re: Batch job status persistence across process restarts",
-    "written_as": "design/batch-job-status-persistence-across-process-restarts.md"
-  },
-  {
-    "clue": "t3.r1.L3",
-    "holder": "emil",
-    "date": "2025-03-21",
-    "channel": "code-review",
-    "wrote_into": "mail:mail-t3-plant",
-    "attempt": 1,
-    "said": true,
-    "quote": "This is a real gap and not a corner case. Anyone doing distributed or machine-hopping runs hits it immediately.",
-    "said_by": "emil",
-    "why": "The author asserts the metadata db not following CURATOR_CACHE_DIR is a real gap because everything needed for a resumable/rerunnable run should live under that path, which is the substance of the point even though it's phrased as the author's own analysis rather than a team consensus.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "Re: Batch job status persistence across process restarts",
-    "written_as": "design/batch-job-status-persistence-across-process-restarts.md"
-  },
-  {
-    "clue": "t3.r2.l_model_gideon",
-    "holder": "gideon",
-    "date": "2025-04-07",
-    "channel": "pipeline",
-    "attempt": 1,
-    "said": true,
-    "quote": "it did. The cost counter prices everything at whatever model the current config says at resume time, but the responses come back from whatever the job was originally submitted with. That's the 10x. It's not related to what the batch fixes touched, it's its own thing in the resume path.",
-    "said_by": "Gideon Halloway",
-    "why": "Gideon's 12:55 messages give the mechanism (cost priced at current config model vs. responses from originally submitted model), the ~10x figure, the impending issue filing, and his own lack of a good explanation.",
-    "elements": [
-      {
-        "part": "the cost counter after a resume prices everything at whatever model the current config says",
-        "present": true,
-        "why": "Gideon states this directly at 12:55."
-      },
-      {
-        "part": "the responses are coming back from whatever model the job was actually submitted with",
-        "present": true,
-        "why": "Gideon states this in the same message, contrasting it with the config-priced cost."
-      },
-      {
-        "part": "he saw it come out about 10x off",
-        "present": true,
-        "why": "Gideon says 'That's the 10x' referring to the discrepancy, and earlier stated the case came out about 10x off."
-      },
-      {
-        "part": "an issue is going to get filed about that reported cost number",
-        "present": true,
-        "why": "Gideon says 'Someone is going to file an issue on that reported cost number' and later commits to filing it himself."
-      },
-      {
-        "part": "he has nothing good to say about that reported number",
-        "present": true,
-        "why": "Gideon says exactly 'I have nothing good to say about it.'"
-      }
-    ],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [
-      "12:28  emil      not convinced gideon's case is in scope for ws-050, honestly.",
-      "12:28  gideon    Ya",
-      "12:55  gideon    it did. The cost counter prices everything at whatever model the current config says at    <-- the clue",
-      "12:55  gideon    Someone is going to file an issue on that reported cost number and I have nothing good t",
-      "12:59  dario     - *ws-050*: gideon's case is confirmed as a resume path issue, the cost counter pricing "
-    ]
-  },
-  {
-    "clue": "t3.r1.L4",
-    "holder": "dermot",
-    "date": "2025-04-07",
-    "channel": "engineering",
-    "wrote_into": "page:design-ws-055-release-and-ci",
-    "attempt": 1,
-    "said": true,
-    "quote": "This workstream closes that gap by auditing every component that writes or reads cached state and confirming it routes through the fingerprint path. Anything that does not gets fixed here.",
-    "said_by": "dermot",
-    "why": "The doc states the fingerprint-keyed cache directory exists and asserts that everything a rerun depends on (every component reading/writing cached state) must route through it, fixing anything that doesn't.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "WS-055: Release Engineering, CI & Test Suite",
-    "written_as": "design/ws-055-release-engineering-ci-test-suite.md"
-  },
-  {
-    "clue": "t3.r2.l_model_dermot",
-    "holder": "dermot",
-    "date": "2025-04-16",
-    "channel": "cookbooks",
-    "attempt": 2,
-    "said": true,
-    "quote": "sorry, I wasn't clear enough on this earlier - I had the example on gpt-4o-mini, edited it to gpt-4o, killed the run when I fat-fingered the output path, restarted, and the dataset that came back was plainly mini. resume picked up the batch id from before the edit.",
-    "said_by": "Dermot Callaghan",
-    "why": "his 14:51 message covers every element: the mistake, the reason for killing the run, the restart, the mini output, and the stale batch id, plus the lost-afternoon framing.",
-    "elements": [
-      {
-        "part": "Dermot lost most of an afternoon on this",
-        "present": true,
-        "why": "he says 'lost most of an afternoon on this'"
-      },
-      {
-        "part": "he bumped the example from gpt-4o-mini to gpt-4o",
-        "present": true,
-        "why": "stated directly in his 14:51 message"
-      },
-      {
-        "part": "he killed the run because he fat-fingered the output path",
-        "present": true,
-        "why": "he explicitly gives this reason for killing it"
-      },
-      {
-        "part": "he reran it",
-        "present": true,
-        "why": "he says 'restarted'"
-      },
-      {
-        "part": "the dataset that came out was plainly mini text",
-        "present": true,
-        "why": "he says the output 'was plainly mini'"
-      },
-      {
-        "part": "the batch id it resumed was the one from before the edit",
-        "present": true,
-        "why": "he says 'resume picked up the batch id from before the edit'"
-      }
-    ],
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [
-      "14:48  nikolai   sent Re: Docker code executor image pinning to Emil, Dario, and Dermot, flagged the back",
-      "14:48  nikolai   will look at what the sandbox repo actually publishes this afternoon",
-      "14:51  dermot    sorry, I wasn't clear enough on this earlier - I had the example on gpt-4o-mini, edited    <-- the clue",
-      "14:51  dermot    lost most of an afternoon on this"
-    ],
-    "repair": {
-      "attempts": 1,
-      "added": [
-        "lost most of an afternoon on this"
-      ],
-      "rewrote": false
-    }
-  },
-  {
-    "clue": "t4.r2.L12",
-    "holder": "nikolai",
-    "date": "2025-04-16",
-    "channel": "cookbooks",
-    "wrote_into": "mail:mail-t4-plant",
-    "attempt": 2,
-    "said": true,
-    "quote": "If the image is bad or missing, the error should surface at `create` time, not at execution time.",
-    "said_by": "nikolai",
-    "why": "The author states plainly that a bad/incompatible image should fail at create (container start) time rather than silently running to completion during execution, which is the same substantive point.",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [
-      "read-only"
-    ],
-    "context": [],
-    "artifact": "Re: Docker code executor image pinning",
-    "written_as": "design/docker-code-executor-image-pinning.md"
-  },
-  {
-    "clue": "t4.r2.L9",
-    "holder": "nikolai",
-    "date": "2025-04-16",
-    "channel": "cookbooks",
-    "wrote_into": "mail:mail-t4-plant",
-    "attempt": 2,
-    "said": true,
-    "quote": "When a caller supplies their own image via `backend_params`, that image has to go through the same setup the default path does, including whatever image-specific prep currently only happens on the default branch. Right now it does not.",
-    "said_by": "nikolai",
-    "why": "The mail states as plain fact that the override path bypasses the default path's setup/kwargs (container settings), both in the Problem section and the Fix section, which is the same information as 'the override path skips the container settings the default path applies.'",
-    "missing": [],
-    "missing_verbatim": [],
-    "leaked": [
-      "read-only"
-    ],
-    "context": [],
-    "artifact": "Re: Docker code executor image pinning",
-    "written_as": "design/docker-code-executor-image-pinning.md"
-  },
-  {
-    "clue": "t4.r2.L6",
-    "holder": "nikolai",
-    "date": "2025-04-16",
-    "channel": "cookbooks",
-    "wrote_into": "mail:mail-t4-plant",
-    "attempt": 2,
-    "said": false,
-    "quote": "The workspace still mounts read-only from our side and they confirmed that is fine, they write everything to stdout.",
-    "said_by": "nikolai",
-    "why": "the mail states the concrete fact that this caller's image keeps the workspace read-only and they're okay with it, but never generalizes it into an expectation that any caller-supplied image must preserve the write-protected workspace.",
-    "missing": [
-      "that the read-only workspace constraint applies to caller-supplied images as a general expectation/requirement, rather than just being fine for this one caller's use case"
-    ],
-    "missing_verbatim": [],
-    "leaked": [],
-    "context": [],
-    "artifact": "Re: Docker code executor image pinning",
-    "written_as": "design/docker-code-executor-image-pinning.md"
   }
 ]

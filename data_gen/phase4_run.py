@@ -722,6 +722,17 @@ def written_text(stores: list, kind: str, title: str, by: str) -> tuple[str, str
     import bespoke_user.sim_engine as G
     for store in stores:
         for row in getattr(store, "inventory", lambda: [])() or []:
+            # The KIND has to match too. `_same_action` deliberately treats
+            # write and send as the same act of producing, so without this a
+            # page and a mail thread on the same subject by the same person
+            # are interchangeable — and the wiki is searched first. A clue
+            # planted in the mail was judged against the design doc of the
+            # same name, which does not contain it, and reported missing from
+            # a thread that says it three times.
+            want_kind = {"doc": "doc", "page": "doc",
+                         "comment": "comment"}.get(kind, "mail")
+            if G._norm_key(row.get("kind")) != G._norm_key(want_kind):
+                continue
             if row.get("by") != by or not G._same_action(
                     _ACTION.get(kind, "send"), row.get("action", "")):
                 continue
@@ -737,9 +748,20 @@ def written_text(stores: list, kind: str, title: str, by: str) -> tuple[str, str
             page = (getattr(store, "_pages", {}) or {}).get(row.get("id"))
             if page:
                 return page.get("body", ""), row.get("id", "")
-            for thread in (getattr(store, "_threads", {}) or {}).values():
-                if thread.get("subject") == row.get("title"):
-                    return thread.get("body", ""), row.get("title", "")
+            # The WHOLE thread, every message of it, in order. A thread is
+            # one obligation for whoever starts it, so the other participants'
+            # messages may never be sent at all — and a clue planted on the
+            # fourth message was then judged against an empty haystack and
+            # reported missing from a thread that discusses it. What a reader
+            # of this world opens is the thread, so that is what is judged.
+            same_subject = [t for t in
+                            (getattr(store, "_threads", {}) or {}).values()
+                            if t.get("subject") == row.get("title")]
+            if same_subject:
+                whole = "\n\n".join(
+                    f"{t.get('from', '?')}: {t.get('body', '')}"
+                    for t in sorted(same_subject, key=lambda x: x.get("ts", "")))
+                return whole, row.get("id", "")
     return "", ""
 
 
@@ -1433,7 +1455,8 @@ def repair_artifact(llm, world, stores, planted: dict, row: dict) -> dict | None
         return None                      # nothing landed to extend; re-run it
     where = row.get("wrote_into") or ""
     kind, _, ident = where.partition(":")
-    store, body, handle = _artifact_body(stores, world, kind, ident)
+    store, body, handle = _artifact_body(stores, world, kind, ident,
+                                         row.get("holder", ""))
     if store is None or not body or not handle:
         return None
     got = llm.complete(
@@ -1455,7 +1478,7 @@ def repair_artifact(llm, world, stores, planted: dict, row: dict) -> dict | None
     return {"added": [said], "where": where}
 
 
-def _artifact_body(stores, world, kind: str, ident: str):
+def _artifact_body(stores, world, kind: str, ident: str, by: str = ""):
     """(store, current text, the handle that store edits by).
 
     The plan and the store name the same thing differently — the plan says
@@ -1463,17 +1486,33 @@ def _artifact_body(stores, world, kind: str, ident: str):
     so the title is the only key they share, which is also how
     `artifact_audit` matches.
     """
+    import bespoke_user.sim_engine as G
+
     title = world.title_of({"page": "doc", "mail": "mail",
                             "comment": "comment"}.get(kind, "doc"), ident)
+
+    def same(theirs: str) -> bool:
+        # Exact, then overlap — the persona writes the headline themselves, so
+        # "Handover doc: Request-processing core and provider backends, dario
+        # to emil" comes back as "Handover: Request processing core and
+        # provider backends". An exact test called a page that exists a page
+        # that was never written, and the clue in it unrenderable.
+        return bool(theirs) and (G._norm_key(theirs) == G._norm_key(title)
+                                 or G._title_overlap(title, theirs))
+
     for store in stores:
         if kind == "page":
             for rel, page in (getattr(store, "_pages", {}) or {}).items():
-                if page.get("title") == title:
+                if same(page.get("title", "")):
                     return store, page.get("body", ""), rel
         elif kind == "mail":
-            for thread in (getattr(store, "_threads", {}) or {}).values():
-                if thread.get("subject") == title:
-                    return store, thread.get("body", ""), thread.get("mid", "")
+            hits = [t for t in (getattr(store, "_threads", {}) or {}).values()
+                    if same(t.get("subject", ""))]
+            # Prefer this person's own message in the thread — the clue is
+            # planted on one message, not on the subject line.
+            mine = [t for t in hits if by and t.get("from") == by]
+            for t in (mine or hits):
+                return store, t.get("body", ""), t.get("mid", "")
         elif kind == "comment":
             bag = getattr(store, "_comments", {}) or {}
             if ident in bag:
@@ -1494,7 +1533,8 @@ def _extend_artifact(store, kind: str, handle: str, said: str) -> None:
     elif kind == "comment":
         bag = getattr(store, "_comments", {}) or {}
         if handle in bag:
-            bag[handle] = bag[handle].rstrip() + " " + said
+            # Both places, or the gate sees a repair the ingest never gets.
+            store.rewrite_comment(handle, bag[handle].rstrip() + " " + said)
     elif kind == "mail" and hasattr(store, "extend"):
         # A sent message exists as several files — the sender's copy and one
         # per recipient — so the store rewrites all of them.

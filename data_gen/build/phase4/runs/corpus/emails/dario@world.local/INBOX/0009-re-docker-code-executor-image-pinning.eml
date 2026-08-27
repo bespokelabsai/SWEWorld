@@ -31,3 +31,11 @@ ish? Do either of you know what tags are available there, or who to ask?
 Nikolai
 
 To be clear, the read-only constraint isn't a concession I made for this one team — any caller-supplied image is expected to treat the workspace as read-only, full stop.
+
+So if we do allow caller-supplied images, that mount stays read-only regardless of who asks or what they intend to write; it is a property of the backend, not something negotiated per team. Worth stating plainly in the doc so the next request does not arrive expecting it to be up for discussion.
+
+Worth saying where that team actually landed: the only thing they want out of a custom image is scipy and their internal client lib preinstalled, and they have no interest in how the container itself is wired up. I said the workspace arrives read-only from our side and they took it without argument \u2014 everything they produce goes to stdout, so the mount never comes into it. So the request is narrower than the thread makes it look, and nothing in it depends on us loosening anything.
+
+So let's write it into the doc as a requirement on the feature rather than a note about this team: any caller-supplied image gets the workspace read-only, and that line holds whoever the caller is. Their use case happening to fit is a coincidence, not the reason.
+
+To be clear, the read-only workspace constraint isn't specific to this caller — any caller-supplied image is expected to treat the workspace as read-only. Please don't rely on writes landing there, since we make no guarantees about persistence or visibility of workspace mutations.

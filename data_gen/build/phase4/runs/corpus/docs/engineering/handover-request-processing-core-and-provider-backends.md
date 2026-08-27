@@ -86,3 +86,5 @@ I don't know enough about the full set of non-standard backends to say how much 
 - [ ] Retry backoff ceiling in online-request-processing, I think its probably fine for current load but haven't verified
 - Cache key serialization and whether param normalization is exact, I genuinely don't know if `0.7` and `0.70` produce the same key. Probably worth a quick test before anyone relies on resume across runs where params may have drifted slightly.
 - TBD: who is taking over the cost map? I've been the one updating it when new models come in but it probably needs a clear owner
+
+- On triage: don't trust a hit rate or entry count a user pastes until you know which directory it came from. Ask for the resolved cache path on every one of these, first reply, before you start reading anything into the numbers. Roughly half the time the user has switched shells or hopped into a container since their last run and there are two caches on the box that neither of you knew about.

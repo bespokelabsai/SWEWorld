@@ -1,6 +1,6 @@
 # Phase 4: did the planned artifacts get made?
 
-167 of 170 obligations met.
+171 of 194 obligations met.
 
 An obligation is discharged by the artifact EXISTING, checked against what the store holds. Someone who says they wrote it and did not still shows as a miss, which is why this is separate from whether they said they would.
 
@@ -8,9 +8,29 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 
 | date | who | action | artifact |
 |---|---|---|---|
+| 2024-10-31 | dario | comment | comment on Examples & Cookbooks: Plan for the Reasoning-Dataset Scripts |
+| 2024-11-01 | dermot | comment | comment on Examples & Cookbooks: Plan for the Reasoning-Dataset Scripts |
+| 2024-11-14 | konrad | comment | comment on Postmortem: Nov 12 revert in distill.py and poem.py |
+| 2024-12-06 | dario | comment | comment on Postmortem: Dec 4 revert of end-of-run retry logic |
+| 2024-12-12 | dario | comment | comment on Postmortem: Dec 10 revert of batch auto-delete |
+| 2024-12-13 | dermot | comment | comment on Postmortem: Dec 10 revert of batch auto-delete |
+| 2025-01-07 | emil | comment | comment on WS-014 design: Release Engineering, CI & Test Suite |
+| 2025-01-07 | dermot | comment | comment on WS-016 design: Examples & Reasoning-Dataset Cookbooks |
+| 2025-01-08 | dario | comment | comment on WS-016 design: Examples & Reasoning-Dataset Cookbooks |
+| 2025-01-09 | dermot | comment | comment on WS-016 design: Examples & Reasoning-Dataset Cookbooks |
+| 2025-01-14 | emil | comment | comment on Postmortem: release-and-ci revert on Jan 10 |
+| 2025-01-15 | dario | comment | comment on Postmortem: release-and-ci revert on Jan 10 |
+| 2025-02-11 | konrad | comment | comment on WS-033 design: Code Execution & Verifiers |
+| 2025-02-12 | nikolai | comment | comment on WS-033 design: Code Execution & Verifiers |
+| 2025-02-12 | dario | comment | comment on Postmortem: pickler revert on Feb 10 |
 | 2025-02-17 | gideon | send | 0.1.19 is out |
-| 2025-03-04 | dario | comment | comment on Postmortem: kluster.ai DeepSeek Output-Token Default |
-| 2025-05-02 | emil | comment | comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface |
+| 2025-03-10 | konrad | comment | comment on WS-044: Blocks & Recipes (RAFT, SimpleStrat) |
+| 2025-03-10 | emil | comment | comment on WS-044: Blocks & Recipes (RAFT, SimpleStrat) |
+| 2025-04-01 | gideon | comment | comment on WS-050: Batch Mode (50%-Cost Async Batch APIs) |
+| 2025-04-08 | emil | comment | comment on WS-055: Release Engineering, CI & Test Suite |
+| 2025-04-09 | dermot | comment | comment on WS-055: Release Engineering, CI & Test Suite |
+| 2025-04-10 | emil | comment | comment on WS-055: Release Engineering, CI & Test Suite |
+| 2025-05-05 | gideon | comment | comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface |
 
 ## Everything
 
@@ -20,6 +40,8 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-10-29 | konrad | send | 09:28 | Welcome, dario |
 | 2024-10-30 | konrad | write | 09:21 | Weekly Sync Notes — Week of Oct 28 (Release & CI) |
 | 2024-10-30 | dermot | write | 09:35 | Examples & Cookbooks: Plan for the Reasoning-Dataset Scripts |
+| 2024-10-31 | dario | comment | NO | comment on Examples & Cookbooks: Plan for the Reasoning-Dataset Scripts |
+| 2024-11-01 | dermot | comment | NO | comment on Examples & Cookbooks: Plan for the Reasoning-Dataset Scripts |
 | 2024-11-01 | konrad | write | 09:14 | Release engineering & CI/test-suite plan |
 | 2024-11-01 | konrad | write | 09:35 | Moving to PR-only: process plan for Nov/Dec |
 | 2024-11-04 | konrad | send | 09:07 | Welcome gideon to the team |
@@ -33,6 +55,7 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-11-13 | dario | write | 09:42 | Postmortem: Nov 12 revert in distill.py and poem.py |
 | 2024-11-14 | konrad | write | 09:14 | Onboarding: otto on install UX & README polish |
 | 2024-11-14 | konrad | send | 09:35 | Welcome otto to the team |
+| 2024-11-14 | konrad | comment | NO | comment on Postmortem: Nov 12 revert in distill.py and poem.py |
 | 2024-11-15 | dario | send | 09:42 | v0.1.8 is out |
 | 2024-11-15 | dario | write | 09:21 | v0.1.8 release notes |
 | 2024-11-18 | dario | write | 10:03 | v0.1.9 release notes |
@@ -52,10 +75,13 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-12-05 | gideon | write | 10:31 | Postmortem: Dec 4 revert of end-of-run retry logic |
 | 2024-12-06 | dario | write | 10:24 | v0.1.11 release notes |
 | 2024-12-06 | dario | send | 09:35 | v0.1.11 is out |
+| 2024-12-06 | dario | comment | NO | comment on Postmortem: Dec 4 revert of end-of-run retry logic |
 | 2024-12-09 | konrad | send | 09:28 | Weekly update: week of Dec 2 |
 | 2024-12-09 | dermot | write | 09:14 | Bulk LLM Inference: next-phase design |
 | 2024-12-11 | dario | write | 09:42 | Weekly notes: week of Dec 9 - two reverts |
 | 2024-12-11 | dermot | write | 09:14 | Postmortem: Dec 10 revert of batch auto-delete |
+| 2024-12-12 | dario | comment | NO | comment on Postmortem: Dec 10 revert of batch auto-delete |
+| 2024-12-13 | dermot | comment | NO | comment on Postmortem: Dec 10 revert of batch auto-delete |
 | 2024-12-16 | dario | write | 09:35 | Runbook: handling curator.LLM incidents |
 | 2024-12-16 | konrad | write | 09:14 | Postmortem: Dec 13 revert of batch context-manager refactor (PR #254) |
 | 2024-12-16 | konrad | send | 09:28 | Weekly update: week of Dec 9 |
@@ -68,6 +94,7 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2024-12-23 | konrad | send | 09:28 | 0.1.13 is out |
 | 2024-12-23 | konrad | send | 09:42 | Weekly update: week of Dec 16 |
 | 2024-12-25 | dario | write | 09:35 | Weekly notes: week of Dec 23 - 0.1.13 out |
+| 2025-01-02 | dario | write | 09:14 | Weekly sync notes: week of Dec 30 — provider integrations |
 | 2025-01-06 | dario | write | 09:56 | WS-016 design: Examples & Reasoning-Dataset Cookbooks |
 | 2025-01-06 | dermot | write | 09:14 | WS-014 design: Release Engineering, CI & Test Suite |
 | 2025-01-06 | konrad | write | 09:35 | Onboarding: emil, Core Platform Engineer for Request Processing |
@@ -77,26 +104,40 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-01-06 | konrad | send | 09:07 | Welcome ilse to the team |
 | 2025-01-07 | emil | write | 09:14 | Release notes: v0.1.14 |
 | 2025-01-07 | emil | send | 09:35 | v0.1.14 is out |
+| 2025-01-07 | emil | comment | NO | comment on WS-014 design: Release Engineering, CI & Test Suite |
+| 2025-01-07 | dermot | comment | NO | comment on WS-016 design: Examples & Reasoning-Dataset Cookbooks |
 | 2025-01-08 | dermot | write | 09:14 | Weekly sync notes: week of Jan 6 — v0.1.14 shipped |
-| 2025-01-13 | konrad | send | 10:03 | Weekly update: week of Jan 6 — v0.1.14 shipped |
+| 2025-01-08 | dario | comment | NO | comment on WS-016 design: Examples & Reasoning-Dataset Cookbooks |
+| 2025-01-09 | dermot | comment | NO | comment on WS-016 design: Examples & Reasoning-Dataset Cookbooks |
+| 2025-01-13 | konrad | send | 09:07 | Weekly update: week of Jan 6 — v0.1.14 shipped |
 | 2025-01-13 | dario | write | 09:28 | Postmortem: release-and-ci revert on Jan 10 |
 | 2025-01-14 | dermot | write | 09:14 | Postmortem: cache hashing regression revert on Jan 13 |
+| 2025-01-14 | emil | comment | NO | comment on Postmortem: release-and-ci revert on Jan 10 |
 | 2025-01-14 | emil | write | 09:49 | Release notes: v0.1.15 |
 | 2025-01-14 | dermot | send | 09:28 | v0.1.15 is out |
 | 2025-01-15 | dermot | write | 10:03 | Release notes: v0.1.15.post1 |
 | 2025-01-15 | dermot | send | 09:07 | v0.1.15.post1 hotfix is out |
 | 2025-01-15 | dario | write | 09:56 | Weekly sync notes: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped |
+| 2025-01-15 | dario | comment | NO | comment on Postmortem: release-and-ci revert on Jan 10 |
 | 2025-01-16 | emil | write | 09:21 | Postmortem: v0.1.15.post1 hotfix |
-| 2025-01-20 | konrad | send | 10:03 | Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped |
+| 2025-01-20 | konrad | send | 09:07 | Weekly update: week of Jan 13 — v0.1.15 and v0.1.15.post1 shipped |
 | 2025-01-21 | dermot | write | 09:14 | Release notes: v0.1.16 |
 | 2025-01-21 | dermot | send | 09:28 | v0.1.16 is out |
 | 2025-01-22 | nikolai | write | 09:14 | Weekly sync notes: week of Jan 20 — v0.1.16 shipped |
-| 2025-01-27 | konrad | send | 10:03 | Weekly update: week of Jan 20 — v0.1.16 shipped |
+| 2025-01-27 | konrad | send | 09:07 | Weekly update: week of Jan 20 — v0.1.16 shipped |
+| 2025-01-28 | dermot | write | 09:14 | Release notes: v0.1.17 |
+| 2025-01-28 | dermot | send | 09:35 | v0.1.17 is out |
+| 2025-01-28 | dario | write | 09:56 | Prompt-level response cache keying |
+| 2025-01-28 | dario | send | 10:17 | Re: Prompt-level response cache keying |
 | 2025-01-29 | nikolai | write | 09:14 | Weekly sync notes: week of Jan 27 — v0.1.17 and v0.1.17.post1 shipped |
 | 2025-01-30 | dermot | write | 09:49 | Release notes: v0.1.17.post1 |
 | 2025-01-30 | dermot | send | 09:28 | v0.1.17.post1 hotfix is out |
 | 2025-01-30 | dermot | write | 09:14 | WS-028 design: Release Engineering, CI & Test Suite, round two |
 | 2025-01-31 | nikolai | write | 09:14 | Postmortem: v0.1.17.post1 hotfix |
+| 2025-02-03 | konrad | send | 09:07 | Weekly update: week of Jan 27 — v0.1.17 and v0.1.17.post1 shipped |
+| 2025-02-03 | dario | send | 09:21 | Handing off request-processing core and provider backends |
+| 2025-02-03 | dario | write | 09:14 | Handover doc: Request-processing core and provider backends, dario to emil |
+| 2025-02-04 | emil | comment | 09:35 | comment on Handover doc: Request-processing core and provider backends, dario to emil |
 | 2025-02-05 | emil | write | 09:14 | Weekly sync notes: week of Feb 3 — v0.1.18 and v0.1.18.post4 shipped |
 | 2025-02-06 | emil | write | 09:14 | Release notes: v0.1.18 |
 | 2025-02-06 | dario | send | 09:28 | v0.1.18 is out |
@@ -106,12 +147,18 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-02-10 | emil | send | 09:14 | Weekly update: week of Feb 3 — v0.1.18 and v0.1.18.post4 shipped |
 | 2025-02-10 | emil | write | 09:35 | WS-033 design: Code Execution & Verifiers |
 | 2025-02-10 | emil | write | 09:56 | Postmortem: v0.1.18.post4 hotfix |
+| 2025-02-11 | konrad | comment | NO | comment on WS-033 design: Code Execution & Verifiers |
 | 2025-02-11 | emil | write | 09:14 | Postmortem: pickler revert on Feb 10 |
+| 2025-02-12 | nikolai | comment | NO | comment on WS-033 design: Code Execution & Verifiers |
+| 2025-02-12 | dario | comment | NO | comment on Postmortem: pickler revert on Feb 10 |
 | 2025-02-12 | emil | write | 09:21 | Weekly sync notes: week of Feb 10 — pickler regression |
 | 2025-02-17 | gideon | write | 09:28 | Release notes: 0.1.19 |
-| 2025-02-17 | konrad | send | 10:03 | Weekly update: week of Feb 10 — pickler regression |
+| 2025-02-17 | konrad | send | 09:49 | Weekly update: week of Feb 10 — pickler regression |
 | 2025-02-17 | gideon | send | NO | 0.1.19 is out |
 | 2025-02-19 | gideon | write | 09:14 | Weekly sync notes: week of Feb 17 — 0.1.19 shipped |
+| 2025-02-24 | emil | send | 09:07 | Weekly update: week of Feb 17 — 0.1.19 shipped |
+| 2025-02-24 | dario | write | 09:28 | Structured output schema validation before dispatch |
+| 2025-02-24 | dario | send | 09:42 | Re: Structured output schema validation before dispatch |
 | 2025-02-26 | nikolai | write | 09:14 | Release notes: v0.1.19.post1 |
 | 2025-02-26 | nikolai | send | 09:49 | v0.1.19.post1 hotfix is out |
 | 2025-02-26 | gideon | write | 09:35 | Weekly sync notes: week of Feb 24 — v0.1.19.post1 and v0.1.20 shipped |
@@ -122,36 +169,52 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-03-03 | dermot | write | 10:03 | Handover: Packaging, Version Bumps & Release Cutting |
 | 2025-03-03 | konrad | write | 09:14 | Q2 Plan: Consolidation and Provider Breadth |
 | 2025-03-03 | konrad | send | 09:28 | Weekly update: week of Feb 24 |
+| 2025-03-04 | dario | comment | 10:00 | comment on Postmortem: kluster.ai DeepSeek Output-Token Default |
 | 2025-03-05 | emil | write | 09:28 | Weekly Notes — Week of Mar 3 |
 | 2025-03-07 | emil | write | 09:14 | WS-044: Blocks & Recipes (RAFT, SimpleStrat) |
 | 2025-03-10 | konrad | write | 09:14 | Onboarding: nils and theo |
 | 2025-03-10 | konrad | send | 09:28 | Weekly update: week of Mar 3 |
 | 2025-03-10 | konrad | send | 09:28 | Welcome nils (and theo) |
+| 2025-03-10 | konrad | comment | NO | comment on WS-044: Blocks & Recipes (RAFT, SimpleStrat) |
+| 2025-03-10 | emil | comment | NO | comment on WS-044: Blocks & Recipes (RAFT, SimpleStrat) |
 | 2025-03-12 | nils | write | 09:14 | Weekly Notes — Week of Mar 10 |
 | 2025-03-17 | konrad | send | 09:07 | Weekly update: week of Mar 10 |
 | 2025-03-18 | nils | write | 09:14 | WS-047: Release Engineering, CI & Test Suite |
 | 2025-03-19 | dermot | write | 09:14 | v0.1.21 Release Notes |
 | 2025-03-19 | dermot | send | 09:49 | v0.1.21 is out |
 | 2025-03-19 | nils | write | 09:35 | Weekly Notes — Week of Mar 17 |
+| 2025-03-21 | emil | write | 09:14 | Batch job status persistence across process restarts |
+| 2025-03-21 | emil | send | 09:28 | Re: Batch job status persistence across process restarts |
 | 2025-03-24 | konrad | send | 09:07 | Weekly update: week of Mar 17 |
 | 2025-03-26 | konrad | write | 09:14 | Weekly Notes — Week of Mar 24 |
 | 2025-03-31 | emil | send | 09:56 | v0.1.22 is out |
-| 2025-03-31 | emil | write | 09:42 | WS-050: Batch Mode (50%-Cost Async Batch APIs) |
+| 2025-03-31 | emil | write | 09:56 | WS-050: Batch Mode (50%-Cost Async Batch APIs) |
 | 2025-03-31 | emil | write | 10:17 | v0.1.22 Release Notes |
 | 2025-03-31 | konrad | send | 09:14 | Weekly update: week of Mar 24 |
+| 2025-04-01 | gideon | comment | NO | comment on WS-050: Batch Mode (50%-Cost Async Batch APIs) |
 | 2025-04-02 | emil | write | 09:28 | Weekly Notes — Week of Mar 31 |
+| 2025-04-07 | dermot | write | 09:14 | WS-055: Release Engineering, CI & Test Suite |
+| 2025-04-07 | konrad | send | 09:35 | Weekly update: week of Mar 31 |
+| 2025-04-08 | emil | comment | NO | comment on WS-055: Release Engineering, CI & Test Suite |
 | 2025-04-09 | dermot | write | 09:14 | Weekly Notes — Week of Apr 7 |
+| 2025-04-09 | dermot | comment | NO | comment on WS-055: Release Engineering, CI & Test Suite |
+| 2025-04-10 | emil | comment | NO | comment on WS-055: Release Engineering, CI & Test Suite |
 | 2025-04-11 | emil | write | 09:14 | v0.1.23 Release Notes |
 | 2025-04-11 | emil | send | 09:42 | v0.1.23 is out |
 | 2025-04-11 | emil | write | 10:10 | v0.1.23.post1 Release Notes |
 | 2025-04-11 | emil | send | 09:07 | v0.1.23.post1 is out |
 | 2025-04-14 | dermot | write | 09:14 | Postmortem: v0.1.23.post1 Hotfix |
 | 2025-04-14 | dermot | send | 09:56 | Weekly update: week of Apr 7 |
+| 2025-04-16 | gideon | write | 10:03 | Weekly Notes — Week of Apr 14 |
+| 2025-04-16 | nikolai | write | 09:14 | Docker code executor image pinning |
+| 2025-04-16 | nikolai | send | 09:28 | Re: Docker code executor image pinning |
 | 2025-04-21 | emil | send | 09:07 | Weekly update: week of Apr 14 |
 | 2025-04-23 | gideon | write | 09:14 | Weekly Notes — Week of Apr 21 |
 | 2025-04-28 | emil | send | 09:07 | Weekly update: week of Apr 21 |
 | 2025-05-01 | gideon | write | 09:14 | Handover: Status Tracking, Cost Reporting & the Viewer Surface |
+| 2025-05-02 | emil | comment | 10:00 | comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface |
 | 2025-05-05 | konrad | send | 09:07 | Weekly update: week of Apr 28 |
+| 2025-05-05 | gideon | comment | NO | comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface |
 | 2025-05-06 | emil | write | 09:35 | v0.1.24 Release Notes |
 | 2025-05-06 | emil | send | 09:49 | v0.1.24 is out |
 | 2025-05-07 | dermot | write | 09:14 | Weekly Notes — Week of May 5 |
@@ -167,22 +230,3 @@ An obligation is discharged by the artifact EXISTING, checked against what the s
 | 2025-06-16 | nikolai | send | 09:07 | Week of Jun 9 recap: bulk inference fix |
 | 2025-06-18 | nikolai | write | 09:14 | Weekly sync notes: week of Jun 16 |
 | 2025-06-25 | emil | write | 09:28 | Weekly sync notes: week of Jun 23 (batch mode) |
-| 2025-01-28 | dermot | write | 09:14 | Release notes: v0.1.17 |
-| 2025-01-28 | dermot | send | 09:28 | v0.1.17 is out |
-| 2025-01-28 | dario | write | 09:56 | Prompt-level response cache keying |
-| 2025-01-28 | dario | send | 10:10 | Re: Prompt-level response cache keying |
-| 2025-02-03 | konrad | send | 09:07 | Weekly update: week of Jan 27 — v0.1.17 and v0.1.17.post1 shipped |
-| 2025-02-03 | dario | send | 09:21 | Handing off request-processing core and provider backends |
-| 2025-02-04 | emil | comment | 09:35 | comment on Handover doc: Request-processing core and provider backends, dario to emil |
-| 2025-02-24 | emil | send | 09:07 | Weekly update: week of Feb 17 — 0.1.19 shipped |
-| 2025-02-24 | dario | write | 09:28 | Structured output schema validation before dispatch |
-| 2025-02-24 | dario | send | 09:42 | Re: Structured output schema validation before dispatch |
-| 2025-03-04 | dario | comment | NO | comment on Postmortem: kluster.ai DeepSeek Output-Token Default |
-| 2025-03-21 | emil | write | 09:14 | Batch job status persistence across process restarts |
-| 2025-03-21 | emil | send | 09:28 | Re: Batch job status persistence across process restarts |
-| 2025-04-07 | dermot | write | 09:14 | WS-055: Release Engineering, CI & Test Suite |
-| 2025-04-07 | konrad | send | 09:07 | Weekly update: week of Mar 31 |
-| 2025-04-16 | gideon | write | 10:03 | Weekly Notes — Week of Apr 14 |
-| 2025-04-16 | nikolai | write | 09:14 | Docker code executor image pinning |
-| 2025-04-16 | nikolai | send | 09:28 | Re: Docker code executor image pinning |
-| 2025-05-02 | emil | comment | NO | comment on Handover: Status Tracking, Cost Reporting & the Viewer Surface |

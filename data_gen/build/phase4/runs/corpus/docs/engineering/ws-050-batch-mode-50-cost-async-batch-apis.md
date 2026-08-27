@@ -33,3 +33,5 @@ This is confirmed out of scope for this workstream. It lives entirely in the res
 ## Audit scope
 
 No broader audit of cost paths or retry paths is needed as a result of this work. The two PRs are self-contained to the batch and cancellation paths respectively.
+
+Worth noting on the resume path: I went back through the batch tickets from the last two months to see how jobs actually end up resumed. Laptop lid closed, CI runner hitting its six hour cap, OOM killer, one power cut. Every one of them died while waiting on the provider, and nobody has ever managed to die inside the submit call itself, that thing returns in about 200ms.

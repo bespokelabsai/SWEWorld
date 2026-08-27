@@ -22,6 +22,7 @@ from __future__ import annotations
 import datetime as dt
 import email
 import email.header
+import email.utils
 import json
 import re
 from email.message import EmailMessage
@@ -288,6 +289,24 @@ class Wiki(Store):
             self._record(kind="doc", ident=rel, title=title, by=by,
                          action="write", ts=str(meta.get("created_at") or ""),
                          path=str(path))
+        # Comments too, or an audit of a finished corpus reads a wiki where
+        # nobody ever commented — and reports every comment clue as carried by
+        # nothing, including the ones that were written correctly.
+        if self.comments.exists():
+            for raw in self.comments.read_text(encoding="utf-8").splitlines():
+                raw = raw.strip()
+                if not raw or raw.startswith("#"):
+                    continue
+                row = json.loads(raw)
+                if row["id"] in self._comments:
+                    continue
+                self._comments[row["id"]] = row.get("text", "")
+                page = (self._pages.get(row["doc"]) or {}).get("title") \
+                    or row["doc"]
+                self._record(kind="comment", ident=row["id"],
+                             title=f"comment on {page}",
+                             by=row.get("author", ""), action="comment",
+                             ts=row.get("created_at", ""))
         return len(self._pages)
 
     def read(self, rel: str) -> str:
@@ -326,8 +345,36 @@ class Wiki(Store):
         self._comments[row["id"]] = row["text"]
         with self.comments.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-        self._record(kind="comment", ident=row["id"], title=f"comment on {rel}",
-                     by=uid, action="comment", ts=when)
+
+    def rewrite_comment(self, ident: str, text: str) -> bool:
+        """Replace one comment's text on disk as well as in memory.
+
+        The in-memory dict is what the clue gate reads and `comments.jsonl` is
+        what the ingest reads. Updating only the first made a repair that the
+        gate could see and the world could not.
+        """
+        if not self.comments.exists():
+            return False
+        rows, hit = [], False
+        for raw in self.comments.read_text(encoding="utf-8").splitlines():
+            raw = raw.strip()
+            if not raw:
+                continue
+            row = json.loads(raw)
+            if row.get("id") == ident:
+                row["text"] = text
+                hit = True
+            rows.append(row)
+        if hit:
+            self.comments.write_text(
+                "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
+                encoding="utf-8")
+            self._comments[ident] = text
+        return hit
+        page = (self._pages.get(rel) or {}).get("title") or rel
+        self._record(kind="comment", ident=row["id"],
+                     title=f"comment on {page}", by=uid, action="comment",
+                     ts=when)
 
     # -- the tools ----------------------------------------------------------
     def mcp_server(self, uid: str, clock, writer=None):
@@ -537,10 +584,19 @@ class Mail(Store):
             # artifact was reported as never sent.
             subject = " ".join(str(email.header.make_header(
                 email.header.decode_header(msg.get("Subject", "")))).split())
-            uid = (msg.get("From", "").split("@")[0] or "").strip("<> ")
+            # parseaddr, not a split: "Emil Brandvold <emil@world.local>"
+            # split on "@" gives "Emil Brandvold <emil", which matches no
+            # persona, so every message with a display name was attributed to
+            # nobody and its clues read as carried by nothing.
+            uid = email.utils.parseaddr(msg.get("From", ""))[1].split("@")[0]
             body = msg.get_payload(decode=True)
             body = body.decode("utf-8", "replace") if body else msg.get_payload()
-            key = slug(subject)
+            # Keyed by Message-ID, not by subject. A thread is several
+            # messages by several people, and subject-keying kept exactly one
+            # of them — so a clue planted on the fourth message was judged
+            # against the first, which contained none of it and read as 0
+            # characters of evidence.
+            key = msg.get("Message-ID", "") or slug(subject)
             if key in self._threads:
                 continue
             self._threads[key] = {
