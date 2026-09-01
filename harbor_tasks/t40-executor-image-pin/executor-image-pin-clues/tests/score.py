@@ -158,7 +158,15 @@ def main() -> int:
               if not k.endswith("open_feature") and k not in unmeasured]
     rewards[f"{task}.hidden_mean"] = (
         round(sum(hidden) / len(hidden), 4) if hidden else 0.0)
-    rewards[f"{task}.suite_error"] = 1.0 if not outcomes else 0.0
+    # `suite_ok`, not `suite_error`. Same diagnostic, opposite polarity, and the
+    # polarity is the whole point: every OTHER key here is higher-is-better, and
+    # a consumer that averages the dict has no way to know this one was not.
+    # Horizon's validation gate does exactly that -- it means `Final Score` as
+    # the mean of every key in reward.json -- so a flawless oracle run came back
+    # 0.9411764705882353, which is 16/17, and the gate refused the task for not
+    # scoring 1.0. The run was perfect; `suite_error: 0.0` MEANT no error.
+    # Nothing reads the old name except archived job records.
+    rewards[f"{task}.suite_ok"] = 0.0 if not outcomes else 1.0
 
     provenance = {}
     prov_file = LOGS / "provenance.json"

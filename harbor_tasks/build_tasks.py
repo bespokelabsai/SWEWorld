@@ -55,6 +55,18 @@ BASE_IMAGE = "sweworld:repo-only-dev"
 # Mattermost, or the corpus stops being the one variable between them.
 WORLD_IMAGE = "sweworld:0.4.4"
 
+# Task ids whose emitted directories must not be regenerated.
+#
+# `emit()` rewrites `solution/solve.sh` from the `SOLVE` stub on every run, and
+# g1's two world arms carry a hand-written oracle instead -- one that clones from
+# gitea, applies the patch and pushes `main`, because the verifier grades the
+# PUSHED main rather than the working tree. Regenerating g1 replaces a reference
+# solution that scores 1.0 with one that scores 0, and prints the same success
+# line either way. g1 is measured and frozen; the fix for the general case is to
+# generate a real oracle (then this entry can go), not to remember not to type
+# `--pick g1`.
+FROZEN = {"g1"}
+
 # Slugs for the tasks phase 3 currently plants. A generated slug from the title
 # would do, but these are the names that will appear in every result table and
 # in `jobs/`, so the four in use are named by hand.
@@ -520,6 +532,9 @@ def main(argv: list[str] | None = None) -> int:
                          "no plant)")
     ap.add_argument("--no-control", action="store_true",
                     help="skip the -spec twins")
+    ap.add_argument("--thaw", action="store_true",
+                    help=f"regenerate a task listed in FROZEN ({', '.join(sorted(FROZEN))}) "
+                         "anyway. Overwrites its hand-written oracle with the stub.")
     ap.add_argument("--extra-tasks", default=None,
                     help="a JSON list of generated tasks (task_generator/"
                          "tasks.generated.json) to build alongside the "
@@ -559,6 +574,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no test suites at {SUITES}", file=sys.stderr)
         return 1
 
+    frozen = [t["_id"] for t in chosen if t["_id"] in FROZEN]
+    if frozen and not args.thaw:
+        print(f"refusing to regenerate {', '.join(frozen)}: frozen (see FROZEN).\n"
+              f"Emitting would overwrite a hand-written oracle with the stub and\n"
+              f"turn a 1.0 reference solution into a 0.0 one. Pass --thaw if that\n"
+              f"is genuinely what you want.", file=sys.stderr)
+        return 1
+
     made = []
     for task in chosen:
         digits = task["_id"][1:]
@@ -568,11 +591,16 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {task['_id']}: no grading suite yet — skipped")
             continue
         made.append(emit(task, slug, "blind"))
+        # The world arm is emitted BEFORE the --no-control bail. It is not a
+        # control -- it is the blind ticket against a corpus that has the answers
+        # in it -- but it used to sit after the `continue` below, so
+        # `--no-control --world` quietly produced no world arm and reported
+        # success.
+        if args.world:
+            made.append(emit(task, slug, "world"))
         if args.no_control:
             continue
         made.append(emit(task, slug, "spec"))
-        if args.world:
-            made.append(emit(task, slug, "world"))
         try:
             clue_digest.load(task["_id"], task["title"])
         except clue_digest.MissingClues as exc:

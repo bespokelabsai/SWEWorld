@@ -12,8 +12,10 @@ category = "implementation"
 difficulty = "hard"
 source_task = "t40"
 variant = "blind"
-# Kept beside `variant`: everything that is not the blind arm is a control of
-# some kind, and readers written against the two-variant world still work.
+# Kept beside `variant`: a reader that predates the extra arms falls back to
+# this. `spec` and `clues` are controls — they hand over what the task hides.
+# `world` is not: it is the blind ticket against a corpus that has the answers
+# in it somewhere, so a reader falling back should read it as blind.
 control = false
 
 [agent]
