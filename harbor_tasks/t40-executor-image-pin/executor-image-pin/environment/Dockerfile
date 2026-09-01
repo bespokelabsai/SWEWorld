@@ -10,6 +10,16 @@
 # an engineer needs to actually run curator. See harbor_tasks/_env/Dockerfile.
 FROM sweworld:repo-only-dev
 
+# The terminal recorder. Harbor records the agent's session through tmux and
+# asciinema, and neither is in the world image — so without this the trial still
+# runs, still grades, and simply produces no transcript. That is the worst shape
+# a missing dependency can take: every diagnosis of WHY an arm scored what it did
+# has come from reading those recordings back. Unpinned deliberately; an exact
+# version pin rots faster than the recorder's interface.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends tmux asciinema \
+ && rm -rf /var/lib/apt/lists/*
+
 # The world's services can boot slowly on a cold, shared host.
 ENV WAIT_TIMEOUT=600
 

@@ -172,7 +172,11 @@ timeout_sec = 3600.0
 # symlinks under /opt/sweworld/curator, neither of which the agent can touch —
 # so the state being graded cannot be forged.
 user = "root"
-timeout_sec = 1800.0
+# 2400, not 1800. Horizon's own lint rejects anything under 2000s, and the reason
+# is worth keeping: a grader that overruns is KILLED, and a killed grader scores
+# zero — so a perfect solution and a broken one produce the same result and
+# nothing in the output says which happened.
+timeout_sec = 2400.0
 
 [environment]
 # NO docker_image and NO docker-compose.yaml. One thin layer on the world image,
@@ -277,6 +281,18 @@ def instruction(task: dict, variant: str) -> str:
         "of information you can reach: the repository's own history and issues, "
         "the company chat, the wiki, internal mail. Any of them may carry "
         "something the ticket does not say.",
+        # Three world-arm rollouts out of three FOUND the second requirement and
+        # then refused it, in as many words: "all of it is tagged 'when we get to
+        # it' and none of it is in the ticket's API, so I built neither", "separate
+        # work, shapes still moving". The corpus was not wrong -- real teams settle
+        # a design and then do not get to it, which is the reason a ticket exists
+        # now -- and rewording the corpus to sound more urgent would only make it
+        # read like a specification. What was missing was this sentence.
+        "- Some of what this company decided, it never got round to doing. The "
+        "history holds designs that were agreed and then parked — \"that's its "
+        "own ticket\", \"when we get to it\" — and parked is not cancelled. Where "
+        "a decision was settled and the code does not reflect it yet, carrying it "
+        "out is part of this ticket, not a reason to leave it alone.",
         "- Chat is at <http://chat.world.local>, the wiki at "
         "<http://docs.world.local>, webmail at <http://mail.world.local>, and "
         "the service list at <http://pass.world.local>. Gitea and Mattermost "
@@ -322,6 +338,16 @@ DOCKERFILE = f'''# One thin layer on the world image.
 # nothing else — Mattermost, BookStack and mail are empty — plus the virtualenv
 # an engineer needs to actually run curator. See harbor_tasks/_env/Dockerfile.
 FROM {BASE_IMAGE}
+
+# The terminal recorder. Harbor records the agent's session through tmux and
+# asciinema, and neither is in the world image — so without this the trial still
+# runs, still grades, and simply produces no transcript. That is the worst shape
+# a missing dependency can take: every diagnosis of WHY an arm scored what it did
+# has come from reading those recordings back. Unpinned deliberately; an exact
+# version pin rots faster than the recorder's interface.
+RUN apt-get update \\
+ && apt-get install -y --no-install-recommends tmux asciinema \\
+ && rm -rf /var/lib/apt/lists/*
 
 # The world's services can boot slowly on a cold, shared host.
 ENV WAIT_TIMEOUT=600
@@ -515,7 +541,35 @@ def emit(task: dict, slug: str, variant: str) -> Path:
         {"task_id": task["_id"], "suite": task["_suite"],
          "variant": variant, "control": variant in ("spec", "clues"),
          "hidden_requirements": task["hidden_requirements"]}, indent=1))
+    lint(out)
     return out
+
+
+def lint(out: Path) -> None:
+    """Horizon's own checks on the directory we just wrote. Fails the build.
+
+    Both of these already existed as importable functions and neither was ever
+    called, so both defects reached a hosted run and had to be fixed by hand:
+
+      timeouts   a verifier timeout under 2000s. Horizon KILLS an overrunning
+                 grader and scores it zero, so a perfect solution and a broken
+                 one are indistinguishable in the result.
+      prereqs    tmux and asciinema missing. Not fatal to the trial -- and that
+                 is the problem, because what is lost is the terminal recording,
+                 which is the only record of what the agent actually typed.
+
+    Soft-fails if the horizon packages are not installed: this repo's local
+    Harbor runs do not need them, and a missing import must not stop a build.
+    """
+    try:
+        from apex_arena.utils import lint_harbor_timeouts
+        from horizon_cli.harbor_prereq_lint import lint_harbor_agent_prereqs
+    except ImportError:
+        return
+    findings = list(lint_harbor_timeouts(out) or []) + \
+        list(lint_harbor_agent_prereqs(out) or [])
+    if findings:
+        raise SystemExit(f"{out.name}: " + "\n  ".join([""] + findings))
 
 
 def main(argv: list[str] | None = None) -> int:

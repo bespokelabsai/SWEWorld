@@ -30,7 +30,11 @@ timeout_sec = 3600.0
 # symlinks under /opt/sweworld/curator, neither of which the agent can touch —
 # so the state being graded cannot be forged.
 user = "root"
-timeout_sec = 1800.0
+# 2400, not 1800. Horizon's own lint rejects anything under 2000s, and the reason
+# is worth keeping: a grader that overruns is KILLED, and a killed grader scores
+# zero — so a perfect solution and a broken one produce the same result and
+# nothing in the output says which happened.
+timeout_sec = 2400.0
 
 [environment]
 # NO docker_image and NO docker-compose.yaml. One thin layer on the world image,
