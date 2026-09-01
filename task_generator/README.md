@@ -257,6 +257,84 @@ agent passes for free. A brief that points at an area where real design decision
 were made produces good parts; a brief that points at an area with one obvious
 implementation produces facts the bracket will reject.
 
+## What is automated, and what is not
+
+Task two (`g2`, executor-output-cap) was built end to end in one afternoon and
+measured at **spec 1.00 / blind 0.00**. What it cost, out of its own `spend.json`:
+
+| stage | calls | $ |
+|---|---|---|
+| tests | 2 | 6.33 |
+| split | 7 | 4.47 |
+| author-extend | 1 | 3.00 |
+| build --role oracle | 2 | 2.11 |
+| author | 1 | 2.05 |
+| build --role naive | 2 | 1.03 |
+| **total** | **15** | **18.99** (65 min of model time) |
+
+Plus two agent trials at roughly $7 each. **~$33 against g1's $88**, and hours
+rather than four days.
+
+**Every stage is automated.** Fifteen model calls across ten commands, each
+producing a reviewable artifact: the specification, the oracle patch, the cut, the
+suite, the naive build, the bracket, the harbor arms, the Horizon arms. Nobody
+wrote code, wrote a test, or made a design decision about output capping.
+
+**The judgement between stages is not.** Four things were done by hand, and only
+two of them were real work:
+
+1. **Choosing the area** (~15 minutes reading curator). `code_executor` has no
+   output cap anywhere, twin result types that disagree about whether a stream may
+   be absent, and three exit paths that each assemble output independently. That
+   "two sides disagree and the disagreement is reachable" shape is what brackets
+   well, and nothing here finds it for you.
+2. **Writing the brief** — 25 lines naming exact files and line numbers.
+3. **Diagnosing `--extend` rather than another cut** (below).
+4. Sequencing, and telling an advisory gate from a fatal one.
+
+Items 1 and 2 are irreducible: they are the taste. Item 3 cost about $6 of the
+$19 and should not have.
+
+### The one decision the tool does not make for you
+
+When `bracket` reports coincidences, the instinct is to re-cut — hide different
+facts. **That does not work**, and it is worth knowing before you spend on it.
+
+g2's first bracket read `naive 5/10`: four hidden facts reproduced by a build that
+only had the ticket. Three further `split` calls moved the anchor count 2 → 4 → 2
+and changed nothing, because re-cutting only chooses *which* parts to hide, and
+every part was derivable from the surrounding source. One `author --extend` — which
+keeps the parts and the oracle and adds parts carrying content the codebase cannot
+supply — took it to `naive 1/10`, nine hidden facts and no coincidences.
+
+The rule: **a coincidence is a fact about the specification, not about the cut.**
+Re-cut when the ticket LEAKED a name its own facts need — `split` now detects that
+itself and re-cuts once without being asked. Extend when the naive build derived
+the fact from the code.
+
+### Reading the gates
+
+Two of them exit non-zero on a heuristic rather than a defect, and a driver script
+that treats every non-zero exit as fatal will stop on a perfectly good artifact:
+
+- **`split`** exits 1 when any fact rests on no invented name. That is a
+  *predictor* of coincidence — it called four of its five predictions correctly on
+  g2 — but g1 ships with five of ten facts unanchored, because a fact can rest on a
+  chosen value or a policy the code is silent about instead of on a name.
+- **`bracket`** builds `naive` exactly ONCE, so a single sample of a stochastic
+  process decides every coincidence verdict — the same defect `prove` had before it
+  gained `--runs 3`. `harbor_tasks/BRACKET.md` records 14 hidden / 13 coincidence
+  across t1–t4, and those tasks shipped.
+
+Read both, then measure. **The verdict is `cli.py trial --arm spec` and
+`--arm blind`** — an agent, ~25 minutes and ~$7 each. spec ≈ 1.00 says the suite is
+satisfiable; blind ≈ 0.00 says the requirements are genuinely hidden. `open_feature`
+at 1.0 on the blind arm is the load-bearing part of that zero: it means the agent
+built the feature competently and still recovered nothing.
+
+The one bracket result worth stopping for is the **oracle** failing. That is a real
+defect rather than a heuristic being pessimistic.
+
 ## Auth
 
 Agent turns run on `CLAUDE_CODE_OAUTH_TOKEN`, and `tg/auth.py` **removes**

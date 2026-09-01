@@ -1520,8 +1520,29 @@ def unreversed(entry: dict) -> list[str]:
 
 def place_one(task: Task, corpus: Corpus, leaf: dict, window: tuple[str, str],
               used: set[str], per_channel: collections.Counter, budget: float,
-              per_page: collections.Counter | None = None) -> dict:
-    """One remark through placement and, if nothing real fits, through a writer."""
+              per_page: collections.Counter | None = None,
+              write_chat: bool = False) -> dict:
+    """One remark through placement and, if nothing real fits, through a writer.
+
+    `write_chat=False` skips writing an invented CHAT conversation here, because
+    `reknit` writes one from scratch and does not read this one. Not a guess:
+    `stage_thread` takes `clue["text"]`, the room from `room_of()`, the voices and
+    the reversal, and never touches `clue["invented"]["messages"]`. g1 paid
+    `clue-conv` 155 calls / $6.01 for conversations that `clue-thread` then
+    discarded -- and those were the same conversations lesson 15 records as having
+    drifted from their remarks in 33 of 35 cases, precisely because they were
+    written here and never revisited.
+
+    What is still needed from the invented branch is the SLOT -- channel and date
+    -- and `free_invention` computes that deterministically, with no model call.
+    So the dict handed to `slot_of` carries the kind, channel and date and no
+    messages; `unknit` skips a clue with no turns, and `stage_thread` reads the
+    `kind` off it.
+
+    Documents and mail still get written. `stage_thread` looks an invented page up
+    in `corpus.pages` and will not find one that exists only in the plant, so those
+    two writers produce an artifact reknit genuinely depends on.
+    """
     placed = stage_place(task, corpus, leaf, window, used, budget)
     invented = None
     if placed.get("choice") == "none":
@@ -1529,7 +1550,10 @@ def place_one(task: Task, corpus: Corpus, leaf: dict, window: tuple[str, str],
         invent["kind"] = cs.INVENT_KIND.get(leaf.get("source") or "slack", "chat_thread")
         invent = free_invention(corpus, leaf, invent, window, used, per_channel)
         placed["invent"] = invent
-        invented = write_invented(task, corpus, leaf, invent, budget)
+        if write_chat or not str(invent["kind"]).startswith("chat"):
+            invented = write_invented(task, corpus, leaf, invent, budget)
+        else:
+            invented = dict(invent)
     leaf["placement"] = {k: v for k, v in placed.items() if k != "_candidate"}
     leaf["slot"] = slot_of(leaf, placed, invented)
     leaf["invented"] = invented
