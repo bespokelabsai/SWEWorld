@@ -153,13 +153,100 @@ def bracket_feedback(task: Task) -> str:
     return "\n".join(lines)
 
 
-def split(slug: str, *, budget: float = 6.0) -> Task:
+def leak_feedback(rows: list[dict]) -> str:
+    """The leak audit as instructions to the next cut. Empty when the cut is sound.
+
+    `prompts/split.md` already spends thirteen lines telling the model not to print
+    an identifier its own hidden facts rest on, and names the exact failure it is
+    guarding against. g2's first cut did it anyway: the ticket printed
+    `DEFAULT_MAX_OUTPUT_BYTES`, `CappedStream`, `cap_stream`, `kept_bytes`,
+    `max_output_bytes` and `truncated_streams`, and **seven of nine facts** were
+    left resting on names a blind agent is handed for free.
+
+    That is this repo's lesson 5 -- a pasted rubric loses to the instruction above
+    it, and prompts are advice where gates are enforcement. `leak.audit` computed
+    the finding on the first run and nothing did anything with it: `cmd_split`
+    printed it and exited 1, which costs a whole `author`-to-`split` cycle of
+    somebody's attention to notice and re-run by hand.
+
+    So the finding goes back in as feedback, naming the specific identifiers to
+    remove and the specific facts that lost their anchor.
+    """
+    weak = [r for r in rows if not r["has_anchor"]]
+    if not weak:
+        return ""
+    # `strong` and not the raw leak list. Unfiltered, this named 33 identifiers
+    # including `None`, `bytes`, `with`, `must` and `code` -- and an instruction to
+    # take `with` out of the ticket is worse than no instruction, because it is the
+    # part the reader believes least. `leak.strong` is the same filter the audit
+    # already uses to tell an invented name from a fragment.
+    from . import leak as _leak
+    # Leaked AND invented: `strong` drops fragments, and subtracting
+    # `already_in_source` drops the names curator already has. `_execute_in_sandbox`
+    # and `CodeExecutionOutput` are leaked by any honest ticket and MUST be -- the
+    # ticket points at them. Asking for their removal would be asking for a ticket
+    # nobody could build from, which is the trade `split.md` explicitly refuses.
+    leaked = sorted({n for r in rows
+                     for n in set(r["leaked_by_ticket"]) - set(r["already_in_source"])
+                     if _leak.strong(n)})
+    lines = [
+        "## Your previous cut failed the anchor check — fix it in this one",
+        "",
+        f"{len(weak)} of {len(rows)} facts rested on no name the ticket withholds, "
+        "so a build with the ticket alone reproduces them and the bracket scores "
+        "them `coincidence`. The facts that failed:",
+        "",
+    ]
+    lines += [f"- `{r['key']}`" for r in weak]
+    if leaked:
+        lines += [
+            "",
+            "The ticket printed these identifiers, which is why those facts have "
+            "nothing left to hide behind. **Take them out of the ticket**, or hide "
+            "a different fact:",
+            "",
+            "  " + ", ".join(f"`{n}`" for n in leaked),
+        ]
+    lines += [
+        "",
+        "The ticket must stay a real, buildable request. If a name genuinely has "
+        "to be in it, then that fact is not hideable — hide a chosen value or a "
+        "policy the code is silent about instead, and let the named thing be part "
+        "of the open feature.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def split(slug: str, *, budget: float = 6.0, attempts: int = 2) -> Task:
+    """Cut the specification, and re-cut once if the ticket gave the answers away.
+
+    `attempts` is 2 because the second cut is told exactly what the first one
+    leaked. A third has never been needed, and each one is a paid call.
+    """
     task = load(slug)
     whole = task.dir / "whole.md"
     if not whole.is_file():
         raise SystemExit(f"no {whole}; run `tg author {slug}` first")
-    text = prompt("split.md", whole=whole.read_text(), feedback=bracket_feedback(task))
-    result = agent.run(text, repo=REPO, label="split", cwd=task.dir, tools="",
+    feedback = bracket_feedback(task)
+    for attempt in range(1, attempts + 1):
+        task = _cut(task, whole, feedback, budget, attempt)
+        from . import leak
+        rows = leak.audit(task)
+        if all(r["has_anchor"] for r in rows) or attempt == attempts:
+            return task
+        extra = leak_feedback(rows)
+        print(f"  re-cutting: {sum(1 for r in rows if not r['has_anchor'])} of "
+              f"{len(rows)} facts rested on a name the ticket printed")
+        feedback = (extra + "\n" + feedback) if feedback else extra
+    return task
+
+
+def _cut(task: Task, whole: pathlib.Path, feedback: str, budget: float,
+         attempt: int) -> Task:
+    text = prompt("split.md", whole=whole.read_text(), feedback=feedback)
+    result = agent.run(text, repo=REPO, label=f"split-{attempt}" if attempt > 1
+                       else "split", cwd=task.dir, tools="",
                        schema=schemas.SPLIT, budget_usd=budget, log_dir=_log(task))
     _record(task, "split", text, result)
 
