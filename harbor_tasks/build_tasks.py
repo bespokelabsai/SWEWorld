@@ -57,14 +57,16 @@ WORLD_IMAGE = "sweworld:0.4.4"
 
 # Task ids whose emitted directories must not be regenerated.
 #
-# `emit()` rewrites `solution/solve.sh` from the `SOLVE` stub on every run, and
-# g1's two world arms carry a hand-written oracle instead -- one that clones from
-# gitea, applies the patch and pushes `main`, because the verifier grades the
-# PUSHED main rather than the working tree. Regenerating g1 replaces a reference
-# solution that scores 1.0 with one that scores 0, and prints the same success
-# line either way. g1 is measured and frozen; the fix for the general case is to
-# generate a real oracle (then this entry can go), not to remember not to type
-# `--pick g1`.
+# This began as protection against `emit()` overwriting g1's hand-written oracle
+# with a stub -- a 1.0 reference solution replaced by a 0.0 one, with the same
+# success line printed either way. `solve()` generates the real oracle now, so
+# that specific danger is gone: regenerating g1 would produce the same script
+# bar the commit message and branch name.
+#
+# g1 stays frozen anyway, for a different and better reason. It is the one task
+# measured across all four arms, and those numbers are only comparable to each
+# other while the artifact that produced them does not move. Everything here is
+# validated against the NEW task instead.
 FROZEN = {"g1"}
 
 # Slugs for the tasks phase 3 currently plants. A generated slug from the title
@@ -415,23 +417,131 @@ touch "$MARK"
 exit 0
 '''
 
-SOLVE = '''#!/bin/bash
+STUB_SOLVE = '''#!/bin/bash
 # Reference solution, run by `harbor run -a oracle`.
 #
-# Deliberately a no-op that exercises the plumbing rather than an implementation.
-# A real reference solution here is four curator features and eight hidden
-# requirements — days of work — and it is not what proves the tests are
-# satisfiable. The `-spec` control does that: it is the same task with the
-# requirements written into the ticket, so a real agent passing it is evidence
-# the suite can be passed, and a real agent failing the uncontrolled twin is
-# then evidence about the requirement rather than about the test.
+# A no-op, because this task has no `fixtures/oracle.patch` to apply — the
+# hand-written tasks in data_gen/input/tasks.json carry an `oracle.py` fixture
+# used by the bracket instead, and there is no generated diff to push. What the
+# `-spec` control proves for those is that the suite can be passed at all.
 #
-# Running the oracle is still worth it: it proves the image builds, the world
+# Running it is still worth something: it proves the image builds, the world
 # boots, the verifier runs and the reward file lands. Expect a score of zero.
+#
+# NOTE this scores 0, and Horizon refuses to schedule an evaluation against a
+# task whose oracle does not score ~1.0 ("409 ... evaluation validation gate").
+# A task built from task_generator gets the real oracle below and passes; one
+# built from tasks.json does not, and cannot be run hosted until it has a patch.
 set -uo pipefail
 echo "oracle: no reference implementation; this run checks the plumbing only"
 exit 0
 '''
+
+# The real one. Everything above the patch, then the patch, then everything below.
+REAL_SOLVE_HEAD = '''#!/bin/bash
+# Reference solution, run by `harbor run -a oracle` and by Horizon's validation
+# gate — which is why it has to be real. Horizon refuses to schedule any
+# evaluation against a task whose oracle does not score ~1.0:
+#
+#     409 Conflict: One or more tasks are blocked by the evaluation validation gate.
+#
+# And a real one here means more than applying a patch. `run_suites.py` clones
+# and grades **the pushed `main`**, not the working tree, so an oracle that edits
+# files and stops scores exactly zero with every test reporting "does not
+# import". Pushing IS the solution in this world.
+#
+# The patch is embedded rather than read from a file beside this script: on the
+# apex arms the sibling file was unreadable from the solution's own directory
+# (/tests is root-owned 0700), and a heredoc has no permissions of its own. It is
+# generated from fixtures/oracle.patch at build time, so it cannot drift from the
+# suite that grades it.
+set -uo pipefail
+
+REPO_URL="http://worldadmin:worldadmin@git.world.local/worldadmin/curator.git"
+WORK="$(mktemp -d)"
+
+# The healthcheck should already have waited for gitea, but the oracle also runs
+# in contexts that do not go through it. Cheap when it is already up.
+wait-for-service --quiet gitea 2>/dev/null || true
+
+git clone --quiet "$REPO_URL" "$WORK/curator" || { echo "oracle: clone failed"; exit 1; }
+cd "$WORK/curator" || exit 1
+
+cat > /tmp/oracle.patch <<'CURATOR_ORACLE_PATCH_EOF'
+'''
+
+REAL_SOLVE_TAIL = '''
+CURATOR_ORACLE_PATCH_EOF
+
+git apply --whitespace=nowarn /tmp/oracle.patch || {{ echo "oracle: patch did not apply"; exit 1; }}
+rm -f /tmp/oracle.patch
+
+git config user.email "worldadmin@world.local"
+git config user.name  "worldadmin"
+git add -A
+git commit --quiet -m "{title}" || {{ echo "oracle: nothing to commit"; exit 1; }}
+
+# Straight to main when the branch is unprotected; a branch plus an immediately
+# merged PR when it is not. The agents that scored provenance 1.0 took the second
+# path, so it is known to work in this world — but the first is one round trip and
+# the grader only cares that `main` moved.
+if git push --quiet origin HEAD:main 2>/dev/null; then
+  echo "oracle: pushed straight to main"
+else
+  BRANCH="oracle/{slug}"
+  git push --quiet --force origin "HEAD:$BRANCH" || {{ echo "oracle: push failed"; exit 1; }}
+  TOKEN="$(cat /etc/sweworld/gitea-token 2>/dev/null)"
+  API="http://git.world.local/api/v1/repos/worldadmin/curator"
+  NUM=$(curl -sS -X POST -H "Authorization: token $TOKEN" \\
+        -H 'Content-Type: application/json' "$API/pulls" \\
+        -d "{{\\"head\\":\\"$BRANCH\\",\\"base\\":\\"main\\",\\"title\\":\\"oracle: {slug}\\"}}" \\
+        | python3 -c 'import json,sys; print(json.load(sys.stdin).get("number",""))' 2>/dev/null)
+  [ -n "$NUM" ] || {{ echo "oracle: could not open a PR"; exit 1; }}
+  curl -sS -X POST -H "Authorization: token $TOKEN" -H 'Content-Type: application/json' \\
+    "$API/pulls/$NUM/merge" -d '{{"Do":"merge"}}' >/dev/null \\
+    || {{ echo "oracle: merge failed"; exit 1; }}
+  echo "oracle: merged PR #$NUM into main"
+fi
+
+# Not required by the score — `score.py` sets reward = hidden_mean and leaves
+# provenance unweighted — but the deploy takes about half a minute here, and
+# letting it land means the oracle run also demonstrates ci_green and deployed
+# rather than leaving two checks reading zero for no reason.
+sleep 45
+echo "oracle: done"
+exit 0
+'''
+
+
+def sh_dq(text: str) -> str:
+    """Escape text for interpolation into a bash DOUBLE-quoted string.
+
+    Backslash first, or it re-escapes the escapes. Then the three characters
+    double quotes do not protect: `"` ends the string, and both `` ` `` and `$`
+    still substitute inside one.
+
+    Escaping only the quote is the obvious half-fix and it is wrong here: the
+    first generated title was `Batch payload planner for `batch_size="auto"``,
+    whose backticks would have made bash run `batch_size="auto"` as a command in
+    the middle of `git commit -m`. Titles come from a model now, so anything a
+    shell reads as syntax will eventually appear in one.
+    """
+    for char in ("\\", '"', "`", "$"):
+        text = text.replace(char, "\\" + char)
+    return text
+
+
+def solve(task: dict, slug: str) -> str:
+    """The oracle script for this task: real when there is a patch, stub otherwise."""
+    patch = group_dir(task, slug) / "fixtures" / "oracle.patch"
+    if not patch.is_file():
+        return STUB_SOLVE
+    body = patch.read_text().rstrip("\n")
+    if "CURATOR_ORACLE_PATCH_EOF" in body:
+        raise SystemExit(f"{task['_id']}: the oracle patch contains the heredoc "
+                         "delimiter; pick another")
+    return REAL_SOLVE_HEAD + body + REAL_SOLVE_TAIL.format(
+        title=sh_dq(task["title"]), slug=slug)
 
 TEST_SH = '''#!/usr/bin/env bash
 # Harbor verifier entrypoint. Executed directly rather than through `bash`, as
@@ -526,7 +636,7 @@ def emit(task: dict, slug: str, variant: str) -> Path:
           WORLD_DOCKERFILE if variant == "world" else DOCKERFILE)
     write(out / "environment" / "task-entrypoint.sh", ENTRYPOINT, True)
     write(out / "environment" / "setup.sh", SETUP, True)
-    write(out / "solution" / "solve.sh", SOLVE, True)
+    write(out / "solution" / "solve.sh", solve(task, slug), True)
 
     tests = out / "tests"
     if tests.exists():
