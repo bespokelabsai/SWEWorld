@@ -1,0 +1,590 @@
+#!/usr/bin/env python3
+"""Turn `data_gen/input/tasks.json` into Harbor tasks.
+
+Each task is emitted twice:
+
+  <id>-<slug>/<slug>        the real task — the agent gets `title` and
+                            `description` and nothing else, exactly what phase 3
+                            calls "stated openly"
+  <id>-<slug>/<slug>-spec   the positive control — the same task with both
+                            hidden requirements written into the ticket
+
+Both live in one folder per task, alongside that task's `fixtures/`. Harbor
+reads a directory of tasks with a single non-recursive `iterdir()`
+(`models/job/config.py:_get_local_task_configs`), so a group directory is
+exactly one `-p` target and gives `harbor run -p harbor_tasks/t1-cache-stats`
+the whole bracket for one task. The leaf names stay globally unique because a
+trial directory is named after its task directory — two tasks both called
+`blind` would land as two `blind__<hash>` rows nobody can tell apart.
+
+The control is what makes a failure readable. A task that fails without its
+corpus has told you either that the hidden requirement bit or that the tests are
+over-constrained, and those look identical from the outside; the control
+separates them for the cost of one extra `instruction.md`. Only `instruction.md`
+and `[task].name` may differ between a pair — anything else and the pair stops
+being a control.
+
+    python3 harbor_tasks/build_tasks.py --limit 4
+    python3 harbor_tasks/build_tasks.py --pick t7,t12
+
+Rebuilding is idempotent: generated files are overwritten, `_suites/` is copied
+into each task's `tests/` (Harbor copies `tests/` to /tests at verify time, and
+only whole directories travel).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import shutil
+import sys
+from pathlib import Path
+
+import clue_digest
+
+ROOT = Path(__file__).resolve().parent
+REPO = ROOT.parent
+TASKS_JSON = REPO / "data_gen" / "input" / "tasks.json"
+SUITES = ROOT / "_suites"
+
+# The base every task builds one thin layer on. Verified to be repository +
+# history with nothing else: see harbor_tasks/_env/Dockerfile.
+BASE_IMAGE = "sweworld:repo-only-dev"
+# The same world with the corpus in it — nine months of chat, the wiki and the
+# mailboxes. Only the `world` arm boots this; every other arm has to see an empty
+# Mattermost, or the corpus stops being the one variable between them.
+WORLD_IMAGE = "sweworld:0.4.4"
+
+# Slugs for the tasks phase 3 currently plants. A generated slug from the title
+# would do, but these are the names that will appear in every result table and
+# in `jobs/`, so the four in use are named by hand.
+# t1, t12, t23 and t40 are the four the plant covers — phase 3 was run
+# `--pick t1,t12,t23,t40` and then renumbered them t1..t4 in clues.json, which
+# is why the ids there do not match these. t2, t3 and t4 have suites but no
+# plant, so they get spec and blind arms and no clues arm.
+SLUGS = {
+    1: "cache-stats",
+    2: "batch-cost-estimate",
+    3: "shared-limiter",
+    4: "deepseek-empty-retry",
+    12: "schema-validation",
+    23: "batch-status-resume",
+    40: "executor-image-pin",
+}
+
+# Which suite directory under _suites/ grades which task.
+SUITE_DIR = {
+    1: "t1_cache_stats",
+    2: "t2_batch_cost",
+    3: "t3_shared_limiter",
+    4: "t4_deepseek_empty",
+    12: "t12_schema_validation",
+    23: "t23_batch_status_resume",
+    40: "t40_executor_image_pin",
+}
+
+FACT_FIELDS = ("rule", "scope", "exclusions_or_crossover", "failure_behavior",
+               "observability")
+
+
+def toml_str(text: str) -> str:
+    """A TOML basic-string body: backslashes and double quotes escaped.
+
+    None of the 60 hand-written titles in tasks.json contains a double quote, so
+    interpolating one raw was safe for years. A generated title is not bound by
+    that: `Batch payload planner for `batch_size="auto"`` closed the TOML string
+    mid-value, and harbor died with `TOMLDecodeError: Expected newline or end of
+    document` — which reads like a corrupt template rather than an unescaped
+    title.
+    """
+    return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def slugify(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:48]
+
+
+# =============================================================================
+# The files
+# =============================================================================
+def task_toml(name: str, task: dict, variant: str) -> str:
+    """Per-task Harbor config, following AlphaShop's validated shape.
+
+    `[agent] user = "ubuntu"` and `[verifier] user = "root"` become
+    `docker compose exec -u`, which is what maps Harbor onto the world's own
+    privilege split: the agent is an ordinary engineer with no sudo, and the
+    grader needs root to read the pristine tree at /opt/world-state and the
+    release symlinks under /opt/sweworld.
+    """
+    kind = {
+        "spec": "The two requirements that decide correctness are stated in "
+                "the ticket.",
+        "clues": "The requirements that decide correctness are not stated, but "
+                 "every remark the team made about them is quoted in the "
+                 "ticket.",
+        "blind": "The requirements that decide correctness are not written "
+                 "down anywhere the agent is pointed at.",
+        "world": "The requirements that decide correctness are not stated. The "
+                 "remarks they were inferred from are in the company's chat, "
+                 "wiki and mail, and the agent has to find them.",
+    }[variant]
+    return f'''schema_version = "1.4"
+
+[task]
+name = "bespokelabs/{name}"
+version = "1.0.0"
+description = "{toml_str(task['title'])}. {kind}"
+authors = [{{ name = "SWEWorld" }}]
+keywords = ["sweworld", "curator", "python", "hidden-requirements"{'' if variant == 'blind' else f', "{variant}"'}]
+
+[metadata]
+category = "implementation"
+difficulty = "{'hard' if variant == 'blind' else 'medium'}"
+source_task = "{task['_id']}"
+variant = "{variant}"
+# Kept beside `variant`: a reader that predates the extra arms falls back to
+# this. `spec` and `clues` are controls — they hand over what the task hides.
+# `world` is not: it is the blind ticket against a corpus that has the answers
+# in it somewhere, so a reader falling back should read it as blind.
+control = {str(variant in ('spec', 'clues')).lower()}
+
+[agent]
+# The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
+# /opt/world-state or the deploy queue.
+user = "ubuntu"
+timeout_sec = 3600.0
+
+[verifier]
+# Root, because grading reads the pristine tree at /opt/world-state/input/curator
+# (to tell an agent's new identifiers from curator's own) and the release
+# symlinks under /opt/sweworld/curator, neither of which the agent can touch —
+# so the state being graded cannot be forged.
+user = "root"
+timeout_sec = 1800.0
+
+[environment]
+# NO docker_image and NO docker-compose.yaml. One thin layer on the world image,
+# booting supervisord through ENTRYPOINT (environment/task-entrypoint.sh).
+# Harbor's compose template appends `command: ["sh","-c","sleep infinity"]`, and
+# Compose's `command:` overrides CMD rather than ENTRYPOINT, so with a compose
+# file those args reach supervisord as argv and the world never boots.
+build_timeout_sec = 3600.0
+# claude-code installs itself from downloads.claude.ai and calls the API.
+network_mode = "public"
+cpus = 4
+memory_mb = 13000
+
+[environment.healthcheck]
+# Each probe must be FAST: Harbor caps one probe at timeout_sec and does the
+# waiting itself through start_period_sec + retries, so wait-for-service's own
+# 600s default has to be capped or every probe blows the cap and counts failed.
+#
+# Gitea by name, not `--all`. These tasks need the repository and the CI
+# runner; Mattermost and BookStack are empty here and waiting on them only
+# adds minutes. (`--core` is AlphaShop's flag and does not exist in this
+# world: `wait-for-service` here takes [--all] [--quiet] [service...], and an
+# unknown name exits 1, which fails every probe.)
+#
+# This also carries task setup, because the healthcheck is the only hook that
+# runs as root before the agent starts. task-setup.sh is idempotent.
+command = "WAIT_TIMEOUT=15 wait-for-service --quiet gitea && /usr/local/bin/task-setup.sh"
+start_period_sec = 600.0
+start_interval_sec = 10.0
+interval_sec = 15.0
+timeout_sec = 120.0
+retries = 20
+'''
+
+
+def instruction(task: dict, variant: str) -> str:
+    """What the agent is told.
+
+    The openly-stated half is `title` + `description` verbatim — the same two
+    fields phase 3 hands the planter under "THE FEATURE (stated openly, an agent
+    will be told this)". Nothing else from tasks.json may appear here unless
+    this is the control.
+
+    The orientation section is deliberately identical in both worlds, corpus or
+    no corpus. It names chat, the wiki and mail even though this world's are
+    empty: when the same instruction is run against the populated world, the
+    corpus is then the only variable, and the difference between the two runs is
+    attributable to it rather than to a reworded ticket.
+    """
+    body = [
+        "You are an engineer at this company, working on `curator` — the "
+        "Python library for bulk LLM inference and dataset curation that the "
+        "company ships. You have an ordinary engineer's access and nothing "
+        "more: no sudo, and no way to put code on a running service except "
+        "through CI.",
+        "",
+        "## The ticket",
+        "",
+        f"**{task['title']}**",
+        "",
+        task["description"],
+        "",
+    ]
+
+    if variant == "spec":
+        body += [
+            "## Requirements settled earlier",
+            "",
+            "These were agreed before the ticket was written. They are not "
+            "obvious from the code, so they are repeated here in full:",
+            "",
+        ]
+        for i, req in enumerate(task["hidden_requirements"], 1):
+            body.append(f"{i}.")
+            for field in FACT_FIELDS:
+                if req["requirement"].get(field):
+                    label = field.replace("_", " ")
+                    body.append(f"   - *{label}*: {req['requirement'][field]}")
+            body.append("")
+
+    if variant == "clues":
+        # Not the requirement — the remarks it was inferred from. What is and
+        # is not quoted here is clue_digest's decision; see its docstring.
+        # Matched by TITLE: the plant renumbers whatever `--pick` selected, so
+        # an id match pairs a task with another feature's remarks.
+        body += [clue_digest.render(task["_id"], task["title"]), ""]
+
+    body += [
+        "## Getting around",
+        "",
+        "- The repository is in Gitea at "
+        "<http://git.world.local/worldadmin/curator.git>. Your account is "
+        "`worldadmin`, password `worldadmin`; a token is readable at "
+        "`/etc/sweworld/gitea-token` if you prefer.",
+        "- Nothing is checked out for you. Clone it.",
+        "- `curator` and its dependencies are installed in the virtualenv at "
+        "`$CURATOR_VENV` (`/opt/curator-dev/venv`), so "
+        "`$CURATOR_VENV/bin/python` and `$CURATOR_VENV/bin/pytest` will run the "
+        "library and its tests. The library itself is NOT installed there — put "
+        "your checkout's `src/` on `PYTHONPATH`.",
+        "- Complete this ticket to the best of your ability using every source "
+        "of information you can reach: the repository's own history and issues, "
+        "the company chat, the wiki, internal mail. Any of them may carry "
+        "something the ticket does not say.",
+        "- Chat is at <http://chat.world.local>, the wiki at "
+        "<http://docs.world.local>, webmail at <http://mail.world.local>, and "
+        "the service list at <http://pass.world.local>. Gitea and Mattermost "
+        "want the username `worldadmin`; BookStack and Roundcube want the email "
+        "`worldadmin@world.local`.",
+        # A trial spent four calls scraping BookStack's search HTML, stripped
+        # the tags, saw only the page header and concluded the wiki was empty.
+        # The token was sitting in /etc/sweworld the whole time and the same
+        # search over the API answers in JSON.
+        "- The wiki has a REST API — `Authorization: Token $(cat "
+        "/etc/sweworld/bookstack-token)` — and "
+        "`/api/search?query=...`, `/api/pages/{id}` return JSON, which is "
+        "easier to read than the HTML.",
+        # BookStack's search index is keyed by ENTITY (`entity_type`/`entity_id`)
+        # and `Comment extends Model`, not `Entity` — so a page comment is not
+        # indexed and cannot be made so by configuration. A world-arm trial
+        # searched the wiki seven times, opened no page, and lost two facts to a
+        # constant whose only mention is in a comment. The capability was always
+        # there; nothing said so.
+        "- Wiki pages carry **comments**, and BookStack's search does not index "
+        "them — a term that exists only in a comment returns nothing from "
+        "`/api/search`. `/api/pages/{id}` returns that page's `comments` "
+        "alongside its body, so a page worth reading is worth fetching whole.",
+        "- `wait-for-service <name>` blocks until a service answers.",
+        "",
+        "## Done means",
+        "",
+        "The change is merged to `main` in Gitea, CI is green for that commit, "
+        "and the running release has picked it up — pushing is what deploys "
+        "here, and it takes about half a minute.",
+    ]
+    return "\n".join(body) + "\n"
+
+
+DOCKERFILE = f'''# One thin layer on the world image.
+#
+# The base ref is spelled out INLINE. Do not reintroduce `ARG WORLD_IMAGE` +
+# `FROM ${{WORLD_IMAGE}}`: Horizon rewrites FROM lines through its Docker Hub
+# pull-through cache with a textual pass that cannot resolve an ARG, and the
+# hosted build then dies trying to resolve a literal "${{WORLD_IMAGE}}".
+#
+# {BASE_IMAGE} is the world with the repository and its full history and
+# nothing else — Mattermost, BookStack and mail are empty — plus the virtualenv
+# an engineer needs to actually run curator. See harbor_tasks/_env/Dockerfile.
+FROM {BASE_IMAGE}
+
+# The world's services can boot slowly on a cold, shared host.
+ENV WAIT_TIMEOUT=600
+
+COPY setup.sh /usr/local/bin/task-setup.sh
+RUN chmod 0755 /usr/local/bin/task-setup.sh
+
+COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/task-entrypoint.sh"]
+'''
+
+# The populated world is a RELEASE bake and carries no dev virtualenv, while the
+# verifier runs pytest with `$CURATOR_VENV/bin/python`. Without the copy the suite
+# never runs at all: every fact scores zero and `suite_error` fires, which reads
+# exactly like an agent that failed everything rather than a broken image.
+WORLD_DOCKERFILE = DOCKERFILE.replace(
+    f"FROM {BASE_IMAGE}",
+    f"FROM {WORLD_IMAGE}\n\nCOPY --from={BASE_IMAGE} /opt/curator-dev /opt/curator-dev"
+).replace(
+    f"# {BASE_IMAGE} is the world with the repository and its full history and\n"
+    "# nothing else — Mattermost, BookStack and mail are empty — plus the virtualenv\n"
+    "# an engineer needs to actually run curator. See harbor_tasks/_env/Dockerfile.",
+    f"# {WORLD_IMAGE} is the same world with the corpus baked in: the repository and\n"
+    "# its history, and nine months of chat, wiki and mail. The remarks this task's\n"
+    "# requirements are hidden in are somewhere in there.")
+
+ENTRYPOINT = '''#!/bin/bash
+# Boot the world as PID 1.
+#
+# Harbor appends `command: ["sh","-c","sleep infinity"]` to keep a plain image
+# alive and exec the agent into it. This image's real init is supervisord, and
+# Compose's `command:` overrides CMD rather than ENTRYPOINT — so those args
+# would be handed to supervisord as positional arguments and the world would
+# never boot. Ignore them and run supervisord in the foreground: it stays PID 1,
+# reaping zombies and keeping the container alive, while the harness execs the
+# agent and then the verifier in over `docker exec`.
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+'''
+
+SETUP = '''#!/bin/bash
+# Task setup. Runs as root from the healthcheck, repeatedly, before the agent
+# starts — so it must be idempotent and must return fast once it has run.
+set -uo pipefail
+MARK=/opt/world-state/task-setup.done
+[[ -f "$MARK" ]] && exit 0
+
+install -d -m 0700 /opt/world-state
+
+# Record the commit main sat at before the agent touched anything. The grader
+# needs it to tell "pushed something" from "pushed nothing": comparing against a
+# hardcoded SHA would break the moment the world image is rebaked.
+TOKEN=$(cat /etc/sweworld/gitea-token 2>/dev/null || echo "")
+BASE=$(curl -fsS -H "Authorization: token $TOKEN" \\
+  "http://127.0.0.1:3300/api/v1/repos/worldadmin/curator/branches/main" 2>/dev/null \\
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["commit"]["id"])' 2>/dev/null || echo "")
+[[ -n "$BASE" ]] || exit 1        # try again on the next probe
+
+{
+  echo "BASE_SHA=$BASE"
+  echo "BASE_RELEASE=$(readlink -f /opt/sweworld/curator/current 2>/dev/null || echo none)"
+} > /opt/world-state/baseline.env
+chmod 0600 /opt/world-state/baseline.env
+
+touch "$MARK"
+exit 0
+'''
+
+SOLVE = '''#!/bin/bash
+# Reference solution, run by `harbor run -a oracle`.
+#
+# Deliberately a no-op that exercises the plumbing rather than an implementation.
+# A real reference solution here is four curator features and eight hidden
+# requirements — days of work — and it is not what proves the tests are
+# satisfiable. The `-spec` control does that: it is the same task with the
+# requirements written into the ticket, so a real agent passing it is evidence
+# the suite can be passed, and a real agent failing the uncontrolled twin is
+# then evidence about the requirement rather than about the test.
+#
+# Running the oracle is still worth it: it proves the image builds, the world
+# boots, the verifier runs and the reward file lands. Expect a score of zero.
+set -uo pipefail
+echo "oracle: no reference implementation; this run checks the plumbing only"
+exit 0
+'''
+
+TEST_SH = '''#!/usr/bin/env bash
+# Harbor verifier entrypoint. Executed directly rather than through `bash`, as
+# root, from the image's own WORKDIR — so the shebang, the execute bit and the
+# absolute paths below all matter.
+set -uo pipefail
+
+mkdir -p /logs/verifier
+
+# Both halves run whatever happened, and neither gates the other. That split is
+# the point: "wrote it right but never deployed" and "deployed something that
+# misses the hidden requirement" are different failures, and a single reward
+# would report them identically.
+python3 /tests/provenance.py
+"${CURATOR_VENV:-/opt/curator-dev/venv}/bin/python" /tests/run_suites.py
+
+# score.py is the only thing that writes rewards.json, so a crash in either of
+# the two above still leaves every key present and zero.
+python3 /tests/score.py
+
+# Always exit 0: the reward file is the verdict. A non-zero exit here reads as a
+# broken harness rather than a failed task.
+exit 0
+'''
+
+
+# =============================================================================
+# Emitting
+# =============================================================================
+def write(path: Path, text: str, executable: bool = False) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    if executable:
+        path.chmod(0o755)
+
+
+def group_dir(task: dict, slug: str) -> Path:
+    """The folder holding every version of one task, plus its fixtures."""
+    return ROOT / f"{task['_id']}-{slug}"
+
+
+def check_clue_arm(task: dict, text: str) -> None:
+    """Two ways the clues arm can be built wrong and read as a result.
+
+    A LEAK makes it a reworded `-spec`: if a `settles` clause or a
+    subconclusion reaches the instruction, the requirement is stated after all
+    and a good score says nothing about whether the remarks carried it.
+
+    A GAP makes it unpassable: a fact field no remark covers cannot be inferred
+    from the remarks, so the arm fails that field for a defect in the plant.
+    Caught here it reads as a broken plant; caught after a run it reads as a
+    finding about the agent, which is the expensive kind of wrong.
+    """
+    planted = clue_digest.load(task["_id"], task["title"])["task"]
+
+    # Ground truth, not self-consistency. `coverage()` below compares the plant
+    # against the plant's OWN copy of the requirements, which stayed green while
+    # the two files described different features entirely. The fields have to
+    # match tasks.json or the clues arm grades something the remarks never
+    # discussed.
+    mine = {f for f, v in task["hidden_requirements"][0]["requirement"].items() if v}
+    theirs = {f for f, v in planted["requirements"][0]["requirement"].items() if v}
+    if planted.get("title") != task["title"]:
+        raise SystemExit(
+            f"{task['_id']}: the plant titled {planted.get('title')!r} was "
+            f"matched to {task['title']!r}")
+    if mine != theirs:
+        raise SystemExit(
+            f"{task['_id']} r1: tasks.json states {sorted(mine)} but the plant "
+            f"was built against {sorted(theirs)} — the plant is stale for this "
+            "task, so its clues cannot grade these requirements")
+    leaks = clue_digest.leaked_fields(planted, text)
+    if leaks:
+        raise SystemExit(f"{task['_id']}: answer key reached the clues "
+                         f"instruction: {', '.join(leaks)}")
+    gaps = clue_digest.coverage(planted)
+    if gaps:
+        raise SystemExit(f"{task['_id']}: no planted remark carries "
+                         f"{gaps} — the clues arm cannot pass those facts")
+
+
+def emit(task: dict, slug: str, variant: str) -> Path:
+    suffix = "" if variant == "blind" else f"-{variant}"
+    name = f"sweworld-{slug}{suffix}"
+    out = group_dir(task, slug) / (slug + suffix)
+    text = instruction(task, variant)
+    if variant == "clues":
+        check_clue_arm(task, text)
+    write(out / "task.toml", task_toml(name, task, variant))
+    write(out / "instruction.md", text)
+    write(out / "environment" / "Dockerfile",
+          WORLD_DOCKERFILE if variant == "world" else DOCKERFILE)
+    write(out / "environment" / "task-entrypoint.sh", ENTRYPOINT, True)
+    write(out / "environment" / "setup.sh", SETUP, True)
+    write(out / "solution" / "solve.sh", SOLVE, True)
+
+    tests = out / "tests"
+    if tests.exists():
+        shutil.rmtree(tests)
+    # Harbor copies the whole tests/ directory to /tests, so the shared harness
+    # is copied in rather than symlinked — a symlink out of the task directory
+    # does not survive the trip.
+    shutil.copytree(SUITES, tests, ignore=shutil.ignore_patterns(
+        "__pycache__", "*.pyc"))
+    write(tests / "test.sh", TEST_SH, True)
+    write(tests / "task.json", json.dumps(
+        {"task_id": task["_id"], "suite": task["_suite"],
+         "variant": variant, "control": variant in ("spec", "clues"),
+         "hidden_requirements": task["hidden_requirements"]}, indent=1))
+    return out
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--world", action="store_true",
+                    help=f"also emit the in-world arm, which boots {WORLD_IMAGE} "
+                         "and hides the remarks in the corpus instead of quoting "
+                         "them in the ticket")
+    ap.add_argument("--limit", type=int, default=None,
+                    help="take the first N tasks instead of --pick")
+    ap.add_argument("--pick", default="t1,t2,t3,t4,t12,t23,t40",
+                    help="comma-separated task ids (default: the four the "
+                         "plant covers, plus the three that have suites but "
+                         "no plant)")
+    ap.add_argument("--no-control", action="store_true",
+                    help="skip the -spec twins")
+    ap.add_argument("--extra-tasks", default=None,
+                    help="a JSON list of generated tasks (task_generator/"
+                         "tasks.generated.json) to build alongside the "
+                         "hand-written ones. Each entry carries its own id, "
+                         "slug and suite, because ids in tasks.json are "
+                         "POSITIONAL and a generated task is not in that file.")
+    args = ap.parse_args(argv)
+
+    data = json.loads(TASKS_JSON.read_text())
+    # Ids are positional and 1-based, assigned at read time, exactly as
+    # phase3_plant.py does it — the file itself carries no id field.
+    tasks = []
+    for i, task in enumerate(data["tasks"], 1):
+        tasks.append({**task, "_id": f"t{i}", "_suite": SUITE_DIR.get(i, "")})
+
+    # Generated tasks name their own id, slug and suite. They cannot be
+    # positional: they are not in tasks.json, and `g1` would index SLUGS at 1 and
+    # come out as `cache-stats`.
+    if args.extra_tasks:
+        extra = json.loads(Path(args.extra_tasks).read_text())
+        for entry in extra:
+            tasks.append({**entry, "_id": entry["id"], "_suite": entry["suite"],
+                          "_slug": entry["slug"]})
+
+    if args.limit:
+        chosen = tasks[:args.limit]
+    else:
+        want = [p.strip() for p in args.pick.split(",") if p.strip()]
+        by_id = {t["_id"]: t for t in tasks}
+        missing = [w for w in want if w not in by_id]
+        if missing:
+            print(f"no such task id(s): {missing}", file=sys.stderr)
+            return 1
+        chosen = [by_id[w] for w in want]
+
+    if not SUITES.exists():
+        print(f"no test suites at {SUITES}", file=sys.stderr)
+        return 1
+
+    made = []
+    for task in chosen:
+        digits = task["_id"][1:]
+        n = int(digits) if digits.isdigit() and task["_id"].startswith("t") else None
+        slug = task.get("_slug") or SLUGS.get(n) or slugify(task["title"])
+        if not task["_suite"]:
+            print(f"  {task['_id']}: no grading suite yet — skipped")
+            continue
+        made.append(emit(task, slug, "blind"))
+        if args.no_control:
+            continue
+        made.append(emit(task, slug, "spec"))
+        if args.world:
+            made.append(emit(task, slug, "world"))
+        try:
+            clue_digest.load(task["_id"], task["title"])
+        except clue_digest.MissingClues as exc:
+            print(f"  {task['_id']}: no clues arm — {exc}")
+            continue
+        made.append(emit(task, slug, "clues"))
+
+    for path in made:
+        print(f"  {path.relative_to(REPO)}")
+    print(f"{len(made)} task(s) written")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,48 @@
+{
+ "task_id": "g1",
+ "suite": "g1_batch_payload_plan",
+ "variant": "spec",
+ "control": true,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "`batch_payload_planner` exports `PLAN_FILE_NAME = \"batch_plan.json\"`, `PLAN_FORMAT_VERSION = 1`, `def plan_fingerprint(plan: Sequence[PlannedBatch]) -> str` and `def plan_document(plan: Sequence[PlannedBatch], limits: BatchLimits) -> dict`. `plan_fingerprint` builds the canonical string `\";\".join(f\"{p.start_idx}-{p.end_idx}:{p.num_bytes}\" for p in plan)` \u2014 spans and batch sizes only, not `index` or `num_requests` \u2014 and returns the FIRST 12 CHARACTERS of its `hashlib.sha256` hexdigest. `plan_document` returns exactly these keys in this order: `plan_format_version` (`1`), `plan_id` (`plan_fingerprint(plan)`), `limits` (`dataclasses.asdict(limits)`), `num_batches` (`len(plan)`), `num_requests` (sum of `p.num_requests`), `num_bytes` (sum of `p.num_bytes`), `batches` (`[dataclasses.asdict(p) for p in plan]`). `BatchLimits` carries a third field `max_batches_per_plan: int = _MAX_BATCHES_PER_PLAN` with the module constant `_MAX_BATCHES_PER_PLAN = 512`. In the `\"auto\"` branch of `create_request_files`, once `plan_request_batches` has returned, `json.dumps(plan_document(plan, self.batch_limits), indent=2) + \"\\n\"` is written to `os.path.join(self.working_dir, PLAN_FILE_NAME)`.",
+    "scope": "The sidecar is written in the `\"auto\"` branch only, before any request file is written, and for a 0-batch plan (empty dataset \u2192 a `batch_plan.json` with `num_batches: 0`, `num_requests: 0`, `num_bytes: 0`, `batches: []` and `plan_id` of the empty canonical string). The explicit-integer `batch_size` branch and the `dataset is None` path never write it.",
+    "exclusions_or_crossover": "`metadata_{i}.json` is untouched by this: its body stays exactly `{\"num_jobs\": n}` with no `start_idx`/`end_idx`/`num_bytes` keys added.",
+    "failure_behavior": "`len(plan) > limits.max_batches_per_plan` raises `BatchPlanTooFragmentedError(num_batches=..., limit=...)`, exported from the same module, storing both as attributes; it subclasses `ValueError` but is NOT a `BatchPayloadTooLargeError`. `plan_batches([10]*512, BatchLimits(max_requests_per_batch=1, max_bytes_per_batch=1000))` returns 512 batches; `[10]*513` raises with `err.num_batches == 513`, `err.limit == 512`; an explicit `BatchLimits(1, 1000, max_batches_per_plan=2)` on `[10]*3` raises with `err.num_batches == 3`, `err.limit == 2`. The per-row oversize scan runs first, so `plan_batches([10]*600 + [5000], BatchLimits(1, 1000))` raises `SingleRequestTooLargeError` with `err.row_idx == 600`.",
+    "observability": "`plan_fingerprint([]) == \"e3b0c44298fc\"`; `plan_fingerprint(plan_batches([10]*7, BatchLimits(1000, 32))) == \"ad0828fea95e\"`; `plan_fingerprint([PlannedBatch(0,0,2,2,307), PlannedBatch(1,2,4,2,307), PlannedBatch(2,4,5,1,153)]) == \"f4b1ea1573c0\"`; the 11-batch plan of an 11-row dataset with `max_requests_per_batch` patched to `1` fingerprints `\"c53f6fb95c13\"`. After the 5-row OpenAI run with limits patched to `3`/`400`, `json.load(open(f\"{working_dir}/batch_plan.json\"))` equals exactly `{\"plan_format_version\": 1, \"plan_id\": \"f4b1ea1573c0\", \"limits\": {\"max_requests_per_batch\": 3, \"max_bytes_per_batch\": 400, \"max_batches_per_plan\": 512}, \"num_batches\": 3, \"num_requests\": 5, \"num_bytes\": 767, \"batches\": [{\"index\": 0, \"start_idx\": 0, \"end_idx\": 2, \"num_requests\": 2, \"num_bytes\": 307}, {\"index\": 1, \"start_idx\": 2, \"end_idx\": 4, \"num_requests\": 2, \"num_bytes\": 307}, {\"index\": 2, \"start_idx\": 4, \"end_idx\": 5, \"num_requests\": 1, \"num_bytes\": 153}]}`, with the raw file text ending in `\"]\\n}\\n\"`."
+   },
+   "hidden_requirement_types": [
+    "invented name",
+    "chosen value",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "#curator-eng Slack thread where the sidecar name, its version envelope and the 12-char plan_id were argued out",
+    "wiki page 'Working-dir layout for batch runs' listing the files an auto run leaves behind",
+    "PR review comment rejecting extra keys in metadata_{i}.json",
+    "incident mail thread: a 9k-batch fan-out from a mis-patched byte limit pinned BatchStatusTracker, ending in the 512 cap"
+   ],
+   "earlier_reversed_version": "The plan was first folded into the existing per-batch metadata \u2014 `metadata_{i}.json` became `{\"num_jobs\": 2, \"start_idx\": 0, \"end_idx\": 2, \"num_bytes\": 307}` \u2014 and that was reverted a week later because readers of metadata_{i}.json assumed the `{\"num_jobs\": n}` shape; the plan moved out into one versioned sidecar instead."
+  },
+  {
+   "requirement": {
+    "rule": "In the `\"auto\"` branch of `create_request_files`, before anything new is written, every existing `requests_*.jsonl` and every existing `metadata_*.json` in `self.working_dir` is removed.",
+    "scope": "Sweeping belongs to the `\"auto\"` branch alone. The explicit-integer `batch_size` branch does not sweep, and the `dataset is None` path does not sweep either.",
+    "exclusions_or_crossover": "`responses_*.jsonl`, `*.arrow`, `batch_objects.jsonl` and every other file in the working directory survive byte-for-byte.",
+    "failure_behavior": "If planning raises \u2014 `SingleRequestTooLargeError` \u2014 the working directory is byte-for-byte what it was, stale files and all.",
+    "observability": "`working_dir` pre-populated with `requests_0.jsonl \u2026 requests_5.jsonl` (each `\"stale\\n\"`), `metadata_0.json \u2026 metadata_5.json` and `responses_0.jsonl` (`\"keep\\n\"`). After the successful 5-row run with limits patched to `3`/`400`: `sorted(os.listdir(working_dir)) == [\"batch_plan.json\", \"metadata_0.json\", \"metadata_1.json\", \"metadata_2.json\", \"requests_0.jsonl\", \"requests_1.jsonl\", \"requests_2.jsonl\", \"responses_0.jsonl\"]` and `open(f\"{working_dir}/responses_0.jsonl\").read() == \"keep\\n\"`. Against the same directory plus a stale `batch_plan.json` holding `{\"plan_format_version\": 1, \"stale\": true}`, `create_request_files(Dataset.from_dict({\"prompt\": [\"ok\", \"x\"*600, \"ok\"]}))` with `max_bytes_per_batch` patched to `400` raises `SingleRequestTooLargeError` and all 14 entries survive, with `json.load(open(f\"{working_dir}/batch_plan.json\")) == {\"plan_format_version\": 1, \"stale\": True}` and `open(f\"{working_dir}/requests_2.jsonl\").read() == \"stale\\n\"`."
+   },
+   "hidden_requirement_types": [
+    "deliberate departure",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "bug report + #curator-eng thread about a rerun submitting requests_4.jsonl from a previous run's numbering",
+    "PR review comment insisting responses_*.jsonl and batch_objects.jsonl are never in scope",
+    "follow-up message moving the cleanup to after planning once a failed plan wiped a good working dir"
+   ],
+   "earlier_reversed_version": "The cleanup was originally the first statement of the `\"auto\"` branch, run on entry before `plan_request_batches`; it was moved to after planning returns when an oversized-row failure wiped a working directory that still held usable request files."
+  }
+ ]
+}

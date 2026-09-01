@@ -1,0 +1,27 @@
+# The clues arm of every task, in one job.
+#
+# Same group directories as all.yaml, filtered to the `-clues` variant by name.
+# Filtering beats listing the four paths: a task added later is picked up
+# without editing this file, and it cannot drift out of sync with all.yaml.
+#
+#     harbor run -c harbor_tasks/clues.yaml
+#
+# Sequential on purpose. Each task asks for cpus=4 and memory_mb=13000 and this
+# host has 4 cores; two at once means both worlds boot slowly enough to fail
+# their healthcheck start_period, which reads as an environment failure.
+n_concurrent_trials: 1
+agents:
+  - name: claude-code
+    model_name: anthropic/claude-opus-5
+    env:
+      # Agent turns run on the subscription, never ANTHROPIC_API_KEY.
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN}
+datasets:
+  - path: harbor_tasks/t1-cache-stats
+    task_names: ["*-clues"]
+  - path: harbor_tasks/t2-batch-cost-estimate
+    task_names: ["*-clues"]
+  - path: harbor_tasks/t3-shared-limiter
+    task_names: ["*-clues"]
+  - path: harbor_tasks/t4-deepseek-empty-retry
+    task_names: ["*-clues"]

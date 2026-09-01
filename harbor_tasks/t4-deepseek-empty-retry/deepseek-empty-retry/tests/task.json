@@ -1,0 +1,41 @@
+{
+ "task_id": "t4",
+ "suite": "t4_deepseek_empty",
+ "variant": "blind",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "An empty (zero-length) completion string from DeepSeek must be treated as a retryable failure and re-queued using the backend's existing retry/backoff path, not surfaced to `parse()` as a valid response.",
+    "scope": "Only applies when the resolved base_url points at DeepSeek's API; must not change retry behavior for other openai-compatible endpoints, which may legitimately return short or empty strings as valid content.",
+    "failure_behavior": "After `max_retries` is exhausted on empty responses, the row must fail with an error message that explicitly names DeepSeek and empty-response retries as the cause, not a generic timeout message."
+   },
+   "earlier_reversed_version": "The team first considered treating any response under a fixed character-length threshold as 'empty' and retrying it, but reversed this once it started retrying legitimately short one-word completions.",
+   "fragmentation_sources": [
+    "github",
+    "email",
+    "slack"
+   ],
+   "hidden_requirement_types": [
+    "T5",
+    "T8"
+   ]
+  },
+  {
+   "requirement": {
+    "rule": "This special-casing must live entirely inside the openai-compatible backend's response-handling path and must not require the caller to pass any DeepSeek-specific flag; detection of 'this is DeepSeek' must be inferred from the configured base_url alone.",
+    "scope": "Backend-internal detection only.",
+    "exclusions_or_crossover": "Must not add a new public `backend_params` key like `is_deepseek` \u2014 the ticket's contract is that existing `backend_params` (base_url, api_key, max_retries) are the only inputs."
+   },
+   "earlier_reversed_version": null,
+   "fragmentation_sources": [
+    "notion",
+    "email"
+   ],
+   "hidden_requirement_types": [
+    "T3",
+    "T6"
+   ]
+  }
+ ]
+}

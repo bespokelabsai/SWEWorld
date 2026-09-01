@@ -1,0 +1,63 @@
+schema_version = "1.4"
+
+[task]
+name = "bespokelabs/sweworld-schema-validation-said"
+version = "1.0.0"
+description = "Structured output schema validation before dispatch. The requirements that decide correctness are not stated, but every remark the team made about them is quoted in the ticket."
+authors = [{ name = "SWEWorld" }]
+keywords = ["sweworld", "curator", "python", "hidden-requirements", "clues"]
+
+[metadata]
+category = "implementation"
+difficulty = "medium"
+source_task = "t12"
+variant = "clues"
+# Kept beside `variant`: everything that is not the blind arm is a control of
+# some kind, and readers written against the two-variant world still work.
+control = true
+
+[agent]
+# The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
+# /opt/world-state or the deploy queue.
+user = "ubuntu"
+timeout_sec = 3600.0
+
+[verifier]
+# Root, because grading reads the pristine tree at /opt/world-state/input/curator
+# (to tell an agent's new identifiers from curator's own) and the release
+# symlinks under /opt/sweworld/curator, neither of which the agent can touch —
+# so the state being graded cannot be forged.
+user = "root"
+timeout_sec = 1800.0
+
+[environment]
+# NO docker_image and NO docker-compose.yaml. One thin layer on the world image,
+# booting supervisord through ENTRYPOINT (environment/task-entrypoint.sh).
+# Harbor's compose template appends `command: ["sh","-c","sleep infinity"]`, and
+# Compose's `command:` overrides CMD rather than ENTRYPOINT, so with a compose
+# file those args reach supervisord as argv and the world never boots.
+build_timeout_sec = 3600.0
+# claude-code installs itself from downloads.claude.ai and calls the API.
+network_mode = "public"
+cpus = 4
+memory_mb = 13000
+
+[environment.healthcheck]
+# Each probe must be FAST: Harbor caps one probe at timeout_sec and does the
+# waiting itself through start_period_sec + retries, so wait-for-service's own
+# 600s default has to be capped or every probe blows the cap and counts failed.
+#
+# Gitea by name, not `--all`. These tasks need the repository and the CI
+# runner; Mattermost and BookStack are empty here and waiting on them only
+# adds minutes. (`--core` is AlphaShop's flag and does not exist in this
+# world: `wait-for-service` here takes [--all] [--quiet] [service...], and an
+# unknown name exits 1, which fails every probe.)
+#
+# This also carries task setup, because the healthcheck is the only hook that
+# runs as root before the agent starts. task-setup.sh is idempotent.
+command = "WAIT_TIMEOUT=15 wait-for-service --quiet gitea && /usr/local/bin/task-setup.sh"
+start_period_sec = 600.0
+start_interval_sec = 10.0
+interval_sec = 15.0
+timeout_sec = 120.0
+retries = 20

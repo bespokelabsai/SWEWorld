@@ -1,0 +1,479 @@
+{
+ "order": [
+  {
+   "id": "t1",
+   "group": "t1-cache-stats",
+   "slug": "cache-stats"
+  },
+  {
+   "id": "t2",
+   "group": "t2-batch-cost-estimate",
+   "slug": "batch-cost-estimate"
+  },
+  {
+   "id": "t3",
+   "group": "t3-shared-limiter",
+   "slug": "shared-limiter"
+  },
+  {
+   "id": "t4",
+   "group": "t4-deepseek-empty-retry",
+   "slug": "deepseek-empty-retry"
+  }
+ ],
+ "cursor": 0,
+ "phase": "clues",
+ "attempts": {
+  "t1": 5,
+  "t2": 1,
+  "t3": 5,
+  "t4": 1
+ },
+ "max_spec_attempts": 6,
+ "history": [
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-recheck-1",
+   "reward": 0.6667,
+   "note": "pre-fix; failed r1.rule/scope/failure_behavior on the run-level fingerprint"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-recheck-2",
+   "reward": 0.4444,
+   "note": "agent never wired its cache module into the request path"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-recheck-3",
+   "reward": 0.6667,
+   "note": "rule/scope/r2.rule fixed and passing; lost 3 facts to the retrospective-vs-prospective reading of cache_stats, since fixed"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-recheck-4",
+   "reward": 0.7778,
+   "passed": 8,
+   "of": 10,
+   "failed": {
+    "r1.exclusions": "GENUINE GAP - counted two duplicate rows as 2 separate misses; its own prompt_cache.py docstring restates the requirement correctly, so the intent was understood and the accounting does not implement it",
+    "r1.failure_behavior": "GENUINE GAP - prompt-level key handles an unhashable schema, but curator's run-level _hash_fingerprint (llm.py:158) is left unguarded, so the run raises and the row is never served"
+   },
+   "note": "all six test fixes held: rule, scope, observability, open_feature and all four r2 facts passed"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-t1-5",
+   "reward": 0.8889,
+   "passed": 9,
+   "of": 10,
+   "failed": {
+    "r1.failure_behavior": "4th consecutive failure. Every agent so far guards its OWN prompt-level key and leaves curator's run-level _hash_fingerprint (llm.py:156) unguarded, so the run raises before the row reaches that key."
+   },
+   "note": "r1.exclusions PASSED this run after failing the last \u2014 that fact was agent variance, not a test flaw, and the classification held"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-t1-6",
+   "reward": 0.8889,
+   "passed": 9,
+   "of": 10,
+   "failed": {
+    "r1.exclusions": "counted 2 duplicate rows as 2 separate misses"
+   },
+   "note": "failure_behavior PASSED here after failing 4 runs; exclusions failed after passing the previous run. Across the three runs on the current tests EVERY test has passed at least once, so none is unsatisfiable by an agent \u2014 the residue is variance on the two hard facts, never both in one run"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-t1-7",
+   "reward": 0.8889,
+   "passed": 9,
+   "of": 10,
+   "failed": {
+    "r1.failure_behavior": "run-level _hash_fingerprint left unguarded again"
+   },
+   "note": "attempt cap reached. Across 4 runs on the corrected tests every test passed at least once and 8/10 passed every run; spec converges at 0.889 with the residue being variance on the two facts that require editing code paths the agent did not write"
+  },
+  {
+   "task": "t1",
+   "variant": "blind",
+   "job": "blind-t1-1",
+   "reward": 0.5556,
+   "note": "open_feature passed, so the ticket is achievable without the hidden requirements. 4 facts genuinely hidden (r1.exclusions, r1.failure_behavior, r1.observability, r2.failure_behavior); 5 coincidences"
+  },
+  {
+   "task": "t2",
+   "variant": "spec",
+   "job": "spec-t2-1",
+   "reward": 1.0,
+   "passed": 7,
+   "skipped": 1,
+   "of": 8,
+   "note": "FULL PASS first attempt. r1.exclusions passed via the baseline-diffed source scan, which is the only channel that fact has; r2.scope passed after the pre-audit removed its assumption about a threshold the requirement never states. r2.failure_behavior remains unmeasured, not failed"
+  },
+  {
+   "task": "t2",
+   "variant": "blind",
+   "job": "blind-t2-1",
+   "reward": 0.6,
+   "note": "spec 1.0 vs blind 0.6. Hidden: r2.scope, r2.observability. Coincidences: r1.rule, r1.scope, r1.exclusions. CAVEAT: r1.exclusions passes blind because the source check accepts an OpenAI/Anthropic allowlist, which any provider-aware pricing code has regardless of the litellm exclusion. The check made the fact scoreable, not discriminating"
+  },
+  {
+   "task": "t3",
+   "variant": "spec",
+   "job": "spec-t3-1",
+   "reward": 0.7143,
+   "passed": 5,
+   "of": 8,
+   "failed": {
+    "open_feature+r1.rule": "BAD TEST - effective_rpm read the processor's max_requests_per_minute, which a limiter implemented as a bucket the tracker delegates to never rewrites (stays at curator's 200 default). Fixed: sharing is now an identity check on the limiter object, not a mirrored number",
+    "r2.failure_behavior": "BAD TEST - built a fresh limiter with a budget too small for one request, a scenario the requirement never describes. Rewritten to the requirement's own scenario (drain, then a second invocation without reset) - and that exposed r2.rule and r2.failure_behavior as CONTRADICTORY: an implementation that resets between invocations can never reach the un-reset state. Now unmeasured rather than failed"
+   },
+   "note": "3 more over-grades found and fixed; bracket after: oracle 7 pass +1 unmeasured 0 fail, naive 3/8, pristine 0/8"
+  },
+  {
+   "task": "t3",
+   "variant": "spec",
+   "job": "spec-t3-2",
+   "reward": 0.1429,
+   "passed": 1,
+   "of": 8,
+   "failed": {
+    "7 of 8": "HARNESS BUG - find_limiter searched the LLM, its processor and the tracker but not the processor's CONFIG, which is where a limiter passed through backend_params lands. The agent HAD implemented it (config field 'rate_limiter' existed) and the suite reported 'no object looks like a limiter', failing 7 facts for a search gap"
+   },
+   "note": "not scored against the tests' quality - this run measured my discovery helper, not the agent"
+  },
+  {
+   "task": "t3",
+   "variant": "spec",
+   "job": "spec-t3-3",
+   "reward": 0.1429,
+   "failed": {
+    "7 of 8": "BAD TEST FLOW - the suite built block one, ran it, then tried to EXTRACT a limiter from it. The ticket says 'passing an existing rate limiter instance', so the caller constructing one and handing it to both blocks is the plainest reading and is what both agents shipped. Rewired to construct first (build_limiter discovers the exported class), extract second, so either design passes"
+   },
+   "note": "also fixed build_limiter returning any constructible export as 'the limiter', which broke 6 of the oracle's own 8 tests until the result was validated"
+  },
+  {
+   "task": "t3",
+   "variant": "spec",
+   "job": "spec-t3-4",
+   "reward": 0.4,
+   "passed": 3,
+   "of": 8,
+   "note": "the construct-or-extract rewire worked: open_feature, r1.rule and r1.scope all passed. 3 more over-grades found and fixed - remaining_budget() returning a RateLimitBudget dataclass read as 'not a number' (the requirement names the accessor, not its return type), budget_value() unable to total an object, and the r1.exclusions gate still on the extraction path"
+  },
+  {
+   "task": "t3",
+   "variant": "spec",
+   "job": "spec-t3-5",
+   "reward": 1.0,
+   "passed": 7,
+   "skipped": 1,
+   "of": 8,
+   "note": "FULL PASS. Took 5 attempts, 4 of which measured my harness: the limiter had to be constructible not just extractable, discoverable on the config, and allowed to return a dataclass"
+  },
+  {
+   "task": "t3",
+   "variant": "blind",
+   "job": "blind-t3-1",
+   "reward": 0.1429,
+   "note": "spec 1.0 vs blind 0.143 - the widest gap of the three. BUT open_feature failed blind for a test reason: the blind agent DID build and export curator.RateLimiter, it just passes it as a direct LLM argument rather than through backend_params. The TICKET names no channel; backend_params is named in r1.scope, a HIDDEN fact the blind agent cannot know. Fixed to accept either. The blind number below is therefore a floor, not a reading"
+  },
+  {
+   "task": "t4",
+   "variant": "spec",
+   "job": "spec-t4-1",
+   "reward": 1.0,
+   "passed": 7,
+   "of": 7,
+   "note": "FULL PASS first attempt, including the r1.rule relaxation from exactly-3-retries to a lower bound"
+  },
+  {
+   "task": "t4",
+   "variant": "blind",
+   "job": "blind-t4-1",
+   "reward": 1.0,
+   "note": "spec 1.0 AND blind 1.0 - ZERO discrimination. All six hidden facts are coincidences: an agent given only the ticket 'DeepSeek empty-response retry handling' does all of them anyway. Consistent with the original bracket, where the naive fixture already passed 5 of 7"
+  },
+  {
+   "task": "t3",
+   "variant": "blind",
+   "job": "blind-t3-2",
+   "reward": 0.1429,
+   "note": "TRUSTWORTHY re-run: open_feature now passes, so the blind agent built the ticket and still missed 6 of 7 hidden facts. Best discrimination of the four tasks"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-t1-8",
+   "reward": 0.7778,
+   "note": "final t1 attempt. Across 5 runs on the corrected tests: every test passed at least once, 8/10 passed every run, exclusions 2/5, failure_behavior 1/5, never both in one run. Best 0.889"
+  },
+  {
+   "task": "t4",
+   "variant": "blind",
+   "job": "blind-t4-2",
+   "reward": 0.6667,
+   "note": "TIGHTENED tests: blind fell 1.0 -> 0.667. r1.failure_behavior now fails because the message named deepseek only via the endpoint URL (my URL-stripping fix caught it). r2.exclusions fails because THIS agent added a public config field retry_on_empty_response - agent variance, not the test change, since the blind-t4-1 agent used an instance attribute and added no field"
+  },
+  {
+   "task": "t4",
+   "variant": "spec",
+   "job": "spec-t4-2",
+   "reward": 1.0,
+   "note": "spec still 1.0 under the TIGHTENED tests - stricter and still satisfiable. t4 settled: spec 1.0 vs blind 0.667"
+  },
+  {
+   "task": "t4",
+   "variant": "spec",
+   "job": "spec-t4-3",
+   "reward": 1.0,
+   "passed": 7,
+   "of": 7,
+   "note": "VERIFIED with a real agent after closing both audit gaps (r1.rule's 'existing retry path' + the parse() claim tested where it can bite; r2.rule's 'entirely inside the backend'). Stricter and still fully passable"
+  },
+  {
+   "task": "t1",
+   "variant": "spec",
+   "job": "spec-t1-9",
+   "reward": 0.7778,
+   "note": "clause fix VERIFIED with a real agent: r1.rule passed with the new rendered-prompt-text probe. Only the two long-varying facts failed"
+  },
+  {
+   "task": "t12",
+   "variant": "spec",
+   "job": "spec-t12-2",
+   "reward": 1.0,
+   "note": "FULL PASS after fixing 2 test bugs (import-binding monkeypatch, baseline-list false positive)"
+  },
+  {
+   "task": "t23",
+   "variant": "spec",
+   "job": "spec-t23-2",
+   "reward": 0.8333,
+   "note": "all r2 facts pass after the staging fix. r1.failure_behavior is a GENUINE GAP: atomic write-then-rename persistence with neither step guarded, so an unwritable path kills the job"
+  },
+  {
+   "task": "t40",
+   "variant": "spec",
+   "job": "spec-t40-3",
+   "reward": 0.5,
+   "note": "GENUINE GAP this run: the agent pinned the image and added no sandbox constraints. The previous 0.5 was MY flat-dict scan missing a correct backend_options implementation - different cause, same score"
+  },
+  {
+   "task": "t12",
+   "variant": "blind",
+   "job": "blind-t12-1",
+   "reward": 0.4
+  },
+  {
+   "task": "t23",
+   "variant": "blind",
+   "job": "blind-t23-1",
+   "reward": 0.5
+  },
+  {
+   "task": "t40",
+   "variant": "blind",
+   "job": "blind-t40-1",
+   "reward": 0.75
+  }
+ ],
+ "current_job": "clues-t1-1",
+ "verdict": {
+  "t1_spec": {
+   "score_range": [
+    0.778,
+    0.889
+   ],
+   "tests_sound": true,
+   "evidence": "every one of the 10 tests passed in at least one agent run; 8 passed in all four; no test is unsatisfiable",
+   "residual": {
+    "r1.failure_behavior": "1/4",
+    "r1.exclusions": "2/4"
+   },
+   "best": 0.8889,
+   "runs": 5,
+   "note": "every test passed in at least one run, so none is unsatisfiable; the two hard facts require editing code paths the agent did not write (curator's run-level fingerprint, its per-row miss accounting) and no single run landed both"
+  },
+  "t1_blind": {
+   "spec": 0.8889,
+   "blind": 0.5556,
+   "hidden": [
+    "r1.exclusions",
+    "r1.failure_behavior",
+    "r1.observability",
+    "r2.failure_behavior"
+   ],
+   "coincidence": [
+    "r1.rule",
+    "r1.scope",
+    "r2.rule",
+    "r2.scope",
+    "r2.observability"
+   ],
+   "discriminates": true
+  },
+  "t2_spec": {
+   "score": 1.0,
+   "attempts": 1,
+   "tests_sound": true
+  },
+  "t2_blind": {
+   "spec": 1.0,
+   "blind": 0.6,
+   "hidden": [
+    "r2.scope",
+    "r2.observability"
+   ],
+   "coincidence": [
+    "r1.rule",
+    "r1.scope"
+   ],
+   "unmeasured": [
+    "r1.exclusions (source scan matched `import litellm` for pricing, not a carve-out - reverted to skipped)",
+    "r2.rule (blind only)",
+    "r2.failure_behavior"
+   ],
+   "discriminates": true
+  },
+  "t3_spec": {
+   "score": 1.0,
+   "attempts": 5,
+   "tests_sound": true
+  },
+  "t3_blind": {
+   "spec": 1.0,
+   "blind": 0.1429,
+   "hidden": [
+    "r1.rule",
+    "r1.scope",
+    "r2.rule",
+    "r2.scope",
+    "r2.observability",
+    "r2.failure_behavior"
+   ],
+   "coincidence": [
+    "r1.exclusions"
+   ],
+   "discriminates": true
+  },
+  "t4_spec": {
+   "score": 1.0,
+   "verified_after_audit": true
+  },
+  "t4_blind": {
+   "spec": 1.0,
+   "blind": 0.6667,
+   "hidden": [
+    "r1.failure_behavior",
+    "r2.exclusions"
+   ],
+   "coincidence": [
+    "r1.rule",
+    "r1.scope",
+    "r2.rule",
+    "r2.scope"
+   ],
+   "discriminates": true,
+   "conclusion": "r2.rule/r2.scope and r1.scope are unreachable by ANY test: curator already ships `if \"api.deepseek.com\" in self.url` at openai_online_request_processor.py:92, so those facts describe code that existed before the task. r1.rule is a true coincidence. Only two facts can discriminate"
+  },
+  "t12_spec": {
+   "score": 1.0,
+   "tests_sound": true
+  },
+  "t23_spec": {
+   "score": 0.8333,
+   "tests_sound": true,
+   "residual": "r1.failure_behavior, agent gap"
+  },
+  "t40_spec": {
+   "score": 0.5,
+   "tests_sound": true,
+   "residual": "r2, agent gap on this run; a previous run implemented it correctly"
+  },
+  "t12_blind": {
+   "spec": 1.0,
+   "blind": 0.4,
+   "hidden": [
+    "r1.rule",
+    "r1.failure_behavior",
+    "r2.rule"
+   ],
+   "coincidence": [
+    "r1.scope",
+    "r2.scope"
+   ],
+   "discriminates": true
+  },
+  "t23_blind": {
+   "spec": 0.8333,
+   "blind": 0.5,
+   "hidden": [
+    "r2.rule",
+    "r2.failure_behavior"
+   ],
+   "coincidence": [
+    "r1.rule",
+    "r1.scope",
+    "r2.scope"
+   ],
+   "never_passed": [
+    "r1.failure_behavior"
+   ],
+   "discriminates": true,
+   "note": "r1.failure_behavior fails in BOTH arms - no agent has ever guarded the persistence write, so it discriminates against nobody"
+  },
+  "t40_blind": {
+   "spec": 1.0,
+   "blind": 0.75,
+   "hidden": [
+    "r2.rule"
+   ],
+   "coincidence": [
+    "r1.rule",
+    "r1.scope",
+    "r2.scope"
+   ],
+   "discriminates": true,
+   "note": "weakest of the three: r1 is the ticket restated, and r2.scope became a coincidence once it was corrected to the parity claim the requirement actually makes"
+  }
+ },
+ "run_cap": 104,
+ "disk_floor_mb": 2500,
+ "disk_baseline_mb": 4718,
+ "reading_pass": {
+  "what": "read real blind submissions against each PASSING fact, rather than trusting the oracle/naive/pristine bracket",
+  "why": "all three bracket fixtures are ones I wrote, so a test can be green on all three and still not check what the requirement says",
+  "found": [
+   "t4.r1.failure_behavior graded only half the requirement and matched `deepseek` in the endpoint URL",
+   "t4.r2.exclusions/scope matched only suspiciously-NAMED fields",
+   "t2.r1.exclusions passed on `import litellm` for pricing data"
+  ]
+ },
+ "audit": {
+  "t4": {
+   "sound": [
+    "open_feature",
+    "r1.scope",
+    "r1.failure_behavior (fixed earlier)",
+    "r2.exclusions"
+   ],
+   "fixed": {
+    "r1.rule": "did not test 'the backend's EXISTING retry/backoff path' \u2014 a bespoke loop ignoring max_retries passed. Also its 'never surfaced to parse()' assertion was trivially true when the retry succeeds; now also checked on the never-recovers path",
+    "r2.rule": "did not test 'must live ENTIRELY INSIDE the openai-compatible backend' \u2014 an implementation teaching llm.py about DeepSeek passed. Now checks DeepSeek is not named outside request_processor/, leniently"
+   },
+   "flagged_unchanged": {
+    "r2.scope": "'Backend-internal detection only' has no independent content: the test overlaps r2.exclusions (public surface) and the field restates r2.rule's second half. No way to make it test something distinct without inventing a constraint the requirement does not state. A tasks.json problem, not a test one"
+   }
+  }
+ },
+ "run_cap_note": "Rebased 55 -> 104 when the guard's glob widened from `jobs/spec-* jobs/blind-*` to every job dir. The narrow glob counted 40 of 89 existing trials, so widening it would have consumed 49 trials of headroom that had already been spent and counted. Headroom before and after the change is the same 15 trials; this grants no new budget."
+}

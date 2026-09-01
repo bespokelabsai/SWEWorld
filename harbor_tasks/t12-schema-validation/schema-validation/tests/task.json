@@ -1,0 +1,38 @@
+{
+ "task_id": "t12",
+ "suite": "t12_schema_validation",
+ "variant": "blind",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "Compatibility must be checked against a maintained list of model name patterns known to support structured outputs (e.g. gpt-4o family, o3 family per the existing model-support list), and the check must happen once at `LLM.__init__` time, not per-row at request time.",
+    "scope": "`LLM.__init__` only.",
+    "failure_behavior": "An unsupported model + response_format combination must raise `ValueError` immediately at construction, before `__call__` ever touches the dataset, so failures show up before any API spend."
+   },
+   "earlier_reversed_version": "The check was originally deferred to the first request's response, relying on the backend's own 400 error to surface incompatibility \u2014 this was reversed since it meant burning at least one paid request before the user found out.",
+   "fragmentation_sources": [
+    "notion",
+    "slack"
+   ],
+   "hidden_requirement_types": [
+    "T2",
+    "T7"
+   ]
+  },
+  {
+   "requirement": {
+    "rule": "The model-support list used for this check must be the same list maintained for the existing structured-output feature (the one already updated when new models like o3 are added) \u2014 this task must not introduce a second, separate list that could drift out of sync with it.",
+    "scope": "Reuse of the existing model-support list only."
+   },
+   "earlier_reversed_version": null,
+   "fragmentation_sources": [
+    "slack"
+   ],
+   "hidden_requirement_types": [
+    "T4",
+    "T6"
+   ]
+  }
+ ]
+}

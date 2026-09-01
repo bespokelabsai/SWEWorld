@@ -1,0 +1,41 @@
+{
+ "task_id": "t2",
+ "suite": "t2_batch_cost",
+ "variant": "blind",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "The discount factor applied to the estimate must be provider-specific: 50% off standard per-token pricing for OpenAI and Anthropic batch, but the discount must NOT be applied for any provider routed through the `litellm` backend, since litellm does not expose a distinct batch pricing tier in this codebase.",
+    "scope": "Only the batch cost pre-flight estimator; does not change actual billing.",
+    "exclusions_or_crossover": "litellm-backed models must show the standard (non-discounted) per-token estimate even when batch=True is set on them."
+   },
+   "earlier_reversed_version": "An early version applied the flat 50% discount to every backend uniformly, which was reversed once it was noticed litellm requests aren't actually charged at the batch rate.",
+   "fragmentation_sources": [
+    "slack",
+    "github"
+   ],
+   "hidden_requirement_types": [
+    "T1",
+    "T3"
+   ]
+  },
+  {
+   "requirement": {
+    "rule": "The estimate must be computed from a sample of the first N rows (not the full dataset) when the dataset exceeds a size threshold, to avoid iterating the entire dataset just to print an estimate.",
+    "scope": "Applies whenever the input dataset length exceeds the threshold; below it, use every row.",
+    "failure_behavior": "If prompt() raises on any sampled row while estimating, skip that row from the estimate silently rather than aborting the whole pre-flight step.",
+    "observability": "The printed estimate must state whether it was computed from a full pass or a sample, and the sample size used."
+   },
+   "earlier_reversed_version": null,
+   "fragmentation_sources": [
+    "slack",
+    "email"
+   ],
+   "hidden_requirement_types": [
+    "T5",
+    "T8"
+   ]
+  }
+ ]
+}

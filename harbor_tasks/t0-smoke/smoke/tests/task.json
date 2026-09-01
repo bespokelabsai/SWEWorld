@@ -1,0 +1,13 @@
+{
+ "task_id": "t0",
+ "suite": "t0_smoke",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "curator.world_check() returns exactly 'sweworld ok'",
+    "observability": "importable from the package root"
+   }
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "task_id": "t1",
+ "suite": "t1_cache_stats",
+ "variant": "spec",
+ "control": true,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "The cache key used to look up a prior response must be derived from the exact tuple of (rendered prompt text, model_name, response_format schema, and generation_params) \u2014 not from the raw input row alone.",
+    "scope": "Applies to every request path that already calls the existing cache-lookup helper, including batch and online modes.",
+    "exclusions_or_crossover": "Two rows that render to an identical prompt string but differ only in fields unused by `prompt()` must be counted as the same cache entry, not treated as separate misses.",
+    "failure_behavior": "If `response_format` cannot be hashed (e.g. a dynamically constructed Pydantic model), the row must be treated as a guaranteed cache miss rather than raising.",
+    "observability": "`cache_stats()` must expose a `hit_rate` float and a `misses` int that together account for 100% of processed rows."
+   },
+   "earlier_reversed_version": "The team originally cached on the raw input row's hash alone, but reversed this after noticing identical prompts with cosmetic input differences were needlessly re-billed.",
+   "fragmentation_sources": [
+    "slack",
+    "notion"
+   ],
+   "hidden_requirement_types": [
+    "T2",
+    "T6"
+   ]
+  },
+  {
+   "requirement": {
+    "rule": "`cache_stats()` must read from the same on-disk cache directory the rest of `curator.LLM` uses, honoring `CURATOR_CACHE_DIR` if set, and must never write to or mutate the cache directory itself.",
+    "scope": "Read-only access to whatever directory the existing caching layer resolves to at call time.",
+    "failure_behavior": "If the cache directory does not exist yet (no prior run), return zeroed stats rather than raising a file-not-found error.",
+    "observability": "The returned object must include the resolved cache directory path so users can verify which cache was inspected."
+   },
+   "earlier_reversed_version": null,
+   "fragmentation_sources": [
+    "slack",
+    "notion",
+    "github"
+   ],
+   "hidden_requirement_types": [
+    "T4",
+    "T5"
+   ]
+  }
+ ]
+}

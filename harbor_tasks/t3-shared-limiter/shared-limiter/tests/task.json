@@ -1,0 +1,41 @@
+{
+ "task_id": "t3",
+ "suite": "t3_shared_limiter",
+ "variant": "blind",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "When a shared limiter is passed, the second block in the chain must NOT re-initialize `max_requests_per_minute` / `max_tokens_per_minute` from its own `backend_params`; those values must be ignored in favor of the shared limiter's configuration.",
+    "scope": "Only applies when a limiter object (not raw numbers) is explicitly passed into `backend_params`.",
+    "exclusions_or_crossover": "If no shared limiter is passed, each block must continue to build its own independent limiter from its own backend_params exactly as before."
+   },
+   "earlier_reversed_version": "The first draft let the second block's backend_params override the shared limiter's rpm, which silently broke the whole point of sharing it, and was reversed.",
+   "fragmentation_sources": [
+    "email",
+    "notion"
+   ],
+   "hidden_requirement_types": [
+    "T1",
+    "T4"
+   ]
+  },
+  {
+   "requirement": {
+    "rule": "The shared limiter must track token and request budgets per-process, and must be reset (not reused) between two separate top-level pipeline invocations run back-to-back in the same Python process.",
+    "scope": "Applies to reuse of the same limiter object across multiple `.__call__()` invocations of the pipeline.",
+    "failure_behavior": "If the limiter is not reset and a second invocation starts while budget already appears exhausted from the first, it must raise a clear error rather than silently stalling forever.",
+    "observability": "A `.remaining_budget()` accessor must be available on the limiter for the pipeline to log at the start of each invocation."
+   },
+   "earlier_reversed_version": null,
+   "fragmentation_sources": [
+    "notion",
+    "slack"
+   ],
+   "hidden_requirement_types": [
+    "T5",
+    "T8"
+   ]
+  }
+ ]
+}

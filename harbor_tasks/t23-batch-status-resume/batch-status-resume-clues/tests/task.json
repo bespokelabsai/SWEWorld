@@ -1,0 +1,40 @@
+{
+ "task_id": "t23",
+ "suite": "t23_batch_status_resume",
+ "variant": "clues",
+ "control": true,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "The batch job ID must be persisted to the on-disk cache directory (keyed the same way as the existing prompt cache) immediately after successful submission, before polling begins, so a crash during polling doesn't lose the ability to resume.",
+    "scope": "Batch job ID persistence, submission-time only.",
+    "failure_behavior": "If persistence itself fails (disk full, permissions), the batch submission must still be allowed to proceed \u2014 losing resumability is preferable to blocking the job outright, but a warning must be logged."
+   },
+   "earlier_reversed_version": "An earlier draft persisted the batch job ID only after the job completed, which was reversed once it was clear that defeated the whole purpose \u2014 a crash during the (long) pending/running window would still cause a duplicate resubmission.",
+   "fragmentation_sources": [
+    "notion",
+    "email",
+    "slack"
+   ],
+   "hidden_requirement_types": [
+    "T5",
+    "T7"
+   ]
+  },
+  {
+   "requirement": {
+    "rule": "On restart, before resuming an existing batch job ID, the code must verify the persisted job's provider, model name, and request payload hash still match the current run's configuration; a mismatch must cause a fresh submission rather than resuming a stale/incompatible job.",
+    "scope": "Resume-time validation.",
+    "failure_behavior": "Mismatch causes a fresh submission with a logged reason for why the old job was not resumed, not a silent resume of incompatible results."
+   },
+   "earlier_reversed_version": null,
+   "fragmentation_sources": [
+    "slack"
+   ],
+   "hidden_requirement_types": [
+    "T5",
+    "T8"
+   ]
+  }
+ ]
+}

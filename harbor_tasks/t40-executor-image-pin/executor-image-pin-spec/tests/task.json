@@ -1,0 +1,38 @@
+{
+ "task_id": "t40",
+ "suite": "t40_executor_image_pin",
+ "variant": "spec",
+ "control": true,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "The default image tag must be pinned to a specific version string maintained in project documentation (not derivable from the code alone), and this task must update the code to reference that pinned tag instead of `latest`.",
+    "scope": "Default Docker image tag."
+   },
+   "earlier_reversed_version": "The original implementation used the `latest` tag for simplicity and always-up-to-date dependencies, which was reversed after an upstream image update silently broke reproducibility of previously-working code execution runs.",
+   "fragmentation_sources": [
+    "notion",
+    "slack"
+   ],
+   "hidden_requirement_types": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "requirement": {
+    "rule": "When a caller overrides the image via `backend_params={'image': ...}`, the executor must still enforce the same non-root user and read-only filesystem mount constraints applied to the default pinned image \u2014 an overridden image must not be allowed to run as root inside the container even if the custom image's own Dockerfile defaults to root.",
+    "scope": "Security constraints applied regardless of which image is used.",
+    "failure_behavior": "If the enforced non-root/read-only settings are incompatible with a custom image (e.g. it requires root), the container must fail to start with a clear error, not silently run with elevated privileges."
+   },
+   "earlier_reversed_version": null,
+   "fragmentation_sources": [
+    "slack",
+    "email"
+   ],
+   "hidden_requirement_types": [
+    "T4"
+   ]
+  }
+ ]
+}
