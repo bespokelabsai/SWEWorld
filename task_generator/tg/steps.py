@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import shutil
 
 from . import agent, bracket, schemas, suite, trees
@@ -28,11 +29,25 @@ def prompt(name: str, **values: str) -> str:
     text = (PROMPTS / name).read_text()
     values.setdefault("rubric", RUBRIC.read_text())
     values.setdefault("repo", str(REPO))
+    # Which placeholders the TEMPLATE asks for, read before anything is
+    # substituted. The check used to run over the finished text and flag any line
+    # holding both `{{` and `}}`, which is a property of the substituted CONTENT
+    # as much as of the template. Feeding a naive diff back into `split` duly
+    # exploded on curator's own source:
+    #
+    #     split.md: unfilled placeholders: ['args=["-c", f\'cd
+    #     "${{SANDBOX_ROOT:-}}{WORKSPACE_DIR}" && timeout {timeout} ...']
+    #
+    # -- a real shell line in a real patch, mistaken for a template hole. The
+    # whole point of `bracket_feedback` is to hand the next cut the diff that
+    # beat it, so the one prompt that most needs this could not be built at all,
+    # and it failed before the model call with a message about the template.
+    wanted = set(re.findall(r"\{\{(\w+)\}\}", text))
+    missing = sorted(wanted - set(values))
+    if missing:
+        raise SystemExit(f"{name}: unfilled placeholders: {missing}")
     for key, value in values.items():
         text = text.replace("{{" + key + "}}", value)
-    left = [line for line in text.splitlines() if "{{" in line and "}}" in line]
-    if left:
-        raise SystemExit(f"{name}: unfilled placeholders: {left[:3]}")
     return text
 
 
