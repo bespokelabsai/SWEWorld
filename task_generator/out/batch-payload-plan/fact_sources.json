@@ -1,0 +1,62 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P11",
+  "blind_alternative": "writes no plan file at all \u2014 nothing in create_request_files persists anything beyond metadata_{i}.json, and the plan is already a return value"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P11",
+  "blind_alternative": "if it persists anything, does so alongside or after the request files, skips it when the plan is empty, and makes no distinction between the \"auto\" and explicit-integer branches"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P11",
+  "blind_alternative": "folds the span into the existing per-batch metadata, making metadata_0.json `{\"num_jobs\": 2, \"start_idx\": 0, \"end_idx\": 2, \"num_bytes\": 307}`"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P13",
+  "blind_alternative": "imposes no fan-out cap \u2014 BatchLimits has two fields and plan_batches([10]*513, BatchLimits(1, 1000)) returns a 513-element list"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P12",
+  "blind_alternative": "emits no plan_id at all; an agent that hashes anything uses the full 64-char sha256 over json.dumps([asdict(p) for p in plan])"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P14",
+  "blind_alternative": "deletes nothing \u2014 every other path in base_request_processor.py globs the working dir only to reuse what it finds \u2014 leaving requests_3..5.jsonl and metadata_3..5.json behind"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P14",
+  "blind_alternative": "either never cleans, or cleans in both batch_size branches for consistency, breaking the incomplete_files resume of the explicit-integer path"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P14",
+  "blind_alternative": "an agent that does clean clears the whole working dir (or truncates only the paths it is about to write), destroying responses_0.jsonl"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P14",
+  "blind_alternative": "cleans on entry to the \"auto\" branch, before planning, so an oversized-row failure leaves only batch_plan.json and responses_0.jsonl (2 entries) instead of the untouched 14"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P14",
+  "blind_alternative": "sorted(os.listdir(working_dir)) has 14 entries after the successful run, including requests_3.jsonl \u2026 requests_5.jsonl"
+ }
+]

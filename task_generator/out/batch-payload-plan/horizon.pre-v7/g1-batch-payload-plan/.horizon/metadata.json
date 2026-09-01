@@ -1,0 +1,9 @@
+{
+  "task_id": "6629d4f7-096a-4b06-b295-10186a4c3dd9",
+  "task_name": "g1-batch-payload-plan",
+  "format": "apex",
+  "project_name": "nidhi-test",
+  "spec_name": "hidden-requirement-test-tasks",
+  "mini_batch_id": "b52ead5c-6e16-4552-ab96-250541fdfba2",
+  "version": 7
+}

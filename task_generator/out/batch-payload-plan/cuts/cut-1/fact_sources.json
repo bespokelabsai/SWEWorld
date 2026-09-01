@@ -1,0 +1,62 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P1",
+  "blind_alternative": "keeps today's ruler, `len(json.dumps(generic_request.model_dump(), default=str).encode())` on the generic request (217 bytes), never calling `create_api_specific_request_batch`"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "ports the hardcoded `generation_params_per_row=False` from base_request_processor.py:270, or passes `bool(self.prompt_formatter.generation_params)` / always `True`"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P2",
+  "blind_alternative": "reaches for `json.dumps(d, ensure_ascii=False).encode(\"utf-8\")` to 'measure the real UTF-8 bytes', or compact `separators=(\",\", \":\")`"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P2",
+  "blind_alternative": "carries the `default=str` habit from base_request_processor.py:271 into `payload_size_bytes`, silently coercing the unserialisable value and returning an int"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P9",
+  "blind_alternative": "ports today's `dataset.select(range(start_idx, start_idx + max_requests_per_batch))` window loop (8 calls) or splits measurement from planning into two passes (12 calls)"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "computes `k = ceil(total_bytes / max_bytes_per_batch)` and cuts into k even shards of `ceil(n/k)` rows so the tail isn't a stub, giving `[3,2,2]`"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "keeps the exclusive `>=` break of base_request_processor.py:272, or leaves deliberate headroom such as `int(max_bytes_per_batch * 0.95)` / `max_requests_per_batch - 1`"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P3",
+  "blind_alternative": "uses `sum(sizes)` (separators are 'noise') or `sum(sizes) + len(sizes)`, mirroring the trailing newline `acreate_request_file` writes per line"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P6",
+  "blind_alternative": "emits the oversized row as a one-request batch and lets `create_batch_file` raise at submission, guards with `max(batch_size, 1)`, or skips the row with a warning \u2014 in each case `plan_batches([10,500,10], BatchLimits(1000,32))` returns three batches and no `SingleRequestTooLargeError` class exists"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P7",
+  "blind_alternative": "leaves the stale binding at base_request_processor.py:241 and returns a 1-element list, or recomputes with `sorted(glob(\"requests_*.jsonl\"))`, putting `requests_10.jsonl` at index 1"
+ }
+]

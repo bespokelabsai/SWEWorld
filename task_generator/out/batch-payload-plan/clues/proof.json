@@ -1,0 +1,120 @@
+{
+ "slug": "batch-payload-plan",
+ "task": "g1",
+ "runs": 3,
+ "source": "corpus",
+ "facts": {
+  "g1.open_feature": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g1.r1.exclusions_or_crossover": {
+   "passed": false,
+   "per_run": [
+    false,
+    true,
+    false
+   ],
+   "rate": "1/3",
+   "why": "Failed: the batch_plan.json sidecar is not implemented, so the constraint that goes with it cannot be cre..."
+  },
+  "g1.r1.failure_behavior": {
+   "passed": false,
+   "per_run": [
+    false,
+    true,
+    false
+   ],
+   "rate": "1/3",
+   "why": "AssertionError: batch_payload_planner does not export BatchPlanTooFragmentedError; it has ['BatchLimits', 'B..."
+  },
+  "g1.r1.observability": {
+   "passed": false,
+   "per_run": [
+    false,
+    true,
+    false
+   ],
+   "rate": "1/3",
+   "why": "AttributeError: module 'bespokelabs.curator.request_processor.batch_payload_planner' has no attrib..."
+  },
+  "g1.r1.rule": {
+   "passed": false,
+   "per_run": [
+    false,
+    true,
+    false
+   ],
+   "rate": "1/3",
+   "why": "AssertionError: batch_payload_planner does not export PLAN_FILE_NAME; it has ['BatchLimits', 'BatchPayloadT..."
+  },
+  "g1.r1.scope": {
+   "passed": false,
+   "per_run": [
+    false,
+    true,
+    false
+   ],
+   "rate": "1/3",
+   "why": "AssertionError: the \"auto\" branch wrote no plan sidecar"
+  },
+  "g1.r2.exclusions_or_crossover": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g1.r2.failure_behavior": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g1.r2.observability": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g1.r2.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g1.r2.scope": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  }
+ },
+ "passed": 6,
+ "total": 11
+}

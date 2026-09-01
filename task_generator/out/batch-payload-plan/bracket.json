@@ -1,0 +1,112 @@
+{
+ "task": "g1",
+ "suite": "g1_batch_payload_plan",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g1.open_feature": 0.0,
+    "g1.r1.rule": 0.0,
+    "g1.r1.scope": 0.0,
+    "g1.r1.exclusions_or_crossover": 0.0,
+    "g1.r1.failure_behavior": 0.0,
+    "g1.r1.observability": 0.0,
+    "g1.r2.rule": 0.0,
+    "g1.r2.scope": 0.0,
+    "g1.r2.exclusions_or_crossover": 0.0,
+    "g1.r2.failure_behavior": 0.0,
+    "g1.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 11
+   },
+   "collected": true,
+   "stdout_tail": "labs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g1_batch_payload_plan/test_open.py::test_open_feature__auto_plans_batches_and_writes_one_file_per_planned_batch - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is...\nFAILED g1_batch_payload_plan/test_r1.py::test_rule__the_auto_branch_records_the_plan_in_a_versioned_sidecar - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner...\nFAILED g1_batch_payload_plan/test_r1.py::test_scope__only_the_auto_branch_writes_it_and_an_empty_plan_still_does - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no pl...\nFAILED g1_batch_payload_plan/test_r1.py::test_exclusions__metadata_files_still_hold_num_jobs_and_nothing_else - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no plann...\nFAILED g1_batch_payload_plan/test_r1.py::test_failure_behavior__a_plan_of_more_than_512_batches_is_refused - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner ...\nFAILED g1_batch_payload_plan/test_r1.py::test_observability__plan_id_is_the_first_twelve_hex_of_sha256_over_the_cuts - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is n...\nFAILED g1_batch_payload_plan/test_r2.py::test_rule__stale_request_and_metadata_files_are_removed_by_the_auto_branch - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no...\nFAILED g1_batch_payload_plan/test_r2.py::test_scope__the_explicit_integer_branch_and_the_none_path_leave_files_alone - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is n...\nFAILED g1_batch_payload_plan/test_r2.py::test_exclusions__nothing_but_request_and_metadata_files_is_touched - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner...\nFAILED g1_batch_payload_plan/test_r2.py::test_failure_behavior__a_planning_failure_removes_and_writes_nothing - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no plann...\nFAILED g1_batch_payload_plan/test_r2.py::test_observability__the_working_directory_after_a_successful_and_a_failed_run - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is...\n11 failed, 6 warnings in 5.63s\n"
+  },
+  "clues": {
+   "rewards": {
+    "g1.open_feature": 1.0,
+    "g1.r1.rule": 1.0,
+    "g1.r1.scope": 1.0,
+    "g1.r1.exclusions_or_crossover": 1.0,
+    "g1.r1.failure_behavior": 1.0,
+    "g1.r1.observability": 1.0,
+    "g1.r2.rule": 1.0,
+    "g1.r2.scope": 1.0,
+    "g1.r2.exclusions_or_crossover": 1.0,
+    "g1.r2.failure_behavior": 1.0,
+    "g1.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 11
+   },
+   "collected": true,
+   "stdout_tail": "...........                                                                                                                                                                                                          [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g1_batch_payload_plan-3588f709/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 6 warnings in 5.51s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g1.open_feature": 1.0,
+    "g1.r1.rule": 0.0,
+    "g1.r1.scope": 0.0,
+    "g1.r1.exclusions_or_crossover": 0.0,
+    "g1.r1.failure_behavior": 0.0,
+    "g1.r1.observability": 0.0,
+    "g1.r2.rule": 0.0,
+    "g1.r2.scope": 0.0,
+    "g1.r2.exclusions_or_crossover": 0.0,
+    "g1.r2.failure_behavior": 0.0,
+    "g1.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "====================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g1_batch_payload_plan-dc8cd25c/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g1_batch_payload_plan/test_r1.py::test_rule__the_auto_branch_records_the_plan_in_a_versioned_sidecar - AssertionError: batch_payload_planner does not export PLAN_FILE_NAME; it has ['BatchLimits', 'BatchPayloadT...\nFAILED g1_batch_payload_plan/test_r1.py::test_scope__only_the_auto_branch_writes_it_and_an_empty_plan_still_does - AssertionError: the \"auto\" branch wrote no plan sidecar\nFAILED g1_batch_payload_plan/test_r1.py::test_exclusions__metadata_files_still_hold_num_jobs_and_nothing_else - Failed: the batch_plan.json sidecar is not implemented, so the constraint that goes with it cannot be cre...\nFAILED g1_batch_payload_plan/test_r1.py::test_failure_behavior__a_plan_of_more_than_512_batches_is_refused - AssertionError: batch_payload_planner does not export BatchPlanTooFragmentedError; it has ['BatchLimits', 'B...\nFAILED g1_batch_payload_plan/test_r1.py::test_observability__plan_id_is_the_first_twelve_hex_of_sha256_over_the_cuts - AttributeError: module 'bespokelabs.curator.request_processor.batch_payload_planner' has no attrib...\nFAILED g1_batch_payload_plan/test_r2.py::test_rule__stale_request_and_metadata_files_are_removed_by_the_auto_branch - AssertionError: stale request files a later glob would pick up survived the run: ['metadata_0.json'...\nFAILED g1_batch_payload_plan/test_r2.py::test_scope__the_explicit_integer_branch_and_the_none_path_leave_files_alone - Failed: the \"auto\" branch's sweep of stale request files is not implemented, so the constraint tha...\nFAILED g1_batch_payload_plan/test_r2.py::test_exclusions__nothing_but_request_and_metadata_files_is_touched - Failed: the \"auto\" branch's sweep of stale request files is not implemented, so the constraint that goes wi...\nFAILED g1_batch_payload_plan/test_r2.py::test_failure_behavior__a_planning_failure_removes_and_writes_nothing - Failed: the \"auto\" branch's sweep of stale request files is not implemented, so the constraint that goes ...\nFAILED g1_batch_payload_plan/test_r2.py::test_observability__the_working_directory_after_a_successful_and_a_failed_run - AssertionError: after the run the working dir holds ['metadata_0.json', 'metadata_1.json', 'meta...\n10 failed, 1 passed, 6 warnings in 5.67s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g1.open_feature": 1.0,
+    "g1.r1.rule": 1.0,
+    "g1.r1.scope": 1.0,
+    "g1.r1.exclusions_or_crossover": 1.0,
+    "g1.r1.failure_behavior": 1.0,
+    "g1.r1.observability": 1.0,
+    "g1.r2.rule": 1.0,
+    "g1.r2.scope": 1.0,
+    "g1.r2.exclusions_or_crossover": 1.0,
+    "g1.r2.failure_behavior": 1.0,
+    "g1.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 11
+   },
+   "collected": true,
+   "stdout_tail": "...........                                                                                                                                                                                                          [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g1_batch_payload_plan-8692eaa7/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 6 warnings in 5.50s\n"
+  }
+ },
+ "verdicts": {
+  "g1.open_feature": "open_feature",
+  "g1.r1.rule": "hidden",
+  "g1.r1.scope": "hidden",
+  "g1.r1.exclusions_or_crossover": "hidden",
+  "g1.r1.failure_behavior": "hidden",
+  "g1.r1.observability": "hidden",
+  "g1.r2.rule": "hidden",
+  "g1.r2.scope": "hidden",
+  "g1.r2.exclusions_or_crossover": "hidden",
+  "g1.r2.failure_behavior": "hidden",
+  "g1.r2.observability": "hidden"
+ }
+}

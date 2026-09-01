@@ -1,0 +1,499 @@
+{
+ "project": "nidhi-test",
+ "mini_batch_id": "b52ead5c-6e16-4552-ab96-250541fdfba2",
+ "version": 7,
+ "agent_type": "meteor (apex_arena MCP agent)",
+ "model": "cipher-omni (GLM 5.2)",
+ "arms": {
+  "spec": {
+   "task_id": "fbcd0a6b-33d3-48bd-a86f-c9863e715900",
+   "validate_oracle": 1.0,
+   "validate_noop": 0.0,
+   "evaluation_id": "df66f813-1901-4c56-b6ff-6aeb9e6fcddf",
+   "runs": "1 (original) + 5 (2026-08-29 resample)",
+   "avg_score": 0.33,
+   "pass_rate": 1.0,
+   "minutes": 23,
+   "note": "the original 1.0 was ONE run. Resampled at n=5 on cipher-omni: 0,0,0,0,1.00. Splitting on completion makes it unambiguous - 2 of 6 rollouts wrote a module at all (13.2 and 21.2 min) and BOTH scored exactly 1.00 with 5/5 on each requirement; the 4 zeros have open_feature 0.0 and end mid-exploration at 3-6 min ('No edits have been made yet'). Same early-exit signature as clues_v2_cipher. So: spec = 1.00 conditional on completion, 2/2, with a 33% completion rate on cipher-omni.",
+   "score_when_module_built": "1.00 (2/2)",
+   "resample_evaluation_id": "638d7a53-7315-40e9-a9b9-c60a449c3e0a"
+  },
+  "blind": {
+   "task_id": "6629d4f7-096a-4b06-b295-10186a4c3dd9",
+   "validate_oracle": 1.0,
+   "validate_noop": 0.0,
+   "evaluation_id": "63bb4698-c86e-405d-8a10-a3c52ac9d590",
+   "runs": 10,
+   "avg_score": 0.0,
+   "pass_rate": 0.0,
+   "minutes": null,
+   "open_feature_built": "8/10"
+  },
+  "blind_opus": {
+   "task_id": "6629d4f7-096a-4b06-b295-10186a4c3dd9",
+   "model": "biggie-max (claude-opus-4-7)",
+   "evaluation_id": "480a82a1-a790-41fb-a5ff-d06b4e3dc7e8",
+   "runs": 5,
+   "avg_score": 0.0,
+   "pass_rate": 0.0,
+   "open_feature_built": "5/5",
+   "hidden_recovered": "0/10 in every run",
+   "minutes": 127
+  },
+  "clues_v1": {
+   "task_id": "c1523e97-d034-4db2-b692-fb0811186e2a",
+   "task_version": 1,
+   "note": "the first plant: the remarks carried the idea and never said the names",
+   "evaluation_id": "9787e312-8f91-4e6d-a115-92b6f0e00152",
+   "model": "cipher-omni (GLM 5.2)",
+   "runs": 10,
+   "avg_score": 0.0,
+   "pass_rate": 0.0,
+   "open_feature_built": "2/10",
+   "why": "8 of 10 quit inside 2 min with no module; the 2 that built it died on `no attribute 'plan_fingerprint'` \u2014 9 of r1's 10 graded names were never said"
+  },
+  "clues_v2_cipher": {
+   "task_id": "c1523e97-d034-4db2-b692-fb0811186e2a",
+   "task_version": 2,
+   "evaluation_id": "e05f2080-6b50-4b79-93ac-d8fdfc69b0cb",
+   "model": "cipher-omni (GLM 5.2)",
+   "runs": 10,
+   "avg_score": 0.0,
+   "pass_rate": 0.0,
+   "open_feature_built": "0/8 graded (2 rollouts returned no grade record)",
+   "why": "uninformative: every graded rollout quit in 2.5-3.7 min without creating the module. blind on the same model builds it 8/10, so this is arm/model, not the plant"
+  },
+  "clues_v2": {
+   "task_id": "c1523e97-d034-4db2-b692-fb0811186e2a",
+   "task_version": 2,
+   "note": "re-planted with tg/surface.py driving the tree stage; every graded name in the digest",
+   "evaluation_id": "38eaf873-fa7d-478e-9774-a000ae676a5e",
+   "model": "biggie-max (claude-opus-4-7)",
+   "runs": 5,
+   "avg_score": 0.64,
+   "pass_rate": 0.0,
+   "scores": [
+    0.6,
+    0.7,
+    0.7,
+    0.6,
+    0.6
+   ],
+   "open_feature_built": "5/5",
+   "recovered": {
+    "g1.r2 (all four facts)": "5/5 every run",
+    "g1.r1.exclusions_or_crossover": "5/5",
+    "g1.r1.failure_behavior": "2/5"
+   },
+   "still_missing": {
+    "g1.r1.rule": "no `plan_document` export \u2014 one remark names it, and as a noun ('the plan_document'), so it was built inline",
+    "g1.r1.scope": "falls with rule",
+    "g1.r1.observability": "plan_fingerprint([]) returned '' rather than e3b0c44298fc, though a remark states that value"
+   },
+   "control": "one biggie-max rollout against task_version 1 the same day scored 0.00 with the open feature built, so the change is the plant and not the model"
+  },
+  "clues_versions": {
+   "task_id": "c1523e97-d034-4db2-b692-fb0811186e2a",
+   "model": "biggie-max (claude-opus-4-7)",
+   "agent": "meteor",
+   "runs_each": "5 (v2-v5), 10 (v6)",
+   "note": "each version moves ONE variable; local `cli.py prove` says 11/11 for every one of them",
+   "versions": {
+    "v2": {
+     "what": "the original plant",
+     "scores": [
+      0.6,
+      0.7,
+      0.7,
+      0.6,
+      0.6
+     ],
+     "avg": 0.64,
+     "evaluation_id": "38eaf873-fa7d-478e-9774-a000ae676a5e"
+    },
+    "v3": {
+     "what": "repairs + re-placement onto wiki/mail + chronology reorder (three variables, my error)",
+     "scores": [
+      0.8,
+      0.5,
+      0.5,
+      0.3,
+      0.3
+     ],
+     "avg": 0.48,
+     "evaluation_id": "e6a92afd-cab7-46e9-a8fa-d4f8acba4002"
+    },
+    "v4": {
+     "what": "dropped the earlier of r1's two herrings",
+     "scores": [
+      0.8,
+      0.8,
+      0.9,
+      0.5,
+      0.5
+     ],
+     "avg": 0.7,
+     "evaluation_id": "18c7680a-451f-4a4c-b16b-04c950b928c2"
+    },
+    "v5": {
+     "what": "plan_document shown being called, not just named",
+     "scores": [
+      0.0,
+      0.3,
+      0.3,
+      0.9,
+      0.9
+     ],
+     "avg": 0.48,
+     "evaluation_id": "c71bd1f5-f887-46a3-8d17-c57e0de9cc5e"
+    },
+    "v6": {
+     "what": "tg settle: every graded assertion judged said-or-implied, the 6 implied ones fixed",
+     "task_version": 6,
+     "evaluation_id": "b9f7a444-f441-412f-8cc0-42785d38adaf",
+     "runs": 10,
+     "note": "first version measured at n=10; v2-v5 were n=5 and at sd~0.3 could not resolve anything below ~0.4, which is why v4 (0.70) and v5 (0.48) were never actually distinguishable",
+     "settle": {
+      "stated_before": "58/69",
+      "stated_after": "62/69",
+      "implied_before": 6,
+      "implied_after": 1,
+      "cost_usd": 2.03,
+      "defect": "the per-batch row shape was written down nowhere except konrad's reversed herring, which gives the metadata quartet {num_jobs,start_idx,end_idx,num_bytes} instead of the five keys the document needs",
+      "fixed_by": [
+       "g1.r1.say24 nils #engineering 2025-03-24 - the five keys in order",
+       "g1.r1.say23 dermot #pipeline 2025-05-14 - each row is asdict(PlannedBatch)",
+       "g1.r1.l6 rewritten - num_requests is the per-batch counts summed",
+       "g1.r1.say25, g1.r2.say15 - the two crossover claims"
+      ]
+     },
+     "local_prove": "11/11",
+     "scores": [
+      0.5,
+      1,
+      0.9,
+      1,
+      1,
+      1,
+      1,
+      0.5,
+      0.5,
+      0.5
+     ],
+     "avg": 0.79,
+     "sd": 0.251,
+     "pass_rate": 0.5,
+     "minutes": 28,
+     "engaged_r1": "6/10",
+     "avg_when_engaged": 0.983,
+     "per_fact_passes": {
+      "g1.open_feature": "10/10",
+      "g1.r1.exclusions_or_crossover": "6/10",
+      "g1.r1.failure_behavior": "6/10",
+      "g1.r1.observability": "5/10",
+      "g1.r1.rule": "6/10",
+      "g1.r1.scope": "6/10",
+      "g1.r2.exclusions_or_crossover": "10/10",
+      "g1.r2.failure_behavior": "10/10",
+      "g1.r2.observability": "10/10",
+      "g1.r2.rule": "10/10",
+      "g1.r2.scope": "10/10"
+     },
+     "finding": "the score decomposes into two independent numbers and settle only touches one. ENGAGE RATE (6/10): a run either does the r1 work or never mentions batch_plan.json again after the prompt - r1 scores 0/5 or 4-5/5, never in between, and the four 0.50 runs have ZERO agent-authored mentions of plan_document/plan_fingerprint/batch_plan.json below the digest. RECOVERY GIVEN ENGAGEMENT (0.983): what settle fixed. Five rollouts scored 1.00; the arm had never scored above 0.90 in 20+ prior rollouts."
+    }
+   },
+   "attributable": {
+    "r1.rule": "0/15 across v2-v4, then 2/5 in v5 \u2014 the plan_document repair is the only edit whose effect survives the noise",
+    "herrings": "two people denying the sidecar before the window opened cost ~0.2 and made 4 of 5 rollouts skip r1 entirely"
+   },
+   "variance": {
+    "v2": {
+     "mean": 0.64,
+     "sd": 0.05,
+     "se": 0.02
+    },
+    "v3": {
+     "mean": 0.48,
+     "sd": 0.18,
+     "se": 0.08
+    },
+    "v4": {
+     "mean": 0.7,
+     "sd": 0.17,
+     "se": 0.07
+    },
+    "v5": {
+     "mean": 0.48,
+     "sd": 0.36,
+     "se": 0.16
+    }
+   },
+   "reading": "sd is 0.16-0.36 on n=5, so v4 (0.70) and v5 (0.48) are not distinguishable. Every rollout that engages with r1 scores 0.8-0.9; every rollout that skips it scores 0.0-0.5. The arm is measuring engagement more than recovery.",
+   "open": "the ticket enumerates the planner module's exports as a closed list, so r1 requires contradicting it while r2 does not \u2014 and the spec arm is told its requirements are not optional while the clues arm is told the remarks are people thinking aloud"
+  },
+  "spec_harbor": {
+   "runner": "harbor local, claude subscription via CLAUDE_FORCE_OAUTH",
+   "job": "spec-untrimmed-1",
+   "reward": 1.0,
+   "hidden_mean": 1.0,
+   "facts": "11/11",
+   "note": "the second test point, taken because cipher-omni's early exits make the hosted spec average unreadable. No early-exit problem here: a clean 1.0 on every fact, which is what confirms the task itself is sound before trimming."
+  },
+  "spec_trimmed": {
+   "what": "hidden requirement prose cut to exactly the assertions that grade it: 750 -> 510 words (-32%), tests / fact keys / oracle untouched",
+   "task_version": 8,
+   "graded_surface": "unchanged - surface.required() returns the same 12 names + 15 values for r1 and 3 + 1 for r2",
+   "harbor": {
+    "job": "spec-trimmed-1",
+    "reward": 1.0,
+    "hidden_mean": 1.0,
+    "facts": "11/11",
+    "verdict": "identical to the untrimmed harbor run. The trim is safe."
+   },
+   "horizon": {
+    "evaluation_id": "29e9a736-154f-4416-9ae6-e716adee69be",
+    "model": "cipher-omni",
+    "runs": 5,
+    "scores_so_far": [
+     0.0,
+     0.0,
+     0.0,
+     0.1
+    ],
+    "built_the_module": "1/5",
+    "runtimes_min": [
+     1.9,
+     2.0,
+     3.1,
+     1.9,
+     13.9
+    ],
+    "verdict": "matches the untrimmed baseline exactly. 1 of 5 wrote a module (13.9 min) and scored 1.00 with 5/5 on both requirements; the four abandonments ran 1.9-3.1 min with open_feature 0.0. Baseline was 1/5 completed at 1.00 in the same evaluation shape. The 0.10 is failure_behavior passing coincidentally with no module present.",
+    "scores": [
+     0.0,
+     0.0,
+     0.0,
+     0.1,
+     1.0
+    ],
+    "avg": 0.22,
+    "pass_rate": 0.2,
+    "score_when_built": 1.0
+   },
+   "conclusion": "the trim is safe on BOTH instruments. harbor 1.00 -> 1.00 with every fact passing; horizon 1.00 -> 1.00 conditional on completion, with an identical 20% completion rate before and after. 750 -> 510 words removed nothing the suite grades."
+  },
+  "v7_bracket_hosted": {
+   "why": "the local opus-5 bracket (spec 1.00 / clues 1.00 / blind 0.00) re-run hosted, same three arms, same suite, same grader, prompts byte-identical to the harbor ones apart from the runtime preamble (harbor talks to world services, horizon hands you /workdir/curator).",
+   "model": "biggie-max (claude-opus-4-7) \u2014 Opus 5 is not on Horizon's roster, so this is the nearest model, not the same one",
+   "agent": "meteor",
+   "runs_each": 5,
+   "pushed": {
+    "blind": "v8",
+    "spec": "v9",
+    "clues": "v7"
+   },
+   "evaluations": {
+    "blind": "ea9a3fe9-1824-4b1a-93b3-3004c3a46220",
+    "clues": "c0b00f06-ca6f-4f8e-ae7d-07af2560a4bc",
+    "spec_gate_cipher": "e75aa833-34a4-4d0e-b04c-68829bf590fa"
+   },
+   "spec_blocked": "403: the spec task is still gated to cipher-omni until 10+ cipher-omni rollouts sit below a 0.4 pass rate. It has 6 (2 passed, 0.33), so 5 more cipher-omni rollouts were submitted to clear the count.",
+   "status": "complete, 2026-08-31",
+   "result": {
+    "blind": {
+     "model": "biggie-max",
+     "runs": 5,
+     "scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "avg": 0.0,
+     "note": "exact reproduction of the local 0.00"
+    },
+    "clues": {
+     "model": "biggie-max",
+     "runs": 5,
+     "scores": [
+      0.7,
+      1.0,
+      0.9,
+      1.0,
+      1.0
+     ],
+     "avg": 0.92,
+     "engaged_r1": "5/5",
+     "fact_passes": "47/50",
+     "misses": [
+      "run1 (0.70): g1.r1 rule+scope+observability together \u2014 assert 'f4b1ea1573c0' == '0-2:307;2-4:307;4-5:153'. plan_fingerprint returned the pre-hash canonical string. This is the SAME l6 defect the reword fixed on opus-5; it survives at 1/5 on opus-4-7, so the reword lowered the rate and did not close the hole.",
+      "run3 (0.90): g1.r1.failure_behavior \u2014 BatchPlanTooFragmentedError escaped the plain `assert len(plan_batches([10]*512, one_per_batch)) == 512` saying 'would contain 513 batches'. An off-by-one at the boundary, against a remark that states it flatly ('513 is the first count that refuses - we bail past the ceiling, not at it'). Not a corpus gap."
+     ]
+    },
+    "spec": {
+     "model": "cipher-omni \u2014 biggie-max still 403s after this run",
+     "runs": 5,
+     "scores": [
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ],
+     "avg": 0.8,
+     "note": "every rollout that built the module scored exactly 1.00 with 10/10 facts; the single 0.00 has open_feature 0.0 and is the familiar early exit. Completion on cipher-omni went 2/6 -> 4/5, and the one thing that changed is the 750->510 word trim reaching Horizon for the first time in this push."
+    }
+   },
+   "gate_outcome": "still shut. The unlock needs 10+ cipher-omni rollouts BELOW a 0.4 pass rate; these 5 took the task from 2/6 to 6/11 (0.55), so the trim that made cipher-omni finish is exactly what keeps the opus-class model out. Unlocking would now mean deliberately failing rollouts, which is not worth doing.",
+   "reading": "hosted spec 1.00-when-complete / clues 0.92 / blind 0.00 against local 1.00 / 1.00 / 0.00. Ordering and separation hold on a model one generation back; clues loses 0.08 to two rollout-level defects, one of which (l6) is a corpus ambiguity and one of which (the 512 boundary) is not."
+  },
+  "v10_hosted_2026_09_01": {
+   "what": "re-measure of the three Horizon-native arms after the corpus work. The digests are unchanged \u2014 the clues remark block is byte-identical to the harbor one, and the spec prompt pulled back from Horizon at v9 diffs clean against v10 \u2014 so this is the same content measured again.",
+   "agent": "meteor",
+   "blind": {
+    "version": 9,
+    "model": "biggie-max",
+    "runs": 5,
+    "scores": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "avg": 0.0,
+    "open_feature": "5/5",
+    "eval": "b490797c-21ad-4263-8fb2-6d84ac8d909a",
+    "note": "built and shipped the feature every time, recovered nothing. Third independent confirmation that the requirements are hidden."
+   },
+   "clues": {
+    "version": 8,
+    "model": "biggie-max",
+    "runs": 5,
+    "scores": [
+     0.7,
+     1.0,
+     1.0,
+     0.6,
+     1.0
+    ],
+    "avg": 0.86,
+    "eval": "13ba9c02-0495-4443-a470-89931be65107",
+    "note": "0.92 last time on identical content, so \u00b10.06 is the n=5 noise floor on this arm. Every g1.r2 fact passes 5/5; the whole spread is g1.r1 rule/scope/observability moving together on the same two rollouts \u2014 one defect, the sidecar cluster, the same one the corpus proof finds."
+   },
+   "spec": {
+    "version": 10,
+    "model": "cipher-omni (gated)",
+    "runs": 5,
+    "scores": [
+     0.0,
+     0.0,
+     0.1,
+     0.0,
+     1.0
+    ],
+    "avg": 0.22,
+    "eval": "17a03881-ed70-46d8-a270-84c2f78e7a11",
+    "built_the_module": "1/5",
+    "note": "NOT a spec failure. open_feature is 0.0 on the four zeros \u2014 no module was written at all, the documented 3-6 minute exit. The one rollout that built anything scored 1.00 with 10/10 facts. Spec has now scored exactly 1.00 on every rollout that ever completed it, hosted or local."
+   },
+   "gate": "spec is still locked out of biggie-max. The unlock needs 10+ cipher-omni rollouts BELOW a 0.4 pass rate; it is at 7 passes / 16 rollouts = 0.44. Each batch of five adds about one pass, so the rate hovers just above the threshold and the arm cannot escape. A positive control locked away from the good model precisely because it keeps proving the suite satisfiable."
+  }
+ },
+ "notes": [
+  "--agent-type cascade (claude-code) failed all 20 rollouts in under 2 minutes with no task binding; rollouts pull returns 404. meteor runs the same task fine.",
+  "cipher-omni is gated: 10+ rollouts below a 0.4 pass rate unlock pricier models.",
+  "Opus 5 is not on Horizon's roster; the CLI was updated 0.1.101 -> 0.1.140 to check and the top Anthropic model is biggie-max = claude-opus-4-7.",
+  "The spec arm could not be run on biggie-max: still gated to cipher-omni, because unlocking needs 10+ rollouts BELOW a 0.4 pass rate and its one rollout passed.",
+  "The clues arm collapses on cipher-omni: 18 of 20 rollouts across both versions quit in ~3 minutes without writing any code, while blind (4.5k prompt) builds the feature 8/10 and spec (11.5k, same size as clues) ran 23 min and scored 1.0. Measure this arm on biggie-max."
+ ],
+ "harbor_local": {
+  "note": "the bracket measured on ONE machine with ONE model, so 1.0-vs-0.0 holds every variable but the instruction. Horizon's numbers are confounded by cipher-omni's completion rate; these are not.",
+  "model": "claude-opus-5 (subscription, CLAUDE_FORCE_OAUTH=1)",
+  "spec_untrimmed": {
+   "job": "spec-untrimmed-1",
+   "reward": 1.0,
+   "hidden_facts": "10/10 at 1.0",
+   "open_feature": 1.0
+  },
+  "spec_trimmed": {
+   "job": "spec-trimmed-1",
+   "reward": 1.0,
+   "hidden_facts": "10/10 at 1.0",
+   "open_feature": 1.0,
+   "note": "the 750->510 word trim removed nothing load-bearing"
+  },
+  "blind": {
+   "job": "blind-local-1",
+   "reward": 0.0,
+   "hidden_facts": "0/10 \u2014 every fact 0.0",
+   "open_feature": 1.0,
+   "provenance": "pushed/ci_green/deployed all 1.0",
+   "note": "the discriminating result: the agent BUILT the feature and shipped it green, and recovered no hidden requirement. Not vacuous, not broken \u2014 an information gap."
+  },
+  "clues_prereversal": {
+   "job": "clues-local-1",
+   "reward": 1.0,
+   "hidden_facts": "10/10 at 1.0",
+   "open_feature": 1.0,
+   "provenance": "pushed/ci_green/deployed all 1.0",
+   "plant": "43 remarks, settled to 63/69 graded assertions stated, NO reversal remarks",
+   "note": "the bracket closes: clues 1.00 == spec 1.00, blind 0.00, one machine one model one suite. Reached WITHOUT the reversal pass, which landed after this run started \u2014 so the 4 reversals are untested upside, not the cause."
+  },
+  "clues": {
+   "jobs": "clues-local-1..9",
+   "model": "claude-opus-5",
+   "before_l6_fix": {
+    "n": 5,
+    "rewards": [
+     1.0,
+     0.7,
+     0.7,
+     1.0,
+     0.7
+    ],
+    "mean": 0.82,
+    "pattern": "7 of 10 facts passed 5/5; g1.r1 rule+scope+observability failed together 3/5 with byte-identical assertion errors"
+   },
+   "cause": "g1.r1.l6 said 'the string plan_fingerprint hashed was 0-2:307;...', which reads as the string the function RETURNS. 3 of 5 rollouts hashed at the call site and left plan_fingerprint returning the pre-hash string. The settle judge rated the claim `stated` because the digest e3b0c44298fc appears in the corpus attached to plan_id -- a value being mentioned is not a remark saying what an expression evaluates to.",
+   "after_l6_fix": {
+    "n": 4,
+    "rewards": [
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "mean": 1.0,
+    "note": "the three facts that failed together now pass 4/4. 0.82 -> 1.00 from rewording one remark; nothing else about the plant changed that a reader sees."
+   }
+  },
+  "world": {
+   "what": "the blind ticket against sweworld:0.4.2, where the 50 remarks live in the corpus instead of being quoted in the prompt. Instruction byte-identical to blind, so the corpus is the only variable.",
+   "model": "claude-opus-5",
+   "n": 3,
+   "rewards": [
+    0.8,
+    0.1,
+    0.6
+   ],
+   "mean": 0.5,
+   "cost_usd": 18.17,
+   "per_fact": {
+    "g1.open_feature": "3/3",
+    "g1.r1.rule": "0/3",
+    "g1.r1.scope": "0/3",
+    "g1.r1.exclusions_or_crossover": "1/3",
+    "g1.r1.failure_behavior": "3/3",
+    "g1.r1.observability": "1/3",
+    "g1.r2.*": "1/3 all five together"
+   },
+   "reading": "two independent defects, not one noisy number. (1) g1.r1.rule and g1.r1.scope fail 3/3 DETERMINISTICALLY: both tests assert the module exports PLAN_FILE_NAME, whose only mention in the corpus is a BookStack page comment. The 0.80 run fetched that exact page (/api/pages/7) and its reader printed only d['name'] and d['markdown'] \u2014 the comments came back in the JSON and were discarded. It invented BATCH_PLAN_FILENAME and never expressed doubt. It DID get PLAN_FORMAT_VERSION right, because one chat message names it. Same module, same constants block: chat named one and the agent was correct, chat did not name the other and it guessed. (2) all five g1.r2 facts move together 1/0/1 \u2014 an engagement variable, not five problems. Ceiling if the naming issue were fixed and nothing else changed: 1.00 / 0.30 / 0.80, mean 0.70.",
+   "fixes_applied_after": [
+    "the shared orientation section now says wiki pages carry comments, that BookStack search does not index them, and that /api/pages/{id} returns them (verified at source: PageApiController.php:112 setAttribute('comments', ...)). All four arms changed identically."
+   ],
+   "note": "the herrings were NOT discriminating here and that is by design \u2014 the 0.80 run sorted every search result by date, so each January decision and its March/April reversal appeared in the same output block. The requirement was that a reversal be obvious, and it was."
+  }
+ }
+}

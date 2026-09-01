@@ -1,0 +1,89 @@
+{
+ "task": "g1",
+ "suite": "g1_batch_payload_plan",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g1.open_feature": 0.0,
+    "g1.r1.rule": 0.0,
+    "g1.r1.scope": 0.0,
+    "g1.r1.exclusions_or_crossover": 0.0,
+    "g1.r1.failure_behavior": 0.0,
+    "g1.r1.observability": 0.0,
+    "g1.r2.rule": 0.0,
+    "g1.r2.scope": 0.0,
+    "g1.r2.exclusions_or_crossover": 0.0,
+    "g1.r2.failure_behavior": 0.0,
+    "g1.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 11
+   },
+   "collected": true,
+   "stdout_tail": "_payload_plan-9b3be0d1/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g1_batch_payload_plan/test_open.py::test_open_feature__auto_plans_batches_and_writes_one_file_per_planned_batch - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is...\nFAILED g1_batch_payload_plan/test_r1.py::test_rule__a_row_is_sized_as_the_api_specific_request_it_becomes - AttributeError: 'OpenAIBatchRequestProcessor' object has no attribute 'measure_request_payload'\nFAILED g1_batch_payload_plan/test_r1.py::test_scope__row_level_generation_params_are_measured - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner to grade: can...\nFAILED g1_batch_payload_plan/test_r1.py::test_exclusions__payload_size_bytes_is_stock_json_dumps - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner to grade: ...\nFAILED g1_batch_payload_plan/test_r1.py::test_failure_behavior__a_non_serialisable_payload_raises_typeerror - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner...\nFAILED g1_batch_payload_plan/test_r1.py::test_observability__each_row_is_measured_exactly_once_in_order - AttributeError: 'OpenAIBatchRequestProcessor' object has no attribute 'plan_request_batches'\nFAILED g1_batch_payload_plan/test_r2.py::test_rule__greedy_forward_fill_leaves_the_last_batch_short - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner to grad...\nFAILED g1_batch_payload_plan/test_r2.py::test_scope__a_batch_landing_exactly_on_either_limit_is_kept - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner to gra...\nFAILED g1_batch_payload_plan/test_r2.py::test_exclusions__file_accounting_counts_n_minus_one_separators - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no planner to ...\nFAILED g1_batch_payload_plan/test_r2.py::test_failure_behavior__a_single_oversized_row_raises_before_any_plan - Failed: bespokelabs.curator.request_processor.batch_payload_planner does not import, so there is no plann...\nFAILED g1_batch_payload_plan/test_r2.py::test_observability__auto_returns_one_path_per_batch_in_numeric_order - AssertionError: expected one path per planned batch, got 1: ['/tmp/pytest-of-root/pytest-191/test_observa...\n11 failed, 6 warnings in 4.80s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g1.open_feature": 1.0,
+    "g1.r1.rule": 1.0,
+    "g1.r1.scope": 1.0,
+    "g1.r1.exclusions_or_crossover": 1.0,
+    "g1.r1.failure_behavior": 1.0,
+    "g1.r1.observability": 1.0,
+    "g1.r2.rule": 1.0,
+    "g1.r2.scope": 1.0,
+    "g1.r2.exclusions_or_crossover": 1.0,
+    "g1.r2.failure_behavior": 0.0,
+    "g1.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 1,
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "_____ test_failure_behavior__a_single_oversized_row_raises_before_any_plan ___________________________________________________________________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-192/test_failure_behavior__a_singl0')\n\n    def test_failure_behavior__a_single_oversized_row_raises_before_any_plan(tmp_path):\n        \"\"\"Not a one-row batch, not a skipped row, not a problem deferred to submission.\"\"\"\n        module = planner()\n    \n        with pytest.raises(module.BatchPayloadTooLargeError) as caught:\n            module.plan_batches([10, 500, 10], limits_of(module, 1000, 32))\n        err = caught.value\n        too_large = type(err)\n        # A dedicated subclass of the batch-level error, exported from the planner module.\n        # The class NAME is not asserted: the requirement fixes the shape, and an\n        # implementation that chose another name has satisfied it equally.\n>       assert too_large is not module.BatchPayloadTooLargeError, (\n            \"an oversized single row should raise its own subclass of BatchPayloadTooLargeError, \"\n            \"not the batch-level error itself\")\nE       AssertionError: an oversized single row should raise its own subclass of BatchPayloadTooLargeError, not the batch-level error itself\nE       assert <class 'bespokelabs.curator.request_processor.batch_payload_planner.BatchPayloadTooLargeError'> is not <class 'bespokelabs.curator.request_processor.batch_payload_planner.BatchPayloadTooLargeError'>\nE        +  where <class 'bespokelabs.curator.request_processor.batch_payload_planner.BatchPayloadTooLargeError'> = <module 'bespokelabs.curator.request_processor.batch_payload_planner' from '/tmp/tg/g1_batch_payload_plan-f90e5384/tree/src/bespokelabs/curator/request_processor/batch_payload_planner.py'>.BatchPayloadTooLargeError\n\ng1_batch_payload_plan/test_r2.py:142: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g1_batch_payload_plan-f90e5384/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g1_batch_payload_plan/test_r2.py::test_failure_behavior__a_single_oversized_row_raises_before_any_plan - AssertionError: an oversized single row should raise its own subclass of BatchPayloadTooLargeError, not t...\n1 failed, 10 passed, 6 warnings in 5.96s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g1.open_feature": 1.0,
+    "g1.r1.rule": 1.0,
+    "g1.r1.scope": 1.0,
+    "g1.r1.exclusions_or_crossover": 1.0,
+    "g1.r1.failure_behavior": 1.0,
+    "g1.r1.observability": 1.0,
+    "g1.r2.rule": 1.0,
+    "g1.r2.scope": 1.0,
+    "g1.r2.exclusions_or_crossover": 1.0,
+    "g1.r2.failure_behavior": 1.0,
+    "g1.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 11
+   },
+   "collected": true,
+   "stdout_tail": "...........                                                                                                                                                                                                          [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g1_batch_payload_plan-6eeaaf06/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 6 warnings in 5.23s\n"
+  }
+ },
+ "verdicts": {
+  "g1.open_feature": "open_feature",
+  "g1.r1.rule": "coincidence",
+  "g1.r1.scope": "coincidence",
+  "g1.r1.exclusions_or_crossover": "coincidence",
+  "g1.r1.failure_behavior": "coincidence",
+  "g1.r1.observability": "coincidence",
+  "g1.r2.rule": "coincidence",
+  "g1.r2.scope": "coincidence",
+  "g1.r2.exclusions_or_crossover": "coincidence",
+  "g1.r2.failure_behavior": "hidden",
+  "g1.r2.observability": "coincidence"
+ }
+}

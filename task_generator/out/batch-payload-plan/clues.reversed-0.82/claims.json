@@ -1,0 +1,744 @@
+{
+ "slug": "batch-payload-plan",
+ "task": "g1",
+ "digest": "9852455af68b3e1f",
+ "verdicts": {
+  "g1.r1.exclusions_or_crossover#1": {
+   "key": "g1.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "dermot says twice, in rev2 and l4, that the resume path wants {\"num_jobs\": n} \"and nothing else\" and that start_idx, end_idx and num_bytes came back out / stay out, with rev1 confirming the plan moved to a sidecar.",
+   "clues": [
+    "g1.r1.rev2",
+    "g1.r1.l4",
+    "g1.r1.rev1"
+   ],
+   "source": "assert set(metadata) == {\"num_jobs\"}, f\"metadata_{index}.json carries plan fields it should not: {metadata}\""
+  },
+  "g1.r1.exclusions_or_crossover#2": {
+   "key": "g1.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l4 states directly that n is exactly the plan's num_requests for that batch, and say24/say23 confirm num_requests is the plan's name for what metadata calls num_jobs.",
+   "clues": [
+    "g1.r1.l4",
+    "g1.r1.say24",
+    "g1.r1.say23"
+   ],
+   "source": "assert metadata[\"num_jobs\"] == read_field(planned, \"num_requests\")"
+  },
+  "g1.r1.failure_behavior#1": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "konrad names BatchPlanTooFragmentedError outright in a code-review of the planner, and nikolai's test note treats it as the error the planner raises.",
+   "clues": [
+    "g1.r1.f2",
+    "g1.r1.f3",
+    "g1.r1.f1"
+   ],
+   "source": "assert hasattr(module, \"BatchPlanTooFragmentedError\"), f\"batch_payload_planner does not export BatchPlanTooFragmentedError; it has {surface(module)}\""
+  },
+  "g1.r1.failure_behavior#2": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "\"its own ValueError\" is the decision said aloud.",
+   "clues": [
+    "g1.r1.f2"
+   ],
+   "source": "assert issubclass(module.BatchPlanTooFragmentedError, ValueError)"
+  },
+  "g1.r1.failure_behavior#3": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "konrad reports his `except BatchPayloadTooLargeError` sailing past it and endorses that as the right call, which is exactly the non-subclass relationship.",
+   "clues": [
+    "g1.r1.f2"
+   ],
+   "source": "assert not issubclass(module.BatchPlanTooFragmentedError, module.BatchPayloadTooLargeError), \"a fragmented plan is not an oversized payload\""
+  },
+  "g1.r1.failure_behavior#4": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "implied",
+   "why": "the default 512 is stated and 513 is reported as raising, but nobody says a 512-batch plan is admissible, so the reader must supply that the comparison is `>` and not `>=` \u2014 an off-by-one implementation would be equally consistent with f2.",
+   "clues": [
+    "g1.r1.f2",
+    "g1.r1.f1"
+   ],
+   "source": "assert len(module.plan_batches([10] * 512, one_per_batch)) == 512, \"512 batches is the boundary and it is admissible\""
+  },
+  "g1.r1.failure_behavior#5": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "f1 says past some ceiling it should refuse to plan, and f2 reports the refusal happening as BatchPlanTooFragmentedError at 513 batches under the default.",
+   "clues": [
+    "g1.r1.f2",
+    "g1.r1.f1"
+   ],
+   "source": "with pytest.raises(module.BatchPlanTooFragmentedError) as caught:"
+  },
+  "g1.r1.failure_behavior#6": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "\"err.num_batches 513\" is written out, attribute and value.",
+   "clues": [
+    "g1.r1.f2"
+   ],
+   "source": "assert read_field(caught.value, \"num_batches\") == 513, \"the error does not report the full count the plan would have needed\""
+  },
+  "g1.r1.failure_behavior#7": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "\"err.limit 512 off the default\" gives both the attribute and that 512 is the default ceiling.",
+   "clues": [
+    "g1.r1.f2"
+   ],
+   "source": "assert read_field(caught.value, \"limit\") == 512"
+  },
+  "g1.r1.failure_behavior#8": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "nikolai describes the exact construction BatchLimits(1, 1000, max_batches_per_plan=2) over three sizes raising the fragmented error, and l12 confirms max_batches_per_plan is a real BatchLimits field.",
+   "clues": [
+    "g1.r1.f3",
+    "g1.r1.l12"
+   ],
+   "source": "with pytest.raises(module.BatchPlanTooFragmentedError) as caught:"
+  },
+  "g1.r1.failure_behavior#9": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "the asserted pair (3, 2) is quoted verbatim as what the test checks, so an explicit limit overriding the default is said aloud.",
+   "clues": [
+    "g1.r1.f3"
+   ],
+   "source": "assert (read_field(caught.value, \"num_batches\"), read_field(caught.value, \"limit\")) == (3, 2), \"an explicit max_batches_per_plan is not honoured\""
+  },
+  "g1.r1.failure_behavior#10": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "emil reports the exact 600-rows-plus-5000-byte-row dataset misreporting as too fragmented and settles it with \"per-row oversize reports first\".",
+   "clues": [
+    "g1.r1.f4"
+   ],
+   "source": "# the per-row oversize scan runs first: a dataset tripping both raises for the row\n    with pytest.raises(module.SingleRequestTooLargeError) as caught:"
+  },
+  "g1.r1.failure_behavior#11": {
+   "key": "g1.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "\"instead of naming row 600\" fixes both that the row index is carried on the error and that its value for this dataset is 600, though the attribute spelling row_idx itself is only alluded to.",
+   "clues": [
+    "g1.r1.f4"
+   ],
+   "source": "assert read_field(caught.value, \"row_idx\") == 600"
+  },
+  "g1.r1.observability#1": {
+   "key": "g1.r1.observability",
+   "verdict": "stated",
+   "why": "emil gives the empty-plan case, the exact digest e3b0c44298fc, and that it is the first twelve of the sha256 of the empty string with no special case.",
+   "clues": [
+    "g1.r1.l7"
+   ],
+   "source": "assert module.plan_fingerprint([]) == \"e3b0c44298fc\""
+  },
+  "g1.r1.observability#2": {
+   "key": "g1.r1.observability",
+   "verdict": "stated",
+   "why": "the hashed string format (start-end:num_bytes joined on semicolons), the sha256-first-twelve truncation, and the exclusion of index/num_requests are all said out loud, which fixes this digest deterministically.",
+   "clues": [
+    "g1.r1.l6",
+    "g1.r1.l7",
+    "g1.r1.l8"
+   ],
+   "source": "assert module.plan_fingerprint(module.plan_batches([10] * 7, module.BatchLimits(max_requests_per_batch=1000, max_bytes_per_batch=32))) == \"ad0828fea95e\""
+  },
+  "g1.r1.observability#3": {
+   "key": "g1.r1.observability",
+   "verdict": "stated",
+   "why": "dario names the exact five-row spans and the exact returned id f4b1ea1573c0.",
+   "clues": [
+    "g1.r1.l6",
+    "g1.r1.say24"
+   ],
+   "source": "assert (\n        module.plan_fingerprint(\n            [\n                module.PlannedBatch(0, 0, 2, 2, 307),\n                module.PlannedBatch(1, 2, 4, 2, 307),\n                module.PlannedBatch(2, 4, 5, 1, 153),\n            ]\n        )\n        == \"f4b1ea1573c0\"\n    )"
+  },
+  "g1.r1.observability#4": {
+   "key": "g1.r1.observability",
+   "verdict": "not_required",
+   "why": "this is the suite guarding its own fixture (11 rows at one batch each), not a decision the corpus owes.",
+   "clues": [],
+   "source": "assert len(wide_plan) == 11, f\"fixture drift: 11 rows at one per batch, got {tuples(wide_plan)}\""
+  },
+  "g1.r1.observability#5": {
+   "key": "g1.r1.observability",
+   "verdict": "stated",
+   "why": "same fully-specified digest recipe as #2, applied to a one-row-per-batch split, so the value follows from what was said rather than from a guess.",
+   "clues": [
+    "g1.r1.l6",
+    "g1.r1.l7",
+    "g1.r1.l8"
+   ],
+   "source": "assert module.plan_fingerprint(wide_plan) == \"c53f6fb95c13\""
+  },
+  "g1.r1.observability#6": {
+   "key": "g1.r1.observability",
+   "verdict": "stated",
+   "why": "nils pins the exact top-level key set and order, rev1/l10 pin plan_format_version 1 first, say23/say24/l11 pin the five per-batch fields and the sample's numbers, l11 pins the top-level totals and l12 the limits mapping.",
+   "clues": [
+    "g1.r1.say22",
+    "g1.r1.rev1",
+    "g1.r1.l10",
+    "g1.r1.say23",
+    "g1.r1.say24",
+    "g1.r1.l11",
+    "g1.r1.l12",
+    "g1.r1.l6"
+   ],
+   "source": "assert doc == {\n        \"plan_format_version\": 1,\n        \"plan_id\": \"f4b1ea1573c0\",\n        # taken from the implementation's own limits, so the fan-out cap is graded once,\n        # under failure_behavior, and not a second time here\n        \"limits\": json.loads(json.dumps(dataclasses.asdict(limits))),\n        \"num_batches\": 3,\n        \"num_requests\": 5,\n        \"num_bytes\": 767,\n        \"batches\": [\n            {\"index\": 0, \"start_idx\": 0, \"end_idx\": 2, \"num_requests\": 2, \"num_bytes\": 307},\n            {\"index\": 1, \"start_idx\": 2, \"end_idx\": 4, \"num_requests\": 2, \"num_bytes\": 307},\n            {\"index\": 2, \"start_idx\": 4, \"end_idx\": 5, \"num_requests\": 1, \"num_bytes\": 153},\n        ],\n    }"
+  },
+  "g1.r1.observability#7": {
+   "key": "g1.r1.observability",
+   "verdict": "stated",
+   "why": "nikolai says limits is dataclasses.asdict of the BatchLimits the run actually planned under, naming all three fields.",
+   "clues": [
+    "g1.r1.l12"
+   ],
+   "source": "assert doc[\"limits\"][\"max_requests_per_batch\"] == 3 and doc[\"limits\"][\"max_bytes_per_batch\"] == 400"
+  },
+  "g1.r1.observability#8": {
+   "key": "g1.r1.observability",
+   "verdict": "stated",
+   "why": "konrad orders indent 2 plus a trailing newline, and say22's key order puts batches last, which is what produces the \"]\\n}\\n\" tail.",
+   "clues": [
+    "g1.r1.l3",
+    "g1.r1.say22"
+   ],
+   "source": "assert raw.endswith(\"]\\n}\\n\"), f\"the sidecar is not indented JSON with a trailing newline: {raw[-20:]!r}\""
+  },
+  "g1.r1.rule#1": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "Every graded name is spoken aloud in the module: PLAN_FILE_NAME (l2), PLAN_FORMAT_VERSION (l9), plan_fingerprint (l6), plan_document (l10), with PlannedBatch (l11) and BatchLimits (l12) named too.",
+   "clues": [
+    "g1.r1.l2",
+    "g1.r1.l9",
+    "g1.r1.l6",
+    "g1.r1.l10",
+    "g1.r1.l11",
+    "g1.r1.l12"
+   ],
+   "source": "assert hasattr(module, name), f\"batch_payload_planner does not export {name}; it has {surface(module)}\""
+  },
+  "g1.r1.rule#2": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l2 gives the constant and its literal value verbatim, and rev1 independently names batch_plan.json as the sidecar in the working dir.",
+   "clues": [
+    "g1.r1.l2",
+    "g1.r1.rev1"
+   ],
+   "source": "assert module.PLAN_FILE_NAME == \"batch_plan.json\""
+  },
+  "g1.r1.rule#3": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "rev1 fixes plan_format_version at 1 and l9 tells the reader the constant PLAN_FORMAT_VERSION holds that 1.",
+   "clues": [
+    "g1.r1.rev1",
+    "g1.r1.l9"
+   ],
+   "source": "assert module.PLAN_FORMAT_VERSION == 1"
+  },
+  "g1.r1.rule#4": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l8 reports renumbering batches by hand and getting the identical id, and says outright that index and num_requests are not in what gets hashed.",
+   "clues": [
+    "g1.r1.l8",
+    "g1.r1.l6"
+   ],
+   "source": "assert same_cuts == relabelled, \"plan_fingerprint changed when only index/num_requests changed\""
+  },
+  "g1.r1.rule#5": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l6 spells the hashed string as start-end:num_bytes per batch, so the byte counts are part of the input by decision, not inference.",
+   "clues": [
+    "g1.r1.l6"
+   ],
+   "source": "assert same_cuts != module.plan_fingerprint([module.PlannedBatch(0, 0, 2, 2, 307), module.PlannedBatch(1, 2, 4, 2, 308)]), \"plan_fingerprint ignores the batch sizes\""
+  },
+  "g1.r1.rule#6": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l6's canonical string carries each batch's start and end, and l5 states the whole point is telling whether the split moved.",
+   "clues": [
+    "g1.r1.l6",
+    "g1.r1.l5"
+   ],
+   "source": "assert same_cuts != module.plan_fingerprint([module.PlannedBatch(0, 0, 3, 3, 307), module.PlannedBatch(1, 3, 4, 1, 307)]), \"plan_fingerprint ignores where the cuts fall\""
+  },
+  "g1.r1.rule#7": {
+   "key": "g1.r1.rule",
+   "verdict": "not_required",
+   "why": "The comment flags this as a fixture-drift guard on the suite's own five-row sample, which l6 happens to corroborate at three batches anyway.",
+   "clues": [
+    "g1.r1.l6"
+   ],
+   "source": "assert len(plan) == 3, f\"fixture drift: five rows at 3/400 should plan 3 batches, got {tuples(plan)}\""
+  },
+  "g1.r1.rule#8": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "say22 pins all seven top-level keys in exactly that order and nothing else, and l10 re-fixes plan_format_version as the first key.",
+   "clues": [
+    "g1.r1.say22",
+    "g1.r1.l10"
+   ],
+   "source": "assert list(doc) == [\"plan_format_version\", \"plan_id\", \"limits\", \"num_batches\", \"num_requests\", \"num_bytes\", \"batches\"], f\"the sidecar's envelope is {list(doc)}\""
+  },
+  "g1.r1.rule#9": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "rev1 states the sidecar carries plan_format_version 1.",
+   "clues": [
+    "g1.r1.rev1",
+    "g1.r1.l9"
+   ],
+   "source": "assert doc[\"plan_format_version\"] == 1"
+  },
+  "g1.r1.rule#10": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l7 reports plan_id coming out as the first twelve of the sha256 that l6 attributes to plan_fingerprint, tying the key to that function.",
+   "clues": [
+    "g1.r1.l7",
+    "g1.r1.l6"
+   ],
+   "source": "assert doc[\"plan_id\"] == module.plan_fingerprint(plan)"
+  },
+  "g1.r1.rule#11": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l12 says limits is dataclasses.asdict of the BatchLimits it planned under, and enumerates the three fields.",
+   "clues": [
+    "g1.r1.l12"
+   ],
+   "source": "assert doc[\"limits\"] == dataclasses.asdict(limits)"
+  },
+  "g1.r1.rule#12": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l11 has the viewer reading num_batches off the top and l13 fixes the empty-plan case at num_batches 0, which is the count of batches.",
+   "clues": [
+    "g1.r1.l13",
+    "g1.r1.l11"
+   ],
+   "source": "assert doc[\"num_batches\"] == len(plan)"
+  },
+  "g1.r1.rule#13": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l11 calls the top-level num_requests and num_bytes 'the request and byte totals', i.e. summed over the batches.",
+   "clues": [
+    "g1.r1.l11",
+    "g1.r1.say22"
+   ],
+   "source": "assert doc[\"num_requests\"] == sum(read_field(p, \"num_requests\") for p in plan)"
+  },
+  "g1.r1.rule#14": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "Same remark names num_bytes as a total read straight off the top of the document.",
+   "clues": [
+    "g1.r1.l11",
+    "g1.r1.say22"
+   ],
+   "source": "assert doc[\"num_bytes\"] == sum(read_field(p, \"num_bytes\") for p in plan)"
+  },
+  "g1.r1.rule#15": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "l11 states the batches key is one dataclasses.asdict per PlannedBatch, index and num_requests included.",
+   "clues": [
+    "g1.r1.l11",
+    "g1.r1.say23"
+   ],
+   "source": "assert doc[\"batches\"] == [dataclasses.asdict(p) for p in plan]"
+  },
+  "g1.r1.rule#16": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "say23 lists all five per-entry fields in that exact order and say24 shows batches[0] as a literal dict in the same order.",
+   "clues": [
+    "g1.r1.say23",
+    "g1.r1.say24"
+   ],
+   "source": "assert list(doc[\"batches\"][0]) == [\"index\", \"start_idx\", \"end_idx\", \"num_requests\", \"num_bytes\"], f\"a batch entry's keys are {list(doc['batches'][0])}\""
+  },
+  "g1.r1.rule#17": {
+   "key": "g1.r1.rule",
+   "verdict": "stated",
+   "why": "rev1 puts the plan in batch_plan.json in the working dir on the auto branch, l3 fixes indent 2 plus a trailing newline, and l10 identifies plan_document as what writes that document.",
+   "clues": [
+    "g1.r1.rev1",
+    "g1.r1.l3",
+    "g1.r1.l10",
+    "g1.r1.l14",
+    "g1.r1.l16"
+   ],
+   "source": "# ...and the document is what `plan_document` builds for that plan.\n    assert doc == json.loads(json.dumps(module.plan_document(plan, limits)))"
+  },
+  "g1.r1.scope#1": {
+   "key": "g1.r1.scope",
+   "verdict": "stated",
+   "why": "rev1 puts the plan in a sidecar `batch_plan.json` in the working dir on the auto branch, l2 names the constant, and l13 insists the file is written even for a zero-row auto run.",
+   "clues": [
+    "g1.r1.rev1",
+    "g1.r1.l2",
+    "g1.r1.l13"
+   ],
+   "source": "assert os.path.isfile(plan_path(module, working_dir)), \"the \\\"auto\\\" branch wrote no plan sidecar\""
+  },
+  "g1.r1.scope#2": {
+   "key": "g1.r1.scope",
+   "verdict": "stated",
+   "why": "l16 says outright \"plan gets written before the first request file\" after describing a job that died mid-write with nothing on disk saying how many were expected.",
+   "clues": [
+    "g1.r1.l16"
+   ],
+   "source": "assert seen[\"plan_exists\"] is True, \"the sidecar was written after the request files, not before them\""
+  },
+  "g1.r1.scope#3": {
+   "key": "g1.r1.scope",
+   "verdict": "stated",
+   "why": "say25 states the zero-row case directly: create_request_files hands back an empty list and no empty requests_0.jsonl is left behind.",
+   "clues": [
+    "g1.r1.say25"
+   ],
+   "source": "assert empty.create_request_files(Dataset.from_dict({\"prompt\": []})) == []"
+  },
+  "g1.r1.scope#4": {
+   "key": "g1.r1.scope",
+   "verdict": "stated",
+   "why": "l13 fixes the zero-row document as written-regardless with num_batches 0, and say22 pins the envelope's always-present keys, leaving the remaining zeros and empty batches list as forced arithmetic rather than a design choice.",
+   "clues": [
+    "g1.r1.l13",
+    "g1.r1.say22"
+   ],
+   "source": "assert (empty_doc[\"num_batches\"], empty_doc[\"num_requests\"], empty_doc[\"num_bytes\"], empty_doc[\"batches\"]) == (0, 0, 0, [])"
+  },
+  "g1.r1.scope#5": {
+   "key": "g1.r1.scope",
+   "verdict": "stated",
+   "why": "l7 says the empty plan just hashes the empty string with no special case, and l6 defines the fingerprint string plan_fingerprint hashes.",
+   "clues": [
+    "g1.r1.l7",
+    "g1.r1.l6"
+   ],
+   "source": "assert empty_doc[\"plan_id\"] == module.plan_fingerprint([])"
+  },
+  "g1.r1.scope#6": {
+   "key": "g1.r1.scope",
+   "verdict": "stated",
+   "why": "l14 asks explicitly that a fixed batch_size run not drop the plan file next to the requests, and rev1 scopes the sidecar to the auto branch only.",
+   "clues": [
+    "g1.r1.l14",
+    "g1.r1.rev1"
+   ],
+   "source": "assert module.PLAN_FILE_NAME not in os.listdir(fixed_dir), f\"the explicit-integer branch wrote a plan sidecar: {sorted(os.listdir(fixed_dir))}\""
+  },
+  "g1.r1.scope#7": {
+   "key": "g1.r1.scope",
+   "verdict": "stated",
+   "why": "l15 says the dataset-None online route has nothing to plan and leaves the working dir alone.",
+   "clues": [
+    "g1.r1.l15"
+   ],
+   "source": "assert module.PLAN_FILE_NAME not in os.listdir(none_dir), f\"the `dataset is None` path wrote a plan sidecar: {sorted(os.listdir(none_dir))}\""
+  },
+  "g1.r2.exclusions_or_crossover#1": {
+   "key": "g1.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "rev2 scopes the sweep to exactly requests_*.jsonl and metadata_*.json, l9 names the other files in the dir, and l10 says everything the sweep isn't deleting stays, with l8 and l11 spelling out the cost of deleting responses and .arrow.",
+   "clues": [
+    "g1.r2.rev2",
+    "g1.r2.l10",
+    "g1.r2.l9",
+    "g1.r2.l8",
+    "g1.r2.l11",
+    "g1.r2.h1",
+    "g1.r2.h2"
+   ],
+   "source": "assert name in after, f\"the sweep removed {name}, which is not a request or metadata file\""
+  },
+  "g1.r2.exclusions_or_crossover#2": {
+   "key": "g1.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l10 states outright that the sweep doesn't merely leave untouched files in place but leaves their bytes untouched, and l2 corroborates a surviving metadata file that nothing in the run modified.",
+   "clues": [
+    "g1.r2.l10",
+    "g1.r2.l2"
+   ],
+   "source": "assert after[name] == body, f\"{name} was rewritten by the sweep\""
+  },
+  "g1.r2.failure_behavior#1": {
+   "key": "g1.r2.failure_behavior",
+   "verdict": "not_required",
+   "why": "The assertion is an explicit fixture-drift guard on the suite's own pre-populated directory, so the corpus owes it nothing (though l4's six requests plus matching metadata and l15's stale batch_plan.json are in the same neighbourhood).",
+   "clues": [
+    "g1.r2.l4",
+    "g1.r2.l15"
+   ],
+   "source": "assert len(before) == 14, \"fixture drift: the pre-populated working dir should hold 14 files\""
+  },
+  "g1.r2.failure_behavior#2": {
+   "key": "g1.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "l14 says outright that a fixture pinning max_bytes_per_batch to 400 against a 600-char prompt makes SingleRequestTooLargeError come back, and rev1 names the same exception being thrown by plan_request_batches.",
+   "clues": [
+    "g1.r2.l14",
+    "g1.r2.rev1"
+   ],
+   "source": "with pytest.raises(module.SingleRequestTooLargeError) as caught:"
+  },
+  "g1.r2.failure_behavior#3": {
+   "key": "g1.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "l14 says the error 'comes back with row_idx 1 on it, thats how we know which row blew up' \u2014 the field name and the value are both handed over.",
+   "clues": [
+    "g1.r2.l14"
+   ],
+   "source": "assert read_field(caught.value, \"row_idx\") == 1"
+  },
+  "g1.r2.failure_behavior#4": {
+   "key": "g1.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "Same exception decision as #2, said out loud in l14 and echoed by rev2's 'when the oversized row raised'.",
+   "clues": [
+    "g1.r2.l14",
+    "g1.r2.rev2"
+   ],
+   "source": "with pytest.raises(module.SingleRequestTooLargeError):"
+  },
+  "g1.r2.failure_behavior#5": {
+   "key": "g1.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 and rev2 both reverse the order specifically so a SingleRequestTooLargeError leaves the dir unswept, l13 says a run that raises before producing a plan must not have changed anything on disk 'stale or not', and l10 supplies the byte-for-byte strictness.",
+   "clues": [
+    "g1.r2.rev1",
+    "g1.r2.rev2",
+    "g1.r2.l13",
+    "g1.r2.l10"
+   ],
+   "source": "assert snapshot(working_dir) == before, \"a planning failure changed the working directory\""
+  },
+  "g1.r2.observability#1": {
+   "key": "g1.r2.observability",
+   "verdict": "stated",
+   "why": "Konrad spells out the fixture (requests_0\u20135 plus matching metadata, plan makes three, \"the listing afterwards is the assertion\") and the h1/h2/rev2 line names exactly requests_*.jsonl and metadata_*.json as the swept globs \u2014 leaving responses_0.jsonl standing, which l8 independently demands.",
+   "clues": [
+    "g1.r2.l4",
+    "g1.r2.rev2",
+    "g1.r2.h1",
+    "g1.r2.h2",
+    "g1.r2.l3",
+    "g1.r2.l8"
+   ],
+   "source": "assert listing(good_dir, keep={\"responses_0.jsonl\"}) == [\n        \"metadata_0.json\",\n        \"metadata_1.json\",\n        \"metadata_2.json\",\n        \"requests_0.jsonl\",\n        \"requests_1.jsonl\",\n        \"requests_2.jsonl\",\n        \"responses_0.jsonl\",\n    ], f\"after the run the working dir holds {sorted(os.listdir(good_dir))}\""
+  },
+  "g1.r2.observability#2": {
+   "key": "g1.r2.observability",
+   "verdict": "stated",
+   "why": "Dario commits outright that the sweep \"leaves the bytes untouched, same for everything it isn't deleting\", and l8's double-pay incident is specifically about responses_0.jsonl going missing.",
+   "clues": [
+    "g1.r2.l10",
+    "g1.r2.l8",
+    "g1.r2.l9"
+   ],
+   "source": "assert open(os.path.join(good_dir, \"responses_0.jsonl\")).read() == \"keep\\n\""
+  },
+  "g1.r2.observability#3": {
+   "key": "g1.r2.observability",
+   "verdict": "stated",
+   "why": "Nikolai names the fixture (max_bytes_per_batch pinned to 400, a 600-char prompt) and the exact exception SingleRequestTooLargeError that comes back from it.",
+   "clues": [
+    "g1.r2.l14",
+    "g1.r2.rev1"
+   ],
+   "source": "with pytest.raises(module.SingleRequestTooLargeError):"
+  },
+  "g1.r2.observability#4": {
+   "key": "g1.r2.observability",
+   "verdict": "stated",
+   "why": "Same remark: the oversized-row path raising SingleRequestTooLargeError is said out loud by both nikolai and dario.",
+   "clues": [
+    "g1.r2.l14",
+    "g1.r2.rev1"
+   ],
+   "source": "with pytest.raises(module.SingleRequestTooLargeError):"
+  },
+  "g1.r2.observability#5": {
+   "key": "g1.r2.observability",
+   "verdict": "stated",
+   "why": "Dermot states the rule normatively \u2014 a run that raises before a plan comes out \"has no business having changed anything on disk, stale or not\" \u2014 and rev1/rev2 move the sweep behind the plan for precisely this reason, so the whole seeded 14-entry directory must survive.",
+   "clues": [
+    "g1.r2.l13",
+    "g1.r2.rev2",
+    "g1.r2.rev1",
+    "g1.r2.l12",
+    "g1.r2.l15"
+   ],
+   "source": "assert sorted(os.listdir(bad_dir)) == [\n        \"batch_plan.json\",\n        \"metadata_0.json\",\n        \"metadata_1.json\",\n        \"metadata_2.json\",\n        \"metadata_3.json\",\n        \"metadata_4.json\",\n        \"metadata_5.json\",\n        \"requests_0.jsonl\",\n        \"requests_1.jsonl\",\n        \"requests_2.jsonl\",\n        \"requests_3.jsonl\",\n        \"requests_4.jsonl\",\n        \"requests_5.jsonl\",\n        \"responses_0.jsonl\",\n    ], f\"after the failed run the working dir holds {sorted(os.listdir(bad_dir))}\""
+  },
+  "g1.r2.observability#6": {
+   "key": "g1.r2.observability",
+   "verdict": "stated",
+   "why": "Nils pins batch_plan.json as already present holding a stale plan_format_version 1 body, and l13's \"changed anything on disk, stale or not\" covers not rewriting or truncating it on the failing path.",
+   "clues": [
+    "g1.r2.l15",
+    "g1.r2.l13"
+   ],
+   "source": "assert json.load(open(os.path.join(bad_dir, PLAN_FILE))) == {\"plan_format_version\": 1, \"stale\": True}"
+  },
+  "g1.r2.observability#7": {
+   "key": "g1.r2.observability",
+   "verdict": "stated",
+   "why": "Emil raises create-on-open explicitly \u2014 the oversized-row failure emptied the working dir when \"the split that was in there beforehand was still perfectly usable\" \u2014 so preserving the seeded request-file bytes is a decision someone made aloud, not an inference.",
+   "clues": [
+    "g1.r2.l12",
+    "g1.r2.l13",
+    "g1.r2.l10"
+   ],
+   "source": "assert open(os.path.join(bad_dir, \"requests_2.jsonl\")).read() == STALE_REQUEST"
+  },
+  "g1.r2.rule#1": {
+   "key": "g1.r2.rule",
+   "verdict": "not_required",
+   "why": "This is a self-check on the suite's own five-row fixture (a sanity bound on how many batches it planned), not a behaviour the corpus owes anything about.",
+   "clues": [
+    "g1.r2.l4"
+   ],
+   "source": "# five rows can never need six batches, so the stale tail is always observable\n    assert 1 <= len(plan) <= 5, f\"fixture drift: five rows planned {len(plan)} batches\""
+  },
+  "g1.r2.rule#2": {
+   "key": "g1.r2.rule",
+   "verdict": "stated",
+   "why": "konrad describes exactly this fixture \u2014 seed requests_0 through requests_5, let the plan make three, and the listing afterwards is the assertion \u2014 and h1/h2/rev1/rev2 all name requests_*.jsonl as the glob that gets swept, with gideon reporting leftover requests_4/5 being picked up as the bug.",
+   "clues": [
+    "g1.r2.l4",
+    "g1.r2.h1",
+    "g1.r2.h2",
+    "g1.r2.rev1",
+    "g1.r2.rev2",
+    "g1.r2.l1"
+   ],
+   "source": "# The surviving numbering is exactly the one the plan asked for: whatever ruler the\n    # implementation measures with, nothing above the plan's own last index may remain.\n    # Only the two globs the requirement names are compared, so a run that also drops\n    # some other file of its own in the working dir is not judged on that here.\n    assert sorted(os.path.basename(p) for p in glob.glob(os.path.join(working_dir, \"requests_*.jsonl\"))) == [\n        f\"requests_{i}.jsonl\" for i in range(len(plan))\n    ], f\"stale request files a later glob would pick up survived the run: {sorted(os.listdir(working_dir))}\""
+  },
+  "g1.r2.rule#3": {
+   "key": "g1.r2.rule",
+   "verdict": "stated",
+   "why": "metadata_*.json is named alongside requests_*.jsonl in every statement of the sweep, konrad's fixture seeds 'matchign metadata', and nils reports a stale metadata_3.json surviving a run as the symptom.",
+   "clues": [
+    "g1.r2.h1",
+    "g1.r2.h2",
+    "g1.r2.rev1",
+    "g1.r2.rev2",
+    "g1.r2.l4",
+    "g1.r2.l2"
+   ],
+   "source": "assert sorted(os.path.basename(p) for p in glob.glob(os.path.join(working_dir, \"metadata_*.json\"))) == [\n        f\"metadata_{i}.json\" for i in range(len(plan))\n    ], f\"stale metadata files survived the run: {sorted(os.listdir(working_dir))}\""
+  },
+  "g1.r2.rule#4": {
+   "key": "g1.r2.rule",
+   "verdict": "implied",
+   "why": "Nobody says the surviving requests_0.jsonl must carry the new plan's start_idx..end_idx rows; the reader has to combine nils's stale-content complaint and dermot's 'should hold what that run actually produced' with the base write behaviour to conclude a pre-existing requests_0.jsonl must be replaced rather than left in place.",
+   "clues": [
+    "g1.r2.l2",
+    "g1.r2.l3",
+    "g1.r2.h1"
+   ],
+   "source": "# the surviving files are the new run's, not stale content left in place\n    assert row_indices(os.path.join(working_dir, \"requests_0.jsonl\")) == list(\n        range(read_field(plan[0], \"start_idx\"), read_field(plan[0], \"end_idx\"))\n    )"
+  },
+  "g1.r2.scope#1": {
+   "key": "g1.r2.scope",
+   "verdict": "stated",
+   "why": "dario rules the explicit batch_size=1000 branch out of \"new behaviour off the side\" and emil says the integer path leans on files from earlier runs so clearing them restarts every resume from zero, while every sweep remark scopes itself to \"the auto branch\".",
+   "clues": [
+    "g1.r2.l7",
+    "g1.r2.l5",
+    "g1.r2.h1",
+    "g1.r2.rev1"
+   ],
+   "source": "assert os.path.exists(os.path.join(fixed_dir, f\"requests_{i}.jsonl\")), f\"the explicit-integer branch removed requests_{i}.jsonl\""
+  },
+  "g1.r2.scope#2": {
+   "key": "g1.r2.scope",
+   "verdict": "stated",
+   "why": "the same two remarks cover metadata_*.json, which is named alongside requests_*.jsonl in every statement of what the sweep deletes and where it deletes it.",
+   "clues": [
+    "g1.r2.l7",
+    "g1.r2.l5",
+    "g1.r2.h2",
+    "g1.r2.rev2"
+   ],
+   "source": "assert os.path.exists(os.path.join(fixed_dir, f\"metadata_{i}.json\")), f\"the explicit-integer branch removed metadata_{i}.json\""
+  },
+  "g1.r2.scope#3": {
+   "key": "g1.r2.scope",
+   "verdict": "stated",
+   "why": "dario keeps the explicit branch on its old behaviour and separately says non-deleted files keep their bytes untouched, so a stale higher-numbered file surviving byte-identical is what was described, not deduced.",
+   "clues": [
+    "g1.r2.l7",
+    "g1.r2.l10",
+    "g1.r2.l5"
+   ],
+   "source": "assert open(os.path.join(fixed_dir, \"requests_5.jsonl\")).read() == STALE_REQUEST"
+  },
+  "g1.r2.scope#4": {
+   "key": "g1.r2.scope",
+   "verdict": "stated",
+   "why": "nikolai says outright that resume calls create_request_files with dataset=None purely to get paths back and that he would be unhappy if that call ever started taking files away.",
+   "clues": [
+    "g1.r2.l6"
+   ],
+   "source": "assert os.path.exists(os.path.join(none_dir, f\"requests_{i}.jsonl\")), f\"the `dataset is None` path removed requests_{i}.jsonl\""
+  },
+  "g1.r2.scope#5": {
+   "key": "g1.r2.scope",
+   "verdict": "stated",
+   "why": "\"taking files away\" covers the pair the sweep is always described as deleting together, requests_*.jsonl and metadata_*.json.",
+   "clues": [
+    "g1.r2.l6",
+    "g1.r2.h1"
+   ],
+   "source": "assert os.path.exists(os.path.join(none_dir, f\"metadata_{i}.json\")), f\"the `dataset is None` path removed metadata_{i}.json\""
+  },
+  "g1.r2.scope#6": {
+   "key": "g1.r2.scope",
+   "verdict": "stated",
+   "why": "a dataset=None call described as existing only to return paths writes nothing, and dario's \"leaves the bytes untouched\" states the no-mutation rule explicitly.",
+   "clues": [
+    "g1.r2.l6",
+    "g1.r2.l10"
+   ],
+   "source": "assert open(os.path.join(none_dir, \"requests_3.jsonl\")).read() == STALE_REQUEST"
+  }
+ },
+ "counts": {
+  "stated": 63,
+  "implied": 2,
+  "absent": 0,
+  "not_required": 4
+ },
+ "short": [
+  "g1.r1.failure_behavior",
+  "g1.r2.rule"
+ ],
+ "applied": {
+  "rewritten": [
+   "g1.r2.l3 (g1.r2.rule)"
+  ],
+  "added": [
+   "g1.r1.say28 (g1.r1.failure_behavior) -> #viewer"
+  ],
+  "unfixed": []
+ }
+}

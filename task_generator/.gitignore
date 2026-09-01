@@ -1,0 +1,4 @@
+.trees/
+out/*/trees/
+out/_smoke/
+__pycache__/

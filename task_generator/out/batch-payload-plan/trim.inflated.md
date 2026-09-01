@@ -1,0 +1,279 @@
+# g1 — the requirement, reduced to what is graded
+
+**750 words → 1590** across 10 facts and 63 graded assertions.
+
+The tests, the fact keys and the oracle are untouched. What changed is what the `-spec` arm shows an implementer, and therefore what the clues have to carry.
+
+| fact | words | assertions | dropped |
+|---|---|---|---|
+| `g1.r1.rule` | 169 → 180 | 16 | 9 |
+| `g1.r1.scope` | 71 → 112 | 6 | 4 |
+| `g1.r1.exclusions_or_crossover` | 34 → 70 | 2 | 4 |
+| `g1.r1.failure_behavior` | 96 → 181 | 11 | 5 |
+| `g1.r1.observability` | 117 → 296 | 7 | 5 |
+| `g1.r2.rule` | 74 → 114 | 2 | 4 |
+| `g1.r2.scope` | 40 → 156 | 6 | 4 |
+| `g1.r2.exclusions_or_crossover` | 27 → 100 | 2 | 3 |
+| `g1.r2.failure_behavior` | 36 → 133 | 4 | 4 |
+| `g1.r2.observability` | 86 → 248 | 7 | 4 |
+
+## `g1.r1.rule`
+
+**Now (180 words):**
+
+`batch_payload_planner` exports `PLAN_FILE_NAME = "batch_plan.json"`, `PLAN_FORMAT_VERSION = 1`, `def plan_fingerprint(plan: Sequence[PlannedBatch]) -> str` and `def plan_document(plan: Sequence[PlannedBatch], limits: BatchLimits) -> dict`.
+
+`plan_fingerprint` builds the canonical string `";".join(f"{p.start_idx}-{p.end_idx}:{p.num_bytes}" for p in plan)` — spans and batch sizes only, not `index` or `num_requests` — and returns a `str` determined by that canonical string alone, distinct for distinct canonical strings. So `[PlannedBatch(0, 0, 2, 2, 307), PlannedBatch(1, 2, 4, 2, 307)]` and `[PlannedBatch(7, 0, 2, 99, 307), PlannedBatch(8, 2, 4, 99, 307)]` fingerprint identically, while changing a `num_bytes` (`…, 308`) or moving a cut (`PlannedBatch(0, 0, 3, 3, 307), PlannedBatch(1, 3, 4, 1, 307)`) changes the fingerprint.
+
+`plan_document` returns a dict with exactly these keys in this order, all values JSON-serialisable: `plan_format_version` (`1`), `plan_id` (`plan_fingerprint(plan)`), `limits` (`dataclasses.asdict(limits)`), `num_batches` (`len(plan)`), `num_requests` (sum of `p.num_requests`), `num_bytes` (sum of `p.num_bytes`), `batches` (`[dataclasses.asdict(p) for p in plan]`). `PlannedBatch`'s fields are declared in the order `index`, `start_idx`, `end_idx`, `num_requests`, `num_bytes`, so each batch entry serialises with those five keys in that order.
+
+`BatchLimits` carries a third field `max_batches_per_plan: int = _MAX_BATCHES_PER_PLAN`, with the module constant `_MAX_BATCHES_PER_PLAN = 512`.
+
+**Dropped, because no assertion checks it:**
+
+- The framing sentence 'The planner module also records the plan it produced.'
+- `hashlib.sha256` as the digest algorithm — no assertion compares a fingerprint to a literal digest.
+- The UTF-8 encoding step before hashing.
+- The FIRST 12 CHARACTERS truncation of the hexdigest.
+- 'an empty plan fingerprints the empty string' — no assertion passes an empty plan.
+- The gloss on `num_bytes`: 'the batch files' sizes summed, not any on-disk size' — #14 sums `p.num_bytes` off the plan objects.
+- '`limits` serialises with three keys' — #11 compares `dataclasses.asdict(limits)` against itself, so the key count is never read.
+- '`BaseBatchRequestProcessor.batch_limits` still constructs `BatchLimits` from the two provider limits only' — nothing touches `BaseBatchRequestProcessor`.
+- The whole sidecar write: the `"auto"` branch of `create_request_files`, its position 'once `plan_request_batches` has returned', `json.dumps(..., indent=2) + "\n"`, and the destination `os.path.join(self.working_dir, PLAN_FILE_NAME)`. No assertion writes, reads, or lists a file; #2 checks only the constant's value, so an implementation that never writes `batch_plan.json` still scores 16/16.
+
+**Kept despite looking like padding:** `max_batches_per_plan: int = _MAX_BATCHES_PER_PLAN` and `_MAX_BATCHES_PER_PLAN = 512` are read by no assertion, but #11 compares `doc[\"limits\"]` against `dataclasses.asdict(limits)` for a `BatchLimits` the harness constructs itself, and #1 checks an unspecified list of exported names. If the harness constructs `BatchLimits` with three arguments, a two-field dataclass raises `TypeError` before any assertion runs, failing the whole file — so the field stayed.
+
+## `g1.r1.scope`
+
+**Now (112 words):**
+
+The module defines `PLAN_FILE_NAME = "batch_plan.json"` and a module-level function `plan_fingerprint(batches)` taking the list of batch entries.
+
+In the `"auto"` `batch_size` branch, and only there, write a JSON document to `os.path.join(self.working_dir, PLAN_FILE_NAME)` before the first request file is written. The document has the keys `num_batches`, `num_requests`, `num_bytes`, `batches`, and `plan_id`, where `plan_id` is `plan_fingerprint(batches)` for the `batches` list in that same document.
+
+A 0-batch plan is written like any other. For an empty dataset the file's contents are exactly:
+
+{
+    "num_batches": 0,
+    "num_requests": 0,
+    "num_bytes": 0,
+    "batches": [],
+    "plan_id": plan_fingerprint([]),
+}
+
+The explicit-integer `batch_size` branch and the `dataset is None` path create no such file: `PLAN_FILE_NAME not in os.listdir(working_dir)` after either runs.
+
+**Dropped, because no assertion checks it:**
+
+- "before any ... metadata file is written" — only the ordering against the request files is instrumented (#2); nothing observes the metadata file's position relative to the sidecar.
+- "`plan_id` of the empty canonical string" as a description of how the fingerprint is derived — #5 only compares against `module.plan_fingerprint([])`, so the canonical-string phrasing is unchecked; the call is specified instead.
+- The second worked example, "with `batch_size=2` on a 3-row dataset" — #6 is satisfied by the rule that the explicit-integer branch writes no file, and the empty-document example is the one the assertions turn on a literal for.
+- The framing "empty dataset → a `batch_plan.json` with ..." restated as prose alongside the literal document — the literal alone pins #4 and #5.
+
+**Kept despite looking like padding:** The general clause `plan_id` is `plan_fingerprint(batches)` reads like a restatement of the empty-case literal, but it has to stay: #5 requires `plan_fingerprint` to exist under that exact name and accept the batches list, and #1 writes a non-empty plan whose `plan_id` would otherwise be unspecified. The clause \"before the first request file is written\" is forced by #2 (`seen[\"plan_exists\"] is True`), and naming `PLAN_FILE_NAME` as a module constant with the value `\"batch_plan.json\"` is forced jointly by #1 (path built by the test helper) and #6/#7 (`module.PLAN_FILE_NAME` read off the module).
+
+## `g1.r1.exclusions_or_crossover`
+
+**Now (70 words):**
+
+Each `metadata_{i}.json` is written as a JSON object whose parsed top-level key set is exactly `{"num_jobs"}` — one key, no others, at any batch size and for both explicit and `"auto"` runs.
+
+Its single value, `metadata["num_jobs"]`, equals the `"num_requests"` field of the plan sidecar entry for the same index `i`.
+
+Worked example: if the sidecar's entry for index `0` has `"num_requests": 1000`, then `metadata_0.json` is exactly:
+
+```json
+{"num_jobs": 1000}
+```
+
+**Dropped, because no assertion checks it:**
+
+- The explicit forbidden-key list `start_idx` / `end_idx` / `num_bytes` — assertion #1 is a set equality against `{"num_jobs"}`, so "exactly one key, no others" already forbids these and any other name.
+- "The sidecar is the single place the plan shape is recorded" — a claim about the sidecar's role; no assertion reads the sidecar for anything except `num_requests`.
+- "because `_verify_existing_request_files` cannot describe an `\"auto\"` run" — rationale, and a reference to a function no assertion calls.
+- The framing "is untouched by this" — history about what the surrounding change does, not a property of the output.
+
+**Kept despite looking like padding:** \"for both explicit and `\"auto\"` runs\" reads as padding but stays: assertion #1 (`set(metadata) == {\"num_jobs\"}`) is graded on whatever run the harness produces, and scoping the key-set rule to one mode only would leave an implementer free to add plan fields in the other. The literal `1000` worked example stays because assertion #2 (`metadata[\"num_jobs\"] == read_field(planned, \"num_requests\")`) turns on an exact value equality between two named fields, and the example pins `num_jobs` to `num_requests` rather than to a separately derived count.
+
+## `g1.r1.failure_behavior`
+
+**Now (181 words):**
+
+`BatchLimits` takes `max_requests_per_batch`, `max_bytes_per_batch`, `max_batches_per_plan` in that positional order; `max_batches_per_plan` defaults to `512`.
+
+`plan_batches` raises `BatchPlanTooFragmentedError` when the completed plan contains more than `limits.max_batches_per_plan` batches. A plan of exactly `max_batches_per_plan` batches is returned normally.
+
+`BatchPlanTooFragmentedError` is exported from the same module as `plan_batches`. It subclasses `ValueError` and is NOT a subclass of `BatchPayloadTooLargeError`. It is constructed as `BatchPlanTooFragmentedError(num_batches=..., limit=...)` and stores both as attributes: `num_batches` is the total number of batches the complete plan contains (not the limit, and not a truncated count), and `limit` is `limits.max_batches_per_plan`.
+
+The per-row oversize scan runs before the fragmentation check: if any row exceeds `max_bytes_per_batch`, `SingleRequestTooLargeError` is raised with attribute `row_idx` set to the 0-based index of that row, even when the plan would also exceed `max_batches_per_plan`.
+
+Worked cases, with `one_per_batch = BatchLimits(max_requests_per_batch=1, max_bytes_per_batch=1000)`:
+- `len(plan_batches([10] * 512, one_per_batch)) == 512`
+- `plan_batches([10] * 513, one_per_batch)` raises `BatchPlanTooFragmentedError` with `err.num_batches == 513`, `err.limit == 512`
+- `plan_batches([10] * 3, BatchLimits(1, 1000, max_batches_per_plan=2))` raises `BatchPlanTooFragmentedError` with `err.num_batches == 3`, `err.limit == 2`
+- `plan_batches([10] * 600 + [5000], BatchLimits(1, 1000))` raises `SingleRequestTooLargeError` with `err.row_idx == 600`
+
+**Dropped, because no assertion checks it:**
+
+- The placement narrative 'After plan_batches has built the whole plan and before it returns' — no assertion inspects where in the function body the check sits; replaced by the observable rule that the reported count is the complete plan's count.
+- The internal expression `len(plan) > limits.max_batches_per_plan`, which names a local variable no test can observe.
+- The parenthetical rationale '(the boundary is admissible)' on the 512-batch case — the example itself pins the behaviour.
+- The clause 'a fragmented plan is not an oversized payload' — it is an assertion failure message, not a rule.
+- The trailing negative restatement ', not BatchPlanTooFragmentedError' on the per-row-scan case — already implied by pytest.raises(SingleRequestTooLargeError).
+
+**Kept despite looking like padding:** Three things that read as redundant had to stay. (1) 'max_batches_per_plan defaults to 512' — assertions #4, #6 and #7 call plan_batches with one_per_batch, which omits the third argument, and compare against 512; the original only implied the default via an example. (2) The positional order of BatchLimits' three fields — assertion #9 constructs BatchLimits(1, 1000, max_batches_per_plan=2) and assertion #10 constructs BatchLimits(1, 1000), both relying on the first two parameters being positional in that order. (3) 'num_batches is the total number of batches the complete plan contains' — assertion #6 (513) and assertion #9 (3 against a limit of 2) together rule out reporting limit + 1 or a count truncated at the limit. All three worked examples were also kept rather than collapsed to one, since each pins literals a different assertion compares against.
+
+## `g1.r1.observability`
+
+**Now (296 words):**
+
+g1.r1.observability
+
+`plan_fingerprint(batches)` maps a list of `PlannedBatch` to a 12-character string. These values are exact:
+
+- `plan_fingerprint([]) == "e3b0c44298fc"`
+- `plan_fingerprint(plan_batches([10] * 7, BatchLimits(max_requests_per_batch=1000, max_bytes_per_batch=32))) == "ad0828fea95e"`
+- `plan_fingerprint([PlannedBatch(0, 0, 2, 2, 307), PlannedBatch(1, 2, 4, 2, 307), PlannedBatch(2, 4, 5, 1, 153)]) == "f4b1ea1573c0"`
+- the 11-batch plan of an 11-row dataset with `max_requests_per_batch` patched to `1` fingerprints `"c53f6fb95c13"`
+
+`PlannedBatch` is constructed positionally in the field order `index, start_idx, end_idx, num_requests, num_bytes`. `BatchLimits` is a dataclass accepted by `dataclasses.asdict`, keyword-constructible from `max_requests_per_batch` and `max_bytes_per_batch` alone; any further field carries a default. `plan_batches(sizes, limits)` returns contiguous batches covering `sizes` in order over half-open `[start_idx, end_idx)` spans, `index` counting from `0` and `num_bytes` the sum of the batch's sizes, closing the current batch when it already holds `max_requests_per_batch` requests or when the next size would carry `num_bytes` above `max_bytes_per_batch`.
+
+Every run writes `batch_plan.json` under `working_dir`. After the 5-row OpenAI run with limits patched to `max_requests_per_batch=3` and `max_bytes_per_batch=400`, `json.load(open(f"{working_dir}/batch_plan.json"))` equals exactly:
+
+    {
+        "plan_format_version": 1,
+        "plan_id": "f4b1ea1573c0",
+        "limits": {"max_requests_per_batch": 3, "max_bytes_per_batch": 400, ...},
+        "num_batches": 3,
+        "num_requests": 5,
+        "num_bytes": 767,
+        "batches": [
+            {"index": 0, "start_idx": 0, "end_idx": 2, "num_requests": 2, "num_bytes": 307},
+            {"index": 1, "start_idx": 2, "end_idx": 4, "num_requests": 2, "num_bytes": 307},
+            {"index": 2, "start_idx": 4, "end_idx": 5, "num_requests": 1, "num_bytes": 153},
+        ],
+    }
+
+`"limits"` is `dataclasses.asdict` of the `BatchLimits` in effect, JSON-round-trippable, carrying the values in effect under the keys `max_requests_per_batch` and `max_bytes_per_batch`. `plan_id` is `plan_fingerprint` of the batch list; `num_batches`, `num_requests` and `num_bytes` are the batch count and the sums of `num_requests` and `num_bytes` over the batches. Each entry of `"batches"` has the keys `index`, `start_idx`, `end_idx`, `num_requests`, `num_bytes`. `"batches"` is the document's last key and the file is indented JSON with a trailing newline — `json.dumps(doc, indent=2) + "\n"` — so the raw text ends in `"]\n}\n"`.
+
+**Dropped, because no assertion checks it:**
+
+- `BatchLimits(1000, 32).max_batches_per_plan == 512` — the field name and its default value 512; no assertion here reads it (the fan-out cap is graded under failure_behavior). Replaced by the weaker constraint that BatchLimits is keyword-constructible from the two named fields alone, which assertion #2 does need.
+- The literal `"max_batches_per_plan": 512` inside the document's `limits` value — assertion #6 compares that key against `dataclasses.asdict` of the implementation's own limits, so whatever fields exist pass automatically.
+- `list(doc) == ["plan_format_version", "plan_id", "limits", "num_batches", "num_requests", "num_bytes", "batches"]` — the full key ordering. Dict equality in assertion #6 is order-insensitive and no assertion calls `list(doc)`. Only 'batches is the last key' survives, forced by the `"]\n}\n"` suffix in assertion #8.
+- The opening framing 'Exact strings and one exact document.' — a summary of the section, not a rule.
+- The inline rationale 'taken from the implementation's own limits, so the fan-out cap is graded once, under failure_behavior, and not a second time here' — an explanation of why, never asserted.
+
+**Kept despite looking like padding:** Four digest literals were kept rather than one worked example: assertions #1, #2, #3 and #5 each compare a different digest, so no one of them stands in for the others. The `plan_batches` splitting semantics and `PlannedBatch` positional field order read like scope belonging to a sizing requirement, but assertion #2 fingerprints the output of `plan_batches([10] * 7, BatchLimits(max_requests_per_batch=1000, max_bytes_per_batch=32))` and assertion #3 builds `PlannedBatch(0, 0, 2, 2, 307)` positionally — an implementer who splits differently or orders the fields differently misses both digests. The `json.dumps(doc, indent=2) + \"\\n\"` spelling is redundant with the stated suffix but is what makes assertion #8's `raw.endswith(\"]\\n}\\n\")` reproducible rather than guessable. The exact byte encoding that produces these digests is not recoverable from the assertions and is not stated here, matching the original text.
+
+## `g1.r2.rule`
+
+**Now (114 words):**
+
+In the `"auto"` branch of `create_request_files`, `plan_request_batches(dataset)` returns `plan`. Between that return and the writing of any new file, remove every file in `self.working_dir` whose name matches `requests_*.jsonl` and every file whose name matches `metadata_*.json`. Then write the new batch files, so that on completion `self.working_dir` contains exactly `requests_{i}.jsonl` and `metadata_{i}.json` for `i` in `range(len(plan))`, and no `requests_*.jsonl` or `metadata_*.json` with any other name.
+
+Worked example: `self.working_dir` already holds `requests_0.jsonl` … `requests_5.jsonl` and `metadata_0.json` … `metadata_5.json`, and `plan_request_batches(dataset)` returns a plan of length 3. After the run, a glob of `requests_*.jsonl` in that directory yields exactly `requests_0.jsonl`, `requests_1.jsonl`, `requests_2.jsonl`, and a glob of `metadata_*.json` yields exactly `metadata_0.json`, `metadata_1.json`, `metadata_2.json`; `requests_3..5.jsonl` and `metadata_3..5.json` are gone.
+
+**Dropped, because no assertion checks it:**
+
+- The reason for the clearing: that stale files are what a later glob-based read would pick up.
+- The contrast 'clears them rather than overwriting only the prefix' — a rejected alternative, asserted nowhere.
+- The provenance of the leftover numbering ('a previous "auto" run under different limits') — no assertion inspects how the stale files arose.
+- The named removal mechanism `glob.glob` + `os.remove`; both assertions compare only the resulting directory listing, so the API used is unchecked.
+
+**Kept despite looking like padding:** 'Between that return and the writing of any new file' looks like sequencing filler but is forced by both `g1.r2.rule#2` and `#3`: they require `requests_0..len(plan)-1.jsonl` and `metadata_0..len(plan)-1.json` to be present after the run, so a removal ordered after the writes would empty the directory and fail both. The literal names `requests_{i}.jsonl` / `metadata_{i}.json` and the bound `range(len(plan))` are compared verbatim in `#2` and `#3` and are kept unparaphrased.
+
+## `g1.r2.scope`
+
+**Now (156 words):**
+
+Neither the explicit-integer `batch_size` branch nor the `dataset is None` path may delete or modify request files in the working directory.
+
+For both branches: every `requests_{i}.jsonl` and every `metadata_{i}.json` present in the working directory before the call is still present after it, at the same path, and the bytes of each `requests_{i}.jsonl` are unchanged — no removal, no truncation, no rewrite, for any `i`.
+
+Explicit-integer `batch_size`, worked example — a working directory containing `requests_0.jsonl` … `requests_5.jsonl` and `metadata_0.json` … `metadata_5.json`, where `requests_5.jsonl` holds exactly `STALE_REQUEST`:
+
+    os.path.exists(os.path.join(fixed_dir, f"requests_{i}.jsonl"))  -> True, every i
+    os.path.exists(os.path.join(fixed_dir, f"metadata_{i}.json"))   -> True, every i
+    open(os.path.join(fixed_dir, "requests_5.jsonl")).read()        == STALE_REQUEST
+
+`dataset is None`, worked example — a working directory containing `requests_0.jsonl` … `requests_3.jsonl` and `metadata_0.json` … `metadata_3.json`, where `requests_3.jsonl` holds exactly `STALE_REQUEST`:
+
+    os.path.exists(os.path.join(none_dir, f"requests_{i}.jsonl"))   -> True, every i
+    os.path.exists(os.path.join(none_dir, f"metadata_{i}.json"))    -> True, every i
+    open(os.path.join(none_dir, "requests_3.jsonl")).read()         == STALE_REQUEST
+
+A stale file is left byte-for-byte as found; it is not regenerated, not re-serialized, and not renamed.
+
+**Dropped, because no assertion checks it:**
+
+- The positive claim that sweeping belongs to / happens in the `"auto"` branch — no assertion reads an `"auto"` working directory; all six read only `fixed_dir` and `none_dir`.
+- "it still relies on `incomplete_files`" — a mechanism claim; no assertion inspects `incomplete_files` or any call made through it.
+- "may legitimately leave earlier request files in place" — rationale for the prohibition, and weaker than the prohibition that is actually graded.
+- The framing verb "sweep" as the scoped concept, replaced by the concrete prohibition (no delete, truncate, or rewrite) that the assertions measure.
+
+**Kept despite looking like padding:** Both worked examples were kept even though they demonstrate the same rule, because they pin different graded literals in different directories: assertion #3 compares `fixed_dir/requests_5.jsonl` against `STALE_REQUEST` and assertion #6 compares `none_dir/requests_3.jsonl` against `STALE_REQUEST`. Dropping either example leaves one of those literals unspecified. The explicit file ranges (0–5 for `fixed_dir`, 0–3 for `none_dir`) were kept to give the existence loops in #1/#2 and #4/#5 a defined `i` range, and the identifier `STALE_REQUEST` was kept verbatim because #3 and #6 compare against it by name.
+
+## `g1.r2.exclusions_or_crossover`
+
+**Now (100 words):**
+
+The sweep removes only files matching the two request/metadata glob patterns. Every other file present in the working directory before the sweep is still present after it, and each such file's contents after the sweep compare equal, byte for byte, to its contents before.
+
+Worked example — a working directory holding, in addition to the request and metadata files, these entries:
+
+- any file matching `responses_*.jsonl`
+- any file matching `*.arrow`
+- `batch_objects.jsonl`
+
+After the sweep, each of those names is still in the directory listing, and reading each one back yields exactly the bytes it held before the sweep.
+
+**Dropped, because no assertion checks it:**
+
+- "the sweep is not a directory wipe" — a restatement of the survival rule; assertion #1 already forces each non-matching file to still be present, and no assertion inspects the directory object itself.
+- "survive byte-for-byte" as a standalone emphatic phrase — folded into the checked statement; the emphasis added nothing assertion #2 does not already measure.
+- The loose trailing echo "and every other file in the working directory" following the three names — the universal rule is stated once; the second, rhetorical pass over the same rule is gone.
+
+**Kept despite looking like padding:** The three-item listing `responses_*.jsonl`, `*.arrow`, `batch_objects.jsonl` reads like illustrative filler, but assertions #1 (`assert name in after`) and #2 (`assert after[name] == body`) address files by literal name and pattern. Trimming or paraphrasing any of the three would let an implementer sweep one of them and still believe the spec was satisfied, so all three stay verbatim and in that order.
+
+## `g1.r2.failure_behavior`
+
+**Now (133 words):**
+
+Planning validates every row before the sweep runs and before anything is written.
+
+If the serialized request for a single row exceeds the per-request byte limit, planning raises `SingleRequestTooLargeError`, defined at module level. The exception carries the attribute `row_idx`: the 0-based position of the offending row in the input sequence. If more than one row is over the limit, `row_idx` is the lowest such index.
+
+Worked example: three input rows, where rows 0 and 2 are under the limit and row 1 is over it. Planning raises `SingleRequestTooLargeError` with `row_idx == 1`.
+
+When planning raises, no file under `working_dir` is created, removed, truncated, or rewritten: the directory is byte-for-byte identical to its state before the call, including any stale files left by earlier runs. The sweep runs only on a plan that returned.
+
+**Dropped, because no assertion checks it:**
+
+- `BatchPlanTooFragmentedError` — no assertion raises, catches, or names it; the only exception type checked is `SingleRequestTooLargeError`
+- "nothing is removed and nothing is written" as a separate claim — folded into the one graded rule of full-directory byte equality instead of stated twice
+- The rationale framing "The sweep sits behind a plan that returned" as an explanation for why failure is total — the bare ordering rule survives, the justification does not
+- The implication that a fragmented-plan failure carries the same no-write guarantee — unasserted, and would force a second error path for no credit
+
+**Kept despite looking like padding:** \"including any stale files left by earlier runs\" reads like an aside, but assertion #5 compares a full snapshot of `working_dir` for equality; an implementer who clears or normalizes the directory before failing would fail it, so the clause is itself the rule.
+
+## `g1.r2.observability`
+
+**Now (248 words):**
+
+Fixture: both scenarios run against a `working_dir` pre-populated with `requests_0.jsonl … requests_5.jsonl` (each containing "stale\n"), `metadata_0.json … metadata_5.json`, and `responses_0.jsonl` (containing "keep\n").
+
+Successful run: a 5-row run with the per-batch row limit patched to 3 and `max_bytes_per_batch` patched to 400 writes three batches — `requests_0.jsonl`, `requests_1.jsonl`, `requests_2.jsonl` and `metadata_0.json`, `metadata_1.json`, `metadata_2.json` — plus `batch_plan.json`. Before returning it deletes every `requests_N.jsonl` and `metadata_N.json` in `working_dir` whose index N is greater than or equal to the number of batches written by this run. Any file that is not a `requests_N.jsonl`, a `metadata_N.json` or `batch_plan.json` is neither deleted nor rewritten. After the run: sorted(os.listdir(working_dir)) == ["batch_plan.json", "metadata_0.json", "metadata_1.json", "metadata_2.json", "requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl", "responses_0.jsonl"] and open(f"{working_dir}/responses_0.jsonl").read() == "keep\n".
+
+Oversized row: `SingleRequestTooLargeError` is an exception class defined at module level in the same module as `create_request_files`. A row whose serialized request is larger than `max_bytes_per_batch` on its own can never be placed in a batch; `create_request_files` validates the entire dataset for this condition and raises `SingleRequestTooLargeError` before creating, writing, truncating or deleting any file in `working_dir`. The call is a no-op on the filesystem, and repeating it raises the same error and leaves the directory identical again.
+
+Worked example: against the fixture directory above plus a `batch_plan.json` containing {"plan_format_version": 1, "stale": true}, the call create_request_files(Dataset.from_dict({"prompt": ["ok", "x"*600, "ok"]})) with `max_bytes_per_batch` patched to 400 raises `SingleRequestTooLargeError`, and afterwards sorted(os.listdir(working_dir)) == ["batch_plan.json", "metadata_0.json", "metadata_1.json", "metadata_2.json", "metadata_3.json", "metadata_4.json", "metadata_5.json", "requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl", "requests_3.jsonl", "requests_4.jsonl", "requests_5.jsonl", "responses_0.jsonl"], json.load(open(f"{working_dir}/batch_plan.json")) == {"plan_format_version": 1, "stale": True}, and open(f"{working_dir}/requests_2.jsonl").read() == "stale\n".
+
+**Dropped, because no assertion checks it:**
+
+- row_idx=1, size_bytes=748 and limit_bytes=400 on the raised error - assertions #3 and #4 match only the exception class, so no attribute value or constructor signature is graded
+- the "{}\n" contents of the pre-existing metadata_0.json .. metadata_5.json - only their names appear, in the two directory listings
+- the count glosses '- 8 entries -' and 'all 14 entries survive' - restatements of the two listing literals
+- the phrase 'the successful 5-row run' as a back-reference to a prior scenario, replaced by the explicit cleanup rule (delete leftover requests_N/metadata_N at or above the new batch count, leave everything else alone) that makes the 8-entry listing and the surviving responses_0.jsonl follow
+
+**Kept despite looking like padding:** batch_plan.json is still stated as written by the successful run and as part of the failure fixture. The success-path plan file is forced by assertion #1's directory listing (it is one of the eight on-disk entries in the reference implementation); the stale plan document is forced verbatim by assertion #6, so {\"plan_format_version\": 1, \"stale\": true} survives unparaphrased.

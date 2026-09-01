@@ -1,0 +1,335 @@
+diff --git a/src/bespokelabs/curator/request_processor/base_request_processor.py b/src/bespokelabs/curator/request_processor/base_request_processor.py
+index c3828af..a214ed4 100644
+--- a/src/bespokelabs/curator/request_processor/base_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/base_request_processor.py
+@@ -260,38 +260,22 @@ class BaseRequestProcessor(ABC):
+         if isinstance(self.config, BatchRequestProcessorConfig):
+             batch_size = self.config.batch_size
+ 
+-            def _get_optimal_batch_size(start_idx: int) -> int:
+-                batch_size = self.max_requests_per_batch
+-                end_idx = min(start_idx + batch_size, len(dataset))
+-                current_dataset = dataset.select(range(start_idx, end_idx))
+-                batch_size_bytes = 0
+-                for idx, dataset_row in enumerate(current_dataset):
+-                    dataset_row_idx = idx + start_idx
+-                    request = self.prompt_formatter.create_generic_request(dataset_row, dataset_row_idx, False)
+-                    request_size = len(json.dumps(request.model_dump(), default=str).encode())
+-                    if batch_size_bytes + request_size >= self.max_bytes_per_batch:
+-                        batch_size = idx
+-                        break
+-                    else:
+-                        batch_size_bytes += request_size
+-
+-                return batch_size
+-
+             if batch_size == "auto":
++                plan = self.plan_request_batches(dataset)
++                request_files = [os.path.join(self.working_dir, f"requests_{p.index}.jsonl") for p in plan]
++                metadata_files = [os.path.join(self.working_dir, f"metadata_{p.index}.json") for p in plan]
+ 
+                 async def create_all_request_files():
+-                    tasks = []
+-                    start_idx = 0
+-                    idx = 0
+-                    while True:
+-                        batch_size = _get_optimal_batch_size(start_idx)
+-                        request_file = os.path.join(self.working_dir, f"requests_{idx}.jsonl")
+-                        metadata_file = os.path.join(self.working_dir, f"metadata_{idx}.json")
+-                        tasks.append(self.acreate_request_file(dataset, request_file, metadata_file, start_idx=start_idx, batch_size=batch_size))
+-                        start_idx += batch_size
+-                        idx += 1
+-                        if start_idx >= len(dataset):
+-                            break
++                    tasks = [
++                        self.acreate_request_file(
++                            dataset,
++                            request_files[p.index],
++                            metadata_files[p.index],
++                            start_idx=p.start_idx,
++                            batch_size=p.num_requests,
++                        )
++                        for p in plan
++                    ]
+                     await asyncio.gather(*tasks)
+ 
+             else:
+diff --git a/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py b/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
+index e3ccf10..78faa6e 100644
+--- a/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
+@@ -3,7 +3,7 @@ import json
+ import os
+ from abc import abstractmethod
+ from collections import Counter
+-from typing import Optional
++from typing import TYPE_CHECKING, Optional
+ 
+ import aiofiles
+ from litellm import model_cost
+@@ -11,6 +11,7 @@ from litellm import model_cost
+ from bespokelabs.curator.cost import cost_processor_factory
+ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.base_request_processor import BaseRequestProcessor
++from bespokelabs.curator.request_processor.batch_payload_planner import BatchLimits, BatchPayloadTooLargeError, PlannedBatch, payload_size_bytes, plan_batches
+ from bespokelabs.curator.request_processor.config import BatchRequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
+ from bespokelabs.curator.status_tracker.batch_status_tracker import BatchStatusTracker
+@@ -19,6 +20,9 @@ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+ from bespokelabs.curator.types.token_usage import _TokenUsage
+ 
++if TYPE_CHECKING:
++    from datasets import Dataset
++
+ _STREAM_CHUNK_SIZE = 1000
+ 
+ 
+@@ -353,7 +357,51 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+             with open(self.batch_objects_file, "w") as f:
+                 f.write(self.tracker.model_dump_json())
+ 
+-    def create_batch_file(self, api_specific_requests: list[dict]) -> str:
++    @property
++    def batch_limits(self) -> BatchLimits:
++        """API limits a single batch payload must respect.
++
++        Returns:
++            BatchLimits: The request count and byte limits of this processor.
++        """
++        return BatchLimits(
++            max_requests_per_batch=self.max_requests_per_batch,
++            max_bytes_per_batch=self.max_bytes_per_batch,
++        )
++
++    def measure_request_payload(self, generic_request: GenericRequest) -> int:
++        """Measure the size of the payload that will actually be submitted.
++
++        Args:
++            generic_request: Standardized request object.
++
++        Returns:
++            int: Number of bytes the API-specific payload occupies in a batch file.
++        """
++        return payload_size_bytes(self.create_api_specific_request_batch(generic_request))
++
++    def plan_request_batches(self, dataset: "Dataset") -> list[PlannedBatch]:
++        """Plan how to split a dataset into batches that fit the API limits.
++
++        Every row is formatted and measured exactly once, in index order.
++
++        Args:
++            dataset: Dataset to plan batches for.
++
++        Returns:
++            list[PlannedBatch]: The planned batches, empty if the dataset has no rows.
++
++        Raises:
++            SingleRequestTooLargeError: If one request alone exceeds the byte limit.
++        """
++        generation_params_per_row = "generation_params" in dataset.column_names
++        sizes = []
++        for idx, dataset_row in enumerate(dataset):
++            generic_request = self.prompt_formatter.create_generic_request(dataset_row, idx, generation_params_per_row)
++            sizes.append(self.measure_request_payload(generic_request))
++        return plan_batches(sizes, self.batch_limits)
++
++    def create_batch_file(self, api_specific_requests: list[dict]) -> bytes:
+         """Create a batch file from API-specific requests.
+ 
+         Validates request count and file size against API limits before creating
+@@ -363,10 +411,11 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+             api_specific_requests: List of API-specific request dictionaries.
+ 
+         Returns:
+-            str: Encoded file content ready for API upload.
++            bytes: Encoded file content ready for API upload.
+ 
+         Raises:
+-            ValueError: If batch exceeds request count or size limits.
++            ValueError: If batch exceeds the request count limit.
++            BatchPayloadTooLargeError: If batch exceeds the size limit.
+ 
+         Side Effects:
+             - Logs debug information about batch file size
+@@ -384,10 +433,10 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+         file_content_size = len(file_content)
+         logger.debug(f"Batch file content size: {file_content_size / (1024 * 1024):.2f} MB ({file_content_size:,} bytes)")
+         if file_content_size > self.max_bytes_per_batch:
+-            raise ValueError(
+-                f"Batch file content size {file_content_size:,} bytes "
+-                f"is greater than the maximum of {self.max_bytes_per_batch:,} bytes per batch that {self.__class__.__name__} supports. "
+-                f"Please reduce your batch size or request content size (via prompt_func and response_format)."
++            raise BatchPayloadTooLargeError(
++                num_requests=n_requests,
++                size_bytes=file_content_size,
++                limit_bytes=self.max_bytes_per_batch,
+             )
+         return file_content
+ 
+diff --git a/src/bespokelabs/curator/request_processor/batch_payload_planner.py b/src/bespokelabs/curator/request_processor/batch_payload_planner.py
+new file mode 100644
+index 0000000..f6d3fd1
+--- /dev/null
++++ b/src/bespokelabs/curator/request_processor/batch_payload_planner.py
+@@ -0,0 +1,160 @@
++"""Pure planning helpers for splitting requests into API-sized batch payloads.
++
++The planner is intentionally free of any I/O or provider state: it works on the
++serialized size of each request payload so that it can be reasoned about (and
++tested) independently of the request processors that use it.
++"""
++
++import json
++from dataclasses import dataclass
++from typing import Sequence
++
++
++@dataclass(frozen=True)
++class BatchLimits:
++    """API limits a single batch payload must respect.
++
++    Attributes:
++        max_requests_per_batch: Maximum number of requests in one batch.
++        max_bytes_per_batch: Maximum size in bytes of one batch file.
++    """
++
++    max_requests_per_batch: int
++    max_bytes_per_batch: int
++
++
++@dataclass(frozen=True)
++class PlannedBatch:
++    """A contiguous span of requests that fits within the batch limits.
++
++    Attributes:
++        index: Position of this batch in the plan, starting at 0.
++        start_idx: Index of the first request in the span.
++        end_idx: Index just past the last request in the span.
++        num_requests: Number of requests in the span.
++        num_bytes: Size in bytes of the batch file this span produces.
++    """
++
++    index: int
++    start_idx: int
++    end_idx: int
++    num_requests: int
++    num_bytes: int
++
++
++class BatchPayloadTooLargeError(ValueError):
++    """Raised when a batch payload is larger than the API allows."""
++
++    def __init__(self, *, num_requests: int, size_bytes: int, limit_bytes: int) -> None:
++        """Initialize the error.
++
++        Args:
++            num_requests: Number of requests in the oversized payload.
++            size_bytes: Size in bytes of the oversized payload.
++            limit_bytes: Maximum size in bytes allowed by the API.
++        """
++        self.num_requests = num_requests
++        self.size_bytes = size_bytes
++        self.limit_bytes = limit_bytes
++        super().__init__(
++            f"Batch file content size {size_bytes:,} bytes for {num_requests:,} request(s) "
++            f"is greater than the maximum of {limit_bytes:,} bytes per batch. "
++            "Please reduce your batch size or request content size (via prompt_func and response_format)."
++        )
++
++
++class SingleRequestTooLargeError(BatchPayloadTooLargeError):
++    """Raised when a single request cannot fit in a batch on its own."""
++
++    def __init__(self, *, row_idx: int, size_bytes: int, limit_bytes: int) -> None:
++        """Initialize the error.
++
++        Args:
++            row_idx: Index of the request in the dataset.
++            size_bytes: Size in bytes of the request payload.
++            limit_bytes: Maximum size in bytes allowed by the API.
++        """
++        super().__init__(num_requests=1, size_bytes=size_bytes, limit_bytes=limit_bytes)
++        self.row_idx = row_idx
++
++
++def payload_size_bytes(api_specific_request: dict) -> int:
++    """Measure the serialized size of a single API-specific request.
++
++    Args:
++        api_specific_request: API-specific request dictionary.
++
++    Returns:
++        int: Number of bytes the request occupies in a batch file.
++    """
++    return len(json.dumps(api_specific_request).encode())
++
++
++def payload_bytes(sizes: Sequence[int]) -> int:
++    """Compute the exact size of the batch file the given payloads produce.
++
++    The payloads are joined with newlines, so a batch of ``n`` requests costs
++    ``n - 1`` separator bytes on top of the individual payload sizes.
++
++    Args:
++        sizes: Sizes in bytes of the individual request payloads.
++
++    Returns:
++        int: Size in bytes of the resulting batch file, 0 if there are no payloads.
++    """
++    if not sizes:
++        return 0
++    return sum(sizes) + len(sizes) - 1
++
++
++def plan_batches(sizes: Sequence[int], limits: BatchLimits) -> list[PlannedBatch]:
++    """Greedily split request payloads into batches that respect the API limits.
++
++    The sizes are walked once in index order, so the resulting batches are
++    contiguous, ordered and cover every request exactly once.
++
++    Args:
++        sizes: Sizes in bytes of the individual request payloads, in index order.
++        limits: API limits the planned batches must respect.
++
++    Returns:
++        list[PlannedBatch]: The planned batches, empty if there are no payloads.
++
++    Raises:
++        SingleRequestTooLargeError: If one request alone exceeds the byte limit.
++    """
++    plan: list[PlannedBatch] = []
++    start_idx = 0
++    num_requests = 0
++    num_bytes = 0
++
++    def _flush(end_idx: int) -> None:
++        plan.append(
++            PlannedBatch(
++                index=len(plan),
++                start_idx=start_idx,
++                end_idx=end_idx,
++                num_requests=num_requests,
++                num_bytes=num_bytes,
++            )
++        )
++
++    for idx, size in enumerate(sizes):
++        if size > limits.max_bytes_per_batch:
++            raise SingleRequestTooLargeError(row_idx=idx, size_bytes=size, limit_bytes=limits.max_bytes_per_batch)
++
++        separator = 1 if num_requests else 0
++        if num_requests + 1 > limits.max_requests_per_batch or num_bytes + separator + size > limits.max_bytes_per_batch:
++            _flush(idx)
++            start_idx = idx
++            num_requests = 0
++            num_bytes = 0
++            separator = 0
++
++        num_requests += 1
++        num_bytes += separator + size
++
++    if num_requests:
++        _flush(len(sizes))
++
++    return plan

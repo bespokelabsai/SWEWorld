@@ -28,6 +28,16 @@ data_gen/cache/
 jobs/
 harbor_tasks/**/.cache/
 harbor_tasks/**/.validation/
+harbor_tasks/**/.rollouts/
+
+# task_generator/out/ IS tracked -- it holds the plant, the brief and the
+# fixtures, none of which can be regenerated for free. Only the bulk inside it
+# is ignored: six copies of the vendored curator tarball (16.5MB, re-copied by
+# `cli.py horizon` from vendor/) and the authoring logs. The `.horizon/`
+# bindings under the same directories are NOT ignored -- losing one makes the
+# next push create a second task instead of a new version.
+task_generator/out/*/logs/
+task_generator/out/**/curator-src.tar.gz
 
 # The rewritten history: a ~78MB pack, plus a manifest that maps real git
 # signatures and commit SHAs onto the synthetic ones. Both are generated, and
