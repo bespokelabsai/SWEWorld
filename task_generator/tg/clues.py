@@ -1800,7 +1800,34 @@ def identifiers_missing(clue: dict) -> list[str]:
     though everything else about carriage is now a judgement.
     """
     joined = " ".join(said(m) for m in turns_of(clue))
-    return [v for v in clue.get("verbatim") or [] if v not in joined]
+    return [v for v in graded_names(clue) if v not in joined]
+
+
+# English words and bare literals the tree sometimes lists as `verbatim`. g2's
+# plant asked for `A`, `The`, `0`, `False`, `True`, `Optional` and `Execution` to
+# appear literally. `The` is free and harmless; `True` is not -- an exchange can
+# be rejected for failing to type a Python keyword nobody would say aloud, and
+# then rewritten to no purpose. A name worth gating on is one somebody had to
+# invent, which is the same judgement `leak.strong` already makes.
+_NOT_A_NAME = {"a", "an", "the", "true", "false", "none", "null", "optional",
+               "str", "int", "bool", "list", "dict", "execution", "error"}
+
+
+def graded_names(clue: dict) -> list[str]:
+    """The `verbatim` entries worth enforcing: real identifiers, not English."""
+    out = []
+    for raw in clue.get("verbatim") or []:
+        name = raw.strip("`").strip()
+        # Drop ONLY bare English words and Python keywords. A first version also
+        # dropped anything without punctuation or digits, and took `{budget}` and
+        # `{streams}` with it -- the two placeholder names `settle` had just added
+        # to close the one gap the clues arm could not recover. Enforcing a common
+        # word like `stdout` is free, because it is always said anyway; failing to
+        # enforce a real anchor is not.
+        if name.isalpha() and name.lower() in _NOT_A_NAME:
+            continue
+        out.append(raw)
+    return out
 
 
 def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
