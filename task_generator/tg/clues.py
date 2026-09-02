@@ -2141,6 +2141,22 @@ def room_of(corpus: Corpus, clue: dict) -> tuple[str, str, list, str]:
     # attributed to somebody who was not there is the cheapest tell there is.
     reach = corpus.reachable((date, date)) if date else set()
     others = [m.author for m in real] + [p for p in corpus.people() if p in reach]
+    # Widen until there is somebody to talk TO. An invented thread on a quiet day
+    # often has only the holder in the room, and 18 of g2's 46 exchanges were
+    # handed a list of exactly one person and then asked for two speakers. The
+    # model did what anyone would: it invented a colleague, or -- once, memorably
+    # -- wrote `TODO_second_speaker` as an author name. Neither is a prompt
+    # failure. You cannot phrase your way out of an impossible instruction.
+    #
+    # Regulars of that channel first, because someone who posts there often is a
+    # plausible voice on a day they happened to be quiet; then the rest of the
+    # company, ordered by how much they talk.
+    if len(dict.fromkeys([clue["holder"]] + others)) < 3:
+        regulars = [a for a, _ in collections.Counter(
+            m.author for m in corpus.messages if m.channel == channel).most_common()]
+        loudest = [a for a, _ in collections.Counter(
+            m.author for m in corpus.messages).most_common()]
+        others = others + regulars + loudest
     people = list(dict.fromkeys([clue["holder"]] + others))[:5]
     nearby = ("## What else is in that channel that day\n\n" + "\n".join(
         f"  {m.created_at[11:16]}  {m.author}: {m.text[:110]}" for m in real[:14])

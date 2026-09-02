@@ -209,7 +209,11 @@ command = "WAIT_TIMEOUT=15 wait-for-service --quiet gitea && /usr/local/bin/task
 start_period_sec = 600.0
 start_interval_sec = 10.0
 interval_sec = 15.0
-timeout_sec = 120.0
+# 900, not 120. Harbor caps ONE probe at this, and the probe now carries the
+# plant ingestion -- a Mattermost bulk import plus BookStack pages plus mail.
+# At 120 the probe is killed mid-import, the next one starts over, and the trial
+# dies having never finished a single pass.
+timeout_sec = 900.0
 retries = 20
 '''
 
@@ -436,6 +440,14 @@ chmod 0600 /opt/world-state/baseline.env
 # Order matters and is the same order the bake used: comments need their pages to
 # exist first.
 if [[ -d /opt/task-plant ]]; then
+  # The services the ingest actually talks to. The healthcheck only waits for
+  # gitea -- that is all the baseline setup needed, to read main's SHA -- and
+  # ingesting into Mattermost, BookStack and maddy before they answer fails,
+  # returns non-zero, and fails the healthcheck. Twenty times, then the trial is
+  # dead with "Healthcheck failed after 20 consecutive retries" and nothing saying
+  # which of the four services was the problem.
+  WAIT_TIMEOUT=240 wait-for-service --quiet mattermost mariadb nginx php-fpm maddy \
+    || { echo "task-plant: services not up" >&2; exit 1; }
   S=/opt/world-state/scripts
   for step in ingest_chat ingest_docs ingest_comments ingest_mail; do
     [[ -f "$S/$step.py" ]] || continue
