@@ -2414,10 +2414,27 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
         return finish(task, corpus, ledger, "reknit_at")
 
     print(f"  {len(todo)} exchange(s) to write\n")
+    failed = []
     for clue in todo:
         for attempt in (1, 2):
-            clue["invented"] = stage_thread(task, corpus, clue, entry, budget)
-            clue["uncarried"] = check_carriage(task, clue, budget)
+            # One bad call must not cost the rest of the pass. A single
+            # `reasoning_extraction` error took this loop down 36 exchanges into
+            # 46, and the ten it never reached -- the whole tail of r2 -- kept
+            # their previous conversations while `finish` wrote the plant and
+            # reported as though the pass had completed. The audit that followed
+            # showed numbers that were partly from this run and partly from the
+            # one before, which is worse than an obvious failure.
+            try:
+                clue["invented"] = stage_thread(task, corpus, clue, entry, budget)
+                clue["uncarried"] = check_carriage(task, clue, budget)
+            except Exception as err:                      # noqa: BLE001
+                if attempt == 2:
+                    failed.append(f"{clue['clue_id']}: {type(err).__name__}: "
+                                  f"{str(err)[:120]}")
+                    break
+                print(f"  ..  {clue['clue_id']:14} call failed, retrying — "
+                      f"{type(err).__name__}")
+                continue
             left = thread_problems(clue)
             if not left or attempt == 2:
                 break
@@ -2429,7 +2446,14 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
             print(f"       ! {problem}")
 
     adrift = unknit(entry, cast)
-    print(f"\n{len(todo)} written, {len(adrift)} finding(s)")
+    print(f"\n{len(todo) - len(failed)} of {len(todo)} written, "
+          f"{len(adrift)} finding(s)")
+    for row in failed:
+        print(f"  !! never written: {row}")
+    if failed:
+        print(f"  !! {len(failed)} exchange(s) still carry their PREVIOUS "
+              f"conversation. Re-run: cli.py reknit {slug} --only "
+              f"{','.join(r.split(':')[0] for r in failed)} --redo")
     return finish(task, corpus, ledger, "reknit_at")
 
 
