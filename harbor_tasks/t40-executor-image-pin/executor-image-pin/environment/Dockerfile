@@ -26,5 +26,12 @@ ENV WAIT_TIMEOUT=600
 COPY setup.sh /usr/local/bin/task-setup.sh
 RUN chmod 0755 /usr/local/bin/task-setup.sh
 
+# This task's plant, ingested by task-setup.sh once the world is up, instead of
+# being baked into a per-task world image. `plant/` always exists and holds a
+# README when there is nothing to plant: Harbor drops zero-byte files, and
+# BuildKit then fails a COPY of a missing directory with "failed to calculate
+# checksum of ref", which names no path and reads like a platform fault.
+COPY plant /opt/task-plant
+
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/task-entrypoint.sh"]

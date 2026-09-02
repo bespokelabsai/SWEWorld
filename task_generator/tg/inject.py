@@ -457,7 +457,12 @@ def inject(slug: str, *, run: str | None = None, out: str | None = None,
             for row in rows:
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
 
+    plant_dir = None
+    if not dry_run:
+        plant_dir = delta(source, target, task.dir / "clues" / "plant-data", rows)
+
     report = {"source": str(source), "target": str(target), "rows": len(rows),
+              "delta": plant_dir,
               "kinds": dict(counts), "problems": problems,
               "absent": [] if dry_run else absent(target, ledger),
               "crowding": [] if dry_run else crowding(rows, corpus, ledger),
@@ -466,6 +471,70 @@ def inject(slug: str, *, run: str | None = None, out: str | None = None,
     if not dry_run:
         (task.dir / "clues" / "injected.md").write_text(render(task, ledger, report))
     return report
+
+
+def delta(source: pathlib.Path, target: pathlib.Path, out: pathlib.Path,
+          rows: list[dict]) -> dict:
+    """Only what the plant ADDED, in the same layout the ingest scripts read.
+
+    So a task can be injected at container start instead of baked into an image.
+    The world image already carries `/opt/world-state/scripts/` and a python with
+    yaml and requests, and every ingest script takes `--data-dir`; Mattermost's
+    bulk import, BookStack's API and maddy's delivery are all additive, so a
+    directory holding only the new rows appends them to the 9,592 already there.
+
+    Computed by diffing the injected copy against the corpus rather than by
+    teaching the writers to emit twice. `Mail.rehydrate()` and `Wiki` both need
+    the whole corpus in front of them to thread a reply and to number a comment,
+    so pointing them at an empty directory would produce mail that replies to
+    nothing. Diff after the fact and they keep working exactly as they do now.
+
+    What this replaces: `install_corpus.py --apply` plus `make bake-image`, a
+    7.8GB image per task, and `inject.world_image()` scraping a tag out of
+    build_tasks.py so the answer key does not name the wrong one.
+    """
+    if out.exists():
+        shutil.rmtree(out)
+    (out / "emails").mkdir(parents=True)
+    (out / "docs").mkdir(parents=True)
+
+    # The two the ingest scripts map names through. Copied whole: they describe
+    # the world, not the plant, and a trimmed identities.yaml would leave an
+    # author unresolvable.
+    for name in ("channels.yaml", "identities.yaml"):
+        if (source / name).is_file():
+            shutil.copy2(source / name, out / name)
+
+    (out / "messages.jsonl").write_text(
+        "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
+        encoding="utf-8")
+
+    def lines(path: pathlib.Path) -> list[str]:
+        if not path.is_file():
+            return []
+        return [l for l in path.read_text(encoding="utf-8").splitlines()
+                if l.strip() and not l.startswith("#")]
+
+    was = set(lines(source / "comments.jsonl"))
+    added = [l for l in lines(target / "comments.jsonl") if l not in was]
+    (out / "comments.jsonl").write_text(
+        "".join(l + "\n" for l in added), encoding="utf-8")
+
+    files = 0
+    for sub in ("emails", "docs"):
+        for path in sorted((target / sub).rglob("*")):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(target)
+            old = source / rel
+            if old.is_file() and old.read_bytes() == path.read_bytes():
+                continue
+            (out / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, out / rel)
+            files += 1
+
+    return {"dir": str(out), "messages": len(rows), "comments": len(added),
+            "files": files}
 
 
 def render(task, ledger: dict, report: dict) -> str:

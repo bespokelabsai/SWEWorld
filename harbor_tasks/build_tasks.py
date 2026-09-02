@@ -357,6 +357,13 @@ ENV WAIT_TIMEOUT=600
 COPY setup.sh /usr/local/bin/task-setup.sh
 RUN chmod 0755 /usr/local/bin/task-setup.sh
 
+# This task's plant, ingested by task-setup.sh once the world is up, instead of
+# being baked into a per-task world image. `plant/` always exists and holds a
+# README when there is nothing to plant: Harbor drops zero-byte files, and
+# BuildKit then fails a COPY of a missing directory with "failed to calculate
+# checksum of ref", which names no path and reads like a platform fault.
+COPY plant /opt/task-plant
+
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/task-entrypoint.sh"]
 '''
@@ -412,6 +419,31 @@ BASE=$(curl -fsS -H "Authorization: token $TOKEN" \\
   echo "BASE_RELEASE=$(readlink -f /opt/sweworld/curator/current 2>/dev/null || echo none)"
 } > /opt/world-state/baseline.env
 chmod 0600 /opt/world-state/baseline.env
+
+# The plant, ingested into the RUNNING world rather than baked into the image.
+#
+# /opt/task-plant holds only what this task adds -- a few dozen messages, a
+# handful of comments, some mail and pages -- in the same layout data/ uses. Every
+# ingest script takes --data-dir, and Mattermost's bulk import, BookStack's API
+# and maddy's delivery are all additive, so this appends to the corpus already
+# there instead of replacing it.
+#
+# Doing it here rather than in a bake is what lets ONE world image serve every
+# task. The alternative was `install_corpus.py --apply` plus `make bake-image` per
+# task: half an hour, a 7.8GB image, and a tag that then has to be threaded back
+# into build_tasks.py so the answer key names the right world.
+#
+# Order matters and is the same order the bake used: comments need their pages to
+# exist first.
+if [[ -d /opt/task-plant ]]; then
+  S=/opt/world-state/scripts
+  for step in ingest_chat ingest_docs ingest_comments ingest_mail; do
+    [[ -f "$S/$step.py" ]] || continue
+    python3 "$S/$step.py" --data-dir /opt/task-plant >>/var/log/task-plant.log 2>&1 \
+      || { echo "task-plant: $step failed, see /var/log/task-plant.log" >&2; exit 1; }
+  done
+  echo "task-plant: ingested" >> /var/log/task-plant.log
+fi
 
 touch "$MARK"
 exit 0
@@ -623,6 +655,37 @@ def check_clue_arm(task: dict, text: str) -> None:
                          f"{gaps} — the clues arm cannot pass those facts")
 
 
+def write_plant(task: dict, slug: str, variant: str, out: Path) -> None:
+    """The delta `cli.py inject` produced, or a placeholder saying why not.
+
+    Only the world arm gets a plant: the other three carry their remarks in the
+    instruction, or not at all, and a corpus in front of a `-spec` agent would
+    stop it being a control.
+
+    Always writes SOMETHING. Harbor drops zero-byte files, so an empty directory
+    does not survive the trip and the Dockerfile's `COPY plant` then fails with
+    BuildKit's "failed to calculate checksum of ref" -- a message that names no
+    path and reads like a broken platform rather than a missing folder. The
+    generated `data/README.md` exists for the same reason.
+    """
+    if out.exists():
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
+    src = (REPO / "task_generator" / "out" / slug / "clues" / "plant-data")
+    if variant != "world" or not src.is_dir():
+        why = ("this arm quotes its remarks in the instruction"
+               if variant in ("clues", "spec") else
+               "this arm hides nothing in the corpus" if variant == "blind" else
+               f"no plant delta at {src} — run `cli.py inject {slug}`")
+        write(out / "README.md", f"No plant for the {variant} arm: {why}.\n")
+        return
+    for path in sorted(src.rglob("*")):
+        if path.is_file():
+            rel = path.relative_to(src)
+            (out / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, out / rel)
+
+
 def emit(task: dict, slug: str, variant: str) -> Path:
     suffix = "" if variant == "blind" else f"-{variant}"
     name = f"sweworld-{slug}{suffix}"
@@ -636,6 +699,7 @@ def emit(task: dict, slug: str, variant: str) -> Path:
           WORLD_DOCKERFILE if variant == "world" else DOCKERFILE)
     write(out / "environment" / "task-entrypoint.sh", ENTRYPOINT, True)
     write(out / "environment" / "setup.sh", SETUP, True)
+    write_plant(task, slug, variant, out / "environment" / "plant")
     write(out / "solution" / "solve.sh", solve(task, slug), True)
 
     tests = out / "tests"
