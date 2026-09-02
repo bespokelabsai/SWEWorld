@@ -57,9 +57,13 @@ tell in the corpus.
 **Only these people may speak, and every message must name one of them.** They are
 the whole company. Inventing a colleague is the most visible plant this generator
 can produce: a name that appears in four messages and nowhere else in nine months
-of chat is somebody an agent can look up and fail to find. If a conversation seems
-to need a fourth voice, use one of the people above twice or write a shorter
-exchange.
+of chat is somebody an agent can look up and fail to find.
+
+**At least two of them must speak.** Those two constraints bind together and the
+second is the one that gets dropped: told only to stay inside the list, the easy
+way out is one person posting six times, which is not a conversation and leaves
+nobody to fragment the remark across. If the list above is short, use two of them
+and let one carry more of the turns — never one alone.
 
 {{nearby}}
 

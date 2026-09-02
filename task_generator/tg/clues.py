@@ -1454,12 +1454,31 @@ def free_invention(corpus: Corpus, leaf: dict, invent: dict, window: tuple[str, 
     rooms = [c for c, _ in collections.Counter(
         m.channel for m in corpus.messages if m.author == leaf["holder"]).most_common()]
     days = sorted({m.date for m in corpus.messages if window[0] <= m.date <= window[1]})
+    # Per channel, not global. A day the corpus covers is not the same as a day
+    # THIS room was awake: #code-review posts on 94% of active days, so the few it
+    # misses are exactly the days on which a thread there is the only thing that
+    # happened -- which is what `inject.timing()` refuses. Picking from the room's
+    # own days makes that unreachable instead of caught later.
+    by_room: dict[str, list[str]] = {}
+    for m in corpus.messages:
+        if window[0] <= m.date <= window[1]:
+            by_room.setdefault(m.channel, []).append(m.date)
+    live = {room: sorted(set(dates)) for room, dates in by_room.items()}
     channel = (invent.get("channel") or (rooms[0] if rooms else "engineering")).lstrip("#")
     for option in [channel] + rooms:
         if per_channel[option] >= MAX_INVENTED_PER_CHANNEL:
             continue
+        # The model's own date, but only if the corpus actually has that day.
+        # It was accepted unchecked, and `days` was merely the fallback -- so a
+        # thread landed in #code-review on 2026-01-29, two days after the corpus
+        # ends, and another on a dead Tuesday. A channel that is the only thing
+        # alive on a date is the plant announcing itself; `inject.timing()` caught
+        # both, which is one gate too late to be free.
+        room_days = live.get(option) or days
         date = invent.get("date") if option == channel else ""
-        for candidate in ([date] if date else []) + days:
+        if date and date not in room_days:
+            date = ""
+        for candidate in ([date] if date else []) + room_days:
             if candidate and f"new|{option}|{candidate}" not in used:
                 invent["channel"], invent["date"] = option, candidate
                 per_channel[option] += 1
@@ -1864,8 +1883,20 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
     # downstream reads `holder`: the answer key attributes the remark to them, and
     # `room_of` picks the room from where THEY post.
     holder = (clue.get("holder") or "").strip()
-    if msgs and holder and holder not in {(m.get("author") or "").strip() for m in msgs}:
+    voices = {(m.get("author") or "").strip() for m in msgs if (m.get("author") or "").strip()}
+    if msgs and holder and holder not in voices:
         out.append(f"{holder} holds this remark but never speaks in the exchange")
+    # Two speakers minimum. `clue_thread.md` asks for it in those words -- "Two
+    # speakers minimum, and no one turn may contain the whole of it" -- because a
+    # person talking to themselves is not a conversation somebody had, and the
+    # fragmenting that hides the remark needs someone to fragment it ACROSS.
+    # Ungated, it produced a six-message mail thread in which dario emails himself
+    # six times; `write_mail` then had nobody to address it to, returned no
+    # Message-ID, and the read-back reported "6 of 6 turns not in the corpus" --
+    # three layers away from the sentence that caused it.
+    if len(msgs) > 1 and len(voices) < 2:
+        only = next(iter(voices), "nobody")
+        out.append(f"only {only} speaks — a monologue, not an exchange")
     # Hedging the SUBSTANCE, anywhere in the exchange. This lived only in
     # `voice_problems`, which `finish` computes and `reknit` does not consult -- so
     # reknit would write "the shape isn't settled", the gate would report it after

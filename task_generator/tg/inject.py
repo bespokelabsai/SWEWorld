@@ -199,6 +199,16 @@ def write_mail(mail, clue: dict, threads: dict) -> list[str]:
             to = [r for r in (msg.get("to") or []) if r != sender]
             if not to:
                 to = [p for p in (inv.get("participants") or []) if p != sender]
+            if not to:
+                # Everyone else actually in the exchange. `participants` is written
+                # at placement time and `reknit` rewrites the conversation
+                # afterwards with whoever the room really had, so the two drift and
+                # a thread can end up addressed to nobody -- `mail.send` returns no
+                # Message-ID, the remark reaches the corpus nowhere, and the
+                # read-back gate reports "6 of 6 turns not in the corpus", which
+                # reads like a writer fault rather than an empty To: line.
+                to = [a for a in dict.fromkeys(who_said(m) for m in turns(clue))
+                      if a and a != sender]
             mid = mail.send(uid=sender, to=to,
                             subject=subject if not parent else f"Re: {subject}",
                             body=what_said(msg),
