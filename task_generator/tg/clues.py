@@ -61,6 +61,29 @@ CONCLUDES = re.compile(
     r"meaning we|so anything that)\b", re.I)
 ASKS = re.compile(r"\b(asks?|asking|wonders?|wondering|queries|querying|unsure|unclear)\b", re.I)
 
+# A `verbatim` identifier that the remark itself hedges. The presence test below
+# only asks whether the name is in the text, so "call it plan_fingerprint or
+# something in that direction" passes it — and then the graded suite requires that
+# exact symbol. A live world run named its function `plan_id` instead, having read
+# the only corpus mention of `plan_fingerprint` and been told the name was
+# provisional; three of ten facts went with it. Scarcity is the difficulty we want;
+# a name the corpus disowns is not.
+HEDGED_NAME = re.compile(
+    r"(or something(?: (?:like that|along those lines|in that direction))?|"
+    r"or some such|or similar|or whatever we call it|or thereabouts|"
+    r"working name|provisional(?:ly)?|for want of a better|"
+    r"name (?:is|isn'?t) (?:not )?(?:settled|final|fixed)|"
+    r"call it .{0,40}? or)\b", re.I)
+
+# Advice against acting, which a rendering may not add on its own. See the note in
+# `keep_wording`: the plant may say a shape is unsettled, but only the plant gets to
+# tell a reader not to build it.
+DISCOURAGES = re.compile(
+    r"\b(don'?t|do not|dont|wouldn'?t|shouldn'?t|no point|not worth|hold off|"
+    r"leave it|wait (?:un)?til)\b[^.!?]{0,60}\b("
+    r"write|writing|code|coding|build|building|implement|implementing|depend|"
+    r"rely|touch|wire|bother)\b", re.I)
+
 WORD = re.compile(r"[a-z_][a-z0-9_]{2,}")
 STOP = set("the and for with that this from have has was were are but not you our its "
            "will can any all one two into out off over under about their there they "
@@ -153,6 +176,9 @@ def leaf_problems(leaf: dict, requirement: dict) -> list[str]:
     for name in leaf.get("verbatim") or []:
         if name.lower() not in text.lower():
             out.append(f"claims verbatim {name!r} but does not contain it")
+        elif HEDGED_NAME.search(text):
+            out.append(f"hedges verbatim {name!r} — the suite requires that exact "
+                       f"symbol, so the remark cannot call it provisional")
     for term in leaf.get("forbidden_terms") or []:
         if term and term.lower() in text.lower():
             out.append(f"contains its own forbidden term {term!r}")
@@ -490,6 +516,19 @@ def keep_wording(leaf: dict, adapted: str) -> tuple[str, str | None]:
     for name in leaf.get("verbatim") or []:
         if name.lower() not in adapted.lower():
             return leaf["text"], f"rewrite lost the identifier {name!r}"
+    # Keeping the identifier is not enough if the rewrite also disowns it. A
+    # rendering that says "call it X or something in that direction" satisfies the
+    # loop above and still tells a reader the name is up for grabs.
+    if (leaf.get("verbatim") or []) and HEDGED_NAME.search(adapted) \
+            and not HEDGED_NAME.search(leaf["text"]):
+        return leaf["text"], "rewrite hedged an identifier the plant states plainly"
+    # The plant decides what a remark discourages. A rendering that invents advice
+    # against acting is not a wording change: "shape is still moving" became
+    # "so id say dont write anything against it yet" in a live corpus, and six
+    # consecutive world rollouts quoted that clause back as their reason to skip
+    # the requirement it was carrying.
+    if DISCOURAGES.search(adapted) and not DISCOURAGES.search(leaf["text"]):
+        return leaf["text"], "rewrite invented advice against acting on the remark"
     if len(adapted.split()) > MAX_WORDS + 10:
         return leaf["text"], "rewrite ran long"
     return adapted, None
@@ -870,7 +909,7 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     entry["unstated"] = unstated(verdicts)
     entry["unreversed"] = unreversed(entry)
     entry["out_of_order"] = out_of_order(entry)
-    entry["unknit"] = unknit(entry)
+    entry["unknit"] = unknit(entry, set(corpus.people()))
 
     ledger[stamp] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     out = task.dir / "clues"
@@ -1764,10 +1803,33 @@ def identifiers_missing(clue: dict) -> list[str]:
     return [v for v in clue.get("verbatim") or [] if v not in joined]
 
 
-def thread_problems(clue: dict) -> list[str]:
-    """Whatever makes an exchange unfit to write into the corpus."""
+def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
+    """Whatever makes an exchange unfit to write into the corpus.
+
+    `people` is every name the corpus already knows -- `corpus.people()`, which is
+    wider than `corpus.cast` because petar, theo and otto really are in there, just
+    rarely. A speaker outside it is somebody this company has never employed.
+
+    That check is here because nothing had it and it shipped. g1's plant invented
+    nine of them -- wes, lena, rhea, ines, marek, mira, petra, tomas, marta -- and
+    `inject` wrote 37 messages from them into the world, where each has exactly
+    four messages, all inside planted threads, and no history anywhere in the other
+    9,591. An agent who wonders who `rhea` is finds nobody. g2's first reknit
+    invented thirteen.
+
+    The prompt already names who was posting in that room that week and the model
+    adds more anyway, which is the usual result of asking a prompt to enforce
+    something.
+    """
     out = []
     msgs = turns_of(clue)
+    if people:
+        for msg in msgs:
+            who = (msg.get("author") or "").strip()
+            if not who:
+                out.append("a turn with no author")
+            elif who not in people:
+                out.append(f"{who!r} is not in this company — invented speaker")
     if len(msgs) < 3:
         out.append(f"{len(msgs)} message(s) — a remark alone in a room is not a "
                    "conversation somebody had")
@@ -1971,14 +2033,14 @@ def stock_phrasing(entry: dict) -> list[str]:
     return out
 
 
-def unknit(entry: dict) -> list[str]:
+def unknit(entry: dict, people: set[str] | None = None) -> list[str]:
     """Every exchange that cannot be written into the world as it is."""
     out = []
     for req in entry["requirements"]:
         for clue in req["clues"]:
             if not turns_of(clue):
                 continue
-            for problem in thread_problems(clue):
+            for problem in thread_problems(clue, people):
                 out.append(f"{clue['clue_id']}: {problem}")
     return out
 
@@ -2137,6 +2199,9 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
     plant = task.dir / "clues" / "plant.json"
     ledger = json.loads(plant.read_text())
     entry = ledger["tasks"][0]
+    # Everyone this company has ever employed, so an invented speaker is
+    # caught before it is written into the world rather than after.
+    cast = set(corpus.people())
 
     todo = []
     for req in entry["requirements"]:
@@ -2149,7 +2214,7 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
             # rewards anybody who opens it.
             if only and clue["clue_id"] not in only:
                 continue
-            if redo or thread_problems(clue) or not turns_of(clue):
+            if redo or thread_problems(clue, cast) or not turns_of(clue):
                 todo.append(clue)
     if not todo:
         print("  every remark already sits in an exchange that carries it")
@@ -2170,7 +2235,7 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
         for problem in left:
             print(f"       ! {problem}")
 
-    adrift = unknit(entry)
+    adrift = unknit(entry, cast)
     print(f"\n{len(todo)} written, {len(adrift)} finding(s)")
     return finish(task, corpus, ledger, "reknit_at")
 

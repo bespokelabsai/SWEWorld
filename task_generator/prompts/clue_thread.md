@@ -54,6 +54,13 @@ tell in the corpus.
 
 {{people}}
 
+**Only these people may speak, and every message must name one of them.** They are
+the whole company. Inventing a colleague is the most visible plant this generator
+can produce: a name that appears in four messages and nowhere else in nine months
+of chat is somebody an agent can look up and fail to find. If a conversation seems
+to need a fourth voice, use one of the people above twice or write a shorter
+exchange.
+
 {{nearby}}
 
 Anything under "what else is in that channel that day" is **not part of this
