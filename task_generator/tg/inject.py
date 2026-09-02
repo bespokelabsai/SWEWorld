@@ -731,7 +731,20 @@ def answer_key(task, ledger: dict, root: pathlib.Path) -> str:
             out += ["> *The decision the team made first and later reversed:* "
                     + req["earlier_reversed_version"], ""]
 
-    out += ["---", "", "## Where every remark is", "",
+    # The tree, before the remark list. `tree.md` has carried it since the plant
+    # was built and nothing pointed at it, so the one document an operator opens
+    # showed WHERE each remark is and never what it is FOR. The subconclusions are
+    # the reasoning the task is actually testing: a reader who finds every remark
+    # and cannot make these leaps has not solved it.
+    from .clues import render_tree
+    out += ["---", "",
+            "## The MuSR tree — what a reader has to work out", "",
+            "Each requirement decomposes into subconclusions, and each of those "
+            "is implied by remarks that never state it. *The leap nobody states* "
+            "is the inference the task is testing; no single remark contains it.",
+            ""]
+    out += [line for line in render_tree(ledger).splitlines()[2:]]
+    out += ["", "---", "", "## Where every remark is", "",
             f"{len(rows)} remarks, oldest first. **Quotes are exact** — they are "
             "read back out of the corpus, not out of the plan, so the timestamps "
             "are the ones in the world.", "",
