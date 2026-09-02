@@ -1839,6 +1839,18 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
     holder = (clue.get("holder") or "").strip()
     if msgs and holder and holder not in {(m.get("author") or "").strip() for m in msgs}:
         out.append(f"{holder} holds this remark but never speaks in the exchange")
+    # Hedging the SUBSTANCE, anywhere in the exchange. This lived only in
+    # `voice_problems`, which `finish` computes and `reknit` does not consult -- so
+    # reknit would write "the shape isn't settled", the gate would report it after
+    # the fact, and fixing it meant a hand-typed `--only`. Here it drives the retry
+    # reknit already has. Hedging the SCHEDULE is fine and stays fine; this is the
+    # kind that says there is no decision to recover.
+    if clue.get("covers"):
+        for msg in msgs:
+            if (hit := UNSETTLED.search(said(msg))):
+                out.append(f"{msg.get('author')} leaves the decision open "
+                           f"({hit.group(0)!r}) — not built yet is right, "
+                           "not decided means there is nothing to recover")
     if len(msgs) < 3:
         out.append(f"{len(msgs)} message(s) — a remark alone in a room is not a "
                    "conversation somebody had")
