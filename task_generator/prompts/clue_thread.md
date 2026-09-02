@@ -22,6 +22,39 @@ who needs it.
 
 {{verbatim}}
 
+{{leave}}
+
+## What you must not fill in
+
+You are shown one remark, never the decision it belongs to. That is deliberate —
+a writer who knows the whole rule writes people reciting it. It has a
+consequence you have to work with: **the conversation will keep reaching for
+facts you have not been given, and you must not invent them.**
+
+The failure, exactly as it happened. A remark said a plain first-64k cut left
+somebody with the install banner and none of the traceback. Its whole job was
+*a head-only cut loses what people came for* — the actual split belongs to
+somebody else's remark, the next day. Explaining the complaint seems to need a
+split, so the model wrote "the cut takes from both ends: first 16k, last 48k".
+The real decision is three quarters to the head. An agent read the invented
+line, believed it, and shipped the code backwards.
+
+Nothing about that was careless. It is what writing a natural conversation
+around a partial fact pushes you to do.
+
+So: **no quantity, ratio, threshold, field name or mechanism that is not in the
+remark above.** Where the exchange seems to need one, write around the gap
+instead of closing it — that is what a real thread does anyway, because the
+people in it already know:
+
+- "we sized it the way we agreed" — not "we take the last cap/2 bytes"
+- "the split we settled on" — not "16k and 48k"
+- "whatever the floor ends up being" — not "16"
+
+An invented number is worse than a missing one. A reader cannot tell your
+scaffolding from a planted fact, and if it contradicts the real decision it does
+not merely fail to help — it actively teaches the wrong answer.
+
 ## The shape
 
 **The decision is settled. The work is not.** By the end of the exchange the team

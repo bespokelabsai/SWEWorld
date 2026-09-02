@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2",
+  "blind_alternative": "extends the existing five-value `_hash_fingerprint` list with `parse_func_hash` and a backend name only, keeps appending `generation_params` conditionally, and omits `system_prompt`, `return_completions_object` and `run_id`"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P2",
+  "blind_alternative": "hashes the declared `backend=` kwarg (often `None`) rather than reaching into `self._request_processor.backend`"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P2",
+  "blind_alternative": "hashes the whole `backend_params` dict via `sorted(params.items())`, mirroring the existing generation_params line, so `api_key` and `max_retries` fork the cache"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P2",
+  "blind_alternative": "run_hash changes on an api_key rotation and the key is written into run_identity.json in cleartext"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P4",
+  "blind_alternative": "keeps `xxh64(os.urandom(8))`/`uuid4()` inside the identity function under `if not cache_enabled:`, so no `run_id` parameter exists at all"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "never reads an env var; the disabled-cache id is minted wherever the hash is computed, with no injection point"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P4",
+  "blind_alternative": "silently generates an id when none is given, and silently ignores (or hashes) a `run_id` passed with caching enabled"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P4",
+  "blind_alternative": "emits a bare random 16-hex directory name (or a timestamped one) that differs on every call and carries no `nocache` marker"
+ }
+]

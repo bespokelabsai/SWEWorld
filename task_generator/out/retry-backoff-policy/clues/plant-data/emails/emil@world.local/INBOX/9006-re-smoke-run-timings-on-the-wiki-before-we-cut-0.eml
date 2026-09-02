@@ -1,0 +1,26 @@
+From: nikolai@world.local
+To: konrad@world.local, dario@world.local, emil@world.local
+Subject: Re: smoke run timings on the wiki before we cut 0.1.26
+Date: Wed, 11 Jun 2025 11:04:00 +0000
+Message-ID: <178838444849.3512899.2717433538548916976@world.local>
+In-Reply-To: <178838444848.3512899.5308392036493702378@world.local>
+References: <178838444848.3512899.5308392036493702378@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ran it twice monday
+
+first pass was 24 min clean so the wiki number is stale but not badly, i'd sa=
+y write 25 and move on
+
+second pass is the one worth mentioning, i had an old key sitting in my env a=
+nd didnt notice, the wrong-key run retried each request five more times befor=
+e giving up, once auth is the problem the attempts still on the clock are wor=
+th nothing, so somethign that should have died in seconds took 40 min to hand=
+ me a 401
+
+not a release blocker off the top of my head but its the kind of thing that e=
+ats an afternoon
+
+shared key i moved off in may, no idea about Nolan

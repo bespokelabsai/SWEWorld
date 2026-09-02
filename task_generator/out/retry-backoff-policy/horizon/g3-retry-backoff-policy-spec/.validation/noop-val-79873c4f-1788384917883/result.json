@@ -1,0 +1,9 @@
+{
+  "build_id": "noop-val-79873c4f-1788384917883",
+  "type": "noop",
+  "status": "passed",
+  "score": 0,
+  "passed": true,
+  "feedback": "0 of 9 hidden requirements satisfied. Open feature: no. Missed: g3.r1.rule, \ng3.r1.scope, g3.r1.exclusions_or_crossover, g3.r1.failure_behavior, \ng3.r1.observability, g3.r2.rule, g3.r2.scope, g3.r2.exclusions_or_crossover, \ng3.r2.observability.   y could not be imported:... | FAILED \ntest_r1.py::test_failure_behavior__exhaustion_is_tested_after_the_cost_is_charge\nd_and_the_floor_is_zero - Failed: \nbespokelabs.curator.request_processor.online.retry_policy could not be imported:\nImportError(\"ca... | FAILED \ntest_r1.py::test_observability__the_stated_budget_and_waiver_table_holds_exactly\n- Failed: bespokelabs.curator.request_processor.online.retry_policy could not be\nimported: ImportError(\"cannot import name 'retry... | FAILED \ntest_r2.py::test_rule__the_cooldown_horizon_is_one_new_tracker_field_that_only_e\nver_moves_forward - Failed: \nbespokelabs.curator.request_processor.online.retry_policy could not be imported:\nImportError(\"cannot i... | FAILED \ntest_r2.py::test_scope__only_throttles_extend_the_horizon_or_consult_the_clock -\nFailed: bespokelabs.curator.request_processor.online.retry_policy could not be \nimported: ImportError(\"cannot import name 'retry_p... | FAILED \ntest_r2.py::test_exclusions__the_seconds_to_pause_knob_survives_in_config_and_is\n_never_read_again - Failed: \nbespokelabs.curator.request_processor.online.retry_policy could not be imported:\nImportError(\"cannot i... | FAILED \ntest_r2.py::test_observability__the_stated_horizon_and_remaining_cooldown_table_\nholds_exactly - Failed: \nbespokelabs.curator.request_processor.online.retry_policy could not be imported:\nImportError(\"cannot impor... | 10 failed, 1 warning in 1.52s |",
+  "updated_at": "2026-09-02T21:35:28.666Z"
+}

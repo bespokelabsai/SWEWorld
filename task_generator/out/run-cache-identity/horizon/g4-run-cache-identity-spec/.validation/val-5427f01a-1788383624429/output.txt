@@ -1,0 +1,89 @@
+Warning: 'horizon test-solution' is deprecated. Use 'horizon tasks validate -m 
+local' instead.
+
+inotify limits configured (max_user_watches=524288, max_user_instances=1024)
+
+Testing Solution for Task: 5427f01a-a9b4-453d-9b7d-5e21cdd02314
+Task directory: /tmp/workdir/tasks/5427f01a-a9b4-453d-9b7d-5e21cdd02314
+
+⚠️  solution.sh is not executable, fixing...
+📦 Step 1: Building task container...
+Building task-specific Docker image for 5427f01a-a9b4-453d-9b7d-5e21cdd02314...
+Specimen Docker image built successfully!
+Task container ready: apex_arena:5427f01a-a9b4-453d-9b7d-5e21cdd02314
+🔍 Checking solution.sh format...
+🚀 Step 2: Starting container for all steps...
+⏳ Waiting for MCP server to be ready (up to 10 minutes)...
+You can check logs with: docker logs -f 
+apex_test_5427f01a-a9b4-453d-9b7d-5e21cdd02314_1788383802
+✅ MCP server ready at http://localhost:18001/mcp (attempt 2)
+
+============================================================
+Entrypoint Logs (MCP Server Ready)
+Log file: 
+/tmp/apex-arena-logs/apex_test_5427f01a-a9b4-453d-9b7d-5e21cdd02314_1788383802-e
+ntrypoint.log
+============================================================
+/usr/local/lib/python3.12/dist-packages/pydantic_settings/sources/utils.py:47: 
+IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition:
+its annotation contains an unresolved forward reference, so settings sources may
+fail to correctly resolve its value. Call `model_rebuild()` on the model where 
+the field is defined, once all the referenced types are defined.
+  warnings.warn(
+INFO:     Started server process [7]
+INFO:     Waiting for application startup.
+[09/02/26 21:16:45] INFO     StreamableHTTP       streamable_http_manager.py:110
+                             session manager                                    
+                             started                                            
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+[09/02/26 21:16:49] INFO     Created new          streamable_http_manager.py:233
+                             transport with                                     
+                             session ID:                                        
+                             66237787be864117ae6a                               
+                             056aec8f4380                                       
+INFO:     172.17.0.1:42516 - "GET /mcp HTTP/1.1" 406 Not Acceptable
+============================================================
+
+Running with 5400s default timeout, 5400s for solution.sh...
+🔧 Copying task to /tmp...
+🔧 Detecting non-root user...
+model
+
+🔧 Running solution.sh (as model)...
+applied the reference solution
+
+🔧 Running grader.py...
+{"score": 1.0, "subscores": {"g4.r1.rule": 1.0, "g4.r1.scope": 1.0, 
+"g4.r1.exclusions_or_crossover": 1.0, "g4.r1.observability": 1.0, "g4.r2.rule": 
+1.0, "g4.r2.scope": 1.0, "g4.r2.failure_behavior": 1.0, "g4.r2.observability": 
+1.0, "g4.open_feature": 1.0}, "weights": {"g4.r1.rule": 0.125, "g4.r1.scope": 
+0.125, "g4.r1.exclusions_or_crossover": 0.125, "g4.r1.observability": 0.125, 
+"g4.r2.rule": 0.125, "g4.r2.scope": 0.125, "g4.r2.failure_behavior": 0.125, 
+"g4.r2.observability": 0.125, "g4.open_feature": 0.0}, "feedback": "8 of 8 
+hidden requirements satisfied. Open feature: yes. Nothing missed."}
+
+✅ All steps completed successfully
+
+🎯 Final Score: 1.0
+🌟 SUCCESS: Solution achieved full score!
+
+📋 Detailed Scoring:
+  ✅ g4.r1.rule: 1.0
+  ✅ g4.r1.scope: 1.0
+  ✅ g4.r1.exclusions_or_crossover: 1.0
+  ✅ g4.r1.observability: 1.0
+  ✅ g4.r2.rule: 1.0
+  ✅ g4.r2.scope: 1.0
+  ✅ g4.r2.failure_behavior: 1.0
+  ✅ g4.r2.observability: 1.0
+  ✅ g4.open_feature: 1.0
+
+💬 Feedback:
+  8 of 8 hidden requirements satisfied. Open feature: yes. Nothing missed.
+
+✅ Task solution testing completed for: 5427f01a-a9b4-453d-9b7d-5e21cdd02314
+
+Cleaning up container 
+apex_test_5427f01a-a9b4-453d-9b7d-5e21cdd02314_1788383802...
+Cleaned up container apex_test_5427f01a-a9b4-453d-9b7d-5e21cdd02314_1788383802

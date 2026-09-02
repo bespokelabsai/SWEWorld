@@ -1,0 +1,353 @@
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-06-03T14:02:00+00:00", "text": "retry log from last night is odd, one request ate four attempts on its own"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-03T14:05:00+00:00", "text": "what was it failing on"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-06-03T14:07:00+00:00", "text": "finish_reason length every time same request came back that way four times"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-06-03T14:09:00+00:00", "text": "so truncated output, not a transport error? i believe we count those as retryable right now"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-03T14:11:00+00:00", "text": "mhm we do. look, a broken payload shoudn't get that many goes, thats four attempts spent on nothing"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-03T14:12:00+00:00", "text": "and length wont fix itself on a retry anyway, so it stops being retryable, fail it out on the first"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-06-03T14:14:00+00:00", "text": "yep no argument here"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-06-03T14:16:00+00:00", "text": "sounds right, whoever has the retry ticket open can fold it in"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-06-03T14:19:00+00:00", "text": "log line should say which reason it was too they all read the same at the moment"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-06-26T14:07:00+00:00", "text": "back to the retry budget thing - when a response comes back malformed, how much of the budget should that actually cost? one attempt or two"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-26T14:09:00+00:00", "text": "i assumed one, same as any other failure tbh"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-06-26T14:13:00+00:00", "text": "let me think through that. honestly two attempts off for a malformed-output failure sounds right to me, one is too generous when the model can just keep handing back the same garbage. the code today only decrements by one, nobody's changed it yet"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-06-26T14:16:00+00:00", "text": "mhm, that tracks"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-06-26T14:17:00+00:00", "text": "does it also burn a throttle_waivers_left pass, or is that pool separate"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-06-26T14:20:00+00:00", "text": "separate. it doesn't spend a throttle_waivers_left pass, thats for 429s"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-26T14:22:00+00:00", "text": "ah ok, so basically the waiver pool stays untouched. that was the part i had backwards"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-03T14:12:00+00:00", "text": "on the retry policy - a timeout, does that pull from the waiver pool or is it just a plain failure"}
+{"channel": "general", "author": "konrad", "created_at": "2025-06-03T14:13:00+00:00", "text": "plain failure off the top of my head. one attempt off the budget, same as anything else"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-03T14:15:00+00:00", "text": "mhm. it's the waiver count i can't tell from the code. if a timeout nudges it the caller gets back less than it handed us"}
+{"channel": "general", "author": "gideon", "created_at": "2025-06-03T14:16:00+00:00", "text": "ya thats what bit the friday run i think"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-03T14:18:00+00:00", "text": "let me think - no, timeouts stay as they are. konrad has it, one attempt off the budget per failure and nothing else moves"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-03T14:19:00+00:00", "text": "and throttle_waivers_left specifically"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-03T14:20:00+00:00", "text": "comes back exactly as it went in. only a real 429 touches that one"}
+{"channel": "general", "author": "konrad", "created_at": "2025-06-03T14:22:00+00:00", "text": "right so the timeout path needs no change at all. the 429 side is still not written though"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-03T14:24:00+00:00", "text": "yeah ok. name still reads like it counts both kinds, someone will trip on that"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-06-03T14:12:00+00:00", "text": "retry counters from the late night bulk run are in. three hard failures, everything else just exhausted attempts"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-06-03T14:14:00+00:00", "text": "mhm. that `attempt: 2` sitting next to RateLimitError bugs me honestly, it reads like my call failed twice on its own merits"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-06-03T14:15:00+00:00", "text": "what do you mean, it did retry twice though?"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-06-03T14:17:00+00:00", "text": "it did, but i burned the whole retry budget on 429s last night against a throttled key. none of them were about my request actually"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-06-03T14:19:00+00:00", "text": "so the key was already over quota from other traffic and your request paid for it. not entirely sure the counter can even tell those apart today"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-06-03T14:21:00+00:00", "text": "it cant, and that's the fix. key level 429s get their own count and their own wait, they dont eat the per request attempts"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-06-03T14:22:00+00:00", "text": "ya exactly, so basically attempt only moves when it was our own call that broke"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-06-03T14:24:00+00:00", "text": "yeah. the 23:00 batch sits on that same key by the way, if i had to guess that is what drained it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T18:31:37+00:00", "text": "quick one - whats the counter on the retry branch actually called? im reading throttle_waviers_left and it keeps tripping me up"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T18:33:37+00:00", "text": "that's a misspelling. waivers, not waviers. the branch has it wrong in every spot it appears"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T18:34:37+00:00", "text": "ok so throttle_waivers_left. do i fix it where the tracker declares it or where the retry loop reads it"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-24T18:36:37+00:00", "text": "neither honestly, it shouldnt be on the tracker at all. it hangs off APIRequest, the tracker has no buisness knowing about it"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T18:37:37+00:00", "text": "yeah ok. so it moves onto the request object and the tracker just stops carrying it"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-24T18:38:37+00:00", "text": "exactly. and while youre in there the spelling gets fixed in the same pass, i dont want both spellings sitting in the repo"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T18:40:37+00:00", "text": "theres a fixture with the waviers one baked into it too i think, at least one"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-15T15:02:00+00:00", "text": "retries gave up way too fast on the reruns yesterday is that budget per run or per call"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-15T15:05:00+00:00", "text": "per run, mhm. one counter shared by the whole thing off the top of my head"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-15T15:07:00+00:00", "text": "that would explain the tail then. first minute is bad and its spent before the rest even start"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-15T15:09:00+00:00", "text": "so the first bad minute eats everyones free passes and the late requests walk in with nothing"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-15T15:12:00+00:00", "text": "right. look, each request should walk in with its own full set, the counter belongs on the request not the run"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-15T15:14:00+00:00", "text": "yep. no shared pool at all then"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-15T15:17:00+00:00", "text": "i'd say thats also the 3 attempts vs 30 gap in tuesdays logs"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-04T14:38:00+00:00", "text": "the 429 on tuesdays run - decide treated it like any other failure. should it have"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-04T14:41:00+00:00", "text": "depends whether it was a free one cant tell from in there though"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-04T14:43:00+00:00", "text": "what does it actually get handed"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-04T14:45:00+00:00", "text": "attempts_made and attempts_left thats the lot"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-04T14:47:00+00:00", "text": "mhm so the 429 is already folded into both counts. nothing left to back it out with"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-04T14:50:00+00:00", "text": "so where would the free / not free come from then"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-04T14:52:00+00:00", "text": "the requests remaining passes it goes in as a third kwarg"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-04T14:55:00+00:00", "text": "right, every policy signature moves. anyway thats fine"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-04T14:58:00+00:00", "text": "yeah. the fixed ceiling one wont ever read it, it only counts"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-29T15:39:00+00:00", "text": "the retry counts from yesterdays run - same request came back with 3 attempts twice, not entirely sure how that happens"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-29T15:41:00+00:00", "text": "youre looking at attempts_left on the request row i take it"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-29T15:42:00+00:00", "text": "yeah. verdict said 2 left, request showed 3 the next time round"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-29T15:45:00+00:00", "text": "we do copy attempts_left off the verdict back onto the request when we persist. what we never write back is the pass count"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-29T15:46:00+00:00", "text": "ok but if the count itself lands right why does it go back up"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-29T15:49:00+00:00", "text": "pass number is what the reset keys off, and it comes back as whatever it started as. so the next failure reads as a first failure and the request quietly gets the full set again. both fields want to come off the verdict, not just the one"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-29T15:52:00+00:00", "text": "that tracks. i can pick it up if nobodys sitting in that file - same spot where we merge the verdict?"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-29T15:54:00+00:00", "text": "same spot yeah. the fixture we exercise it with only ever has one pass in it though, so it wont show you anything"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-02T13:52:00+00:00", "text": "for the retry counting, does the per request state hang off OnlineRequestProcessorConfig or somewhere else? i dunno what we landed on"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-02T13:54:00+00:00", "text": "honestly i'd rather not put a new knob on that config for this one"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-02T13:55:00+00:00", "text": "then what seeds the count"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-02T13:57:00+00:00", "text": "max_retries. it stays and it still seeds attempts_left, thats unchanged"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-02T14:00:00+00:00", "text": "so config hands you the initial number only, and the rest of it rides on the request?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-02T14:02:00+00:00", "text": "mhm. everythign else stays on the request, attempts_left included"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-02T14:04:00+00:00", "text": "yeah ok. not entirely sure whos picking it up, probably falls out of the 615 work"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-02T14:06:00+00:00", "text": "the sleep calc already reads off the request anyway so its less churn than i thought tbh"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T14:12:00+00:00", "text": "quick one on the retry policy — when the provider rejects the key, do we drain the attempts counter or leave whatever is left sitting on it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T14:13:00+00:00", "text": "run this morning came in with seven left and i cant tell from the code which one happens"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T14:15:00+00:00", "text": "`invalid api key` classifies as terminal:abort. theres nothing to retry into so we stop there"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T14:16:00+00:00", "text": "right but abort as in stop, or abort as in stop and rewrite the counters on the way out"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T14:18:00+00:00", "text": "the latter. we empty the attempts, so your seven lands at zero. passes we dont touch, still six"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T14:19:00+00:00", "text": "mhm. thats not in the policy file yet though is it, i went looking"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T14:20:00+00:00", "text": "not yet, no. small enough that it can ride along with the backoff ticket whenever someone gets to it"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-24T14:23:00+00:00", "text": "hm. does a plain 401 with no key text land in the same bucket, or is that its own thing"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-10T11:40:16+00:00", "text": "so if deepseek isnt sending retry-after, a throttle just falls through our normal failure path right"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-10T11:43:16+00:00", "text": "yup, same path. no 429 branch that i can find"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-10T11:45:16+00:00", "text": "ya, bare 429s is exactly the shape that bites us then"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-10T11:47:16+00:00", "text": "bites us how though, it burns a retry or it drops the thing outright"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-10T11:50:16+00:00", "text": "drops it. The queue drops a throttled request the moment attempts_left hits zero"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-10T11:52:16+00:00", "text": "even when the attempt did nothing? nothing sent, no tokens spent"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-10T11:54:16+00:00", "text": "exactly, that 429 cost it nothing at all and it still counted. so basically a throttle shouldnt decrement it, thats what we're doing"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-10T11:57:16+00:00", "text": "mhm. nobodys written it yet though, and the batch side keeps its own attempt count too i think"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-03T15:11:00+00:00", "text": "the throttle retry cases in 565 arent pinned anywhere that i can see"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-03T15:12:00+00:00", "text": "what happens on a 429 when attempts_left is already 0"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-03T15:14:00+00:00", "text": "it still re-queues, presuming there are waivers. 429 at attempts_left=0 with throttle_waivers_left=3 goes back on the queue, thats the case i want pinned"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-03T15:15:00+00:00", "text": "and the waiver count after that? stays at 3 or"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-03T15:16:00+00:00", "text": "comes back 2. it spends one"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-03T15:17:00+00:00", "text": "ya ok so basically the 429 path is the only thing eating them"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-03T15:18:00+00:00", "text": "and with the pool empty"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-03T15:19:00+00:00", "text": "no requeue then, its terminal and the reason is throttle:exhausted. so at 0 thats what we tag"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-03T15:22:00+00:00", "text": "mhm that tracks. is the 3 per provider or just the default we ship, i dont remember off hand"}
+{"channel": "pipeline", "author": "petar", "created_at": "2025-03-17T14:02:00+00:00", "text": "the 11:40 rerun took a retry after the budget was already spent out. anyone seen that one"}
+{"channel": "pipeline", "author": "petar", "created_at": "2025-03-17T14:03:00+00:00", "text": "it logged the retry and then died on the charge"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-17T14:05:00+00:00", "text": "if i had to guess its ordering. we check the budget and then deduct the cost, not the other way round"}
+{"channel": "pipeline", "author": "petar", "created_at": "2025-03-17T14:06:00+00:00", "text": "so on the last attempt the check is reading a number thats one call stale"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-17T14:08:00+00:00", "text": "yeah. malformed output comes back with one attempt left, budget still looks fine because nothing was taken off yet, so it hands out a retry it cant pay for"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-17T14:09:00+00:00", "text": "sounds right. deduct first, then the check sees whats actually left"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-17T14:10:00+00:00", "text": "mhm. thats the fix. no strong view on whose ticket it lands on"}
+{"channel": "pipeline", "author": "petar", "created_at": "2025-03-17T14:12:00+00:00", "text": "ok that tracks, the check sits up in the scheduler and the deduct is down in the client somewhere"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T13:02:00+00:00", "text": "The verdict logged attempts_left as -1 again overnight. second time this week i think"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T13:04:00+00:00", "text": "-1 though. so something took one off past zero and nobody clamped it, if i had to guess"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T13:06:00+00:00", "text": "malformed output path. it wants another attempt, cant pay for it, and still decrements on the way out"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T13:07:00+00:00", "text": "ok so what does that one come back as, then"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T13:10:00+00:00", "text": "contract:exhausted, and attempts_left reads 0"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T13:10:00+00:00", "text": "0 even where the budget was already gone before it tried"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T13:11:00+00:00", "text": "0. never a negative, whatever the arithmetic wants to do"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T13:13:00+00:00", "text": "ya. its only ever the overnight sweep that gets deep enough to hit it fwiw"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-24T14:02:00+00:00", "text": "went through the retry loop this morning, mostly the sleep math. one thing is bugging me"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-24T14:03:00+00:00", "text": "bugging you as in the numbers are wrong, or the ordering"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-24T14:05:00+00:00", "text": "ordering. we're sleeping a full backoff on requests we've already decided to bin"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-24T14:06:00+00:00", "text": "decided as in it came back non-retryable? so we wait out the whole delay and then drop it anyway"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-24T14:07:00+00:00", "text": "yup. and we draw the jitter for them too, on the way out"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-24T14:08:00+00:00", "text": "mhm. jitter gets computed before the retryable check at all i think, its just sat at the top of the loop body"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-24T14:09:00+00:00", "text": "it is. both of them, before we ever look at the response class. sleep + jitter want to sit after that check, not before it"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-24T14:11:00+00:00", "text": "yeah ok. that's the tail on the friday run then, if i had to guess"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-16T15:12:00+00:00", "text": "in the backoff helper we still compute a delay when the verdict comes back not-a-retry. on purpose or leftover"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-16T15:14:00+00:00", "text": "not on purpose i dont think. if its not a retry theres nothing to wait for, so the delay should just be 0.0"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-16T15:17:00+00:00", "text": "right, but 0.0 from where. we still walk the schedule to get it? the fail case ran off the end of the table tuesday"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-16T15:21:00+00:00", "text": "no thats the part i mean, we shouldnt be reading the schedule at all in that branch. just hand back 0.0"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-16T15:23:00+00:00", "text": "what about the jitter, um, the rng gets pulled either way right now. i saw it in the trace"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-16T15:26:00+00:00", "text": "same answer honestly, dont pull from the jitter source either. no schedule read, no draw, plain 0.0"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-16T15:28:00+00:00", "text": "mhm. the ceiling clamp sits after that read too, so it never sees a zero today"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-02-06T14:01:00+00:00", "text": "quick one while im in the backoff code does a THROTTLE burn an attempt or not"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-02-06T14:03:00+00:00", "text": "reading it as yes — it goes down the same increment path as a real failure. so three 429s in a row and the request is dead"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-02-06T14:07:00+00:00", "text": "thats what it does today and honestly i think thats wrong. a 429 says nothing about the request itself, its our rate thats the problem not their payload"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-02-06T14:07:00+00:00", "text": "so zero"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-02-06T14:08:00+00:00", "text": "zero attempts off the retry budget yeah. costs nothing"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-02-06T14:10:00+00:00", "text": "and decide hands back the same failure object or what"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-02-06T14:12:00+00:00", "text": "no — decide charges nothing and re-queues it. same reqeust goes back in the queue, budget untouched"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-02-06T14:13:00+00:00", "text": "mhm. so the sleep is the only thing bounding it then, nothing on the count side"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-02-06T14:15:00+00:00", "text": "right the 429 branch doesnt even read retry-after today thats its own mess"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-12T14:26:00+00:00", "text": "the request that ate eight 429s over the weekend came back exhausted. is throttle counting against attempts or is that something else"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-12T14:29:00+00:00", "text": "it shouldnt. only transient and contract come off the budget"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-12T14:31:00+00:00", "text": "is there a ceiling on it further up then"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-12T14:33:00+00:00", "text": "right, no ceiling on it"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-12T14:34:00+00:00", "text": "a rate limited request keeps its full budget however many 429s it eats, THROTTLE never deducts"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-12T14:36:00+00:00", "text": "mhm that tracks. counter only moves on the other two then"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-12T14:38:00+00:00", "text": "anyway noone has writen it that way yet, classify still returns the old shape. maybe i take it tomorow"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-12T14:41:00+00:00", "text": "the weekend one sat on 429s for 40 min before it quit, thats the case i'd point a fixture at"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T13:21:00+00:00", "text": "the throttled key from last night sat in the queue til about 04:00. thats the zero-attempt path doing exactly what we told it to, if i had to guess"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:22:00+00:00", "text": "mhm. that \"throttle costs zero attempts\" line i settled in review is gone"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:23:00+00:00", "text": "idea was a 429 says nothing about the request itself, so decide charged nothing and re-queued it. fine for a blip. that key was throttled permanently and we re-queued it for hours"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-09T13:24:00+00:00", "text": "so 429s eat the budget now? feels harsh for a one off spike tbh"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:24:00+00:00", "text": "not flat, no. its free while throttle_waivers_left > 0"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-09T13:25:00+00:00", "text": "and after that"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:25:00+00:00", "text": "then decide charges 1, same as any other failure"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T13:26:00+00:00", "text": "yeah ok. so the pool runs out first and then it dies normally"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:27:00+00:00", "text": "right, and the waiver comes off on every 429 regardless, the charging only starts once its empty"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:32:00+00:00", "text": "that 429 loop over the weekend, the key was dead and it just kept going for hours. nothing ever decremented"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:34:00+00:00", "text": "look, i am the one who said 429s never cost a request budget. no ceiling on it, THROTTLE never deducts, only TRANSIENT and CONTRACT do. thats out now"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:35:00+00:00", "text": "out as in throttle eats the normal budget now, or does it get its own pool"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:36:00+00:00", "text": "own pool. APIRequest carries DEFAULT_THROTTLE_WAIVERS = 6"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:37:00+00:00", "text": "decide only sees the request today though, if i had to guess the count has to be passed in"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:38:00+00:00", "text": "mhm. decide takes throttle_waivers_left and reports throttle_waivers_after, caller writes it back"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:39:00+00:00", "text": "and the 6 is from that loop or just a roundish number"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:40:00+00:00", "text": "from the loop more or less. it would have been dead in the first minuite at six"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-03-27T14:22:00+00:00", "text": "the retry guard on the viewer path - is the attempts_left check before or after we take one off? off the top of my head its before"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-03-27T14:24:00+00:00", "text": "asking because a malformed run gave up earlier than i expected yesterday"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-03-27T14:29:00+00:00", "text": "honestly the check belongs after the deduction. checking first means we're refusing on an attempt we havent actually spent yet"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-03-27T14:33:00+00:00", "text": "after, so it's comparing the new value. against zero or below zero? not the same thing here"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-03-27T14:37:00+00:00", "text": "only trips on strictly negative. zero still has a pass in it"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-03-27T14:38:00+00:00", "text": "so a malformed-output failure at attempts_left 2 lands on 0 and still gets retried, which is what you'd want"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-03-27T14:41:00+00:00", "text": "mhm ok. that lines up with what i saw then"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-02T10:12:00+00:00", "text": "quick one on the retry budget. if we run dry mid sequence on a transient, does that get its own exit or does it fold into an existing one"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-02T10:19:00+00:00", "text": "let me think - no, transients dont get their own exit. it folds"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-02T10:23:00+00:00", "text": "ok but folds where. and what counts as running dry, budget under the next sleep or budget under the attempt"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-02T10:28:00+00:00", "text": "once the remaining budget cant cover even the one attempt. thats the line. verdict is `transient:exhausted`"}
+{"channel": "general", "author": "nikolai", "created_at": "2025-06-02T10:31:00+00:00", "text": "thats the same string throttling gives you isnt it"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-02T10:34:00+00:00", "text": "same as the throttle path yes, no second code for it"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-02T10:36:00+00:00", "text": "fine by me, one less branch on the caller side"}
+{"channel": "general", "author": "nikolai", "created_at": "2025-06-02T10:39:00+00:00", "text": "the attempts-left counter still prints as a float in the log fwiw"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T13:12:00+00:00", "text": "last nights 429 retry slept ~40 min total. the window was 8"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-21T13:13:00+00:00", "text": "so youre saying the backoff just doubled straight past the reset? i thought we read that header"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:15:00+00:00", "text": "we read it for the log line, ya. but nothing on the tracker recods when the throttle window actually ends, its just attempt counts"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T13:17:00+00:00", "text": "so the sleep site has nothing to ask about how much is left, either way"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:18:00+00:00", "text": "exactly. the pause point cant ask how much is left so it keeps doubling and we idle way past it. so basically the window end goes on the tracker and the sleep reads it there"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-21T13:20:00+00:00", "text": "yup, and clamp to that instead of the fixed ceiling"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T13:23:00+00:00", "text": "the 8 was sitting in the header on that run too. we had the number and dropped it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T10:54:27+00:00", "text": "quick one on the retry side. remaining_cooldown_seconds(tracker, now) handed me back -3.2 on a job this morning. is negative meant to mean somethign there?"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T10:56:27+00:00", "text": "no, thats just the window already being behind us and the subtraction carrying on past it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T10:57:27+00:00", "text": "so basically clamp. what do we clamp to though, i dunno if none is better for \"no cooldown left\""}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T10:58:27+00:00", "text": "0.0. callers are doing arithmetic on it, same type back either way"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T11:00:27+00:00", "text": "ya ok. um, before that same job went negative it gave 4.999999999998 and the banner printed the whole thing"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-07T11:01:27+00:00", "text": "float subtraction, the boundary lands a hair short. i believe the display side is str()ing it raw"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T11:03:27+00:00", "text": "round to three decimals at the source then, not in the banner. 4.999999999998 comes out 5.0 and nothing downstream has to care"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T11:04:27+00:00", "text": "exactly, and the -3.2 one never reaches the banner at all"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-07T11:06:27+00:00", "text": "yup. sleep helper reads the same number and already does its own max() so it wont notice the change"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T14:02:00+00:00", "text": "quick one on the backoff thing - what should remaining_cooldown_seconds(tracker, 1002.0) hand back if the window on A runs to 1005.0"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T14:04:00+00:00", "text": "3.0. it is just the window end minus the now you pass in, so 0.5 at 1004.5"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T14:05:00+00:00", "text": "and right on the boundary? presumably it does not go negative after"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T14:06:00+00:00", "text": "no, it clamps. 1005.0 itself already reads 0.0 and stays there"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T14:08:00+00:00", "text": "ok but what about a tracker nobody ever throttled, theres no window on it at all tbh"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T14:10:00+00:00", "text": "let me think - same answer, 0.0, however far ahead you ask. nothing to wait on"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T14:11:00+00:00", "text": "right. none of that is actually in the file yet though is it"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T14:12:00+00:00", "text": "not yet, no"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T14:13:00+00:00", "text": "ya ok. i had it returning None for the untouched one in my head"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:36:00+00:00", "text": "why did the retry example blow up again on that rerun"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:38:00+00:00", "text": "second 429 came back with a tiny backof value, and we just took it"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:39:00+00:00", "text": "took it as what we were already 8s deep by then"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:41:00+00:00", "text": "as the new wait. it pulled us back down under a second"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T13:43:00+00:00", "text": "and then we were straight into the flood again. thats the loop right there"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T13:44:00+00:00", "text": "look, we just dont let it go down. whichever is larger, ours or the header"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:46:00+00:00", "text": "yep solid enough"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:48:00+00:00", "text": "by the end of that run the 429s were landing ~300ms apart fwiw"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:08:00+00:00", "text": "on the backoff work, if a second retry-after comes in while we are already sleeping, do we take it or keep the deadline we have"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-19T14:11:00+00:00", "text": "we take it only if its later i believe. otherwise nothing changes"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:12:00+00:00", "text": "and if its earlier? clamp down to it, or ignore"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-19T14:16:00+00:00", "text": "it loses. we keep sitting on the one we're already holding, the new shorter one just doesnt apply"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:17:00+00:00", "text": "feels odd to throw away what the server just told us"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-19T14:20:00+00:00", "text": "honestly that window only ever moves further out, ive not seen one pull back in. so the earlier value is noise"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-19T14:22:00+00:00", "text": "sounds right, so its a max of the two and not much else"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:25:00+00:00", "text": "off the top of my head the 429 and the 503 path build that number in two different places though"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-25T10:55:10+00:00", "text": "back on 585 - if i pin the clock at 1000.0 in the retry test, what should the cooldown sit at after the first 429"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-25T10:58:10+00:00", "text": "@Nils 1005.0. that first one's own delay comes back 5.0 unrounded, and tracker.throttle_cooldown_until is just clock plus that"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-25T11:01:10+00:00", "text": "jitter not in play there? i think the fixture sets it 0.25"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-25T11:03:10+00:00", "text": "it is, the 5.0 is after jitter. honestly the 0.25 is already baked in by then"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-25T11:06:10+00:00", "text": "and a second 429 landing while its still hot, does that push it out or reset it"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-25T11:09:10+00:00", "text": "one worth 1.0 leaves it. 1005.0 stays, only a longer delay moves the number"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-25T11:12:10+00:00", "text": "makes sense, so the assert is on the far edge not the last write"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-25T11:14:10+00:00", "text": "mhm thats the bit i had sideways"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:12:00+00:00", "text": "pulled the retry logs from fridays run. the two stamps we write on a 429 are always about 40ms apart from each other"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:15:00+00:00", "text": "40ms is suspiciously consistent. is that write ordering, or are we reading the clock twice"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:18:00+00:00", "text": "twice. the handler asks for now() when it stamps, then asks again when it computes the window"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:21:00+00:00", "text": "let me think — ok that's the whole of it then. take one reading at the top of the handler and use that value for time_of_last_rate_limit_error and for the window both, instead of each grabbing its own"}
+{"channel": "general", "author": "nikolai", "created_at": "2025-04-21T14:23:00+00:00", "text": "so window start is off the same value not its own call"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:24:00+00:00", "text": "yes, same value in both places."}
+{"channel": "general", "author": "nikolai", "created_at": "2025-04-21T14:26:00+00:00", "text": "nobodys written it yet, i'd say it rides along with the WS-050 sweep unless dermot wants it separate"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:29:00+00:00", "text": "mhm. the gap was wider than 40 on the slow box last week too, which fits"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-24T14:02:00+00:00", "text": "quick one, the fake clock in the retry test logged 3 calls but that run only had one 429 in it. is that normal"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-24T14:06:00+00:00", "text": "not entirely sure it is normal, no. the other two would be the schema failures, i believe — same run had two of those and they go down the same sleep path"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-24T14:09:00+00:00", "text": "right but a bad payload has no business asking what time it is. sleeping does not fix the shape of it"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-24T14:12:00+00:00", "text": "yup, agreed. only the throttles should be reading the clock. schema failure just fails out, no backoff, no clock"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-24T14:14:00+00:00", "text": "that tracks. so one call for that run and not three"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-24T14:17:00+00:00", "text": "anyway that explains the 3 sitting in my notes, i wrote it down as expected at the time"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-09T14:38:15+00:00", "text": "retry log from the 11:40 run has the last rate limit stamp moving on a request that never saw a 429"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T14:41:15+00:00", "text": "which request. was there a timeout sitting between two 429s"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-09T14:43:15+00:00", "text": "yeah actually. two 429s and a read timeout in the middle"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T14:46:15+00:00", "text": "so basically a timeout landed betwen two 429s and jumped our last-rate-limit stamp. it shouldnt move there at all"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-09T14:48:15+00:00", "text": "so does a timeout touch anything, or nothing at all"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T14:49:15+00:00", "text": "a TRANSIENT only bumps num_api_errors, thats it. time_of_last_rate_limit_error is throttle-only, nothing else writes it"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-09T14:51:15+00:00", "text": "that tracks. retry ticket then i think, nobody has opened that file yet"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-09T14:53:15+00:00", "text": "mhm. so the backoff sat on a cooldown no 429 ever set"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T14:54:15+00:00", "text": "ya. 11:40 slept about twice what it should of"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-31T16:08:00+00:00", "text": "quick one before I forget - when a response comes back failing schema validation, what happens on the retry bookkeepign side? does it get a stamp like the 429s do"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-31T16:11:00+00:00", "text": "no. for a schema failure the counter is the whole job"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-31T16:12:00+00:00", "text": "which counter though, theres like three of them in that struct"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-31T16:14:00+00:00", "text": "num_other_errors. a CONTRACT verdict bumps it and thats the end of it"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-31T16:15:00+00:00", "text": "bumps it per bad row, or once for the response"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-31T16:16:00+00:00", "text": "by one. and nothing else gets written on that path, no stamps, no windows"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-31T16:19:00+00:00", "text": "mhm ok. simpler than what i had in my head to be honest"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-31T16:21:00+00:00", "text": "the windows only ever mattered for the 429 side, if i had to guess thats where it came from"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-04-11T12:19:00+00:00", "text": "what actually killed the 12:04 run, was it us or their side"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T12:21:00+00:00", "text": "their side to start. 429 at 12:04:01. then we came straight back at 12:04:11 and got throttled again"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-04-11T12:22:00+00:00", "text": "ten seconds. thats our own sleep then?"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T12:23:00+00:00", "text": "yeah, flat ten on every attempt. constant somewhere in the retry path, if i had to guess"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-04-11T12:24:00+00:00", "text": "but they tell us how long to wait, no? presumably on the response"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T12:26:00+00:00", "text": "ya they do and we throw it away. so basically ten flat seconds is not what that provider was asking for tbh, we take their number off the response and sleep that"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T12:27:00+00:00", "text": "yeah ok. nobodys touched that constant yet though"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-04-11T12:29:00+00:00", "text": "right. that run had three of them before it gave up, all ten apart"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-30T17:23:18+00:00", "text": "the retry_after bump to 45 in the client, thats just so it covers the worst 429 we saw?"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-05-30T17:24:18+00:00", "text": "yep worst one we logged sat around 40"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-30T17:26:18+00:00", "text": "so a 429 that clears in 2s waits 45 as well. um, that cant be right"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-05-30T17:27:18+00:00", "text": "one number for all of them yeah"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-05-30T17:29:18+00:00", "text": "right, thats my problem with it. every trivial one pays for the worst case"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-05-30T17:30:18+00:00", "text": "the wait shoud come from that failures own backoff, not a flat value we picked off the tail"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-30T17:32:18+00:00", "text": "ya exactly, that reads better"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-05-30T17:34:18+00:00", "text": "45 came out of the incident doc anyway not a measurment"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T11:53:43+00:00", "text": "@Dermot Callaghan on pr 585 — what is the pause actually measured against after a 429"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-03-31T11:55:43+00:00", "text": "now minus time_of_last_rate_limit_error. so it shrinks as the clock moves"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T11:59:43+00:00", "text": "mhm. so a 429 and then a slow chunk of work and theres nothing left of it by the time we come back round?"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-03-31T12:01:43+00:00", "text": "yeah. costs nothing at all in that case"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-31T12:03:43+00:00", "text": "so we go straight back in"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T12:06:43+00:00", "text": "straight back in yes, no wait at all. bit me twice this week. it wants to be time since we started waiting, not since the error"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-31T12:08:43+00:00", "text": "right, then the 0.0 sleep in fridays log makes sense"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:09:00+00:00", "text": "question on the throttle horizon. when a THROTTLE verdict comes back do we push the cooldown out, or keep whichever is later"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:11:00+00:00", "text": "plain assignment, i think. throttle_cooldown_until = now + delay_seconds and thats the whole of it"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:12:00+00:00", "text": "even when the old one sits further out? we lose the longer wait then"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:14:00+00:00", "text": "mhm. thats delibrate to be honest, the most recent rate-limit failure is the one that sets the pause"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:15:00+00:00", "text": "so no max(), straight overwrite. does that happen on every THROTTLE verdict or only once the horizon has lapsed"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:16:00+00:00", "text": "every one. in any case i've settled on that for the horizon"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:18:00+00:00", "text": "right. today it still takes the max i am fairly sure, at least in the version i read friday"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:19:00+00:00", "text": "yeah, that bit is untouched"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-01-22T15:29:00+00:00", "text": "the throttle cooldown from the retry pass - if two verdicts come back in one batch does the later one win, or do we keep the longer window"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:32:00+00:00", "text": "later one wins. its one assignment on throttle_cooldown_until, whatever the last THROTTLE verdict carries"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-01-22T15:33:00+00:00", "text": "so a short window landing after a long one shortens it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:35:00+00:00", "text": "right, thats the part i reviewd. no comparison against whats already sitting there"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-01-22T15:39:00+00:00", "text": "yep thats the 9am run going back out early then"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-01-22T15:41:00+00:00", "text": "so keep whichever is further out"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:42:00+00:00", "text": "mhm. compare first, only push it later, never back"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-01-22T15:45:00+00:00", "text": "does the clear-on-success path hit that same line"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:47:00+00:00", "text": "no thats its own reset, sets it to none"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-08T17:14:43+00:00", "text": "on the throttle horizon - we're still stomping throttle_cooldown_until with now + delay_seconds on every verdict, or did that change"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T17:17:43+00:00", "text": "changed. the old call was plain assignment on every THROTTLE verdict, most recent rate-limit failure sets the pause. thats gone"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-08T17:18:43+00:00", "text": "what pushed it over"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T17:21:43+00:00", "text": "a 1.0s throttle landing behind a 40s one. short one pulled the horizon back in and we flooded again"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-08T17:23:43+00:00", "text": "so basically the tiny retry erased the big pause? um that explains a lot tbh"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T17:24:43+00:00", "text": "mhm. workers woke up ~39s early and went straight back at it"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-08T17:26:43+00:00", "text": "so the write is a floor now, if i had to guess"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T17:29:43+00:00", "text": "yeah - throttle_cooldown_until = max(throttle_cooldown_until, now + delay_seconds). window only ever moves out, never in"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-08T17:31:43+00:00", "text": "ya ok. the burst in fridays logs sits right after a short 429 too, same shape"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:12:00+00:00", "text": "konrad that throttle cooldown you flagged in review is it still a straight assign"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:14:00+00:00", "text": "no, that overwrite is gone. look, it bit us on the retry run — second 429 came back with a tiny backof and it stomped the window we already had"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:16:00+00:00", "text": "stomped it from what to what"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:17:00+00:00", "text": "40s down to under a second. so we went straight back at them, presumably that is why the run looked like that"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-24T15:19:00+00:00", "text": "right, that's the part i reviewed - last THROTTLE verdict just overwrites throttle_cooldown_until, one assignment, no comparison against whats already there"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:20:00+00:00", "text": "so what does it compare against now"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:24:00+00:00", "text": "itself. `throttle_cooldown_until = max(throttle_cooldown_until, now + delay_seconds)` — a short window cant win over a longer one anymore"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-24T15:24:00+00:00", "text": "yeah ok. nobodys cut the patch yet, it sits behind the batch retry ticket if i had to guess"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:26:00+00:00", "text": "the 40s is that retry-after or do we compute it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:27:00+00:00", "text": "header when they send one. ours only when they dont"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-11T13:41:00+00:00", "text": "the cooldown remainder math where does that live now do we hang it off the tracker"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-04-11T13:43:00+00:00", "text": "retry policy side. plain module function, not entirely sure it needs to be anything cleverer"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-11T13:44:00+00:00", "text": "what does it take then it needs a clock from somewhere"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-04-11T13:46:00+00:00", "text": "remaining_cooldown_seconds(tracker, now)"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-04-11T13:47:00+00:00", "text": "so the tracker itself stays dumb, right? no method on it"}
+{"channel": "releases", "author": "dario", "created_at": "2025-04-11T13:49:00+00:00", "text": "mhm — not a method on the tracker, honestly. the pause point already holds both so it just hands it both"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-11T13:51:00+00:00", "text": "yep thats fine"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-04-11T13:52:00+00:00", "text": "then the inline math in the sleep path can go, presumably. nobody has written any of this yet though"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T14:22:00+00:00", "text": "question on the retry tracker — when a response comes back TERMINAL, which counter is that supposed to land on"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T14:23:00+00:00", "text": "right now it falls through the generic error path with the timeouts, and i want to know if thats deliberate or just where it ended up"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-29T14:31:00+00:00", "text": "let me think. deliberate — it lands in num_api_errors, the same slot a TRANSIENT uses. rate limits are the only class with a counter of their own"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T14:33:00+00:00", "text": "ok that i can do. does anything else move at the same time though, attempt count, in flight, either of those"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-29T14:38:00+00:00", "text": "no. one increment on that field and nothing else on the tracker moves for it"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T14:39:00+00:00", "text": "yeah ok. so a TERMINAL never touches the retry numbers at all"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-29T14:40:00+00:00", "text": "right, nothing gets retried so there's nothing to count there"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:23:00+00:00", "text": "quick one on the retry counters in the cookbook example, if one request gets throttled twice does that come out as 1 or 2"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:24:00+00:00", "text": "2. every THROTTLE bumps num_rate_limit_errors by one on the way through"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:26:00+00:00", "text": "ok so its per 429 not per request"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:28:00+00:00", "text": "right. one 429, one increment"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-03T15:29:00+00:00", "text": "does it hit anything else on the way past, like a generic error total or the failed count"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:31:00+00:00", "text": "no, thats the only counter it touchs. nothing else moves"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:33:00+00:00", "text": "solid enough ill park it on the retry ticket, dunno who picks it up"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-03T15:35:00+00:00", "text": "then the 7 in tuesdays sample was just 7 429s, i had it written down as a double count"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T15:11:00+00:00", "text": "last nights bulk run retried something like 40 times and the rate limit count came back 0"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T15:14:00+00:00", "text": "thats num_rate_limit_errors, and honestly it only moves on a THROTTLE verdict, thats the one place we bump it"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T15:15:00+00:00", "text": "so what does it do on the other verdicts"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T15:17:00+00:00", "text": "nothing at all - the non throttle verdicts never touch it. schema miss, timeout, malformed json, they all go down the same retry path and leave it sitting where it was"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T15:19:00+00:00", "text": "so it just sits there through a whole run of schema misses and timeouts. if i had to guess that is your 0"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T15:21:00+00:00", "text": "mhm. simplest thing is a seperate counter bumped on the generic retry path and leave the throttle one as it is, in any case we want the two numbers apart"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T15:22:00+00:00", "text": "right the alert we hung off that field has never fired once then"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T12:53:00+00:00", "text": "@Dario on 585 - what happens to the rate limit pause setting, do we drop it entirely"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-17T12:55:00+00:00", "text": "no, not dropping it. i left config.seconds_to_pause_on_rate_limit exactly as it was"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T12:57:00+00:00", "text": "exactly as it was meaning the default is still 10 on the processor config? and the pause still honours it"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-17T12:59:00+00:00", "text": "still 10 on the processors config yeah, untouched. the pause point just doesnt read it anymore, thats the actual change"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T13:00:00+00:00", "text": "so its a knob that sits there and does nothing now"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-17T13:02:00+00:00", "text": "for the pause, mhm. nobodys written that bit yet though, i want to do it in the same pass as the rest of 585"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T13:04:00+00:00", "text": "theres a cookbook that sets it to 30 somewhere i'd say"}

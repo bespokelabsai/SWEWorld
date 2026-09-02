@@ -1,0 +1,20 @@
+From: emil@world.local
+To: nikolai@world.local, dario@world.local
+Subject: 429 handling in the online request processor
+Date: Wed, 11 Jun 2025 09:14:00 +0000
+Message-ID: <178838444850.3512899.5732154255618213059@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Nikolai =E2=80=94 the long gemini run I kicked off friday spent most of satur=
+day doing nothing. I pulled the logs this morning and it is 429s the whole wa=
+y down, we hit one, we sleep the fixed pause, we retry into the same closed w=
+indow, we hit another. Throughput never recovers, it just limps until the req=
+uest budget is gone.
+
+So if I am reading the code right, the pause is a single global stall for the=
+ whole run and not something that scales per request? That was my guess but I=
+ am not entirely sure I am reading the processor correctly. Either way I thin=
+k the fixed number is the thing that stopped working =E2=80=94 providers move=
+d to something much more dynamic and we did not.

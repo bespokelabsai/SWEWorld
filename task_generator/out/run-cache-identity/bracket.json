@@ -1,0 +1,102 @@
+{
+ "task": "g4",
+ "suite": "g4_run_cache_identity",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g4.open_feature": 0.0,
+    "g4.r1.rule": 0.0,
+    "g4.r1.scope": 0.0,
+    "g4.r1.exclusions_or_crossover": 0.0,
+    "g4.r1.observability": 0.0,
+    "g4.r2.rule": 0.0,
+    "g4.r2.scope": 0.0,
+    "g4.r2.failure_behavior": 0.0,
+    "g4.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9
+   },
+   "collected": true,
+   "stdout_tail": "hash_is_stable_and_the_module_reads_no_randomness ___________________________________________________________________\n\n    def test_observability__the_nocache_run_hash_is_stable_and_the_module_reads_no_randomness():\n>       importable()\n\ng4_run_cache_identity/test_r2.py:207: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\n    def importable() -> None:\n        \"\"\"Fail one test, not the whole module, when the new module is absent.\"\"\"\n        if IMPORT_ERROR is not None:\n>           pytest.fail(f\"bespokelabs.curator.run_identity could not be imported: {IMPORT_ERROR!r}\")\nE           Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot import name 'run_identity' from 'bespokelabs.curator' (/tmp/tg/g4_run_cache_identity-09906b77/tree/src/bespokelabs/curator/__init__.py)\")\n\ng4_run_cache_identity/test_open.py:60: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g4_run_cache_identity-09906b77/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g4_run_cache_identity/test_open.py::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot import nam...\nFAILED g4_run_cache_identity/test_r1.py::test_rule__the_key_is_exactly_twelve_components_and_the_parse_function_is_one_of_them - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot impo...\nFAILED g4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot import na...\nFAILED g4_run_cache_identity/test_r1.py::test_exclusions__only_four_backend_params_fork_the_cache_and_the_api_key_is_not_one - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot import...\nFAILED g4_run_cache_identity/test_r1.py::test_observability__the_stated_component_table_holds_and_no_api_key_reaches_the_stamp - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot impo...\nFAILED g4_run_cache_identity/test_r2.py::test_rule__a_cache_disabled_run_is_identified_by_a_run_id_its_caller_supplies - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot import name ...\nFAILED g4_run_cache_identity/test_r2.py::test_scope__the_call_mints_the_default_id_from_the_environment_and_passes_it_down - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot import n...\nFAILED g4_run_cache_identity/test_r2.py::test_failure_behavior__a_missing_id_and_an_unwanted_one_are_both_refused - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot import name 'run_...\nFAILED g4_run_cache_identity/test_r2.py::test_observability__the_nocache_run_hash_is_stable_and_the_module_reads_no_randomness - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\"cannot impo...\n9 failed, 1 warning in 2.37s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g4.open_feature": 1.0,
+    "g4.r1.rule": 0.0,
+    "g4.r1.scope": 0.0,
+    "g4.r1.exclusions_or_crossover": 0.0,
+    "g4.r1.observability": 0.0,
+    "g4.r2.rule": 0.0,
+    "g4.r2.scope": 0.0,
+    "g4.r2.failure_behavior": 0.0,
+    "g4.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 8,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "gs = {'cache_enabled': False, 'run_id': 'local-run-7'}\n\n    def identity_for(stub, dataset_hash=\"9f1c8e2b7d4a6053\", **kwargs):\n>       return ri.compute_run_identity(stub, dataset_hash, **kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       TypeError: compute_run_identity() got an unexpected keyword argument 'run_id'\n\ng4_run_cache_identity/test_open.py:143: TypeError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g4_run_cache_identity-f484f67e/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng4_run_cache_identity/test_open.py::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded\ng4_run_cache_identity/test_open.py::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g4_run_cache_identity/test_r1.py::test_rule__the_key_is_exactly_twelve_components_and_the_parse_function_is_one_of_them - Failed: the implementation exports no 'IDENTITY_COMPONENT_KEYS' anywhere in bespokelabs....\nFAILED g4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument - AssertionError: backend_params hands out a copy, not the dict the LLM is using\nFAILED g4_run_cache_identity/test_r1.py::test_exclusions__only_four_backend_params_fork_the_cache_and_the_api_key_is_not_one - Failed: the implementation exports no 'IDENTITY_BACKEND_PARAM_KEYS' anywhere in bespokelab...\nFAILED g4_run_cache_identity/test_r1.py::test_observability__the_stated_component_table_holds_and_no_api_key_reaches_the_stamp - Failed: the implementation exports no 'IDENTITY_COMPONENT_KEYS' anywhere in bespokelabs....\nFAILED g4_run_cache_identity/test_r2.py::test_rule__a_cache_disabled_run_is_identified_by_a_run_id_its_caller_supplies - AssertionError: compute_run_identity takes ['llm', 'dataset_hash', 'cache_enabled', 'identity_ve...\nFAILED g4_run_cache_identity/test_r2.py::test_scope__the_call_mints_the_default_id_from_the_environment_and_passes_it_down - KeyError: 'run_id'\nFAILED g4_run_cache_identity/test_r2.py::test_failure_behavior__a_missing_id_and_an_unwanted_one_are_both_refused - TypeError: compute_run_identity() got an unexpected keyword argument 'run_id'\nFAILED g4_run_cache_identity/test_r2.py::test_observability__the_nocache_run_hash_is_stable_and_the_module_reads_no_randomness - TypeError: compute_run_identity() got an unexpected keyword argument 'run_id'\n8 failed, 1 passed, 6 warnings in 5.96s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g4.open_feature": 1.0,
+    "g4.r1.rule": 1.0,
+    "g4.r1.scope": 1.0,
+    "g4.r1.exclusions_or_crossover": 1.0,
+    "g4.r1.observability": 1.0,
+    "g4.r2.rule": 1.0,
+    "g4.r2.scope": 1.0,
+    "g4.r2.failure_behavior": 1.0,
+    "g4.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g4_run_cache_identity-9bcbdf59/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng4_run_cache_identity/test_open.py::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded\ng4_run_cache_identity/test_open.py::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 6 warnings in 5.95s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g4.open_feature": 1.0,
+    "g4.r1.rule": 1.0,
+    "g4.r1.scope": 1.0,
+    "g4.r1.exclusions_or_crossover": 1.0,
+    "g4.r1.observability": 1.0,
+    "g4.r2.rule": 1.0,
+    "g4.r2.scope": 1.0,
+    "g4.r2.failure_behavior": 1.0,
+    "g4.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g4_run_cache_identity-ee95d11a/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng4_run_cache_identity/test_open.py::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded\ng4_run_cache_identity/test_open.py::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\ng4_run_cache_identity/test_r1.py::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 6 warnings in 5.79s\n"
+  }
+ },
+ "verdicts": {
+  "g4.open_feature": "open_feature",
+  "g4.r1.rule": "hidden",
+  "g4.r1.scope": "hidden",
+  "g4.r1.exclusions_or_crossover": "hidden",
+  "g4.r1.observability": "hidden",
+  "g4.r2.rule": "hidden",
+  "g4.r2.scope": "hidden",
+  "g4.r2.failure_behavior": "hidden",
+  "g4.r2.observability": "hidden"
+ }
+}

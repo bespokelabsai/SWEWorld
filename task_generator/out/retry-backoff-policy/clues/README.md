@@ -1,6 +1,6 @@
 # Clues for g3 — Failure-class retry policy for online request processors
 
-42 remarks across 2 hidden requirements, to be planted in `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/latest`.
+49 remarks across 2 hidden requirements, to be planted in `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/latest`.
 
 Clue window `2025-03-14` to `2026-01-27`; herrings before `2025-03-13`.
 
@@ -19,43 +19,50 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 | 2025-02-06 | #code-review *(new)* | dario | settled in review: THROTTLE costs 0 attempts off the retry budget - a 429 says nothing about the request itself, so decide charges nothing and re-queues it. | *herring* |
 | 2025-03-12 | #engineering *(new)* | konrad | right, no ceiling on it — a rate-limited request keeps its full budget however many 429s it eats, THROTTLE never deducts, only TRANSIENT and CONTRACT do | *herring* |
 | 2025-03-17 | #pipeline *(new)* | dermot | ordering is the problem, we check the budget before we deduct the cost, so a malformed-output failure with one attempt left still gets a retry it can't pay for | `failure_behavior` |
-| 2025-03-19 | #pipeline *(new)* | nils | The verdict logged attempts_left as -1 again overnight. i think whatever number we hand back there has to floor at zero, so we're flooring it. | `failure_behavior`, `observability` |
+| 2025-03-17 | #code-review | dario | @Konrad on 585 - i left config.seconds_to_pause_on_rate_limit exactly as it was, still 10 on the processor's config, the pause point just doesnt read it anymore | `exclusions_or_crossover` |
+| 2025-03-19 | #pipeline *(new)* | nils | The verdict logged attempts_left as -1 again overnight. settled: a malformed-output failure that cant pay comes back contract:exhausted with attempts_left 0, never a negative. | `failure_behavior`, `observability` |
 | 2025-03-19 | #releases *(new)* | dario | honestly if a new wait lands earlier than the one we're already holding it should just lose, that window only ever moves further out | `rule` |
 | 2025-03-20 | #cookbooks *(new)* | konrad | Look, I said 429s never cost a request budget - that's out, a dead key looped for hours. APIRequest carries DEFAULT_THROTTLE_WAIVERS = 6 now, decide takes throttle_waivers_left and reports throttle_waivers_after. | `rule`, `scope` |
-| 2025-03-21 | #code-review | konrad | look, while retry scope is open - same request came back finish_reason length four times last night and spent four attempts, a broken payload shouldn't get that many goes | `rule`, `observability` |
-| 2025-03-21 | #code-review *(new)* | nils | let me think - no, timeouts are fine as they stand, one attempt off the budget per failure. i'd rather we didn't get clever with that path. | `rule` |
 | 2025-03-21 | #pipeline *(new)* | gideon | so basically nothing on the tracker records when the throttle window actually ends, so the pause point can't ask how much is left and we idle way past it. | `rule` |
 | 2025-03-21 | #cookbooks *(new)* | konrad | Look, the second 429 came back with a tiny backof and pulled our wait back down under a second, and we were straight into the flood again. | `rule` |
 | 2025-03-24 | #releases *(new)* | emil | honestly the fake clock logged three calls for one 429 and two schema failures. a bad payload has no business asking what time it is - only throttles read the clock. | `scope` |
 | 2025-03-24 | #cookbooks *(new)* | konrad | look, the last-THROTTLE-wins overwrite I flagged is gone, second 429 had a tiny backof and overwrote a 40s window down under a second. compares now: `throttle_cooldown_until = max(throttle_cooldown_until, now + delay_seconds)` | `rule` |
-| 2025-03-25 | #pipeline | emil | @Nils on 585's retry side - clock pinned at 1000.0, jitter 0.25, first 429 sets tracker.throttle_cooldown_until to 1005.0, and a second worth 1.0 has to leave it there. | `observability`, `rule` |
-| 2025-03-31 | #releases *(new)* | dermot | yeah, for a schema failure the counter is the whole job, that path has no reason to be moving stamps or windows around. | `scope` |
+| 2025-03-25 | #pipeline | emil | @Nils on 585's retry side - clock pinned at 1000.0, jitter 0.25, the first 429's own delay reads 5.0 unrounded, so tracker.throttle_cooldown_until is 1005.0; a second worth 1.0 leaves it. | `observability`, `rule` |
+| 2025-03-27 | #viewer *(new)* | emil | honestly the check belongs after the deduction and only trips on strictly negative - a malformed-output failure at attempts_left 2 lands on 0 and still gets retried. | `failure_behavior` |
+| 2025-03-31 | #releases *(new)* | dermot | yeah, for a schema failure the counter is the whole job — a CONTRACT verdict bumps num_api_errors by one and that's it, no stamps, no windows. | `scope` |
 | 2025-03-31 | #code-review | dario | @Dermot on pr 585 — we work the pause out as now minus time_of_last_rate_limit_error, so a 429 followed by slow work costs nothing at all. bit me twice this week. | `exclusions_or_crossover` |
 | 2025-04-02 | #pipeline *(new)* | dario | honestly i'd rather not put a new knob on OnlineRequestProcessorConfig for this, max_retries still seeds attempts_left and everything else stays on the request | `scope` |
 | 2025-04-03 | #code-review *(new)* | konrad | Look, cases I want pinned: 429 at attempts_left=0 with throttle_waivers_left=3 still re-queues and comes back 2, and at 0 it's throttle:exhausted. | `observability`, `exclusions_or_crossover` |
-| 2025-04-07 | #pipeline | dermot | on the retry side: the helper handed back -3.2 once the window was behind us, and 4.999999999998 before that — that should be 0.0 clamped and three decimals. | `rule`, `observability` |
-| 2025-04-07 | #general *(new)* | nils | A tracker nobody has throttled should answer 0.0 however far ahead you ask — window at 1005.0 gives 3.0 at 1002.0, 0.5 at 1004.5, 0.0 at 1005.0. | `observability` |
-| 2025-04-08 | #engineering | dario | that `attempt: 2` sitting next to RateLimitError bugs me honestly — burned the whole retry budget on 429s last night against a throttled key, none of them about my request. | `rule` |
+| 2025-04-03 | #cookbooks *(new)* | konrad | look, every THROTTLE bumps num_rate_limit_errors by one on the way through — one 429, one increment, and that's the only counter it touches. | `scope` |
+| 2025-04-07 | #pipeline | dermot | on the retry side: remaining_cooldown_seconds(tracker, now) handed back -3.2 once the window was behind us, and 4.999999999998 before that — clamp at 0.0, round to three decimals. | `rule`, `observability` |
+| 2025-04-07 | #general *(new)* | nils | A tracker nobody has throttled answers 0.0 however far ahead you ask — with the window at 1005.0, remaining_cooldown_seconds(tracker, 1002.0) is 3.0, 0.5 at 1004.5, 0.0 at 1005.0. | `observability` |
 | 2025-04-08 | #pipeline | dario | dropped the plain `throttle_cooldown_until = now + delay_seconds` write — a 1.0s throttle landing behind a 40s one pulled the horizon in and we flooded again. it's `throttle_cooldown_until = max(throttle_cooldown_until, now + delay_seconds)` now, the window only moves out. | `rule` |
 | 2025-04-09 | #incidents *(new)* | dario | that "throttle costs zero attempts" line i settled in review is gone — a permanently throttled key re-queued for hours. 429 is free while throttle_waivers_left > 0, then decide charges 1. | `rule`, `failure_behavior` |
-| 2025-04-09 | #pipeline | gideon | so basically one thing did turn up in that pass: a timeout landed betwen two 429s and our last-rate-limit stamp jumped to it, graph showed us throttled when the provider was perfectly happy | `scope` |
+| 2025-04-09 | #pipeline | gideon | so basically a timeout landed betwen two 429s and jumped our last-rate-limit stamp — a TRANSIENT only bumps num_api_errors, time_of_last_rate_limit_error is throttle-only. | `scope` |
 | 2025-04-10 | #pipeline | gideon | ya, bare 429s is exactly the shape that bites us. The queue drops a throttled request the moment attempts_left hits zero, even when that 429 cost it nothing at all. | `exclusions_or_crossover` |
 | 2025-04-11 | #incidents *(new)* | gideon | so basically 429 at 12:04:01, and we were hammering again at 12:04:11, still throtled. ten flat seconds is not what that provider was asking for tbh | `exclusions_or_crossover` |
+| 2025-04-11 | #releases *(new)* | dario | mhm — and it sits as a plain module function in the retry policy, remaining_cooldown_seconds(tracker, now), not a method on the tracker, the pause point hands it both. | `rule` |
 | 2025-04-15 | #engineering *(new)* | konrad | look, one shared counter for the run means the first bad minute eats everyones free passes, each request should walk in with its own full set. | `scope` |
 | 2025-04-16 | #code-review *(new)* | dario | honestly if the verdict isn't a retry then the delay should just be 0.0, and we shouldn't be reading the schedule or pulling from the jitter source at all | `failure_behavior` |
+| 2025-04-18 | #incidents *(new)* | dario | and the non-throttle verdicts never touch num_rate_limit_errors, it only moves on a THROTTLE - so it just sits there through a whole run of schema misses and timeouts | `scope` |
 | 2025-04-21 | #general *(new)* | nils | let me think — our two stamps came out 40ms apart because the handler asks the clock twice; take one reading, use it for time_of_last_rate_limit_error and the window both. | `rule`, `scope` |
 | 2025-04-23 | thread:new|g3.r1.l8 *(new)* | emil | yup — once a request has used up its free passes the next 429 costs it an attempt like anything else, otherwise a dead key just loops forever. | `rule` |
 | 2025-04-24 | #engineering | gideon | while you're in there - it's throttle_waivers_left, not throttle_waviers_left like the branch has it, and it hangs off APIRequest, the tracker has no buisness knowing about it | `scope` |
 | 2025-04-24 | #engineering *(new)* | dermot | yeah, on a bad key we empty the attempts and stop: `invalid api key` at seven left gives terminal:abort, attempts to zero, passes untouched at six. | `exclusions_or_crossover`, `observability` |
 | 2025-04-24 | #code-review *(new)* | emil | went through the retry loop this morning and honestly, we're sleeping a full backoff on requests we've already decided to bin, and drawing jitter for them on the way out. | `failure_behavior` |
-| 2025-04-25 | page:meetings/weekly-notes-week-of-mar-24.md | nikolai | on 585 the schedule lives in retry_policy.py now DEFAULT_THROTTLE_WAIVERS = 6 is the module default that seeds throttle_waivers_left on every request  still moving so dont link it yet | `rule`, `observability` |
+| 2025-04-25 | page:meetings/weekly-notes-week-of-mar-24.md | nikolai | on 585 the schedule lives in retry_policy.py now DEFAULT_THROTTLE_WAIVERS = 6 is the module default that seeds throttle_waivers_left on every request | `rule`, `observability` |
 | 2025-04-29 | #engineering *(new)* | dermot | we write attempts_left back from the verdict onto the request, but never the pass count, so a request quietly gets its full set again on the next failure. | `rule`, `scope` |
-| 2025-05-13 | #pipeline *(new)* | emil | honestly two attempts off for a malformed-output failure feels about right to me — one is too generous, and binning the row on the spot is too harsh. | `rule` |
+| 2025-04-29 | #general *(new)* | nils | let me think — a TERMINAL verdict gets its own slot, num_other_errors, one increment, and nothing else on the tracker moves for it. | `scope` |
 | 2025-05-30 | #code-review | konrad | look, raising `retry_after` to 45 so it covers the worst 429 means every trivial one waits 45 too, the wait shoud come from that failure's own backoff | `exclusions_or_crossover` |
+| 2025-06-02 | #general *(new)* | nils | let me think - no, transients don't get their own exit: once the remaining budget can't cover even the one attempt, the verdict is transient:exhausted, same as the throttle path. | `failure_behavior` |
+| 2025-06-03 | #code-review *(new)* | konrad | look, same request came back finish_reason length four times last night and spent four attempts on it - a broken payload shoudn't get that many goes. | `rule`, `observability` |
+| 2025-06-03 | #general *(new)* | nils | let me think - no, timeouts stay as they are: one attempt off the budget per failure, and throttle_waivers_left comes back exactly as it went in. | `rule` |
+| 2025-06-03 | #incidents *(new)* | dario | that `attempt: 2` sitting next to RateLimitError bugs me honestly — burned the whole retry budget on 429s last night against a throttled key, none of them about my request. | `rule` |
 | 2025-06-04 | #engineering *(new)* | nikolai | decide only sees attempts_made and attempts_left so it cant tell whether a 429 is free the requests remaining passes has to go in as a third kwarg | `rule` |
 | 2025-06-11 | thread:new|g3.r1.l12 *(new)* | nikolai | ran it with the wrong key and each request retried five more times before giving up once auth is the problem the attempts on the clock are worth nothing | `exclusions_or_crossover` |
-| 2025-06-11 | thread:new|g3.r2.s4d *(new)* | nikolai | A few user configs in the wild still set seconds_to_pause_on_rate_limit so it stays in config.py even once nothing reads it | `exclusions_or_crossover` |
-| 2025-06-18 | page:meetings/weekly-sync-notes-week-of-jun-9-bulk-llm-inference.md | nikolai | tracker fields keep shifting under this one order right now is num_other_errors then time_of_last_rate_limit_error then throttle_cooldown_until at 0.0 on a fresh tracker still moving dont quote me | `rule` |
+| 2025-06-11 | thread:new|g3.r2.s4d *(new)* | nikolai | A few user configs in the wild still set seconds_to_pause_on_rate_limit, so it stays in config.py with its default of 10 unchanged, even once nothing reads it. | `exclusions_or_crossover` |
+| 2025-06-18 | page:meetings/weekly-sync-notes-week-of-jun-9-bulk-llm-inference.md | nikolai | tracker gains one new field for this and only one: throttle_cooldown_until, 0.0 on a fresh tracker, sitting right after time_of_last_rate_limit_error. nothing else added for the pause. | `rule` |
+| 2025-06-26 | #pipeline *(new)* | emil | honestly two attempts off for a malformed-output failure sounds right to me, one is too generous. doesn't spend a throttle_waivers_left pass though, thats for 429s. | `rule` |
 
 ## g3.r1
 
@@ -86,7 +93,9 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 
 - said: `OnlineRequestProcessorConfig`, `The`, `finish_reason`, `throttle_waivers_left`
 
-> **Spread:** g3.r1.sc1: two remarks in #code-review within 0 days; g3.r1.sc2: two remarks in #engineering within 9 days; g3.r1.sc5: two remarks in #pipeline within 2 days; g3.r1.sc5: two remarks in #code-review within 8 days
+> **Spread:** g3.r1.sc1: two remarks in #general within 1 days; g3.r1.sc2: two remarks in #engineering within 9 days; g3.r1.sc5: two remarks in #pipeline within 2 days; g3.r1.sc5: two remarks in #code-review within 8 days
+
+> **5 of 46 graded assertions are not stated outright** — 5 implied. A reader has to supply the rest themselves, and may not. See `settled.md`.
 
 ### The remarks, by the step they build
 
@@ -94,13 +103,44 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 
 *Nobody says:* If one class is said to deserve more strikes than another and a third deserves none, the deduction is looked up per class instead of being a single fixed number.
 
-*4 remarks — 0 reporting the problem, 4 settling the design.*
+*5 remarks — 1 reporting the problem, 4 settling the design.*
+
+#### `g3.r1.say24` — failure_behavior
+
+**nils**, 2025-06-02, #general
+
+> let me think - no, transients don't get their own exit: once the remaining budget can't cover even the one attempt, the verdict is transient:exhausted, same as the throttle path.
+
+*What a reader should take from it:* the team agrees a transient failure that the remaining budget cannot pay for ends the request with the exhausted outcome, the same as the throttle path
+
+*Step it builds toward:* `g3.r1.sc1` — How much a failure costs the request's remaining attempts is decided by its class rather than being flat: a malformed-output failure is charged two attempts, an ordinary transient one, and a rate limit nothing.
+
+*Drafted as:* let me think - no, transients end the same way as the rest: once the budget can't cover the one attempt, the verdict is transient:exhausted rather than a retry.
+
+*Why there:* Neither listed room is discussing retry semantics. On 03-19 "the throttle path" means the rate limiter's headroom calculation and whether the v0.1.21 token-count fix regressed it — an audit-and-ownership conversation, not a policy one; nobody there is talking about retry budgets or terminal verdicts, so a settled ruling on transient:exhausted would answer a question nobody asked and draw no reply. The 03-25 room is PR triage (584/585/579, deferrals, missing WS-047) and has no retry thread at all. The conversation that should exist is the one where the retry/backoff outcomes get specified, prompted by the postmortem action item on the rate limiter: someone asks the either-or (do transient failures get their own exit, or do they terminate like throttles?), Nils rules, and the neighbouring flooring and no-delay questions get settled in the same thread.
+
+*Still leaves open:* doesn't say what number the budget reports on the way out, or that no wait is attached to it - those sit with the flooring and no-delay decisions
+
+*Must appear literally:* `transient:exhausted`
+
+*A new conversation in #general on 2025-06-02:*
+
+```
+10:12  dermot: quick one on the retry budget. if we run dry mid sequence on a transient, does that get its own exit or does it fold into an existing one
+10:19  nils: let me think - no, transients dont get their own exit. it folds
+10:23  dermot: ok but folds where. and what counts as running dry, budget under the next sleep or budget under the attempt
+10:28  nils: once the remaining budget cant cover even the one attempt. thats the line. verdict is `transient:exhausted`
+10:31  nikolai: thats the same string throttling gives you isnt it
+10:34  nils: same as the throttle path yes, no second code for it
+10:36  dermot: fine by me, one less branch on the caller side
+10:39  nikolai: the attempts-left counter still prints as a float in the log fwiw
+```
 
 #### `g3.r1.l1` — rule, observability
 
-**konrad**, 2025-03-21, #code-review
+**konrad**, 2025-06-03, #code-review
 
-> look, while retry scope is open - same request came back finish_reason length four times last night and spent four attempts, a broken payload shouldn't get that many goes
+> look, same request came back finish_reason length four times last night and spent four attempts on it - a broken payload shoudn't get that many goes.
 
 *What a reader should take from it:* the team agrees a contract failure should be charged more than one attempt
 
@@ -108,41 +148,31 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 
 *Drafted as:* same request came back "finish_reason was length" four times tonight and spent four attempts doing it, a broken payload shouldn't get that many goes.
 
-*Why there:* That thread is actively stuck on retry handling scope — Nils asks whether PR 585 folds retry handling in with batch submission, and Emil says he's going back and forth on it and wants the scope settled "beofre anyone extends it." Konrad is in the room and has already said he wants a decision today one way or the other. A concrete case of the same request burning four attempts on a finish_reason failure lands as evidence that retry handling isn't just a placement question — it doesn't distinguish a transport failure from a broken payload — which complicates the scope call rather than restating it. Nobody has made this point yet; the only retry talk so far is where the code lives, not what a failure costs.
+*Why there:* None of the five days has an open retry or attempt-cost discussion for this to contribute to. The closest, #code-review 2026-01-27, is about whether a null GEPA score should be caught at the integration layer or signalled upstream — a surfacing question, not a cost-per-attempt question — and it ends by punting to Dario, so a finish_reason/attempt-budget observation there would change the subject and draw no reply. The 2025 days (release tag for 0.1.26, importorskip and the verifier suite, PR 653/675 triage) and 2026-01-23 (Claude 4.x model identifiers in PR 704) have nothing adjacent. The remark presupposes a retry/backoff policy thread that these rooms never open; it needs the follow-on to the 2026-01-27 Dario handoff, where bulk-llm-inference retry behaviour is actually on the table and konrad arrives with overnight evidence.
 
 *Still leaves open:* how many attempts a malformed-output failure should actually be charged, and what any other class costs
 
 *Must appear literally:* `finish_reason`
 
-*Goes into the real conversation in #code-review on 2025-03-21, after 12:26 emil:*
+*A new conversation in #code-review on 2025-06-03:*
 
 ```
-09:00  nils: PR 584 (Mistral batch) is ready for review, touches batch-mode and provider integrations
-09:00  nils: Not blocking a release but i'd like to settle before end of day whether we're merging this week or pushing to next
-09:00  nils: @Emil is PR 585 meant to fold retry handling in with batch submission, or is that out of scope for it?
-11:00  konrad: Sorry, just saw this
-11:00  konrad: I've been sitting on PR 584 as well so I'm glad Nils raised it - would be good to get a decision today one way or the other
-11:39  emil: @Nils that's the thing I'm not entirely sure about. Been going back and forth on whether retry handling belongs in PR 585 or stays separate, and I'd w
-11:46  nils: fair enough
-11:46  nils: WS-047 doesn't have a spec page on the wiki yet, couldn't find it anywhere when I looked
-11:50  dario: while we're on PRs, @Emil, does PR 579 cover the same ground as PR 565 and PR 566, or are all three meant to land separately?
-12:18  emil: Sent a note to Dario and Nils on the batch status persistence doc
-12:18  emil: One house rule I want on record from it: for anything that only reports on the cache, connect to the metadata db with mode=ro
-12:18  emil: @Nils, free this afternoon to settle the PR 584 call?
-12:26  emil: The online processor appends to the responses file the moment a request is accepted, not when it comes back. That ordering was deliberate
-12:26  emil: Does retry handling in PR 585 need to account for that, or is it working above that layer?   <-- THE REMARK GOES HERE
-12:41  emil: A user pointed CURATOR_CACHE_DIR at /mnt/shared expecting everything a rerun needs to live under that path. Request and response files follow it, the 
-12:41  emil: Is that gap tracked anywhere as an issue?
-12:48  nils: @Emil yes, free this afternoon
-12:48  nils: PR 584 is ready on my end, just sitting there waiting on the merge or defer call
-12:48  nils: does WS-047 need a full wiki page, or is a tracked issue sufficient for defining the CI scope?
+14:02  nikolai: retry log from last night is odd, one request ate four attempts on its own
+14:05  konrad: what was it failing on
+14:07  nikolai: finish_reason length every time same request came back that way four times
+14:09  emil: so truncated output, not a transport error? i believe we count those as retryable right now
+14:11  konrad: mhm we do. look, a broken payload shoudn't get that many goes, thats four attempts spent on nothing
+14:12  konrad: and length wont fix itself on a retry anyway, so it stops being retryable, fail it out on the first
+14:14  nikolai: yep no argument here
+14:16  emil: sounds right, whoever has the retry ticket open can fold it in
+14:19  nikolai: log line should say which reason it was too they all read the same at the moment
 ```
 
 #### `g3.r1.l3` — rule
 
-**nils**, 2025-03-21, #code-review
+**nils**, 2025-06-03, #general
 
-> let me think - no, timeouts are fine as they stand, one attempt off the budget per failure. i'd rather we didn't get clever with that path.
+> let me think - no, timeouts stay as they are: one attempt off the budget per failure, and throttle_waivers_left comes back exactly as it went in.
 
 *What a reader should take from it:* the team agrees a transient failure keeps costing exactly one attempt
 
@@ -150,18 +180,29 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 
 *Drafted as:* timeouts are fine the way they are, one attempt off the budget per failure, please don't get clever with that path.
 
-*Why there:* Neither 2025-03-20 nor 2025-03-25 in #code-review is chewing on anything this answers. Both days are review-queue logistics: who picks up PR 584, whether 585/579/468/565 are targeted or deferred, and the fact that WS-047 has no ticket or wiki page. No message in either thread mentions retries, timeouts, attempt budgets, or any runtime behavior at all — the PR 584 review never gets past "can someone look at it." Worse, "please don't get clever with that path" is a reply to a proposal, and no one in either room has proposed changing retry accounting, so the remark would arrive from nowhere, settle a question nobody asked, and get no reaction. The conversation that should have existed is the review thread where the retry path was actually contested: Nils has PR 584 (Mistral batch processor) in flight and Emil owns batch-mode, so a PR touching retry/backoff accounting — proposing that transient failures stop counting against max_attempts — would land in #code-review with Nils, Emil, and Dario. That thread would also cover what non-timeout failures are charged, the half this remark is meant to leave open.
+*Why there:* no candidate location in range for this person
 
 *Still leaves open:* what anything other than a timeout is charged
 
-*A new conversation in #code-review on 2025-03-21:*
+*Must appear literally:* `throttle_waivers_left`
+
+*A new conversation in #general on 2025-06-03:*
 
 ```
+14:12  dermot: on the retry policy - a timeout, does that pull from the waiver pool or is it just a plain failure
+14:13  konrad: plain failure off the top of my head. one attempt off the budget, same as anything else
+14:15  dermot: mhm. it's the waiver count i can't tell from the code. if a timeout nudges it the caller gets back less than it handed us
+14:16  gideon: ya thats what bit the friday run i think
+14:18  nils: let me think - no, timeouts stay as they are. konrad has it, one attempt off the budget per failure and nothing else moves
+14:19  dermot: and throttle_waivers_left specifically
+14:20  nils: comes back exactly as it went in. only a real 429 touches that one
+14:22  konrad: right so the timeout path needs no change at all. the 429 side is still not written though
+14:24  dermot: yeah ok. name still reads like it counts both kinds, someone will trip on that
 ```
 
 #### `g3.r1.l4` — rule
 
-**dario**, 2025-04-08, #engineering
+**dario**, 2025-06-03, #incidents
 
 > that `attempt: 2` sitting next to RateLimitError bugs me honestly — burned the whole retry budget on 429s last night against a throttled key, none of them about my request.
 
@@ -171,62 +212,28 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 
 *Drafted as:* burned the whole retry budget on 429s last night against a throttled key, and not one of those failures was about my request.
 
-*Why there:* Nikolai has just pasted a failed_requests.jsonl line that literally carries `"error": "RateLimitError"` alongside `"attempt": 2`, and the room is arguing about whether that schema is enough to debug a batch failure. Dario is the person tracking the rate-limit layer that day (he raises it at 11:50, 13:42, 14:46), so him reacting to a 429 being logged as a consumed attempt lands squarely in his lane and complicates the field-layout discussion rather than changing the subject. It also doesn't step on anyone: nobody in that thread has questioned what counts as an attempt, and Emil/Dermot's header anomalies are a separate strand.
+*Why there:* no candidate location in range for this person
 
 *Still leaves open:* what a 429 should be charged against instead, and whether that is unlimited
 
-*Goes into the real conversation in #engineering on 2025-04-08, after 09:13 nikolai:*
+*A new conversation in #incidents on 2025-06-03:*
 
 ```
-09:00  nikolai: failed_requests.jsonl is wired up on my end
-09:00  nikolai: Not totally sure the current field layout is what anyone downstream actually needs for debugging batch failures though
-09:03  dermot: @Nikolai what fields does it have right now?
-09:13  nikolai: Each line looks roughly like this:
-
-```json
-{"row_idx": 14, "error": "RateLimitError", "provider": "openai", "model": "gpt-4o", "attempt": 2}
-```   <-- THE REMARK GOES HERE
-10:21  dermot: no request id or timestamp?
-10:30  dermot: are the deepseek, llama4, and openai additions all targeting the same release?
-10:58  nikolai: fair, good catch
-11:33  emil: Are we adding timestamp and request_id before this ships, or punting that to a follow-up?
-11:50  dario: Separate from the jsonl fields question, I think we need to confirm the DeepSeek and OpenAI integrations aren't touching anything that would step on t
-12:05  emil: WS-055 isn't in the tracker - went looking and found nothing there
-12:05  emil: Has Dermot filed it somewhere else, or is it still outstanding?
-12:39  dermot: ws-055 is on the wiki, not the tracker. I just pulled it up - still mostly design notes, no owner on the stub provider or e2e credentials, and the rel
-12:41  emil: Sounds like it's mostly a placeholder
-12:41  emil: Is the CI pipeline piece part of what's still undecided?
-12:51  nikolai: Punting timestamp and request_id to a follow-up
-12:51  nikolai: @Emil, can you keep that on the list so it doesn't get lost?
-13:42  dario: Did anyone actually check the DeepSeek integration against the rate-limit layer specifically, or is that still open from this morning?
-14:08  emil: Got it, I'll track the follow-up
-14:08  emil: Is the current schema enough to trace a batch failure without the timestamp, or are we going to hit a wall on debugging until that lands?
-14:38  dermot: are we planning to stage the three provider additions or ship them all at once?
-14:46  dario: - Rate-limit path check for DeepSeek and OpenAI still open on my end, not fully closed out yet
-- The absent headers Emil flagged are the main thing I'
-14:47  dario: I'd be a bit cautious about shipping all three at once with the DeepSeek header issue still not sorted
-15:11  dermot: so do we hold deepseek and ship the other two, or block all three?
-15:21  dario: Syncing with Emil this afternoon on whether the retry layer handles the absent DeepSeek headers cleanly, that check isn't done yet.
-16:07  dermot: that's going to land before end of day?
-16:42  emil: Pulled up WS-055 - the release process section is all TBD and the stub provider and e2e credentials have no owner
-17:07  dario: Just getting into the sync with Emil now, should have a read on the DeepSeek/rate-limit question before we wrap today
-17:25  dermot: pr 614 is ready for review on my end
-17:52  nikolai: Without timestamp and request_id, the current schema is going to be pretty useles for tracing which requests failed and when in any real batch.
-18:05  nikolai: I think I was too quick to punt timestamp and request_id, the schema's not really useful without them
-18:06  emil: Good to walk it back, but adding them tonight feels rushed.
-18:13  nikolai: They're two fields, that's not really a night's work.
-18:14  emil: The fields aren't the work, figuring out what goes in them is.
-18:14  emil: @Nikolai, can you put together a quick spec on what timestamp and request_id should actually contain before those go in?
-18:15  nikolai: Yeah, I'll put something together
-18:27  dario: Honestly I'm not comfortable calling the DeepSeek integration clean yet with the header issue still untraced, so do we hold it or are we accepting the
-18:28  dario: Actually, answering my own question, I'd lean toward holding DeepSeek and shipping OpenAI and llama4 separately until the header issue is traced
+14:12  dermot: retry counters from the late night bulk run are in. three hard failures, everything else just exhausted attempts
+14:14  dario: mhm. that `attempt: 2` sitting next to RateLimitError bugs me honestly, it reads like my call failed twice on its own merits
+14:15  gideon: what do you mean, it did retry twice though?
+14:17  dario: it did, but i burned the whole retry budget on 429s last night against a throttled key. none of them were about my request actually
+14:19  dermot: so the key was already over quota from other traffic and your request paid for it. not entirely sure the counter can even tell those apart today
+14:21  dario: it cant, and that's the fix. key level 429s get their own count and their own wait, they dont eat the per request attempts
+14:22  gideon: ya exactly, so basically attempt only moves when it was our own call that broke
+14:24  dermot: yeah. the 23:00 batch sits on that same key by the way, if i had to guess that is what drained it
 ```
 
 #### `g3.r1.l2` — rule
 
-**emil**, 2025-05-13, #pipeline
+**emil**, 2025-06-26, #pipeline
 
-> honestly two attempts off for a malformed-output failure feels about right to me — one is too generous, and binning the row on the spot is too harsh.
+> honestly two attempts off for a malformed-output failure sounds right to me, one is too generous. doesn't spend a throttle_waivers_left pass though, thats for 429s.
 
 *What a reader should take from it:* the team agrees a contract failure deducts two attempts
 
@@ -234,13 +241,22 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 
 *Drafted as:* two attempts off for a malformed-output failure feels right to me, one is too generous and binning it on the spot is too harsh.
 
-*Why there:* None of the listed rooms is arguing about a retry attempt budget or how failure classes are charged against it. The closest neighbours only brush it: #engineering 2025-04-08 shows an `"attempt": 2` field in failed_requests.jsonl and Emil syncing with Dario on whether the retry layer copes with absent DeepSeek headers, and #code-review 2025-05-30 debates retry-vs-caller for `dataset_not_ready` — but neither has anyone proposing per-class attempt costs, so a verdict on "malformed output costs two attempts" would land with no question in front of it and no reaction after. The remark also presumes a settled vocabulary of failure classes (contract failure vs rate limit vs transport) that nobody in these transcripts has introduced yet. What's missing is the conversation where the retry policy's accounting actually gets designed: Nikolai's structured-output validation check (pushed 2025-04-29) starts rejecting responses, those rejections retry on the same uniform budget as a 429, and someone notices a row can burn its whole allowance on a model that will never produce valid output. That's #pipeline, where Emil and Dermot already own the rate-limit and header work, and it's where Emil settling one class while Dario or Nikolai works out the rest of the table reads naturally.
+*Why there:* Every listed room is on another subject entirely — streaming/batch routing and cache behaviour (pipeline 6/26), None-cost rendering and version tags (viewer), the Pydantic fix (engineering 6/13), PR readiness triage (both code-review days). Nobody in any of them has raised retries, attempt budgets, 429s, or malformed output, so this remark would answer a question no one asked and draw no reply. It needs the thread where the retry policy's per-class costs were actually being argued: dermot restating his guess at the attempt accounting, emil settling the malformed-output case while explicitly keeping throttle_waivers_left out of it, and someone else covering the remaining classes.
 
 *Still leaves open:* what the other classes cost, and whether anything is ever charged nothing
 
-*A new conversation in #pipeline on 2025-05-13:*
+*Must appear literally:* `throttle_waivers_left`
+
+*A new conversation in #pipeline on 2025-06-26:*
 
 ```
+14:07  dario: back to the retry budget thing - when a response comes back malformed, how much of the budget should that actually cost? one attempt or two
+14:09  gideon: i assumed one, same as any other failure tbh
+14:13  emil: let me think through that. honestly two attempts off for a malformed-output failure sounds right to me, one is too generous when the model can just keep handing back the same garbage. the code today only decrements by one, nobody's changed it yet
+14:16  dario: mhm, that tracks
+14:17  dario: does it also burn a throttle_waivers_left pass, or is that pool separate
+14:20  emil: separate. it doesn't spend a throttle_waivers_left pass, thats for 429s
+14:22  gideon: ah ok, so basically the waiver pool stays untouched. that was the part i had backwards
 ```
 
 ### g3.r1.sc2 — Rate-limit failures are paid for out of a fixed ration of six that every request carries in its own right, and once a request's ration is spent its rate limits cost an attempt like anything else.
@@ -268,6 +284,13 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 *A new conversation in #engineering on 2025-04-15:*
 
 ```
+15:02  nikolai: retries gave up way too fast on the reruns yesterday is that budget per run or per call
+15:05  konrad: per run, mhm. one counter shared by the whole thing off the top of my head
+15:07  dermot: that would explain the tail then. first minute is bad and its spent before the rest even start
+15:09  nikolai: so the first bad minute eats everyones free passes and the late requests walk in with nothing
+15:12  konrad: right. look, each request should walk in with its own full set, the counter belongs on the request not the run
+15:14  dermot: yep. no shared pool at all then
+15:17  nikolai: i'd say thats also the 3 attempts vs 30 gap in tuesdays logs
 ```
 
 #### `g3.r1.l8` — rule
@@ -359,7 +382,7 @@ gideon send me the log too if the user still has it
 
 **nikolai**, 2025-04-25, page:meetings/weekly-notes-week-of-mar-24.md
 
-> on 585 the schedule lives in retry_policy.py now DEFAULT_THROTTLE_WAIVERS = 6 is the module default that seeds throttle_waivers_left on every request  still moving so dont link it yet
+> on 585 the schedule lives in retry_policy.py now DEFAULT_THROTTLE_WAIVERS = 6 is the module default that seeds throttle_waivers_left on every request
 
 *What a reader should take from it:* the team agrees each request starts with six, from a module-level default in the retry policy file
 
@@ -426,6 +449,14 @@ Things still unresolved as of today:
 *A new conversation in #pipeline on 2025-04-02:*
 
 ```
+13:52  gideon: for the retry counting, does the per request state hang off OnlineRequestProcessorConfig or somewhere else? i dunno what we landed on
+13:54  dario: honestly i'd rather not put a new knob on that config for this one
+13:55  gideon: then what seeds the count
+13:57  dario: max_retries. it stays and it still seeds attempts_left, thats unchanged
+14:00  dermot: so config hands you the initial number only, and the rest of it rides on the request?
+14:02  dario: mhm. everythign else stays on the request, attempts_left included
+14:04  dermot: yeah ok. not entirely sure whos picking it up, probably falls out of the 615 work
+14:06  gideon: the sleep calc already reads off the request anyway so its less churn than i thought tbh
 ```
 
 #### `g3.r1.l10` — rule, scope
@@ -449,6 +480,14 @@ Things still unresolved as of today:
 *A new conversation in #engineering on 2025-04-29:*
 
 ```
+15:39  emil: the retry counts from yesterdays run - same request came back with 3 attempts twice, not entirely sure how that happens
+15:41  dermot: youre looking at attempts_left on the request row i take it
+15:42  emil: yeah. verdict said 2 left, request showed 3 the next time round
+15:45  dermot: we do copy attempts_left off the verdict back onto the request when we persist. what we never write back is the pass count
+15:46  emil: ok but if the count itself lands right why does it go back up
+15:49  dermot: pass number is what the reset keys off, and it comes back as whatever it started as. so the next failure reads as a first failure and the request quietly gets the full set again. both fields want to come off the verdict, not just the one
+15:52  dario: that tracks. i can pick it up if nobodys sitting in that file - same spot where we merge the verdict?
+15:54  dermot: same spot yeah. the fixture we exercise it with only ever has one pass in it though, so it wont show you anything
 ```
 
 #### `g3.r1.l9` — rule
@@ -472,6 +511,15 @@ Things still unresolved as of today:
 *A new conversation in #engineering on 2025-06-04:*
 
 ```
+14:38  dermot: the 429 on tuesdays run - decide treated it like any other failure. should it have
+14:41  nikolai: depends whether it was a free one cant tell from in there though
+14:43  dermot: what does it actually get handed
+14:45  nikolai: attempts_made and attempts_left thats the lot
+14:47  dermot: mhm so the 429 is already folded into both counts. nothing left to back it out with
+14:50  konrad: so where would the free / not free come from then
+14:52  nikolai: the requests remaining passes it goes in as a third kwarg
+14:55  konrad: right, every policy signature moves. anyway thats fine
+14:58  dermot: yeah. the fixed ceiling one wont ever read it, it only counts
 ```
 
 ### g3.r1.sc4 — A terminal failure ends the request by emptying whatever attempts remain while its ration passes through untouched, and a rate-limit failure that costs nothing is re-queued even when no attempts remain.
@@ -501,6 +549,15 @@ Things still unresolved as of today:
 *A new conversation in #code-review on 2025-04-03:*
 
 ```
+15:11  nikolai: the throttle retry cases in 565 arent pinned anywhere that i can see
+15:12  nikolai: what happens on a 429 when attempts_left is already 0
+15:14  konrad: it still re-queues, presuming there are waivers. 429 at attempts_left=0 with throttle_waivers_left=3 goes back on the queue, thats the case i want pinned
+15:15  gideon: and the waiver count after that? stays at 3 or
+15:16  konrad: comes back 2. it spends one
+15:17  gideon: ya ok so basically the 429 path is the only thing eating them
+15:18  nikolai: and with the pool empty
+15:19  konrad: no requeue then, its terminal and the reason is throttle:exhausted. so at 0 thats what we tag
+15:22  dario: mhm that tracks. is the 3 per provider or just the default we ship, i dont remember off hand
 ```
 
 #### `g3.r1.l14` — exclusions_or_crossover
@@ -561,6 +618,14 @@ Things still unresolved as of today:
 *A new conversation in #engineering on 2025-04-24:*
 
 ```
+14:12  dario: quick one on the retry policy — when the provider rejects the key, do we drain the attempts counter or leave whatever is left sitting on it
+14:13  dario: run this morning came in with seven left and i cant tell from the code which one happens
+14:15  dermot: `invalid api key` classifies as terminal:abort. theres nothing to retry into so we stop there
+14:16  dario: right but abort as in stop, or abort as in stop and rewrite the counters on the way out
+14:18  dermot: the latter. we empty the attempts, so your seven lands at zero. passes we dont touch, still six
+14:19  dario: mhm. thats not in the policy file yet though is it, i went looking
+14:20  dermot: not yet, no. small enough that it can ride along with the backoff ticket whenever someone gets to it
+14:23  emil: hm. does a plain 401 with no key text land in the same bucket, or is that its own thing
 ```
 
 #### `g3.r1.l12` — exclusions_or_crossover
@@ -610,7 +675,7 @@ separately though, we need to be intentional here about which numbers we publish
 
 *Nobody says:* Testing after the deduction rather than before it is what makes a two-attempt charge fatal at one attempt left and a zero-cost charge survivable at none.
 
-*4 remarks — 1 reporting the problem, 3 settling the design.*
+*5 remarks — 1 reporting the problem, 4 settling the design.*
 
 #### `g3.r1.l16` — failure_behavior
 
@@ -631,13 +696,21 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #pipeline on 2025-03-17:*
 
 ```
+14:02  petar: the 11:40 rerun took a retry after the budget was already spent out. anyone seen that one
+14:03  petar: it logged the retry and then died on the charge
+14:05  dermot: if i had to guess its ordering. we check the budget and then deduct the cost, not the other way round
+14:06  petar: so on the last attempt the check is reading a number thats one call stale
+14:08  dermot: yeah. malformed output comes back with one attempt left, budget still looks fine because nothing was taken off yet, so it hands out a retry it cant pay for
+14:09  emil: sounds right. deduct first, then the check sees whats actually left
+14:10  dermot: mhm. thats the fix. no strong view on whose ticket it lands on
+14:12  petar: ok that tracks, the check sits up in the scheduler and the deduct is down in the client somewhere
 ```
 
 #### `g3.r1.l17` — failure_behavior, observability
 
 **nils**, 2025-03-19, #pipeline
 
-> The verdict logged attempts_left as -1 again overnight. i think whatever number we hand back there has to floor at zero, so we're flooring it.
+> The verdict logged attempts_left as -1 again overnight. settled: a malformed-output failure that cant pay comes back contract:exhausted with attempts_left 0, never a negative.
 
 *What a reader should take from it:* the team agrees the post-failure budget on the verdict is floored at zero
 
@@ -649,11 +722,49 @@ separately though, we need to be intentional here about which numbers we publish
 
 *Still leaves open:* when the number goes under zero in the first place and what else the verdict should say then
 
-*Must appear literally:* `The`, `attempts_left`
+*Must appear literally:* `The`, `attempts_left`, `contract:exhausted`
 
 *A new conversation in #pipeline on 2025-03-19:*
 
 ```
+13:02  gideon: The verdict logged attempts_left as -1 again overnight. second time this week i think
+13:04  dermot: -1 though. so something took one off past zero and nobody clamped it, if i had to guess
+13:06  nils: malformed output path. it wants another attempt, cant pay for it, and still decrements on the way out
+13:07  gideon: ok so what does that one come back as, then
+13:10  nils: contract:exhausted, and attempts_left reads 0
+13:10  dermot: 0 even where the budget was already gone before it tried
+13:11  nils: 0. never a negative, whatever the arithmetic wants to do
+13:13  gideon: ya. its only ever the overnight sweep that gets deep enough to hit it fwiw
+```
+
+#### `g3.r1.say23` — failure_behavior
+
+**emil**, 2025-03-27, #viewer
+
+> honestly the check belongs after the deduction and only trips on strictly negative - a malformed-output failure at attempts_left 2 lands on 0 and still gets retried.
+
+*What a reader should take from it:* the team agrees the exhaustion test runs after the cost is charged and trips only on a strictly negative result, so landing on exactly zero attempts is still a retry
+
+*Step it builds toward:* `g3.r1.sc5` — The cost is taken off first and the request ends only if that subtraction would go under zero; when it does there is no wait and the reported budget stops at zero.
+
+*Drafted as:* honestly the check belongs after the deduction and strictly negative - a malformed-output failure at attempts_left 2 lands on 0 and still gets retried.
+
+*Why there:* None of the eight rooms is chewing on retry semantics at all — they're on batch response shapes, Mistral usage extraction, torch/litellm guards, auth, release notes, agent response shape, and the throttle/backpressure path. The closest, #engineering 2025-03-19, is about rate-limiter headroom and token estimation, not per-request attempt budgets; dropping a decision about where the `attempts_left` exhaustion check sits would change the subject and land without a reply. The remark needs a room where a retry/backoff decision function is actually being specified, and where a sibling can supply the verdict side (label, delay, floored budget). The natural prompt is the fallout from the 2025-05-06 structured-output revert: malformed-output responses are now a real failure class, and the team has to say whether they burn an attempt and when the budget counts as exhausted.
+
+*Still leaves open:* says nothing about what the verdict looks like when the subtraction does go under zero - the outcome label, the delay and the floored budget all come from elsewhere
+
+*Must appear literally:* `attempts_left`
+
+*A new conversation in #viewer on 2025-03-27:*
+
+```
+14:22  konrad: the retry guard on the viewer path - is the attempts_left check before or after we take one off? off the top of my head its before
+14:24  konrad: asking because a malformed run gave up earlier than i expected yesterday
+14:29  emil: honestly the check belongs after the deduction. checking first means we're refusing on an attempt we havent actually spent yet
+14:33  dermot: after, so it's comparing the new value. against zero or below zero? not the same thing here
+14:37  emil: only trips on strictly negative. zero still has a pass in it
+14:38  emil: so a malformed-output failure at attempts_left 2 lands on 0 and still gets retried, which is what you'd want
+14:41  konrad: mhm ok. that lines up with what i saw then
 ```
 
 #### `g3.r1.l19` — failure_behavior
@@ -677,6 +788,13 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #code-review on 2025-04-16:*
 
 ```
+15:12  konrad: in the backoff helper we still compute a delay when the verdict comes back not-a-retry. on purpose or leftover
+15:14  dario: not on purpose i dont think. if its not a retry theres nothing to wait for, so the delay should just be 0.0
+15:17  konrad: right, but 0.0 from where. we still walk the schedule to get it? the fail case ran off the end of the table tuesday
+15:21  dario: no thats the part i mean, we shouldnt be reading the schedule at all in that branch. just hand back 0.0
+15:23  gideon: what about the jitter, um, the rng gets pulled either way right now. i saw it in the trace
+15:26  dario: same answer honestly, dont pull from the jitter source either. no schedule read, no draw, plain 0.0
+15:28  konrad: mhm. the ceiling clamp sits after that read too, so it never sees a zero today
 ```
 
 #### `g3.r1.l18` — failure_behavior
@@ -698,6 +816,14 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #code-review on 2025-04-24:*
 
 ```
+14:02  emil: went through the retry loop this morning, mostly the sleep math. one thing is bugging me
+14:03  dermot: bugging you as in the numbers are wrong, or the ordering
+14:05  emil: ordering. we're sleeping a full backoff on requests we've already decided to bin
+14:06  dermot: decided as in it came back non-retryable? so we wait out the whole delay and then drop it anyway
+14:07  emil: yup. and we draw the jitter for them too, on the way out
+14:08  dario: mhm. jitter gets computed before the retryable check at all i think, its just sat at the top of the loop body
+14:09  emil: it is. both of them, before we ever look at the response class. sleep + jitter want to sit after that check, not before it
+14:11  dermot: yeah ok. that's the tail on the friday run then, if i had to guess
 ```
 
 ### Herrings — believed at the time, overturned later
@@ -717,6 +843,15 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #code-review on 2025-02-06:*
 
 ```
+14:01  nikolai: quick one while im in the backoff code does a THROTTLE burn an attempt or not
+14:03  dermot: reading it as yes — it goes down the same increment path as a real failure. so three 429s in a row and the request is dead
+14:07  dario: thats what it does today and honestly i think thats wrong. a 429 says nothing about the request itself, its our rate thats the problem not their payload
+14:07  nikolai: so zero
+14:08  dario: zero attempts off the retry budget yeah. costs nothing
+14:10  nikolai: and decide hands back the same failure object or what
+14:12  dario: no — decide charges nothing and re-queues it. same reqeust goes back in the queue, budget untouched
+14:13  dermot: mhm. so the sleep is the only thing bounding it then, nothing on the count side
+14:15  nikolai: right the 429 branch doesnt even read retry-after today thats its own mess
 ```
 
 #### `g3.r1.h2` — herring
@@ -734,6 +869,14 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #engineering on 2025-03-12:*
 
 ```
+14:26  dermot: the request that ate eight 429s over the weekend came back exhausted. is throttle counting against attempts or is that something else
+14:29  konrad: it shouldnt. only transient and contract come off the budget
+14:31  dermot: is there a ceiling on it further up then
+14:33  konrad: right, no ceiling on it
+14:34  konrad: a rate limited request keeps its full budget however many 429s it eats, THROTTLE never deducts
+14:36  dario: mhm that tracks. counter only moves on the other two then
+14:38  konrad: anyway noone has writen it that way yet, classify still returns the old shape. maybe i take it tomorow
+14:41  dario: the weekend one sat on 429s for 40 min before it quit, thats the case i'd point a fixture at
 ```
 
 #### `g3.r1.rev1` — rule, failure_behavior
@@ -753,6 +896,15 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #incidents on 2025-04-09:*
 
 ```
+13:21  dermot: the throttled key from last night sat in the queue til about 04:00. thats the zero-attempt path doing exactly what we told it to, if i had to guess
+13:22  dario: mhm. that "throttle costs zero attempts" line i settled in review is gone
+13:23  dario: idea was a 429 says nothing about the request itself, so decide charged nothing and re-queued it. fine for a blip. that key was throttled permanently and we re-queued it for hours
+13:24  gideon: so 429s eat the budget now? feels harsh for a one off spike tbh
+13:24  dario: not flat, no. its free while throttle_waivers_left > 0
+13:25  gideon: and after that
+13:25  dario: then decide charges 1, same as any other failure
+13:26  dermot: yeah ok. so the pool runs out first and then it dies normally
+13:27  dario: right, and the waiver comes off on every 429 regardless, the charging only starts once its empty
 ```
 
 > **Problems:** longer than one remark
@@ -774,6 +926,14 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #cookbooks on 2025-03-20:*
 
 ```
+13:32  dermot: that 429 loop over the weekend, the key was dead and it just kept going for hours. nothing ever decremented
+13:34  konrad: look, i am the one who said 429s never cost a request budget. no ceiling on it, THROTTLE never deducts, only TRANSIENT and CONTRACT do. thats out now
+13:35  dario: out as in throttle eats the normal budget now, or does it get its own pool
+13:36  konrad: own pool. APIRequest carries DEFAULT_THROTTLE_WAIVERS = 6
+13:37  dermot: decide only sees the request today though, if i had to guess the count has to be passed in
+13:38  konrad: mhm. decide takes throttle_waivers_left and reports throttle_waivers_after, caller writes it back
+13:39  dario: and the 6 is from that loop or just a roundish number
+13:40  konrad: from the loop more or less. it would have been dead in the first minuite at six
 ```
 
 
@@ -803,7 +963,9 @@ separately though, we need to be intentional here about which numbers we publish
 
 - said: `A`, `throttle_cooldown_until`, `time_of_last_rate_limit_error`, `tracker.throttle_cooldown_until`
 
-> **Spread:** g3.r2.sc3: two remarks in #releases within 7 days
+> **Spread:** g3.r2.sc2: two remarks in #cookbooks within 13 days; g3.r2.sc3: two remarks in #releases within 7 days
+
+> **13 of 51 graded assertions are not stated outright** — 13 implied. A reader has to supply the rest themselves, and may not. See `settled.md`.
 
 ### The remarks, by the step they build
 
@@ -811,7 +973,7 @@ separately though, we need to be intentional here about which numbers we publish
 
 *Nobody says:* if the stored end-time is already behind you there is nothing left to wait, so the pause point can ask a stored deadline the one question it actually cares about.
 
-*4 remarks — 1 reporting the problem, 3 settling the design.*
+*5 remarks — 1 reporting the problem, 4 settling the design.*
 
 #### `g3.r2.s1b` — rule
 
@@ -832,6 +994,13 @@ separately though, we need to be intentional here about which numbers we publish
 *A new conversation in #pipeline on 2025-03-21:*
 
 ```
+13:12  dario: last nights 429 retry slept ~40 min total. the window was 8
+13:13  emil: so youre saying the backoff just doubled straight past the reset? i thought we read that header
+13:15  gideon: we read it for the log line, ya. but nothing on the tracker recods when the throttle window actually ends, its just attempt counts
+13:17  dario: so the sleep site has nothing to ask about how much is left, either way
+13:18  gideon: exactly. the pause point cant ask how much is left so it keeps doubling and we idle way past it. so basically the window end goes on the tracker and the sleep reads it there
+13:20  emil: yup, and clamp to that instead of the fixed ceiling
+13:23  dario: the 8 was sitting in the header on that run too. we had the number and dropped it
 ```
 
 > **Problems:** describes asking rather than settling
@@ -840,7 +1009,7 @@ separately though, we need to be intentional here about which numbers we publish
 
 **dermot**, 2025-04-07, #pipeline
 
-> on the retry side: the helper handed back -3.2 once the window was behind us, and 4.999999999998 before that — that should be 0.0 clamped and three decimals.
+> on the retry side: remaining_cooldown_seconds(tracker, now) handed back -3.2 once the window was behind us, and 4.999999999998 before that — clamp at 0.0, round to three decimals.
 
 *What a reader should take from it:* the remaining-wait number is clamped at zero and rounded to three decimals
 
@@ -851,6 +1020,8 @@ separately though, we need to be intentional here about which numbers we publish
 *Why there:* dermot opened that day saying he wanted to confirm the gemini batch changes don't regress cost accounting or retry logic before calling PR 614 done — he is the only person in any of these rooms who has retry logic on his plate, and this is him reporting back on his own stated check. The thread then splits: gideon takes the cost-accounting half (the 10x resume case) while dermot's retry half never gets its result stated, so a finding from him lands in a gap the room already left open rather than changing the subject. It doesn't collide with anything: nobody else has touched the remaining-wait helper, and the window itself stays unexplained, which the resume/config discussion around it makes unremarkable.
 
 *Still leaves open:* what the window is, where it is stored, and what puts it there
+
+*Must appear literally:* `-3.2`, `0.0`, `4.999999999998`, `remaining_cooldown_seconds(tracker, now)`
 
 *Goes into the real conversation in #pipeline on 2025-04-07, after 10:52 dermot:*
 
@@ -886,7 +1057,7 @@ separately though, we need to be intentional here about which numbers we publish
 
 **nils**, 2025-04-07, #general
 
-> A tracker nobody has throttled should answer 0.0 however far ahead you ask — window at 1005.0 gives 3.0 at 1002.0, 0.5 at 1004.5, 0.0 at 1005.0.
+> A tracker nobody has throttled answers 0.0 however far ahead you ask — with the window at 1005.0, remaining_cooldown_seconds(tracker, 1002.0) is 3.0, 0.5 at 1004.5, 0.0 at 1005.0.
 
 *What a reader should take from it:* an untouched tracker answers zero, and otherwise the answer is the window minus the time asked about
 
@@ -898,20 +1069,60 @@ separately though, we need to be intentional here about which numbers we publish
 
 *Still leaves open:* what sets the window to 1005.0 in the first place and what happens to it on later failures
 
-*Must appear literally:* `A`, `1005.0`, `1002.0`, `1004.5`, `3.0`, `0.5`, `0.0`
+*Must appear literally:* `0.0`, `0.5`, `1002.0`, `1004.5`, `1005.0`, `3.0`, `A`, `remaining_cooldown_seconds(tracker, 1002.0)`
 
 *A new conversation in #general on 2025-04-07:*
 
 ```
+14:02  konrad: quick one on the backoff thing - what should remaining_cooldown_seconds(tracker, 1002.0) hand back if the window on A runs to 1005.0
+14:04  nils: 3.0. it is just the window end minus the now you pass in, so 0.5 at 1004.5
+14:05  konrad: and right on the boundary? presumably it does not go negative after
+14:06  nils: no, it clamps. 1005.0 itself already reads 0.0 and stays there
+14:08  gideon: ok but what about a tracker nobody ever throttled, theres no window on it at all tbh
+14:10  nils: let me think - same answer, 0.0, however far ahead you ask. nothing to wait on
+14:11  konrad: right. none of that is actually in the file yet though is it
+14:12  nils: not yet, no
+14:13  gideon: ya ok. i had it returning None for the untouched one in my head
 ```
 
 > **Problems:** longer than one remark
+
+#### `g3.r2.say19` — rule
+
+**dario**, 2025-04-11, #releases
+
+> mhm — and it sits as a plain module function in the retry policy, remaining_cooldown_seconds(tracker, now), not a method on the tracker, the pause point hands it both.
+
+*What a reader should take from it:* the team agrees the remaining-cooldown helper is a module-level function in the retry policy taking the tracker and the current time
+
+*Step it builds toward:* `g3.r2.sc1` — The tracker carries a timestamp for the moment throttling ends, sitting immediately after the existing rate-limit timestamp and zero on a fresh tracker, and the wait at the pause point is that timestamp minus the current time, floored at zero and rounded to three decimals.
+
+*Drafted as:* and it lives as a plain module function in the retry policy, remaining_cooldown_seconds(tracker, now) — not a method on the tracker, the pause point hands it both.
+
+*Why there:* None of the listed rooms is designing a retry cooldown. The closest, #pipeline 2025-03-31, mentions PR 585 "retry logic for batch" and issues 207/233 on rate-limit headers, but only as unowned backlog — nobody there is placing a helper, and dropping a settled signature into a day that ends with "carry both into next milestone unowned" would contradict the room. The two siblings this remark leans on come from dermot (subtraction, floor at zero, three-decimal rounding) and nikolai (the horizon field), and those two never appear together in any candidate — nikolai only shows up in #code-review 2025-04-08, a PR-triage day with no dermot and no design talk. This needs the conversation where the cooldown tracker, the pause point and the surfaced field get settled at once, and that conversation isn't in the list.
+
+*Still leaves open:* says nothing about what the helper returns — the subtraction, the floor at zero and the three-decimal rounding all come from dermot's line, and the horizon field itself from nikolai's.
+
+*Must appear literally:* `remaining_cooldown_seconds(tracker, now)`
+
+*A new conversation in #releases on 2025-04-11:*
+
+```
+13:41  nikolai: the cooldown remainder math where does that live now do we hang it off the tracker
+13:43  dermot: retry policy side. plain module function, not entirely sure it needs to be anything cleverer
+13:44  nikolai: what does it take then it needs a clock from somewhere
+13:46  dermot: remaining_cooldown_seconds(tracker, now)
+13:47  konrad: so the tracker itself stays dumb, right? no method on it
+13:49  dario: mhm — not a method on the tracker, honestly. the pause point already holds both so it just hands it both
+13:51  nikolai: yep thats fine
+13:52  konrad: then the inline math in the sleep path can go, presumably. nobody has written any of this yet though
+```
 
 #### `g3.r2.s1a` — rule
 
 **nikolai**, 2025-06-18, page:meetings/weekly-sync-notes-week-of-jun-9-bulk-llm-inference.md
 
-> tracker fields keep shifting under this one order right now is num_other_errors then time_of_last_rate_limit_error then throttle_cooldown_until at 0.0 on a fresh tracker still moving dont quote me
+> tracker gains one new field for this and only one: throttle_cooldown_until, 0.0 on a fresh tracker, sitting right after time_of_last_rate_limit_error. nothing else added for the pause.
 
 *What a reader should take from it:* the tracker holds a second time value right after the rate-limit one, zero until something sets it
 
@@ -923,7 +1134,7 @@ separately though, we need to be intentional here about which numbers we publish
 
 *Still leaves open:* what the second timestamp is for, who writes it, and what the pause point does with it
 
-*Must appear literally:* `time_of_last_rate_limit_error`, `throttle_cooldown_until`
+*Must appear literally:* `0.0`, `throttle_cooldown_until`, `time_of_last_rate_limit_error`
 
 *Goes as a comment on the real page `meetings/weekly-sync-notes-week-of-jun-9-bulk-llm-inference.md`:*
 
@@ -957,11 +1168,13 @@ Dario walked through current state of bulk-llm-inference. Overall: on track for 
 - [ ] 293 - cost/usage tracking via API, punted past v0.1.26
 ```
 
+> **Problems:** longer than one remark
+
 ### g3.r2.sc2 — A rate-limit failure takes one clock reading, stamps the existing rate-limit timestamp with it, and moves the end-of-throttle timestamp to the later of what it already held and that reading plus the failure's own backoff.
 
 *Nobody says:* when two throttles overlap the longer wait is the one still owed, so a newly computed shorter deadline cannot be allowed to replace it.
 
-*4 remarks — 0 reporting the problem, 4 settling the design.*
+*5 remarks — 0 reporting the problem, 5 settling the design.*
 
 #### `g3.r2.s2b` — rule
 
@@ -982,6 +1195,14 @@ Dario walked through current state of bulk-llm-inference. Overall: on track for 
 *A new conversation in #releases on 2025-03-19:*
 
 ```
+14:08  konrad: on the backoff work, if a second retry-after comes in while we are already sleeping, do we take it or keep the deadline we have
+14:11  emil: we take it only if its later i believe. otherwise nothing changes
+14:12  konrad: and if its earlier? clamp down to it, or ignore
+14:16  dario: it loses. we keep sitting on the one we're already holding, the new shorter one just doesnt apply
+14:17  konrad: feels odd to throw away what the server just told us
+14:20  dario: honestly that window only ever moves further out, ive not seen one pull back in. so the earlier value is noise
+14:22  emil: sounds right, so its a max of the two and not much else
+14:25  konrad: off the top of my head the 429 and the 503 path build that number in two different places though
 ```
 
 #### `g3.r2.s2a` — rule
@@ -1003,13 +1224,21 @@ Dario walked through current state of bulk-llm-inference. Overall: on track for 
 *A new conversation in #cookbooks on 2025-03-21:*
 
 ```
+13:36  nikolai: why did the retry example blow up again on that rerun
+13:38  dario: second 429 came back with a tiny backof value, and we just took it
+13:39  nikolai: took it as what we were already 8s deep by then
+13:41  dario: as the new wait. it pulled us back down under a second
+13:43  konrad: and then we were straight into the flood again. thats the loop right there
+13:44  konrad: look, we just dont let it go down. whichever is larger, ours or the header
+13:46  nikolai: yep solid enough
+13:48  dario: by the end of that run the 429s were landing ~300ms apart fwiw
 ```
 
 #### `g3.r2.s2c` — observability, rule
 
 **emil**, 2025-03-25, #pipeline
 
-> @Nils on 585's retry side - clock pinned at 1000.0, jitter 0.25, first 429 sets tracker.throttle_cooldown_until to 1005.0, and a second worth 1.0 has to leave it there.
+> @Nils on 585's retry side - clock pinned at 1000.0, jitter 0.25, the first 429's own delay reads 5.0 unrounded, so tracker.throttle_cooldown_until is 1005.0; a second worth 1.0 leaves it.
 
 *What a reader should take from it:* with a pinned clock the window lands at now plus the backoff and a shorter second backoff leaves it unchanged
 
@@ -1021,7 +1250,7 @@ Dario walked through current state of bulk-llm-inference. Overall: on track for 
 
 *Still leaves open:* what the other stamp does at the same moment, and what non-throttle failures do to either
 
-*Must appear literally:* `tracker.throttle_cooldown_until`, `1000.0`, `0.25`, `1005.0`, `1.0`
+*Must appear literally:* `0.25`, `1.0`, `1000.0`, `1005.0`, `5.0`, `585`, `tracker.throttle_cooldown_until`
 
 *Goes into the real conversation in #pipeline on 2025-03-25, after 10:53 nils:*
 
@@ -1058,6 +1287,35 @@ def tes
 
 > **Problems:** longer than one remark
 
+#### `g3.r2.say21` — scope
+
+**konrad**, 2025-04-03, #cookbooks
+
+> look, every THROTTLE bumps num_rate_limit_errors by one on the way through — one 429, one increment, and that's the only counter it touches.
+
+*What a reader should take from it:* the team agrees a THROTTLE verdict increments num_rate_limit_errors by one and no other counter
+
+*Step it builds toward:* `g3.r2.sc2` — A rate-limit failure takes one clock reading, stamps the existing rate-limit timestamp with it, and moves the end-of-throttle timestamp to the later of what it already held and that reading plus the failure's own backoff.
+
+*Why there:* None of the listed rooms is chewing on verdict kinds or counter semantics. The closest, #engineering 2025-03-19, is arguing about whether the token-count fix shifted the throttle path and who owns closing the postmortem action item — nobody there has opened the request-processing code, and the technical detail that day comes from gideon ("token counts feed directly into the throttle check in online-request-processing"), not konrad. A statement about what a THROTTLE verdict increments would arrive with no vocabulary around it and draw no reaction. What is missing is the follow-up: the throttle check konrad called for at 17:36 actually being run, and the team pinning down what each verdict kind records before anyone can say whether behaviour shifted. That conversation carries this remark and its sibling (other verdict kinds, the two timestamps) naturally. The cookbooks, code-review and viewer threads are about docs, PR status and rendering, and have no seam for it at all.
+
+*Still leaves open:* what the other verdict kinds do to their own counters, and what the throttle path does to the two timestamps
+
+*Must appear literally:* `THROTTLE`, `num_rate_limit_errors`
+
+*A new conversation in #cookbooks on 2025-04-03:*
+
+```
+15:23  nikolai: quick one on the retry counters in the cookbook example, if one request gets throttled twice does that come out as 1 or 2
+15:24  konrad: 2. every THROTTLE bumps num_rate_limit_errors by one on the way through
+15:26  nikolai: ok so its per 429 not per request
+15:28  konrad: right. one 429, one increment
+15:29  dario: does it hit anything else on the way past, like a generic error total or the failed count
+15:31  konrad: no, thats the only counter it touchs. nothing else moves
+15:33  nikolai: solid enough ill park it on the retry ticket, dunno who picks it up
+15:35  dario: then the 7 in tuesdays sample was just 7 429s, i had it written down as a double count
+```
+
 #### `g3.r2.s2d` — rule, scope
 
 **nils**, 2025-04-21, #general
@@ -1079,13 +1337,21 @@ def tes
 *A new conversation in #general on 2025-04-21:*
 
 ```
+14:12  dermot: pulled the retry logs from fridays run. the two stamps we write on a 429 are always about 40ms apart from each other
+14:15  nils: 40ms is suspiciously consistent. is that write ordering, or are we reading the clock twice
+14:18  dermot: twice. the handler asks for now() when it stamps, then asks again when it computes the window
+14:21  nils: let me think — ok that's the whole of it then. take one reading at the top of the handler and use that value for time_of_last_rate_limit_error and for the window both, instead of each grabbing its own
+14:23  nikolai: so window start is off the same value not its own call
+14:24  nils: yes, same value in both places.
+14:26  nikolai: nobodys written it yet, i'd say it rides along with the WS-050 sweep unless dermot wants it separate
+14:29  dermot: mhm. the gap was wider than 40 on the slow box last week too, which fits
 ```
 
 ### g3.r2.sc3 — Failures that are not rate limits only increment their counter: they leave both timestamps untouched and never read the clock at all.
 
 *Nobody says:* state that exists to describe throttling should only ever be written by throttling.
 
-*3 remarks — 0 reporting the problem, 3 settling the design.*
+*5 remarks — 0 reporting the problem, 5 settling the design.*
 
 #### `g3.r2.s3a` — scope
 
@@ -1106,6 +1372,12 @@ def tes
 *A new conversation in #releases on 2025-03-24:*
 
 ```
+14:02  konrad: quick one, the fake clock in the retry test logged 3 calls but that run only had one 429 in it. is that normal
+14:06  emil: not entirely sure it is normal, no. the other two would be the schema failures, i believe — same run had two of those and they go down the same sleep path
+14:09  konrad: right but a bad payload has no business asking what time it is. sleeping does not fix the shape of it
+14:12  emil: yup, agreed. only the throttles should be reading the clock. schema failure just fails out, no backoff, no clock
+14:14  dario: that tracks. so one call for that run and not three
+14:17  konrad: anyway that explains the 3 sitting in my notes, i wrote it down as expected at the time
 ```
 
 > **Problems:** longer than one remark; contains its own forbidden term 'THROTTLE'
@@ -1114,7 +1386,7 @@ def tes
 
 **dermot**, 2025-03-31, #releases
 
-> yeah, for a schema failure the counter is the whole job, that path has no reason to be moving stamps or windows around.
+> yeah, for a schema failure the counter is the whole job — a CONTRACT verdict bumps num_api_errors by one and that's it, no stamps, no windows.
 
 *What a reader should take from it:* non-throttle failures increment their counter and write nothing else
 
@@ -1126,16 +1398,26 @@ def tes
 
 *Still leaves open:* what the throttle path does that this path skips, and why the clock matters here
 
+*Must appear literally:* `CONTRACT`, `num_api_errors`
+
 *A new conversation in #releases on 2025-03-31:*
 
 ```
+16:08  konrad: quick one before I forget - when a response comes back failing schema validation, what happens on the retry bookkeepign side? does it get a stamp like the 429s do
+16:11  dermot: no. for a schema failure the counter is the whole job
+16:12  dario: which counter though, theres like three of them in that struct
+16:14  dermot: num_api_errors. a CONTRACT verdict bumps it and thats the end of it
+16:15  konrad: bumps it per bad row, or once for the response
+16:16  dermot: by one. and nothing else gets written on that path, no stamps, no windows
+16:19  dario: mhm ok. simpler than what i had in my head to be honest
+16:21  dermot: the windows only ever mattered for the 429 side, if i had to guess thats where it came from
 ```
 
 #### `g3.r2.s3b` — scope
 
 **gideon**, 2025-04-09, #pipeline
 
-> so basically one thing did turn up in that pass: a timeout landed betwen two 429s and our last-rate-limit stamp jumped to it, graph showed us throttled when the provider was perfectly happy
+> so basically a timeout landed betwen two 429s and jumped our last-rate-limit stamp — a TRANSIENT only bumps num_api_errors, time_of_last_rate_limit_error is throttle-only.
 
 *What a reader should take from it:* a transient failure must not update the rate-limit timestamp
 
@@ -1146,6 +1428,8 @@ def tes
 *Why there:* Gideon opened that day saying he was validating that rate limit and cost accounting surface cleanly through online-request-processing and that "nothing alarming so far" — the room is explicitly waiting on that pass before signing off on Dermot's provider changes. This is the finding from that pass, in his own workstream, complicating his own earlier all-clear. It sits right after his 14:36 catch-up burst where he's already reporting what he has and hasn't covered, and it doesn't step on the 03-19 throttle check, which was declared clean at the time.
 
 *Still leaves open:* whether the other stored time moved too, and what a timeout should be doing instead
+
+*Must appear literally:* `TRANSIENT`, `num_api_errors`, `time_of_last_rate_limit_error`
 
 *Goes into the real conversation in #pipeline on 2025-04-09, after 14:36 gideon:*
 
@@ -1176,13 +1460,113 @@ def tes
 18:26  emil: Who's supposed to be owning that doc, or has it just not happened yet?
 ```
 
-> **Problems:** longer than one remark
+#### `g3.r2.say22` — scope
+
+**dario**, 2025-04-18, #incidents
+
+> and the non-throttle verdicts never touch num_rate_limit_errors, it only moves on a THROTTLE - so it just sits there through a whole run of schema misses and timeouts
+
+*What a reader should take from it:* the team agrees non-throttle verdicts leave num_rate_limit_errors unchanged
+
+*Step it builds toward:* `g3.r2.sc3` — Failures that are not rate limits only increment their counter: they leave both timestamps untouched and never read the clock at all.
+
+*Drafted as:* and the non-throttle verdicts never touch num_rate_limit_errors — it only moves on a THROTTLE, so it holds still through a run of schema misses and timeouts.
+
+*Why there:* Every listed room is chewing on something else: construction-time schema_check (03-14), num_gpus scope (04-29), PR triage (03-19), unknown-capability hard-blocking (03-26), when the batch record gets written (04-03), and the cache fingerprint/job record model gap (04-18, 04-23, 04-11). None of them has raised retry classification at all — no verdicts, no THROTTLE, no error counters — so a line about what num_rate_limit_errors does and doesn't move would change the subject and land without a reply. The remark needs a thread where someone is actually reading the retry classifier's verdict handling, which is adjacent to but not inside the caching/fingerprint work dario is doing in those rooms. The natural home is a #engineering thread a day or two after the 04-23 pipeline thread, prompted by the same bulk-llm-inference runs: dermot and emil have been eating rate limits on the provider side ("few loose ends on the provider side"), gideon asks why backoff isn't escalating on a run that's clearly failing, and dario — who has been living in that code — walks the verdict-to-counter mapping. His half is the settled observation that non-throttle verdicts leave num_rate_limit_errors alone; the per-verdict increments would come from whoever actually owns the request path.
+
+*Still leaves open:* which counter each non-throttle verdict does increment, and by how much
+
+*Must appear literally:* `num_rate_limit_errors`, `THROTTLE`
+
+*A new conversation in #incidents on 2025-04-18:*
+
+```
+15:11  nikolai: last nights bulk run retried something like 40 times and the rate limit count came back 0
+15:14  dario: thats num_rate_limit_errors, and honestly it only moves on a THROTTLE verdict, thats the one place we bump it
+15:15  nikolai: so what does it do on the other verdicts
+15:17  dario: nothing at all - the non throttle verdicts never touch it. schema miss, timeout, malformed json, they all go down the same retry path and leave it sitting where it was
+15:19  dermot: so it just sits there through a whole run of schema misses and timeouts. if i had to guess that is your 0
+15:21  dario: mhm. simplest thing is a seperate counter bumped on the generic retry path and leave the throttle one as it is, in any case we want the two numbers apart
+15:22  nikolai: right the alert we hung off that field has never fired once then
+```
+
+#### `g3.r2.say20` — scope
+
+**nils**, 2025-04-29, #general
+
+> let me think — a TERMINAL verdict gets its own slot, num_other_errors, one increment, and nothing else on the tracker moves for it.
+
+*What a reader should take from it:* the team agrees a TERMINAL verdict increments num_other_errors and touches nothing else
+
+*Step it builds toward:* `g3.r2.sc3` — Failures that are not rate limits only increment their counter: they leave both timestamps untouched and never read the clock at all.
+
+*Drafted as:* let me think — a TERMINAL verdict has its own slot, num_other_errors, one increment, and nothing else on the tracker moves for it.
+
+*Why there:* Both #code-review days are pure triage: what lands before the release, who reviews PR 584, and the fact that WS-047 has no page, no ticket, no scope. Neither day touches retry verdicts, error counters, throttling, or the tracker at all, so a settled statement about counter semantics would land with no one to answer it and no thread to pick up. Worse on 03-25 specifically: Nils spends that day saying nobody handed him a scope for WS-047 and there's genuinely nothing written — him stating a decided verdict-to-counter mapping in the same room contradicts the state he's complaining about. The remark belongs in the design conversation that happens once WS-047 actually gets written, where the sibling remark about the other non-throttle verdicts and whether the clock is read has somewhere to sit.
+
+*Still leaves open:* which counters the other non-throttle verdicts use, and whether the clock is read at all on this path
+
+*Must appear literally:* `TERMINAL`, `num_other_errors`
+
+*A new conversation in #general on 2025-04-29:*
+
+```
+14:22  dermot: question on the retry tracker — when a response comes back TERMINAL, which counter is that supposed to land on
+14:23  dermot: right now it falls through the generic error path with the timeouts, which reads wrong to me
+14:31  nils: let me think. it shouldn't share a bucket with rate limits or timeouts, no. i'd give it its own slot — num_other_errors
+14:33  dermot: ok that i can do. does anything else move at the same time though, attempt count, in flight, either of those
+14:38  nils: no. one increment on that field and nothing else on the tracker moves for it
+14:39  dermot: yeah ok. so a TERMINAL never touches the retry numbers at all
+14:40  nils: right, nothing gets retried so there's nothing to count there
+14:47  emil: field isn't on the dataclass yet fwiw, its four ints and none of them is that one
+```
 
 ### g3.r2.sc4 — The pause is no longer derived from the config constant or from how long ago the last rate-limit error happened; the constant stays in config.py unread, for backwards compatibility.
 
 *Nobody says:* one fixed number cannot be both long enough for the worst throttle and short enough for the smallest one, so the wait has to come from the failure itself.
 
-*4 remarks — 0 reporting the problem, 4 settling the design.*
+*5 remarks — 0 reporting the problem, 5 settling the design.*
+
+#### `g3.r2.say23` — exclusions_or_crossover
+
+**dario**, 2025-03-17, #code-review
+
+> @Konrad on 585 - i left config.seconds_to_pause_on_rate_limit exactly as it was, still 10 on the processor's config, the pause point just doesnt read it anymore
+
+*What a reader should take from it:* the team agrees the processor's config still reports seconds_to_pause_on_rate_limit as 10 after the change
+
+*Step it builds toward:* `g3.r2.sc4` — The pause is no longer derived from the config constant or from how long ago the last rate-limit error happened; the constant stays in config.py unread, for backwards compatibility.
+
+*Drafted as:* on 585 i left config.seconds_to_pause_on_rate_limit exactly as it was, still 10 on the processor's config — the pause point just never reads it now.
+
+*Why there:* Konrad opens 03-17 by asking Dario and Emil specifically where PR 565, 566, 579 and 585 stand and what's blocking them — this is the only room where 585 is on the table, and Dario is one of the two people pinged. Dario is otherwise silent until 18:29, so him picking up the 585 half of that ping with the one detail a reviewer would want (nothing moved on the config surface) fits the thread, while leaving the actual new mechanism unstated.
+
+*Still leaves open:* what the pause is actually computed from instead, and where the new window lives on the tracker
+
+*Must appear literally:* `config.seconds_to_pause_on_rate_limit`, `10`
+
+*Goes into the real conversation in #code-review on 2025-03-17, after 12:51 nikolai:*
+
+```
+09:00  konrad: Weekly update is out for the week of Mar 10
+09:00  konrad: Asked Dario and Emil specifically about where PR 565, PR 566, PR 579, PR 585 stand and what's blocking them, also flagged PR 581 and PR 583 for triage
+09:00  konrad: And PR 592 is up for eyes whenever someone has a moment, it's cleanup work touching examples-cookbooks
+09:00  konrad: @Dario, if you get a minute this morning, would really appreciate a look at PR 592 before this gets buried under the week
+09:00  konrad: It's just cleanup on examples-cookbooks, nothing structural, but I'd like a second pair of eyes before I merge
+09:23  nikolai: For PR 581 and 583, are we trying to land those before a specific release cut or are they just merge-when-ready?
+09:24  nikolai: Ok, answering my own question - Konrad's weekly says triage PR 581 and 583 this week, so they're release-scoped not just whenever.
+11:54  nils: @Gideon, where does PR 581 stand?
+12:35  emil: gotcha
+12:36  emil: PR 579 is in decent shape on my end, just needs a review pass before I'd call it merge-ready
+12:36  emil: Still want to sort out where it sits relative to PR 565 and PR 566 since there's overlap on the openai/deepseek side
+12:51  nikolai: Tried to pull up the v0.1.20 release notes and there's no page yet, so I honestly don't know if PR 583 is even in scope for this cut
+12:51  nikolai: Do we have enough to call a decision on the config PRs today or are we waiting on that first?   <-- THE REMARK GOES HERE
+18:23  gideon: @Nils PR 581 is ready for review, waiting on a pass
+18:29  dario: @Nikolai are the config PRs actually gated on the release notes, or can we call them separately?
+18:29  nikolai: No, not gated - I was just noting the notes aren't there yet and wasn't sure if PR 583 was in scope
+18:30  nikolai: Anyway PR 581 and 583 both look review-ready at this point, but we haven't actually called merge or defer on either of them
+18:30  nikolai: The v0.1.20 release notes page isn't up yet - @Dario are those landing today?
+```
 
 #### `g3.r2.s4c` — exclusions_or_crossover
 
@@ -1243,6 +1627,14 @@ def tes
 *A new conversation in #incidents on 2025-04-11:*
 
 ```
+12:19  konrad: what actually killed the 12:04 run, was it us or their side
+12:21  dermot: their side to start. 429 at 12:04:01. then we came straight back at 12:04:11 and got throttled again
+12:22  konrad: ten seconds. thats our own sleep then?
+12:23  dermot: yeah, flat ten on every attempt. constant somewhere in the retry path, if i had to guess
+12:24  konrad: but they tell us how long to wait, no? presumably on the response
+12:26  gideon: ya they do and we throw it away. so basically ten flat seconds is not what that provider was asking for tbh, we take their number off the response and sleep that
+12:27  dermot: yeah ok. nobodys touched that constant yet though
+12:29  konrad: right. that run had three of them before it gave up, all ten apart
 ```
 
 #### `g3.r2.s4b` — exclusions_or_crossover
@@ -1286,7 +1678,7 @@ def tes
 
 **nikolai**, 2025-06-11, thread:new|g3.r2.s4d
 
-> A few user configs in the wild still set seconds_to_pause_on_rate_limit so it stays in config.py even once nothing reads it
+> A few user configs in the wild still set seconds_to_pause_on_rate_limit, so it stays in config.py with its default of 10 unchanged, even once nothing reads it.
 
 *What a reader should take from it:* the configured pause length stays in config.py unread, for compatibility
 
@@ -1298,7 +1690,7 @@ def tes
 
 *Still leaves open:* what does drive the pause once this stops being read
 
-*Must appear literally:* `A`, `seconds_to_pause_on_rate_limit`, `config.py`
+*Must appear literally:* `10`, `A`, `config.py`, `seconds_to_pause_on_rate_limit`
 
 *A new thread — **429 handling in the online request processor**, 2025-06-11:*
 
@@ -1345,6 +1737,14 @@ yup, that all sounds right to me. I will re-run the gemini job once it is in and
 *A new conversation in #releases on 2025-01-21:*
 
 ```
+15:09  konrad: question on the throttle horizon. when a THROTTLE verdict comes back do we push the cooldown out, or keep whichever is later
+15:11  dario: plain assignment, i think. throttle_cooldown_until = now + delay_seconds and thats the whole of it
+15:12  konrad: even when the old one sits further out? we lose the longer wait then
+15:14  dario: mhm. thats delibrate to be honest, the most recent rate-limit failure is the one that sets the pause
+15:15  dermot: so no max(), straight overwrite. does that happen on every THROTTLE verdict or only once the horizon has lapsed
+15:16  dario: every one. in any case i've settled on that for the horizon
+15:18  konrad: right. today it still takes the max i am fairly sure, at least in the version i read friday
+15:19  dermot: yeah, that bit is untouched
 ```
 
 #### `g3.r2.h2` — herring
@@ -1362,6 +1762,15 @@ yup, that all sounds right to me. I will re-run the gemini job once it is in and
 *A new conversation in #cookbooks on 2025-01-22:*
 
 ```
+15:29  dermot: the throttle cooldown from the retry pass - if two verdicts come back in one batch does the later one win, or do we keep the longer window
+15:32  konrad: later one wins. its one assignment on throttle_cooldown_until, whatever the last THROTTLE verdict carries
+15:33  dermot: so a short window landing after a long one shortens it
+15:35  konrad: right, thats the part i reviewd. no comparison against whats already sitting there
+15:39  nikolai: yep thats the 9am run going back out early then
+15:41  nikolai: so keep whichever is further out
+15:42  konrad: mhm. compare first, only push it later, never back
+15:45  dermot: does the clear-on-success path hit that same line
+15:47  konrad: no thats its own reset, sets it to none
 ```
 
 #### `g3.r2.rev1` — rule
@@ -1429,6 +1838,16 @@ yup, that all sounds right to me. I will re-run the gemini job once it is in and
 *A new conversation in #cookbooks on 2025-03-24:*
 
 ```
+15:12  nikolai: konrad that throttle cooldown you flagged in review is it still a straight assign
+15:14  konrad: no, that overwrite is gone. look, it bit us on the retry run — second 429 came back with a tiny backof and it stomped the window we already had
+15:16  nikolai: stomped it from what to what
+15:17  konrad: 40s down to under a second. so we went straight back at them, presumably that is why the run looked like that
+15:19  dermot: right, that's the part i reviewed - last THROTTLE verdict just overwrites throttle_cooldown_until, one assignment, no comparison against whats already there
+15:20  nikolai: so what does it compare against now
+15:24  konrad: itself. `throttle_cooldown_until = max(throttle_cooldown_until, now + delay_seconds)` — a short window cant win over a longer one anymore
+15:24  dermot: yeah ok. nobodys cut the patch yet, it sits behind the batch retry ticket if i had to guess
+15:26  nikolai: the 40s is that retry-after or do we compute it
+15:27  konrad: header when they send one. ours only when they dont
 ```
 
 > **Problems:** longer than one remark

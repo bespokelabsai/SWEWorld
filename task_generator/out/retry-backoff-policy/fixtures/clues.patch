@@ -1,0 +1,597 @@
+diff --git a/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
+index c5e4c90..6dd9d43 100644
+--- a/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
+@@ -1,6 +1,5 @@
+ import datetime
+ import os
+-import time
+ from typing import TypeVar
+ 
+ import aiohttp
+@@ -278,15 +277,8 @@ class AnthropicOnlineRequestProcessor(BaseOnlineRequestProcessor):
+             if response is None:
+                 raise Exception("Response is empty")
+             elif "error" in response:
+-                status_tracker.num_api_errors += 1
+                 error = response["error"]
+-                error_message = error.get("message", str(error))
+-                if "rate limit" in error_message.lower():
+-                    status_tracker.time_of_last_rate_limit_error = time.time()
+-                    status_tracker.num_rate_limit_errors += 1
+-                    status_tracker.num_api_errors -= 1
+-                    # because handle_single_request_with_retries will double count otherwise
+-                    status_tracker.num_other_errors -= 1
++                # The failure is classified and counted once, in the base class.
+                 raise Exception(f"API error: {error}")
+ 
+             if response_obj.status != 200:
+diff --git a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+index 085c2ec..8dff976 100644
+--- a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+@@ -8,10 +8,11 @@ import asyncio
+ import datetime
+ import json
+ import os
++import random
+ import time
+ import typing as t
+ from abc import ABC, abstractmethod
+-from collections import Counter, deque
++from collections import deque
+ from dataclasses import dataclass, field
+ 
+ import aiofiles
+@@ -23,6 +24,14 @@ from bespokelabs.curator.request_processor import _DEFAULT_COST_MAP
+ from bespokelabs.curator.request_processor.base_request_processor import BaseRequestProcessor
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.request_processor.online.retry_policy import (
++    DEFAULT_THROTTLE_WAIVERS,
++    RetryPolicy,
++    classify_failure,
++    format_attempt_label,
++    format_failure_summary,
++    remaining_cooldown_seconds,
++)
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+@@ -44,6 +53,9 @@ class APIRequest:
+         result: List to store results/errors from attempts
+         prompt_formatter: Formatter for prompts and responses
+         created_at: Timestamp when request was created
++        attempts_made: Number of attempts already made for this request
++        throttle_waivers_left: Rate limit failures this request may still absorb for free
++        failure_log: (failure class, message) pairs recorded for every failed attempt
+     """
+ 
+     task_id: int
+@@ -53,6 +65,9 @@ class APIRequest:
+     result: list = field(default_factory=list)
+     prompt_formatter: PromptFormatter = field(default=None)
+     created_at: datetime.datetime = field(default_factory=datetime.datetime.now)
++    attempts_made: int = 0
++    throttle_waivers_left: int = DEFAULT_THROTTLE_WAIVERS
++    failure_log: list = field(default_factory=list)
+ 
+ 
+ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+@@ -86,6 +101,7 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+         self._tracker_console = None
+         self._output_tokens_window = deque(maxlen=_MAX_OUTPUT_MVA_WINDOW)
+         self._semaphore = None
++        self.retry_policy = RetryPolicy(clock=time.time, jitter=random.random)
+ 
+     @property
+     def backend(self) -> str:
+@@ -301,9 +317,7 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+         Args:
+             status_tracker: Tracker containing rate limit status
+         """
+-        seconds_to_pause_on_rate_limit = self.config.seconds_to_pause_on_rate_limit
+-        seconds_since_rate_limit_error = time.time() - status_tracker.time_of_last_rate_limit_error
+-        remaining_seconds_to_pause = seconds_to_pause_on_rate_limit - seconds_since_rate_limit_error
++        remaining_seconds_to_pause = remaining_cooldown_seconds(status_tracker, time.time())
+         if remaining_seconds_to_pause > 0:
+             logger.warning(f"Pausing for {int(remaining_seconds_to_pause)} seconds")
+             await asyncio.sleep(remaining_seconds_to_pause)
+@@ -421,10 +435,9 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+                     else:
+                         token_estimate = _TokenUsage()  # Empty
+ 
+-                    attempt_number = self.config.max_retries - retry_request.attempts_left
+                     logger.debug(
+                         f"Retrying request {retry_request.task_id} "
+-                        f"(attempt #{attempt_number} of {self.config.max_retries})"
++                        f"({format_attempt_label(retry_request.attempts_made, self.config.max_retries)})"
+                         f"Previous errors: {retry_request.result}"
+                     )
+ 
+@@ -524,8 +537,22 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+             await self._viewer_client.log_cost_projection(status_tracker)
+ 
+         except Exception as e:
+-            status_tracker.num_other_errors += 1
++            failure_class = classify_failure(e)
++            attempt_label = format_attempt_label(request.attempts_made, self.config.max_retries)
+             request.result.append(e)
++            request.failure_log.append((failure_class, str(e)))
++
++            verdict = self.retry_policy.decide(
++                e,
++                attempts_made=request.attempts_made,
++                attempts_left=request.attempts_left,
++                throttle_waivers_left=request.throttle_waivers_left,
++            )
++            self.retry_policy.record_verdict(status_tracker, verdict)
++
++            request.attempts_made = verdict.attempt_index
++            request.attempts_left = verdict.attempts_left
++            request.throttle_waivers_left = verdict.throttle_waivers_after
+ 
+             if generic_response and generic_response.token_usage is not None:
+                 used_tokens: _TokenUsage = _TokenUsage(input=generic_response.token_usage.input, output=generic_response.token_usage.output)
+@@ -533,21 +560,18 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+             else:
+                 status_tracker.update_cost_projection(None)
+ 
+-            if request.attempts_left > 0:
+-                request.attempts_left -= 1
++            if verdict.should_retry:
+                 logger.warning(
+-                    f"Encountered '{e.__class__.__name__}: {e}' during attempt "
+-                    f"{self.config.max_retries - request.attempts_left} of {self.config.max_retries} "
+-                    f"while processing request {request.task_id}"
++                    f"Encountered '{e.__class__.__name__}: {e}' during {attempt_label} "
++                    f"while processing request {request.task_id} ({verdict.reason}, "
++                    f"retrying in {verdict.delay_seconds}s)"
+                 )
++                if verdict.delay_seconds > 0:
++                    await asyncio.sleep(verdict.delay_seconds)
+                 retry_queue.put_nowait(request)
+             else:
+-                error_counts = Counter(str(err) for err in request.result)
+-                formatted_errors = [f"{error}(x{count})" for error, count in error_counts.items()]
+-                logger.error(
+-                    f"Request {request.task_id} failed permanently after exhausting all {self.config.max_retries} retry attempts. "
+-                    f"Errors: {formatted_errors}"
+-                )
++                formatted_errors = format_failure_summary(request.failure_log)
++                logger.error(f"Request {request.task_id} failed permanently on {attempt_label} ({verdict.reason}). Errors: {formatted_errors}")
+ 
+                 generic_response = GenericResponse(
+                     response_message=None,
+diff --git a/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
+index 276755b..a43320a 100644
+--- a/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
+@@ -1,5 +1,4 @@
+ import datetime
+-import time
+ from collections import defaultdict
+ 
+ import aiohttp
+@@ -426,10 +425,7 @@ class LiteLLMOnlineRequestProcessor(BaseOnlineRequestProcessor):
+                 else:
+                     response_message = completion_obj["choices"][0]["message"]["content"]
+         except litellm.RateLimitError as e:
+-            status_tracker.time_of_last_rate_limit_error = time.time()
+-            status_tracker.num_rate_limit_errors += 1
+-            # because handle_single_request_with_retries will double count otherwise
+-            status_tracker.num_api_errors -= 1
++            # The failure is classified and counted once, in the base class.
+             raise e
+ 
+         # Extract token usage
+diff --git a/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py
+index e46f417..e636979 100644
+--- a/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py
+@@ -1,7 +1,6 @@
+ import datetime
+ import json
+ import os
+-import time
+ 
+ import aiohttp
+ import litellm
+@@ -292,15 +291,8 @@ class OpenAIOnlineRequestProcessor(BaseOnlineRequestProcessor, OpenAIRequestMixi
+         if response is None:
+             raise Exception("Response is empty")
+         elif "error" in response:
+-            status_tracker.num_api_errors += 1
+             error = response["error"]
+-            error_message = error if isinstance(error, str) else error.get("message", "")
+-            if "rate limit" in error_message.lower():
+-                status_tracker.time_of_last_rate_limit_error = time.time()
+-                status_tracker.num_rate_limit_errors += 1
+-                status_tracker.num_api_errors -= 1
+-                # because handle_single_request_with_retries will double count otherwise
+-                status_tracker.num_other_errors -= 1
++            # The failure is classified and counted once, in the base class.
+             raise Exception(f"API error: {error}")
+ 
+         if self.config.return_completions_object:
+diff --git a/src/bespokelabs/curator/request_processor/online/retry_policy.py b/src/bespokelabs/curator/request_processor/online/retry_policy.py
+new file mode 100644
+index 0000000..86b7f17
+--- /dev/null
++++ b/src/bespokelabs/curator/request_processor/online/retry_policy.py
+@@ -0,0 +1,363 @@
++"""Failure classification and retry scheduling for online request processors.
++
++This module is deliberately dependency free: it holds the pure decision making
++that the online request processors need (what kind of failure is this, should it
++be retried, how long should we wait) so that it can be reasoned about and tested
++without a network, a clock or a random number generator. The clock and the
++jitter source are injected into :class:`RetryPolicy` by the caller.
++"""
++
++import enum
++import typing as t
++from dataclasses import dataclass
++
++# Number of rate limit failures a single request may absorb before a 429 starts
++# costing it an attempt. Every request walks in with its own full set.
++DEFAULT_THROTTLE_WAIVERS = 6
++
++
++class FailureClass(str, enum.Enum):
++    """The kind of failure an exception represents, which decides how we react."""
++
++    THROTTLE = "throttle"
++    TRANSIENT = "transient"
++    CONTRACT = "contract"
++    TERMINAL = "terminal"
++
++
++# HTTP statuses with a known meaning. Anything else falls through to the next signal.
++_STATUS_FAILURE_CLASSES: dict[int, FailureClass] = {
++    400: FailureClass.CONTRACT,
++    413: FailureClass.CONTRACT,
++    422: FailureClass.CONTRACT,
++    401: FailureClass.TERMINAL,
++    403: FailureClass.TERMINAL,
++    404: FailureClass.TERMINAL,
++    408: FailureClass.TRANSIENT,
++    409: FailureClass.TRANSIENT,
++    425: FailureClass.TRANSIENT,
++    429: FailureClass.THROTTLE,
++    529: FailureClass.THROTTLE,
++}
++
++# Exception type names, matched along the MRO of the raised exception.
++_TYPE_FAILURE_CLASSES: dict[str, FailureClass] = {
++    "TimeoutError": FailureClass.TRANSIENT,
++    "ConnectionError": FailureClass.TRANSIENT,
++    "ClientConnectorError": FailureClass.TRANSIENT,
++    "ValueError": FailureClass.CONTRACT,
++    "ValidationError": FailureClass.CONTRACT,
++    "JSONDecodeError": FailureClass.CONTRACT,
++    "KeyError": FailureClass.CONTRACT,
++    "PermissionError": FailureClass.TERMINAL,
++    "NotImplementedError": FailureClass.TERMINAL,
++}
++
++# Case insensitive substrings, scanned in order over the message of the exception.
++_MESSAGE_FAILURE_CLASSES: tuple[tuple[str, FailureClass], ...] = (
++    ("rate limit", FailureClass.THROTTLE),
++    ("ratelimit", FailureClass.THROTTLE),
++    ("too many requests", FailureClass.THROTTLE),
++    ("overloaded", FailureClass.THROTTLE),
++    ("quota", FailureClass.THROTTLE),
++    ("timed out", FailureClass.TRANSIENT),
++    ("timeout", FailureClass.TRANSIENT),
++    ("connection reset", FailureClass.TRANSIENT),
++    ("temporarily unavailable", FailureClass.TRANSIENT),
++    ("response is empty", FailureClass.TRANSIENT),
++    ("invalid api key", FailureClass.TERMINAL),
++    ("authentication", FailureClass.TERMINAL),
++    ("permission denied", FailureClass.TERMINAL),
++)
++
++_DEFAULT_FAILURE_CLASS = FailureClass.TRANSIENT
++
++# base delay, growth factor and ceiling per failure class.
++_BACKOFF_SCHEDULE: dict[FailureClass, tuple[float, float, float]] = {
++    FailureClass.THROTTLE: (8.0, 2.0, 60.0),
++    FailureClass.TRANSIENT: (0.5, 3.0, 20.0),
++    FailureClass.CONTRACT: (0.0, 1.0, 0.0),
++    FailureClass.TERMINAL: (0.0, 1.0, 0.0),
++}
++
++# How many attempts each failure class takes off the retry budget. A throttle only
++# costs an attempt once the request has spent all of its waivers, and a terminal
++# failure empties the budget outright rather than paying out of it.
++_ATTEMPT_COST: dict[FailureClass, int] = {
++    FailureClass.THROTTLE: 1,
++    FailureClass.TRANSIENT: 1,
++    FailureClass.CONTRACT: 2,
++    FailureClass.TERMINAL: 0,
++}
++
++
++def _status_failure_class(exc: BaseException) -> FailureClass | None:
++    """Classify by the HTTP status carried on the exception, if it carries a usable one."""
++    status = getattr(exc, "status_code", None)
++    if status is None:
++        status = getattr(exc, "status", None)
++    if not isinstance(status, int):
++        return None
++    if status in _STATUS_FAILURE_CLASSES:
++        return _STATUS_FAILURE_CLASSES[status]
++    if 500 <= status <= 599:
++        return FailureClass.TRANSIENT
++    return None
++
++
++def _type_failure_class(exc: BaseException) -> FailureClass | None:
++    """Classify by exception type name, walking the MRO from the concrete type upwards."""
++    for klass in type(exc).__mro__:
++        failure_class = _TYPE_FAILURE_CLASSES.get(getattr(klass, "__name__", ""))
++        if failure_class is not None:
++            return failure_class
++    return None
++
++
++def _message_failure_class(exc: BaseException) -> FailureClass | None:
++    """Classify by well known markers appearing anywhere in the message of the exception."""
++    message = str(exc).lower()
++    for marker, failure_class in _MESSAGE_FAILURE_CLASSES:
++        if marker in message:
++            return failure_class
++    return None
++
++
++def classify_failure(exc: BaseException) -> FailureClass:
++    """Decide which failure class an exception belongs to.
++
++    Four signals are consulted in order and the first one that yields a class
++    wins: the HTTP status carried on the exception, the exception type, markers
++    in the message, and finally the default. This never raises.
++
++    Args:
++        exc: The exception raised while processing a request
++
++    Returns:
++        The failure class of the exception, TRANSIENT if nothing else matches
++    """
++    for signal in (_status_failure_class, _type_failure_class, _message_failure_class):
++        try:
++            failure_class = signal(exc)
++        except Exception:
++            # Classification must never raise; a signal we cannot read is skipped.
++            continue
++        if failure_class is not None:
++            return failure_class
++    return _DEFAULT_FAILURE_CLASS
++
++
++@dataclass(frozen=True)
++class RetryVerdict:
++    """What the policy decided about a single failed attempt.
++
++    Attributes:
++        should_retry: Whether the request should be put back on the retry queue
++        failure_class: The class the failure was sorted into
++        attempt_index: 1-based index of the attempt that just failed
++        delay_seconds: How long to wait before the retry, 0.0 when there is none
++        attempts_left: Retry budget the request is left with, never negative
++        throttle_waivers_after: Free rate limit passes the request is left with
++        reason: Two part reason code, ``"<failure class>:<outcome>"``
++    """
++
++    should_retry: bool
++    failure_class: FailureClass
++    attempt_index: int
++    delay_seconds: float
++    attempts_left: int
++    throttle_waivers_after: int
++    reason: str
++
++
++class RetryPolicy:
++    """Turns a failed attempt into a verdict: retry or not, and how long to wait.
++
++    Args:
++        clock: Callable returning the current time in seconds, only read for throttles
++        jitter: Callable returning a jitter fraction, only drawn for a positive delay
++    """
++
++    def __init__(self, clock: t.Callable[[], float], jitter: t.Callable[[], float]):
++        """Initialize the RetryPolicy with an injected clock and jitter source."""
++        self._clock = clock
++        self._jitter = jitter
++
++    def delay_for(self, failure_class: FailureClass, attempt_index: int) -> float:
++        """Compute how long to wait before re-issuing an attempt.
++
++        The exponential backoff is capped before the jitter is applied, and the
++        jitter source is drawn exactly once per positive delay and not at all
++        when the schedule yields nothing to wait for.
++
++        Args:
++            failure_class: The class of the failure being backed off from
++            attempt_index: 1-based index of the attempt that just failed
++
++        Returns:
++            The number of seconds to wait, rounded to three decimals
++
++        Raises:
++            ValueError: If attempt_index is less than 1
++        """
++        if attempt_index < 1:
++            raise ValueError(f"attempt_index must be at least 1, got {attempt_index}")
++
++        base, factor, cap = _BACKOFF_SCHEDULE[failure_class]
++        raw = min(cap, base * factor ** (attempt_index - 1))
++        if raw <= 0:
++            return 0.0
++
++        jitter = min(1.0, max(0.0, self._jitter()))
++        return round(raw * (0.5 + 0.5 * jitter), 3)
++
++    def decide(self, exc: BaseException, *, attempts_made: int, attempts_left: int, throttle_waivers_left: int) -> RetryVerdict:
++        """Decide what to do with a request whose attempt just failed.
++
++        The cost of the failure is taken off the retry budget first and the
++        budget is only then checked, so a failure that lands the budget exactly
++        on zero is still retried and one that cannot pay comes back exhausted.
++
++        Args:
++            exc: The exception the attempt failed with
++            attempts_made: Number of attempts made before this one
++            attempts_left: Retry budget the request had going into this failure
++            throttle_waivers_left: Free rate limit passes the request had left
++
++        Returns:
++            The verdict for this failure
++        """
++        failure_class = classify_failure(exc)
++        attempt_index = attempts_made + 1
++
++        if failure_class is FailureClass.TERMINAL:
++            # Further attempts are worthless on a terminal failure, so we empty
++            # the budget and stop. The waivers are left exactly as they were.
++            return self._verdict(
++                should_retry=False,
++                failure_class=failure_class,
++                attempt_index=attempt_index,
++                delay_seconds=0.0,
++                attempts_left=0,
++                throttle_waivers_after=throttle_waivers_left,
++                outcome="abort",
++            )
++
++        cost = _ATTEMPT_COST[failure_class]
++        throttle_waivers_after = throttle_waivers_left
++        if failure_class is FailureClass.THROTTLE and throttle_waivers_left > 0:
++            # A 429 says nothing about the request itself, so it is free while
++            # the request still has a waiver to spend.
++            cost = 0
++            throttle_waivers_after = throttle_waivers_left - 1
++
++        remaining = attempts_left - cost
++        if remaining < 0:
++            return self._verdict(
++                should_retry=False,
++                failure_class=failure_class,
++                attempt_index=attempt_index,
++                delay_seconds=0.0,
++                attempts_left=0,
++                throttle_waivers_after=throttle_waivers_after,
++                outcome="exhausted",
++            )
++
++        return self._verdict(
++            should_retry=True,
++            failure_class=failure_class,
++            attempt_index=attempt_index,
++            delay_seconds=self.delay_for(failure_class, attempt_index),
++            attempts_left=remaining,
++            throttle_waivers_after=throttle_waivers_after,
++            outcome="retry",
++        )
++
++    def record_verdict(self, status_tracker, verdict: RetryVerdict) -> None:
++        """Record a verdict on the status tracker.
++
++        Every failure bumps exactly one counter, and a throttle additionally
++        stamps the rate limit time and pushes out the cooldown window. The clock
++        is read once, and only for a throttle.
++
++        Args:
++            status_tracker: Tracker to record the failure on
++            verdict: The verdict returned by :meth:`decide`
++        """
++        if verdict.failure_class is FailureClass.THROTTLE:
++            status_tracker.num_rate_limit_errors += 1
++            now = self._clock()
++            status_tracker.time_of_last_rate_limit_error = now
++            # The window only ever moves further out: a small backoff landing
++            # behind a large one must not pull the horizon back in.
++            status_tracker.throttle_cooldown_until = max(status_tracker.throttle_cooldown_until, now + verdict.delay_seconds)
++        elif verdict.failure_class is FailureClass.CONTRACT:
++            status_tracker.num_other_errors += 1
++        else:
++            status_tracker.num_api_errors += 1
++
++    @staticmethod
++    def _verdict(
++        *,
++        should_retry: bool,
++        failure_class: FailureClass,
++        attempt_index: int,
++        delay_seconds: float,
++        attempts_left: int,
++        throttle_waivers_after: int,
++        outcome: str,
++    ) -> RetryVerdict:
++        """Build a verdict with its two part reason code."""
++        return RetryVerdict(
++            should_retry=should_retry,
++            failure_class=failure_class,
++            attempt_index=attempt_index,
++            delay_seconds=delay_seconds,
++            attempts_left=attempts_left,
++            throttle_waivers_after=throttle_waivers_after,
++            reason=f"{failure_class.value}:{outcome}",
++        )
++
++
++def remaining_cooldown_seconds(status_tracker, now: float) -> float:
++    """How long a caller must still wait before issuing more requests.
++
++    Args:
++        status_tracker: Tracker holding the current throttle cooldown window
++        now: The current time, in the same units as the window
++
++    Returns:
++        The seconds left on the window, 0.0 once it is behind us
++    """
++    return max(0.0, round(status_tracker.throttle_cooldown_until - now, 3))
++
++
++def format_failure_summary(failure_log: t.Sequence[tuple[FailureClass, str]]) -> list[str]:
++    """Summarize the failures a request accumulated, most frequent first.
++
++    Args:
++        failure_log: The (failure class, message) pairs recorded for the request
++
++    Returns:
++        One formatted entry per distinct pair, ordered by count descending with
++        ties broken by first occurrence
++    """
++    counts: dict[tuple[FailureClass, str], int] = {}
++    for failure in failure_log:
++        counts[failure] = counts.get(failure, 0) + 1
++
++    ordered = sorted(counts.items(), key=lambda item: -item[1])
++    return [f"[{failure_class.value}] {message} (x{count})" for (failure_class, message), count in ordered]
++
++
++def format_attempt_label(attempts_made: int, max_retries: int) -> str:
++    """Label the attempt that follows the ones already made.
++
++    Args:
++        attempts_made: Number of attempts already made
++        max_retries: Configured number of retries, one less than the total attempts
++
++    Returns:
++        A human readable label such as ``"attempt #2 of 4"``
++    """
++    return f"attempt #{attempts_made + 1} of {max_retries + 1}"
+diff --git a/src/bespokelabs/curator/status_tracker/online_status_tracker.py b/src/bespokelabs/curator/status_tracker/online_status_tracker.py
+index 7603945..62c0532 100644
+--- a/src/bespokelabs/curator/status_tracker/online_status_tracker.py
++++ b/src/bespokelabs/curator/status_tracker/online_status_tracker.py
+@@ -65,6 +65,7 @@ class OnlineStatusTracker:
+     pbar: Optional[tqdm.tqdm] = field(default=None, repr=False, compare=False)
+     response_cost: float = 0
+     time_of_last_rate_limit_error: float = field(default=0.0)
++    throttle_cooldown_until: float = field(default=0.0)
+ 
+     # Stats tracking
+     total_requests: int = 0

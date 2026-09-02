@@ -3,5 +3,5 @@
   "task_name": "g3-retry-backoff-policy",
   "format": "apex",
   "mini_batch_id": "b52ead5c-6e16-4552-ab96-250541fdfba2",
-  "version": 3
+  "version": 4
 }

@@ -1,0 +1,62 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2",
+  "blind_alternative": "hashes the whole backend_params dict with one sorted(params.items()) line, mirroring the existing generation_params handling, and hashes the declared `backend` __init__ argument (None on auto-detect) instead of the processor's resolved name"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P2",
+  "blind_alternative": "filters at the LLM.backend_params property instead, so the processor also stops seeing the dropped keys, or omits backend_params from the components entirely"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P2",
+  "blind_alternative": "treats any backend-param change as a new run \u2014 api_key and max_retries included \u2014 on the conservative reading that a config change must not reuse a cache"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P2",
+  "blind_alternative": "passes default=str to json.dumps so anything serialises, or lets the raw TypeError from json propagate"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P2",
+  "blind_alternative": "asserts only that the hash changes when the model or prompt changes; a differing api_key or max_retries yields a different run_hash and the secret is written into run_identity.json"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P6",
+  "blind_alternative": "returns a bool (\"may I reuse this?\") or None/raise with no status vocabulary, or invents statuses like \"exists\"/\"new\", and rewrites created_at to now on every stamp write"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P6",
+  "blind_alternative": "reconciles only when the directory already exists, or only on the cache-hit path, and skips reconciliation entirely when caching is disabled"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "treats an unstamped non-empty directory as hostile and raises RuntimeError telling the user to rm -rf ~/.cache/curator, or clears it the way attempt_loading_cached_dataset clears a corrupt arrow file"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P6",
+  "blind_alternative": "raises a bare RuntimeError with a prose message and no mismatched_components attribute (or an unsorted single-element list), and overwrites the offending stamp with the current identity instead of leaving the directory untouched"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P6",
+  "blind_alternative": "asserts only that a foreign directory raises something; the newer-stamp case is treated as upgradable, previous_version stays None on the upgrade path, and the differing component keys are never surfaced"
+ }
+]

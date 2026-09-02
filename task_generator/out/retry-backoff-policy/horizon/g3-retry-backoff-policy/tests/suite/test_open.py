@@ -168,6 +168,32 @@ def v_reason(verdict):
 _RECORDERS = ("apply_to_tracker", "apply_verdict", "record_verdict", "update_tracker", "record", "apply")
 
 
+def _invoke_recorder(fn, tracker, verdict):
+    """Call a recorder whichever way round it takes its two arguments.
+
+    The requirement says the policy records a verdict on a tracker. It does not
+    fix the PARAMETER ORDER, and both readings are natural -- the reference
+    implementation happens to take `(tracker, verdict)`, and a build given the
+    requirement alone wrote `(verdict, tracker)` and failed three r2 facts on
+    `AttributeError: 'SimpleNamespace' object has no attribute 'failure_class'`.
+    Grading argument order the requirement never states is the same error as
+    grading a field spelling it never states.
+
+    Read off the signature where the names say which is which, and tried both
+    ways where they do not.
+    """
+    try:
+        first = list(inspect.signature(fn).parameters)[0].lower()
+    except (TypeError, ValueError):
+        first = ""
+    order = ((verdict, tracker), (tracker, verdict)) if "verdict" in first \
+        else ((tracker, verdict), (verdict, tracker))
+    try:
+        return fn(*order[0])
+    except (AttributeError, TypeError):
+        return fn(*order[1])
+
+
 def record(policy, tracker, verdict):
     """Call the policy's "write this verdict onto the tracker" method.
 
@@ -178,7 +204,7 @@ def record(policy, tracker, verdict):
     for name in _RECORDERS:
         fn = getattr(policy, name, None)
         if callable(fn):
-            return fn(tracker, verdict)
+            return _invoke_recorder(fn, tracker, verdict)
     candidates = []
     for name in dir(policy):
         if name.startswith("_") or name in ("decide", "delay_for"):
@@ -187,7 +213,7 @@ def record(policy, tracker, verdict):
         if callable(fn) and len(inspect.signature(fn).parameters) == 2:
             candidates.append(fn)
     if len(candidates) == 1:
-        return candidates[0](tracker, verdict)
+        return _invoke_recorder(candidates[0], tracker, verdict)
     pytest.fail(f"the policy has no method that records a verdict on a tracker; it exposes {sorted(n for n in dir(policy) if not n.startswith('_'))}")
 
 

@@ -161,6 +161,20 @@ def ships(measured: dict) -> tuple[bool, list[str]]:
             problems.append(f"{key}: the open feature does not pass on oracle")
         if measured["trees"].get("pristine", {}).get("rewards", {}).get(key) == 1.0:
             problems.append(f"{key}: the open feature passes on pristine — it is not a feature")
+        # `open_feature` is excluded from `hidden_mean`, so nothing here used to
+        # refuse on it and a suite whose open-feature test no arm can reach
+        # shipped green. g4 did: `test_open` graded `previous_version`, which
+        # `whole.md` specified in full, the ticket named only inside a
+        # constructor signature and the hidden requirements never mentioned.
+        # Both `naive` and `spec` failed it and the bracket still said yes. The
+        # cost is not the score -- it is that a blind 0.00 with `open_feature` 0
+        # cannot be told apart from an agent that built nothing, which is the
+        # whole reason the number is reported.
+        if measured["trees"].get("naive", {}).get("rewards", {}).get(key) != 1.0:
+            problems.append(
+                f"{key}: the open feature does not pass on naive — a build given "
+                "only the ticket cannot produce it, so it grades something the "
+                "ticket does not state and no blind score can be read against it")
     for key, verdict in measured["verdicts"].items():
         if verdict in (COINCIDENCE, VACUOUS, BROKEN, UNMEASURED, UNTESTED, UNPROVEN):
             problems.append(f"{key}: {verdict}")
@@ -174,7 +188,11 @@ def ships(measured: dict) -> tuple[bool, list[str]]:
     spec = measured["trees"].get("spec", {}).get("rewards")
     if spec:
         for key, verdict in measured["verdicts"].items():
-            if key.endswith("open_feature") or verdict != HIDDEN:
+            # `open_feature` used to be exempted here. It is the one arm-facing
+            # number the spec build strictly dominates -- spec is handed the
+            # ticket AND every hidden requirement -- so if spec cannot pass it,
+            # no arm can, and exempting it hid exactly that.
+            if verdict not in (HIDDEN, OPEN):
                 continue
             if spec.get(key) != 1.0:
                 problems.append(

@@ -25,7 +25,7 @@ To   `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/runs/latest-g2`
 - g2.r1.l-bytes-emil: #engineering 2025-12-30 — 1 existing message(s) fall inside the new thread's 14:07–14:34
 - g2.r1.l-bytes-dario: #code-review 2025-03-14 — 7 existing message(s) fall inside the new thread's 11:52–14:15
 - g2.r1.herring-marker-inside-budget-dario: #pipeline 2025-01-21 — 1 existing message(s) fall inside the new thread's 15:52–16:30
-- g2.r2.h1: #releases 2025-01-21 — 3 existing message(s) fall inside the new thread's 15:02–15:37
+- g2.r2.h1: #releases 2025-01-21 — 3 existing message(s) fall inside the new thread's 15:03–15:37
 
 ## Findable only by reading, not by searching — none
 

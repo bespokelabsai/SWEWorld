@@ -1951,9 +1951,44 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
             out.append(f"minute {m.get('minute')!r} is not HH:MM")
         if not said(m).strip():
             out.append(f"an empty message from {who(m)}")
+    # `forbidden_terms` says what this remark must LEAVE FOR A SIBLING, and until
+    # now it was checked only against `clue["text"]` -- the one string that cannot
+    # contain them, since `split` wrote it that way. The conversation reknit
+    # invents around the remark, which is where the risk actually lives, was
+    # checked against nothing.
+    #
+    # `l-kept-nils` forbids 'tail', 'both ends', 'head+tail'. Its job was "a
+    # head-only cut loses what people came for", full stop -- the RATIO belongs to
+    # konrad's remark the next day. reknit wrote "so the cut takes from both ends:
+    # first 16k, last 48k", which is a forbidden phrase carrying an invented ratio,
+    # and the inverse of the true one. An agent read it, believed it, and shipped
+    # `head_budget = max_bytes // 4`.
+    # Multi-word phrases only. Measured: the whole list flags 29 of 46 clues,
+    # because `split` writes single common words into it -- 'head', 'tail', 'cap',
+    # 'only', 'until'. A conversation about capping output cannot avoid the word
+    # "head", and a gate that says it must is a gate nobody can satisfy. Restricted
+    # to phrases, the same check flags 3, one of which is this bug.
+    for term in clue.get("forbidden_terms") or []:
+        if not term or " " not in term.strip():
+            continue
+        for m in msgs:
+            if term.lower() in said(m).lower():
+                out.append(f"{who(m)} says {term!r}, which this remark is supposed "
+                           "to leave for a sibling — reknit is filling in the "
+                           "neighbouring fact rather than writing around the gap")
+                break
+    # NOT a check on invented numbers, though that was the obvious next move and
+    # it was written and measured before being deleted. `r1.rule`'s requirement
+    # contains 3, 4, 8, 64, 48, 29 and 16; the invention that cost the fact was
+    # "first 16k, last 48k" -- two of the requirement's OWN numbers, in each
+    # other's roles. No arithmetic on the digits separates that from a correct
+    # remark, because nothing about it is numerically wrong. It is wrong about
+    # which end gets which, and only something that reads the sentence can tell.
+    # `fact_consistency()` is that something.
     for part in clue.get("uncarried") or []:
         out.append(f"nothing in the exchange carries: {part}")
     return out
+
 
 
 # Two kinds of hedge, and only one is a defect.
@@ -2209,6 +2244,69 @@ _QUANTITY = re.compile(
     re.I)
 
 
+def fact_consistency(task: Task, entry: dict, *, budget: float = 1.0) -> list[str]:
+    """Per fact: does anything in the corpus state it wrongly and get away with it?
+
+    The gate the pattern-matching one could not be. `contradictions()` looks for
+    phrases that bind a number to the cap, and it does catch "cap/2" -- but the
+    invention that actually cost g2 a fact was "first 16k, last 48k" against a
+    requirement holding 16, 48, 64, 29, 3 and 4. Two of its own numbers with their
+    roles swapped. Nothing about it is numerically wrong, so no arithmetic on the
+    digits separates it from a correct remark. Only a reader of the sentence can.
+
+    The rule this enforces, and it is not the judge's to bend: a wrong statement
+    is FINE if a later remark plainly overturns it -- names the old decision, says
+    it is gone -- and fine if the corpus settles the right answer after it. What
+    is not fine is a wrong statement that is the LAST WORD. Recency is the
+    tiebreaker a reader reaches for, and one rollout said so in as many words: "I
+    took the most recent". g2's `cap/2` line was the final message in the whole
+    plant, stated as settled background, inside a thread about something else, so
+    nothing challenged it and nothing could.
+
+    The judge returns conflicts and the reversal it found for each; the verdict is
+    arithmetic here, over dates. A judge asked "is this fair" answers about the
+    corpus it has just read whole, not about the reader who meets it in order.
+    """
+    out: list[str] = []
+    for req in entry["requirements"]:
+        requirement = req.get("requirement") or {}
+        for fact, stated in requirement.items():
+            rows = [c for c in req["clues"] if fact in (c.get("covers") or [])]
+            if len(rows) < 2:
+                continue                    # nothing to disagree with
+            when = {c["clue_id"]: _clue_date(c) for c in rows}
+            remarks = "\n\n".join(
+                f"### {c['clue_id']} — {when[c['clue_id']] or 'undated'}\n"
+                + (render_thread(c.get("invented") or {}) or c.get("text") or "")
+                for c in sorted(rows, key=lambda c: when[c["clue_id"]] or ""))
+            ask = prompt("clue_consistency.md", requirement=stated or "",
+                         remarks=remarks)
+            label = f"clue-consistency-{req['req_id']}.{fact}"
+            result = agent.run(ask, repo=REPO, label=label, cwd=task.dir, tools="",
+                               schema=cs.consistency_schema(), budget_usd=budget,
+                               log_dir=task.dir / "logs")
+            _record(task, label, ask, result)
+            for row in (result.data or {}).get("conflicts") or []:
+                cid = row.get("clue_id") or "?"
+                rev = (row.get("reversed_by") or "").strip()
+                if rev and (when.get(rev) or "") > (when.get(cid) or ""):
+                    continue                # overturned later, which is the design
+                latest = max((when.get(c["clue_id"]) or "") for c in rows)
+                tail = ("and it is the LAST word on this fact"
+                        if (when.get(cid) or "") >= latest
+                        else "and nothing later overturns it")
+                out.append(
+                    f"{req['req_id']}.{fact}: {cid} says {row.get('quote','')!r} "
+                    f"— {row.get('says','')} — {tail}")
+    return out
+
+
+def _clue_date(clue: dict) -> str:
+    """The day a reader meets this remark, however it was placed."""
+    inv = clue.get("invented") or {}
+    return (inv.get("date") or (clue.get("carrier") or {}).get("date") or "")
+
+
 def contradictions(entry: dict) -> list[str]:
     """Turns that pin a quantity a DIFFERENT remark already pinned differently.
 
@@ -2287,15 +2385,15 @@ def unclash(entry: dict, corpus: Corpus) -> list[str]:
             if not date:
                 continue
             for msg in turns_of(clue):
-                who, when = who(msg), str(msg.get("minute") or "")
-                if not who or ":" not in when or when not in busy.get((who, date), ()):
+                speaker, when = who(msg), str(msg.get("minute") or "")
+                if not speaker or ":" not in when or when not in busy.get((speaker, date), ()):
                     continue
                 hh, mm = when.split(":")
                 for step in range(1, 6):
                     nudged = f"{hh}:{int(mm) + step:02d}"
-                    if int(mm) + step < 60 and nudged not in busy.get((who, date), ()):
+                    if int(mm) + step < 60 and nudged not in busy.get((speaker, date), ()):
                         msg["minute"] = nudged
-                        moved.append(f"{clue['clue_id']}: {who} {when} -> {nudged}")
+                        moved.append(f"{clue['clue_id']}: {speaker} {when} -> {nudged}")
                         break
     return moved
 
@@ -2338,11 +2436,11 @@ def double_booked(entry: dict, corpus: Corpus, window: int = 0) -> list[str]:
             if not date or not here:
                 continue
             for msg in turns_of(clue):
-                who = who(msg)
+                speaker = who(msg)
                 when = minutes(str(msg.get("minute") or ""))
-                if not who or when is None:
+                if not speaker or when is None:
                     continue
-                for other, room in real.get((who, date), ()):
+                for other, room in real.get((speaker, date), ()):
                     if room != here and abs(other - when) <= window:
                         out.append(
                             f"{clue['clue_id']}: {who} speaks in #{here} at "
@@ -2459,6 +2557,16 @@ def stage_thread(task: Task, corpus: Corpus, clue: dict, entry: dict,
                             "exchange:** " + ", ".join(f"`{v}`" for v in clue["verbatim"])
                             if clue.get("verbatim") else ""),
                   people=", ".join(people), nearby=nearby,
+                  # What this remark must LEAVE FOR A SIBLING. Computed by the
+                  # tree stage, stored on every clue, and until now read by
+                  # nothing but a check against `clue["text"]` -- the one string
+                  # that cannot contain them. The conversation invented around
+                  # the remark, which is where the risk lives, was never shown
+                  # them at all.
+                  leave=("**These belong to other people's remarks. Do not put "
+                         "them in anybody's mouth here:** "
+                         + ", ".join(f"`{x}`" for x in clue["forbidden_terms"])
+                         if clue.get("forbidden_terms") else ""),
                   avoid=used_closers(entry, clue["clue_id"]),
                   voices="\n\n".join(f"**{p}**\n{describe_voice(corpus.voice(p))}"
                                      for p in people[:4]))
@@ -2539,6 +2647,17 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
             # findable thing in the world. A short thread under the page at least
             # rewards anybody who opens it.
             if only and clue["clue_id"] not in only:
+                continue
+            # A `doc_edit` is prose in somebody's own page, not a conversation.
+            # Reknitting one produces chat turns, and `write_doc_edit` then has to
+            # flatten them back into paragraphs -- a page that reads like a Slack
+            # thread is a tell, and the round trip loses whatever sections the
+            # document stage wrote. The other wiki kind, `doc_comment`, DOES get
+            # an exchange, and for one extra reason: BookStack does not index
+            # comments, so a lone one is the least findable thing in the world,
+            # and a short thread under the page at least rewards anybody who
+            # opens it.
+            if (clue.get("carrier") or {}).get("kind") == "doc_edit":
                 continue
             if redo or thread_problems(clue, cast) or not turns_of(clue):
                 todo.append(clue)

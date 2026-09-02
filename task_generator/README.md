@@ -148,6 +148,20 @@ Rollouts land as `<model>_run<N>_<id>.json` carrying `score` and a
 so a hosted number and a local number are directly comparable. Hosted models are
 Horizon's own roster (`biggie-max`, `cipher-omni`, `lumen`) and the agent type
 that works is `meteor` — `cascade` failed all 20 rollouts with no task binding.
+A new task is **gated to `cipher-omni`** until 10+ rollouts land below a 0.4 pass
+rate; `--model biggie-max` returns `403 Forbidden` until then.
+
+**While an evaluation is running, its status table lies.** `horizon evaluations
+status` renders every unfinished rollout as `failed` with no score, which is
+indistinguishable from twenty genuine failures. The truth is in `status --json`:
+`rollouts.errored` counts what actually broke, `rollouts.total` counts what has
+finished. g4's first evaluation was cancelled on the strength of that column while
+all twenty runs were healthy and mid-flight at 64–237 messages each — $17.03
+spent, no refund, and no measurement, against hosted validations that had already
+returned oracle 1 / noop 0 on both arms. Use `watch` for progress and `--json` for
+a verdict, and budget the wall-clock against a task that already worked: g3's
+rollouts finished in about 8 minutes, so a longer ticket still going at 13 minutes
+is a long task, not a hung one.
 
 Three commands are not in the recipe because they only make sense as answers to
 something a gate printed: `repair` (rewrite what a proof blamed), `replace`
@@ -321,6 +335,52 @@ the anchor count 2 → 4 → 2 and changed nothing, because re-cutting only choo
 One `cli author <slug> --extend` — which keeps the parts and the oracle and only
 adds parts carrying content the codebase cannot supply — took `naive` from 5/10 to
 1/10. **A coincidence is a fact about the specification, not about the cut.**
+
+### `open_feature` is graded but not gated, and that is where a bad suite hides
+
+`bracket.ships()` looks at the hidden facts. `score.py` computes
+`reward = hidden_mean`, and `hidden_mean` **excludes** `open_feature`. So a suite
+whose open-feature test is unreachable from the ticket passes every gate in this
+package and ships, and the damage only shows up as an uninterpretable headline:
+a blind arm scoring 0.00 cannot then be told apart from an agent that built
+nothing at all, which is the whole reason the number is reported.
+
+g4 hit exactly this. `open_feature` failed on **both** `naive` and `spec` with one
+assertion, `assert None == 3`. Two independently built trees failing the same
+assertion is one defect, not variance — and the defect was that `test_open` graded
+`RunDirectoryCheck.previous_version` across the four reconcile statuses, which
+`whole.md` specifies in full, `ticket.md` mentions only as a name inside a
+constructor signature, and the hidden requirements never mention at all. **No arm
+stated it.** The oracle passed because the oracle builds from `whole.md`.
+
+This is the same shape that capped g3's spec arm at 0.44 hosted, one level up: not
+a hidden requirement the suite grades and the spec does not state, but a *visible*
+one the suite grades and the **ticket** does not state. `split` compresses the
+specification into the ticket, and compression is lossy exactly where a part has a
+lot of small enumerated values.
+
+**`ships()` now refuses on both halves of this**, so it is a gate rather than a
+thing to remember. `open_feature` must pass on `naive` — a build given only the
+ticket must be able to produce the feature, or the test grades something the
+ticket does not state — and it is no longer exempt from the spec-reachability
+check, because `spec` is handed the ticket *and* every hidden requirement, so a
+key `spec` cannot reach is a key no arm can reach.
+
+Both were measured against every bracket on disk before being trusted, which is
+the rule for any new detector here: the g4 cut that shipped green now reads
+`ships=False` with both messages, and g1, g2 and g3 are unchanged at `True`. The
+healthy shape is `naive: {'failed': 8, 'passed': 1}` with the one pass being
+`open_feature` — the agent built the feature from the ticket alone and recovered
+none of the hidden requirements. `failed: 9` is not a better result; it is a suite
+no blind agent can reach.
+
+The repair is a ticket amendment, not a re-cut: state the missing detail in
+`task.json`'s `description` (the field `emit` ships) and in `ticket.md`, snapshot
+the previous cut, then assert `hidden_requirements` is byte-identical before and
+after so the fix cannot have softened a hidden verdict — and rebuild `naive` and
+`spec`, because a tree built from a ticket that no longer exists is not evidence
+about the one that ships. Re-running `split` instead would re-roll which facts are
+hidden, and on g4 that was a measured 8-of-8 already in hand.
 
 ### 9. `cli audit <slug>` — advisory
 

@@ -804,7 +804,7 @@
          {
           "author": "emil",
           "minute": "10:16",
-          "text": "thats the marker. we splice in the `[... truncated N bytes ...]` line and the whole payload gets assembled inside the budget, so the marker is coming out of the allowance you asked for"
+          "text": "thats the marker. we splice the elision line in and the whole payload gets assembled inside the budget, so the marker is coming out of the allowance you asked for"
          },
          {
           "author": "dario",
@@ -1588,7 +1588,7 @@
          {
           "author": "emil",
           "minute": "14:02",
-          "text": "while i'm still in 654 \u2014 the clamp on max_output_bytes. if someone sets it to 8 we push it up to the floor and thats obviously right, but i ran the config through with 0 in there and it came back as the floor too. so truncation on, 512 byte cap, on a config that was meant to turn the whole thing off. not entirely sure the guard is wrong exactly, 0 IS less than the floor"
+          "text": "while i'm still in 654 \u2014 the floor check on max_output_bytes. a cap of 8 getting stopped there is obviously right, but i ran the config through with 0 in there and it went the same way. so a config that was meant to turn the whole thing off does not load at all. not entirely sure the guard is wrong exactly, 0 IS less than the floor"
          },
          {
           "author": "nikolai",

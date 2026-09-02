@@ -3631,5 +3631,61 @@
   "turns": 2,
   "seconds": 20.7,
   "session": "c6783014-3272-4401-a95f-a7d036254ccd"
+ },
+ {
+  "label": "clue-consistency-g2.r1.rule",
+  "cost_usd": 0.2463,
+  "turns": 2,
+  "seconds": 78.3,
+  "session": "d3922313-828f-4ed5-b6cf-1e8da98563eb"
+ },
+ {
+  "label": "clue-consistency-g2.r1.scope",
+  "cost_usd": 0.1785,
+  "turns": 2,
+  "seconds": 71.0,
+  "session": "59742562-c8d7-48e4-9a78-cca7ab47a714"
+ },
+ {
+  "label": "clue-consistency-g2.r1.exclusions_or_crossover",
+  "cost_usd": 0.2089,
+  "turns": 4,
+  "seconds": 73.9,
+  "session": "b0c6ebf7-4735-4eb7-ba75-3dc2d238777a"
+ },
+ {
+  "label": "clue-consistency-g2.r1.failure_behavior",
+  "cost_usd": 0.1968,
+  "turns": 2,
+  "seconds": 77.5,
+  "session": "845eac32-7610-41e7-abfc-c434d15d54b9"
+ },
+ {
+  "label": "clue-consistency-g2.r1.observability",
+  "cost_usd": 0.1636,
+  "turns": 2,
+  "seconds": 66.4,
+  "session": "d0012a81-2021-4672-905e-ecb160629d66"
+ },
+ {
+  "label": "clue-consistency-g2.r2.rule",
+  "cost_usd": 0.1489,
+  "turns": 2,
+  "seconds": 54.9,
+  "session": "0aae79c7-1bbe-494a-ac05-f20636cdc1d3"
+ },
+ {
+  "label": "clue-consistency-g2.r2.scope",
+  "cost_usd": 0.2172,
+  "turns": 2,
+  "seconds": 89.7,
+  "session": "f6454142-21d7-4c79-a5d6-e4570fadb07c"
+ },
+ {
+  "label": "clue-consistency-g2.r2.exclusions_or_crossover",
+  "cost_usd": 0.176,
+  "turns": 2,
+  "seconds": 70.5,
+  "session": "728c7500-1c14-4033-9eee-6195b15178e8"
  }
 ]

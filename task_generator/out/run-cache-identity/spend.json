@@ -1,0 +1,135 @@
+[
+ {
+  "label": "author",
+  "cost_usd": 3.1357,
+  "turns": 31,
+  "seconds": 687.6,
+  "session": "af531409-aa08-4140-a49d-aa639a43f421"
+ },
+ {
+  "label": "build-oracle",
+  "cost_usd": 3.2997,
+  "turns": 35,
+  "seconds": 478.6,
+  "session": "8d4362d5-f6ca-400e-ba89-6d2de5431dd7"
+ },
+ {
+  "label": "split",
+  "cost_usd": 1.1026,
+  "turns": 3,
+  "seconds": 267.1,
+  "session": "cb65d658-e5f1-435e-a98c-ed4f5e2f6570"
+ },
+ {
+  "label": "split",
+  "cost_usd": 0.7129,
+  "turns": 2,
+  "seconds": 195.8,
+  "session": "9347fab0-e4f5-4142-9984-4f0a0ed71bc0"
+ },
+ {
+  "label": "tests",
+  "cost_usd": 6.2489,
+  "turns": 50,
+  "seconds": 1109.0,
+  "session": "2fdc57d0-a681-4397-b434-221a8b4cf492"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 2.7552,
+  "turns": 36,
+  "seconds": 467.5,
+  "session": "f29de68b-5f52-4a17-848d-b36e53a8cdc2"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 3.5303,
+  "turns": 41,
+  "seconds": 676.7,
+  "session": "7a56327b-bebc-4fa0-b350-62050d36c414"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 2.6938,
+  "turns": 29,
+  "seconds": 485.4,
+  "session": "22a5a029-d689-491e-8119-ec2b8f1b8382"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 2.9098,
+  "turns": 38,
+  "seconds": 529.3,
+  "session": "d43a96d7-691c-491d-b018-51556d5ad457"
+ },
+ {
+  "label": "trim-g4.r1.rule",
+  "cost_usd": 0.2316,
+  "turns": 4,
+  "seconds": 47.0,
+  "session": "639a9ab6-d320-4cc2-887d-35a41f6865bd"
+ },
+ {
+  "label": "trim-g4.r1.scope",
+  "cost_usd": 0.0829,
+  "turns": 2,
+  "seconds": 31.1,
+  "session": "0318d5c7-33e5-4cea-9c7c-5d83eccb25fd"
+ },
+ {
+  "label": "trim-g4.r1.exclusions_or_crossover",
+  "cost_usd": 0.1197,
+  "turns": 3,
+  "seconds": 30.8,
+  "session": "75018e67-fc39-4fed-9e5f-50ef3d26ea5a"
+ },
+ {
+  "label": "trim-g4.r1.observability",
+  "cost_usd": 0.1767,
+  "turns": 4,
+  "seconds": 49.3,
+  "session": "2009f30f-c426-4907-92c6-53de49c8ac1c"
+ },
+ {
+  "label": "trim-g4.r2.rule",
+  "cost_usd": 0.1766,
+  "turns": 4,
+  "seconds": 47.9,
+  "session": "3717b557-3340-4fae-815b-66a4c3548cbb"
+ },
+ {
+  "label": "trim-g4.r2.scope",
+  "cost_usd": 0.1504,
+  "turns": 4,
+  "seconds": 41.3,
+  "session": "b01cec79-6929-4647-894c-a4abedb57500"
+ },
+ {
+  "label": "trim-g4.r2.failure_behavior",
+  "cost_usd": 0.1015,
+  "turns": 4,
+  "seconds": 28.0,
+  "session": "b9b77a47-b462-4694-b315-d17fa0b08134"
+ },
+ {
+  "label": "trim-g4.r2.observability",
+  "cost_usd": 0.1176,
+  "turns": 3,
+  "seconds": 31.3,
+  "session": "918ce10f-8e21-45f7-9d28-02427530b355"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 3.412,
+  "turns": 43,
+  "seconds": 584.2,
+  "session": "051c3113-123e-463a-b725-e5a3b8665d7a"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 3.5534,
+  "turns": 43,
+  "seconds": 528.6,
+  "session": "3cfb22cb-bffb-4ee6-9b3e-f82d9330fcae"
+ }
+]

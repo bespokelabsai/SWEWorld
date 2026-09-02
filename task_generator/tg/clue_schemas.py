@@ -398,3 +398,39 @@ def carriage_schema(parts: int = 8) -> dict:
                 "where": {**_STR, "description": "the turn carrying it, or why not"},
             }}}},
     }
+
+
+def consistency_schema(rows: int = 12) -> dict:
+    """Does anything in the corpus state this fact WRONGLY and get away with it?
+
+    One row per statement that contradicts the requirement, never a summary
+    verdict -- the same reason `carriage_schema` returns parts and lets code do
+    the arithmetic. The gate's decision is made here in Python from `reversed_by`
+    and the dates, not by the judge, because a judge asked "is this fair" answers
+    about the corpus it just read rather than about the reader who meets it in
+    date order.
+
+    Numbers cannot settle this. The invention that cost g2 a fact was "first 16k,
+    last 48k" against a requirement holding 16, 48, 64, 29, 3 and 4 -- two of its
+    own numbers with their roles swapped. Only a reader of the sentence can tell.
+    """
+    return {
+        "type": "object",
+        "required": ["conflicts"],
+        "properties": {"conflicts": {"type": "array", "maxItems": rows, "items": {
+            "type": "object",
+            "required": ["clue_id", "quote", "says", "reversed_by"],
+            "properties": {
+                "clue_id": {**_STR, "description": "the remark the statement sits in"},
+                "quote": {**_STR, "description": "the words that state it wrongly"},
+                "says": {**_STR, "description":
+                         "what a reader takes from it, and how that differs from "
+                         "the requirement"},
+                "reversed_by": {**_STR, "description":
+                                "clue_id of a LATER remark that plainly overturns "
+                                "it -- names the old decision and says it is gone. "
+                                "Empty string if nothing does. A remark that merely "
+                                "states the truth without referring to this one is "
+                                "NOT a reversal."},
+            }}}},
+    }

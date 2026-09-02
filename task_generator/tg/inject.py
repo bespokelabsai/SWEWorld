@@ -158,6 +158,84 @@ def write_chat(rows: list[dict], clue: dict, corpus: Corpus) -> list[str]:
     return []
 
 
+def page_body(inv: dict, clue: dict) -> str:
+    """The invented page as markdown, from the shape the planter actually emits.
+
+    `clue_schemas.DOCUMENT` requires `sections: [{heading, body}]` and nothing
+    else. The writer here asked for `body` or `summary`, which the planter has
+    never produced, so every `doc_new` fell through to the one-sentence fallback
+    and the authored page -- the only carrier whose text BookStack's search
+    actually indexes, comments being invisible to it -- shipped as a stub with
+    the remark's own summary as its entire content.
+
+    Falls back to the same sentence only when there is genuinely nothing else,
+    because a page that exists is still better than comments hung on a path that
+    does not: `ingest_comments` refuses every row with "unknown document".
+    """
+    sections = inv.get("sections") or []
+    parts = []
+    for section in sections:
+        if not isinstance(section, dict):
+            continue
+        heading = (section.get("heading") or "").strip()
+        body = (section.get("body") or "").strip()
+        if heading:
+            parts.append(f"## {heading}")
+        if body:
+            parts.append(body)
+    if parts:
+        return "\n\n".join(parts)
+    return (inv.get("body") or inv.get("summary")
+            or clue.get("settles") or clue["text"])
+
+
+def write_doc_edit(target: pathlib.Path, clue: dict) -> list[str]:
+    """A section added to a page that already exists, in the page's own body.
+
+    The strongest wiki placement there is, and until now the only one with no
+    writer. `slot_of` has mapped a `page` candidate to `doc_edit` all along --
+    the corpus offers one whenever the remark's holder is the page's author, so
+    an edit is always somebody editing their own page -- and `inject` sent every
+    `doc*` kind to `write_comment`, which would have hung comments off it
+    instead.
+
+    It matters because of what the two surfaces are worth to a reader.
+    BookStack's `/api/search` does not index page comments, so a comment-only
+    remark is reachable only by opening that exact page and scrolling. A section
+    in the body is indexed, and is the one wiki carrier an agent can FIND rather
+    than stumble onto.
+
+    Appended rather than spliced: the frontmatter and the existing prose are
+    untouched, so `ingest_docs` parses it exactly as before and the page's own
+    history stays true.
+    """
+    rel = (clue["carrier"].get("key") or "|").split("|")[1]
+    path = target / "docs" / rel
+    if not path.is_file():
+        return [f"{clue['clue_id']}: no page at {rel} to edit"]
+
+    inv = clue.get("invented") or {}
+    sections = [s for s in (inv.get("sections") or []) if isinstance(s, dict)]
+    if sections:
+        block = "\n\n".join(
+            (f"## {(s.get('heading') or '').strip()}\n\n{(s.get('body') or '').strip()}"
+             if s.get("heading") else (s.get("body") or "").strip())
+            for s in sections if (s.get("heading") or s.get("body")))
+    else:
+        # No invented section: the remark itself, under a heading taken from the
+        # carrier. A page edit is prose, so the exchange's turns are joined
+        # rather than laid out as a transcript -- a page that reads like chat is
+        # a tell, and `too_wordy` would be right to call it one.
+        heading = (clue["carrier"].get("anchor") or "").strip() or "Notes"
+        body = "\n\n".join(flat(what_said(m)) for m in turns(clue)
+                           if flat(what_said(m)))
+        block = f"## {heading}\n\n{body}"
+
+    text = path.read_text(encoding="utf-8").rstrip("\n")
+    path.write_text(f"{text}\n\n{block}\n", encoding="utf-8")
+    return []
+
+
 def write_comment(wiki, clue: dict, taken: set[str]) -> list[str]:
     """The exchange in the margin of a page, as a comment and its replies.
 
@@ -178,8 +256,7 @@ def write_comment(wiki, clue: dict, taken: set[str]) -> list[str]:
         title = inv.get("title") or clue["carrier"].get("title") or \
             rel.rsplit("/", 1)[-1].removesuffix(".md").replace("-", " ")
         wiki.write(uid=clue["holder"], title=title,
-                   body=inv.get("body") or inv.get("summary") or
-                        (clue.get("settles") or clue["text"]),
+                   body=page_body(inv, clue),
                    collection=rel.split("/", 1)[0],
                    ts=stamp(clue["carrier"]["date"], "09:30"))
     stem = f"c-{rel.rsplit('/', 1)[-1].removesuffix('.md')}"
@@ -469,6 +546,8 @@ def inject(slug: str, *, run: str | None = None, out: str | None = None,
             continue
         if kind.startswith("chat"):
             problems += write_chat(rows, clue, corpus)
+        elif kind == "doc_edit":
+            problems += write_doc_edit(target, clue)
         elif kind.startswith("doc"):
             problems += write_comment(wiki, clue, taken)
         elif kind.startswith("mail"):
