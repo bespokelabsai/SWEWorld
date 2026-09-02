@@ -1,0 +1,15 @@
+From: gideon@world.local
+To: emil@world.local, dario@world.local
+Subject: executor output cap =?utf-8?b?4oCU?= what the truncation flags read
+ on each exit path
+Date: Fri, 18 Apr 2025 15:06:00 +0000
+Message-ID: <178836752010.3213021.17330074263930051842@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+quick one on the truncation flag while i'm in that file. when a subprocess ex=
+its non-zero we build the "command failed with exit code N" string and paste =
+the stderr inside it right. so if the stderr sitting in there already got cli=
+pped by the cap, what does error_truncated read at that point? someone is goi=
+ng to ask that in review eventually tbh, better we have an answer

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import ast
 import dataclasses
+import functools
 import pathlib
 import re
 
@@ -233,6 +234,73 @@ def required(task: Task) -> dict[str, Need]:
         for field in FACT_FIELDS
         if (req.get("requirement") or {}).get(field)]
     return _required(task.id, tests, task.description, facts)
+
+
+@functools.lru_cache(maxsize=1)
+def _curator_tokens() -> frozenset[str]:
+    """Every identifier curator already contains. Read once; it is ~200 files."""
+    from .trees import SOURCE
+    src = SOURCE / "src" / "bespokelabs" / "curator"
+    out: set[str] = set()
+    if src.is_dir():
+        for path in src.rglob("*.py"):
+            out |= _tokens(path.read_text(encoding="utf-8", errors="replace"))
+    return frozenset(out)
+
+
+def ungrounded_readers(task: Task) -> list[str]:
+    """`read_field` calls where NO candidate spelling is written down anywhere.
+
+    `required()` above intersects what the tests reach for with what the
+    requirement states. A name in neither the ticket nor the requirement falls
+    out of that `&` and is invisible to it -- which is not a small gap, it is the
+    unscoreable case. If the grader demands a name and no arm is ever told it,
+    every arm fails that fact, the spec arm included, and the task reports as
+    hard when it is merely unanswerable.
+
+    g3 shipped exactly that. `whole.md` marked the verdict's field spelling
+    `throttle_waivers_after` an invented name; `split` dropped it from the
+    requirement; the suite went on reading it. A hosted opus run implemented the
+    whole waiver rule, spelled the field `throttle_waivers_left_after`, and
+    scored 0 on all five r1 facts -- one mismatch wearing five faces. The spec
+    arm's ceiling was 0.44 and nothing free could see why.
+
+    Checked per `read_field(obj, *names)` call rather than per name, because the
+    names are ALTERNATIVES: the reader passes if the object has any one of them,
+    so the requirement only has to state one. Demanding all of them would flag
+    every well-written reader in the suite.
+    """
+    tests = task.dir / "tests"
+    if not tests.is_dir():
+        return []
+    grounded = set(_tokens(task.description))
+    for req in task.hidden_requirements:
+        for field in FACT_FIELDS:
+            grounded |= _tokens((req.get("requirement") or {}).get(field) or "")
+    grounded |= _curator_tokens()
+
+    problems = []
+    for path in sorted(tests.glob("*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            callee = node.func
+            name = getattr(callee, "attr", None) or getattr(callee, "id", None)
+            if name != "read_field":
+                continue
+            spellings = [a.value for a in node.args[1:]
+                         if isinstance(a, ast.Constant) and isinstance(a.value, str)]
+            if spellings and not any(s in grounded for s in spellings):
+                problems.append(
+                    f"{path.name}:{node.lineno}: read_field asks for "
+                    f"{tuple(spellings)!r} and no arm is ever told any of them — "
+                    "state one in the hidden requirement, or read the behaviour "
+                    "instead of the name")
+    return problems
 
 
 def unsaid(names: list[str], texts: list[str]) -> list[str]:

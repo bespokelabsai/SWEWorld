@@ -1,0 +1,16 @@
+From: dario@world.local
+To: emil@world.local
+Subject: Re: responses file from last night's executor run is 40MB of stdout
+Date: Wed, 11 Jun 2025 10:21:00 +0000
+Message-ID: <178836752005.3213021.13401915082514882902@world.local>
+In-Reply-To: <178836752005.3213021.15244072820069557532@world.local>
+References: <178836752005.3213021.15244072820069557532@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ok, that accounts for the arithmetic at least. what im less sure about is whe=
+ther thats intentional or just how the writer happened to fall out =E2=80=94 =
+is the 64 supposed to be the ceiling on the whole blob we hand back, or the c=
+eiling on the output itself? because as it stands the answer depends on how l=
+ong the marker text happens to be, which is not a thing the caller can see

@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2+P3",
+  "blind_alternative": "head-only `raw[:max_bytes]` (or an even 50/50 split) with a conventional `\"\\n... [truncated]\"` suffix appended inside the budget"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "slices the `str` by characters, or decodes the byte slice with `errors=\"replace\"`/`\"ignore\"`, so `\ufffd` appears or the retained count is exactly `max_bytes`"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5+P6",
+  "blind_alternative": "no validation at all (a tiny budget just yields a tiny head/tail), or a plain `ValueError` with no `max_bytes` attribute, and `0` read literally as \"keep nothing\""
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P3+P4",
+  "blind_alternative": "asserts `len(stdout) <= max_output_bytes`, since a cap that overshoots its own budget looks like a bug"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "normalises a `None` stream to `\"\"` so downstream consumers never see a null stream"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P8",
+  "blind_alternative": "caps once where `result.stdout`/`result.stderr` are read, which fixes three sites and silently leaves the `except` path uncapped"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P8+P6",
+  "blind_alternative": "treats the `getattr`-salvaged streams as best-effort passthrough and skips capping when they are `None`"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P9",
+  "blind_alternative": "keeps passing raw `result.stderr` to `_format_exit_code_error` because the ticket asks to cap stdout/stderr and `error` is a different field"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P8+P9",
+  "blind_alternative": "asserts only on `output.stdout`/`output.stderr` for the success path and never inspects `error` or the exception/timeout branches"
+ }
+]

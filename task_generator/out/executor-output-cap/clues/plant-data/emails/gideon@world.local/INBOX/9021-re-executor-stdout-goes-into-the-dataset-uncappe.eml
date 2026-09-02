@@ -1,0 +1,15 @@
+From: dermot@world.local
+To: nikolai@world.local, emil@world.local, gideon@world.local
+Subject: Re: executor stdout goes into the dataset uncapped
+Date: Mon, 21 Apr 2025 13:53:00 +0000
+Message-ID: <178836752009.3213021.3647274132784950541@world.local>
+In-Reply-To: <178836752007.3213021.8695051038993002334@world.local>
+References: <178836752007.3213021.8695051038993002334@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+no, there is a marker sitting between them. `\n[[curator:elided <dropped> byt=
+es]]\n` =E2=80=94 dropped being the count of what we cut out, newline either =
+side so it lands on its own line and does not get glued to the end of whateve=
+r the head slice stopped mid-way through

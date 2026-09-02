@@ -67,15 +67,16 @@ subtraction rather than a guess.
 | `split` | **yes** | $1.26 | cut into ticket + hidden requirements. Fails unless every fact has an invented anchor the ticket does not print |
 | `tests` | **yes** | ? | one decisive test per fact, green on the oracle. Never measured — largest per-call budget here |
 | `build --role naive` | | $1.93 | ticket only, fresh context, isolated tree |
-| `bracket` | **yes** | free | pristine / naive / oracle → a verdict per fact. Every fact must read `hidden` |
+| `build --role spec` | | $2.00 | the ceiling arm's twin — builds from what `-spec` is actually handed, not from `whole.md` |
+| `bracket` | **yes** | free | pristine / naive / oracle / spec → a verdict per fact. Every fact must read `hidden` |
 | `audit` | **yes** | ? | one adversarial Catalog A/B call per fact. **Never run on g1** — `--optional` |
 | `trim` | | $2.95 | cut each requirement to what its assertions actually check |
 | `emit` | **yes** | free | write the harbor artifacts; refuses unless the bracket shipped |
 | `clues` | **yes** | $48 | the plant. ~175 placement calls, and **two thirds of the whole bill** |
 | `settle` | | $10.73 | rewrite every graded assertion a reader was left to infer |
 | `reverse` | **yes** | $1 | say out loud that each herring's decision was dropped |
-| `reknit` | **yes** | $2.50 | make each invented conversation say the remark as the plant now words it |
-| `reorder` | **yes** | $1 | move a decision dated before the complaint it answers. `--optional` |
+| `reorder` | **yes** | $1 | move a decision dated before the complaint it answers. Before `reknit`, not after |
+| `reknit` | **yes** | $9 | turn each remark into the exchange it was made in |
 | `prove --runs 3` | **yes** | $5.50 | build from ticket + remarks alone, three times, and score with the real suite |
 | `horizon --arms blind,spec,clues` | **yes** | free | the hosted arms. Name `clues` or its gate does not run |
 | `inject` | **yes** | free | write the plant into a copy of the corpus, for the in-world arm. `--optional` |
@@ -105,6 +106,49 @@ carry its own id, slug and suite. The hand-written 60 are never touched.
 in the corpus rather than in the ticket; it needs `cli inject` to have run and the
 image to have been re-baked.
 
+### The hosted arms, end to end
+
+`cli horizon <slug> --arms blind,spec[,clues]` writes one apex task directory per
+arm under `out/<slug>/horizon/`. Emitting is where two gates fire:
+`unhosted_paths()` refuses a suite that reads outside `/workdir`, `/tests`, `/tmp`
+and ordinary Linux, and `unsolvable()` refuses a clues arm whose digest never
+types a graded name — the latter only when `clues` is one of the arms, which is
+why the flag defaults to naming all three.
+
+**The `horizon` CLI is not on `PATH`.** It lives in its own virtualenv:
+
+```bash
+export PATH="$HOME/horizon_env/bin:$PATH"
+export HORIZON_API_KEY=...  MINI_BATCH_ID=...
+
+cd task_generator/out/<slug>/horizon
+horizon tasks push g<N>-<slug>                        # the blind arm
+horizon tasks push g<N>-<slug>-spec                   # the spec arm
+
+horizon tasks validate --mode hosted --agent oracle   # must come back 1.00
+horizon tasks validate --mode hosted --agent noop     # must come back 0.00
+horizon tasks validate-logs                           # -> <arm>/.validation/
+
+horizon evaluations submit --model biggie-max --runs 3 <task-id>
+horizon evaluations watch <eval-id>
+horizon rollouts pull <task-uuid>                     # -> horizon/.rollouts/v<N>/
+```
+
+`validate -m hosted -a oracle | -a noop` **is this package's own bracket in
+Horizon's idiom**, and it is the only way to run it: the `apex_arena:base` image
+lives in Horizon's project, not on this box, so the Dockerfile these arms emit
+cannot be built locally. `validate-logs` is how the result comes back.
+
+`push` writes `.horizon/metadata.json` — task uuid, name, mini-batch, version —
+and `horizon.emit()` reads that file before `rmtree` and writes it back, because
+losing it makes the next push create a **second task** rather than a new version.
+
+Rollouts land as `<model>_run<N>_<id>.json` carrying `score` and a
+`grade_result.subscores` map keyed exactly like the local bracket (`g1.r1.rule`),
+so a hosted number and a local number are directly comparable. Hosted models are
+Horizon's own roster (`biggie-max`, `cipher-omni`, `lumen`) and the agent type
+that works is `meteor` — `cascade` failed all 20 rollouts with no task binding.
+
 Three commands are not in the recipe because they only make sense as answers to
 something a gate printed: `repair` (rewrite what a proof blamed), `replace`
 (re-place every remark, same wording), and `suite` / `exec`, which are how the
@@ -130,6 +174,190 @@ in a measured corpus never retracted and the plant passed everything it had.
 `clues.finish()` is the single tail every pass ends at, and it now runs all of
 them — including `unknit`, which reads the invented conversations that until
 recently nothing ever opened.
+
+## Running it stage by stage
+
+`cli make <slug>` is the recipe, and it is not how g1, g2 or g3 were actually
+built. Every one of them was walked one stage at a time, because **`make` cannot
+tell a fatal exit from an advisory one** — `split` and `bracket` both exit
+non-zero on a heuristic, and a driver that stops on every non-zero exit stops on
+a perfectly good artifact while a driver that ignores them spends $19 into a cut
+that was already dead. `make` is for the second pass, when you already know what
+this area does; `make --from <stage>` is for resuming after you fixed whatever a
+gate printed.
+
+So: this is the walkthrough. Per stage, the command, what it writes, and the one
+thing to read before you type the next one. `cli() { python3 task_generator/cli.py "$@"; }`
+from the repo root throughout.
+
+### Before anything: the brief
+
+The brief is the one input the package cannot produce, and it is the difference
+between a task that brackets and a task that does not (`## Nothing here is
+specific to one task`). Read the area first — 15 minutes in `curator/` — and look
+for the shape that brackets: **two sides that disagree, where the disagreement is
+reachable.** g1 had `create_request_files` and `create_batch_file` disagreeing
+about how big a batch is; g2 had three exit paths assembling output independently
+and two result types disagreeing about whether a stream may be absent; g3 had a
+retry queue, a cooldown and a config each with a different answer for what a
+failure costs.
+
+Write it in the shape the existing ones use (`out/*/brief.md`): the area in one
+sentence, then `The area, concretely:` with **exact files and line numbers**, then
+the disagreement stated plainly, then `Constraints:` — pure, deterministic, no
+network, no sleeping, no threads, clock and randomness injected, and the specific
+fakes the suite is allowed to build. Twenty-five to forty-five lines. An area
+where one implementation is obvious produces parts with no alternatives, and a
+fact drawn from such a part is one a blind agent passes for free.
+
+### `cli make <slug> --dry-run`
+
+Free. Prints the stage table with a `spent` column read from this task's own
+`spend.json`, so what is left to pay is a subtraction. Run it first and again
+whenever you lose the thread.
+
+### 1. `cli new <slug> --brief "$(cat brief.txt)"`
+
+Writes `out/<slug>/brief.md` and a skeleton `task.json`. The id is assigned by
+scanning `out/*/task.json` for the next free `g<N>` — pass `--id` only to override
+that. Slug `foo-bar` gives suite `g<N>_foo_bar` and harbor dir `g<N>-foo-bar`.
+
+**Read:** that the id and suite are what you expected. Everything downstream keys
+off them, and `emit` writes them into `harbor_tasks/`.
+
+### 2. `cli author <slug>` — $5.79
+
+Writes `whole.md`: the whole specification, in parts, nothing hidden yet.
+
+**Read:** that every part names **at least two alternatives a competent engineer
+would plausibly pick instead**, and then apply the stricter test the prompt now
+carries — *could a competent engineer, with the ticket and the surrounding source,
+arrive at this by reading?* If yes it is not hidden, however many alternatives
+exist. At least half the parts must carry content the codebase **cannot** supply:
+an invented name, a chosen value, a policy with no local evidence, or a deliberate
+departure from what the surrounding code plainly does. A `whole.md` that fails
+this reads fine and brackets at `naive 10/11`; it is much cheaper to notice here
+than after `tests`.
+
+### 3. `cli build --role oracle <slug>` — $3.49
+
+Implements all of `whole.md` in a persistent tree at `.trees/<slug>/oracle/`.
+Writes `fixtures/oracle.{patch,py}`.
+
+**Read:** nothing yet. The oracle is judged by the bracket, not by inspection.
+
+### 4. `cli split <slug>` — $1.26 — **gate, and the noisiest one**
+
+Cuts `whole.md` into `ticket.md` (visible half A) and `hidden.md` (B and C), and
+writes `task.json` and `fact_sources.json`. The previous cut is archived to
+`cuts/cut-N/`, so nothing is lost by re-cutting. It re-cuts itself once, without
+being asked, when it detects the ticket leaked a name its own facts need.
+
+**Read:** `tg/leak.py`'s anchor audit, which `cli.py split` prints. It takes the
+identifiers each fact quotes, subtracts the ones the ticket prints and the ones
+already in the source tree, and reports what is left. It flagged 8 of g1 cut 1's
+9 coincidences *before any naive build existed*.
+
+**The exit code is a prediction, not a verdict.** `split` exits 1 when any fact
+rests on no invented name. It called 4 of its 5 predictions correctly on g2 — and
+g1 ships with 5 of 10 facts unanchored, because a fact can rest on a chosen value
+or on a policy the code is silent about instead of on a name. Read the audit, then
+decide.
+
+### 5. `cli tests <slug>` — the largest per-call budget here — **gate**
+
+Writes `tests/test_open.py`, `test_r1.py`, `test_r2.py`: one decisive test per
+declared fact, green on the oracle. Re-freezes the oracle afterwards if the tree
+moved.
+
+**Read:** what each test reaches for, because that is the graded surface and
+everything downstream is measured against it, not against the prose. A suite that
+reads a path outside the hosted roots will bracket 10/10 locally and score 0
+hosted — that is exactly what g3 did, reading `/opt/world-state/input/curator/...`,
+which exists in the devbox and in no `apex_arena` image. `harness.baseline_text()`
+is the one function allowed to know where a baseline lives, and
+`horizon.unhosted_paths()` now refuses a suite that reaches around it — but it
+refuses at `horizon`, several hundred dollars downstream of here.
+
+### 6–7. `cli build --role naive` ($1.93) and `--role spec` ($2.00)
+
+Both build in **isolated trees in a system temp directory**, not under this repo,
+because the answer key sits in `out/<slug>/` and an agent that wandered into it
+would invalidate the one measurement the package exists to make.
+
+`naive` sees only `ticket.md` — the rubric's blind condition, mechanised, for
+about a dollar instead of nine. `spec` sees what the `-spec` arm is actually
+handed. Do not skip `spec` because the oracle already passes: the oracle builds
+from `whole.md` and so shares the author's assumptions. **g3's spec arm capped at
+0.44 hosted** because `split` dropped a field spelling the suite still graded, and
+nothing local had ever built from the requirement alone to notice.
+
+### 8. `cli bracket <slug>` — free, ~1 min — **the gate**
+
+One suite, four trees, a verdict per fact. Folding is done by
+`harbor_tasks/_suites/score.py`, imported rather than reimplemented, so a fact key
+here means exactly what it will mean in `jobs/<job>/result.json`.
+
+| verdict | pristine | naive | oracle | what to do |
+|---|---|---|---|---|
+| `hidden` | fail | fail | pass | ship it |
+| `coincidence` | fail | **pass** | pass | `author --extend`, **not** another `split` |
+| `vacuous` | **pass** | pass | pass | the test does not require the feature to exist — fix the test |
+| `broken` | — | — | **fail** | a real defect. Stop here |
+| `unreachable` | fail | fail | pass, **spec fails** | the requirement does not say what the suite grades |
+
+**Two of these are worth stopping for and the rest are not.** `broken` and
+`unreachable` are real defects — the second means a build given the ticket *and*
+the hidden requirements still fails, so the requirement's wording is wrong, and no
+amount of re-cutting will help. A `coincidence`, by contrast, comes off a `naive`
+tree built **exactly once**, so one sample of a stochastic process decided it;
+`harbor_tasks/BRACKET.md` records 14 hidden / 13 coincidence across t1–t4 and
+those tasks shipped.
+
+**On coincidences, do not re-cut.** This is the one decision the tool does not
+make for you and it cost g2 about $6 to learn: three further `split` calls moved
+the anchor count 2 → 4 → 2 and changed nothing, because re-cutting only chooses
+*which* parts to hide, and every part was derivable from the surrounding source.
+One `cli author <slug> --extend` — which keeps the parts and the oracle and only
+adds parts carrying content the codebase cannot supply — took `naive` from 5/10 to
+1/10. **A coincidence is a fact about the specification, not about the cut.**
+
+### 9. `cli audit <slug>` — advisory
+
+One adversarial Catalog A/B call per fact. `--optional` in the recipe, never run
+on g1. Skipping it is a decision; make it one.
+
+### 10. `cli trim <slug>` — $2.95
+
+Cuts each hidden requirement down to what its assertions actually check. Re-run
+`bracket` after, since it changes what the spec arm is handed.
+
+### 11. `cli emit <slug>` — free — **gate**
+
+Writes `harbor_tasks/<id>-<slug>/`, `harbor_tasks/_suites/<suite>/` and this
+task's row in `tasks.generated.json`. Refuses unless the bracket shipped, and
+`emit.check_bijection` proves every declared fact has a test and every test a
+fact.
+
+### Then measure
+
+Locally first — one machine, one model, the instruction the only variable — and
+spend hosted rollouts only on what the local bracket cannot answer. A hosted
+average multiplies a completion rate by a recovery rate and five rollouts cannot
+separate them; the same three arms on Harbor with one model gave 1.00 / 1.00 /
+0.00 at n=1 and no ambiguity at all.
+
+**Two numbers are the verdict:** `spec ≈ 1.00` says the suite is satisfiable, and
+`blind ≈ 0.00` says the requirements are genuinely hidden. `open_feature` at 1.0
+on that blind arm is the load-bearing part of the zero — it means the agent built
+the feature competently and still recovered nothing. A blind 0.00 with
+`open_feature` at 0 says only that the agent failed to build anything.
+
+And when several facts fail: **perfectly correlated per-fact failures are ONE
+defect, not variance.** Three of g1's facts failed together on 3 of 5 rollouts
+with byte-identical assertion errors, and the cause was a single ambiguous
+sentence. Find it before sampling more, and read the failing assertion's two sides
+rather than the fact's name.
 
 ## The in-world arm
 

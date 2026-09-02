@@ -1,0 +1,85 @@
+{
+ "task": "g2",
+ "suite": "g2_executor_output_cap",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g2.open_feature": 0.0,
+    "g2.r1.rule": 0.0,
+    "g2.r1.scope": 0.0,
+    "g2.r1.exclusions_or_crossover": 0.0,
+    "g2.r1.failure_behavior": 0.0,
+    "g2.r1.observability": 0.0,
+    "g2.r2.rule": 0.0,
+    "g2.r2.scope": 0.0,
+    "g2.r2.exclusions_or_crossover": 0.0,
+    "g2.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10
+   },
+   "collected": true,
+   "stdout_tail": "^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\ntimeout = 10, max_output_bytes = 64\n\n    def execute(*, timeout: int = 10, max_output_bytes=None):\n        \"\"\"Call `_execute_in_sandbox` directly; omit the budget entirely when None.\"\"\"\n        kwargs = {} if max_output_bytes is None else {\"max_output_bytes\": max_output_bytes}\n>       return sandbox_backend._execute_in_sandbox(\n            code=\"print('hi')\",\n            code_input=\"\",\n            timeout=timeout,\n            backend_name=\"local\",\n            sandbox_kwargs={},\n            **kwargs,\n        )\nE       TypeError: _execute_in_sandbox() got an unexpected keyword argument 'max_output_bytes'\n\ng2_executor_output_cap/test_open.py:98: TypeError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g2_executor_output_cap-de37c527/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g2_executor_output_cap/test_open.py::test_open_feature__a_configurable_byte_budget_shortens_what_the_sandbox_returns - ImportError: cannot import name 'output_cap' from 'bespokelabs.curator.code_executor' (/tmp...\nFAILED g2_executor_output_cap/test_r1.py::test_rule__the_kept_head_and_tail_split_three_to_one_around_an_elision_marker - TypeError: _execute_in_sandbox() got an unexpected keyword argument 'max_output_bytes'\nFAILED g2_executor_output_cap/test_r1.py::test_scope__the_budget_counts_utf8_bytes_and_both_slices_land_on_codepoints - TypeError: _execute_in_sandbox() got an unexpected keyword argument 'max_output_bytes'\nFAILED g2_executor_output_cap/test_r1.py::test_exclusions__a_zero_budget_is_unlimited_and_streams_within_budget_are_untouched - TypeError: _execute_in_sandbox() got an unexpected keyword argument 'max_output_bytes'\nFAILED g2_executor_output_cap/test_r1.py::test_failure_behavior__a_budget_below_the_floor_of_sixteen_is_refused_by_outputcaperror - ModuleNotFoundError: No module named 'bespokelabs.curator.code_executor.output_cap'\nFAILED g2_executor_output_cap/test_r1.py::test_observability__one_warning_line_per_capped_run_from_the_shared_template - ModuleNotFoundError: No module named 'bespokelabs.curator.code_executor.output_cap'\nFAILED g2_executor_output_cap/test_r2.py::test_rule__the_exception_message_is_capped_and_flagged_by_error_truncated - AssertionError: CodeExecutionOutput has ['message', 'error', 'stdout', 'stderr', 'files']\nFAILED g2_executor_output_cap/test_r2.py::test_scope__the_exit_code_and_timeout_messages_and_files_are_never_capped - TypeError: _execute_in_sandbox() got an unexpected keyword argument 'max_output_bytes'\nFAILED g2_executor_output_cap/test_r2.py::test_exclusions__the_flag_is_on_the_output_model_alone_and_never_a_stream_name - Failed: the error_truncated flag on CodeExecutionOutput is not implemented, so the constraint ...\nFAILED g2_executor_output_cap/test_r2.py::test_observability__the_exact_error_text_and_flag_of_the_three_named_runs - TypeError: _execute_in_sandbox() got an unexpected keyword argument 'max_output_bytes'\n10 failed, 1 warning in 2.86s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g2.open_feature": 1.0,
+    "g2.r1.rule": 0.0,
+    "g2.r1.scope": 0.0,
+    "g2.r1.exclusions_or_crossover": 0.0,
+    "g2.r1.failure_behavior": 0.0,
+    "g2.r1.observability": 0.0,
+    "g2.r2.rule": 0.0,
+    "g2.r2.scope": 0.0,
+    "g2.r2.exclusions_or_crossover": 0.0,
+    "g2.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "ns _________________________________________________________________________\n\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d61717c3230>\n\n    def test_observability__the_exact_error_text_and_flag_of_the_three_named_runs(monkeypatch):\n        blew_up = run(monkeypatch, exit_code=0, stdout=BIG, stderr=\"\", exit_error=RuntimeError(\"X\" * 300), max_output_bytes=64)\n>       assert blew_up.error == \"X\" * 48 + \"\\n[[curator:elided 236 bytes]]\\n\" + \"X\" * 16\nE       AssertionError: assert 'XXXXXXXXXXXX...XXXXXXXXXXXXX' == 'XXXXXXXXXXXX...XXXXXXXXXXXXX'\nE         \nE         Skipping 38 identical leading characters in diff, use -v to show\nE         + XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\nE         - XXXXXXXXXX\nE         - [[curator:elided 236 bytes]]\nE         - XXXXXXXXXXXXXXXX\n\ng2_executor_output_cap/test_r2.py:105: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g2_executor_output_cap-b73cb3bd/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g2_executor_output_cap/test_r1.py::test_rule__the_kept_head_and_tail_split_three_to_one_around_an_elision_marker - AssertionError: expected a 48-byte head and a 16-byte tail spliced by the elision marker, got:\nFAILED g2_executor_output_cap/test_r1.py::test_scope__the_budget_counts_utf8_bytes_and_both_slices_land_on_codepoints - AssertionError: the elided-byte count reads []; 18 of the 30 bytes survived, so 12 were dropped: ...\nFAILED g2_executor_output_cap/test_r1.py::test_exclusions__a_zero_budget_is_unlimited_and_streams_within_budget_are_untouched - AssertionError: a budget of 0 cut the stream to 0 characters\nFAILED g2_executor_output_cap/test_r1.py::test_failure_behavior__a_budget_below_the_floor_of_sixteen_is_refused_by_outputcaperror - ImportError: cannot import name 'MIN_MAX_OUTPUT_BYTES' from 'bespokelabs.curator.code...\nFAILED g2_executor_output_cap/test_r1.py::test_observability__one_warning_line_per_capped_run_from_the_shared_template - ImportError: cannot import name 'TRUNCATION_LOG_TEMPLATE' from 'bespokelabs.curator.code_executo...\nFAILED g2_executor_output_cap/test_r2.py::test_rule__the_exception_message_is_capped_and_flagged_by_error_truncated - AssertionError: CodeExecutionOutput has ['message', 'error', 'stdout', 'stderr', 'files', 'truncate...\nFAILED g2_executor_output_cap/test_r2.py::test_scope__the_exit_code_and_timeout_messages_and_files_are_never_capped - AssertionError: expected one of ('error_truncated',) on CodeExecutionOutput; it has ['construct', '...\nFAILED g2_executor_output_cap/test_r2.py::test_exclusions__the_flag_is_on_the_output_model_alone_and_never_a_stream_name - Failed: the error_truncated flag on CodeExecutionOutput is not implemented, so the constraint ...\nFAILED g2_executor_output_cap/test_r2.py::test_observability__the_exact_error_text_and_flag_of_the_three_named_runs - AssertionError: assert 'XXXXXXXXXXXX...XXXXXXXXXXXXX' == 'XXXXXXXXXXXX...XXXXXXXXXXXXX'\n9 failed, 1 passed, 1 warning in 2.65s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g2.open_feature": 1.0,
+    "g2.r1.rule": 1.0,
+    "g2.r1.scope": 1.0,
+    "g2.r1.exclusions_or_crossover": 1.0,
+    "g2.r1.failure_behavior": 1.0,
+    "g2.r1.observability": 1.0,
+    "g2.r2.rule": 1.0,
+    "g2.r2.scope": 1.0,
+    "g2.r2.exclusions_or_crossover": 1.0,
+    "g2.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g2_executor_output_cap-e5dea97f/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 1 warning in 2.36s\n"
+  }
+ },
+ "verdicts": {
+  "g2.open_feature": "open_feature",
+  "g2.r1.rule": "hidden",
+  "g2.r1.scope": "hidden",
+  "g2.r1.exclusions_or_crossover": "hidden",
+  "g2.r1.failure_behavior": "hidden",
+  "g2.r1.observability": "hidden",
+  "g2.r2.rule": "hidden",
+  "g2.r2.scope": "hidden",
+  "g2.r2.exclusions_or_crossover": "hidden",
+  "g2.r2.observability": "hidden"
+ }
+}

@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2",
+  "blind_alternative": "head-only `raw[:max_bytes]`, keeping a 64-character prefix and no tail"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P3",
+  "blind_alternative": "no marker at all (or a trailing '... [truncated]' notice) with the total length held at or under max_bytes and the dropped count reported as original minus max_bytes"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P4",
+  "blind_alternative": "slice bytes and decode with errors=\"ignore\" (or slice the str by characters), giving kept_bytes == max_bytes exactly"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P2",
+  "blind_alternative": "asserts a 64-character head with no seam offset and no tail suffix"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P6",
+  "blind_alternative": "treats 0 literally, truncating every stream to an empty string and flagging it truncated"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "no validation at all \u2014 a tiny budget just yields a tiny head \u2014 or clamping silently to a minimum"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "a plain ValueError with a message and no attribute, or nothing raised whatsoever"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "insertion order [\"stdout\", \"stderr\"], matching field and argument order"
+ }
+]

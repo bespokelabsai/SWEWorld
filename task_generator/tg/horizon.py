@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import shutil
 
 from . import surface
@@ -480,6 +481,55 @@ def unsolvable(task: Task) -> list[str]:
     return out
 
 
+# What an apex_arena image gives a suite: `/workdir` is the agent's tree,
+# `/tests` the root-owned suite, `/tmp` scratch. Plus ordinary Linux, which is
+# named explicitly so the check does not fire on `/dev/null`.
+HOSTED_ROOTS = ("/workdir", "/tests", "/tmp",
+                "/dev", "/proc", "/sys", "/usr", "/bin", "/sbin", "/lib")
+
+# SWEWorld's own furniture, present in the `devbox` the bracket runs in and in
+# no hosted image. Listed only to say so in the message -- everything off
+# HOSTED_ROOTS is refused anyway, because the failure mode of guessing wrong
+# here is a silent hosted zero and the cost of a false positive is one comment.
+WORLD_ROOTS = ("/opt/world-state", "/opt/sweworld", "/etc/sweworld",
+               "/var/lib/world", "/opt/mattermost", "/run/mysqld")
+
+LITERAL_PATH = re.compile(r"""["'](/[A-Za-z0-9_][A-Za-z0-9_./-]*)["']""")
+
+
+def unhosted_paths(suite_src: pathlib.Path) -> list[str]:
+    """Paths a test names that no Horizon image provides.
+
+    g3 shipped a suite reading `/opt/world-state/input/curator` — SWEWorld's
+    pristine checkout, present in the `devbox` the bracket runs in and in no
+    apex_arena image. It scored oracle 10 of 10 locally and 0.8889 hosted, on a
+    bare FileNotFoundError, and cost a push and a six-minute Cloud Batch round
+    trip to find. The bracket cannot catch this: it runs in the container that
+    makes the path true.
+
+    Only the task's own `test_*.py` are checked. `harness.py` is the ONE place
+    allowed to know where a baseline lives -- it names `/opt/world-state` and
+    then guards it -- so a test that reaches around `harness.baseline_text()`
+    for a path of its own is the thing this refuses.
+    """
+    problems = []
+    for path in sorted(suite_src.glob("test_*.py")):
+        src = path.read_text(encoding="utf-8", errors="replace")
+        for found in sorted(set(LITERAL_PATH.findall(src))):
+            if found.startswith(HOSTED_ROOTS):
+                continue
+            why = ("is SWEWorld's, and exists in no hosted image"
+                   if found.startswith(WORLD_ROOTS)
+                   else "is not a path a hosted image is known to have")
+            problems.append(f"{path.name}: names {found!r}, which {why}; "
+                            "read a baseline through harness.baseline_text()")
+        if re.search(r"^from harness import .*\bBASELINE\b", src, re.M):
+            problems.append(f"{path.name}: imports BASELINE; use "
+                            "harness.baseline_text(), which falls back to the "
+                            "tarball at /tests and returns None rather than raising")
+    return problems
+
+
 def emit(task: Task, arms: tuple[str, ...] = ARMS,
          force: bool = False) -> dict[str, pathlib.Path]:
     root = task.dir / "horizon"
@@ -500,6 +550,16 @@ def emit(task: Task, arms: tuple[str, ...] = ARMS,
     for needed in (suite_src, patch):
         if not needed.exists():
             raise SystemExit(f"missing {needed}")
+
+    # Before the push, not after: a hosted validation costs a Cloud Batch round
+    # trip to say the same thing, and says it as a score rather than as a path.
+    if not force:
+        unhosted = unhosted_paths(suite_src)
+        if unhosted:
+            raise SystemExit(
+                "refusing to emit — the suite reads paths this image does not have:"
+                "\n  " + "\n  ".join(unhosted)
+                + "\n\nfix the suite, or pass --force to emit it anyway.")
 
     fact_keys = task.hidden_keys()
     open_key = f"{task.id}.open_feature"

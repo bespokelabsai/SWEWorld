@@ -1,0 +1,13 @@
+From: dario@world.local
+To: nikolai@world.local
+Subject: Re: output cap on code executor stdout/stderr =?utf-8?b?4oCU?=
+ fixture review before this lands
+Date: Tue, 24 Jun 2025 10:44:00 +0000
+Message-ID: <178836752012.3213021.885464000107160618@world.local>
+In-Reply-To: <178836752012.3213021.10204640149843790887@world.local>
+References: <178836752012.3213021.10204640149843790887@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+ok. does it get its own budget or do we keep the one from the first fixture

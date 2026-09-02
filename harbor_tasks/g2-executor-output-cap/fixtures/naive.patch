@@ -1,0 +1,199 @@
+diff --git a/src/bespokelabs/curator/code_executor/code_execution_backend/sandbox_backend.py b/src/bespokelabs/curator/code_executor/code_execution_backend/sandbox_backend.py
+index 2750905..0ef4b6d 100644
+--- a/src/bespokelabs/curator/code_executor/code_execution_backend/sandbox_backend.py
++++ b/src/bespokelabs/curator/code_executor/code_execution_backend/sandbox_backend.py
+@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
+ from functools import partial
+ 
+ from bespokelabs.curator.code_executor.code_execution_backend.base_backend import BaseCodeExecutionBackend
++from bespokelabs.curator.code_executor.output_cap import DEFAULT_MAX_OUTPUT_BYTES, cap_streams
+ from bespokelabs.curator.code_executor.types import CodeAPIRequest, CodeExecutionOutput
+ from bespokelabs.curator.log import logger
+ 
+@@ -28,6 +29,7 @@ class SandboxCodeExecutionBackend(BaseCodeExecutionBackend):
+         self.config = config
+         self.backend_name = backend_name
+         self.thread_pool = ThreadPoolExecutor(max_workers=os.cpu_count())
++        self.max_output_bytes: int = config.max_output_bytes
+ 
+         # Build sandbox constructor kwargs from config
+         self.sandbox_kwargs = {}
+@@ -57,6 +59,7 @@ class SandboxCodeExecutionBackend(BaseCodeExecutionBackend):
+                 timeout=request.execution_request.execution_params.timeout if request.execution_request.execution_params else 10,
+                 backend_name=self.backend_name,
+                 sandbox_kwargs=self.sandbox_kwargs,
++                max_output_bytes=self.max_output_bytes,
+             ),
+         )
+ 
+@@ -72,6 +75,8 @@ def _execute_in_sandbox(
+     timeout: int,
+     backend_name: str,
+     sandbox_kwargs: dict,
++    *,
++    max_output_bytes: int = DEFAULT_MAX_OUTPUT_BYTES,
+ ) -> CodeExecutionOutput:
+     """Execute code in a bespokelabs-sandbox.
+ 
+@@ -102,8 +107,9 @@ def _execute_in_sandbox(
+                 args=["-c", f'cd "${{SANDBOX_ROOT:-}}{WORKSPACE_DIR}" && timeout {timeout} python3 program.py < input.txt'],
+             )
+             files = _collect_sandbox_files(sb)
+-            stdout = result.stdout
+-            stderr = result.stderr
++            capped = cap_streams(result.stdout, result.stderr, max_output_bytes)
++            stdout = capped.stdout
++            stderr = capped.stderr
+ 
+             if result.exit_code == 0:
+                 return CodeExecutionOutput(
+@@ -111,6 +117,7 @@ def _execute_in_sandbox(
+                     stdout=stdout,
+                     stderr=stderr,
+                     files=files,
++                    truncated_streams=capped.truncated_streams,
+                 )
+ 
+             if result.exit_code == 124:
+@@ -120,6 +127,7 @@ def _execute_in_sandbox(
+                     stdout=stdout,
+                     stderr=stderr,
+                     files=files,
++                    truncated_streams=capped.truncated_streams,
+                 )
+ 
+             return CodeExecutionOutput(
+@@ -128,18 +136,22 @@ def _execute_in_sandbox(
+                 stdout=stdout,
+                 stderr=stderr,
+                 files=files,
++                truncated_streams=capped.truncated_streams,
+             )
+ 
+     except Exception as e:
+         if sb is not None and not files:
+             files = _collect_sandbox_files(sb)
+ 
++        capped = cap_streams(getattr(result, "stdout", None), getattr(result, "stderr", None), max_output_bytes)
++
+         return CodeExecutionOutput(
+             message="error",
+             error=str(e),
+-            stdout=getattr(result, "stdout", None),
+-            stderr=getattr(result, "stderr", None),
++            stdout=capped.stdout,
++            stderr=capped.stderr,
+             files=files,
++            truncated_streams=capped.truncated_streams,
+         )
+ 
+ 
+diff --git a/src/bespokelabs/curator/code_executor/output_cap.py b/src/bespokelabs/curator/code_executor/output_cap.py
+new file mode 100644
+index 0000000..28fb8a7
+--- /dev/null
++++ b/src/bespokelabs/curator/code_executor/output_cap.py
+@@ -0,0 +1,66 @@
++"""Byte budget for sandbox stdout/stderr streams.
++
++A runaway program can write megabytes to stdout, which would otherwise be
++carried verbatim through :class:`CodeExecutionOutput` into the response file.
++The helpers here shorten each stream to a per-stream byte budget and report
++which streams were shortened.
++"""
++
++from dataclasses import dataclass
++from typing import Optional
++
++DEFAULT_MAX_OUTPUT_BYTES: int = 65536
++
++
++@dataclass(frozen=True)
++class CappedStreams:
++    """Streams after applying the byte budget."""
++
++    stdout: Optional[str]
++    stderr: Optional[str]
++    truncated_streams: list[str]
++
++
++def cap_stream(stream: Optional[str], max_output_bytes: int = DEFAULT_MAX_OUTPUT_BYTES) -> tuple[Optional[str], bool]:
++    """Shorten a single stream to the byte budget.
++
++    Args:
++        stream: Stream contents, possibly None.
++        max_output_bytes: Maximum number of UTF-8 bytes to keep.
++
++    Returns:
++        A (stream, truncated) tuple. `truncated` is True only when bytes were dropped.
++    """
++    if not stream:
++        return stream, False
++
++    encoded = stream.encode("utf-8")
++    if len(encoded) <= max_output_bytes:
++        return stream, False
++
++    # A byte-wise cut can land inside a multi-byte character; drop the partial one.
++    return encoded[:max_output_bytes].decode("utf-8", errors="ignore"), True
++
++
++def cap_streams(stdout: Optional[str], stderr: Optional[str], max_output_bytes: int = DEFAULT_MAX_OUTPUT_BYTES) -> CappedStreams:
++    """Shorten stdout and stderr to the byte budget.
++
++    Args:
++        stdout: Standard output contents, possibly None.
++        stderr: Standard error contents, possibly None.
++        max_output_bytes: Maximum number of UTF-8 bytes to keep per stream.
++
++    Returns:
++        The capped streams alongside the alphabetically sorted names of the
++        streams that were shortened.
++    """
++    capped_stdout, stdout_truncated = cap_stream(stdout, max_output_bytes)
++    capped_stderr, stderr_truncated = cap_stream(stderr, max_output_bytes)
++
++    truncated_streams = []
++    if stderr_truncated:
++        truncated_streams.append("stderr")
++    if stdout_truncated:
++        truncated_streams.append("stdout")
++
++    return CappedStreams(stdout=capped_stdout, stderr=capped_stderr, truncated_streams=truncated_streams)
+diff --git a/src/bespokelabs/curator/code_executor/types.py b/src/bespokelabs/curator/code_executor/types.py
+index 2843516..4b3deec 100644
+--- a/src/bespokelabs/curator/code_executor/types.py
++++ b/src/bespokelabs/curator/code_executor/types.py
+@@ -2,7 +2,9 @@ import datetime
+ from dataclasses import field
+ from typing import Any, Dict, Optional
+ 
+-from pydantic import BaseModel
++from pydantic import BaseModel, Field
++
++from bespokelabs.curator.code_executor.output_cap import DEFAULT_MAX_OUTPUT_BYTES
+ 
+ 
+ class CodeExecutionResult(BaseModel):
+@@ -11,6 +13,7 @@ class CodeExecutionResult(BaseModel):
+     stdout: str
+     stderr: str
+     exit_code: int
++    truncated_streams: list[str] = []
+ 
+ 
+ class CodeExecutionRequestParams(BaseModel):
+@@ -50,6 +53,7 @@ class CodeExecutionOutput(BaseModel):
+     stdout: Optional[str] = None
+     stderr: Optional[str] = None
+     files: Optional[str] = None
++    truncated_streams: list[str] = []
+ 
+ 
+ class CodeExecutionResponse(BaseModel):
+@@ -72,3 +76,5 @@ class CodeExecutionBackendConfig(BaseModel):
+     # Legacy aliases — mapped to sandbox params at runtime
+     docker_image: Optional[str] = None
+     base_url: Optional[str] = None
++    # Per-stream byte budget for the stdout/stderr returned by the backend
++    max_output_bytes: int = Field(default=DEFAULT_MAX_OUTPUT_BYTES, ge=0)

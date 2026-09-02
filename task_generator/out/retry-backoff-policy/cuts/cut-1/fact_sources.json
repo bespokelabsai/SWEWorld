@@ -1,0 +1,62 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P8",
+  "blind_alternative": "charges every failure exactly one attempt (`attempts_left -= 1`, as line 537 does today) with no waiver concept, no `DEFAULT_THROTTLE_WAIVERS`, no `throttle_waivers_left` parameter and a seven-field verdict"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "if it grants rate limits any leniency at all, tracks it globally on the status tracker or as a new config knob rather than as per-request state threaded through `decide`"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P8",
+  "blind_alternative": "leaves `attempts_left` untouched on a terminal abort (the request is dead anyway) and treats `attempts_left == 0` as a hard stop for every class, including throttles"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P8",
+  "blind_alternative": "checks `attempts_left <= 0` before applying the cost, so a failure at `attempts_left == 1` gets one more try and the budget goes negative"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P8",
+  "blind_alternative": "a verdict whose `attempts_left_after` drops by 1 for a first 429 and by 1 for a schema error, with no `throttle_waivers_after` field to assert on at all"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "seeds one schedule for all classes from the only number the repo offers, `config.seconds_to_pause_on_rate_limit` (10.0) with factor 2.0 and no cap, using full jitter (`raw * j`) or no jitter, and returns the unrounded float"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P6",
+  "blind_alternative": "draws jitter unconditionally at the top of `delay_for` (or in `decide`), consuming one draw per decision including aborted and exhausted ones \u2014 same delays, different draw count"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "gives contract/schema failures a real backoff too, on the reasoning that any failure deserves a pause before retrying"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "accepts any `attempt_index`, treating 0 or negatives as the first attempt via `max(1, attempt_index)` or a bare exponent, and never raises"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "asserts a first-429 wait near 10s and an uncapped geometric series, with the cap (if any) applied after jitter so early values exceed the ceiling and no value is rounded to three decimals"
+ }
+]

@@ -1,0 +1,21 @@
+From: emil@world.local
+To: gideon@world.local, dario@world.local
+Subject: Re: executor output cap =?utf-8?b?4oCU?= what the truncation flags
+ read on each exit path
+Date: Fri, 18 Apr 2025 15:29:00 +0000
+Message-ID: <178836752011.3213021.8536137123641239804@world.local>
+In-Reply-To: <178836752010.3213021.17330074263930051842@world.local>
+References: <178836752010.3213021.17330074263930051842@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+let me think through that. i'd leave it False there.
+
+the distinction that matters to me is that we assembled that string rather th=
+an cut it =E2=80=94 the exit code, the command, the stderr fragment, that who=
+le message is somethign we composed. the flag is describing what we did to th=
+e captured output, and on that path we didnt take a knife to the output, we b=
+uilt a new string that happens to include part of it. we need to be intention=
+al here or every wrapper layer ends up flipping it on and it stops meaning an=
+ything

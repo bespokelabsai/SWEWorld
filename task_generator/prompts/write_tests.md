@@ -64,15 +64,22 @@ earlier task scored full marks on an empty checkout for exactly this reason.
 
 From the shared harness, already on the path:
 
-- `from harness import read_field, surface, require_feature, BASELINE`
+- `from harness import read_field, surface, require_feature, baseline_text`
   - `read_field(obj, *names, default=...)` — a field by any of several names,
     from a dict, dataclass or pydantic model. **Use it.** The requirement fixes
     field NAMES where it names them; it never fixes the container, and an
     implementation returning a dataclass instead of a dict has satisfied it
     equally. A whole run once failed because a counter was called `sent` rather
     than `misses`.
-  - `BASELINE` — the untouched tree, if you need to tell the agent's symbols from
-    curator's own.
+  - `baseline_text(rel)` — one file as the world shipped it, to tell the agent's
+    symbols from curator's own. Returns `None` where there is no baseline, and
+    never raises, so guard it: `if shipped is not None:` — nothing to diff
+    against is not a failed requirement.
+    **Do not import `BASELINE`, and do not write an absolute path of your own.**
+    The suite runs in two places: the container that brackets it, and a hosted
+    image that has only `/workdir`, `/tests` and `/tmp`. A test that read
+    `/opt/world-state/...` directly scored oracle 10 of 10 locally and 0.8889
+    hosted, on a FileNotFoundError. `baseline_text` knows both locations.
 - Fixtures from `conftest.py`: `provider` (a real fake provider on loopback, plus
   a private cache dir) and `output` (everything the run printed OR logged — an
   implementation is allowed to log rather than print).
@@ -94,6 +101,18 @@ From the shared harness, already on the path:
 - **Accept every correct design.** Before you finish, for each test ask: is there
   a different, reasonable implementation of this requirement that my assertion
   rejects? If yes, loosen the assertion to the requirement's actual words.
+- **Never grade WHERE a call lives.** Which module a `logger.warning`, a helper
+  or a constant is written in is an implementation choice, not a requirement, and
+  an agent reading scattered evidence will place it wherever the evidence points.
+  A test that monkeypatched one module's `logger` failed a build that said exactly
+  the same thing at exactly the same moment from the module next door — the only
+  fact of ten that build missed, and the corpus pointed at the module it chose.
+  Capture the effect wherever it is produced (patch every module in the package
+  that holds the attribute, one recorder between them, so "exactly once" still
+  means once in total). The same applies to which file exports a constant: import
+  it from the package, not from the one module you happened to put it in, unless
+  the requirement names that module.
+
 - **Prefer to grade a fact through a name the ticket states.** A fact about an
   internal helper is usually observable in what the public entry point returns —
   where a boundary falls, what a count comes to, which exception escapes. Reaching

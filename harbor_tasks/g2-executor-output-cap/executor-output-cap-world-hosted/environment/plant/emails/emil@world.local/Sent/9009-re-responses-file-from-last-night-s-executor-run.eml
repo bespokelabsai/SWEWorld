@@ -1,0 +1,14 @@
+From: emil@world.local
+To: dario@world.local
+Subject: Re: responses file from last night's executor run is 40MB of stdout
+Date: Wed, 11 Jun 2025 10:16:00 +0000
+Message-ID: <178836752005.3213021.7822521047815049746@world.local>
+In-Reply-To: <178836752005.3213021.15244072820069557532@world.local>
+References: <178836752005.3213021.15244072820069557532@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+thats the marker. we splice in the `[... truncated N bytes ...]` line and the=
+ whole payload gets assembled inside the budget, so the marker is coming out =
+of the allowance you asked for

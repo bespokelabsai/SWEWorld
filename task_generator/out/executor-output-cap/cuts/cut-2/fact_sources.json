@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2",
+  "blind_alternative": "head-only raw[:max_bytes], the literal reading of 'cap at N bytes' (or tail-only, or an even max_bytes//2 split from each end)"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "slices the str by characters (no encode/decode exists in this subsystem today), or slices bytes and decodes with errors='replace'/'ignore' unconditionally"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P3",
+  "blind_alternative": "appends a conventional '\\n... [truncated]' notice at the end and reserves room for it inside the budget so len(text) <= max_bytes, reporting original - max_bytes"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "no validation at all (a tiny cap just yields a tiny head and tail), clamps to a minimum, or raises a stock ValueError with no max_bytes attribute \u2014 and checks data is None first"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "reads 0 literally as 'keep nothing', spells disabled as Optional[int] = None like the neighbouring image/base_url fields, and normalises None input to '' so downstream never sees a null stream"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P9",
+  "blind_alternative": "keeps passing result.stderr to the exit-code error message \u2014 the ticket says cap stdout and stderr, and error is a different field \u2014 leaving an unbounded string in error"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "caps once at sandbox_backend.py:105-106 where the streams are read into locals, fixing three sites and leaving the except-Exception path (which never touches those locals) uncapped; or post-processes in execute_request"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "returns the names in insertion order ['stdout', 'stderr'], matching field order, argument order and read order \u2014 or collapses it to a single truncated: bool"
+ }
+]

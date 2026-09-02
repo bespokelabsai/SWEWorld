@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2+P3",
+  "blind_alternative": "writes the one-line head-only slice `raw[:max_bytes]` with no marker at all, keeping the text within the budget"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "slices bytes and decodes with `errors=\"ignore\"` (or slices the `str` by characters), so `kept_bytes == max_bytes` exactly"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "treats 0 literally via `if len(encoded) <= max_bytes`, returning an empty string marked truncated"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "no validation at all \u2014 a tiny cap just yields a tiny slice; nothing in the subsystem validates helper arguments"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "appends names in read order, giving `[\"stdout\", \"stderr\"]`"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P11",
+  "blind_alternative": "leaves `error=str(e)` untouched \u2014 an exception message is curator's own text, not program output"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P9",
+  "blind_alternative": "keeps passing raw `result.stderr` to the exit-code message helper, or caps the assembled message as a whole"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P12",
+  "blind_alternative": "adds no such field, reporting everything through `truncated_streams` (or putting the flag on both models)"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P15",
+  "blind_alternative": "logs nothing per request, or logs at debug level once per truncated stream / at each return site"
+ }
+]

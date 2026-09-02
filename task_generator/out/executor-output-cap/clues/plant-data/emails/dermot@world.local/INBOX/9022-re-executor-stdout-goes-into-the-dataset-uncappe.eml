@@ -1,0 +1,13 @@
+From: nikolai@world.local
+To: dermot@world.local, emil@world.local, gideon@world.local
+Subject: Re: executor stdout goes into the dataset uncapped
+Date: Mon, 21 Apr 2025 13:56:00 +0000
+Message-ID: <178836752009.3213021.17377557613549147965@world.local>
+In-Reply-To: <178836752007.3213021.8695051038993002334@world.local>
+References: <178836752007.3213021.8695051038993002334@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+right that 2.4mb one was like 90% the same env block repeated so it lands squ=
+arely in the dropped count anyway

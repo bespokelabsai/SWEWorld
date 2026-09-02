@@ -1,0 +1,12 @@
+From: dario@world.local
+To: dermot@world.local, emil@world.local
+Subject: capped executor log from the overnight 40k run
+Date: Wed, 09 Apr 2025 11:22:00 +0000
+Message-ID: <178836752003.3213021.5057884908184730997@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+quick one on the truncation seam =E2=80=94 the notice we stamp into the cell =
+says 812014 bytes went. is that the count of what we dropped, or is it someth=
+ing else? because it doesnt line up with the file

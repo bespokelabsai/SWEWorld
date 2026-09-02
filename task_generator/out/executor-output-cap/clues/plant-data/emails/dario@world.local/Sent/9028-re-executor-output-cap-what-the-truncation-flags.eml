@@ -1,0 +1,15 @@
+From: dario@world.local
+To: emil@world.local, gideon@world.local
+Subject: Re: executor output cap =?utf-8?b?4oCU?= what the truncation flags
+ read on each exit path
+Date: Fri, 18 Apr 2025 15:39:00 +0000
+Message-ID: <178836752012.3213021.12034595697819236008@world.local>
+In-Reply-To: <178836752010.3213021.17330074263930051842@world.local>
+References: <178836752010.3213021.17330074263930051842@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+mhm, the name is carrying more than it can. in any case those two get set abo=
+ut ten lines apart in the same helper, so its very easy to flip both in one p=
+ass without stopping to think about which one youre answering

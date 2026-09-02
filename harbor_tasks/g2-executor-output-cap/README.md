@@ -160,6 +160,18 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 
 ---
 
+## Where the remarks are spread
+
+46 remarks in total — 38 clues, 4 herrings and 4 reversals — scattered across three surfaces and 9 chat channels. `spread_problems()` is the gate that forces this: every requirement needs at least 2 sources, 3 weeks and 2 channels, so no single sitting recovers one.
+
+| surface | remarks | where they sit |
+|---|---|---|
+| chat (Mattermost) | **38** | `#code-review` 6, `#pipeline` 6, `#cookbooks` 6, `#engineering` 5, `#viewer` 5, `#releases` 5, `#incidents` 2, `#general` 2, `#help` 1 |
+| wiki (BookStack) | **3** | 3 page bodies |
+| mail (Roundcube/IMAP) | **5** | 5 separate threads |
+
+---
+
 ## Where every remark is
 
 46 remarks, oldest first. **Quotes are exact** — they are read back out of the corpus, not out of the plan, so the timestamps are the ones in the world.

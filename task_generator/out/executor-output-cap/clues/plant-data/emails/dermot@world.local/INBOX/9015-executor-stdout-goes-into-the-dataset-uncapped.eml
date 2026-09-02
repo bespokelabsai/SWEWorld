@@ -1,0 +1,11 @@
+From: nikolai@world.local
+To: dermot@world.local, emil@world.local, gideon@world.local
+Subject: executor stdout goes into the dataset uncapped
+Date: Mon, 21 Apr 2025 13:31:00 +0000
+Message-ID: <178836752007.3213021.8695051038993002334@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+curator is still handing back the big fields whole one of the plan dumps came=
+ back 2.4mb this morning and the viewer just sat there spinning

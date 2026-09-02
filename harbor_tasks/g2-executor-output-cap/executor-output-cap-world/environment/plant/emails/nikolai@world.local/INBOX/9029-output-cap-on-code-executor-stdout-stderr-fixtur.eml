@@ -1,0 +1,13 @@
+From: dario@world.local
+To: nikolai@world.local
+Subject: output cap on code executor stdout/stderr =?utf-8?b?4oCU?= fixture
+ review before this lands
+Date: Tue, 24 Jun 2025 10:38:00 +0000
+Message-ID: <178836752012.3213021.10204640149843790887@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+the first fixture is the clean one right, exit 0 and two lines of stdout that=
+ sit under the cap. what's the second one meant to be? i'd rather ask than wr=
+ite it and have you rewrite it after

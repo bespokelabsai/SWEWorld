@@ -320,6 +320,13 @@ ROLE_INSTRUCTIONS = {
         "is silent, and stop. Do not over-engineer defensively against requirements "
         "you were not given."
     ),
+    "spec": (
+        "The ticket is the work, and the requirements below it are settled decisions "
+        "this team has already taken about it — honour them exactly as written, "
+        "including where that means going beyond the ticket's own wording. They are "
+        "the whole of what is hidden; there is no fuller specification on this "
+        "filesystem to go looking for."
+    ),
     "clues": (
         "The ticket is the work. The remarks below it are what colleagues said while "
         "this area was being built, and they settle things the ticket leaves open — "
@@ -349,6 +356,26 @@ def clue_spec(task: Task, source: str = "remarks") -> str:
     return ticket + horizon.CLUES_SECTION + horizon.render_remarks(task)
 
 
+def spec_spec(task: Task) -> str:
+    """The ticket plus the hidden requirements, as the hosted spec arm shows them.
+
+    The twin of `clue_spec` above, and it exists for the same reason: to predict
+    an arm before paying for it. Nothing else in the pipeline ever builds from
+    this text. `oracle` builds from `whole.md`, which is the author's own full
+    specification -- so the oracle passes because the oracle is mine and shares
+    my assumptions, and the spec arm's real ceiling goes unmeasured.
+
+    g3 is what that costs. `split` dropped the verdict's field spelling from the
+    requirement while the suite went on grading it; the oracle passed 10 of 10
+    because `whole.md` still named it. A hosted opus run, handed the requirement
+    alone, implemented the whole rule and scored 0 on all five r1 facts for
+    spelling one field differently. Nothing free could see it, because nothing
+    free had ever built from what that arm is actually given.
+    """
+    from . import horizon
+    return horizon.prompt_for(task, "spec")[len(horizon.PREAMBLE):]
+
+
 def build(slug: str, role: str, *, budget: float = 10.0,
           instruction: str | None = None,
           source: str = "remarks") -> tuple[pathlib.Path, int]:
@@ -356,9 +383,11 @@ def build(slug: str, role: str, *, budget: float = 10.0,
     # `clues` is isolated for the same reason `naive` is: its whole value is not
     # having the specification, and `out/<slug>/whole.md` sits two directories above
     # a non-isolated tree.
-    isolated = role in ("naive", "clues")
+    isolated = role in ("naive", "clues", "spec")
     if role == "clues":
         spec = clue_spec(task, source)
+    elif role == "spec":
+        spec = spec_spec(task)
     else:
         spec_file = task.dir / ("ticket.md" if role == "naive" else "whole.md")
         if not spec_file.is_file():

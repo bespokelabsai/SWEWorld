@@ -164,6 +164,23 @@ def ships(measured: dict) -> tuple[bool, list[str]]:
     for key, verdict in measured["verdicts"].items():
         if verdict in (COINCIDENCE, VACUOUS, BROKEN, UNMEASURED, UNTESTED, UNPROVEN):
             problems.append(f"{key}: {verdict}")
+
+    # `spec` is optional -- it costs a build -- but where it was run it is the
+    # only evidence about the arm that defines this task's ceiling. `oracle`
+    # cannot stand in: it builds from `whole.md`, the author's own full
+    # specification, so it shares the author's assumptions and passes names the
+    # requirement never states. A fact the spec build misses is not hard, it is
+    # unreachable: no arm can score it, the ceiling arm included.
+    spec = measured["trees"].get("spec", {}).get("rewards")
+    if spec:
+        for key, verdict in measured["verdicts"].items():
+            if key.endswith("open_feature") or verdict != HIDDEN:
+                continue
+            if spec.get(key) != 1.0:
+                problems.append(
+                    f"{key}: unreachable — a build given the ticket and the hidden "
+                    "requirements still fails it, so the requirement does not say "
+                    "what the suite grades")
     return (not problems), problems
 
 

@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2 + P3",
+  "blind_alternative": "writes `raw[:max_bytes]` (head-only, or an even `max_bytes // 2` split) and appends a generic `'\\n... [truncated]'` notice counted inside the budget, reporting `original - max_bytes` as the omitted count"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "slices the `str` by characters (`text[:limit]`), or slices bytes and decodes with `errors='replace'`/`'ignore'` unconditionally, so `kept_bytes` is always exactly `max_bytes` and a split codepoint becomes U+FFFD or vanishes"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P9",
+  "blind_alternative": "keeps `error=_format_exit_code_error(result.exit_code, stderr)` fed with the raw stderr, shipping an unbounded string in `error` even though the `stderr` field is capped"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P3 + P4 + End to end",
+  "blind_alternative": "asserts only `len(output.stdout.encode()) <= max_output_bytes` and `truncated is True`, with no fixed marker text, seam offset, or `kept_bytes < max_bytes` case"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P6",
+  "blind_alternative": "reads `0` literally as 'keep nothing' (returning `''` or just the marker), or rejects `0` and spells 'disabled' as `Optional[int] = None` like the neighbouring `image` / `base_url` fields"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "does no validation at all (a tiny cap just yields a tiny head and tail), clamps with `max_bytes = max(max_bytes, 16)`, or raises a stock `ValueError`/`AssertionError` with no `max_bytes` attribute \u2014 and checks `data is None` first, so `cap_stream(None, 8)` returns instead of raising"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P8 + P6",
+  "blind_alternative": "caps once at the read site (`stdout = result.stdout` / `stderr = result.stderr`), fixing three of the four sites and leaving the `except Exception` path uncapped, and/or normalises a `None` stream to `''`"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "appends names in argument/field order, yielding `['stdout', 'stderr']`, or replaces the list with a single `truncated: bool` / a `dict[str, int]` of dropped byte counts"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P8",
+  "blind_alternative": "exempts the timeout and error branches on the theory that their output is already small and their stderr is diagnostic, leaving `len(output.stdout) == 300` on the `exit_code == 124` path"
+ }
+]

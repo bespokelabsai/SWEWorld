@@ -1,0 +1,107 @@
+{
+ "task": "g3",
+ "suite": "g3_retry_backoff_policy",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g3.open_feature": 0.0,
+    "g3.r1.rule": 0.0,
+    "g3.r1.scope": 0.0,
+    "g3.r1.exclusions_or_crossover": 0.0,
+    "g3.r1.failure_behavior": 0.0,
+    "g3.r1.observability": 0.0,
+    "g3.r2.rule": 0.0,
+    "g3.r2.scope": 0.0,
+    "g3.r2.exclusions_or_crossover": 0.0,
+    "g3.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10
+   },
+   "collected": true,
+   "stdout_tail": "backoff_policy/test_r2.py:213: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\n    def importable() -> None:\n        \"\"\"Fail one test, not the whole module, when the new policy module is absent.\"\"\"\n        if IMPORT_ERROR is not None:\n>           pytest.fail(f\"bespokelabs.curator.request_processor.online.retry_policy could not be imported: {IMPORT_ERROR!r}\")\nE           Failed: bespokelabs.curator.request_processor.online.retry_policy could not be imported: ImportError(\"cannot import name 'retry_policy' from 'bespokelabs.curator.request_processor.online' (unknown location)\")\n\ng3_retry_backoff_policy/test_open.py:57: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g3_retry_backoff_policy-3344dbe8/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g3_retry_backoff_policy/test_open.py::test_open_feature__failures_are_classified_priced_and_summarised_by_the_policy_module - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be impor...\nFAILED g3_retry_backoff_policy/test_r1.py::test_rule__a_throttle_spends_a_waiver_a_transient_one_attempt_and_a_contract_two - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be imported: Im...\nFAILED g3_retry_backoff_policy/test_r1.py::test_scope__the_waiver_allowance_is_per_request_and_lives_nowhere_else - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be imported: ImportError(...\nFAILED g3_retry_backoff_policy/test_r1.py::test_exclusions__a_terminal_verdict_discards_the_budget_and_an_empty_budget_still_retries_a_waived_throttle - Failed: bespokelabs.curator.request_processor.online.retry_polic...\nFAILED g3_retry_backoff_policy/test_r1.py::test_failure_behavior__exhaustion_is_tested_after_the_cost_is_charged_and_the_floor_is_zero - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be i...\nFAILED g3_retry_backoff_policy/test_r1.py::test_observability__the_stated_budget_and_waiver_table_holds_exactly - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be imported: ImportError(\"c...\nFAILED g3_retry_backoff_policy/test_r2.py::test_rule__the_cooldown_horizon_is_one_new_tracker_field_that_only_ever_moves_forward - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be importe...\nFAILED g3_retry_backoff_policy/test_r2.py::test_scope__only_throttles_extend_the_horizon_or_consult_the_clock - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be imported: ImportError(\"can...\nFAILED g3_retry_backoff_policy/test_r2.py::test_exclusions__the_seconds_to_pause_knob_survives_in_config_and_is_never_read_again - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be importe...\nFAILED g3_retry_backoff_policy/test_r2.py::test_observability__the_stated_horizon_and_remaining_cooldown_table_holds_exactly - Failed: bespokelabs.curator.request_processor.online.retry_policy could not be imported: I...\n10 failed, 1 warning in 2.49s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g3.open_feature": 1.0,
+    "g3.r1.rule": 0.0,
+    "g3.r1.scope": 0.0,
+    "g3.r1.exclusions_or_crossover": 0.0,
+    "g3.r1.failure_behavior": 0.0,
+    "g3.r1.observability": 0.0,
+    "g3.r2.rule": 0.0,
+    "g3.r2.scope": 0.0,
+    "g3.r2.exclusions_or_crossover": 0.0,
+    "g3.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "               f\"{what} is not implemented, so the constraint that goes with it \"\n                \"cannot be credited: an untouched checkout satisfies it by doing \"\n                \"nothing.\")\nE           Failed: the tracker's throttle cooldown horizon is not implemented, so the constraint that goes with it cannot be credited: an untouched checkout satisfies it by doing nothing.\n\nharness.py:83: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g3_retry_backoff_policy-805cacc9/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g3_retry_backoff_policy/test_r1.py::test_rule__a_throttle_spends_a_waiver_a_transient_one_attempt_and_a_contract_two - AttributeError: module 'bespokelabs.curator.request_processor.online.retry_policy' has no a...\nFAILED g3_retry_backoff_policy/test_r1.py::test_scope__the_waiver_allowance_is_per_request_and_lives_nowhere_else - Failed: the per-request throttle waiver budget is not implemented, so the constraint that goes with i...\nFAILED g3_retry_backoff_policy/test_r1.py::test_exclusions__a_terminal_verdict_discards_the_budget_and_an_empty_budget_still_retries_a_waived_throttle - Failed: the per-request throttle waiver budget is not implemente...\nFAILED g3_retry_backoff_policy/test_r1.py::test_failure_behavior__exhaustion_is_tested_after_the_cost_is_charged_and_the_floor_is_zero - Failed: the per-request throttle waiver budget is not implemented, so the constr...\nFAILED g3_retry_backoff_policy/test_r1.py::test_observability__the_stated_budget_and_waiver_table_holds_exactly - Failed: the per-request throttle waiver budget is not implemented, so the constraint that goes with it ...\nFAILED g3_retry_backoff_policy/test_r2.py::test_rule__the_cooldown_horizon_is_one_new_tracker_field_that_only_ever_moves_forward - AssertionError: OnlineStatusTracker has no cooldown horizon; its fields are ['num_task...\nFAILED g3_retry_backoff_policy/test_r2.py::test_scope__only_throttles_extend_the_horizon_or_consult_the_clock - Failed: the tracker's throttle cooldown horizon is not implemented, so the constraint that goes with it c...\nFAILED g3_retry_backoff_policy/test_r2.py::test_exclusions__the_seconds_to_pause_knob_survives_in_config_and_is_never_read_again - Failed: the tracker's throttle cooldown horizon is not implemented, so the constraint ...\nFAILED g3_retry_backoff_policy/test_r2.py::test_observability__the_stated_horizon_and_remaining_cooldown_table_holds_exactly - Failed: the tracker's throttle cooldown horizon is not implemented, so the constraint that...\n9 failed, 1 passed, 3 warnings in 12.88s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g3.open_feature": 1.0,
+    "g3.r1.rule": 1.0,
+    "g3.r1.scope": 1.0,
+    "g3.r1.exclusions_or_crossover": 1.0,
+    "g3.r1.failure_behavior": 1.0,
+    "g3.r1.observability": 1.0,
+    "g3.r2.rule": 1.0,
+    "g3.r2.scope": 1.0,
+    "g3.r2.exclusions_or_crossover": 1.0,
+    "g3.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g3_retry_backoff_policy-b99aef0b/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 3 warnings in 5.68s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g3.open_feature": 1.0,
+    "g3.r1.rule": 1.0,
+    "g3.r1.scope": 1.0,
+    "g3.r1.exclusions_or_crossover": 1.0,
+    "g3.r1.failure_behavior": 1.0,
+    "g3.r1.observability": 1.0,
+    "g3.r2.rule": 1.0,
+    "g3.r2.scope": 1.0,
+    "g3.r2.exclusions_or_crossover": 1.0,
+    "g3.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g3_retry_backoff_policy-ec68bdfb/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 3 warnings in 5.55s\n"
+  }
+ },
+ "verdicts": {
+  "g3.open_feature": "open_feature",
+  "g3.r1.rule": "hidden",
+  "g3.r1.scope": "hidden",
+  "g3.r1.exclusions_or_crossover": "hidden",
+  "g3.r1.failure_behavior": "hidden",
+  "g3.r1.observability": "hidden",
+  "g3.r2.rule": "hidden",
+  "g3.r2.scope": "hidden",
+  "g3.r2.exclusions_or_crossover": "hidden",
+  "g3.r2.observability": "hidden"
+ }
+}

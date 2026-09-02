@@ -1,0 +1,47 @@
+{
+ "id": "g2",
+ "slug": "executor-output-cap",
+ "suite": "g2_executor_output_cap",
+ "title": "Sandbox stdout/stderr output cap",
+ "description": "Sandboxed runs currently return whatever the program wrote, so a runaway `print` loop ships megabytes of stdout through `CodeExecutionOutput` into the response file. Add a configurable byte budget for the stdout and stderr that `SandboxCodeExecutionBackend` returns. In `src/bespokelabs/curator/code_executor/types.py`, `CodeExecutionBackendConfig` gains `max_output_bytes: int = Field(default=65536, ge=0)` \u2014 the existing `CodeExecutionBackendConfig(**backend_params)` at `_factory.py:31` already makes it reachable as `CodeExecutor(backend_params={\"max_output_bytes\": ...})` for every backend name, so no factory edit; a negative value must be rejected at config construction with pydantic's `ValidationError`. Both `CodeExecutionResult` and `CodeExecutionOutput` gain a non-Optional `truncated_streams: list[str] = []` holding the names (`\"stdout\"`, `\"stderr\"`) of the streams that were shortened on that run; a stream that is `None`, empty or under budget contributes nothing, and the field must survive `CodeExecutionResponse(...).model_dump()`. In `code_execution_backend/sandbox_backend.py`, `SandboxCodeExecutionBackend.__init__` stores `self.max_output_bytes: int = config.max_output_bytes`, `execute_request` passes `max_output_bytes=self.max_output_bytes` into the existing `partial(_execute_in_sandbox, ...)`, and the module-level function becomes `_execute_in_sandbox(code, code_input, timeout, backend_name, sandbox_kwargs, *, max_output_bytes: int = 65536) -> CodeExecutionOutput` \u2014 keyword-only after a bare `*`, so a positional sixth argument raises `TypeError`. The budget must be honoured at every one of that function's four `CodeExecutionOutput` constructions \u2014 success, the `exit_code == 124` timeout branch, the non-zero-exit branch, and the `except Exception` branch whose streams are salvaged with `getattr(result, \"stdout\", None)` and may be `None` \u2014 and on the non-zero-exit branch the value handed to `_format_exit_code_error` must be the shortened stderr, not `result.stderr`, so that no unbounded string escapes through `error`; `_format_exit_code_error` itself keeps its signature and its exact `\"Program exited with status code {status}\\n\\nError details:\\n{stderr}\"` message. `files` (from `_collect_sandbox_files`) is not capped and `_collect_sandbox_files` is untouched; nothing in `_factory.py`, `code_executor.py` or `db.py` changes. Put the capping rule itself in a new module under `src/bespokelabs/curator/code_executor/` that the backend imports, rather than inline in the backend, and keep it a pure function of its arguments \u2014 no clock, no randomness, no I/O \u2014 so it is testable both directly and through the fake-`bespokelabs.sandbox` seam already used by `tests/code_executor/test_sandbox_backend.py` (`monkeypatch.setitem(sys.modules, \"bespokelabs.sandbox\", module)` with a `Sandbox` whose `execute_command` returns `SimpleNamespace(exit_code=..., stdout=..., stderr=...)`, plus `monkeypatch.setattr(sandbox_backend, \"_collect_sandbox_files\", lambda sandbox: \"files-archive\")`). Python 3.10, pydantic >=2.9.2, no new dependency.",
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "The new capping module is exactly `src/bespokelabs/curator/code_executor/output_cap.py` and its public surface is fixed: constants `DEFAULT_MAX_OUTPUT_BYTES = 65536` and `MIN_MAX_OUTPUT_BYTES = 16`; `cap_stream(data: str | bytes | None, max_bytes: int = DEFAULT_MAX_OUTPUT_BYTES) -> CappedStream` and `cap_execution_streams(stdout, stderr, max_bytes: int = DEFAULT_MAX_OUTPUT_BYTES) -> StreamCapReport`. `CappedStream` is a frozen `@dataclass` with fields, in declaration order, `text: str | None`, `truncated: bool`, `original_bytes: int`, `kept_bytes: int`, where `original_bytes` is `len(data.encode('utf-8'))` for `str` and `len(data)` for `bytes`, and `kept_bytes` is the UTF-8 byte count of the payload that survived. `StreamCapReport` is a frozen `@dataclass` with fields, in declaration order, `stdout: str | None`, `stderr: str | None`, `truncated_streams: list[str]`. Accepting `bytes` as well as `str` is part of the contract.",
+    "scope": "Both result shapes are plain `dataclasses`, not pydantic `BaseModel`s, not `NamedTuple`s, not dicts and not bare tuples: `dataclasses.is_dataclass(CappedStream)` is True, `isinstance(cap_stream('x', 16), tuple)` is False, `dataclasses.replace` works, and assigning to a field (`cap_stream('x', 16).truncated = True`) raises `dataclasses.FrozenInstanceError`. Nothing in `types.py` becomes a dataclass; the pydantic models keep only the plain `truncated_streams` list.",
+    "failure_behavior": "`cap_stream` (and through it `cap_execution_streams`) raises `OutputCapError`, defined in the same module as a subclass of `ValueError` carrying the offending value on an attribute `max_bytes`, whenever `max_bytes` is negative or in `1..15` \u2014 i.e. `max_bytes != 0 and max_bytes < MIN_MAX_OUTPUT_BYTES`. The check runs before the `data is None` check, so `cap_stream(None, 8)` raises rather than returning, and `cap_stream(b'x', 15)` / `(b'x', 1)` / `(b'x', -1)` raise with `exc.max_bytes` equal to `15` / `1` / `-1`. `cap_stream(b'x', 16)` does not raise and returns `CappedStream('x', False, 1, 1)`.",
+    "exclusions_or_crossover": "`max_bytes == 0` is exempt from that floor and means *unlimited* rather than *keep nothing*: it does not raise despite `0 < MIN_MAX_OUTPUT_BYTES`, and returns the whole stream with `truncated=False` and `kept_bytes == original_bytes` \u2014 `cap_stream('A' * 100000, 0) == CappedStream('A' * 100000, False, 100000, 100000)`, and a backend built with `max_output_bytes=0` returns its streams whole with `truncated_streams == []`."
+   },
+   "hidden_requirement_types": [
+    "invented name",
+    "chosen value",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "chat",
+    "wiki",
+    "mail"
+   ],
+   "earlier_reversed_version": "an earlier revision clamped a too-small budget up to the floor instead of raising, and spelled 'no limit' as `max_output_bytes: Optional[int] = None` on the config; both were reversed in favour of raising `OutputCapError` and the `0` sentinel"
+  },
+  {
+   "requirement": {
+    "rule": "When a stream's UTF-8 encoding exceeds the budget, the kept payload is the head-plus-tail of the stream: the first `(max_bytes * 3) // 4` bytes followed by the last `max_bytes - (max_bytes * 3) // 4` bytes (48 and 16 for a budget of 64), with the middle dropped and exactly `\"\\n[[curator:elided {dropped} bytes]]\\n\"` spliced at the seam. `{dropped}` is the decimal number of bytes actually discarded \u2014 original bytes minus kept bytes, not original minus `max_bytes` \u2014 with no thousands separator. The marker is outside the budget: the returned text is longer than `max_bytes` by exactly the marker's length, and the reported kept-byte count never includes the marker.",
+    "scope": "The budget is counted in UTF-8 bytes, never in characters, and both slices are trimmed to codepoint boundaries before decoding: for the head try cutting 0, 1, 2 then 3 trailing bytes and take the first candidate that decodes; for the tail try dropping 0, 1, 2 then 3 leading bytes and take the first that decodes. A clean multi-byte stream therefore never yields U+FFFD and the kept byte count may land under the budget \u2014 a stdout of `'\u20ac' * 10` with `max_output_bytes=20` comes back as `'\u20ac\u20ac\u20ac\u20ac\u20ac\\n[[curator:elided 12 bytes]]\\n\u20ac'` (6 euro signs, 18 kept bytes, no `'\ufffd'`). The rule applies identically to stdout and stderr on every return path of `_execute_in_sandbox`.",
+    "observability": "Driving `_execute_in_sandbox(code='print(\"hi\")', code_input='', timeout=10, backend_name='local', sandbox_kwargs={}, max_output_bytes=64)` against a fake sandbox returning `SimpleNamespace(exit_code=1, stdout='0123456789' * 10, stderr='E' * 80)` gives `output.stdout == '012345678901234567890123456789012345678901234567' + '\\n[[curator:elided 36 bytes]]\\n' + '4567890123456789'` (len 93), `output.stderr == 'E' * 48 + '\\n[[curator:elided 16 bytes]]\\n' + 'E' * 16` (len 93), `output.error == 'Program exited with status code 1\\n\\nError details:\\n' + output.stderr` (len 143), and `output.truncated_streams == ['stderr', 'stdout']` \u2014 the reported names are sorted alphabetically, not in the stdout-then-stderr order the streams are read in, so the only possible values are `[]`, `['stderr']`, `['stdout']` and `['stderr', 'stdout']`."
+   },
+   "hidden_requirement_types": [
+    "chosen value",
+    "invented name",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "chat",
+    "mail",
+    "wiki"
+   ],
+   "earlier_reversed_version": "the first cut reserved room for the notice inside the budget so that the returned text never exceeded `max_bytes`; that was reversed so the marker is additive and the kept payload is exactly the configured budget"
+  }
+ ],
+ "brief": "placeholder \u2014 replaced below by the real brief"
+}

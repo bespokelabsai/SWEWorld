@@ -72,8 +72,16 @@ STAGES = [
           note="unmeasured on g1; largest per-call budget in the package"),
     Stage("build", ("--role", "naive"), paid=1.93, makes="fixtures/naive.patch",
           labels=("build-naive",)),
+    # The ceiling arm's twin. `oracle` builds from `whole.md` and so shares the
+    # author's assumptions; this builds from what the spec arm is actually
+    # handed. g3's spec arm capped at 0.44 hosted because `split` dropped a field
+    # spelling the suite still graded, and nothing local had ever built from the
+    # requirement alone to notice.
+    Stage("build", ("--role", "spec"), paid=2.0, makes="fixtures/spec.patch",
+          labels=("build-spec",),
+          note="the spec arm's ceiling, measured before it is paid for"),
     Stage("bracket", paid=0, gate=True, makes="bracket.json",
-          note="GATE, free, ~1 min: every fact must read `hidden`"),
+          note="GATE, free, ~1 min: every fact `hidden`, and reachable from the spec"),
     Stage("audit", paid=0.0, gate=True, optional=True, makes="audit.json",
           labels=("audit",),
           note="never run on g1. Skipping is a decision; make it one"),
@@ -90,6 +98,10 @@ STAGES = [
           note="every graded assertion said outright, not left to be inferred"),
     Stage("reverse", paid=1.0, gate=True, labels=("clue-reversal",),
           note="GATE: a herring nothing retracts is a herring forever"),
+    Stage("reorder", paid=1.0, gate=True,
+          note="a decision dated before the complaint it answers. BEFORE reknit: "
+               "`reorder` re-places a moved remark and overwrites its `invented`, "
+               "so running it after would silently discard that exchange"),
     Stage("reknit", paid=9.0, gate=True,
           labels=("clue-thread", "clue-carry", "clue-reknit"),
           note="GATE: turn each remark into the exchange it was made in — the "
@@ -97,8 +109,6 @@ STAGES = [
     # NOT optional. It is a gate, and `make` skips optional stages by default, so
     # `out_of_order` -- which only `reorder` reads -- went unrun on the happy path
     # and eight chronology inversions shipped in g1's plant.
-    Stage("reorder", paid=1.0, gate=True,
-          note="a decision dated before the complaint it answers"),
     Stage("prove", ("--runs", "3"), paid=5.5, gate=True, makes="clues/proof.json",
           labels=("build-clues",),
           note="GATE, ~$1.84 a build: the defect this catches is stochastic, so "

@@ -1,0 +1,44 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P1",
+  "blind_alternative": "a helper returning `tuple[str | None, bool]` (named something like `cap_streams`) with no result type at all, or a pydantic model added to `types.py`"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P1",
+  "blind_alternative": "plain tuples/str returns, so there is no frozen dataclass and mutation-raises/field-order assertions have nothing to bind to"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "no validation at all \u2014 a tiny budget just yields a tiny slice \u2014 or a bare `ValueError` with no `max_bytes` attribute and no floor"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "treats `0` literally as keep-nothing (empty string, `truncated=True`), since `len(encoded) <= 0` is false for any non-empty stream"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P2, P3",
+  "blind_alternative": "head-only `encoded[:max_bytes]` with no marker at all, keeping the result within the budget"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "slices bytes and decodes with `errors='ignore'` (or slices the `str` by characters), giving exactly `max_bytes` kept and no boundary allowance"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10, end-to-end",
+  "blind_alternative": "reports `['stdout', 'stderr']` in read/field order, and produces a 64-byte marker-free stdout"
+ }
+]

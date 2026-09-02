@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P8",
+  "blind_alternative": "charges exactly one attempt for every failure class, keeping today's `request.attempts_left -= 1`, with no waiver counter and no `throttle_waivers_left` argument to `decide`"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "if any 429 allowance exists at all, tracks it once per run on the tracker or as a new `config` knob rather than as a per-request field on `APIRequest`"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P8",
+  "blind_alternative": "leaves `attempts_left` untouched on a terminal abort (the request is dead anyway), and treats `attempts_left == 0` as an unconditional stop so a rate-limited request is never retried once the budget is empty"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P8",
+  "blind_alternative": "checks `attempts_left <= 0` before applying the cost, letting a cost-2 contract failure at `attempts_left == 1` retry once more and leaving the recorded budget at `-1`"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P8",
+  "blind_alternative": "a fresh `APIRequest` has no waiver field at all, and every class of failure decrements `attempts_left` by exactly 1"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P9",
+  "blind_alternative": "keeps the existing shape \u2014 stamps `time_of_last_rate_limit_error` and computes the pause as `seconds_to_pause_on_rate_limit - (now - time_of_last_rate_limit_error)` with no new tracker field, or adds a horizon field but assigns `now + delay` outright instead of taking a maximum"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P9",
+  "blind_alternative": "stamps the timestamp fields (or reads the clock) on every recorded failure, so a transient error also moves the rate-limit bookkeeping"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P9",
+  "blind_alternative": "keeps `config.seconds_to_pause_on_rate_limit` live as the pause length or as a floor/cap on it, so an un-throttled run still sleeps 10 seconds at the pause point"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P6",
+  "blind_alternative": "reads the clock once per decision regardless of class, and lets a later short throttle delay overwrite a longer horizon"
+ }
+]

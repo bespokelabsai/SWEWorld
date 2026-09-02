@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2+P3",
+  "blind_alternative": "writes raw[:max_bytes] (head only, or tail only) with no marker at all, or appends a conventional \"... [truncated]\" notice inside the budget"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "slices bytes and decodes with errors=\"ignore\" (or slices the str by characters), keeping exactly max_bytes and 20 euro signs instead of 6"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "reads 0 literally via `len(encoded) <= max_bytes`, so a 0 budget truncates every stream to the empty string and marks it truncated"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5+P13",
+  "blind_alternative": "validates nothing \u2014 a 15-byte budget just makes a tiny slice and CodeExecutionBackendConfig(max_output_bytes=8) constructs happily, ge=0 being the whole constraint"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P15",
+  "blind_alternative": "logs nothing per request (the module logs nothing today), or emits a debug-level ad-hoc f-string per truncated stream at each return site"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P11+P12",
+  "blind_alternative": "leaves error=str(e) untouched \u2014 the ticket asks to cap stdout/stderr \u2014 and adds no error_truncated field to any model"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P11",
+  "blind_alternative": "caps no error at all (so there is no flag to be False), or caps every error uniformly including the assembled exit-code message down to 94 characters"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P12",
+  "blind_alternative": "reports truncated error text by appending \"error\" to truncated_streams, or mirrors the flag onto CodeExecutionResult for symmetry, leaving the exec_output key set wrong"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P11+P12",
+  "blind_alternative": "returns the full 300-character exception text as error and raises AttributeError on output.error_truncated"
+ }
+]

@@ -1,0 +1,781 @@
+{
+ "slug": "executor-output-cap",
+ "task": "g2",
+ "digest": "f41ea0e6edc8ed84",
+ "verdicts": {
+  "g2.r1.exclusions_or_crossover#1": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "konrad reports setting max_output_bytes=0 and getting empty stdout as the bug and rules \"0 is the one time I want all of it\", so returning the stream whole at budget 0 is a decision made out loud.",
+   "clues": [
+    "g2.r1.l-off-konrad",
+    "g2.r1.l-off-nikolai"
+   ],
+   "source": "assert unlimited.stdout == \"A\" * 300, f\"a budget of 0 cut the stream to {len(unlimited.stdout)} characters\""
+  },
+  "g2.r1.exclusions_or_crossover#2": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "konrad's ruling attaches to the max_output_bytes=0 setting rather than to one stream, and emil's log line shows the cap governs stdout and stderr together, so \"all of it\" is stated for stderr as well.",
+   "clues": [
+    "g2.r1.l-off-konrad",
+    "g2.r1.l-log-emil"
+   ],
+   "source": "assert unlimited.stderr == \"B\" * 500"
+  },
+  "g2.r1.exclusions_or_crossover#3": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "nobody says what truncated_streams contains at budget 0; the reader must carry dermot's \"untouched and unlisted\" rule over to konrad's sentinel case, a join neither remark makes.",
+   "clues": [
+    "g2.r1.l-off-dermot",
+    "g2.r1.l-off-konrad"
+   ],
+   "source": "assert read_field(unlimited, \"truncated_streams\") == []"
+  },
+  "g2.r1.exclusions_or_crossover#4": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "dermot names the symptom (a 900-byte stdout under the cap came back with a marker glued on) and states the rule that under the cap should be untouched.",
+   "clues": [
+    "g2.r1.l-off-dermot"
+   ],
+   "source": "assert under.stdout == DIGITS[:60]"
+  },
+  "g2.r1.exclusions_or_crossover#5": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "dermot's closing sentence is a general rule about any stream under the cap, and an empty stderr is under the cap, so preserving it verbatim needs no extra step.",
+   "clues": [
+    "g2.r1.l-off-dermot"
+   ],
+   "source": "assert under.stderr == \"\", f'an empty stderr was not preserved as \"\": {under.stderr!r}'"
+  },
+  "g2.r1.exclusions_or_crossover#6": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "dermot names the field truncated_streams by its identifier, reports stdout wrongly appearing in it, and says under-cap streams should be unlisted.",
+   "clues": [
+    "g2.r1.l-off-dermot"
+   ],
+   "source": "assert read_field(under, \"truncated_streams\") == []"
+  },
+  "g2.r1.exclusions_or_crossover#7": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "dermot rules only on streams \"under the cap\" and emil's log wording says \"exceeded\", leaving the reader to decide unaided that len == budget is not a truncation \u2014 while the herring pushes toward slicing at exactly 64.",
+   "clues": [
+    "g2.r1.l-off-dermot",
+    "g2.r1.l-log-emil",
+    "g2.r1.herring-marker-inside-budget-dario"
+   ],
+   "source": "assert exactly.stdout == \"A\" * 64, \"a stream exactly at the budget was shortened\""
+  },
+  "g2.r1.exclusions_or_crossover#8": {
+   "key": "g2.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "the equality boundary is never ruled on, so keeping an exactly-at-budget stream out of truncated_streams rests on the reader inferring that \"exceeded\" excludes equality.",
+   "clues": [
+    "g2.r1.l-off-dermot",
+    "g2.r1.l-log-emil",
+    "g2.r1.l-bytes-dario"
+   ],
+   "source": "assert read_field(exactly, \"truncated_streams\") == []"
+  },
+  "g2.r1.failure_behavior#1": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Dario names MIN_MAX_OUTPUT_BYTES, puts it in output_cap.py, and attaches the value 16 to it (\"a bare 16\", \"under 16\").",
+   "clues": [
+    "g2.r1.l-floor-dario"
+   ],
+   "source": "assert MIN_MAX_OUTPUT_BYTES == 16"
+  },
+  "g2.r1.failure_behavior#2": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Nikolai names the error OutputCapError and says to keep ValueError as the base.",
+   "clues": [
+    "g2.r1.l-floor-nikolai"
+   ],
+   "source": "assert issubclass(OutputCapError, ValueError)"
+  },
+  "g2.r1.failure_behavior#3": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Konrad asks for the offending value hung on the exception as .max_bytes, and 8 is the offending value in both his quoted message and emil's report.",
+   "clues": [
+    "g2.r1.l-floor-konrad",
+    "g2.r1.l-floor-emil"
+   ],
+   "source": "assert built.max_bytes == 8"
+  },
+  "g2.r1.failure_behavior#4": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Konrad quotes the message verbatim, including the interpolated 8, so the error's str is fixed by the value.",
+   "clues": [
+    "g2.r1.l-floor-konrad"
+   ],
+   "source": "assert str(built) == \"max_bytes must be 0 or at least 16, got 8\""
+  },
+  "g2.r1.failure_behavior#5": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Emil reports that max_output_bytes=8 blew up inside the sandbox, and the only error in the corpus \u2014 the floor error living beside the cap helper \u2014 is OutputCapError.",
+   "clues": [
+    "g2.r1.l-floor-emil",
+    "g2.r1.l-floor-nikolai",
+    "g2.r1.l-log-nikolai"
+   ],
+   "source": "with pytest.raises(OutputCapError) as refused:"
+  },
+  "g2.r1.failure_behavior#6": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Konrad's whole point is that the caught exception carries the offending value as .max_bytes so nobody has to regex the traceback.",
+   "clues": [
+    "g2.r1.l-floor-konrad"
+   ],
+   "source": "assert refused.value.max_bytes == 8"
+  },
+  "g2.r1.failure_behavior#7": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Dario says it is under 16 that has no room and konrad's message says \"at least 16\", so 16 itself is explicitly the accepted floor.",
+   "clues": [
+    "g2.r1.l-floor-dario",
+    "g2.r1.l-floor-konrad"
+   ],
+   "source": "assert run(monkeypatch, exit_code=0, stdout=\"A\" * 300, stderr=\"\", max_output_bytes=16).message == \"success\", \"16 is the floor and must be accepted\""
+  },
+  "g2.r1.failure_behavior#8": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Emil says the config should have refused the value when he built the executor, and nikolai places the error at executor-construction time.",
+   "clues": [
+    "g2.r1.l-floor-emil",
+    "g2.r1.l-floor-nikolai"
+   ],
+   "source": "with pytest.raises(ValidationError) as rejected:"
+  },
+  "g2.r1.failure_behavior#9": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "implied",
+   "why": "Nobody says the config-level refusal reuses the sandbox's error or its wording, so the reader must decide on their own to raise OutputCapError(value) from the validator rather than any plain ValueError with their own text.",
+   "clues": [
+    "g2.r1.l-floor-konrad",
+    "g2.r1.l-floor-emil"
+   ],
+   "source": "assert f\"max_bytes must be 0 or at least 16, got {bad}\" in str(rejected.value), f\"the rejection of {bad} does not carry the OutputCapError message: {rejected.value}\""
+  },
+  "g2.r1.failure_behavior#10": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "That a below-floor budget is refused at config construction is exactly what emil asked for, with dario fixing the floor at 16.",
+   "clues": [
+    "g2.r1.l-floor-emil",
+    "g2.r1.l-floor-dario"
+   ],
+   "source": "with pytest.raises(ValidationError):"
+  },
+  "g2.r1.failure_behavior#11": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Nikolai says 0 should not go near the floor check, konrad wants 0 to mean everything, and the message reads \"must be 0 or at least 16\".",
+   "clues": [
+    "g2.r1.l-off-nikolai",
+    "g2.r1.l-off-konrad",
+    "g2.r1.l-floor-konrad"
+   ],
+   "source": "assert CodeExecutionBackendConfig(max_output_bytes=0).max_output_bytes == 0"
+  },
+  "g2.r1.failure_behavior#12": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "The floor is inclusive by both dario's \"under 16\" and konrad's \"at least 16\", so 16 must construct.",
+   "clues": [
+    "g2.r1.l-floor-dario",
+    "g2.r1.l-floor-konrad"
+   ],
+   "source": "assert CodeExecutionBackendConfig(max_output_bytes=16).max_output_bytes == 16"
+  },
+  "g2.r1.failure_behavior#13": {
+   "key": "g2.r1.failure_behavior",
+   "verdict": "not_required",
+   "why": "Read as the -1 case, this guards the pre-existing ge=0 constraint on the config field rather than anything the corpus was asked to decide.",
+   "clues": [],
+   "source": "with pytest.raises(ValidationError):"
+  },
+  "g2.r1.observability#1": {
+   "key": "g2.r1.observability",
+   "verdict": "implied",
+   "why": "Emil quotes the rendered line verbatim and Nikolai names TRUNCATION_LOG_TEMPLATE as the constant holding that wording, but nobody ever says the substitution fields are named {streams} and {budget}, so the reader must invent the exact keyword names this assertion formats with.",
+   "clues": [
+    "g2.r1.l-log-emil",
+    "g2.r1.l-log-nikolai"
+   ],
+   "source": "assert TRUNCATION_LOG_TEMPLATE.format(streams=\"stderr, stdout\", budget=64) == \"sandbox output capped: stderr, stdout exceeded the 64-byte budget\""
+  },
+  "g2.r1.observability#2": {
+   "key": "g2.r1.observability",
+   "verdict": "stated",
+   "why": "Gideon asks for a warning line that fires only on runs that actually lost bytes, Emil confirms it comes out as one line naming the capped streams, and Dermot says an untouched stream must not be listed \u2014 so a stdout-only cut logging exactly that one line was decided out loud.",
+   "clues": [
+    "g2.r1.l-log-gideon",
+    "g2.r1.l-log-emil",
+    "g2.r1.l-off-dermot"
+   ],
+   "source": "assert warnings_of(exit_code=0, stdout=\"A\" * 300, stderr=\"\", max_output_bytes=64) == [\"sandbox output capped: stdout exceeded the 64-byte budget\"]"
+  },
+  "g2.r1.observability#3": {
+   "key": "g2.r1.observability",
+   "verdict": "absent",
+   "why": "The only remark showing two streams in one line spells them \"stdout, stderr\", the reverse of the alphabetical \"stderr, stdout\" required here, and nothing anywhere says the names are sorted.",
+   "clues": [
+    "g2.r1.l-log-emil"
+   ],
+   "source": "assert warnings_of(exit_code=0, stdout=\"A\" * 300, stderr=\"B\" * 300, max_output_bytes=64) == [\"sandbox output capped: stderr, stdout exceeded the 64-byte budget\"]"
+  },
+  "g2.r1.observability#4": {
+   "key": "g2.r1.observability",
+   "verdict": "stated",
+   "why": "Konrad says outright that the logging happens at the point we cut and not at the return paths, which is the decision that makes the timeout return carry the same single warning as the success return.",
+   "clues": [
+    "g2.r1.l-log-konrad",
+    "g2.r1.l-log-emil",
+    "g2.r1.l-log-gideon"
+   ],
+   "source": "assert warnings_of(exit_code=124, stdout=\"A\" * 300, stderr=\"\", timeout=7, max_output_bytes=64) == [\"sandbox output capped: stdout exceeded the 64-byte budget\"]"
+  },
+  "g2.r1.observability#5": {
+   "key": "g2.r1.observability",
+   "verdict": "stated",
+   "why": "Same call-site decision from Konrad covers the non-zero-exit return, and Emil's line plus Dermot's \"unlisted if untouched\" fix the single-stream wording for a stderr-only cut.",
+   "clues": [
+    "g2.r1.l-log-konrad",
+    "g2.r1.l-log-emil",
+    "g2.r1.l-off-dermot"
+   ],
+   "source": "assert warnings_of(exit_code=1, stdout=\"\", stderr=\"E\" * 300, max_output_bytes=64) == [\"sandbox output capped: stderr exceeded the 64-byte budget\"]"
+  },
+  "g2.r1.observability#6": {
+   "key": "g2.r1.observability",
+   "verdict": "stated",
+   "why": "Gideon explicitly asks for the warning only on runs that actually lost bytes, so a run where nothing was cut says nothing.",
+   "clues": [
+    "g2.r1.l-log-gideon"
+   ],
+   "source": "# nothing was cut: nothing is said\n    assert warnings_of(exit_code=0, stdout=\"A\", stderr=\"B\", max_output_bytes=64) == []"
+  },
+  "g2.r1.observability#7": {
+   "key": "g2.r1.observability",
+   "verdict": "stated",
+   "why": "Konrad and Nikolai both state that 0 means no cap at all rather than a tiny one, and Gideon's rule fires the warning only when bytes were lost, so the 0 case logging nothing is the direct conjunction of two spoken decisions.",
+   "clues": [
+    "g2.r1.l-off-konrad",
+    "g2.r1.l-off-nikolai",
+    "g2.r1.l-log-gideon"
+   ],
+   "source": "assert warnings_of(exit_code=0, stdout=\"A\" * 300, stderr=\"B\" * 300, max_output_bytes=0) == []"
+  },
+  "g2.r1.observability#8": {
+   "key": "g2.r1.observability",
+   "verdict": "implied",
+   "why": "Konrad complains that the cleanup-throwing row got no warning despite a capped stdout, but nobody says the salvage cap in the except handler stays silent, so the reader who follows \"log at the point we cut\" to both cap sites emits two lines and fails this single-element equality.",
+   "clues": [
+    "g2.r1.l-log-konrad",
+    "g2.r1.l-log-emil"
+   ],
+   "source": "# the salvage cap in the `except` handler is silent, so a run that captured a\n    # truncated stream and then blew up on the way out still says it exactly once\n    assert warnings_of(exit_code=0, stdout=\"A\" * 300, stderr=\"\", exit_error=RuntimeError(\"boom\"), max_output_bytes=64) == [\n        \"sandbox output capped: stdout exceeded the 64-byte budget\"\n    ]"
+  },
+  "g2.r1.observability#9": {
+   "key": "g2.r1.observability",
+   "verdict": "stated",
+   "why": "Gideon's rule that the line appears only on runs that actually lost bytes settles the run that captured nothing, even though that particular failure mode is never named.",
+   "clues": [
+    "g2.r1.l-log-gideon",
+    "g2.r1.l-log-konrad"
+   ],
+   "source": "# and a run that never captured anything says nothing at all\n    assert warnings_of(command_error=RuntimeError(\"kaboom\"), max_output_bytes=64) == []"
+  },
+  "g2.r1.rule#1": {
+   "key": "g2.r1.rule",
+   "verdict": "stated",
+   "why": "Every piece of the splice is said out loud by somebody: konrad fixes the ratio (\"give the top three parts to the bottom's one\"), dario's rev1 says the budget is the kept bytes (so 64 splits 48/16), nikolai quotes the marker on its own line with top above and bottom below, and gideon establishes the cap is counted in bytes.",
+   "clues": [
+    "g2.r1.l-kept-konrad",
+    "g2.r1.l-seam-nikolai",
+    "g2.r1.l-kept-gideon",
+    "g2.r1.rev1",
+    "g2.r1.l-bytes-gideon"
+   ],
+   "source": "assert wide.stdout == head + marker + tail, f\"expected a 48-byte head and a 16-byte tail spliced by the elision marker, got:\\n{wide.stdout!r}\""
+  },
+  "g2.r1.rule#2": {
+   "key": "g2.r1.rule",
+   "verdict": "not_required",
+   "why": "`marker` is the suite's own locally-built string, so this length check is self-consistency in the fixture and cannot fail on any implementation; the marker's literal wording is separately supplied by nikolai anyway.",
+   "clues": [
+    "g2.r1.l-seam-nikolai"
+   ],
+   "source": "# the marker is charged outside the budget: longer than the cap by exactly its length\n    assert len(marker) == 29"
+  },
+  "g2.r1.rule#3": {
+   "key": "g2.r1.rule",
+   "verdict": "stated",
+   "why": "rev1 says exactly this with the same number \u2014 \"i asked for 64 and got 35 bytes back... budget is the kept bytes now, marker sits outside it so the return runs that much longer\" \u2014 overturning the earlier inside-the-budget remark.",
+   "clues": [
+    "g2.r1.rev1",
+    "g2.r1.l-seam-dario",
+    "g2.r1.herring-marker-inside-budget-dario"
+   ],
+   "source": "assert len(wide.stdout) == 64 + 29 == 93"
+  },
+  "g2.r1.rule#4": {
+   "key": "g2.r1.rule",
+   "verdict": "stated",
+   "why": "The marker's offset is just the head length, and konrad states the 3:1 top-to-bottom division of what is kept while rev1 states that what is kept is the full 64-byte budget.",
+   "clues": [
+    "g2.r1.l-kept-konrad",
+    "g2.r1.rev1",
+    "g2.r1.l-seam-nikolai"
+   ],
+   "source": "assert wide.stdout.index(marker) == 48"
+  },
+  "g2.r1.rule#5": {
+   "key": "g2.r1.rule",
+   "verdict": "stated",
+   "why": "The 24/8 split follows from konrad's stated 3:1 ratio over a kept budget, the marker text and its own-line framing come from nikolai, and dermot/rev2 state the dropped count is original minus kept.",
+   "clues": [
+    "g2.r1.l-kept-konrad",
+    "g2.r1.l-seam-nikolai",
+    "g2.r1.rev2",
+    "g2.r1.l-seam-dermot"
+   ],
+   "source": "assert narrow.stdout == DIGITS[:24] + \"\\n[[curator:elided 68 bytes]]\\n\" + DIGITS[-8:], f\"a 32-byte budget did not split 24/8: {narrow.stdout!r}\""
+  },
+  "g2.r1.rule#6": {
+   "key": "g2.r1.rule",
+   "verdict": "stated",
+   "why": "Same decision as #3, made out loud twice: the cap means the kept bytes and the marker is charged outside it, so the return is exactly the marker longer than the cap.",
+   "clues": [
+    "g2.r1.rev1",
+    "g2.r1.l-seam-dario"
+   ],
+   "source": "assert len(narrow.stdout) == 32 + 29 == 61"
+  },
+  "g2.r1.scope#1": {
+   "key": "g2.r1.scope",
+   "verdict": "stated",
+   "why": "gideon says outright that the cap is a byte count and not a character count (his Japanese fixture came back a third of the expected length), and dermot's complaint fixes that only under-cap streams come back untouched, so a 30-byte stream under a 20-byte budget must come back cut.",
+   "clues": [
+    "g2.r1.l-bytes-gideon",
+    "g2.r1.l-off-dermot",
+    "g2.r1.l-seam-dario"
+   ],
+   "source": "assert out.stdout != data, \"10 characters / 30 bytes came back whole under a 20-BYTE budget\""
+  },
+  "g2.r1.scope#2": {
+   "key": "g2.r1.scope",
+   "verdict": "stated",
+   "why": "emil reports the replacement diamond from a tail starting mid-character and states the rule (\"clean input shouldnt come out mangled\"), and nils prescribes the mechanism \u2014 walk the cut in one byte at a time, three at most, and only fall back to replace if it still won't decode.",
+   "clues": [
+    "g2.r1.l-bytes-emil",
+    "g2.r1.l-bytes-nils"
+   ],
+   "source": "assert \"\ufffd\" not in out.stdout, f\"a clean UTF-8 stream came back with a replacement character: {out.stdout!r}\""
+  },
+  "g2.r1.scope#3": {
+   "key": "g2.r1.scope",
+   "verdict": "stated",
+   "why": "every ingredient of the 18-of-20 result is said out loud \u2014 budget is bytes (gideon), budget means the kept bytes with the marker outside it (rev1 and l-seam-dario, overturning the earlier herring), walk the cut inward up to three bytes (nils), and leave it a byte or two under the cap rather than padding back out (dario) \u2014 and the count comes to 6 under any head/tail split.",
+   "clues": [
+    "g2.r1.l-bytes-nils",
+    "g2.r1.l-bytes-dario",
+    "g2.r1.rev1",
+    "g2.r1.l-seam-dario",
+    "g2.r1.l-bytes-gideon"
+   ],
+   "source": "assert out.stdout.count(\"\u20ac\") == 6, f\"expected the 18 decodable bytes of a 20-byte budget, got {out.stdout.count(chr(0x20ac))} characters: {out.stdout!r}\""
+  },
+  "g2.r1.scope#4": {
+   "key": "g2.r1.scope",
+   "verdict": "stated",
+   "why": "dermot names the field `truncated_streams` and the membership rule in one breath \u2014 his 900-byte stdout was wrongly listed, and a stream under the cap \"should be untouched and unlisted\" \u2014 so a stream that was cut is listed by name and one that wasn't is absent.",
+   "clues": [
+    "g2.r1.l-off-dermot"
+   ],
+   "source": "assert read_field(out, \"truncated_streams\") == [\"stdout\"]"
+  },
+  "g2.r1.scope#5": {
+   "key": "g2.r1.scope",
+   "verdict": "stated",
+   "why": "dermot asks for \"original length minus what we kept\" and gideon's rev2 states the formula as original minus kept bytes rather than original minus max_output_bytes precisely because boundary trimming keeps less, and nikolai gives the marker wording carrying the number.",
+   "clues": [
+    "g2.r1.rev2",
+    "g2.r1.l-seam-dermot",
+    "g2.r1.l-seam-nikolai"
+   ],
+   "source": "assert \"12\" in reported, f\"the elided-byte count reads {reported}; 18 of the 30 bytes survived, so 12 were dropped: {out.stdout!r}\""
+  },
+  "g2.r2.exclusions_or_crossover#1": {
+   "key": "g2.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "rev2 spells the assertion out almost literally \u2014 '\"error_truncated\" not in CodeExecutionResult.model_fields' \u2014 with l-cross-1 giving the reason (rows carry stdout/stderr/files, never an exception), and it clearly supersedes h2's earlier claim that the field sits on both.",
+   "clues": [
+    "g2.r2.rev2",
+    "g2.r2.l-cross-1",
+    "g2.r2.h2"
+   ],
+   "source": "assert \"error_truncated\" not in CodeExecutionResult.model_fields, f\"CodeExecutionResult gained the flag as well: {sorted(CodeExecutionResult.model_fields)}\""
+  },
+  "g2.r2.exclusions_or_crossover#2": {
+   "key": "g2.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "rev1 puts 'error_truncated: bool = False on CodeExecutionOutput, declared under truncated_streams' and l-cross-3 names exec_output as the dict whose every key must survive a dump/reload, so the only new key in the sorted list is the one the corpus decided on; the other six are the pre-existing model shape, and error/message/files/stdout/stderr/truncated_streams are each named in passing (l-scope-1, l-scope-4, l-rule-1).",
+   "clues": [
+    "g2.r2.rev1",
+    "g2.r2.l-cross-3",
+    "g2.r2.l-rule-3",
+    "g2.r2.l-scope-1",
+    "g2.r2.l-scope-4"
+   ],
+   "source": "assert sorted(dumped[\"exec_output\"]) == [\"error\", \"error_truncated\", \"files\", \"message\", \"stderr\", \"stdout\", \"truncated_streams\"]"
+  },
+  "g2.r2.exclusions_or_crossover#3": {
+   "key": "g2.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l-rule-4 states the True condition outright ('only comes back True where we actually took bytes off the message'), l-obs-3 fixes the False side, and l-obs-1 hands over this exact fixture \u2014 a 300-byte RuntimeError at budget 64 \u2014 so no inference beyond 300 > 64 is left to the reader.",
+   "clues": [
+    "g2.r2.l-rule-4",
+    "g2.r2.l-obs-1",
+    "g2.r2.l-obs-3",
+    "g2.r2.l-rule-1"
+   ],
+   "source": "assert read_field(both, \"error_truncated\") is True"
+  },
+  "g2.r2.exclusions_or_crossover#4": {
+   "key": "g2.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "rev1 retracts h1's 'error' third entry by name and says truncated_streams 'stays \"stdout\"/\"stderr\"', konrad's l-cross-2 independently insists on two stream names only, and l-obs-1's 300-byte stdout at budget 64 gives the single ['stdout'] entry.",
+   "clues": [
+    "g2.r2.rev1",
+    "g2.r2.l-cross-2",
+    "g2.r2.l-obs-1",
+    "g2.r2.h1"
+   ],
+   "source": "assert read_field(both, \"truncated_streams\") == [\"stdout\"], f'\"error\" leaked into truncated_streams: {read_field(both, \"truncated_streams\")}'"
+  },
+  "g2.r2.exclusions_or_crossover#5": {
+   "key": "g2.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l-obs-2 describes this fixture and its outcome directly \u2014 exit_code 1, 'E'*80 on stderr, budget 64, 'the stderr lands in the shortened list' \u2014 and l-scope-1/l-scope-3 confirm the wrapping sentence is not itself counted, so stderr is the lone entry.",
+   "clues": [
+    "g2.r2.l-obs-2",
+    "g2.r2.l-scope-1",
+    "g2.r2.l-scope-3"
+   ],
+   "source": "assert read_field(failed, \"truncated_streams\") == [\"stderr\"]"
+  },
+  "g2.r2.observability#1": {
+   "key": "g2.r2.observability",
+   "verdict": "implied",
+   "why": "l-rule-2 hedges ('if we do shorten that string') and gestures at 'head and tail with the marker between' without any of the marker text, the 48/16 split, or the 236 count, so the reader must both resolve the conditional into a decision and guess that the budget maps onto the existing stream helper's split.",
+   "clues": [
+    "g2.r2.l-rule-2",
+    "g2.r2.l-rule-1",
+    "g2.r2.l-obs-1",
+    "g2.r2.l-obs-3",
+    "g2.r2.l-rule-4"
+   ],
+   "source": "assert blew_up.error == \"X\" * 48 + \"\\n[[curator:elided 236 bytes]]\\n\" + \"X\" * 16"
+  },
+  "g2.r2.observability#2": {
+   "key": "g2.r2.observability",
+   "verdict": "implied",
+   "why": "94 is purely a consequence of the unstated cap format from #1 \u2014 no remark gives a resulting length, or says the marker sits outside the 64-byte budget rather than inside it.",
+   "clues": [
+    "g2.r2.l-rule-2",
+    "g2.r2.l-obs-1"
+   ],
+   "source": "assert len(blew_up.error) == 94"
+  },
+  "g2.r2.observability#3": {
+   "key": "g2.r2.observability",
+   "verdict": "stated",
+   "why": "l-rule-4 says the flag 'only comes back True where we actually took bytes off the message', and this fixture is the case where bytes came off; rev1 and l-rule-3 name it error_truncated: bool on CodeExecutionOutput.",
+   "clues": [
+    "g2.r2.l-rule-4",
+    "g2.r2.l-obs-3",
+    "g2.r2.rev1",
+    "g2.r2.l-rule-3"
+   ],
+   "source": "assert read_field(blew_up, \"error_truncated\") is True"
+  },
+  "g2.r2.observability#4": {
+   "key": "g2.r2.observability",
+   "verdict": "stated",
+   "why": "dermot names the RuntimeError('boom') case and says it 'comes back byte for byte as raised'.",
+   "clues": [
+    "g2.r2.l-obs-3"
+   ],
+   "source": "assert short.error == \"boom\", f\"a message within budget was rewritten: {short.error!r}\""
+  },
+  "g2.r2.observability#5": {
+   "key": "g2.r2.observability",
+   "verdict": "stated",
+   "why": "l-obs-3 says the flag stays False for the under-budget message, and l-rule-3 pins the default to False with no Optional.",
+   "clues": [
+    "g2.r2.l-obs-3",
+    "g2.r2.l-rule-3",
+    "g2.r2.l-rule-4"
+   ],
+   "source": "assert read_field(short, \"error_truncated\") is False, \"error_truncated is set for a message the cap never shortened\""
+  },
+  "g2.r2.observability#6": {
+   "key": "g2.r2.observability",
+   "verdict": "stated",
+   "why": "l-scope-1 says the assembled sentence stays full length because 'capping it again just eats the stderr' and l-obs-2 confirms the wrapper stays whole while the stderr is the shortened one, ruling out both the 130 and 94 alternatives the comment names.",
+   "clues": [
+    "g2.r2.l-scope-1",
+    "g2.r2.l-obs-2",
+    "g2.r2.l-rule-1"
+   ],
+   "source": "assert len(failed.error) == 143, f\"error is {len(failed.error)} characters; 130 means the raw stderr went into the message, 94 means it was re-capped\""
+  },
+  "g2.r2.observability#7": {
+   "key": "g2.r2.observability",
+   "verdict": "stated",
+   "why": "the stderr cap is pre-existing ('we shorten both streams'), and l-scope-1 says error is 'our own sentence with stderr pasted in', so the reader passes through an existing format rather than inventing one; EXIT_PREFIX is the implementation's own constant.",
+   "clues": [
+    "g2.r2.l-scope-1",
+    "g2.r2.l-obs-2",
+    "g2.r2.l-rule-1"
+   ],
+   "source": "assert failed.error == EXIT_PREFIX + \"E\" * 48 + \"\\n[[curator:elided 16 bytes]]\\n\" + \"E\" * 16"
+  },
+  "g2.r2.observability#8": {
+   "key": "g2.r2.observability",
+   "verdict": "stated",
+   "why": "emil answers this exact question \u2014 error_truncated reads False on the non-zero-exit message because 'we assembled that string rather than cut it' \u2014 and l-rule-4 gives the same rule generally.",
+   "clues": [
+    "g2.r2.l-scope-3",
+    "g2.r2.l-rule-4"
+   ],
+   "source": "assert read_field(failed, \"error_truncated\") is False"
+  },
+  "g2.r2.observability#9": {
+   "key": "g2.r2.observability",
+   "verdict": "stated",
+   "why": "l-obs-2 says the stderr lands in the shortened list for this fixture, and rev1/l-cross-2 fix truncated_streams to stream names only after retiring the 'error' entry from h1.",
+   "clues": [
+    "g2.r2.l-obs-2",
+    "g2.r2.rev1",
+    "g2.r2.l-cross-2"
+   ],
+   "source": "assert read_field(failed, \"truncated_streams\") == [\"stderr\"]"
+  },
+  "g2.r2.rule#1": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 says outright \"it's error_truncated: bool = False on CodeExecutionOutput now\", and rev2/l-cross-1 confirm the field lives on CodeExecutionOutput (and not on CodeExecutionResult).",
+   "clues": [
+    "g2.r2.rev1",
+    "g2.r2.rev2",
+    "g2.r2.l-rule-3"
+   ],
+   "source": "assert \"error_truncated\" in fields, f\"CodeExecutionOutput has {fields}\""
+  },
+  "g2.r2.rule#2": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "konrad says \"defaulting to `False`\" and dario writes the declaration as `error_truncated: bool = False`, which is exactly a non-required field.",
+   "clues": [
+    "g2.r2.l-rule-3",
+    "g2.r2.rev1"
+   ],
+   "source": "assert CodeExecutionOutput.model_fields[\"error_truncated\"].is_required() is False"
+  },
+  "g2.r2.rule#3": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "konrad names the annotation directly \u2014 \"a plain bool ... no `Optional`\" \u2014 and rev1 spells the same annotation out.",
+   "clues": [
+    "g2.r2.l-rule-3",
+    "g2.r2.rev1"
+   ],
+   "source": "assert CodeExecutionOutput.model_fields[\"error_truncated\"].annotation is bool, \"error_truncated is a plain bool, not an Optional one\""
+  },
+  "g2.r2.rule#4": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "the default value False is given twice, so a default-constructed output reading False is the decision as made out loud.",
+   "clues": [
+    "g2.r2.l-rule-3",
+    "g2.r2.rev1"
+   ],
+   "source": "assert CodeExecutionOutput().error_truncated is False"
+  },
+  "g2.r2.rule#5": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "konrad says \"put it directly under truncated_streams so the two read as a pair\" and rev1 repeats \"declared under truncated_streams\", which is the adjacency the index check enforces.",
+   "clues": [
+    "g2.r2.l-rule-3",
+    "g2.r2.rev1"
+   ],
+   "source": "assert fields.index(\"error_truncated\") == fields.index(\"truncated_streams\") + 1, f\"error_truncated is not declared right after truncated_streams: {fields}\""
+  },
+  "g2.r2.rule#6": {
+   "key": "g2.r2.rule",
+   "verdict": "not_required",
+   "why": "that the exception path sets message to the literal \"error\" is pre-existing behaviour the assertion uses to confirm the fixture took the raising branch; nothing about the cap turns on it.",
+   "clues": [
+    "g2.r2.l-obs-1"
+   ],
+   "source": "assert blew_up.message == \"error\""
+  },
+  "g2.r2.rule#7": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "dermot says if the exception string is shortened, \"shorten it like a stream, head and tail with the marker between\", and l-rule-1/l-obs-1/l-obs-3 establish that an over-budget exception text is what gets shortened, so the head/tail+marker layout is reuse of the stated stream rule rather than a guess.",
+   "clues": [
+    "g2.r2.l-rule-2",
+    "g2.r2.l-rule-1",
+    "g2.r2.l-obs-1",
+    "g2.r2.l-obs-3"
+   ],
+   "source": "assert blew_up.error == \"Z\" * 24 + \"\\n[[curator:elided 168 bytes]]\\n\" + \"Z\" * 8, f\"the exception message was not capped the way a stream is: {blew_up.error!r}\""
+  },
+  "g2.r2.rule#8": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "same decision as #7 \u2014 \"shorten it like a stream\" hands the reader the stream capper whole, marker-accounting included, rather than asking them to invent a length rule for error.",
+   "clues": [
+    "g2.r2.l-rule-2",
+    "g2.r2.l-obs-1"
+   ],
+   "source": "assert len(blew_up.error) == 32 + 30 == 62  # the marker, three digits wide here, is charged outside the budget"
+  },
+  "g2.r2.rule#9": {
+   "key": "g2.r2.rule",
+   "verdict": "stated",
+   "why": "emil fixes the semantics \u2014 True \"only ... where we actually took bytes off the message\" \u2014 and dermot's under-budget case confirms the complement, so True on a genuinely shortened exception is told, not derived.",
+   "clues": [
+    "g2.r2.l-rule-4",
+    "g2.r2.l-obs-3",
+    "g2.r2.rev1"
+   ],
+   "source": "assert read_field(blew_up, \"error_truncated\") is True"
+  },
+  "g2.r2.scope#1": {
+   "key": "g2.r2.scope",
+   "verdict": "stated",
+   "why": "nikolai says the `error` field on a non-zero exit is \"our own sentence with stderr pasted in\" and that capping it \"again\" would eat the stderr, dario says the streams are shortened first and the message handed over whole, and nikolai's fixture has the shortened stderr with \"the sentance wrapped round it\" \u2014 i.e. error is the prefix plus the capped stderr.",
+   "clues": [
+    "g2.r2.l-scope-1",
+    "g2.r2.l-rule-1",
+    "g2.r2.l-obs-2"
+   ],
+   "source": "assert failed.error == EXIT_PREFIX + failed.stderr, f\"`error` is not the message assembled from the capped stderr:\\nerror={failed.error!r}\\nstderr={failed.stderr!r}\""
+  },
+  "g2.r2.scope#2": {
+   "key": "g2.r2.scope",
+   "verdict": "stated",
+   "why": "\"so that assembled `message` stays full length\", \"the sentance wrapped round it stays whole\" and \"hand that message over whole\" are three separate statements that the assembled string is not re-capped, so its length is prefix + capped stderr.",
+   "clues": [
+    "g2.r2.l-scope-1",
+    "g2.r2.l-obs-2",
+    "g2.r2.l-rule-1"
+   ],
+   "source": "assert len(failed.error) == len(failed.stderr) + 50 > 32, f\"the assembled message was re-capped, to {len(failed.error)} characters\""
+  },
+  "g2.r2.scope#3": {
+   "key": "g2.r2.scope",
+   "verdict": "stated",
+   "why": "emil answers this exact question out loud \u2014 error_truncated reads False when the stderr inside the non-zero-exit message got clipped, because the string was assembled rather than cut \u2014 and l-rule-4/rev1 fix the field's name and spelling.",
+   "clues": [
+    "g2.r2.l-scope-3",
+    "g2.r2.l-rule-4",
+    "g2.r2.rev1"
+   ],
+   "source": "assert read_field(failed, \"error_truncated\") is False, \"error_truncated is set on the non-zero-exit path, whose message was assembled rather than clipped\""
+  },
+  "g2.r2.scope#4": {
+   "key": "g2.r2.scope",
+   "verdict": "stated",
+   "why": "gideon says flatly to keep files out of the budget and that files stay uncapped, with no path qualification.",
+   "clues": [
+    "g2.r2.l-scope-4"
+   ],
+   "source": "assert failed.files == \"F\" * 5000, f\"files was shortened to {len(failed.files)} characters; it is not part of this feature\""
+  },
+  "g2.r2.scope#5": {
+   "key": "g2.r2.scope",
+   "verdict": "not_required",
+   "why": "nothing in the corpus concerns the `message` field's value on a timeout; it is the suite pinning pre-existing executor behaviour that this feature does not touch.",
+   "clues": [],
+   "source": "assert timed_out.message == \"timeout\""
+  },
+  "g2.r2.scope#6": {
+   "key": "g2.r2.scope",
+   "verdict": "stated",
+   "why": "nils quotes the sentence in the same form (\"Execution timed out after 300s\") and says nothing in it is worth shortening whatever the budget ends up being, which is the decision this assertion checks.",
+   "clues": [
+    "g2.r2.l-scope-2"
+   ],
+   "source": "assert timed_out.error == \"Execution timed out after 7s\", f\"the timeout message went through the cap: {timed_out.error!r}\""
+  },
+  "g2.r2.scope#7": {
+   "key": "g2.r2.scope",
+   "verdict": "stated",
+   "why": "the flag is stated to be a plain bool defaulting to False that only comes back True where bytes were actually taken off the message, and the timeout sentence is stated never to be shortened, so the rule as spoken settles this path rather than leaving it to the reader.",
+   "clues": [
+    "g2.r2.l-rule-4",
+    "g2.r2.l-rule-3",
+    "g2.r2.l-scope-2"
+   ],
+   "source": "assert read_field(timed_out, \"error_truncated\") is False"
+  },
+  "g2.r2.scope#8": {
+   "key": "g2.r2.scope",
+   "verdict": "stated",
+   "why": "gideon's \"files stay uncapped\" is categorical and is not scoped to any particular exit path, and l-obs-1 establishes the raising-__exit__ scenario as one of the cases under discussion.",
+   "clues": [
+    "g2.r2.l-scope-4",
+    "g2.r2.l-obs-1"
+   ],
+   "source": "assert salvaged.files == \"F\" * 5000, f\"files was shortened on the exception path, to {len(salvaged.files)} characters\""
+  }
+ },
+ "counts": {
+  "stated": 59,
+  "implied": 8,
+  "absent": 1,
+  "not_required": 4
+ },
+ "short": [
+  "g2.r1.exclusions_or_crossover",
+  "g2.r1.observability",
+  "g2.r2.observability",
+  "g2.r1.failure_behavior"
+ ],
+ "applied": {
+  "rewritten": [
+   "g2.r1.l-off-konrad (g2.r1.exclusions_or_crossover)",
+   "g2.r1.l-off-dermot (g2.r1.exclusions_or_crossover)",
+   "g2.r1.l-log-emil (g2.r1.observability)",
+   "g2.r1.l-log-nikolai (g2.r1.observability)",
+   "g2.r1.l-log-konrad (g2.r1.observability)",
+   "g2.r2.l-rule-2 (g2.r2.observability)",
+   "g2.r1.l-floor-nikolai (g2.r1.failure_behavior)"
+  ],
+  "added": [
+   "g2.r1.say25 (g2.r1.exclusions_or_crossover) -> #releases",
+   "g2.r2.say18 (g2.r2.observability) -> #releases",
+   "g2.r1.say26 (g2.r1.failure_behavior) -> #incidents"
+  ],
+  "unfixed": []
+ }
+}

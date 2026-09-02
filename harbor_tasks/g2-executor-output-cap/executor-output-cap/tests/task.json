@@ -1,0 +1,48 @@
+{
+ "task_id": "g2",
+ "suite": "g2_executor_output_cap",
+ "variant": "blind",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "When a stream exceeds the budget the kept payload is head+tail, not a single slice: the first (max_output_bytes * 3) // 4 bytes of the UTF-8 encoding followed by the last max_output_bytes - (max_output_bytes * 3) // 4 bytes, joined by exactly the marker \"\\n[[curator:elided {dropped} bytes]]\\n\" where {dropped} is the decimal count of bytes actually thrown away (original byte length minus kept byte length, no thousands separator). The marker sits OUTSIDE the budget: the returned text is longer than max_output_bytes by exactly the marker's length. With max_output_bytes=64 that is a 48-byte head, a 29-character marker and a 16-byte tail.",
+    "scope": "The budget counts UTF-8 bytes, and both slices are trimmed back to codepoint boundaries before decoding: for the head try cutting 0, 1, 2, then 3 trailing bytes and take the first candidate that decodes; for the tail try dropping 0, 1, 2, then 3 leading bytes and take the first that decodes; only if no candidate within three bytes decodes (genuinely invalid UTF-8) fall back to the untrimmed slice decoded with errors=\"replace\". A clean multi-byte input therefore never yields U+FFFD, and the kept byte count may end up strictly below max_output_bytes.",
+    "exclusions_or_crossover": "max_output_bytes == 0 is the sentinel for 'unlimited', not for 'keep nothing': the stream is returned whole, unmarked, and contributes nothing to truncated_streams, and it must not raise despite being below the floor. Streams at or under the budget are returned byte-identical with no marker.",
+    "failure_behavior": "A budget that is neither 0 nor at least 16 is rejected. output_cap.py defines MIN_MAX_OUTPUT_BYTES = 16 and an OutputCapError(ValueError) whose __init__ takes the offending value, stores it as the attribute .max_bytes, and whose message is exactly \"max_bytes must be 0 or at least 16, got {value}\". A direct _execute_in_sandbox(..., max_output_bytes=8) raises it, and the rejection is additionally pulled forward to config construction: CodeExecutionBackendConfig validates max_output_bytes with a @field_validator that raises OutputCapError(value) for value != 0 and value < 16, so pydantic surfaces a ValidationError carrying that message instead of the request failing max_retries times per row. 0 and 16 still construct; -1 is still the ge=0 rejection.",
+    "observability": "output_cap.py exports TRUNCATION_LOG_TEMPLATE: str = \"sandbox output capped: {streams} exceeded the {budget}-byte budget\", and it is emitted at WARNING level through the package's `logger` exactly once per run \u2014 inside the `with` block right after the streams are capped, only when at least one stream was truncated \u2014 with {streams} being \", \".join(truncated_streams) in the alphabetical order and {budget} the effective budget. The success, timeout and non-zero-exit returns share that one call site; the salvage cap in the `except Exception` handler logs nothing, so a run whose __exit__ raises after a truncated capture still logs exactly one line, and a run where execute_command itself raises logs none."
+   },
+   "hidden_requirement_types": [
+    "invented name",
+    "chosen value",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "chat thread arguing head-only vs head+tail and settling the 3:1 ratio",
+    "wiki page fixing the elision marker spelling and that it is charged outside the budget",
+    "mail thread on a mojibake report that produced the 3-byte boundary allowance",
+    "chat where a 4-byte budget typo retried every row, producing the floor of 16 and the config-time rejection",
+    "wiki logging-conventions note on one warning line per capped run"
+   ],
+   "earlier_reversed_version": "The budget originally included the marker (head was sliced to max_bytes - len(marker)) and the dropped count was reported as original - max_bytes; that was reversed after the count disagreed with the marker on multi-byte input."
+  },
+  {
+   "requirement": {
+    "rule": "The cap also reaches the `error` field on the `except Exception` path: error is the exception text str(e) run through the same budget and the same head/tail+marker rule as a stream, and CodeExecutionOutput gains a non-Optional error_truncated: bool = False declared immediately after truncated_streams, set True on exactly that path and only when the cap actually shortened the message.",
+    "scope": "Only that one error value is capped. The non-zero-exit message stays _format_exit_code_error(exit_code, capped_stderr) at its full assembled length (its 50-character prefix is allowed to push it past the budget and it is not re-capped), the timeout message f\"Execution timed out after {timeout}s\" is never capped, and files stays uncapped. error_truncated is False on both of those paths \u2014 including the non-zero-exit one, whose message embeds a stderr that was truncated, because that message was assembled rather than clipped.",
+    "exclusions_or_crossover": "The flag lives on CodeExecutionOutput only \u2014 CodeExecutionResult must not gain it, having no error to report on \u2014 and \"error\" is never appended to truncated_streams, which stays limited to \"stdout\"/\"stderr\". So sorted(CodeExecutionResponse(exec_output=CodeExecutionOutput(error=\"x\", error_truncated=True)).model_dump()[\"exec_output\"]) == [\"error\", \"error_truncated\", \"files\", \"message\", \"stderr\", \"stdout\", \"truncated_streams\"] and \"error_truncated\" not in CodeExecutionResult.model_fields.",
+    "observability": "Fake sandbox with exit_code=0, stdout=\"A\"*300, stderr=\"\" whose __exit__ raises RuntimeError(\"X\"*300), max_output_bytes=64: output.error == \"X\"*48 + \"\\n[[curator:elided 236 bytes]]\\n\" + \"X\"*16 (len 94) and output.error_truncated is True. With RuntimeError(\"boom\") instead, output.error == \"boom\" exactly and output.error_truncated is False. On the non-zero-exit fake (exit_code=1, stderr=\"E\"*80, budget 64), len(output.error) == 143 and output.error_truncated is False while output.truncated_streams == [\"stderr\"]."
+   },
+   "hidden_requirement_types": [
+    "invented name",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "incident thread where a driver traceback rendered as the exception message blew up a response file",
+    "code-review comment refusing to re-cap the assembled exit-code message",
+    "wiki schema note listing the exec_output keys after the field was added to one model only"
+   ],
+   "earlier_reversed_version": "The flag was first carried as an extra \"error\" entry inside truncated_streams and mirrored onto CodeExecutionResult; both were reverted in favour of a separate boolean on CodeExecutionOutput alone."
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+From: dario@world.local
+To: dermot@world.local, emil@world.local
+Subject: Re: capped executor log from the overnight 40k run
+Date: Wed, 09 Apr 2025 11:28:00 +0000
+Message-ID: <178836752003.3213021.7126140234452416062@world.local>
+In-Reply-To: <178836752003.3213021.5057884908184730997@world.local>
+References: <178836752003.3213021.5057884908184730997@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+right, but heres the part i cant close. i diffed the sizes =E2=80=94 the cell=
+ is 812043 shorter than the raw log on disk. so the seam is under by 29 and i=
+ have no idea what the 29 is

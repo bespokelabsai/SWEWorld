@@ -1,0 +1,15 @@
+From: dermot@world.local
+To: emil@world.local, dario@world.local
+Subject: Re: capped executor log from the overnight 40k run
+Date: Wed, 09 Apr 2025 11:33:00 +0000
+Message-ID: <178836752004.3213021.822930442931078700@world.local>
+In-Reply-To: <178836752003.3213021.5057884908184730997@world.local>
+References: <178836752003.3213021.5057884908184730997@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+mhm. that said i dont think chasing the 29 is the fix =E2=80=94 the number we=
+re printing is just computed from the wrong side. it should be the original l=
+ength minus what we kept. the marker and its padding fall out of that on thei=
+r own, you dont have to account for them separately

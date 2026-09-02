@@ -1,0 +1,18 @@
+From: dario@world.local
+To: emil@world.local, gideon@world.local
+Subject: Re: executor output cap =?utf-8?b?4oCU?= what the truncation flags
+ read on each exit path
+Date: Fri, 18 Apr 2025 15:15:00 +0000
+Message-ID: <178836752010.3213021.14927258724409939876@world.local>
+In-Reply-To: <178836752010.3213021.17330074263930051842@world.local>
+References: <178836752010.3213021.17330074263930051842@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+i think it comes down to whether you read that field as "we cut something off=
+" or "the blob in front of you is shorter than what the process produced". fo=
+r a plain captured stderr its not ambiguous at all, we took bytes off the end=
+ and the caller should be told
+
+for the exit-code message honestly i keep going back and forth on it

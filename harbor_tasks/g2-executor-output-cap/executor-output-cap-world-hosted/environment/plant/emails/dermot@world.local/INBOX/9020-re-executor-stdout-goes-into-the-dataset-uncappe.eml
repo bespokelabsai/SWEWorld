@@ -1,0 +1,14 @@
+From: gideon@world.local
+To: dermot@world.local, nikolai@world.local, emil@world.local
+Subject: Re: executor stdout goes into the dataset uncapped
+Date: Mon, 21 Apr 2025 13:49:00 +0000
+Message-ID: <178836752009.3213021.17864390642519035134@world.local>
+In-Reply-To: <178836752007.3213021.8695051038993002334@world.local>
+References: <178836752007.3213021.8695051038993002334@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+so basically the two slices just get stuck together back to back? honestly th=
+ough from the outside that reads like a valid file that happens to be wrong, =
+um, nothing tells you a chunk went missing in the middle
