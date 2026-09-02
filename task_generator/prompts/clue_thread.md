@@ -95,7 +95,17 @@ continue them.
 
 ## Rules
 
-- **Four to seven messages.** Long enough that the question gets asked and answered;
+- **Five to nine messages, and most of them SHORT.** This is the rule that gets
+  broken. Real messages in this company are one-liners: the median is 89
+  characters and a quarter of them are under 60 — "right", "yep thats the one",
+  "mhm, and the empty case?". A previous run made every turn a paragraph, and 64%
+  of them were longer than the 90th percentile of everything else in the corpus,
+  which turns a planted thread into a visibly different texture on the page.
+  Carry the material in MORE turns rather than bigger ones: a short question, a
+  short answer, a short push-back. One or two turns may be long where somebody is
+  actually explaining something. The rest should be the length of a reply typed
+  without thinking about it.
+- Long enough that the question gets asked and answered;
   short enough to be a chat exchange rather than a design document.
 - **{{holder}} is in it**, and is the one who settles the point.
 - **Never state the requirement as a requirement.** No "we must", no "the rule is",

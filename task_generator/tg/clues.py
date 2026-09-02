@@ -906,6 +906,7 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     entry["stock_phrasing"] = stock_phrasing(entry)
     entry["voice_problems"] = voice_problems(entry)
     entry["double_booked"] = double_booked(entry, corpus)
+    entry["too_wordy"] = too_wordy(entry, corpus)
     entry["finished_claims"] = finished_claims(entry)
     entry["unstated"] = unstated(verdicts)
     entry["unreversed"] = unreversed(entry)
@@ -925,7 +926,7 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
 # failing a paid pass over.
 HARD = ("unknit", "unreversed", "out_of_order", "voice_problems",
         "double_booked")
-SOFT = ("stock_phrasing", "unstated", "finished_claims")
+SOFT = ("stock_phrasing", "unstated", "finished_claims", "too_wordy")
 
 
 def problems(entry: dict) -> tuple[list[str], list[str]]:
@@ -2133,6 +2134,38 @@ def render_thread(inv: dict) -> str:
         f"  {m.get('minute') or '--:--'}  {m.get('author') or m.get('sender')}: "
         + said(m).replace("\n", "\n           ")
         for m in inv.get("messages") or [])
+
+
+def too_wordy(entry: dict, corpus: Corpus) -> list[str]:
+    """Exchanges whose turns are all paragraphs, against a corpus of one-liners.
+
+    Measured, not guessed. The corpus median message is 89 characters and 26% are
+    under 60; g2's first plant ran a median of 197, with 64% of turns longer than
+    the corpus 90th percentile -- a figure that should be 10%. Its 25th percentile
+    was longer than the corpus 75th. Every planted message was a paragraph, which
+    is a texture difference visible while scrolling, before anybody reads a word.
+
+    The threshold is twice the corpus median, applied to the exchange's own median
+    so one long explanation does not condemn a thread of short replies. Calibrated
+    rather than absolute, for the same reason `stock_phrasing` is: an absolute cap
+    would reject the corpus itself.
+    """
+    lengths = sorted(len(m.text or "") for m in corpus.messages)
+    if not lengths:
+        return []
+    typical = lengths[len(lengths) // 2]
+    out = []
+    for req in entry["requirements"]:
+        for clue in req["clues"]:
+            sizes = sorted(len(said(m)) for m in turns_of(clue))
+            if not sizes:
+                continue
+            middle = sizes[len(sizes) // 2]
+            if middle > 2 * typical:
+                out.append(f"{clue['clue_id']}: median turn {middle} chars against "
+                           f"a corpus median of {typical} — every turn is a "
+                           "paragraph, which reads as planted before it is read")
+    return out
 
 
 def double_booked(entry: dict, corpus: Corpus, window: int = 4) -> list[str]:
