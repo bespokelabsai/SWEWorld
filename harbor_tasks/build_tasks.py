@@ -313,6 +313,21 @@ def instruction(task: dict, variant: str) -> str:
         "own ticket\", \"when we get to it\" — and parked is not cancelled. Where "
         "a decision was settled and the code does not reflect it yet, carrying it "
         "out is part of this ticket, not a reason to leave it alone.",
+        # The bullet above shut the "parked means cancelled" door and two hosted
+        # rollouts walked straight through the one next to it, independently and
+        # in almost the same words: "the ticket is the current authoritative spec
+        # and supersedes those", "the ticket is my assignment and is more
+        # recent/specific". Both had READ the requirement -- one quoted the field
+        # name and its exact semantics out of a page comment -- and then filed it
+        # as an older draft. Nothing had told them the ticket is a summary rather
+        # than the latest revision of one.
+        "- The ticket is where the work starts, not a complete specification of "
+        "it, and it is not the newest word on anything. It was written short. "
+        "Where the record settles something the ticket leaves out, or names a "
+        "field, a value or a behaviour the ticket does not, that is an addition "
+        "to what you owe — not an earlier draft the ticket has replaced. The "
+        "ticket and the record disagreeing is the normal case here, and the "
+        "record is not the stale side of it.",
         "- Chat is at <http://chat.world.local>, the wiki at "
         "<http://docs.world.local>, webmail at <http://mail.world.local>, and "
         "the service list at <http://pass.world.local>. Gitea and Mattermost "
