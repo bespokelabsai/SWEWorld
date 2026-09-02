@@ -446,11 +446,52 @@ if [[ -d /opt/task-plant ]]; then
   # returns non-zero, and fails the healthcheck. Twenty times, then the trial is
   # dead with "Healthcheck failed after 20 consecutive retries" and nothing saying
   # which of the four services was the problem.
-  WAIT_TIMEOUT=240 wait-for-service --quiet mattermost mariadb nginx php-fpm maddy \
+  # These exact names. `wait-for-service` takes the world's own service list
+  # and exits 1 on anything else -- `php-fpm` is a supervisord program but not
+  # a name it knows, so naming it made this line fail every time, setup.sh
+  # exit 1, and the healthcheck burn all 20 retries against a world that was
+  # healthy throughout. The failing guard reported as the thing it guarded.
+  WAIT_TIMEOUT=240 wait-for-service --quiet mattermost mariadb bookstack maddy \
     || { echo "task-plant: services not up" >&2; exit 1; }
+  # The roster comes from the WORLD, not the plant. The ingest scripts resolve
+  # every author and channel through channels.yaml and identities.yaml in the
+  # --data-dir they are given, and a delta that ships its own copy is a second
+  # source of truth that drifts the moment the corpus is rebuilt. Without them
+  # every row fails with "unknown channel 'releases' -- declared channels: (none)".
+  for roster in channels.yaml identities.yaml; do
+    cp -f "/opt/world-state/data/$roster" "/opt/task-plant/$roster" 2>/dev/null || {
+      echo "task-plant: no /opt/world-state/data/$roster" >&2; exit 1; }
+  done
+  # Comments attach to pages, and `ingest_comments` resolves each one against the
+  # docs/ tree in its --data-dir; without it the run dies on "/opt/task-plant/docs
+  # does not exist" even though every page it needs is already in the world. A
+  # delta that adds no new pages therefore borrows the world's, read-only. If the
+  # plant brought its own pages, those win and this does nothing.
+  if [[ -e /opt/task-plant/docs ]]; then
+    # The plant brought its own pages, so it needs the book list that says which
+    # directories are real: "directory 'engineering' has no entry in
+    # collections.yaml -- unlisted directories are an error, not an implicit book".
+    # Same principle as the roster above -- structure comes from the world.
+    cp -f /opt/world-state/data/docs/collections.yaml /opt/task-plant/docs/ 2>/dev/null
+    # And the existing pages, because a comment resolves against the whole tree
+    # and most of this plant's comments hang off pages the world already has.
+    cp -rn /opt/world-state/data/docs/. /opt/task-plant/docs/ 2>/dev/null
+  else
+    ln -s /opt/world-state/data/docs /opt/task-plant/docs
+  fi
   S=/opt/world-state/scripts
+  # Each step only when the plant has something for it. A delta rarely touches all
+  # four surfaces -- g2 has chat, mail and page comments and no new wiki pages at
+  # all -- and `ingest_docs` against a missing docs/ does not no-op, it fails with
+  # "524 validation error(s)" and takes the healthcheck down with it.
   for step in ingest_chat ingest_docs ingest_comments ingest_mail; do
     [[ -f "$S/$step.py" ]] || continue
+    case "$step" in
+      ingest_chat)     [[ -s /opt/task-plant/messages.jsonl ]] || continue ;;
+      ingest_docs)     [[ -d /opt/task-plant/docs ]]           || continue ;;
+      ingest_comments) [[ -s /opt/task-plant/comments.jsonl ]] || continue ;;
+      ingest_mail)     [[ -d /opt/task-plant/emails ]]         || continue ;;
+    esac
     python3 "$S/$step.py" --data-dir /opt/task-plant >>/var/log/task-plant.log 2>&1 \
       || { echo "task-plant: $step failed, see /var/log/task-plant.log" >&2; exit 1; }
   done

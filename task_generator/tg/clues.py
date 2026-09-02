@@ -905,6 +905,7 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     # them, whether or not it was the pass that could have caused them.
     entry["stock_phrasing"] = stock_phrasing(entry)
     entry["voice_problems"] = voice_problems(entry)
+    entry["unclashed"] = unclash(entry, corpus)
     entry["double_booked"] = double_booked(entry, corpus)
     entry["too_wordy"] = too_wordy(entry, corpus)
     entry["finished_claims"] = finished_claims(entry)
@@ -2170,7 +2171,45 @@ def too_wordy(entry: dict, corpus: Corpus, limit: float = 5.0) -> list[str]:
     return out
 
 
-def double_booked(entry: dict, corpus: Corpus, window: int = 4) -> list[str]:
+def unclash(entry: dict, corpus: Corpus) -> list[str]:
+    """Nudge a turn off a minute its speaker already occupies elsewhere.
+
+    Deterministic, because asking was tried and does not work. `room_of` shows the
+    writer exactly where each person already is that day, and sixteen freshly
+    written exchanges still landed on an occupied minute -- which is unsurprising,
+    since it is arithmetic across twenty timestamps while also writing dialogue.
+
+    Moving the clock changes nothing a reader cares about: not who spoke, not what
+    they said, not the order. So it is done here rather than sent back for a
+    rewrite that costs a call and re-rolls everything else in the exchange.
+
+    Only forward, and only within the same hour, so a turn cannot overtake the one
+    after it or drift into the evening.
+    """
+    busy: dict[tuple[str, str], set[str]] = {}
+    for m in corpus.messages:
+        busy.setdefault((m.author, m.date), set()).add(m.created_at[11:16])
+    moved = []
+    for req in entry["requirements"]:
+        for clue in req["clues"]:
+            date = (clue.get("carrier") or {}).get("date")
+            if not date:
+                continue
+            for msg in turns_of(clue):
+                who, when = (msg.get("author") or "").strip(), str(msg.get("minute") or "")
+                if not who or ":" not in when or when not in busy.get((who, date), ()):
+                    continue
+                hh, mm = when.split(":")
+                for step in range(1, 6):
+                    nudged = f"{hh}:{int(mm) + step:02d}"
+                    if int(mm) + step < 60 and nudged not in busy.get((who, date), ()):
+                        msg["minute"] = nudged
+                        moved.append(f"{clue['clue_id']}: {who} {when} -> {nudged}")
+                        break
+    return moved
+
+
+def double_booked(entry: dict, corpus: Corpus, window: int = 0) -> list[str]:
     """A planted turn from somebody who is really posting elsewhere that minute.
 
     The only availability question worth asking. Who happened to be at their desk
@@ -2180,9 +2219,12 @@ def double_booked(entry: dict, corpus: Corpus, window: int = 4) -> list[str]:
     notices dario answering in #pipeline at 14:07 while the corpus already has him
     in #releases at 14:06 has found the plant.
 
-    `window` is minutes either side. Four, because chat is bursty and two messages
-    ninety seconds apart in different channels is somebody with two tabs open;
-    five minutes apart is not.
+    `window` is minutes either side, and it is 0: only the same displayed minute
+    counts. Measured before choosing -- of 22 findings at a four-minute window,
+    exactly 2 were the same minute and the other 20 were one to four minutes
+    apart, which is somebody with two tabs open and is what the corpus itself
+    looks like. A four-minute window would have sent sixteen freshly written
+    exchanges back for rewriting to fix two real collisions.
     """
     def minutes(stamp: str) -> int | None:
         try:
@@ -2425,7 +2467,15 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
             # showed numbers that were partly from this run and partly from the
             # one before, which is worse than an obvious failure.
             try:
-                clue["invented"] = stage_thread(task, corpus, clue, entry, budget)
+                # MERGE, not replace. `stage_thread` returns messages; the dict it
+                # overwrites may also hold what `stage_document` or `stage_mail`
+                # wrote -- a page title and body, a mail subject. Replacing it
+                # wholesale threw those away, and the three `doc_new` remarks
+                # became comments on wiki pages that existed nowhere: "unknown
+                # document 'engineering/capping-code-executor-output.md'", from a
+                # writer that had produced that page an hour earlier.
+                written = stage_thread(task, corpus, clue, entry, budget)
+                clue["invented"] = {**(clue.get("invented") or {}), **written}
                 clue["uncarried"] = check_carriage(task, clue, budget)
             except Exception as err:                      # noqa: BLE001
                 if attempt == 2:

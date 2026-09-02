@@ -168,6 +168,20 @@ def write_comment(wiki, clue: dict, taken: set[str]) -> list[str]:
     populated. The ingest was right and the writer was wrong.
     """
     rel = (clue["carrier"].get("key") or "").split("|")[1]
+    # A `doc_new` carrier brings a page with it, and until now nothing wrote one:
+    # the comments went in against a path that existed nowhere, and
+    # `ingest_comments` refused every row with "unknown document
+    # 'engineering/capping-code-executor-output.md'". The page is what the
+    # exchange is a margin note ON, so it has to exist first.
+    inv = clue.get("invented") or {}
+    if str(clue["carrier"].get("kind") or "") == "doc_new" and rel not in wiki._pages:
+        title = inv.get("title") or clue["carrier"].get("title") or \
+            rel.rsplit("/", 1)[-1].removesuffix(".md").replace("-", " ")
+        wiki.write(uid=clue["holder"], title=title,
+                   body=inv.get("body") or inv.get("summary") or
+                        (clue.get("settles") or clue["text"]),
+                   collection=rel.split("/", 1)[0],
+                   ts=stamp(clue["carrier"]["date"], "09:30"))
     stem = f"c-{rel.rsplit('/', 1)[-1].removesuffix('.md')}"
     msgs = turns(clue)
     root = ""
@@ -530,12 +544,22 @@ def delta(source: pathlib.Path, target: pathlib.Path, out: pathlib.Path,
     (out / "comments.jsonl").write_text(
         "".join(l + "\n" for l in added), encoding="utf-8")
 
+    # `emails/index.jsonl` is a manifest, not content: it lists every message in
+    # every mailbox. Copying it whole because it changed shipped 679 rows pointing
+    # at 600+ .eml files the delta does not carry, and `ingest_mail` refused all of
+    # them with "message file ... does not exist". Diff it by line, like
+    # comments.jsonl, so it names only what travelled.
+    was_mail = set(lines(source / "emails" / "index.jsonl"))
+    new_mail = [l for l in lines(target / "emails" / "index.jsonl") if l not in was_mail]
+
     files = 0
     for sub in ("emails", "docs"):
         for path in sorted((target / sub).rglob("*")):
             if not path.is_file():
                 continue
             rel = path.relative_to(target)
+            if rel.as_posix() == "emails/index.jsonl":
+                continue                      # written from the line diff below
             old = source / rel
             if old.is_file() and old.read_bytes() == path.read_bytes():
                 continue
@@ -543,8 +567,12 @@ def delta(source: pathlib.Path, target: pathlib.Path, out: pathlib.Path,
             shutil.copy2(path, out / rel)
             files += 1
 
+    if new_mail:
+        (out / "emails" / "index.jsonl").write_text(
+            "".join(l + "\n" for l in new_mail), encoding="utf-8")
+
     return {"dir": str(out), "messages": len(rows), "comments": len(added),
-            "files": files}
+            "mail_rows": len(new_mail), "files": files}
 
 
 def render(task, ledger: dict, report: dict) -> str:
