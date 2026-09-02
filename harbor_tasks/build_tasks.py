@@ -536,6 +536,66 @@ if [[ -d /opt/task-plant ]]; then
     python3 "$S/$step.py" --data-dir /opt/task-plant >>/var/log/task-plant.log 2>&1 \
       || { echo "task-plant: $step failed, see /var/log/task-plant.log" >&2; exit 1; }
   done
+  # Mattermost search is MEMBER-SCOPED, and the admin is created by bootstrap
+  # rather than by the import, so it lands in Mattermost's defaults --
+  # town-square and off-topic, both empty. An agent handed those credentials
+  # searches a 9,800-message corpus and gets zero hits for every term in it,
+  # then reasonably concludes there is no chat to read. Both g2 hosted world
+  # rollouts did exactly that: five terms certainly present, nothing back, and
+  # every hidden fact scored 0 in a world that physically contained them.
+  #
+  # `ingest_chat.join_admin_to_channels()` fixes this at the source, but the
+  # script that runs here is the one baked into the IMAGE
+  # (/opt/world-state/scripts), not the one this task was built against, so a
+  # base image published before that fix ingests the new plant with the old
+  # script and silently undoes it. This is the guard that does not care how old
+  # the image is. It is idempotent -- adding an existing member is a no-op --
+  # so it costs nothing on a world that already got it right.
+  python3 - <<'PLANT_JOIN' >>/var/log/task-plant.log 2>&1 || \
+    echo "task-plant: admin channel-join guard failed, chat search may be blind" >&2
+import json, urllib.request
+
+BASE = "http://localhost:8065/api/v4"
+
+def call(path, data=None, token=None, method=None):
+    body = json.dumps(data).encode() if data is not None else None
+    req = urllib.request.Request(BASE + path, data=body, method=method)
+    req.add_header("Content-Type", "application/json")
+    if token:
+        req.add_header("Authorization", "Bearer " + token)
+    resp = urllib.request.urlopen(req, timeout=30)
+    return resp, json.loads(resp.read() or b"null")
+
+# The session token comes back as a HEADER, not in the body -- four calls of one
+# hosted rollout went on parsing `.token` out of the JSON and getting "".
+resp, me = call("/users/login", {"login_id": "worldadmin", "password": "worldadmin"})
+token = resp.headers.get("Token")
+if not token:
+    raise SystemExit("no Token header from /users/login")
+
+joined = 0
+_, teams = call("/users/me/teams", token=token)
+for team in teams:
+    page = 0
+    while True:
+        _, chans = call(f"/teams/{team['id']}/channels?per_page=200&page={page}",
+                        token=token)
+        if not chans:
+            break
+        for chan in chans:
+            # Open channels only. A private channel the admin was never in is not
+            # something to force an entry into, and DMs have no team.
+            if chan.get("type") != "O":
+                continue
+            try:
+                call(f"/channels/{chan['id']}/members", {"user_id": me["id"]},
+                     token=token)
+                joined += 1
+            except Exception:
+                pass          # already a member, which is the common case
+        page += 1
+print(f"task-plant: admin in {joined} channel(s)")
+PLANT_JOIN
   echo "task-plant: ingested" >> /var/log/task-plant.log
 fi
 
