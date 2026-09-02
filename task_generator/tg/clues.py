@@ -1830,6 +1830,15 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
                 out.append("a turn with no author")
             elif who not in people:
                 out.append(f"{who!r} is not in this company — invented speaker")
+    # The holder has to be in their own conversation. `clue_thread.md` asks for it
+    # in as many words -- "{holder} is in it, and is the one who settles the point"
+    # -- and nothing enforced it, so four of g2's exchanges settled a point in the
+    # absence of the person the plant records as settling it. Everything
+    # downstream reads `holder`: the answer key attributes the remark to them, and
+    # `room_of` picks the room from where THEY post.
+    holder = (clue.get("holder") or "").strip()
+    if msgs and holder and holder not in {(m.get("author") or "").strip() for m in msgs}:
+        out.append(f"{holder} holds this remark but never speaks in the exchange")
     if len(msgs) < 3:
         out.append(f"{len(msgs)} message(s) — a remark alone in a room is not a "
                    "conversation somebody had")
