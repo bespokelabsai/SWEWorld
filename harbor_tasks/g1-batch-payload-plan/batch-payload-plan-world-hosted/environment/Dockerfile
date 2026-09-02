@@ -1,7 +1,7 @@
 # The hosted twin of batch-payload-plan-world.
 #
 # Identical task, identical corpus; the only difference is where the world image
-# comes from. Locally that is `sweworld:0.4.4` in the daemon. Horizon has no such
+# comes from. Locally that is `sweworld:0.4.6` in the daemon. Horizon has no such
 # tag, so the world is published to the Artifact Registry first
 # (`horizon artifacts environment push`) and pulled from there by digest.
 #
@@ -17,7 +17,7 @@
 # No `COPY --from=sweworld:repo-only-dev` here — unlike the local twin, this
 # image already carries /opt/curator-dev, because Horizon cannot resolve a second
 # local-only tag either.
-FROM us-central1-docker.pkg.dev/apex-485220/horizon/environments/sweworld-batch-payload-plan@sha256:820761fc315ad3f944fed675af01b09fb1545de7083078d9b34cfe5b3bc4610a
+FROM us-central1-docker.pkg.dev/apex-485220/horizon/environments/sweworld-batch-payload-plan@sha256:894807d95c91f420efccb8f7f1784aa87f8eb333497aadc2f89b96c044fae5fc
 
 # tmux and asciinema are the terminal recording, not the trial: without them the
 # run still grades, and the only record of what the agent actually typed is gone.

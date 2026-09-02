@@ -326,8 +326,18 @@ def instruction(task: dict, variant: str) -> str:
         "Where the record settles something the ticket leaves out, or names a "
         "field, a value or a behaviour the ticket does not, that is an addition "
         "to what you owe — not an earlier draft the ticket has replaced. The "
-        "ticket and the record disagreeing is the normal case here, and the "
-        "record is not the stale side of it.",
+        # First version ended "the record is not the stale side of it", and two
+        # rollouts read that as licence to DELETE something the ticket states --
+        # both dropped `truncated_streams` from `CodeExecutionResult` on the
+        # strength of a wiki line about a different field, and lost the open
+        # feature for it. The record adds; it does not subtract. Nothing is
+        # hidden by saying so: `split` refuses to ship a fact the ticket prints,
+        # so every hidden requirement here is something the ticket is SILENT
+        # about, and an apparent contradiction is always a misreading.
+        "So the record adds to the ticket. Where the ticket states something "
+        "outright, that stands — a page that looks like it contradicts the "
+        "ticket is nearly always about a neighbouring question, and the move is "
+        "to find what it actually names rather than overrule the ticket with it.",
         "- Chat is at <http://chat.world.local>, the wiki at "
         "<http://docs.world.local>, webmail at <http://mail.world.local>, and "
         "the service list at <http://pass.world.local>. Gitea and Mattermost "

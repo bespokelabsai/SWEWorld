@@ -8,7 +8,7 @@
 # sweworld:0.4.4 is the same world with the corpus baked in: the repository and
 # its history, and nine months of chat, wiki and mail. The remarks this task's
 # requirements are hidden in are somewhere in there.
-FROM sweworld:0.4.4
+FROM sweworld:0.4.6
 
 COPY --from=sweworld:repo-only-dev /opt/curator-dev /opt/curator-dev
 

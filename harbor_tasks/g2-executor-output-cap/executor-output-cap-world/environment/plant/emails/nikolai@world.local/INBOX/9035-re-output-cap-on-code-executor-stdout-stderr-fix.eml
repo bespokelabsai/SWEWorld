@@ -3,9 +3,9 @@ To: nikolai@world.local
 Subject: Re: output cap on code executor stdout/stderr =?utf-8?b?4oCU?=
  fixture review before this lands
 Date: Tue, 24 Jun 2025 10:55:00 +0000
-Message-ID: <178836752014.3213021.5850793493643431075@world.local>
-In-Reply-To: <178836752012.3213021.10204640149843790887@world.local>
-References: <178836752012.3213021.10204640149843790887@world.local>
+Message-ID: <178838514970.3526620.3024049978975621649@world.local>
+In-Reply-To: <178838514966.3526620.12623167952083133131@world.local>
+References: <178838514966.3526620.12623167952083133131@world.local>
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
