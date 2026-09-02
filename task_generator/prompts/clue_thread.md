@@ -54,16 +54,33 @@ tell in the corpus.
 
 {{people}}
 
-**Only these people may speak, and every message must name one of them.** They are
-the whole company. Inventing a colleague is the most visible plant this generator
-can produce: a name that appears in four messages and nowhere else in nine months
-of chat is somebody an agent can look up and fail to find.
+### Who speaks — two rules, and they are checked
 
-**At least two of them must speak.** Those two constraints bind together and the
-second is the one that gets dropped: told only to stay inside the list, the easy
-way out is one person posting six times, which is not a conversation and leaves
-nobody to fragment the remark across. If the list above is short, use two of them
-and let one carry more of the turns — never one alone.
+**1. Every message must be from somebody on that list, spelled exactly as it is
+written there.** That list is the whole company. A name not on it belongs to
+nobody: it would appear in your four messages and nowhere else in nine months of
+chat, and an agent who looks it up finds a person with no history, which is this
+generator announcing itself. Never `alex`, never `the on-call`, never a first name
+you find natural — the list or nothing. Every message needs an author; a turn with
+an empty one is rejected.
+
+**2. At least two different people must speak, and {{holder}} must be one of
+them.** Two is the floor, three is better.
+
+These two pull against each other and rule 2 is the one that quietly loses. Told to
+stay inside a short list, the easy way out is one person posting six times — and
+that is not a conversation, it is somebody thinking out loud with nobody to think
+against. It also destroys the point of the exercise: the remark is meant to be
+*split across speakers*, so one voice means one turn ends up carrying the whole
+thing, which is the tell this rewrite exists to remove.
+
+If the list feels too short for what you want to write: use two of the named people
+and give one of them more of the turns. Two people going back and forth four times
+is a real conversation. One person posting four times is a monologue and will be
+thrown away.
+
+Both are enforced in code after you answer, and an exchange that breaks either is
+rewritten from scratch — so there is nothing to be gained by stretching them.
 
 {{nearby}}
 
