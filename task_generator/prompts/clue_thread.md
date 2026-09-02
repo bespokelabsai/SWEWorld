@@ -95,16 +95,20 @@ continue them.
 
 ## Rules
 
-- **Five to nine messages, and most of them SHORT.** This is the rule that gets
-  broken. Real messages in this company are one-liners: the median is 89
-  characters and a quarter of them are under 60 — "right", "yep thats the one",
-  "mhm, and the empty case?". A previous run made every turn a paragraph, and 64%
-  of them were longer than the 90th percentile of everything else in the corpus,
-  which turns a planted thread into a visibly different texture on the page.
-  Carry the material in MORE turns rather than bigger ones: a short question, a
-  short answer, a short push-back. One or two turns may be long where somebody is
-  actually explaining something. The rest should be the length of a reply typed
-  without thinking about it.
+- **Five to nine messages, and the whole exchange about three times the length of
+  the remark above — not nine times.** This is the rule that gets broken, and it
+  is worth being exact about why. The remark is already short. Your job is to
+  SPREAD it across turns and add the little that a conversation needs — somebody
+  asking, somebody pushing back, somebody saying "right" — not to rewrite it at
+  length. A previous run turned a 146-character remark into 1,288 characters over
+  seven turns, and every one of those turns was a paragraph in a company whose
+  median message is 89 characters and a quarter of which are under 60 characters.
+  That is visible on the page before anybody reads a word.
+
+  What it should look like instead: a burst. Short question, short answer, "wait,
+  what about the empty case", short answer. One turn may be long where somebody is
+  genuinely explaining something. The others are the length of a reply typed
+  without thinking — "yep thats the one", "mhm", "right, and the marker?".
 - Long enough that the question gets asked and answered;
   short enough to be a chat exchange rather than a design document.
 - **{{holder}} is in it**, and is the one who settles the point.

@@ -2136,35 +2136,37 @@ def render_thread(inv: dict) -> str:
         for m in inv.get("messages") or [])
 
 
-def too_wordy(entry: dict, corpus: Corpus) -> list[str]:
-    """Exchanges whose turns are all paragraphs, against a corpus of one-liners.
+def too_wordy(entry: dict, corpus: Corpus, limit: float = 5.0) -> list[str]:
+    """Exchanges that INFLATE the remark rather than spread it.
 
-    Measured, not guessed. The corpus median message is 89 characters and 26% are
-    under 60; g2's first plant ran a median of 197, with 64% of turns longer than
-    the corpus 90th percentile -- a figure that should be 10%. Its 25th percentile
-    was longer than the corpus 75th. Every planted message was a paragraph, which
-    is a texture difference visible while scrolling, before anybody reads a word.
+    The obvious reading of "planted turns are too long" is that reknit fails to
+    fragment. It is the opposite. Remarks are already short -- median 157
+    characters, near the corpus median of 89 -- and the exchanges built from them
+    run 8.9x that, a 146-character remark becoming 1,288 characters over seven
+    turns. Pure fragmentation would give ~26 characters a turn, which is too
+    short; the conversation legitimately needs somebody to ask and somebody to
+    push back. Nine times is not scaffolding, it is padding, and it is what makes
+    every planted turn a paragraph in a corpus of one-liners.
 
-    The threshold is twice the corpus median, applied to the exchange's own median
-    so one long explanation does not condemn a thread of short replies. Calibrated
-    rather than absolute, for the same reason `stock_phrasing` is: an absolute cap
-    would reject the corpus itself.
+    So the measure is the ratio, not the length: it scales with the remark instead
+    of punishing a long one, and it names the thing to change. Roughly 3x gets
+    turns near the corpus median at six turns, so 5x is the complaint threshold.
+
+    g1 sits at 8.4x and shipped -- blind 0.00, clues 0.86 -- so this is a realism
+    defect and not a solvability one. Reported, never gated.
     """
-    lengths = sorted(len(m.text or "") for m in corpus.messages)
-    if not lengths:
-        return []
-    typical = lengths[len(lengths) // 2]
     out = []
     for req in entry["requirements"]:
         for clue in req["clues"]:
-            sizes = sorted(len(said(m)) for m in turns_of(clue))
-            if not sizes:
+            turns = turns_of(clue)
+            source = len(clue.get("text") or "")
+            if not turns or not source:
                 continue
-            middle = sizes[len(sizes) // 2]
-            if middle > 2 * typical:
-                out.append(f"{clue['clue_id']}: median turn {middle} chars against "
-                           f"a corpus median of {typical} — every turn is a "
-                           "paragraph, which reads as planted before it is read")
+            ratio = sum(len(said(m)) for m in turns) / source
+            if ratio > limit:
+                out.append(f"{clue['clue_id']}: the exchange is {ratio:.1f}x the "
+                           f"remark ({source} chars over {len(turns)} turns) — "
+                           "inflated rather than spread")
     return out
 
 
