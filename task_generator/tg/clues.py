@@ -905,6 +905,7 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     # them, whether or not it was the pass that could have caused them.
     entry["stock_phrasing"] = stock_phrasing(entry)
     entry["voice_problems"] = voice_problems(entry)
+    entry["double_booked"] = double_booked(entry, corpus)
     entry["finished_claims"] = finished_claims(entry)
     entry["unstated"] = unstated(verdicts)
     entry["unreversed"] = unreversed(entry)
@@ -922,7 +923,8 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
 # What each stored field means for the exit code. Hard findings are defects in
 # the artifact a reader will see; soft ones are worth printing and not worth
 # failing a paid pass over.
-HARD = ("unknit", "unreversed", "out_of_order", "voice_problems")
+HARD = ("unknit", "unreversed", "out_of_order", "voice_problems",
+        "double_booked")
 SOFT = ("stock_phrasing", "unstated", "finished_claims")
 
 
@@ -1897,6 +1899,8 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
     if len(msgs) > 1 and len(voices) < 2:
         only = next(iter(voices), "nobody")
         out.append(f"only {only} speaks — a monologue, not an exchange")
+    for row in clue.get("double_booked") or []:
+        out.append(row)
     # Hedging the SUBSTANCE, anywhere in the exchange. This lived only in
     # `voice_problems`, which `finish` computes and `reknit` does not consult -- so
     # reknit would write "the shape isn't settled", the gate would report it after
@@ -2131,6 +2135,55 @@ def render_thread(inv: dict) -> str:
         for m in inv.get("messages") or [])
 
 
+def double_booked(entry: dict, corpus: Corpus, window: int = 4) -> list[str]:
+    """A planted turn from somebody who is really posting elsewhere that minute.
+
+    The only availability question worth asking. Who happened to be at their desk
+    on a given Tuesday does not decide whether a conversation is plausible --
+    knowing the subject does -- so `room_of` offers the whole company and lets the
+    topic choose. But a person cannot be in two rooms at once, and an agent who
+    notices dario answering in #pipeline at 14:07 while the corpus already has him
+    in #releases at 14:06 has found the plant.
+
+    `window` is minutes either side. Four, because chat is bursty and two messages
+    ninety seconds apart in different channels is somebody with two tabs open;
+    five minutes apart is not.
+    """
+    def minutes(stamp: str) -> int | None:
+        try:
+            hh, mm = stamp.split(":")
+            return int(hh) * 60 + int(mm)
+        except Exception:
+            return None
+
+    real: dict[tuple[str, str], list[tuple[int, str]]] = {}
+    for m in corpus.messages:
+        when = minutes(m.created_at[11:16])
+        if when is not None:
+            real.setdefault((m.author, m.date), []).append((when, m.channel))
+
+    out = []
+    for req in entry["requirements"]:
+        for clue in req["clues"]:
+            car = clue.get("carrier") or {}
+            date, here = car.get("date"), (car.get("channel") or "").lstrip("#")
+            if not date or not here:
+                continue
+            for msg in turns_of(clue):
+                who = (msg.get("author") or "").strip()
+                when = minutes(str(msg.get("minute") or ""))
+                if not who or when is None:
+                    continue
+                for other, room in real.get((who, date), ()):
+                    if room != here and abs(other - when) <= window:
+                        out.append(
+                            f"{clue['clue_id']}: {who} speaks in #{here} at "
+                            f"{msg.get('minute')} on {date}, but the corpus has them "
+                            f"in #{room} {abs(other - when)} minute(s) away")
+                        break
+    return out
+
+
 def room_of(corpus: Corpus, clue: dict) -> tuple[str, str, list, str]:
     """The channel, the day, the real traffic in it, and who was actually there."""
     car = clue["carrier"]
@@ -2139,28 +2192,38 @@ def room_of(corpus: Corpus, clue: dict) -> tuple[str, str, list, str]:
     real = corpus.by_channel_day.get((channel, date)) or []
     # People who actually spoke in that room that week, holder first. A remark
     # attributed to somebody who was not there is the cheapest tell there is.
-    reach = corpus.reachable((date, date)) if date else set()
-    others = [m.author for m in real] + [p for p in corpus.people() if p in reach]
-    # Widen until there is somebody to talk TO. An invented thread on a quiet day
-    # often has only the holder in the room, and 18 of g2's 46 exchanges were
-    # handed a list of exactly one person and then asked for two speakers. The
-    # model did what anyone would: it invented a colleague, or -- once, memorably
-    # -- wrote `TODO_second_speaker` as an author name. Neither is a prompt
-    # failure. You cannot phrase your way out of an impossible instruction.
+    # Everybody who works here, holder first, then the people this room hears
+    # from most. Deliberately NOT "who posted that week": that produced rooms
+    # containing one person, and asking for two speakers from a list of one got
+    # invented colleagues and, once, `TODO_second_speaker` as an author name.
     #
-    # Regulars of that channel first, because someone who posts there often is a
-    # plausible voice on a day they happened to be quiet; then the rest of the
-    # company, ordered by how much they talk.
-    if len(dict.fromkeys([clue["holder"]] + others)) < 3:
-        regulars = [a for a, _ in collections.Counter(
-            m.author for m in corpus.messages if m.channel == channel).most_common()]
-        loudest = [a for a, _ in collections.Counter(
-            m.author for m in corpus.messages).most_common()]
-        others = others + regulars + loudest
-    people = list(dict.fromkeys([clue["holder"]] + others))[:5]
+    # Availability is not modelled on purpose. Whether somebody happened to be
+    # typing that Tuesday is not what makes a conversation plausible -- knowing
+    # the subject is. The prompt asks for people the topic would actually reach,
+    # and `double_booked` catches the one thing that IS absurd: being in two
+    # rooms at the same minute.
+    regulars = [a for a, _ in collections.Counter(
+        m.author for m in corpus.messages if m.channel == channel).most_common()]
+    loudest = [a for a, _ in collections.Counter(
+        m.author for m in corpus.messages).most_common()]
+    others = [m.author for m in real] + regulars + loudest
+    people = list(dict.fromkeys([clue["holder"]] + others))[:8]
     nearby = ("## What else is in that channel that day\n\n" + "\n".join(
         f"  {m.created_at[11:16]}  {m.author}: {m.text[:110]}" for m in real[:14])
         if real else "")
+    # Where these people already are that day, so the exchange can be put in a gap
+    # instead of on top of them. Nobody is in two rooms at the same minute, and an
+    # agent who spots dario answering in #pipeline at 14:07 while the corpus has
+    # him in #releases at 14:06 has found the plant. Availability is otherwise not
+    # modelled -- the topic decides who speaks, not the calendar.
+    elsewhere = sorted({
+        (m.created_at[11:16], m.author, m.channel) for m in corpus.messages
+        if m.date == date and m.channel != channel and m.author in set(people)})
+    if elsewhere:
+        nearby += ("\n\n## Where these people already are that day\n\n"
+                   "Do not put a turn within a few minutes of one of these — the "
+                   "same person cannot be in two rooms at once.\n\n" + "\n".join(
+                       f"  {when}  {who} is in #{room}" for when, who, room in elsewhere[:20]))
     return channel, date, people, nearby
 
 
