@@ -908,6 +908,7 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     entry["unclashed"] = unclash(entry, corpus)
     entry["double_booked"] = double_booked(entry, corpus)
     entry["too_wordy"] = too_wordy(entry, corpus)
+    entry["contradictions"] = contradictions(entry)
     entry["finished_claims"] = finished_claims(entry)
     entry["unstated"] = unstated(verdicts)
     entry["unreversed"] = unreversed(entry)
@@ -927,7 +928,8 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
 # failing a paid pass over.
 HARD = ("unknit", "unreversed", "out_of_order", "voice_problems",
         "double_booked")
-SOFT = ("stock_phrasing", "unstated", "finished_claims", "too_wordy")
+SOFT = ("stock_phrasing", "unstated", "finished_claims", "too_wordy",
+        "contradictions")
 
 
 def problems(entry: dict) -> tuple[list[str], list[str]]:
@@ -1815,6 +1817,23 @@ def said(msg: dict) -> str:
     return msg.get("text") or msg.get("body") or ""
 
 
+def who(msg: dict) -> str:
+    """Who said one turn, whichever shape the exchange is in.
+
+    The twin of `said` above, and it exists for the same reason. An exchange is
+    written by a stage that speaks chat -- `author`/`text` -- while a mail turn
+    comes back as `sender`/`body`. Ten readers in this file reached for `author`
+    alone and three of them remembered `sender`, so `unknit` read g3's three
+    mail threads as monologues by nobody: four authorless turns each, eighteen
+    blocking findings, and a plant that was in fact well formed.
+
+    `inject.who_said` had already learned this exact lesson -- "each grew its own
+    idea of the field names, and each was wrong in a different way" -- and the
+    fix never reached this file. One function, and every reader calls it.
+    """
+    return (msg.get("author") or msg.get("sender") or "").strip()
+
+
 def identifiers_missing(clue: dict) -> list[str]:
     """Names the tests read that nobody in the exchange types. Free, and absolute.
 
@@ -1875,11 +1894,11 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
     msgs = turns_of(clue)
     if people:
         for msg in msgs:
-            who = (msg.get("author") or "").strip()
-            if not who:
+            speaker = who(msg)
+            if not speaker:
                 out.append("a turn with no author")
-            elif who not in people:
-                out.append(f"{who!r} is not in this company — invented speaker")
+            elif speaker not in people:
+                out.append(f"{speaker!r} is not in this company — invented speaker")
     # The holder has to be in their own conversation. `clue_thread.md` asks for it
     # in as many words -- "{holder} is in it, and is the one who settles the point"
     # -- and nothing enforced it, so four of g2's exchanges settled a point in the
@@ -1887,7 +1906,7 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
     # downstream reads `holder`: the answer key attributes the remark to them, and
     # `room_of` picks the room from where THEY post.
     holder = (clue.get("holder") or "").strip()
-    voices = {(m.get("author") or "").strip() for m in msgs if (m.get("author") or "").strip()}
+    voices = {who(m) for m in msgs if who(m)}
     if msgs and holder and holder not in voices:
         out.append(f"{holder} holds this remark but never speaks in the exchange")
     # Two speakers minimum. `clue_thread.md` asks for it in those words -- "Two
@@ -1912,7 +1931,7 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
     if clue.get("covers"):
         for msg in msgs:
             if (hit := UNSETTLED.search(said(msg))):
-                out.append(f"{msg.get('author')} leaves the decision open "
+                out.append(f"{who(msg)} leaves the decision open "
                            f"({hit.group(0)!r}) — not built yet is right, "
                            "not decided means there is nothing to recover")
     if len(msgs) < 3:
@@ -1923,7 +1942,7 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
     whole = re.sub(r"\s+", " ", clue.get("text") or "").strip()
     for m in msgs:
         if whole and whole in re.sub(r"\s+", " ", said(m)):
-            out.append(f"{m.get('author') or m.get('sender')} says the whole remark "
+            out.append(f"{who(m)} says the whole remark "
                        "in one turn — nothing is left for the rest of the exchange")
     for name in identifiers_missing(clue):
         out.append(f"nobody types `{name}`")
@@ -1931,7 +1950,7 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
         if not MINUTE.match(str(m.get("minute") or "")):
             out.append(f"minute {m.get('minute')!r} is not HH:MM")
         if not said(m).strip():
-            out.append(f"an empty message from {m.get('author') or m.get('sender')}")
+            out.append(f"an empty message from {who(m)}")
     for part in clue.get("uncarried") or []:
         out.append(f"nothing in the exchange carries: {part}")
     return out
@@ -2020,7 +2039,7 @@ def voice_problems(entry: dict) -> list[str]:
             for msg in turns_of(clue):
                 if (hit := UNSETTLED.search(said(msg))):
                     out.append(
-                        f"{clue['clue_id']}: {msg.get('author')} leaves the decision "
+                        f"{clue['clue_id']}: {who(msg)} leaves the decision "
                         f"open — {hit.group(0)!r}. Saying it is not built yet is "
                         "right; saying it is not decided means there is nothing "
                         "here to recover")
@@ -2064,7 +2083,7 @@ def finished_claims(entry: dict) -> list[str]:
                          if v.strip("`").lower() in text.lower()]
                 if hit and named:
                     out.append(
-                        f"{clue['clue_id']}: {msg.get('author')} may be reporting "
+                        f"{clue['clue_id']}: {who(msg)} may be reporting "
                         f"{named[0]} as already built — {hit.group(0)!r}. Read it: "
                         "if the claim really is about that name, the agent will "
                         "grep for it, miss it, and distrust the corpus")
@@ -2132,7 +2151,7 @@ def unknit(entry: dict, people: set[str] | None = None) -> list[str]:
 
 def render_thread(inv: dict) -> str:
     return "\n".join(
-        f"  {m.get('minute') or '--:--'}  {m.get('author') or m.get('sender')}: "
+        f"  {m.get('minute') or '--:--'}  {who(m)}: "
         + said(m).replace("\n", "\n           ")
         for m in inv.get("messages") or [])
 
@@ -2171,6 +2190,78 @@ def too_wordy(entry: dict, corpus: Corpus, limit: float = 5.0) -> list[str]:
     return out
 
 
+# A number written as code or prose: `cap/2`, `max_bytes // 2`, `three parts`,
+# `65536`, `3/4`. Enough to notice two exchanges pinning the same quantity
+# differently, which is the only thing this is for.
+# A split expressed as a RULE for the cap, not the word for a fraction. The first
+# version matched bare "half" and "quarter" and returned eight hits, of which the
+# ones it found were "half a character", "half the setup cells", "the last line
+# half eaten" -- prose about halves, pinning nothing. Same mistake as the first
+# `finished_claims`, measured the same way and narrowed the same way: the phrase
+# has to bind a number TO the budget.
+_QUANTITY = re.compile(
+    r"\b(?:cap|max_bytes|budget)\s*(?://|/)\s*\d+"                 # cap/2
+    r"|\b\d+\s*/\s*\d+\s+(?:split|of the (?:cap|budget))"          # 50/50 split
+    r"|\b(?:even|equal)\s+split\b"                                  # even split
+    r"|\b(?:three|two|1|2|3)\s+(?:parts?|quarters?)\s+(?:of\s+)?"
+    r"(?:the\s+)?(?:cap|budget)"                                     # three parts of the cap
+    r"|\b(?:three\s+quarters|a\s+quarter|half)\s+of\s+the\s+(?:cap|budget)",
+    re.I)
+
+
+def contradictions(entry: dict) -> list[str]:
+    """Turns that pin a quantity a DIFFERENT remark already pinned differently.
+
+    Every other check asks whether an exchange still CARRIES its remark. None
+    asked whether it had invented a claim that defeats another one, and that is
+    what cost g2 four of its nine facts in a single line.
+
+    `g2.r1.l-bytes-emil` is a remark about UTF-8 boundary trimming. Dressing it up,
+    `reknit` had emil say "we take the tail as the last cap/2 bytes" -- a ratio
+    that appears nowhere in any remark, in an exchange with no business stating
+    one, dated nine months after the two remarks that say three-to-one. The world
+    agent found both, saw nothing retracting the later one, wrote "I took the most
+    recent" in its PR, split 50/50, and lost `r1.rule` plus the three facts whose
+    tests assert exact capped strings.
+
+    It behaved correctly. The corpus lied to it.
+
+    Reported rather than gated: this is a regex over prose, and the same measure
+    that made `finished_claims` advisory applies. What it buys is that the line
+    shows up in an audit instead of in a failed rollout three hours later.
+    """
+    seen: dict[str, list[tuple[str, str]]] = {}
+    for req in entry["requirements"]:
+        for clue in req["clues"]:
+            for msg in turns_of(clue):
+                for hit in _QUANTITY.finditer(said(msg)):
+                    word = hit.group(0).lower().strip()
+                    seen.setdefault(req["req_id"], []).append((word, clue["clue_id"]))
+    # ACROSS exchanges, never within one. A single conversation weighing "even
+    # split or weighted then" before settling on "three parts of the cap" is a
+    # decision being taken, which is the whole point; flagging that would reject
+    # the one exchange doing its job properly. Two different exchanges each
+    # asserting a different answer is the defect.
+    out = []
+    for rid, rows in seen.items():
+        by_clue: dict[str, list[str]] = {}
+        for word, cid in rows:
+            by_clue.setdefault(cid, []).append(word)
+        # An exchange's answer is its LAST word on the matter, not every option it
+        # weighed: `l-kept-konrad` raises "even split", then "cap/2", and settles
+        # on "three parts of the cap". Taking the set would exclude it for being
+        # undecided, and the one exchange doing its job properly would be the one
+        # this check ignored.
+        settled = {cid: words[-1] for cid, words in by_clue.items()}
+        answers = set(settled.values())
+        if len(answers) > 1:
+            where = ", ".join(f"{w} ({c})" for c, w in sorted(settled.items()))
+            out.append(f"{rid}: two exchanges give different answers — {where}. "
+                       "One is invented scaffolding, and a reader who takes the "
+                       "most recent will follow the wrong one")
+    return out
+
+
 def unclash(entry: dict, corpus: Corpus) -> list[str]:
     """Nudge a turn off a minute its speaker already occupies elsewhere.
 
@@ -2196,7 +2287,7 @@ def unclash(entry: dict, corpus: Corpus) -> list[str]:
             if not date:
                 continue
             for msg in turns_of(clue):
-                who, when = (msg.get("author") or "").strip(), str(msg.get("minute") or "")
+                who, when = who(msg), str(msg.get("minute") or "")
                 if not who or ":" not in when or when not in busy.get((who, date), ()):
                     continue
                 hh, mm = when.split(":")
@@ -2247,7 +2338,7 @@ def double_booked(entry: dict, corpus: Corpus, window: int = 0) -> list[str]:
             if not date or not here:
                 continue
             for msg in turns_of(clue):
-                who = (msg.get("author") or "").strip()
+                who = who(msg)
                 when = minutes(str(msg.get("minute") or ""))
                 if not who or when is None:
                     continue

@@ -54,6 +54,17 @@ BASE_IMAGE = "sweworld:repo-only-dev"
 # mailboxes. Only the `world` arm boots this; every other arm has to see an empty
 # Mattermost, or the corpus stops being the one variable between them.
 WORLD_IMAGE = "sweworld:0.4.4"
+# The same world, published to Horizon's registry and pinned by digest. Horizon
+# cannot resolve a local tag, so the hosted world arm builds FROM this instead.
+#
+# One entry, shared by every task, and that is the point of ingesting the plant at
+# container start: the image holds the company and nothing task-specific, so a
+# second task needs no second publish. Pinned by digest because the corpus is the
+# independent variable -- a moved tag would change what a task measures without
+# changing the task.
+WORLD_REGISTRY = ("us-central1-docker.pkg.dev/apex-485220/horizon/environments/"
+                  "sweworld-batch-payload-plan"
+                  "@sha256:f34db48366a6603074553d14986d5a58fb55abe8a71231321f838d90c1e6347f")
 
 # Task ids whose emitted directories must not be regenerated.
 #
@@ -138,6 +149,9 @@ def task_toml(name: str, task: dict, variant: str) -> str:
                  "ticket.",
         "blind": "The requirements that decide correctness are not written "
                  "down anywhere the agent is pointed at.",
+        "world-hosted": "The requirements that decide correctness are not "
+                 "stated. The remarks they were inferred from are in the "
+                 "company's chat, wiki and mail, and the agent has to find them.",
         "world": "The requirements that decide correctness are not stated. The "
                  "remarks they were inferred from are in the company's chat, "
                  "wiki and mail, and the agent has to find them.",
@@ -376,6 +390,18 @@ ENTRYPOINT ["/usr/local/bin/task-entrypoint.sh"]
 # verifier runs pytest with `$CURATOR_VENV/bin/python`. Without the copy the suite
 # never runs at all: every fact scores zero and `suite_error` fires, which reads
 # exactly like an agent that failed everything rather than a broken image.
+HOSTED_DOCKERFILE = DOCKERFILE.replace(
+    f"FROM {BASE_IMAGE}",
+    f"FROM {WORLD_REGISTRY}\n\n"
+    "# No `COPY --from=sweworld:repo-only-dev` — Horizon cannot resolve a second\n"
+    "# local tag either, so /opt/curator-dev is already inside the published image.\n"
+    "\n"
+    "# tmux and asciinema are the terminal recording, not the trial: without them\n"
+    "# the run still grades and the only record of what the agent typed is gone.\n"
+    "RUN apt-get update \\\n"
+    " && apt-get install -y --no-install-recommends tmux asciinema \\\n"
+    " && rm -rf /var/lib/apt/lists/*")
+
 WORLD_DOCKERFILE = DOCKERFILE.replace(
     f"FROM {BASE_IMAGE}",
     f"FROM {WORLD_IMAGE}\n\nCOPY --from={BASE_IMAGE} /opt/curator-dev /opt/curator-dev"
@@ -725,7 +751,7 @@ def write_plant(task: dict, slug: str, variant: str, out: Path) -> None:
         shutil.rmtree(out)
     out.mkdir(parents=True)
     src = (REPO / "task_generator" / "out" / slug / "clues" / "plant-data")
-    if variant != "world" or not src.is_dir():
+    if not variant.startswith("world") or not src.is_dir():
         why = ("this arm quotes its remarks in the instruction"
                if variant in ("clues", "spec") else
                "this arm hides nothing in the corpus" if variant == "blind" else
@@ -749,7 +775,8 @@ def emit(task: dict, slug: str, variant: str) -> Path:
     write(out / "task.toml", task_toml(name, task, variant))
     write(out / "instruction.md", text)
     write(out / "environment" / "Dockerfile",
-          WORLD_DOCKERFILE if variant == "world" else DOCKERFILE)
+          HOSTED_DOCKERFILE if variant == "world-hosted"
+          else WORLD_DOCKERFILE if variant == "world" else DOCKERFILE)
     write(out / "environment" / "task-entrypoint.sh", ENTRYPOINT, True)
     write(out / "environment" / "setup.sh", SETUP, True)
     write_plant(task, slug, variant, out / "environment" / "plant")
@@ -813,6 +840,10 @@ def main(argv: list[str] | None = None) -> int:
                          "no plant)")
     ap.add_argument("--no-control", action="store_true",
                     help="skip the -spec twins")
+    ap.add_argument("--hosted", action="store_true",
+                    help="also emit the world arm that builds FROM the published "
+                         "registry image, for Horizon. Same task, same plant; only "
+                         "the base differs, because Horizon cannot resolve a local tag.")
     ap.add_argument("--thaw", action="store_true",
                     help=f"regenerate a task listed in FROZEN ({', '.join(sorted(FROZEN))}) "
                          "anyway. Overwrites its hand-written oracle with the stub.")
@@ -879,6 +910,8 @@ def main(argv: list[str] | None = None) -> int:
         # success.
         if args.world:
             made.append(emit(task, slug, "world"))
+        if args.hosted:
+            made.append(emit(task, slug, "world-hosted"))
         if args.no_control:
             continue
         made.append(emit(task, slug, "spec"))
