@@ -4,7 +4,77 @@ You are an engineer at this company, working on `curator` — the Python library
 
 **Sandbox stdout/stderr output cap**
 
-Sandboxed runs return whatever the program wrote, so a runaway `print` loop ships megabytes of stdout through `CodeExecutionOutput` into the response file. Add a configurable per-stream byte budget for the stdout/stderr that `SandboxCodeExecutionBackend` returns. In `types.py`: `CodeExecutionBackendConfig` gains `max_output_bytes: int = Field(default=65536, ge=0)` — `_factory.py:31` already does `CodeExecutionBackendConfig(**backend_params)`, so the knob is reachable as `CodeExecutor(backend_params={"max_output_bytes": ...})` for every backend name (`local`, `docker`, `e2b`, `modal`, `daytona`, and the `multiprocessing` alias) with no factory edit, and a negative value must be rejected at construction with pydantic's `ValidationError`; `CodeExecutionResult` and `CodeExecutionOutput` each gain a non-Optional `truncated_streams: list[str] = []` naming exactly which of `"stdout"`/`"stderr"` were shortened on that run, sorted alphabetically (a stream that is `None`, empty or within budget contributes nothing), and the field must survive a `CodeExecutionResponse(...).model_dump()` round trip. In `code_execution_backend/sandbox_backend.py`: `__init__` sets `self.max_output_bytes: int`, `execute_request` passes `max_output_bytes=self.max_output_bytes` into the existing `partial(_execute_in_sandbox, ...)`, and the module-level function becomes `_execute_in_sandbox(code, code_input, timeout, backend_name, sandbox_kwargs, *, max_output_bytes: int = 65536)` — keyword-only after a bare `*`, so a positional sixth argument raises `TypeError`. The budget applies at all four `CodeExecutionOutput` construction sites (success, the `exit_code == 124` timeout, non-zero exit, and the `except Exception` path, whose streams are salvaged with `getattr(result, "stdout", None)` and may be `None`), and on the non-zero-exit path `_format_exit_code_error` is handed the capped stderr rather than `result.stderr`; that helper keeps its current signature and its exact `"Program exited with status code {status}\n\nError details:\n{stderr}"` text. `files`/`_collect_sandbox_files` is untouched and never capped; nothing in `_factory.py`, `code_executor.py` or `db.py` changes. Put the capping rule itself in a new module `src/bespokelabs/curator/code_executor/output_cap.py` that exports `DEFAULT_MAX_OUTPUT_BYTES: int = 65536` and stays a pure function of its arguments (no clock, randomness, I/O or environment reads); the shape of the helpers inside it is yours to choose. Python 3.10, pydantic `>=2.9.2`, no new dependency; everything must be testable through the fake `bespokelabs.sandbox` module seam already used by `tests/code_executor/test_sandbox_backend.py` (a `Sandbox` whose `execute_command` returns `SimpleNamespace(exit_code=.., stdout=.., stderr=..)`, plus a patched `_collect_sandbox_files`).
+Sandboxed runs return whatever the program wrote, so a runaway `print` loop ships megabytes of
+stdout through `CodeExecutionOutput` into the response file. Add a configurable per-stream byte
+budget for the stdout/stderr that `SandboxCodeExecutionBackend` returns.
+
+### 1. `types.py`
+
+`CodeExecutionBackendConfig` gains:
+
+```python
+max_output_bytes: int = Field(default=65536, ge=0)
+```
+
+`_factory.py:31` already does `CodeExecutionBackendConfig(**backend_params)`, so the knob is
+reachable as `CodeExecutor(backend_params={"max_output_bytes": ...})` for every backend name
+(`local`, `docker`, `e2b`, `modal`, `daytona`, and the `multiprocessing` alias) with no factory
+edit. A negative value must be rejected at construction with pydantic's `ValidationError`.
+
+`CodeExecutionResult` and `CodeExecutionOutput` each gain:
+
+```python
+truncated_streams: list[str] = []
+```
+
+- Non-Optional, on **both** models.
+- Names exactly which of `"stdout"` / `"stderr"` were shortened on that run, sorted
+  alphabetically. A stream that is `None`, empty or within budget contributes nothing.
+- The field must survive a `CodeExecutionResponse(...).model_dump()` round trip.
+
+### 2. `code_execution_backend/sandbox_backend.py`
+
+- `__init__` sets `self.max_output_bytes: int`.
+- `execute_request` passes `max_output_bytes=self.max_output_bytes` into the existing
+  `partial(_execute_in_sandbox, ...)`.
+- The module-level function becomes:
+
+```python
+_execute_in_sandbox(code, code_input, timeout, backend_name, sandbox_kwargs, *,
+                    max_output_bytes: int = 65536)
+```
+
+  Keyword-only after a bare `*`, so a positional sixth argument raises `TypeError`.
+
+The budget applies at **all four** `CodeExecutionOutput` construction sites:
+
+| site | note |
+|---|---|
+| success | |
+| timeout | `exit_code == 124` |
+| non-zero exit | `_format_exit_code_error` is handed the capped stderr, not `result.stderr` |
+| `except Exception` | streams salvaged with `getattr(result, "stdout", None)`, and may be `None` |
+
+`_format_exit_code_error` keeps its current signature and its exact text:
+
+```
+Program exited with status code {status}\n\nError details:\n{stderr}
+```
+
+### 3. New module — `src/bespokelabs/curator/code_executor/output_cap.py`
+
+Put the capping rule itself here. It exports `DEFAULT_MAX_OUTPUT_BYTES: int = 65536` and stays a
+pure function of its arguments — no clock, randomness, I/O or environment reads. The shape of the
+helpers inside it is yours to choose.
+
+### Constraints
+
+- `files` / `_collect_sandbox_files` is untouched and never capped.
+- Nothing in `_factory.py`, `code_executor.py` or `db.py` changes.
+- Python 3.10, pydantic `>=2.9.2`, no new dependency.
+- Everything must be testable through the fake `bespokelabs.sandbox` module seam already used by
+  `tests/code_executor/test_sandbox_backend.py` — a `Sandbox` whose `execute_command` returns
+  `SimpleNamespace(exit_code=.., stdout=.., stderr=..)`, plus a patched `_collect_sandbox_files`.
 
 ## What the team said
 

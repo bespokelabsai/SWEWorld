@@ -768,6 +768,57 @@ def world_image() -> str:
     return found.group(1) if found else "the populated world image"
 
 
+
+def spread_summary(rows: list, spot: dict) -> list[str]:
+    """How far apart the remarks are, counted off the written corpus.
+
+    Hand-written into g1's and g2's keys and absent from g3's, which is the usual
+    result of a section that only exists as prose. Worse, g2's said "3 page
+    bodies" for three remarks that are page COMMENTS -- the distinction the
+    BookStack note below turns on.
+
+    `spread_problems()` is the gate this reports on: every requirement needs at
+    least 2 sources, 3 weeks and 2 channels, so no single sitting recovers one.
+    """
+    from collections import Counter
+    kinds = Counter((c.get("kind") or "clue") for _, c in rows)
+    per_surface: dict[str, Counter] = {}
+    for _, clue in rows:
+        at = spot.get(clue["clue_id"], {})
+        per_surface.setdefault(at.get("surface", "?"), Counter())[
+            at.get("where", "?")] += 1
+    channels = len(per_surface.get("chat", {}))
+
+    label = {"chat": "chat (Mattermost)", "wiki comment": "wiki (BookStack)",
+             "mail": "mail (Roundcube/IMAP)"}
+    out = ["---", "", "## Where the remarks are spread", "",
+           f"{len(rows)} remarks in total — {kinds['clue']} clues, "
+           f"{kinds['herring']} herrings and {kinds['reversal']} reversals — "
+           f"across {len(per_surface)} surfaces and {channels} chat channels. "
+           "`spread_problems()` is the gate that forces this: every requirement "
+           "needs at least 2 sources, 3 weeks and 2 channels, so no single "
+           "sitting recovers one.", "",
+           "| surface | remarks | where they sit |", "|---|---|---|"]
+    for surface, where in sorted(per_surface.items(),
+                                 key=lambda kv: -sum(kv[1].values())):
+        total = sum(where.values())
+        if surface == "chat":
+            sits = ", ".join(f"`{w}` {n}" for w, n in where.most_common())
+        elif surface == "mail":
+            sits = f"{total} separate thread{'s' if total != 1 else ''}"
+        else:
+            sits = f"{total} page comment{'s' if total != 1 else ''}"
+        out.append(f"| {label.get(surface, surface)} | **{total}** | {sits} |")
+    # Only when a remark really is in a comment. Stated unconditionally it would
+    # be false for a plant whose wiki remarks are page bodies.
+    if per_surface.get("wiki comment"):
+        out += ["", "> **The wiki remarks are page _comments_, not page bodies.** "
+                "BookStack's `/api/search` does not index comments, so a term that "
+                "lives only in one returns nothing. `/api/pages/{id}` returns them "
+                "alongside the body — an agent that searches instead of enumerating "
+                f"never sees these {sum(per_surface['wiki comment'].values())}."]
+    return out + [""]
+
 def answer_key(task, ledger: dict, root: pathlib.Path) -> str:
     """The operator's map: the ticket, the hidden requirements, and every remark."""
     from .model import FACT_FIELDS
@@ -781,21 +832,25 @@ def answer_key(task, ledger: dict, root: pathlib.Path) -> str:
     rows.sort(key=lambda r: (spot.get(r[1]["clue_id"], {}).get("when", "9999"),
                              r[1]["clue_id"]))
 
+    # The count is read off the plant. It used to be the literal 50 -- g1's number
+    # -- printed for every task, so g2's key claimed "all 50 remarks" about a plant
+    # holding 46. The `measured` column went the same way: it asserted g1's 0.00 /
+    # 1.00 / 1.00 for tasks whose arms had never been run. Nothing on disk sources
+    # those numbers, so the column is gone rather than guessed.
+    n = len(rows)
     out = [f"# {task.id} — {entry['title']}", "",
            "**This is the answer key.** Nothing here is shown to an agent in any "
-           "arm. The `blind` and `world` arms get the ticket below and nothing "
-           "else; `spec` also gets the hidden requirements; `clues` gets the "
-           "remarks quoted in its prompt but never their dates' meaning, who is "
-           "wrong, or which fact anything carries.", "",
-           "| arm | what it is handed | measured |", "|---|---|---|",
-           "| `blind` | the ticket | **0.00** |",
-           "| `spec` | the ticket + both hidden requirements | **1.00** |",
-           "| `clues` | the ticket + all 50 remarks, quoted | **1.00** |",
-           f"| `world` | the ticket, against `{world_image()}` where the 50 "
-           "remarks live in chat, the wiki and mail | see `horizon/results.json` "
-           "|", "",
-           "---", "", "## The ticket — stated openly", "",
-           f"**{entry['title']}**", "", entry["description"], "",
+           "arm. The `blind` and `world` arms get the ticket and nothing else; "
+           "`spec` also gets the hidden requirements; `clues` gets the remarks "
+           "quoted in its prompt but never their dates' meaning, who is wrong, or "
+           "which fact anything carries.", "",
+           "| arm | what it is handed |", "|---|---|",
+           "| `blind` | the ticket |",
+           "| `spec` | the ticket + both hidden requirements |",
+           f"| `clues` | the ticket + all {n} remarks, quoted |",
+           f"| `world` | the ticket, against `{world_image()}` where the {n} "
+           "remarks live in chat, the wiki and mail |", "",
+           "Scores are per run and live with the run, not here.", "",
            "---", "", "## The hidden requirements — stated nowhere", "",
            "Each is graded as five independent facts, 0.1 each. `open_feature` "
            "carries weight 0.0: building the feature scores nothing, only "
@@ -810,6 +865,8 @@ def answer_key(task, ledger: dict, root: pathlib.Path) -> str:
             out += ["> *The decision the team made first and later reversed:* "
                     + req["earlier_reversed_version"], ""]
 
+    out += spread_summary(rows, spot)
+
     # The tree, before the remark list. `tree.md` has carried it since the plant
     # was built and nothing pointed at it, so the one document an operator opens
     # showed WHERE each remark is and never what it is FOR. The subconclusions are
@@ -823,6 +880,8 @@ def answer_key(task, ledger: dict, root: pathlib.Path) -> str:
             "is the inference the task is testing; no single remark contains it.",
             ""]
     out += [line for line in render_tree(ledger).splitlines()[2:]]
+    out += ["", "---", "", "## The ticket — stated openly", "",
+            f"**{entry['title']}**", "", entry["description"], ""]
     out += ["", "---", "", "## Where every remark is", "",
             f"{len(rows)} remarks, oldest first. **Quotes are exact** — they are "
             "read back out of the corpus, not out of the plan, so the timestamps "
