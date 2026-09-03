@@ -1,9 +1,9 @@
 {
   "build_id": "val-79873c4f-1788384915786",
   "type": "standard",
-  "status": "running",
-  "score": null,
-  "passed": null,
-  "feedback": null,
-  "updated_at": "2026-09-02T21:35:26.839Z"
+  "status": "passed",
+  "score": 1,
+  "passed": true,
+  "feedback": "9 of 9 hidden requirements satisfied. Open feature: yes. Nothing missed.",
+  "updated_at": "2026-09-02T21:40:20.291Z"
 }

@@ -2,7 +2,7 @@
  "slug": "retry-backoff-policy",
  "task": "g3",
  "runs": 3,
- "source": "remarks",
+ "source": "corpus",
  "facts": {
   "g3.open_feature": {
    "passed": true,

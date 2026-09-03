@@ -1,0 +1,18 @@
+From: emil@world.local
+To: dario@world.local, nikolai@world.local, konrad@world.local
+Subject: Re: smoke run timings on the wiki before we cut 0.1.26
+Date: Wed, 11 Jun 2025 16:20:00 +0000
+Message-ID: <178838444850.3512899.9201938928694385381@world.local>
+In-Reply-To: <178838444848.3512899.5308392036493702378@world.local>
+References: <178838444848.3512899.5308392036493702378@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+sounds right, i'll carry the 25 into the notes draft either way.
+
+separately though, we need to be intentional here about which numbers we publ=
+ish at all =E2=80=94 half of them go stale within a month of being written an=
+d then someone reads them in June and plans around April. not entirely sure t=
+he wiki page is the right home for timings long term. leave it as is for 0.1.=
+26, i'm not proposing anything this week.

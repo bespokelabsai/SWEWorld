@@ -1,0 +1,30 @@
+From: nikolai@world.local
+To: emil@world.local, dario@world.local
+Subject: Re: 429 handling in the online request processor
+Date: Wed, 11 Jun 2025 11:52:00 +0000
+Message-ID: <178838444851.3512899.7560631166241986625@world.local>
+In-Reply-To: <178838444850.3512899.5732154255618213059@world.local>
+References: <178838444850.3512899.5732154255618213059@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yep youre reading it right
+
+one 429 stalls everything for the fixed pause then we go again with no memory=
+ of how many times weve been told no
+that was solid enough when the windows were published and static
+they arent now so we sleep 10s into a window that wants a minute and spend th=
+e retry budget on calls that were never landing
+
+what i want is backoff per request off the 429 itself doubling from a small b=
+ase with jitter and a ceiling so one slow provider doesnt hold the whole run =
+hostage
+the retry count stays where it is
+
+A few user configs in the wild set seconds_to_pause_on_rate_limit so leave it=
+ sitting in config.py even once nothing reads it any more
+id say a dead field costs us less than a config that blows up on load for som=
+eone we never hear from
+
+batch path is a different failure mode gotta think through that one separately

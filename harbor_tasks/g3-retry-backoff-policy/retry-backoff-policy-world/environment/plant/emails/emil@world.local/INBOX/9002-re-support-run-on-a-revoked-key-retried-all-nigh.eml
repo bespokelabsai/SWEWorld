@@ -1,0 +1,20 @@
+From: dario@world.local
+To: gideon@world.local, emil@world.local, nikolai@world.local
+Subject: Re: support: run on a revoked key retried all night
+Date: Wed, 23 Apr 2025 10:04:00 +0000
+Message-ID: <178838444847.3512899.8698593843004448856@world.local>
+In-Reply-To: <178838444847.3512899.1883285718109996624@world.local>
+References: <178838444847.3512899.1883285718109996624@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+i think that's the request processor retry path, so probably emil or nikolai.=
+ but the part i want to understand before we touch anything: is this a classi=
+fication problem where we're mislabelling a revoked key as a rate limit, or i=
+s it a counting problem where the retry loop is fine with 429s in principle a=
+nd just never stops?
+
+because those are actually two different fixes and to be honest i'd rather no=
+t do both at once. gideon can you get the actual response bodies from the tic=
+ket, not just the status codes

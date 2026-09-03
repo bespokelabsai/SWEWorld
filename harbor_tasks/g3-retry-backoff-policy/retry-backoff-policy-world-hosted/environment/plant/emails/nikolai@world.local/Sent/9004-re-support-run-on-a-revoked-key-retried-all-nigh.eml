@@ -1,0 +1,18 @@
+From: nikolai@world.local
+To: emil@world.local, dario@world.local, gideon@world.local
+Subject: Re: support: run on a revoked key retried all night
+Date: Wed, 23 Apr 2025 12:20:00 +0000
+Message-ID: <178838444848.3512899.13750502068046949933@world.local>
+In-Reply-To: <178838444847.3512899.1883285718109996624@world.local>
+References: <178838444847.3512899.1883285718109996624@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+right that matches what i remember of that code
+
+the backoff sleep is also unbounded on the same path fwiw so overnight it was=
+ probably mostly sleeping which is why nobody noticed the machine was busy. s=
+eparate thing, not blocking
+
+gideon send me the log too if the user still has it

@@ -1,9 +1,9 @@
 {
   "build_id": "val-df7de246-1788384919909",
   "type": "standard",
-  "status": "running",
-  "score": null,
-  "passed": null,
-  "feedback": null,
-  "updated_at": "2026-09-02T21:35:20.606Z"
+  "status": "passed",
+  "score": 1,
+  "passed": true,
+  "feedback": "9 of 9 hidden requirements satisfied. Open feature: yes. Nothing missed.",
+  "updated_at": "2026-09-02T21:40:24.400Z"
 }

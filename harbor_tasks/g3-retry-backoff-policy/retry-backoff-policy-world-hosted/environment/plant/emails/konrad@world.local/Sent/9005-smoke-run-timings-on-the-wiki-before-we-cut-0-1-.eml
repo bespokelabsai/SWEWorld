@@ -1,0 +1,16 @@
+From: konrad@world.local
+To: nikolai@world.local, dario@world.local, emil@world.local
+Subject: smoke run timings on the wiki before we cut 0.1.26
+Date: Wed, 11 Jun 2025 09:12:00 +0000
+Message-ID: <178838444848.3512899.5308392036493702378@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Before we cut 0.1.26 I would like the smoke run numbers on the wiki to be cor=
+rect. The page still says a full bulk-llm-inference pass is "about 20 minutes=
+" and that was written in April, presumably before the batch request changes =
+landed. Nikolai, I think you ran it earlier this week? Whatever you actually =
+saw is better than what is on the page now. Also, is anyone still pointing th=
+ese runs at the shared key or has everybody moved to their own. anyway not ur=
+gent but I want it settled this week.

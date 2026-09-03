@@ -1,0 +1,50 @@
+{
+ "task_id": "g3",
+ "suite": "g3_retry_backoff_policy",
+ "variant": "world-hosted",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "A failure is priced against the request's remaining attempt budget by class, and the price is not uniform: TRANSIENT costs 1 attempt, CONTRACT costs 2 attempts, and THROTTLE costs 0 attempts as long as the request still holds one of its rate-limit waivers. Each `APIRequest` carries its own waiver counter, a new field `throttle_waivers_left: int = DEFAULT_THROTTLE_WAIVERS` seeded from a module-level `DEFAULT_THROTTLE_WAIVERS: int = 6` exported by `retry_policy.py`; a THROTTLE failure with `throttle_waivers_left > 0` decrements the waiver instead of the budget, and once the waivers are gone a THROTTLE failure costs 1 like any transient. `decide` takes `throttle_waivers_left` as a third keyword argument alongside `attempts_made`/`attempts_left`, and its verdict reports both the post-failure budget and the post-failure waiver count, as the frozen fields `attempts_left_after` and `throttle_waivers_after`, which the caller writes back onto the request.",
+    "scope": "The waiver allowance is per-request, not per-run and not per-model: a fresh `APIRequest` starts with six waivers regardless of how many 429s other in-flight requests have already absorbed, and nothing on `OnlineStatusTracker` or in `OnlineRequestProcessorConfig` holds or seeds the waiver count. `attempts_left` keeps its existing seeding from `config.max_retries`; only the amount deducted per failure changes.",
+    "exclusions_or_crossover": "A TERMINAL verdict discards the rest of the budget rather than preserving it: the request's `attempts_left` is set to 0 even when several attempts remained, while its waiver count is passed through unchanged. Conversely a zero-cost THROTTLE failure at `attempts_left == 0` is still retried, because `0 - 0 >= 0` holds \u2014 an empty attempt budget does not by itself stop a rate-limited request while a waiver remains.",
+    "failure_behavior": "The cost is charged first and the exhaustion test is `attempts_left - cost < 0`, evaluated after pricing rather than as an `attempts_left <= 0` check before it. When it trips, the verdict is not-retry with outcome `exhausted`, a delay of `0.0` (the schedule is never consulted and the jitter source is never drawn for a verdict that will not be retried), and a post-failure budget clamped to `0` \u2014 never a negative number. A CONTRACT failure at `attempts_left == 1` therefore ends the request rather than getting one more try.",
+    "observability": "`DEFAULT_THROTTLE_WAIVERS == 6` and a freshly constructed `APIRequest` has `throttle_waivers_left == 6`. With a healthy budget: a rate-limit failure at `attempts_left=3, throttle_waivers_left=6` leaves `attempts_left == 3` and `throttle_waivers_left == 5`; a rate-limit failure at `attempts_left=0, throttle_waivers_left=3` is still retried and leaves `throttle_waivers_left == 2`; the same at `throttle_waivers_left=0` is not retried, reason code `throttle:exhausted`, `attempts_left == 0`. `ValueError(\"finish_reason was length\")` at `attempts_left=3` leaves `attempts_left == 1`; at `attempts_left=1` it is not retried with reason code `contract:exhausted` and `attempts_left == 0`, not `-1`. `Exception(\"invalid api key\")` at `attempts_left=7, throttle_waivers_left=6` yields reason code `terminal:abort`, `attempts_left == 0` and `throttle_waivers_left == 6`."
+   },
+   "hidden_requirement_types": [
+    "invented name",
+    "chosen value",
+    "deliberate departure",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "engineering chat thread arguing about a run that burned its whole retry budget on 429s",
+    "wiki page on the retry budget with the cost table",
+    "mail thread settling the waiver count after a provider outage",
+    "code-review comment on the exhaustion check ordering"
+   ],
+   "earlier_reversed_version": "Rate-limit failures were initially made free without any cap (no waiver counter at all, on the theory that a 429 says nothing about the request); that was reversed after a run with a permanently throttled key re-queued the same requests for hours, and the six-waiver allowance was introduced as the compromise."
+  },
+  {
+   "requirement": {
+    "rule": "The rate-limit pause is driven by an absolute horizon stored on the tracker, not by a config constant. `OnlineStatusTracker` gains exactly one new dataclass field, `throttle_cooldown_until: float = 0.0`, placed immediately after `time_of_last_rate_limit_error`. When a THROTTLE verdict is recorded on the tracker the policy reads its injected clock once for `now`, sets `time_of_last_rate_limit_error = now`, and advances the horizon monotonically: `throttle_cooldown_until = max(throttle_cooldown_until, now + delay_seconds)`, so a later short delay never pulls in a horizon an earlier longer delay already set. `remaining_cooldown_seconds(tracker, now)` returns `max(0.0, round(tracker.throttle_cooldown_until - now, 3))`.",
+    "scope": "The horizon is run-level state on the tracker, extended only by THROTTLE verdicts. Recording a TRANSIENT, CONTRACT or TERMINAL verdict increments its counter and touches neither `throttle_cooldown_until` nor `time_of_last_rate_limit_error`, and does not call the injected clock at all \u2014 so the clock-call count over a mixed sequence of failures equals the number of rate-limit failures.",
+    "exclusions_or_crossover": "`config.seconds_to_pause_on_rate_limit` is no longer read by any code path after this change: it stays in `config.py` as a dead knob for backwards compatibility, and the pause is never derived from it or from elapsed time since `time_of_last_rate_limit_error`. A run, model or request that has never been throttled waits zero seconds at the pause point even though the knob is still set to 10.",
+    "observability": "With a clock pinned at `1000.0` and jitter `0.25`: after one rate-limit failure, `throttle_cooldown_until == 1005.0`, `time_of_last_rate_limit_error == 1000.0`, and the clock has been called once; a contract failure recorded next leaves both at `1005.0`/`1000.0` with the clock still called once; a second rate-limit failure whose delay is `1.0` at the same clock leaves `throttle_cooldown_until == 1005.0`, not `1001.0`. `remaining_cooldown_seconds(tracker, 1002.0) == 3.0`, `(tracker, 1004.5) == 0.5`, `(tracker, 1005.0) == 0.0`, `(tracker, 1099.0) == 0.0`. A freshly constructed `OnlineStatusTracker()` has `throttle_cooldown_until == 0.0`, so `remaining_cooldown_seconds(tracker, 12345.0) == 0.0`."
+   },
+   "hidden_requirement_types": [
+    "invented name",
+    "deliberate departure",
+    "policy with no local evidence"
+   ],
+   "fragmentation_sources": [
+    "incident write-up on a throttled run that kept resetting its own cooldown",
+    "chat thread about which tracker field the pause should read",
+    "mail thread deprecating the seconds_to_pause_on_rate_limit knob",
+    "review comment rejecting a per-request cooldown field"
+   ],
+   "earlier_reversed_version": "The horizon was first written as a plain assignment `throttle_cooldown_until = now + delay_seconds`; that was reversed to a monotonic `max()` after a late transient-class failure was observed shortening a 40-second throttle horizon to a fraction of a second and re-opening the flood."
+  }
+ ]
+}
