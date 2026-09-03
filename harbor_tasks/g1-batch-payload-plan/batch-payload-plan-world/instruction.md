@@ -6,7 +6,96 @@ You are an engineer at this company, working on `curator` — the Python library
 
 The employees deferred this work or never finished it, which is why you need to implement it now.
 
-Replace the ad-hoc sizing loop used by `batch_size="auto"` with a pure, testable planner. Add `src/bespokelabs/curator/request_processor/batch_payload_planner.py` exporting: `@dataclass(frozen=True) class BatchLimits` with fields `max_requests_per_batch: int` and `max_bytes_per_batch: int`; `@dataclass(frozen=True) class PlannedBatch` with fields `index: int`, `start_idx: int`, `end_idx: int`, `num_requests: int`, `num_bytes: int`; `def payload_size_bytes(api_specific_request: dict) -> int` returning `len(json.dumps(d).encode())`; `def payload_bytes(sizes: Sequence[int]) -> int` returning the exact size of the `"\n".join(...)` file those payloads produce (`0` for an empty sequence); `def plan_batches(sizes: Sequence[int], limits: BatchLimits) -> list[PlannedBatch]` walking the sizes once in index order and greedily filling contiguous, ordered, exhaustive spans (`plan[0].start_idx == 0`, `plan[i].end_idx == plan[i+1].start_idx`, `plan[-1].end_idx == len(sizes)`), keeping a batch that lands exactly on either limit and returning `[]` for no sizes; `class BatchPayloadTooLargeError(ValueError)` with `__init__(self, *, num_requests: int, size_bytes: int, limit_bytes: int) -> None` storing those three as attributes; and `class SingleRequestTooLargeError(BatchPayloadTooLargeError)` with `__init__(self, *, row_idx: int, size_bytes: int, limit_bytes: int) -> None`, storing `row_idx` and `num_requests == 1`, raised when one request's own size exceeds `max_bytes_per_batch` (instead of today's `batch_size = 0` hang). On `BaseBatchRequestProcessor` (`request_processor/batch/base_batch_request_processor.py`) add a `batch_limits` property built from `self.max_requests_per_batch` / `self.max_bytes_per_batch`, `def measure_request_payload(self, generic_request: GenericRequest) -> int` returning `payload_size_bytes(self.create_api_specific_request_batch(generic_request))` — the provider payload that is actually submitted, not the generic request written to `requests_*.jsonl` — and `def plan_request_batches(self, dataset: "Dataset") -> list[PlannedBatch]` which builds each row through `PromptFormatter.create_generic_request(row, idx, generation_params_per_row)` with `generation_params_per_row = "generation_params" in dataset.column_names`, measures each row exactly once in index order, and returns `plan_batches(sizes, self.batch_limits)`; `create_batch_file(self, api_specific_requests: list[dict]) -> bytes` keeps its signature (return annotation corrected from `str`) and raises `BatchPayloadTooLargeError` where it raises `ValueError` today, so a planned batch's `num_bytes` equals `len(create_batch_file(...))` for that batch. In `base_request_processor.py`, delete the nested `_get_optimal_batch_size` (lines 263‑278) and the `while True` loop (lines 282‑295), drive the `"auto"` branch of `create_request_files(dataset: Optional["Dataset"]) -> list[str]` (unchanged signature) off `self.plan_request_batches(dataset)`, write each planned batch through the existing `acreate_request_file(...)` as `requests_{p.index}.jsonl` with `metadata_{p.index}.json`, and return `[os.path.join(self.working_dir, f"requests_{p.index}.jsonl") for p in plan]` — one path per planned batch, in `index` order (a 0-row dataset therefore returns `[]`). The explicit-integer `batch_size` branch (lines 297‑311) keeps its current behaviour exactly: `ceil(len(dataset) / batch_size)` fixed-width files filtered by `incomplete_files`, no byte-based resplit, no planner call. `max_requests_per_batch` / `max_bytes_per_batch`, `acreate_request_file` (metadata body `{"num_jobs": n}`) and `run_in_event_loop` are reused as-is. Tests build processors via `__new__` with `config`, `prompt_formatter`, `working_dir`, `_cost_processor` assigned by hand and patch the two limit properties with `unittest.mock.PropertyMock`; no network, no clients, no sleeps.
+Replace the ad-hoc sizing loop used by `batch_size="auto"` with a pure, testable planner.
+
+### 1. New module — `src/bespokelabs/curator/request_processor/batch_payload_planner.py`
+
+```python
+@dataclass(frozen=True)
+class BatchLimits:
+    max_requests_per_batch: int
+    max_bytes_per_batch: int
+
+@dataclass(frozen=True)
+class PlannedBatch:
+    index: int
+    start_idx: int
+    end_idx: int
+    num_requests: int
+    num_bytes: int
+
+def payload_size_bytes(api_specific_request: dict) -> int
+def payload_bytes(sizes: Sequence[int]) -> int
+def plan_batches(sizes: Sequence[int], limits: BatchLimits) -> list[PlannedBatch]
+
+class BatchPayloadTooLargeError(ValueError):
+    def __init__(self, *, num_requests: int, size_bytes: int, limit_bytes: int) -> None
+
+class SingleRequestTooLargeError(BatchPayloadTooLargeError):
+    def __init__(self, *, row_idx: int, size_bytes: int, limit_bytes: int) -> None
+```
+
+- `payload_size_bytes` returns `len(json.dumps(d).encode())`.
+- `payload_bytes` returns the exact size of the `"\n".join(...)` file those payloads
+  produce, and `0` for an empty sequence.
+- `plan_batches` walks the sizes once in index order, greedily filling spans that are
+  contiguous, ordered and exhaustive:
+  `plan[0].start_idx == 0`, `plan[i].end_idx == plan[i+1].start_idx`,
+  `plan[-1].end_idx == len(sizes)`.
+  A batch that lands exactly on either limit is kept. No sizes returns `[]`.
+- `BatchPayloadTooLargeError` stores its three keyword arguments as attributes.
+- `SingleRequestTooLargeError` stores `row_idx`, and `num_requests == 1`. Raise it when a
+  single request's own size exceeds `max_bytes_per_batch` — today that produces
+  `batch_size = 0` and hangs.
+
+### 2. `BaseBatchRequestProcessor` — `request_processor/batch/base_batch_request_processor.py`
+
+Add:
+
+- a `batch_limits` property, built from `self.max_requests_per_batch` /
+  `self.max_bytes_per_batch`;
+- `def measure_request_payload(self, generic_request: GenericRequest) -> int`, returning
+  `payload_size_bytes(self.create_api_specific_request_batch(generic_request))`. That is the
+  provider payload actually submitted — **not** the generic request written to
+  `requests_*.jsonl`;
+- `def plan_request_batches(self, dataset: "Dataset") -> list[PlannedBatch]`, which builds
+  each row through
+  `PromptFormatter.create_generic_request(row, idx, generation_params_per_row)` with
+  `generation_params_per_row = "generation_params" in dataset.column_names`, measures each
+  row exactly once in index order, and returns `plan_batches(sizes, self.batch_limits)`.
+
+Change:
+
+- `create_batch_file(self, api_specific_requests: list[dict]) -> bytes` keeps its signature
+  (the return annotation is corrected from `str`) and raises `BatchPayloadTooLargeError`
+  where it raises `ValueError` today — so a planned batch's `num_bytes` equals
+  `len(create_batch_file(...))` for that batch.
+
+### 3. `base_request_processor.py`
+
+Delete the nested `_get_optimal_batch_size` and the `while True` loop.
+
+Drive the `"auto"` branch of `create_request_files(dataset: Optional["Dataset"]) -> list[str]`
+(signature unchanged) off `self.plan_request_batches(dataset)`:
+
+- write each planned batch through the existing `acreate_request_file(...)` as
+  `requests_{p.index}.jsonl` with `metadata_{p.index}.json`;
+- return
+  `[os.path.join(self.working_dir, f"requests_{p.index}.jsonl") for p in plan]` — one path
+  per planned batch, in `index` order. A 0-row dataset therefore returns `[]`.
+
+The explicit-integer `batch_size` branch keeps its current behaviour **exactly**:
+`ceil(len(dataset) / batch_size)` fixed-width files filtered by `incomplete_files`, no
+byte-based resplit, no planner call.
+
+### Constraints
+
+- `max_requests_per_batch` / `max_bytes_per_batch` and `acreate_request_file` (metadata body
+  `{"num_jobs": n}`) are reused as-is.
+- Everything added here must work on a processor built without `__init__` — only `config`,
+  `prompt_formatter`, `working_dir` and `_cost_processor` are set, and the two limit
+  properties are patched.
+- No network, no clients, no sleeps.
 
 ## Getting around
 

@@ -132,6 +132,18 @@ def slugify(text: str) -> str:
 # =============================================================================
 # The files
 # =============================================================================
+# Four, everywhere, and measured rather than assumed. Docker REFUSES a `cpus`
+# above the host's count rather than capping it -- "range of CPUs is from 0.01 to
+# 4.00, as there are only 4 CPUs available" -- so too high a value does not make a
+# run slower, it makes it impossible: the container never starts, the trial
+# reports `RuntimeError` with a bare {"mean": 0.0} and no per-fact keys, and that
+# reads exactly like a score of zero. Asking for 8 failed on this box AND on
+# Horizon's validation runner, which has four too. g1's world-hosted has always
+# said 4 and has always validated.
+HOSTED_CPUS = 4
+LOCAL_CPUS = 4
+
+
 def task_toml(name: str, task: dict, variant: str) -> str:
     """Per-task Harbor config, following AlphaShop's validated shape.
 
@@ -156,6 +168,7 @@ def task_toml(name: str, task: dict, variant: str) -> str:
                  "remarks they were inferred from are in the company's chat, "
                  "wiki and mail, and the agent has to find them.",
     }[variant]
+    cpus = HOSTED_CPUS if variant == "world-hosted" else LOCAL_CPUS
     return f'''schema_version = "1.4"
 
 [task]
@@ -203,7 +216,7 @@ timeout_sec = 2400.0
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
 network_mode = "public"
-cpus = 4
+cpus = {cpus}
 memory_mb = 13000
 
 [environment.healthcheck]
@@ -325,7 +338,7 @@ def instruction(task: dict, variant: str) -> str:
         "it, and it is not the newest word on anything. It was written short. "
         "Where the record settles something the ticket leaves out, or names a "
         "field, a value or a behaviour the ticket does not, that is an addition "
-        "to what you owe — not an earlier draft the ticket has replaced. The "
+        "to what you owe — not an earlier draft the ticket has replaced. "
         # First version ended "the record is not the stale side of it", and two
         # rollouts read that as licence to DELETE something the ticket states --
         # both dropped `truncated_streams` from `CodeExecutionResult` on the
