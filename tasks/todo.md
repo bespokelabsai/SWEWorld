@@ -529,4 +529,25 @@ writes its three as seven separate comments under a page the plant itself create
       rows correct on window and opener, 11 windows carrying extra traffic.
 - [x] All five mail carriers are `mail_new`, so g1's reply-anchoring trap does not
       apply here — every "started by" is the thread's real opener.
-- [ ] Measure.
+- [x] Measure. `located-g2-1` scored **0.778** — 7 of 9 facts, missing
+      `r1.failure_behavior` and `r1.observability`. $7.35, ~22 min.
+      Baseline: world **0.444** (n=1), clues **0.933** (n=5), spec 1.00, blind 0.00.
+
+### What g2 says that g1 could not
+
+g1's whole gap was search: given the locations it recovered every fact. g2's mostly
+was — 0.444 → 0.778 — and the rest is not.
+
+Both missed facts were IN the agent's context. Every remark carrying them appears in
+the transcript, 6–8 turns of each, verbatim: it read the conversations and built
+neither the `MIN_MAX_OUTPUT_BYTES` rejection nor `TRUNCATION_LOG_TEMPLATE`. It worked
+g1's way, wider — dumped all ten Mattermost channels in full, then sliced the named
+windows out of the dump, plus two BookStack pages and six imaplib calls.
+
+`r1.observability` is hard for everyone: 3 of 5 `clues` rollouts miss it too, with the
+remarks quoted in the prompt. `r1.failure_behavior` is the interesting one — `clues`
+gets it 5/5 and `located` dropped it. The difference between the arms there is
+DILUTION: `clues` reads 46 short remarks, `located` reads 46 conversations in full,
+which is thousands of lines of chat with the load-bearing sentence somewhere in it.
+
+**Worth a second g2 rollout** to tell that apart from noise on one fact.
