@@ -1,0 +1,13 @@
+From: dario@world.local
+To: emil@world.local
+Subject: responses file from last night's executor run is 40MB of stdout
+Date: Wed, 11 Jun 2025 10:12:00 +0000
+Message-ID: <178838514943.3526620.9086921781177169457@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+something odd in the executor cap and i cant tell yet if its a bug or a defin=
+ition problem. i set max_output_bytes to 64 on a probe run this morning and w=
+hat came back was 35 bytes of actual program output. not a clean cut at 64 =
+=E2=80=94 thirty five.

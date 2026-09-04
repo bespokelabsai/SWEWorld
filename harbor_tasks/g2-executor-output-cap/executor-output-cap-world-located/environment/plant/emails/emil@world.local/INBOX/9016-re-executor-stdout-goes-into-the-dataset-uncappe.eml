@@ -1,0 +1,13 @@
+From: nikolai@world.local
+To: dermot@world.local, emil@world.local, gideon@world.local
+Subject: Re: executor stdout goes into the dataset uncapped
+Date: Mon, 21 Apr 2025 13:34:00 +0000
+Message-ID: <178838514950.3526620.16264317822577478803@world.local>
+In-Reply-To: <178838514949.3526620.17061976619339526270@world.local>
+References: <178838514949.3526620.17061976619339526270@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+whats the story meant to be for those do we just cut at the cap and drop what=
+evers left or is there somethign smarter already

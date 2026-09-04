@@ -1,0 +1,14 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local
+Subject: Re: capped executor log from the overnight 40k run
+Date: Wed, 09 Apr 2025 11:30:00 +0000
+Message-ID: <178838514940.3526620.4031850781210271163@world.local>
+In-Reply-To: <178838514938.3526620.6548416668007643961@world.local>
+References: <178838514938.3526620.6548416668007643961@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+the marker line itself, plus the newline either side of it? that text lands i=
+n the cell so it eats into the difference. not entirely sure thats the whole =
+29 but it would be most of it

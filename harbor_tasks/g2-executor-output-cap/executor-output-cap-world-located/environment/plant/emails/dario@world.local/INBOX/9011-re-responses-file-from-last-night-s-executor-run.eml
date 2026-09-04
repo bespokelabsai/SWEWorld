@@ -1,0 +1,14 @@
+From: emil@world.local
+To: dario@world.local
+Subject: Re: responses file from last night's executor run is 40MB of stdout
+Date: Wed, 11 Jun 2025 10:26:00 +0000
+Message-ID: <178838514945.3526620.11800870199745866440@world.local>
+In-Reply-To: <178838514943.3526620.9086921781177169457@world.local>
+References: <178838514943.3526620.9086921781177169457@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+as written its the whole blob. marker is 29 bytes once the count is filled in=
+, hence your 35. and it isnt fixed either =E2=80=94 a six digit byte count pu=
+shes it to 30 and the kept output quietly shrinks by one

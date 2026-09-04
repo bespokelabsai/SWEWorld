@@ -1,0 +1,14 @@
+From: nikolai@world.local
+To: dario@world.local
+Subject: Re: output cap on code executor stdout/stderr =?utf-8?b?4oCU?=
+ fixture review before this lands
+Date: Tue, 24 Jun 2025 10:42:00 +0000
+Message-ID: <178838514966.3526620.13856977290483906256@world.local>
+In-Reply-To: <178838514966.3526620.12623167952083133131@world.local>
+References: <178838514966.3526620.12623167952083133131@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+failure case exit_code 1 nothing on stdout and stderr is `"E"*80` so its one =
+long run with no newline anywhere in it thats the shape i want to test against

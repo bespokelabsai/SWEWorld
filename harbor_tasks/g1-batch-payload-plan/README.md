@@ -1,6 +1,6 @@
 # g1 — Batch payload planner for `batch_size="auto"`
 
-**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket below and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
+**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket below and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries; `world-located` gets the table below stripped back to its first four columns — where each remark sits and nothing about what it says, which of them is a herring, or which fact it carries.
 
 | arm | what it is handed | measured |
 |---|---|---|
@@ -8,6 +8,7 @@
 | `spec` | the ticket + both hidden requirements | **1.00** |
 | `clues` | the ticket + all 50 remarks, quoted | **1.00** |
 | `world` | the ticket, against `sweworld:0.4.4` where the 50 remarks live in chat, the wiki and mail | see `horizon/results.json` |
+| `world-located` | the same world and the same ticket, plus the channel, day, minute and length of every one of the 50 — the search removed, the inference left | see `jobs/located-g1-*` |
 
 ---
 

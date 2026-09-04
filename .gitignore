@@ -44,3 +44,6 @@ task_generator/out/**/curator-src.tar.gz
 # the manifest is the one place outside data_gen/ that still holds real names.
 #   python3 scripts/ingest_history.py --export
 data/history/
+
+# Corpora `build_located_arm.py --corpus image:<tag>` pulls out of a world image.
+harbor_tasks/.located-corpora/

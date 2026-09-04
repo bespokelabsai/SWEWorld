@@ -1,0 +1,16 @@
+From: dario@world.local
+To: nikolai@world.local
+Subject: Re: output cap on code executor stdout/stderr =?utf-8?b?4oCU?=
+ fixture review before this lands
+Date: Tue, 24 Jun 2025 10:49:00 +0000
+Message-ID: <178838514968.3526620.3346594932564142660@world.local>
+In-Reply-To: <178838514966.3526620.12623167952083133131@world.local>
+References: <178838514966.3526620.12623167952083133131@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+right so 80 against 64 means it doesnt fit. does the stderr come back shorten=
+ed then, and what happens to the line we print around it =E2=80=94 asking bec=
+ause tuesdays run chopped the message text too and thats how we ended up with=
+ half a sentance sitting in the log

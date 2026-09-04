@@ -1,0 +1,15 @@
+From: nikolai@world.local
+To: dario@world.local
+Subject: Re: output cap on code executor stdout/stderr =?utf-8?b?4oCU?=
+ fixture review before this lands
+Date: Tue, 24 Jun 2025 10:46:00 +0000
+Message-ID: <178838514968.3526620.14984189653403208370@world.local>
+In-Reply-To: <178838514966.3526620.12623167952083133131@world.local>
+References: <178838514966.3526620.12623167952083133131@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+same 64 no reason to move it i mean the whole point is the two of them at one=
+ number otherwise your comparing two things at once. nobodys written it yet i=
+ts not on a ticket, i probly wont get to it today

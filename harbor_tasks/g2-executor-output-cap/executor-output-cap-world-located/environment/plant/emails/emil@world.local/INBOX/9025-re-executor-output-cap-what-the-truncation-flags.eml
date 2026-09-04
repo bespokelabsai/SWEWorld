@@ -1,0 +1,16 @@
+From: gideon@world.local
+To: emil@world.local, dario@world.local
+Subject: Re: executor output cap =?utf-8?b?4oCU?= what the truncation flags
+ read on each exit path
+Date: Fri, 18 Apr 2025 15:20:00 +0000
+Message-ID: <178838514961.3526620.5275919834027806426@world.local>
+In-Reply-To: <178838514959.3526620.2761388429599466519@world.local>
+References: <178838514959.3526620.2761388429599466519@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ya but um the clipping did happen though? like the bytes are gone from what w=
+e hand back either way. thats the part i cant get past, from the callers side=
+ the string is missing content and they dont know or care which of our code p=
+aths held the knife

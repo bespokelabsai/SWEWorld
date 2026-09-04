@@ -1,0 +1,15 @@
+From: nikolai@world.local
+To: dario@world.local
+Subject: Re: output cap on code executor stdout/stderr =?utf-8?b?4oCU?=
+ fixture review before this lands
+Date: Tue, 24 Jun 2025 10:52:00 +0000
+Message-ID: <178838514969.3526620.8379660099012959082@world.local>
+In-Reply-To: <178838514966.3526620.12623167952083133131@world.local>
+References: <178838514966.3526620.12623167952083133131@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yep at that budget the stderr lands in the shortened list and the sentance wr=
+apped round it stays whole only the payload gets cut nothing framing it gets =
+touched thats solid enough

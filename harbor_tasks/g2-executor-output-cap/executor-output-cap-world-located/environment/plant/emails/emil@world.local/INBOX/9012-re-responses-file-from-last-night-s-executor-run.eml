@@ -1,0 +1,17 @@
+From: dario@world.local
+To: emil@world.local
+Subject: Re: responses file from last night's executor run is 40MB of stdout
+Date: Wed, 11 Jun 2025 10:31:00 +0000
+Message-ID: <178838514946.3526620.7252276745000476641@world.local>
+In-Reply-To: <178838514943.3526620.9086921781177169457@world.local>
+References: <178838514943.3526620.9086921781177169457@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+right, thats the bit that bothers me. same config, two runs, different amount=
+s of output depending on how big the thing we threw away was. in any case the=
+ cap should mean the kept bytes =E2=80=94 you ask for 64, you get 64 bytes of=
+ program output, and the marker sits on top of that as framing. its our annot=
+ation, not the users content, i dont think it has any business being billed t=
+o them
