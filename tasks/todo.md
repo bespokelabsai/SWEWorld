@@ -582,3 +582,32 @@ task's ceiling-limiter, not a retrieval problem.
 
 - [ ] If g2 is worth separating, it needs 3-4 more rollouts per arm; the per-fact
       noise is ~1 fact per run, which is 0.111 on a 9-fact task.
+
+### located-g2-3 (not launched from this session)
+
+**0.889** — 8 of 9, missing only `r1.failure_behavior`, and for the same real reason
+`world-g2-2` missed it: the request-time rejection is there, the up-front
+`CodeExecutionBackendConfig` validator is not. The corpus settles that one too
+(emil: "the config should have refused it when i built the executor"), so it is a
+miss, not an artifact.
+
+| arm | g2 rollouts | mean |
+|---|---|---|
+| `world` | 0.444, 0.778 | 0.611 (n=2) |
+| `world-located` | 0.778, 0.778, 0.889 | **0.815** (n=3) |
+| `clues` | 5 runs | 0.933 |
+| `spec` | 1 run | 1.00 |
+
+Located is trending above world and below clues, which is the shape g1 predicted —
+but the ranges still touch (world's 0.778 sits inside located's spread), so this is
+a trend, not a separation.
+
+**Correction to the note above: `r1.observability` HAS now been recovered in a world
+arm** — located-g2-3 got it. It is 1 for 5 rather than 0 for 4, so it is very hard
+rather than unreachable.
+
+`r1.failure_behavior` is a compound fact and rollouts drop different halves of it:
+never storing `.max_bytes` (world-g2-1), a constructor arity the corpus never stated
+(located-g2-1, since fixed), and no config-construction validator (world-g2-2,
+located-g2-3). Worth watching — a fact with four independent parts scores like one
+fact and fails like four.
