@@ -306,6 +306,14 @@ def cmd_reverse(args) -> int:
     return audit_plant(ledger)
 
 
+def cmd_consistency(args) -> int:
+    """Is any fact stated wrongly by a remark nothing later overturns?"""
+    from tg import clues
+    ledger = clues.consistency(args.slug, run=args.run, budget=args.budget)
+    print(f"\nnext: cli.py prove {args.slug}")
+    return audit_plant(ledger)
+
+
 def cmd_reknit(args) -> int:
     """Make each invented conversation say the remark as the plant now words it."""
     from tg import clues
@@ -598,6 +606,10 @@ def main(argv: list[str] | None = None) -> int:
     rv.add_argument("--run", default=None, help="a phase-4 run dir; default `latest`")
     rv.add_argument("--redo", action="store_true",
                     help="drop the reversals already planted and write them again")
+
+    cn = add("consistency", cmd_consistency)
+    cn.add_argument("--budget", type=float, default=1.0)
+    cn.add_argument("--run", default=None, help="a phase-4 run dir; default `latest`")
 
     rk = add("reknit", cmd_reknit)
     rk.add_argument("--budget", type=float, default=3.0)

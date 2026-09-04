@@ -47,7 +47,7 @@ Each is graded as five independent facts, 0.1 each. `open_feature` carries weigh
 
 ## Where the remarks are spread
 
-46 remarks in total — 38 clues, 4 herrings and 4 reversals — across 3 surfaces and 9 chat channels. `spread_problems()` is the gate that forces this: every requirement needs at least 2 sources, 3 weeks and 2 channels, so no single sitting recovers one.
+46 remarks in total — 38 clues, 4 herrings and 4 reversals — across 3 surfaces and 9 chat channels. `clues.spread()` reports on this — at least 2 sources, 3 weeks and 2 rooms per requirement, so no single sitting recovers one. It is advisory, not enforced: read the numbers rather than trusting that something refused a plant without them.
 
 | surface | remarks | where they sit |
 |---|---|---|
@@ -407,8 +407,8 @@ As it appears, spread across the exchange:
 13:43  gideon    ok but blew up where exactly though, so basically was that one explosion for the whole job or per unit of work
 13:45  emil      once per row. and it burned every retry - each attempt walked into the same eight and died the same way, so the whole retry budget was spent before it got through anything. thats the part that bugs me, nothing was ever going to be different on attempt five than on attempt one
 13:47  dario     mhm. so is that actually a sandbox failure or is it just where the failure happened to surface
-13:49  emil      the second one, i believe. the config should have refused it when i built the executor - a cap that small isnt going to become legal later on, so theres no good reason to hand back an executor thats carrying it. whether that ends up in the check dario's wiring or just sits in __init__, whoever gets to it first
-13:51  gideon    ya ok. the 8 is mine btw, i pasted the KB number out of the old yaml and dropped the multiplier, i dunno how that got past me twice
+13:49  emil      the second one, i believe. the config should refuse it at construction — a cap that small isnt going to become legal later on, so theres no good reason to hand back an executor thats carrying it. it dies when you build the thing, not on row one inside the sandbox
+13:51  gideon    ya, at construction. the 8 is mine btw, i pasted the KB number out of the old yaml and dropped the multiplier, i dunno how that got past me twice
 ```
 
 #### `g2.r1.l-bytes-dario`
@@ -1090,10 +1090,10 @@ As it appears, spread across the exchange:
 ```
 10:41  dario     quick one, im pinning the cap message in the executor test and i dont want to guess at the wording. what i have written down off the ticket is `sandbox output capped: stdout, stderr exceeded the 65536-byte budget` — is that verbatim
 10:46  emil      let me think through that. the 65536 is right, thats the budget we hand the sandbox and it goes in as a raw byte count, not a KB thing. the order of the two though, im not entirely sure thats what comes back. i'd rather run it than tell you from memory
-10:49  dario     is it ordered by whichever one overflowed? like stdout blows past it so stdout leads. and do we name both streams even when only one of them is fat
-10:57  emil      ok ran it, one line — `sandbox output capped: stderr, stdout exceeded the 65536-byte budget`. so no, not the version sitting in your ticket
-10:59  dario     huh. stdout was the fat one in that run though, thats the whole reason it tripped. so why is stderr out in front
-11:05  emil      yup, stdout was the fat one, stderr was a few hundred bytes at most. but the order has nothing to do with who blew it — we sort the streams before we format them, so stderr lands first because stde sorts ahead of stdo, and both get named regardless of which one ran past the budget. pin the sorted form and it'll hold. honestly the wording reads like its accusing whichever stream overflowed and it just isnt, its alphabetical and nothing more
+10:49  dario     is it ordered by whichever one overflowed? like stdout blows past it so stdout leads
+10:57  emil      ok ran it — both streams went over on that row and i got one line, `sandbox output capped: stderr, stdout exceeded the 65536-byte budget`. so no, not the version sitting in your ticket
+10:59  dario     huh. stdout was the fatter of the two by miles, thats the whole reason i was looking at that row. so why is stderr out in front
+11:05  emil      because the order has nothing to do with who blew it — we sort the names before we format them, so stderr lands first because stde sorts ahead of stdo. that run had both of them past the budget, which is why both are in there; a row where only stdout went over comes back naming stdout on its own. pin the sorted form and it'll hold
 ```
 
 #### `g2.r1.l-log-konrad`
@@ -1110,12 +1110,12 @@ What the remark has to leave a reader with:
 As it appears, spread across the exchange:
 
 ```
-10:41  dario     row 118 from last nights batch came back with stdout that just stops mid sentence. and i went looking for the truncation warning for it and theres nothing in the log for that row at all, not even at debug
-10:43  konrad    what did the sandbox do on that row? if cleanup raised then we are not on the normal cap path at all
-10:44  dario     it raised yeah, container rm timed out. so the cut happened somewhere else you're saying
-10:47  konrad    right. The row whose sandbox threw on cleanup still had its stdout capped, we just never went through the code that normally does it. cleanup raising drops us into the except branch and there is a second cap sitting in there, so we hand back something instead of nothing
-10:49  dario     ok but the normal one warns. it prints the trimmed line every time, ive seen it on plenty of rows. so why nothing here
-10:52  konrad    because that salvage cap in the except handler logs nothing. no warnign, no counter, nothing, it just quietly returns the short buffer. so from outside it reads like the process printed that much and stopped anyway thats the fix, we log where we cut. the byte offset, not only "output truncated" — otherwise you still cannot tell if 40 bytes went missing or 40k. same line the happy path already emits, presumably just the same call moved into the handler. which ticket it rides on i dont know, the cleanup timeout is its own seperate mess
+10:41  dario     row 118 from last nights batch came back with stdout that just stops mid sentence, so it got trimmed. and i went looking for the truncation warning for that row and theres nothing in the log at all, not even at debug
+10:43  konrad    did the sandbox come back clean on that row, or did it throw on the way out?
+10:44  dario     it threw. container rm timed out on teardown. the trim itself looks fine though, the bytes are gone the way theyre supposed to be
+10:47  konrad    thats it then. the trim happens on the way through, but the line that announces it sits right down at the return, and teardown falling over means we never reach a return. so the row is capped and silent
+10:49  dario     so any row that dies on the way out loses its line, even though the cut went fine
+10:52  konrad    every time. thats what im moving — the line goes next to the trim itself, up where we actually cut, so its already out before teardown gets a chance to fall over. the second cap sitting down in the handler is a different animal, thats for rows that never got as far as being cut, and it stays quiet. which ticket it rides on i dont know, the cleanup timeout is its own seperate mess
 10:54  dario     yeah those shouldnt get tangled together. im pulling 118 out of the archive now, i want to diff it against the raw capture and see how much we actually dropped on the floor
 ```
 

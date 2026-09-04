@@ -1,0 +1,939 @@
+{
+ "slug": "attachment-payload",
+ "task": "g8",
+ "digest": "b7371792c4119667",
+ "verdicts": {
+  "g8.r1.exclusions_or_crossover#1": {
+   "key": "g8.r1.exclusions_or_crossover",
+   "verdict": "not_required",
+   "why": "This is a sanity check that the fixture block came through as a url-sourced block, which is the pre-existing Anthropic block shape the feature does not change; no remark names a `source` attribute holding the string \"url\", they only speak of \"url blocks\"/\"url-sourced blocks\".",
+   "clues": [
+    "g8.r1.s3-konrad",
+    "g8.r1.s3-emil"
+   ],
+   "source": "assert read_field(remote, \"source\") == \"url\""
+  },
+  "g8.r1.exclusions_or_crossover#2": {
+   "key": "g8.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "konrad names the attribute and its value for exactly this case \u2014 \"for a url block we never hold the bytes at all, so size_mb just stays empty there, not some made up zero\" \u2014 and dario confirms size_mb hangs off the block.",
+   "clues": [
+    "g8.r1.s3-konrad",
+    "g8.r1.s1-dario"
+   ],
+   "source": "assert read_field(remote, \"size_mb\") is None"
+  },
+  "g8.r1.exclusions_or_crossover#3": {
+   "key": "g8.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "Nobody says file_upload_limit_check is skipped for url blocks; the reader must join \"we never hold the bytes\" plus \"we called file_upload_limit_check on each base64\" and supply for themselves that no bytes means no hook call rather than offering the url string.",
+   "clues": [
+    "g8.r1.s3-konrad",
+    "g8.r1.s4-gideon",
+    "g8.r1.s3-nikolai"
+   ],
+   "source": "assert stub.calls == []          # nothing was read, so nothing was offered"
+  },
+  "g8.r1.exclusions_or_crossover#4": {
+   "key": "g8.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "emil rules url-sourced blocks out of the per-kind ceilings outright and nils rules them out of the whole-prompt total, so an all-url prompt raising nothing and returning all its blocks is the decision as made aloud (the number 7 itself is fixture).",
+   "clues": [
+    "g8.r1.s3-emil",
+    "g8.r1.s3-nils"
+   ],
+   "source": "assert len(content) == 7"
+  },
+  "g8.r1.exclusions_or_crossover#5": {
+   "key": "g8.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "Same gap as #3 \u2014 the corpus decides url blocks are not weighed or compared, but never says the provider hook goes uncalled for them, so the reader has to conclude that on their own.",
+   "clues": [
+    "g8.r1.s3-konrad",
+    "g8.r1.s4-gideon",
+    "g8.r1.s3-nikolai"
+   ],
+   "source": "assert urls.calls == []"
+  },
+  "g8.r1.exclusions_or_crossover#6": {
+   "key": "g8.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "A mixed url/pdf prompt passing intact follows from emil's exclusion of url blocks from the per-kind ceilings and nils's exclusion of them from the 45 MB prompt sum, both of which are said outright.",
+   "clues": [
+    "g8.r1.s3-emil",
+    "g8.r1.s3-nils"
+   ],
+   "source": "assert len(content) == 7"
+  },
+  "g8.r1.exclusions_or_crossover#7": {
+   "key": "g8.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "gideon states the hook is called with each base64 payload, which covers the PDF half, but the exact-equality demands the url block contributed no call \u2014 and no remark says the hook is skipped for url blocks, only that they aren't measured.",
+   "clues": [
+    "g8.r1.s4-gideon",
+    "g8.r1.s3-konrad",
+    "g8.r1.s3-emil"
+   ],
+   "source": "assert mixed.calls == [PDF_B64]"
+  },
+  "g8.r1.failure_behavior#1": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "absent",
+   "why": "No remark names an `AttachmentError` base class or says TooManyAttachments shares a hierarchy with AttachmentTooLarge; only the two concrete names ever appear.",
+   "clues": [
+    "g8.r1.s4-dario",
+    "g8.r1.rev1"
+   ],
+   "source": "assert issubclass(TooManyAttachments, attachment_symbol(\"AttachmentError\"))"
+  },
+  "g8.r1.failure_behavior#2": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "absent",
+   "why": "Nothing in the corpus says any attachment exception derives from ValueError or from any builtin.",
+   "clues": [
+    "g8.r1.s4-dario"
+   ],
+   "source": "assert issubclass(TooManyAttachments, ValueError)"
+  },
+  "g8.r1.failure_behavior#3": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Konrad attaches the number to the exact constant name: \"_ATTACHMENT_COUNT_LIMIT stays at 12\".",
+   "clues": [
+    "g8.r1.s4-konrad"
+   ],
+   "source": "assert limit == 12"
+  },
+  "g8.r1.failure_behavior#4": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Konrad decides \"twelve is fine, thirteen is not\" and dario names TooManyAttachments as the exception for the over-count case, with nikolai showing it firing on a 31-image prompt.",
+   "clues": [
+    "g8.r1.s4-konrad",
+    "g8.r1.s4-dario",
+    "g8.r1.s4-nikolai"
+   ],
+   "source": "with pytest.raises(TooManyAttachments) as caught:"
+  },
+  "g8.r1.failure_behavior#5": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Dario says the exception \"should carry the count and the ceiling it broke\", and konrad fixes the ceiling at 12 with thirteen as the failing case, giving both fields and both values.",
+   "clues": [
+    "g8.r1.s4-dario",
+    "g8.r1.s4-konrad"
+   ],
+   "source": "assert (read_field(exc, \"count\"), read_field(exc, \"limit\")) == (13, 12)"
+  },
+  "g8.r1.failure_behavior#6": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Nikolai quotes the rendered message verbatim, `Prompt has 31 attachments, over the limit of 12.`, fixing the template and punctuation.",
+   "clues": [
+    "g8.r1.s4-nikolai"
+   ],
+   "source": "assert str(exc) == \"Prompt has 13 attachments, over the limit of 12.\""
+  },
+  "g8.r1.failure_behavior#7": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Dario says it \"has to fire before we serialize a single one of them\" and gideon says the guard must run ahead of the per-attachment base64 and file_upload_limit_check calls.",
+   "clues": [
+    "g8.r1.s4-dario",
+    "g8.r1.s4-gideon"
+   ],
+   "source": "# counted first: not one of the thirteen was serialized or offered\n    assert stub.calls == []"
+  },
+  "g8.r1.failure_behavior#8": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "not_required",
+   "why": "This measures the thirteen-attachment prompt the suite itself constructed, not any decision the corpus owed.",
+   "clues": [],
+   "source": "assert len(content) == 13"
+  },
+  "g8.r1.failure_behavior#9": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Konrad rules that \"twelve is fine\", and gideon describes the normal path as base64'ing and hook-calling every attachment, so twelve accepted attachments means twelve serialize calls.",
+   "clues": [
+    "g8.r1.s4-konrad",
+    "g8.r1.s4-gideon"
+   ],
+   "source": "assert len(twelve.calls) == 12"
+  },
+  "g8.r1.failure_behavior#10": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "not_required",
+   "why": "This counts the blocks in the suite's own forty-texts-plus-one-image fixture rather than any behaviour of the code.",
+   "clues": [
+    "g8.r1.s4-konrad"
+   ],
+   "source": "assert len(content) == 41"
+  },
+  "g8.r1.failure_behavior#11": {
+   "key": "g8.r1.failure_behavior",
+   "verdict": "implied",
+   "why": "Konrad says texts don't count toward the limit and that forty texts with one image is normal, but nobody says text blocks also bypass the attachment serialization path \u2014 the reader has to carry \"doesn't count\" over into \"isn't serialized as an attachment\".",
+   "clues": [
+    "g8.r1.s4-konrad"
+   ],
+   "source": "assert len(texts.calls) == 1"
+  },
+  "g8.r1.observability#1": {
+   "key": "g8.r1.observability",
+   "verdict": "stated",
+   "why": "dermot commits to one flat number per block \"whether it came in as a file or a document\" and emil commits to that number being 1400, so a file block priced flat at 1400 is a decision made out loud.",
+   "clues": [
+    "g8.r1.s5-dermot",
+    "g8.r1.s5-emil"
+   ],
+   "source": "# a document is priced flat, at neither the image rate nor its payload length\n    assert calculate_input_tokens([openai_file], encoder) == 1400"
+  },
+  "g8.r1.observability#2": {
+   "key": "g8.r1.observability",
+   "verdict": "stated",
+   "why": "emil says outright to charge 1400 flat for each pdf/document block, and gideon's complaint that documents counted zero establishes it is the token estimate being fixed.",
+   "clues": [
+    "g8.r1.s5-emil",
+    "g8.r1.s5-dermot",
+    "g8.r1.s5-gideon"
+   ],
+   "source": "assert calculate_input_tokens([anthropic_document], encoder) == 1400"
+  },
+  "g8.r1.observability#3": {
+   "key": "g8.r1.observability",
+   "verdict": "implied",
+   "why": "gideon's \"85 per image\" is reported from an anthropic run and dermot only refers to \"the image constant\" without a value, so the reader must supply that an OpenAI image_url block is also 85.",
+   "clues": [
+    "g8.r1.s5-gideon",
+    "g8.r1.s5-dermot"
+   ],
+   "source": "assert calculate_input_tokens([openai_image], encoder) == 85"
+  },
+  "g8.r1.observability#4": {
+   "key": "g8.r1.observability",
+   "verdict": "stated",
+   "why": "gideon reports his anthropic run counting 85 per image as the correct half of the estimate, naming both the block kind and the number.",
+   "clues": [
+    "g8.r1.s5-gideon"
+   ],
+   "source": "assert calculate_input_tokens([anthropic_image], encoder) == 85"
+  },
+  "g8.r1.observability#5": {
+   "key": "g8.r1.observability",
+   "verdict": "implied",
+   "why": "the per-kind numbers are said but nobody anywhere says an unrecognised block type (\"thinking\") contributes zero rather than raising or being charged its text length, so the reader supplies the 0 term themselves.",
+   "clues": [
+    "g8.r1.s5-gideon",
+    "g8.r1.s5-emil",
+    "g8.r1.s5-dermot"
+   ],
+   "source": "assert total == 5 + 85 + 85 + 1400 + 1400 + 0 == 2975"
+  },
+  "g8.r1.observability#6": {
+   "key": "g8.r1.observability",
+   "verdict": "implied",
+   "why": "nobody discusses the return type of the estimate; the reader gets int only by noticing every quoted count (85, 1400) is a whole number.",
+   "clues": [
+    "g8.r1.s5-emil",
+    "g8.r1.s5-gideon"
+   ],
+   "source": "assert isinstance(total, int)"
+  },
+  "g8.r1.observability#7": {
+   "key": "g8.r1.observability",
+   "verdict": "stated",
+   "why": "dermot names _OPENAI_TOKENS_PER_DOCUMENT as the module constant holding the flat per-document number and emil states that number is 1400, and there is no other name the value could land in.",
+   "clues": [
+    "g8.r1.s5-dermot",
+    "g8.r1.s5-emil"
+   ],
+   "source": "assert per_document == 1400"
+  },
+  "g8.r1.observability#8": {
+   "key": "g8.r1.observability",
+   "verdict": "not_required",
+   "why": "this only checks that the suite's own PDF_B64 fixture decodes to its PDF_BYTES fixture, which the corpus owes nothing.",
+   "clues": [],
+   "source": "assert base64.b64decode(PDF_B64) == PDF_BYTES"
+  },
+  "g8.r1.rule#1": {
+   "key": "g8.r1.rule",
+   "verdict": "absent",
+   "why": "No remark names `AttachmentError` or says AttachmentTooLarge inherits from any base; the existence of a sibling exception (TooManyAttachments) and \"reusing the same exception\" never establish a shared parent class the test can look up.",
+   "clues": [],
+   "source": "assert issubclass(AttachmentTooLarge, attachment_symbol(\"AttachmentError\"))"
+  },
+  "g8.r1.rule#2": {
+   "key": "g8.r1.rule",
+   "verdict": "implied",
+   "why": "The reader must supply the decision that `size_mb` is a float rather than an int, a Decimal or a formatted string \u2014 nobody says it, only that quoted messages show decimal figures like 21.3 and 20.0.",
+   "clues": [],
+   "source": "assert isinstance(measured, float)"
+  },
+  "g8.r1.rule#3": {
+   "key": "g8.r1.rule",
+   "verdict": "implied",
+   "why": "Dario says to weigh the base64 string in hand rather than decoding, and nils says base64 is what the wire carries, but nobody gives the conversion (base64 character count divided by 1024*1024) that makes the measurement equal this exact value rather than a decoded-byte or 1000-based megabyte.",
+   "clues": [],
+   "source": "assert measured == get_base64_size(PDF_B64) == 8.58306884765625e-06"
+  },
+  "g8.r1.rule#4": {
+   "key": "g8.r1.rule",
+   "verdict": "stated",
+   "why": "Both revision remarks say plainly that the image ceiling is 20.0 MB and that AttachmentTooLarge is what fires, so a 24 MB image raising it was decided out loud.",
+   "clues": [],
+   "source": "with pytest.raises(AttachmentTooLarge) as caught:"
+  },
+  "g8.r1.rule#5": {
+   "key": "g8.r1.rule",
+   "verdict": "implied",
+   "why": "Only TooManyAttachments is said to carry its count and ceiling, and only the overturned prompt-total remark hints at a settable kind; nobody says AttachmentTooLarge stores .kind, .size_mb and .limit_mb as attributes in that order.",
+   "clues": [],
+   "source": "assert triple(exc) == (\"image\", 24.0, 20.0)"
+  },
+  "g8.r1.rule#6": {
+   "key": "g8.r1.rule",
+   "verdict": "stated",
+   "why": "Emil quotes the message verbatim from a run \u2014 \"image attachment is 21.3 MB, over the 20.0 MB limit.\" \u2014 giving the exact template, punctuation and slot order.",
+   "clues": [],
+   "source": "assert str(exc) == \"image attachment is 24.0 MB, over the 20.0 MB limit.\""
+  },
+  "g8.r1.rule#7": {
+   "key": "g8.r1.rule",
+   "verdict": "stated",
+   "why": "Dermot and both revision remarks say AttachmentTooLarge fires inside _canonical_attachment_block ahead of file_upload_limit_check, so the hook seeing nothing for an oversized image was decided explicitly.",
+   "clues": [],
+   "source": "# ...and it is refused by the BASE, before the provider hook is consulted: the\n    # hook here raises RuntimeError for anything it is shown, and was shown nothing\n    assert refusing.calls == []"
+  },
+  "g8.r1.rule#8": {
+   "key": "g8.r1.rule",
+   "verdict": "implied",
+   "why": "The 24.0 document ceiling and the hook-runs-after ordering are stated, but nobody says the comparison is strictly greater, so whether a payload measuring exactly 24.0 passes through to the hook or is refused is left for the reader to settle.",
+   "clues": [],
+   "source": "# the very same 24.0 MB, resolved as a document, is inside the higher ceiling and\n    # is handed on to the provider hook, which is what refuses it\n    with pytest.raises(RuntimeError) as runtime:"
+  },
+  "g8.r1.rule#9": {
+   "key": "g8.r1.rule",
+   "verdict": "not_required",
+   "why": "\"provider\" is the string the suite's own stub hook raises; the corpus owes nothing to a fixture's error text.",
+   "clues": [],
+   "source": "assert str(runtime.value) == \"provider\""
+  },
+  "g8.r1.rule#10": {
+   "key": "g8.r1.rule",
+   "verdict": "implied",
+   "why": "Konrad's \"20.0 MB image kind, 24.0 document\" names the kinds but never says the canonical block carries a field called `kind` recording them, so the reader supplies that the resolved kind is readable off the block.",
+   "clues": [],
+   "source": "assert read_field(document, \"kind\") == \"document\""
+  },
+  "g8.r1.rule#11": {
+   "key": "g8.r1.rule",
+   "verdict": "stated",
+   "why": "Dario says to weigh the base64 at block-build time and \"hang size_mb off the block\", and konrad refers to size_mb staying empty for url blocks, naming the field and its home.",
+   "clues": [],
+   "source": "assert read_field(document, \"size_mb\") == 24.0"
+  },
+  "g8.r1.rule#12": {
+   "key": "g8.r1.rule",
+   "verdict": "implied",
+   "why": "Gideon says file_upload_limit_check was called on each base64'd attachment, but nobody says the argument is the base64 payload string itself, so the exact call record is left to the reader.",
+   "clues": [],
+   "source": "assert recording.calls == [PAYLOAD_24MB]"
+  },
+  "g8.r1.scope#1": {
+   "key": "g8.r1.scope",
+   "verdict": "stated",
+   "why": "gideon says the whole-prompt total reuses \"the same exception\" with kind set to prompt, and AttachmentTooLarge is the exception named repeatedly elsewhere, so the reader is told the aggregate overflow raises AttachmentTooLarge.",
+   "clues": [
+    "g8.r1.s2-gideon",
+    "g8.r1.s1-dermot",
+    "g8.r1.rev1",
+    "g8.r1.s2-nils"
+   ],
+   "source": "with pytest.raises(AttachmentTooLarge) as caught:"
+  },
+  "g8.r1.scope#2": {
+   "key": "g8.r1.scope",
+   "verdict": "stated",
+   "why": "nils fixes the ceiling at 45 MB over the summed base64 blocks, gideon fixes kind=\"prompt\" on the reused exception, and gideon/dario put the single check after every attachment so the reported size is the whole prompt's sum rather than a running total.",
+   "clues": [
+    "g8.r1.s2-nils",
+    "g8.r1.s2-gideon",
+    "g8.r1.s2-dario",
+    "g8.r1.s2-konrad"
+   ],
+   "source": "# every image is individually legal (18.0 and 6.0 are both under 20.0), so only\n    # the aggregate can have refused this prompt\n    assert triple(exc) == (\"prompt\", 60.0, 45.0)"
+  },
+  "g8.r1.scope#3": {
+   "key": "g8.r1.scope",
+   "verdict": "stated",
+   "why": "dario says the whole-prompt number happens \"once all the per-attachment hook calls have gone through, not woven in between them\", and gideon describes file_upload_limit_check being called on each attachment, so every attachment's hook call precedes the raise.",
+   "clues": [
+    "g8.r1.s2-dario",
+    "g8.r1.s4-gideon",
+    "g8.r1.s2-gideon"
+   ],
+   "source": "# the sum is the whole prompt's, not the running total at the crossing point:\n    # the fourth attachment was built and offered before anything was compared\n    assert len(stub.calls) == 4"
+  },
+  "g8.r1.scope#4": {
+   "key": "g8.r1.scope",
+   "verdict": "implied",
+   "why": "gideon says the total \"belongs in _handle_multi_modal_prompt\", but nobody names _format_multimodal or says it keeps building blocks for an over-45 set, so the reader must supply the exclusivity themselves.",
+   "clues": [
+    "g8.r1.s2-gideon",
+    "g8.r1.rev1",
+    "g8.r1.rev2"
+   ],
+   "source": "assert len(content) == 2"
+  },
+  "g8.r1.scope#5": {
+   "key": "g8.r1.scope",
+   "verdict": "implied",
+   "why": "that the hook fires per attachment is said, but nobody states that the block-building path runs to completion for an aggregate-oversize prompt instead of short-circuiting, so the reader must infer the aggregate check lives nowhere but the outer function.",
+   "clues": [
+    "g8.r1.s4-gideon",
+    "g8.r1.s2-gideon",
+    "g8.r1.g8-pre-r1-single-ceiling-dario"
+   ],
+   "source": "assert len(control.calls) == 2"
+  },
+  "g8.r2.exclusions_or_crossover#1": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "not_required",
+   "why": "This establishes that the block the suite built from a remote link is the url-kind block before the fingerprint claims are checked; the url/base64 distinction is pre-existing surface the corpus talks over (l9, l11) rather than a decision the fingerprint work makes.",
+   "clues": [
+    "g8.r2.l9",
+    "g8.r2.l11"
+   ],
+   "source": "assert read_field(remote, \"source\") == \"url\""
+  },
+  "g8.r2.exclusions_or_crossover#2": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l9 reports that the fingerprint comes back empty for anything with an http url and l11 answers it out loud \u2014 hash the url string exactly as we send it \u2014 with l2 making fingerprint required on the record.",
+   "clues": [
+    "g8.r2.l9",
+    "g8.r2.l11",
+    "g8.r2.l2"
+   ],
+   "source": "assert fingerprint is not None            # a url block is not left without one"
+  },
+  "g8.r2.exclusions_or_crossover#3": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "not_required",
+   "why": "Precondition on the suite's own crossover fixture: it names the second block as the base64-source one, a kind the corpus assumes (l12 speaks of the base64 text) rather than decides.",
+   "clues": [
+    "g8.r2.l12"
+   ],
+   "source": "assert read_field(inline, \"source\") == \"base64\""
+  },
+  "g8.r2.exclusions_or_crossover#4": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "not_required",
+   "why": "It checks that the suite's deliberately odd fixture \u2014 a url string handed in as a base64 payload \u2014 came back out unaltered, which is payload passthrough the corpus already takes for granted (l8 only says the url payload is not trimmed).",
+   "clues": [
+    "g8.r2.l8"
+   ],
+   "source": "assert read_field(inline, \"payload\") == REMOTE_JPEG"
+  },
+  "g8.r2.exclusions_or_crossover#5": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "l11 says url blocks hash the url string and l12 says base64 blocks hash the base64 text, but nobody says the digest is taken over the payload string alone, so the reader must supply on their own that no source kind, prefix or salt is mixed in and that the two kinds therefore collide on an identical string.",
+   "clues": [
+    "g8.r2.l11",
+    "g8.r2.l12"
+   ],
+   "source": "assert fingerprint == read_field(inline, \"fingerprint\")"
+  },
+  "g8.r2.exclusions_or_crossover#6": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l10 pins that cat.jpeg with ?size=large and cat.jpeg without it must stay two separate entries and l11 says the query is included in the hash of the url string.",
+   "clues": [
+    "g8.r2.l10",
+    "g8.r2.l11"
+   ],
+   "source": "assert read_field(bare, \"fingerprint\") != fingerprint"
+  },
+  "g8.r2.exclusions_or_crossover#7": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l11 says the url string is hashed exactly as sent, query and anchor included, so a url carrying a fragment cannot digest to the same value as the bare one.",
+   "clues": [
+    "g8.r2.l11"
+   ],
+   "source": "assert read_field(fragment, \"fingerprint\") != read_field(bare, \"fingerprint\")"
+  },
+  "g8.r2.exclusions_or_crossover#8": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l2 asks that the record carry a short digest of the payload and that fingerprint be required rather than optional, and l12 says base64 payloads are hashed as-is, so such a block has a value.",
+   "clues": [
+    "g8.r2.l2",
+    "g8.r2.l12"
+   ],
+   "source": "assert text_id is not None"
+  },
+  "g8.r2.exclusions_or_crossover#9": {
+   "key": "g8.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l12 says decoding every payload before hashing was tried and abandoned because the 40k pass crawled, and that the base64 text is hashed as-is, which is exactly the exclusion of the decoded-bytes digest.",
+   "clues": [
+    "g8.r2.l12"
+   ],
+   "source": "assert hashlib.sha256(PDF_BYTES).hexdigest()[:12] not in text_id"
+  },
+  "g8.r2.failure_behavior#1": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 says the fallback happens at block-build and \"Image.detail is left alone\" (said about a typo'd off-list value), and l15 complains the source object was rewritten and shouldn't be mutated.",
+   "clues": [
+    "g8.r2.rev1",
+    "g8.r2.l15"
+   ],
+   "source": "assert written.detail == \"ultra\""
+  },
+  "g8.r2.failure_behavior#2": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 names Image.detail as an attribute left untouched and l15 forbids mutating the source, with l13 already showing detail=\"HIGH\" as the caller-written string.",
+   "clues": [
+    "g8.r2.rev1",
+    "g8.r2.l15",
+    "g8.r2.l13"
+   ],
+   "source": "assert Image(content=b\"x\", detail=\"HIGH\").detail == \"HIGH\""
+  },
+  "g8.r2.failure_behavior#3": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 puts normalize_detail at block-build and rev2 says \"HIGH\" lands as \"high\", so the block's detail carrying \"high\" was decided out loud.",
+   "clues": [
+    "g8.r2.rev1",
+    "g8.r2.rev2"
+   ],
+   "source": "# the block carries the normalized value\n    assert read_field(block_of(stub, Image(content=b\"x\", detail=\"HIGH\")), \"detail\") == \"high\""
+  },
+  "g8.r2.failure_behavior#4": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2 says normalize_detail strips and lowercases, which is exactly \" Low \" \u2192 \"low\".",
+   "clues": [
+    "g8.r2.rev2"
+   ],
+   "source": "assert read_field(block_of(stub, Image(content=b\"x\", detail=\" Low \")), \"detail\") == \"low\""
+  },
+  "g8.r2.failure_behavior#5": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2's strip-and-lowercase-against-the-list rule plus l14/l16 putting \"auto\" among the three accepted values makes an on-list value pass through unchanged.",
+   "clues": [
+    "g8.r2.rev2",
+    "g8.r2.l14",
+    "g8.r2.l16"
+   ],
+   "source": "assert read_field(block_of(stub, Image(content=b\"x\", detail=\"auto\")), \"detail\") == \"auto\""
+  },
+  "g8.r2.failure_behavior#6": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1, rev2 and l16 all say an off-vocabulary value falls back to \"auto\" at block-build.",
+   "clues": [
+    "g8.r2.rev1",
+    "g8.r2.rev2",
+    "g8.r2.l16"
+   ],
+   "source": "assert read_field(downgraded, \"detail\") == \"auto\""
+  },
+  "g8.r2.failure_behavior#7": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 says \"one warning\" and l16 says \"log that once\" for the fallback path.",
+   "clues": [
+    "g8.r2.rev1",
+    "g8.r2.l16"
+   ],
+   "source": "assert recorder.count == 1"
+  },
+  "g8.r2.failure_behavior#8": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2 fixes \"high\" as the canonical member of the list, so an already-lowercase hit is preserved.",
+   "clues": [
+    "g8.r2.rev2",
+    "g8.r2.l14"
+   ],
+   "source": "assert read_field(block_of(stub, Image(content=b\"x\", detail=\"high\")), \"detail\") == \"high\""
+  },
+  "g8.r2.failure_behavior#9": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "implied",
+   "why": "l16 only says an unset detail logs nothing \u2014 nobody says the block then carries \"auto\" rather than omitting the field, so the reader has to supply the default themselves.",
+   "clues": [
+    "g8.r2.l16",
+    "g8.r2.l15"
+   ],
+   "source": "assert read_field(block_of(stub, Image(content=b\"x\")), \"detail\") == \"auto\""
+  },
+  "g8.r2.failure_behavior#10": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "l16 says a matching value or nothing set at all logs nothing, and l15 names the all-40k warning noise as the bug.",
+   "clues": [
+    "g8.r2.l16",
+    "g8.r2.l15"
+   ],
+   "source": "assert quiet.count == 0"
+  },
+  "g8.r2.failure_behavior#11": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "implied",
+   "why": "the \"high\" reaching the provider follows from rev1/rev2, but nobody states the OpenAI payload shape \u2014 the image_url wrapper, the data:image/png;base64 URL \u2014 that the rest of this dict comparison demands.",
+   "clues": [
+    "g8.r2.rev2",
+    "g8.r2.detail-passthrough-1",
+    "g8.r2.rev1"
+   ],
+   "source": "# the normalized value is what reaches the provider\n    assert render_openai(block_of(stub, Image(content=b\"x\", detail=\"HIGH\"))) == {\n        \"type\": \"image_url\",\n        \"image_url\": {\"url\": \"data:image/png;base64,eA==\", \"detail\": \"high\"},\n    }"
+  },
+  "g8.r2.failure_behavior#12": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 frames the fallback as happening \"instead of forwarding it untouched\", i.e. \"auto\" is what goes out to the provider for an off-list value.",
+   "clues": [
+    "g8.r2.rev1",
+    "g8.r2.l16"
+   ],
+   "source": "assert render_openai(downgraded)[\"image_url\"][\"detail\"] == \"auto\""
+  },
+  "g8.r2.failure_behavior#13": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "implied",
+   "why": "l16 says nothing-set is silent but never says what value it yields, so that normalize_detail takes None and returns \"auto\" is the reader's inference.",
+   "clues": [
+    "g8.r2.l16",
+    "g8.r2.rev2"
+   ],
+   "source": "assert normalize_detail(None) == \"auto\""
+  },
+  "g8.r2.failure_behavior#14": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2 names the function and the exact mapping: normalize_detail lowercases so \"HIGH\" lands as \"high\".",
+   "clues": [
+    "g8.r2.rev2"
+   ],
+   "source": "assert normalize_detail(\"HIGH\") == \"high\""
+  },
+  "g8.r2.failure_behavior#15": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2 says normalize_detail strips and lowercases against the vocabulary.",
+   "clues": [
+    "g8.r2.rev2"
+   ],
+   "source": "assert normalize_detail(\" Low \") == \"low\""
+  },
+  "g8.r2.failure_behavior#16": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2 says anything off the list becomes \"auto\", attached to normalize_detail by name.",
+   "clues": [
+    "g8.r2.rev2",
+    "g8.r2.rev1"
+   ],
+   "source": "assert normalize_detail(\"ultra\") == \"auto\""
+  },
+  "g8.r2.failure_behavior#17": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "exactly one warning on the fallback is stated by both rev1 and l16.",
+   "clues": [
+    "g8.r2.rev1",
+    "g8.r2.l16"
+   ],
+   "source": "assert recorder.count == 1"
+  },
+  "g8.r2.failure_behavior#18": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "l14 attaches the three members, in this order and \"nothing else\", to the name _SUPPORTED_IMAGE_DETAILS.",
+   "clues": [
+    "g8.r2.l14",
+    "g8.r2.rev2"
+   ],
+   "source": "assert tuple(vocabulary) == (\"auto\", \"low\", \"high\")"
+  },
+  "g8.r2.failure_behavior#19": {
+   "key": "g8.r2.failure_behavior",
+   "verdict": "not_required",
+   "why": "this checks the suite's own base64 fixture arithmetic, not any behaviour the corpus owes.",
+   "clues": [],
+   "source": "assert base64.b64encode(b\"x\").decode() == \"eA==\""
+  },
+  "g8.r2.rule#1": {
+   "key": "g8.r2.rule",
+   "verdict": "stated",
+   "why": "Gideon pins the exact value for exactly this input: a tmp file holding %PDF-1.4 comes out as sha256:fc1c4358d4aa, and Dermot already named the block field fingerprint.",
+   "clues": [
+    "g8.r2.l4",
+    "g8.r2.l2"
+   ],
+   "source": "assert fingerprint == \"sha256:fc1c4358d4aa\""
+  },
+  "g8.r2.rule#2": {
+   "key": "g8.r2.rule",
+   "verdict": "stated",
+   "why": "Emil commits out loud to hashing the base64 text as-is rather than decoding it, Konrad fixes the slice at 12, and the pinned values carry the sha256: prefix, which is the whole of what digest_of recomputes.",
+   "clues": [
+    "g8.r2.l12",
+    "g8.r2.l3",
+    "g8.r2.l4"
+   ],
+   "source": "assert fingerprint == digest_of(PDF_B64)"
+  },
+  "g8.r2.rule#3": {
+   "key": "g8.r2.rule",
+   "verdict": "stated",
+   "why": "Both pinned fingerprints are written verbatim as sha256: followed by twelve hex characters and Konrad's nit fixes the slice at [:12], so the shape is on the page rather than reconstructed.",
+   "clues": [
+    "g8.r2.l3",
+    "g8.r2.l12",
+    "g8.r2.l4"
+   ],
+   "source": "assert fingerprint.startswith(\"sha256:\") and len(fingerprint) == len(\"sha256:\") + 12"
+  },
+  "g8.r2.rule#4": {
+   "key": "g8.r2.rule",
+   "verdict": "stated",
+   "why": "Emil pins the one-byte image at sha256:5e21d86b709b under the base64-as-is rule, which is precisely the value a b\"x\" payload produces, and Dermot names the field it lands in.",
+   "clues": [
+    "g8.r2.l12",
+    "g8.r2.l2"
+   ],
+   "source": "assert read_field(other, \"fingerprint\") == \"sha256:5e21d86b709b\" == digest_of(\"eA==\")"
+  },
+  "g8.r2.rule#5": {
+   "key": "g8.r2.rule",
+   "verdict": "stated",
+   "why": "The corpus pins two different payloads at two different fingerprints, so distinct blocks carrying distinct values is asserted rather than inferred.",
+   "clues": [
+    "g8.r2.l4",
+    "g8.r2.l12"
+   ],
+   "source": "assert read_field(other, \"fingerprint\") != fingerprint"
+  },
+  "g8.r2.rule#6": {
+   "key": "g8.r2.rule",
+   "verdict": "not_required",
+   "why": "The base64 payload field predates this change and the requirement only adds fingerprint, so this checks existing block behaviour the corpus owes nothing about.",
+   "clues": [
+    "g8.r2.l12"
+   ],
+   "source": "assert read_field(other, \"payload\") == \"eA==\""
+  },
+  "g8.r2.rule#7": {
+   "key": "g8.r2.rule",
+   "verdict": "stated",
+   "why": "Gideon's \"same value every run\" is exactly the determinism claim, tied to the same %PDF-1.4 bytes and the same pinned value.",
+   "clues": [
+    "g8.r2.l4"
+   ],
+   "source": "assert read_field(same_bytes, \"fingerprint\") == \"sha256:fc1c4358d4aa\""
+  },
+  "g8.r2.rule#8": {
+   "key": "g8.r2.rule",
+   "verdict": "implied",
+   "why": "Konrad names attachment_fingerprint in a nit about an inline slice but never says it takes the base64 payload string or that the sha256: prefix comes from the helper rather than from the block-building code.",
+   "clues": [
+    "g8.r2.l3",
+    "g8.r2.l12",
+    "g8.r2.l4"
+   ],
+   "source": "assert helper(PDF_B64) == \"sha256:fc1c4358d4aa\""
+  },
+  "g8.r2.rule#9": {
+   "key": "g8.r2.rule",
+   "verdict": "implied",
+   "why": "The value is pinned on the image block, not on the helper; nothing rules out a helper returning bare hex with the prefix added at the call site.",
+   "clues": [
+    "g8.r2.l3",
+    "g8.r2.l12"
+   ],
+   "source": "assert helper(\"eA==\") == \"sha256:5e21d86b709b\""
+  },
+  "g8.r2.rule#10": {
+   "key": "g8.r2.rule",
+   "verdict": "implied",
+   "why": "Nobody discusses an empty payload at all, so the reader has to decide on their own that the general rule applies uniformly with no special case.",
+   "clues": [
+    "g8.r2.l12",
+    "g8.r2.l3"
+   ],
+   "source": "assert helper(\"\") == digest_of(\"\")"
+  },
+  "g8.r2.rule#11": {
+   "key": "g8.r2.rule",
+   "verdict": "stated",
+   "why": "Konrad names _ATTACHMENT_FINGERPRINT_HEX_LEN and, in the same breath, the [:12] slice it replaces, attaching the number to that exact name.",
+   "clues": [
+    "g8.r2.l3"
+   ],
+   "source": "assert hex_len == 12"
+  },
+  "g8.r2.scope#1": {
+   "key": "g8.r2.scope",
+   "verdict": "stated",
+   "why": "Emil names the constant and its value 64 as a max, Konrad commits that the suffix stays on when we shorten, and Nikolai supplies the 73-character finance-export basename, so producing a 64-character name ending in .pdf is carrying out two explicit decisions rather than making a new one.",
+   "clues": [
+    "g8.r2.l6",
+    "g8.r2.l7",
+    "g8.r2.l5"
+   ],
+   "source": "assert capped == \"2024-q4-consolidated-financial-statements-and-notes-final-ap.pdf\""
+  },
+  "g8.r2.scope#2": {
+   "key": "g8.r2.scope",
+   "verdict": "stated",
+   "why": "A constant literally named _MAX_ATTACHMENT_FILENAME_LEN = 64 fixes the length and Konrad's 'the suffix stays on when we shorten' fixes the ending, which is exactly what this assertion tests.",
+   "clues": [
+    "g8.r2.l6",
+    "g8.r2.l7"
+   ],
+   "source": "assert len(capped) == 64 and capped.endswith(\".pdf\")"
+  },
+  "g8.r2.scope#3": {
+   "key": "g8.r2.scope",
+   "verdict": "stated",
+   "why": "Dario says it in one sentence: shortening only touches the display name we derive, and the url we put in the payload stays whole.",
+   "clues": [
+    "g8.r2.l8"
+   ],
+   "source": "# only the filename is cut: the payload is the whole url, and the attachment\n    # itself was never modified\n    assert read_field(block, \"payload\") == LONG_PDF_URL"
+  },
+  "g8.r2.scope#4": {
+   "key": "g8.r2.scope",
+   "verdict": "implied",
+   "why": "The reader is left to supply that non-mutation extends to the caller's File object \u2014 l8 protects only the url in the payload, and the one 'we shouldn't mutate the source' complaint (l15) is about Image.detail, not attachments.",
+   "clues": [
+    "g8.r2.l8",
+    "g8.r2.l15"
+   ],
+   "source": "assert long_pdf.url == LONG_PDF_URL"
+  },
+  "g8.r2.scope#5": {
+   "key": "g8.r2.scope",
+   "verdict": "implied",
+   "why": "The capped filename and whole url are told, but nobody in this corpus names the wire shape \u2014 the keys type/file/filename/file_url are the reader's to guess from 'the file block we send is mostly filename'.",
+   "clues": [
+    "g8.r2.l5",
+    "g8.r2.l8",
+    "g8.r2.l7"
+   ],
+   "source": "assert render_openai(block) == {\n        \"type\": \"file\",\n        \"file\": {\n            \"filename\": \"2024-q4-consolidated-financial-statements-and-notes-final-ap.pdf\",\n            \"file_url\": LONG_PDF_URL,\n        },\n    }"
+  },
+  "g8.r2.scope#6": {
+   "key": "g8.r2.scope",
+   "verdict": "implied",
+   "why": "Nobody addresses the boundary, so the reader has to decide alone that a name of exactly 64 is left untouched rather than cut by a >= test, which would return a different string here.",
+   "clues": [
+    "g8.r2.l6",
+    "g8.r2.l7"
+   ],
+   "source": "assert boundary == \"2024-q4-consolidated-financial-statements-and-notes-final-v3.pdf\""
+  },
+  "g8.r2.scope#7": {
+   "key": "g8.r2.scope",
+   "verdict": "stated",
+   "why": "The named max of 64 fixes the length of this result under either boundary reading, so the cap remark carries it directly.",
+   "clues": [
+    "g8.r2.l6"
+   ],
+   "source": "assert len(boundary) == 64"
+  },
+  "g8.r2.scope#8": {
+   "key": "g8.r2.scope",
+   "verdict": "implied",
+   "why": "Konrad only ever discusses a .pdf suffix coming off the end; the reader must work out unaided that with no extension to reserve the rule degenerates to a plain 64-character prefix with nothing appended.",
+   "clues": [
+    "g8.r2.l7",
+    "g8.r2.l6"
+   ],
+   "source": "assert read_field(extensionless, \"filename\") == \"ledger-entries-consolidated-2024-q4-final-copy-for-review-board-\""
+  },
+  "g8.r2.scope#9": {
+   "key": "g8.r2.scope",
+   "verdict": "stated",
+   "why": "The max of 64 is stated outright and a long name capped by it is 64 characters regardless of how the extension question is resolved.",
+   "clues": [
+    "g8.r2.l6"
+   ],
+   "source": "assert len(read_field(extensionless, \"filename\")) == 64"
+  },
+  "g8.r2.scope#10": {
+   "key": "g8.r2.scope",
+   "verdict": "stated",
+   "why": "Emil's '64 is plenty for the name we put on the block, past that its just the date written twice' says shortening applies only past the cap, leaving a short name alone.",
+   "clues": [
+    "g8.r2.l6"
+   ],
+   "source": "# a short name is left exactly as it came\n    assert read_field(block_of(stub, File(url=\"https://cdn.example.com/a/report.pdf\")), \"filename\") == \"report.pdf\""
+  }
+ },
+ "counts": {
+  "stated": 53,
+  "implied": 26,
+  "absent": 3,
+  "not_required": 10
+ },
+ "short": [
+  "g8.r1.rule",
+  "g8.r2.scope",
+  "g8.r1.exclusions_or_crossover",
+  "g8.r1.failure_behavior",
+  "g8.r1.observability",
+  "g8.r2.failure_behavior",
+  "g8.r2.rule",
+  "g8.r1.scope",
+  "g8.r2.exclusions_or_crossover"
+ ],
+ "applied": {
+  "rewritten": [
+   "g8.r1.s1-dermot (g8.r1.rule)",
+   "g8.r1.s1-dario (g8.r1.rule)",
+   "g8.r1.s1-emil (g8.r1.rule)",
+   "g8.r1.rev2 (g8.r1.rule)",
+   "g8.r1.s4-gideon (g8.r1.rule)",
+   "g8.r2.l5 (g8.r2.scope)",
+   "g8.r2.l7 (g8.r2.scope)",
+   "g8.r2.l6 (g8.r2.scope)",
+   "g8.r2.l8 (g8.r2.scope)",
+   "g8.r1.s3-konrad (g8.r1.exclusions_or_crossover)",
+   "g8.r1.s3-emil (g8.r1.exclusions_or_crossover)",
+   "g8.r1.s1-dermot (g8.r1.failure_behavior)",
+   "g8.r1.s4-dario (g8.r1.failure_behavior)",
+   "g8.r1.s5-dermot (g8.r1.observability)",
+   "g8.r1.s5-emil (g8.r1.observability)",
+   "g8.r2.l16 (g8.r2.failure_behavior)",
+   "g8.r2.l14 (g8.r2.failure_behavior)",
+   "g8.r2.l3 (g8.r2.rule)",
+   "g8.r1.s2-gideon (g8.r1.scope)",
+   "g8.r1.s2-dario (g8.r1.scope)",
+   "g8.r2.l11 (g8.r2.exclusions_or_crossover)"
+  ],
+  "added": [
+   "g8.r1.say23 (g8.r1.rule) -> #general",
+   "g8.r1.say24 (g8.r1.rule) -> #incidents",
+   "g8.r1.say25 (g8.r1.observability) -> #help",
+   "g8.r2.say20 (g8.r2.failure_behavior) -> #help",
+   "g8.r2.say21 (g8.r2.rule) -> #help",
+   "g8.r2.say22 (g8.r2.rule) -> #random",
+   "g8.r2.say23 (g8.r2.exclusions_or_crossover) -> #random"
+  ],
+  "unfixed": [
+   "g8.r1.s4-konrad: rewrite invented advice against acting on the remark"
+  ]
+ }
+}

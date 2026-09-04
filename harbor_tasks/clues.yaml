@@ -17,11 +17,11 @@ agents:
       # Agent turns run on the subscription, never ANTHROPIC_API_KEY.
       CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN}
 datasets:
-  - path: harbor_tasks/t1-cache-stats
+  - path: failed_tasks/t1-cache-stats
     task_names: ["*-clues"]
-  - path: harbor_tasks/t2-batch-cost-estimate
+  - path: failed_tasks/t2-batch-cost-estimate
     task_names: ["*-clues"]
-  - path: harbor_tasks/t3-shared-limiter
+  - path: failed_tasks/t3-shared-limiter
     task_names: ["*-clues"]
-  - path: harbor_tasks/t4-deepseek-empty-retry
+  - path: failed_tasks/t4-deepseek-empty-retry
     task_names: ["*-clues"]

@@ -1,0 +1,19 @@
+From: dario@world.local
+To: nikolai@world.local, konrad@world.local, emil@world.local
+Subject: Re: smoke run timings on the wiki before we cut 0.1.26
+Date: Wed, 11 Jun 2025 13:37:00 +0000
+Message-ID: <178838444849.3512899.15109844431588518985@world.local>
+In-Reply-To: <178838444848.3512899.5308392036493702378@world.local>
+References: <178838444848.3512899.5308392036493702378@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+mhm 25 seems fine for the page, i'd honestly rather it read a little pessimis=
+tic than a little optimistic since people plan their afternoon around that nu=
+mber.
+
+the 401 thing i have hit too actually, though at the time i assumed i was hol=
+ding it wrong and didnt look further. in any case do you want me to drop both=
+ timings into the release notes draft as they are, or would you rather edit t=
+he wiki page yourself since you have the real numbers in front of you

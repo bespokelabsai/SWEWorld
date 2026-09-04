@@ -34,7 +34,7 @@ Add a `cache_stats()` method to `curator.LLM` that reports how many of the last 
 | `fixtures/naive.py` | the obvious implementation; must pass the ticket and fail the hidden rows |
 
 ```bash
-harbor run -p harbor_tasks/t1-cache-stats -a oracle
+harbor run -p failed_tasks/t1-cache-stats -a oracle
 ```
 
 ## Measured
@@ -52,4 +52,4 @@ harbor run -p harbor_tasks/t1-cache-stats -a oracle
 | r2 | `rule` | fail | PASS | PASS | coincidence |
 | r2 | `scope` | fail | PASS | PASS | coincidence |
 
-4 genuinely hidden, 5 coincidence, 0 unmeasurable. See [../BRACKET.md](../BRACKET.md) for what those mean.
+4 genuinely hidden, 5 coincidence, 0 unmeasurable. See [BRACKET.md](../../harbor_tasks/BRACKET.md) for what those mean.

@@ -1787,8 +1787,7 @@
         "max_output_bytes"
        ],
        "forbidden_terms": [
-        "field_validator",
-        "ValidationError"
+        "field_validator"
        ],
        "source": "slack",
        "carrier": {
@@ -1862,12 +1861,12 @@
          {
           "author": "emil",
           "minute": "13:49",
-          "text": "the second one, i believe. the config should have refused it when i built the executor - a cap that small isnt going to become legal later on, so theres no good reason to hand back an executor thats carrying it. whether that ends up in the check dario's wiring or just sits in __init__, whoever gets to it first"
+          "text": "the second one, i believe. the config should refuse it at construction \u2014 a cap that small isnt going to become legal later on, so theres no good reason to hand back an executor thats carrying it. it dies when you build the thing, not on row one inside the sandbox"
          },
          {
           "author": "gideon",
           "minute": "13:51",
-          "text": "ya ok. the 8 is mine btw, i pasted the KB number out of the old yaml and dropped the multiplier, i dunno how that got past me twice"
+          "text": "ya, at construction. the 8 is mine btw, i pasted the KB number out of the old yaml and dropped the multiplier, i dunno how that got past me twice"
          }
         ],
         "pieces": [
@@ -2522,22 +2521,22 @@
          {
           "author": "dario",
           "minute": "10:49",
-          "text": "is it ordered by whichever one overflowed? like stdout blows past it so stdout leads. and do we name both streams even when only one of them is fat"
+          "text": "is it ordered by whichever one overflowed? like stdout blows past it so stdout leads"
          },
          {
           "author": "emil",
           "minute": "10:57",
-          "text": "ok ran it, one line \u2014 `sandbox output capped: stderr, stdout exceeded the 65536-byte budget`. so no, not the version sitting in your ticket"
+          "text": "ok ran it \u2014 both streams went over on that row and i got one line, `sandbox output capped: stderr, stdout exceeded the 65536-byte budget`. so no, not the version sitting in your ticket"
          },
          {
           "author": "dario",
           "minute": "10:59",
-          "text": "huh. stdout was the fat one in that run though, thats the whole reason it tripped. so why is stderr out in front"
+          "text": "huh. stdout was the fatter of the two by miles, thats the whole reason i was looking at that row. so why is stderr out in front"
          },
          {
           "author": "emil",
           "minute": "11:05",
-          "text": "yup, stdout was the fat one, stderr was a few hundred bytes at most. but the order has nothing to do with who blew it \u2014 we sort the streams before we format them, so stderr lands first because stde sorts ahead of stdo, and both get named regardless of which one ran past the budget. pin the sorted form and it'll hold. honestly the wording reads like its accusing whichever stream overflowed and it just isnt, its alphabetical and nothing more"
+          "text": "because the order has nothing to do with who blew it \u2014 we sort the names before we format them, so stderr lands first because stde sorts ahead of stdo. that run had both of them past the budget, which is why both are in there; a row where only stdout went over comes back naming stdout on its own. pin the sorted form and it'll hold"
          }
         ],
         "pieces": [
@@ -2810,32 +2809,32 @@
          {
           "author": "dario",
           "minute": "10:41",
-          "text": "row 118 from last nights batch came back with stdout that just stops mid sentence. and i went looking for the truncation warning for it and theres nothing in the log for that row at all, not even at debug"
+          "text": "row 118 from last nights batch came back with stdout that just stops mid sentence, so it got trimmed. and i went looking for the truncation warning for that row and theres nothing in the log at all, not even at debug"
          },
          {
           "author": "konrad",
           "minute": "10:43",
-          "text": "what did the sandbox do on that row? if cleanup raised then we are not on the normal cap path at all"
+          "text": "did the sandbox come back clean on that row, or did it throw on the way out?"
          },
          {
           "author": "dario",
           "minute": "10:44",
-          "text": "it raised yeah, container rm timed out. so the cut happened somewhere else you're saying"
+          "text": "it threw. container rm timed out on teardown. the trim itself looks fine though, the bytes are gone the way theyre supposed to be"
          },
          {
           "author": "konrad",
           "minute": "10:47",
-          "text": "right. The row whose sandbox threw on cleanup still had its stdout capped, we just never went through the code that normally does it. cleanup raising drops us into the except branch and there is a second cap sitting in there, so we hand back something instead of nothing"
+          "text": "thats it then. the trim happens on the way through, but the line that announces it sits right down at the return, and teardown falling over means we never reach a return. so the row is capped and silent"
          },
          {
           "author": "dario",
           "minute": "10:49",
-          "text": "ok but the normal one warns. it prints the trimmed line every time, ive seen it on plenty of rows. so why nothing here"
+          "text": "so any row that dies on the way out loses its line, even though the cut went fine"
          },
          {
           "author": "konrad",
           "minute": "10:52",
-          "text": "because that salvage cap in the except handler logs nothing. no warnign, no counter, nothing, it just quietly returns the short buffer. so from outside it reads like the process printed that much and stopped\nanyway thats the fix, we log where we cut. the byte offset, not only \"output truncated\" \u2014 otherwise you still cannot tell if 40 bytes went missing or 40k. same line the happy path already emits, presumably just the same call moved into the handler. which ticket it rides on i dont know, the cleanup timeout is its own seperate mess"
+          "text": "every time. thats what im moving \u2014 the line goes next to the trim itself, up where we actually cut, so its already out before teardown gets a chance to fall over. the second cap sitting down in the handler is a different animal, thats for rows that never got as far as being cut, and it stays quiet. which ticket it rides on i dont know, the cleanup timeout is its own seperate mess"
          },
          {
           "author": "dario",
@@ -3724,20 +3723,20 @@
       "g2.r1.sc-log: two remarks in #pipeline within 2 days"
      ],
      "required_names": [
-      "A",
       "MIN_MAX_OUTPUT_BYTES",
       "OutputCapError",
       "TRUNCATION_LOG_TEMPLATE",
-      "The",
       "UTF",
+      "ValidationError",
       "ValueError",
-      "budget",
       "count",
-      "max_bytes",
-      "streams"
+      "logger",
+      "max_bytes"
      ],
      "required_values": [],
-     "missing_identifiers": [],
+     "missing_identifiers": [
+      "logger"
+     ],
      "unprinted_values": [],
      "gaps_claimed": [],
      "gaps_from": "settle verdicts"
@@ -6380,21 +6379,25 @@
       "g2.r2.s-obs: two remarks in #releases within 2 days"
      ],
      "required_names": [
+      "CodeExecutionResponse",
+      "CodeExecutionResult",
       "CodeExecutionResult.model_fields",
       "E",
       "Execution",
       "False",
-      "Optional",
       "RuntimeError",
       "True",
       "X",
       "error",
       "error_truncated",
       "exec_output",
+      "files",
       "message"
      ],
      "required_values": [],
-     "missing_identifiers": [],
+     "missing_identifiers": [
+      "CodeExecutionResponse"
+     ],
      "unprinted_values": [],
      "gaps_claimed": [],
      "gaps_from": "settle verdicts"
@@ -6422,44 +6425,25 @@
    ],
    "unreversed": [],
    "out_of_order": [],
-   "unknit": [],
-   "double_booked": [
-    "g2.r1.l-kept-konrad: konrad speaks in #code-review at 13:19 on 2025-03-20, but the corpus has them in #cookbooks 2 minute(s) away",
-    "g2.r1.l-kept-konrad: konrad speaks in #code-review at 13:19 on 2025-03-20, but the corpus has them in #cookbooks 2 minute(s) away",
-    "g2.r1.l-kept-nils: dermot speaks in #engineering at 11:53 on 2025-03-19, but the corpus has them in #releases 4 minute(s) away",
-    "g2.r1.l-bytes-gideon: emil speaks in #engineering at 14:14 on 2025-04-15, but the corpus has them in #code-review 1 minute(s) away",
-    "g2.r1.l-bytes-gideon: emil speaks in #engineering at 14:26 on 2025-04-15, but the corpus has them in #code-review 0 minute(s) away",
-    "g2.r1.l-log-gideon: emil speaks in #pipeline at 13:52 on 2025-04-29, but the corpus has them in #general 4 minute(s) away",
-    "g2.r1.l-log-gideon: gideon speaks in #pipeline at 13:55 on 2025-04-29, but the corpus has them in #code-review 1 minute(s) away",
-    "g2.r1.l-log-emil: dario speaks in #pipeline at 10:41 on 2025-05-01, but the corpus has them in #engineering 4 minute(s) away",
-    "g2.r1.l-log-konrad: dario speaks in #cookbooks at 10:41 on 2025-05-01, but the corpus has them in #engineering 4 minute(s) away",
-    "g2.r1.herring-marker-inside-budget-dario: emil speaks in #pipeline at 16:01 on 2025-01-21, but the corpus has them in #releases 4 minute(s) away",
-    "g2.r1.rev2: dermot speaks in #viewer at 10:12 on 2025-03-14, but the corpus has them in #engineering 2 minute(s) away",
-    "g2.r1.rev2: dermot speaks in #viewer at 10:16 on 2025-03-14, but the corpus has them in #engineering 2 minute(s) away",
-    "g2.r1.rev2: dermot speaks in #viewer at 10:19 on 2025-03-14, but the corpus has them in #engineering 1 minute(s) away",
-    "g2.r1.rev2: dermot speaks in #viewer at 10:23 on 2025-03-14, but the corpus has them in #engineering 3 minute(s) away",
-    "g2.r2.l-rule-1: dario speaks in #incidents at 13:41 on 2025-04-18, but the corpus has them in #engineering 2 minute(s) away",
-    "g2.r2.l-rule-3: gideon speaks in #cookbooks at 11:07 on 2025-04-21, but the corpus has them in #pipeline 4 minute(s) away",
-    "g2.r2.l-obs-3: dermot speaks in #releases at 10:28 on 2025-03-17, but the corpus has them in #engineering 4 minute(s) away",
-    "g2.r2.h1: emil speaks in #releases at 15:02 on 2025-01-21, but the corpus has them in #code-review 0 minute(s) away",
-    "g2.r2.h2: dermot speaks in #viewer at 10:02 on 2025-01-21, but the corpus has them in #releases 1 minute(s) away",
-    "g2.r2.h2: dermot speaks in #viewer at 10:07 on 2025-01-21, but the corpus has them in #pipeline 1 minute(s) away",
-    "g2.r2.rev2: gideon speaks in #viewer at 10:31 on 2025-03-19, but the corpus has them in #code-review 4 minute(s) away",
-    "g2.r2.rev2: dermot speaks in #viewer at 10:39 on 2025-03-19, but the corpus has them in #engineering 2 minute(s) away"
+   "unknit": [
+    "g2.r1.l-kept-nils: nils says 'both ends', which this remark is supposed to leave for a sibling \u2014 reknit is filling in the neighbouring fact rather than writing around the gap",
+    "g2.r1.l-off-konrad: konrad says 'no marker', which this remark is supposed to leave for a sibling \u2014 reknit is filling in the neighbouring fact rather than writing around the gap",
+    "g2.r1.say25: emil says 'no marker', which this remark is supposed to leave for a sibling \u2014 reknit is filling in the neighbouring fact rather than writing around the gap"
    ],
+   "double_booked": [],
    "too_wordy": [
     "g2.r1.l-kept-gideon: the exchange is 8.8x the remark (146 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-kept-konrad: the exchange is 9.5x the remark (134 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-kept-nils: the exchange is 11.0x the remark (129 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-seam-nikolai: the exchange is 9.7x the remark (127 chars over 6 turns) \u2014 inflated rather than spread",
     "g2.r1.l-seam-dermot: the exchange is 8.0x the remark (167 chars over 7 turns) \u2014 inflated rather than spread",
-    "g2.r1.l-seam-dario: the exchange is 12.4x the remark (141 chars over 7 turns) \u2014 inflated rather than spread",
+    "g2.r1.l-seam-dario: the exchange is 12.3x the remark (141 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-bytes-gideon: the exchange is 9.5x the remark (158 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-bytes-emil: the exchange is 9.8x the remark (161 chars over 6 turns) \u2014 inflated rather than spread",
     "g2.r1.l-bytes-nils: the exchange is 14.1x the remark (124 chars over 5 turns) \u2014 inflated rather than spread",
     "g2.r1.l-bytes-dario: the exchange is 9.5x the remark (160 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-off-konrad: the exchange is 8.0x the remark (167 chars over 7 turns) \u2014 inflated rather than spread",
-    "g2.r1.l-off-nikolai: the exchange is 15.4x the remark (97 chars over 7 turns) \u2014 inflated rather than spread",
+    "g2.r1.l-off-nikolai: the exchange is 15.0x the remark (97 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-off-dermot: the exchange is 7.4x the remark (165 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-floor-emil: the exchange is 8.2x the remark (167 chars over 8 turns) \u2014 inflated rather than spread",
     "g2.r1.l-floor-nikolai: the exchange is 7.3x the remark (176 chars over 7 turns) \u2014 inflated rather than spread",
@@ -6467,7 +6451,7 @@
     "g2.r1.l-log-gideon: the exchange is 8.3x the remark (157 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.l-log-emil: the exchange is 6.1x the remark (219 chars over 6 turns) \u2014 inflated rather than spread",
     "g2.r1.l-log-nikolai: the exchange is 7.6x the remark (139 chars over 7 turns) \u2014 inflated rather than spread",
-    "g2.r1.l-log-konrad: the exchange is 9.5x the remark (157 chars over 7 turns) \u2014 inflated rather than spread",
+    "g2.r1.l-log-konrad: the exchange is 9.4x the remark (157 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.herring-marker-inside-budget-dario: the exchange is 12.9x the remark (152 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r1.herring-dropped-count-gideon: the exchange is 7.5x the remark (147 chars over 6 turns) \u2014 inflated rather than spread",
     "g2.r1.rev2: the exchange is 5.9x the remark (190 chars over 7 turns) \u2014 inflated rather than spread",
@@ -6490,7 +6474,24 @@
     "g2.r2.h2: the exchange is 9.0x the remark (155 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r2.rev1: the exchange is 6.1x the remark (258 chars over 7 turns) \u2014 inflated rather than spread",
     "g2.r2.say18: the exchange is 10.0x the remark (143 chars over 7 turns) \u2014 inflated rather than spread"
-   ]
+   ],
+   "fact_conflicts": [
+    "g2.r1.rule: g2.r1.l-kept-nils says 'so the cut takes from both ends: first 16k, last 48k, and a marker between them so nobody reads the file as contiguous' \u2014 A reader takes the split as one quarter head, three quarters tail \u2014 the tail gets the bulk. The decision is the exact mirror: head is (max_output_bytes * 3) // 4 and the tail is the remaining quarter (48-byte head, 16-byte tail at max=64). Both numbers appear in the real decision with their roles swapped, and this is stated as the settled shape of the cut, not as an option. \u2014 and nothing later overturns it",
+    "g2.r1.rule: g2.r1.l-kept-nils says 'the tail is the half we actually lose today so weighting it that way is right' \u2014 This signs off on the tail-heavy weighting just proposed, so a reader treats head-small/tail-large as agreed by a second person rather than one person's suggestion. The decision weights it the other way: three parts head, one part tail. Nothing later in this thread walks it back. \u2014 and nothing later overturns it",
+    "g2.r1.rule: g2.r1.l-kept-gideon says 'ya the end. every failing run i look at has the actual excpetion sitting right at the very bottom. thats the first thing i scroll to and if we shaved it off the whole cap is useless to me' \u2014 Emil asks point blank whether the tail is the part that survives and not the head, and this answers yes. A reader concludes the tail is the priority slice and the head is what gets shaved \u2014 the opposite of a 3/4 head, 1/4 tail keep. Dated a month after the 3:1 head-weighted call, with no mention of it. \u2014 and nothing later overturns it",
+    "g2.r1.scope: g2.r1.l-bytes-dario says 'the truncate helper walks back to the last line break before the cap' \u2014 Reads as the answer to what boundary the cap trims to: the last line break. The decision trims to a codepoint boundary, trying 0/1/2/3 bytes and taking the first candidate that decodes; line breaks play no part. A reader takes away the wrong trimming unit entirely, and one whose backoff has no fixed bound. \u2014 and nothing later overturns it",
+    "g2.r1.scope: g2.r1.l-bytes-dario says 'it starts at the cap and steps backwards until it finds a boundary, and most of the time that lands you a byte or two under the cap, sometimes more if the line happens to be fat' \u2014 Confirms the line-break reading and pins the magnitude as open-ended, scaling with line length. The decision caps the walk at three bytes per slice and falls back to errors=\"replace\" rather than backing off further, so the shortfall can never grow with the data. \u2014 and nothing later overturns it",
+    "g2.r1.scope: g2.r1.l-bytes-emil says 'so the tail offset walks forward to the next lead byte before we cut. costs us two bytes in the worst case' \u2014 States the tail walk's worst case as two bytes. The decision drops 0, 1, 2, then 3 leading bytes, taking the first that decodes, so three is the bound -- true for the 3-byte kana in this log but understated in general, and nikolai had already flagged 4-byte emoji rows in the same fixture file. \u2014 and it is the LAST word on this fact",
+    "g2.r1.exclusions_or_crossover: g2.r1.l-off-dermot says 'with the default cap, a 900 byte stdout comes back marked, and it goes in truncated_streams' \u2014 A reader takes this as: a stream comfortably below the budget is still marked and still named in truncated_streams. The default cap reads as 8192 elsewhere in the corpus (dario's 8192 stdout landing exactly on the number, g2.r1.say25 10:33), so 900 bytes is far under budget and by the decision must come back byte-identical with no marker and contribute nothing to truncated_streams. It is stated as a boundary-case result from the helper's owner, in passing, and nobody disputes it -- so it reads as authoritative on exactly the question of what happens to an under-budget stream. \u2014 and nothing later overturns it",
+    "g2.r1.failure_behavior: g2.r1.l-floor-nikolai says 'no that should raise the same error OutputCapError not its own ValueError its the same failure as far as a notebook is concerned' \u2014 Read in context \u2014 dario has just pointed at the config validator's `raise ValueError(\"cap must be > 0\")` \"when someone puts a negative cap in the yaml\" and asked whether to fold it in \u2014 nikolai's answer tells the reader that the negative-cap path in the config now raises OutputCapError too, i.e. a yaml with -1 comes back as OutputCapError. The decision keeps negatives on a separate path: the field_validator raises OutputCapError only for value != 0 and value < 16, and -1 is still the ge=0 rejection, which fires before the validator and carries pydantic's own constraint message, not \"max_bytes must be 0 or at least 16\". The quoted \"cap must be > 0\" wording also pins 0 as illegal, where 0 constructs fine. Nobody pushes back on it and dario closes the topic on the next line. \u2014 and nothing later overturns it",
+    "g2.r1.observability: g2.r1.l-log-konrad says 'ok but the normal one warns. it prints the trimmed line every time, ive seen it on plenty of rows. so why nothing here' \u2014 Reader takes it that the cap warning is emitted on every run through the normal path, unconditionally, with the only silent case being the except-handler salvage. The decision is that the line fires only when at least one stream was actually truncated; a run that came in under the budget logs nothing at all. This was settled on 04-29 (gideon 13:55 'only on runs that actaully lost bytes', dario 13:47 flagging exactly the unconditional-logging worry), and dario's 05-01 aside states the rejected behaviour as established fact. Konrad answers the salvage half and leaves the premise standing, so it reads as confirmed by a second person. \u2014 and nothing later overturns it",
+    "g2.r1.observability: g2.r1.l-log-konrad says 'The row whose sandbox threw on cleanup still had its stdout capped, we just never went through the code that normally does it. cleanup raising drops us into the except branch and there is a second cap sitting in there' \u2014 Reader takes it that when cleanup/__exit__ raises, the normal capping-and-logging step is skipped entirely and the trimming is done by the silent salvage cap, so a run with truncated output and a failed cleanup produces no warning line. The decision places the log call inside the `with` block right after the streams are capped, so a run whose __exit__ raises after a truncated capture has already logged and still logs exactly one line; only execute_command itself raising leaves the log empty. Konrad's own 10:52 line ('we log where we cut ... not off whichever return the run happens to take') matches the decision, which lends the mistaken 10:47 explanation authority rather than exposing it. \u2014 and nothing later overturns it",
+    "g2.r2.rule: g2.r2.l-rule-1 says 'the teardown exception itself. it threw, and the entrie repr of the thing came back to us sitting in `error` \u2014 all 300kb of it' \u2014 A reader takes this as stating what the `error` field carries: the exception's repr. The decision is that error is the exception text `str(e)`. The March thread (l-obs-3) had asked exactly this \u2014 'the repr of the exception or the message as we raised it' \u2014 and answered 'the message, byte for byte as raised'; this later remark states the other side of that same either/or as fact, and nikolai's follow-up ('the actual exception line in there is like two lines the rest of it is repr') reinforces it. Nothing afterwards says error is str(e) rather than repr, so a date-ordered reader ends up with the newer, wrong answer for what gets fed to the shortener. \u2014 and nothing later overturns it",
+    "g2.r2.observability: g2.r2.say18 says 'your 64 case comes back at 94 bytes of `error` - the full 64 of the original text and then the marker after it' \u2014 This is the one remark in the corpus that describes the concrete layout of the capped `error` field, and it is emil answering gideon's direct question about what the caller gets handed. Every number in it is right -- 64 kept, 94 out, marker on top -- but the arrangement is head-only: 64 contiguous bytes from the front of the message with the marker trailing at the end. The decision keeps both ends around a marker in the middle: \"X\"*48 + \"\\n[[curator:elided 236 bytes]]\\n\" + \"X\"*16. A reader who writes the assertion from this line produces \"X\"*64 + marker, which is the right length and the wrong string, and loses the tail bytes entirely. Nobody in the thread pushes back -- dermot's follow-up is about json envelope overhead, so the layout goes unchallenged. \u2014 and nothing later overturns it",
+    "g2.r2.observability: g2.r2.l-obs-3 says \"boom is four bytes against a cap in the tens of kb so we're never near the edge on it\" \u2014 Dropped in passing as the reason the no-op case is safely clear of the boundary, and dermot answers the question that follows it without touching the number, so it reads as settled background. It pins the budget for the `RuntimeError(\"boom\")` case at tens of kilobytes; the decision runs that case on the same fake at max_output_bytes=64. The assertion still passes either way, but a reader building the fixture from this line parametrizes it at a large cap and quietly stops testing what the case exists to test -- that the no-op path is a no-op at the *same* small budget where the sibling case truncates. It also contradicts the 64 that gideon and nikolai both state flatly in the other two fixture threads, leaving a reader with two live numbers and nothing marking which case takes which. \u2014 and nothing later overturns it"
+   ],
+   "unclashed": [],
+   "contradictions": []
   }
  ],
  "planted_at": "2026-09-01T22:39:14+00:00",
@@ -6498,5 +6499,7 @@
  "reversed_at": "2026-09-01T23:51:25+00:00",
  "reordered_at": "2026-09-02T06:08:19+00:00",
  "reknit_at": "2026-09-02T16:08:37+00:00",
- "replaced_at": "2026-09-02T06:09:27+00:00"
+ "replaced_at": "2026-09-02T06:09:27+00:00",
+ "fact_conflicts_at": "2026-09-04T18:50:56+00:00",
+ "consistency_at": "2026-09-04T18:50:56+00:00"
 }

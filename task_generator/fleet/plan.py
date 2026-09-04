@@ -33,6 +33,35 @@ from tg import recipe                                          # noqa: E402
 PHASES = ("A", "B", "C", "D")
 
 
+# The corpus every clue stage plants against, PINNED.
+#
+# `--run` defaults to `data_gen/build/phase4/latest`, which is a symlink, and
+# `ledger["corpus"]` then records the string "latest" rather than the run. Every
+# plant on disk says that, so which corpus any of them was built against is not
+# an auditable fact -- and a phase-4 re-run that re-points the symlink between
+# `clues` and `reknit` would have a task placing remarks against a different
+# corpus than the one its carriers name.
+CORPUS_RUN = str(pathlib.Path(__file__).resolve().parents[2]
+                 / "data_gen" / "build" / "phase4" / "runs" / "corpus")
+
+# Which cli subcommands take `--run`. Passing it to one that does not is an
+# argparse error, so this is a list rather than a guess.
+TAKES_RUN = {"clues", "settle", "reverse", "reorder", "reknit", "consistency",
+             "replace", "repair", "inject"}
+
+# How long a stage may take before the driver calls it hung, per cli subcommand.
+#
+# Measured, from `spend.json` on g1 and g4: `clues` ran 176 min (106 of them in
+# placement alone), `reknit` 162, `settle` 52, `prove` 76 across three builds.
+# The single 2-hour default this replaced was shorter than two of those, and
+# `clues.plan()` is the one clue pass with NO checkpoint -- it writes once, at
+# the end -- so a timeout there loses the entire plant and every dollar of it.
+TIMEOUTS = {"clues": 6 * 3600, "reknit": 4 * 3600, "settle": 3 * 3600,
+            "consistency": 3 * 3600, "prove": 3 * 3600, "replace": 3 * 3600,
+            "repair": 3 * 3600}
+DEFAULT_TIMEOUT = 2 * 3600
+
+
 @dataclasses.dataclass(frozen=True)
 class Step:
     name: str                    # unique within the run; the log file's stem
@@ -43,6 +72,10 @@ class Step:
     gate: bool = False           # a bad outcome stops the task (via the judge)
     paid: float = 0.0
     note: str = ""
+
+    @property
+    def timeout_s(self) -> int:
+        return TIMEOUTS.get(self.cmd, DEFAULT_TIMEOUT)
 
     @property
     def label(self) -> str:
@@ -75,9 +108,26 @@ def _step_name(stage: recipe.Stage) -> str:
     return f"{stage.name}.{value.replace(',', '+')}"
 
 
+def _slice_at(steps: list[Step], stop_after: str) -> list[Step]:
+    """Everything up to and including `stop_after`.
+
+    Names the step rather than the phase, because this run stops in the MIDDLE
+    of phase C -- after the local plant is emitted and before anything is paid
+    to measure it hosted -- and a phase is too coarse to say that.
+    """
+    names = [s.name for s in steps]
+    if stop_after not in names:
+        raise SystemExit(f"--stop-after {stop_after!r}: no such step. One of:\n  "
+                         + "\n  ".join(names))
+    return steps[:names.index(stop_after) + 1]
+
+
 def _from_recipe(stage: recipe.Stage, phase: str) -> Step:
+    args = stage.args
+    if stage.name in TAKES_RUN:
+        args = args + ("--run", CORPUS_RUN)
     return Step(name=_step_name(stage), phase=phase, kind="cli", cmd=stage.name,
-                args=stage.args, gate=stage.gate, paid=stage.paid, note=stage.note)
+                args=args, gate=stage.gate, paid=stage.paid, note=stage.note)
 
 
 def phase_a() -> list[Step]:
@@ -144,14 +194,14 @@ def phase_d() -> list[Step]:
 BUILDERS = {"A": phase_a, "B": phase_b, "C": phase_c, "D": phase_d}
 
 
-def steps_through(through: str) -> list[Step]:
+def steps_through(through: str, stop_after: str = "") -> list[Step]:
     """Every step from phase A up to and including `through`."""
     if through not in PHASES:
         raise SystemExit(f"--through must be one of {', '.join(PHASES)}, not {through!r}")
     out: list[Step] = []
     for phase in PHASES[:PHASES.index(through) + 1]:
         out += BUILDERS[phase]()
-    return out
+    return _slice_at(out, stop_after) if stop_after else out
 
 
 def steps_for(phase: str) -> list[Step]:

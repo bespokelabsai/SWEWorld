@@ -495,6 +495,74 @@ def _shape(name: str) -> str:
     return "Camel" if name[:1].isupper() else "word"
 
 
+def delta_body(plant_dir) -> str:
+    """Everything the plant delta actually holds, flattened for searching."""
+    d = pathlib.Path(plant_dir)
+    parts: list[str] = []
+    for name in ("messages.jsonl", "comments.jsonl"):
+        f = d / name
+        if f.is_file():
+            for line in f.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    parts.append(json.loads(line).get("text") or "")
+    if (d / "docs").is_dir():
+        for path in (d / "docs").rglob("*.md"):
+            parts.append(path.read_text(encoding="utf-8", errors="replace"))
+    if (d / "emails").is_dir():
+        for path in (d / "emails").rglob("*.eml"):
+            note = email.message_from_bytes(path.read_bytes())
+            raw = note.get_payload(decode=True)
+            parts.append(raw.decode("utf-8", "replace") if raw else "")
+    return flat("\n".join(parts))
+
+
+def stale_delta(task, ledger: dict) -> list[str]:
+    """Remarks the plant now words differently from what was last written out.
+
+    Editing a clue -- or the exchange `reknit` wrote around it -- changes
+    `plant.json` and nothing else. The corpus copy, the `clues/plant-data` delta,
+    the harbor arms' `environment/plant`, the answer key and the
+    `solution/hidden_requirements.md` beside it are all downstream, and every one
+    of them keeps the old wording until somebody re-runs `inject`, `build_tasks`
+    and `answers` in that order.
+
+    g2 is the case. `g2.r1.l-log-konrad`'s exchange was repaired in `plant.json`
+    and both the shipped delta and the answer key still quoted the sentence that
+    had been removed -- so the arm an agent runs against, and the document an
+    operator checks it with, disagreed with the plant and with each other.
+
+    Every turn, not just the opener. `located()` keys on the first message because
+    it only needs to find where the exchange sits; staleness can be in any turn,
+    and the one that mattered here was the fourth of seven.
+    """
+    out = []
+    for label, folder in (("plant-data", task.dir / "clues" / "plant-data"),
+                          ("the harbor arms",
+                           REPO / "harbor_tasks" / f"{task.id}-{task.slug}")):
+        dirs = ([folder] if (folder / "messages.jsonl").is_file()
+                else sorted(folder.glob("*/environment/plant"))
+                if folder.is_dir() else [])
+        for d in dirs:
+            if not d.is_dir() or not any(d.iterdir()):
+                continue
+            body = delta_body(d)
+            if not body:
+                continue          # an arm with no plant (blind/spec/clues)
+            for clue in clues_of(ledger):
+                if not clue.get("carrier"):
+                    continue
+                want = [t for t in must_appear(clue) if t]
+                gone = [t for t in want if t not in body]
+                if gone:
+                    out.append(
+                        f"{clue['clue_id']}: {len(gone)} of {len(want)} turn(s) are "
+                        f"not in {label} ({d.relative_to(REPO)}) — the plant has "
+                        f"moved since it was written. Re-run `cli.py inject`, then "
+                        f"`build_tasks.py --world --hosted`, then `cli.py answers`")
+                    break         # one row per delta is enough to send you there
+    return out
+
+
 def rival_vocabulary(plant_dir, task) -> list[str]:
     """Identifiers the plant invented that compete with the ones it is grading.
 

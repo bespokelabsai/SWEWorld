@@ -8,10 +8,10 @@
 #
 # One group at a time is the same command with -p:
 #
-#     harbor run -p harbor_tasks/t1-cache-stats -a oracle
+#     harbor run -p failed_tasks/t1-cache-stats -a oracle
 datasets:
-  - path: harbor_tasks/t0-smoke
-  - path: harbor_tasks/t1-cache-stats
-  - path: harbor_tasks/t2-batch-cost-estimate
-  - path: harbor_tasks/t3-shared-limiter
-  - path: harbor_tasks/t4-deepseek-empty-retry
+  - path: failed_tasks/t0-smoke
+  - path: failed_tasks/t1-cache-stats
+  - path: failed_tasks/t2-batch-cost-estimate
+  - path: failed_tasks/t3-shared-limiter
+  - path: failed_tasks/t4-deepseek-empty-retry

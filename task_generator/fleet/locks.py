@@ -86,5 +86,9 @@ STAGE_LOCKS = {
     "emit": ("flock", "generated"),
     "trial": ("flock", "trial"),
     "bracket": ("devbox", None),
-    "prove": ("devbox", None),
 }
+# `prove` is NOT here, though it runs the suite. It runs three full agent builds
+# first (~$3.20 and several minutes each), and holding one of two devbox slots
+# across all of that serialises five tasks two-at-a-time through the longest
+# stage in phase C -- the exact wall-clock blow-up this table exists to avoid.
+# Its container work is the same few seconds of pytest `bracket` does.

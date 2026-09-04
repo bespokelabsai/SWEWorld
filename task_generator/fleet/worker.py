@@ -36,9 +36,20 @@ from . import gates, hosted, judge, locks, plan, state         # noqa: E402
 
 TG = REPO / "task_generator"
 
+# Every one of these rewrites `clues/plant.json` through `clues.finish()`, which
+# recomputes every derived field. They must all be read by `gates.clue_gate`:
+# `settle` in particular returns 0 unconditionally, so without this a $10 pass
+# that damaged the plant reported success.
+PLANT_STAGES = ("clues", "settle", "reverse", "reorder", "reknit", "consistency")
+
 MAX_ATTEMPTS = 2          # per step, for `retry`
 MAX_REWINDS = 2           # per task, for author_extend / resplit / amend_ticket
-PER_TASK_CAP_USD = 120.0  # phase A+B budget ~ $47; the cap is headroom, not a target
+# Measured, not guessed: phase A came in at ~$28/task, and phase C's clue chain
+# runs $38-53 on the g4/g6 evidence (g1's $113 was 239 placement calls for 50
+# remarks, the pathological case `recipe.py`'s $45 budget is drawn from). Phase
+# B's $30 is Horizon spend and never reaches `spend.json`. So ~$81 local/task,
+# and the cap is that plus room for one repair round.
+PER_TASK_CAP_USD = 150.0
 
 
 class Parked(Exception):
@@ -91,7 +102,7 @@ def evaluate(task: Task, step: plan.Step, rc: int, log: pathlib.Path) -> gates.V
         return gates.bracket_gate(task)
     if step.cmd == "emit":
         return gates.emit_gate(task)
-    if step.cmd == "clues":
+    if step.cmd in PLANT_STAGES:
         return gates.clue_gate(task)
     # Steps with no artifact of their own are judged by their exit code alone,
     # which is honest for them: `author`, `build` and `tests` write files whose
@@ -104,8 +115,19 @@ def evaluate(task: Task, step: plan.Step, rc: int, log: pathlib.Path) -> gates.V
 
 
 def situation_for(step: plan.Step) -> str:
+    """Which decision this step's failure is an instance of.
+
+    Everything in `PLANT_STAGES` past `clues` shares one situation: they all end
+    in `audit_plant`, whose non-zero exit means "a repair fixes this", and the
+    repairs are the same three whichever pass reported it. Before this they fell
+    through to `crash`, which offers only retry and stop -- so the guaranteed
+    outcome of any plant defect was to pay for the pass twice and park.
+    """
     return {"split": "split", "bracket": "bracket", "audit": "audit",
-            "tests": "tests", "clues": "clues", "prove": "prove"}.get(step.cmd, "crash")
+            "tests": "tests", "clues": "clues", "prove": "prove",
+            "settle": "plant", "reverse": "plant", "reorder": "plant",
+            "reknit": "plant", "consistency": "plant",
+            "horizon": "emit_clues"}.get(step.cmd, "crash")
 
 
 # --------------------------------------------------------------------------- actions
@@ -199,6 +221,7 @@ def amend_ticket(task: Task, findings: list[str]) -> None:
 
 def bump(run_id: str, slug: str, field: str) -> int:
     """Increment a per-task counter and return the new value, atomically."""
+    """Increment a per-task counter and return the new value, atomically."""
     def mutate(state):
         row = state["tasks"][slug]
         row[field] = row.get(field, 0) + 1
@@ -210,6 +233,11 @@ def act(run_id: str, task: Task, order: list[plan.Step], index: int,
         decision: dict, findings: list[str]) -> int:
     """Carry out one judged action. Returns the index of the next step to run."""
     action = decision["action"]
+    # Rewinds are counted PER PHASE. One shared counter meant a task that used
+    # `author_extend` and `amend_ticket` in phase A arrived at the plant with no
+    # repair budget at all, and the first thing the judge asked for was refused.
+    phase = order[index].phase
+    counter = f"rewinds_{phase}"
     if action == "proceed":
         return index + 1
     if action == "stop":
@@ -224,15 +252,56 @@ def act(run_id: str, task: Task, order: list[plan.Step], index: int,
     # conversation each remark sits in and what it answers -- is the expensive
     # half. `repair` rewrites only the remarks the proof blamed; `replace`
     # re-places every remark without re-wording any.
-    if action in ("repair", "replace"):
-        rewinds = bump(run_id, task.slug, "rewinds")
+    # The three plant repairs. NONE of them may move the walk forward: the old
+    # code jumped to `prove.3` from wherever it was, so a `repair` chosen at the
+    # `clues` step silently skipped settle, reverse, reorder, reknit and
+    # consistency, and `prove` then ran against a plant that had never been
+    # settled or knitted into exchanges.
+    # The repair the consistency gate actually needs. `fact_conflicts` and
+    # `unknit` are defects in the woven CONVERSATION, not in the remark or where
+    # it sits: an exchange whose last turn asserts the opposite of the graded
+    # decision, which is the shape that cost g2 four facts. `replace` re-places
+    # with identical wording and `reclues` throws away sound placement, so
+    # neither touches it -- the judge said so, correctly, and parked instead.
+    # `reknit --only <ids> --redo` re-weaves exactly the named exchanges.
+    if action == "rewrite_exchanges":
+        import re as _re
+        entry = json.loads((task.dir / "clues" / "plant.json").read_text())["tasks"][0]
+        named = set()
+        for field in ("fact_conflicts", "unknit"):
+            for row in entry.get(field) or []:
+                named.update(_re.findall(r"\b(" + task.id + r"\.r\d+\.[A-Za-z0-9_.-]+)", str(row)))
+        every = {c["clue_id"] for q in entry.get("requirements", []) for c in q.get("clues", [])}
+        ids = sorted(named & every)
+        if not ids:
+            raise Parked("rewrite_exchanges: the findings name no clue id to re-weave")
+        rewinds = bump(run_id, task.slug, counter)
         if rewinds > MAX_REWINDS:
-            raise Parked(f"{action} was chosen {rewinds} times; the cap is {MAX_REWINDS}")
+            raise Parked(f"rewrite_exchanges chosen {rewinds} times in phase {phase}; "
+                         f"the cap is {MAX_REWINDS}")
+        log = state.log_path(run_id, task.slug, "rewrite_exchanges", rewinds)
+        rc = cli("reknit", task.slug,
+                 ("--only", ",".join(ids), "--redo", "--run", plan.CORPUS_RUN), log,
+                 timeout_s=plan.TIMEOUTS.get("reknit", plan.DEFAULT_TIMEOUT))
+        state.record(run_id, task.slug,
+                     {"step": "rewrite_exchanges", "rc": rc, "clues": ids})
+        return index          # re-run the gate that named them
+
+    if action in ("repair", "replace", "reclues"):
+        rewinds = bump(run_id, task.slug, counter)
+        if rewinds > MAX_REWINDS:
+            raise Parked(f"{action} was chosen {rewinds} times in phase {phase}; "
+                         f"the cap is {MAX_REWINDS} and each one is a paid pass")
+        cmd = "clues" if action == "reclues" else action
+        args = ("--run", plan.CORPUS_RUN) if cmd in plan.TAKES_RUN else ()
         log = state.log_path(run_id, task.slug, action, rewinds)
-        rc = cli(action, task.slug, (), log)
+        rc = cli(cmd, task.slug, args, log, timeout_s=plan.TIMEOUTS.get(cmd, plan.DEFAULT_TIMEOUT))
         state.record(run_id, task.slug, {"step": action, "rc": rc})
         names = [s.name for s in order]
-        return names.index("prove.3") if "prove.3" in names else index
+        if action == "reclues" and "clues" in names:
+            # A new plant invalidates everything downstream of it.
+            return names.index("clues") + 1
+        return index          # re-run the step that reported the defect
 
     if action not in REWINDS:
         raise SystemExit(f"worker: no branch for action {action!r} — judge.ACTIONS "
@@ -290,6 +359,13 @@ def do_hosted(run_id: str, task: Task, step: plan.Step) -> gates.Verdict:
 
     if step.cmd in ("validate", "validate_clues"):
         want = ("blind", "spec", "clues") if step.cmd == "validate_clues" else ("blind", "spec")
+        missing = [a for a in want if a not in found]
+        if missing:
+            # KeyError here escapes the HostedError handler and lands as a bare
+            # "KeyError: 'clues'" with no explanation. The push branch guards; so
+            # does this one now.
+            return gates.Verdict(step.name, False,
+                                 [f"no {', '.join(missing)} arm under {task.dir/'horizon'}"])
         for arm in want:
             hosted.validate_both(found[arm])
         return gates.validation_gate(task, {a: found[a] for a in want})
@@ -352,6 +428,11 @@ def do_check(task: Task, step: plan.Step) -> gates.Verdict:
     found = arms(task)
     if step.cmd == "verdict_ab":
         return gates.verdict_ab(task, found.get("spec", task.dir), found.get("blind", task.dir))
+    if step.cmd == "verdict_clues":
+        if "clues" not in found:
+            return gates.Verdict(step.name, False,
+                                 [f"no clues arm under {task.dir / 'horizon'}"])
+        return gates.verdict_clues(task, found["clues"])
     raise SystemExit(f"worker: no check branch for {step.cmd!r}")
 
 
@@ -413,8 +494,17 @@ def walk(run_id: str, slug: str, order: list[plan.Step], *, start: str = "") -> 
             if step.cmd == "new":
                 row = state.load(run_id)["tasks"][slug]
                 args = ("--brief", pathlib.Path(row["brief"]).read_text(), "--id", row["id"])
+            if step.cmd == "clues":
+                # Which of slack / notion / email this task's remarks may live in,
+                # per task. A corpus where every task spreads across all three
+                # reads the same way every time; some tasks being slack-only is
+                # both more varied and a harder retrieval problem in a different
+                # direction -- g4 was planted that way deliberately.
+                row = state.load(run_id)["tasks"][slug]
+                if row.get("sources"):
+                    args = args + ("--sources", row["sources"])
             with held(step):
-                rc = cli(step.cmd, slug, args, log)
+                rc = cli(step.cmd, slug, args, log, timeout_s=step.timeout_s)
             task = load(slug)
             verdict = evaluate(task, step, rc, log)
         elif step.kind == "hosted":

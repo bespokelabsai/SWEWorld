@@ -104,6 +104,7 @@ class Corpus:
         self.messages = self._messages()
         self.pages = self._pages()
         self.mail = self._mail()
+        self._purposes: dict[str, str] | None = None
         self.cast = json.loads((self.root / "cast.json").read_text())["people"] \
             if (self.root / "cast.json").is_file() else {}
 
@@ -293,6 +294,35 @@ class Corpus:
     def channels(self) -> dict[str, int]:
         counts: dict[str, int] = collections.Counter(m.channel for m in self.messages)
         return dict(counts.most_common())
+
+    @property
+    def purposes(self) -> dict[str, str]:
+        """What each room is FOR, from `data/channels.yaml`.
+
+        The corpus knew who talked where and when, and never what a room was
+        about -- so placement ranked candidates by token overlap alone and a
+        remark about loss masking could land in #cookbooks because a few words
+        matched. The model's own reasoning said so out loud: "None of the eight
+        rooms is anywhere near tokenizers, loss masking, or per-token weights",
+        and then it was placed there anyway.
+
+        These lines are hand-written and live beside the corpus, not in it.
+        """
+        if self._purposes is None:
+            self._purposes = {}
+            path = REPO / "data" / "channels.yaml"
+            if path.is_file():
+                try:
+                    import yaml
+                    loaded = yaml.safe_load(path.read_text()) or {}
+                except Exception:
+                    loaded = {}
+                rows = loaded.get("channels", loaded if isinstance(loaded, list) else [])
+                for row in rows or []:
+                    if isinstance(row, dict) and row.get("name"):
+                        self._purposes[str(row["name"]).lstrip("#")] = (
+                            row.get("purpose") or row.get("header") or "").strip()
+        return self._purposes
 
     def voice(self, holder: str) -> dict:
         """How this person writes, from cast.json.

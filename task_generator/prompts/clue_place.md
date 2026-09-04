@@ -33,6 +33,19 @@ What it must NOT resolve on its own — a sibling remark elsewhere supplies this
 Not "is it on topic" — whether a reader who knows this company would believe it was
 always there. Concretely:
 
+## The rooms, and what each is for
+
+{{channels}}
+
+**The room has to make sense for the remark, not merely contain matching words.**
+This is a judgement about subject, not vocabulary: a decision about tokenizers and
+loss masking belongs where people argue about training code, not in the room for
+runnable examples because both mention "the cookbook". If none of the candidates
+below sits in a room where this remark would plausibly be said, answer `none` and
+name the channel it should be invented in — that is what `none` is for, and an
+invented conversation in the right room is worth more than a real one in the wrong
+room. Pick that channel from the list above, by its purpose.
+
 - Is the room already chewing on something this answers or complicates? A remark
   that contributes to a live discussion belongs. One that arrives from nowhere,
   changes the subject, and gets no reaction does not.

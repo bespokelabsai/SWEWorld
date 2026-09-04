@@ -31,7 +31,7 @@ Add automatic retry-on-empty-response handling for the `openai`-compatible backe
 | `fixtures/naive.py` | the obvious implementation; must pass the ticket and fail the hidden rows |
 
 ```bash
-harbor run -p harbor_tasks/t4-deepseek-empty-retry -a oracle
+harbor run -p failed_tasks/t4-deepseek-empty-retry -a oracle
 ```
 
 ## Measured
@@ -46,4 +46,4 @@ harbor run -p harbor_tasks/t4-deepseek-empty-retry -a oracle
 | r2 | `rule` | fail | PASS | PASS | coincidence |
 | r2 | `scope` | fail | PASS | PASS | coincidence |
 
-2 genuinely hidden, 4 coincidence, 0 unmeasurable. See [../BRACKET.md](../BRACKET.md) for what those mean.
+2 genuinely hidden, 4 coincidence, 0 unmeasurable. See [BRACKET.md](../../harbor_tasks/BRACKET.md) for what those mean.

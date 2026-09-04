@@ -600,7 +600,7 @@
          {
           "author": "dario",
           "minute": "15:21",
-          "text": "that tracks. honestly id been reading them as the same value, nobodys gone in and touched it yet"
+          "text": "that tracks. and they land in the digest under those exact names, parse_func_hash and prompt_func_hash, suffix and all \u2014 not the bare function names. honestly id been reading them as the same value, nobodys gone in and touched it yet"
          },
          {
           "author": "dermot",

@@ -496,6 +496,37 @@ def shortlist(corpus: Corpus, leaf: dict, window: tuple[str, str],
     return picked
 
 
+# Rooms an engineering remark does not belong in, whatever the token overlap.
+# `#random` is "links, jokes, food, model-release gossip and anything that is not
+# work" by its own charter; a design decision recorded there is not one a reader
+# would ever find, and it reads as planted the moment anybody scrolls.
+# Measured over three slack-only plants: with no notion or email to absorb the
+# overflow, MAX_INVENTED_PER_CHANNEL pushes remarks out of the apt rooms and ten
+# of them landed in #general -- "company-wide announcements, logistics,
+# scheduling", which is no place for a design decision and is the one room a
+# reader would never think to search. The mixed-source plants put zero there.
+OFF_TOPIC_ROOMS = ("random", "general")
+
+
+def channel_guide(corpus: Corpus) -> str:
+    """What each room is for, so the choice is topical and not lexical.
+
+    Placement used to see message excerpts and nothing else, so it ranked rooms
+    by word overlap. Two of g9's remarks landed in #cookbooks under a `why` that
+    said in as many words that no room fitted -- the model knew, and had nothing
+    to choose with. This is the missing half of that judgement.
+    """
+    rows = []
+    for name, count in corpus.channels().items():
+        room = name.lstrip("#")
+        if room in OFF_TOPIC_ROOMS:
+            continue
+        purpose = corpus.purposes.get(room)
+        if purpose:
+            rows.append(f"- `#{room}` ({count} messages) — {purpose}")
+    return "\n".join(rows) or "(no channel purposes on file)"
+
+
 def render_candidates(cands: list) -> str:
     out = []
     for cand in cands:
@@ -519,10 +550,12 @@ def stage_place(task: Task, corpus: Corpus, leaf: dict, window: tuple[str, str],
                   settles=leaf.get("settles") or "", verbatim=verbatim,
                   leaves_open=leaf.get("leaves_open") or "(nothing recorded)",
                   voice=describe_voice(corpus.voice(leaf["holder"])),
+                  channels=channel_guide(corpus),
                   candidates=render_candidates(cands))
     result = agent.run(text, repo=REPO, label=f"clue-place-{leaf['id']}", cwd=task.dir,
                        tools="", schema=cs.place_schema([c.key for c in cands],
-                                              sorted(corpus.channels()),
+                                              sorted(c for c in corpus.channels()
+                                                     if c.lstrip("#") not in OFF_TOPIC_ROOMS),
                                               leaf.get("source") or "slack"),
                        budget_usd=budget, log_dir=task.dir / "logs")
     _record(task, f"clue-place-{leaf['id']}", text, result)
@@ -747,7 +780,7 @@ def plan(slug: str, *, sources: tuple[str, ...] = cs.SOURCES, run: str | None = 
         # one channel, which is the least realistic thing here and the easiest tell
         # to read. Per requirement rather than over the whole plant, so BOTH
         # requirements are spread rather than one paying for the other.
-        rebalance(tree["leaves"], reach)
+        rebalance(tree["leaves"], reach, sources)
         for leaf in tree["leaves"]:
             leaf = place_one(task, corpus, leaf, clue_window, used, per_channel,
                              budget, per_page)
@@ -985,6 +1018,41 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     entry["unreversed"] = unreversed(entry)
     entry["out_of_order"] = out_of_order(entry)
     entry["unknit"] = unknit(entry, set(corpus.people()))
+    # Free, and it reads what was WRITTEN rather than what was planned. Everything
+    # downstream of `plant.json` -- the corpus copy, the delta, the harbor arms, the
+    # answer key and the `hidden_requirements.md` beside it -- keeps the old wording
+    # until three commands are re-run in order, and nothing used to say so.
+    from . import inject as _inject
+    entry["stale_delta"] = _inject.stale_delta(task, ledger)
+
+    # `fact_consistency` is the one check this does NOT recompute. It costs a
+    # model call per fact and `finish` is the tail of seven stages, so recomputing
+    # it here would put ~$10 on every pass. It is a stage of its own instead, its
+    # findings are stored, and every later pass re-reports them for free.
+    #
+    # What is computed here is whether those findings can still be believed. A
+    # stored conflict is only as good as the exchanges it read, and `reknit`,
+    # `settle`, `repair`, `replace` and `reorder` all rewrite them -- so a plant
+    # that has moved since the last consistency run shows a stale green, which is
+    # the failure `unclashed` already demonstrates: computed, persisted, and read
+    # by nothing. Never-run and out-of-date both say so, in the gate.
+    touched = max((v for k, v in ledger.items()
+                   if k.endswith("_at") and k != "fact_conflicts_at"
+                   and isinstance(v, str)), default="")
+    ran = ledger.get("fact_conflicts_at") or ""
+    # Only the real findings survive a pass; the two markers below are recomputed,
+    # or a plant re-planted five times carries five copies of "never run".
+    entry["fact_conflicts"] = [row for row in (entry.get("fact_conflicts") or [])
+                               if not str(row).startswith(("never run", "stale"))]
+    if not ran:
+        entry["fact_conflicts"].append(
+            "never run — `cli.py consistency <slug>` is the check for a remark "
+            "that states a fact wrongly and is the last word on it, and nothing "
+            "here has asked it")
+    elif touched > ran:
+        entry["fact_conflicts"].append(
+            f"stale — last checked {ran}, and the plant has been rewritten since "
+            f"({touched}). Re-run `cli.py consistency <slug>`")
 
     ledger[stamp] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     out = task.dir / "clues"
@@ -1000,9 +1068,16 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
 # the artifact a reader will see; soft ones are worth printing and not worth
 # failing a paid pass over.
 HARD = ("unknit", "unreversed", "out_of_order", "voice_problems",
-        "double_booked")
+        "double_booked", "fact_conflicts", "stale_delta")
+# `unclashed` is SOFT rather than absent. `finish()` has always written it and
+# nothing has ever read it -- not `HARD`, not `SOFT`, not the README, not
+# `cli.py` -- which is precisely the disease this split exists to cure. The
+# report is informational by nature (the nudge `unclash()` describes has already
+# happened, in place), but a plant where twenty turns had to be moved off a
+# minute their own speaker already occupied is worth seeing, and a check nobody
+# reads is how four herrings shipped unretracted.
 SOFT = ("stock_phrasing", "unstated", "finished_claims", "too_wordy",
-        "contradictions")
+        "contradictions", "unclashed")
 
 
 def problems(entry: dict) -> tuple[list[str], list[str]]:
@@ -1506,22 +1581,33 @@ MAX_INVENTED_PER_CHANNEL = 5
 MAX_COMMENTS_PER_PAGE = 2
 
 
-def rebalance(rows: list[dict], reach: dict[str, dict[str, int]]) -> None:
+def rebalance(rows: list[dict], reach: dict[str, dict[str, int]],
+              allowed: tuple[str, ...] | None = None) -> None:
     """Reassign each remark's source toward MIX, within what its holder can reach.
 
     Reachability wins over the quota every time: a source somebody never used is
     not a place they can be quoted, and phase 3 learned that the expensive way --
     remarks handed to people who could not make them are remarks that cannot be
     placed at all.
+
+    `allowed` is what the CALLER asked for, and it wins over the quota too.
+    Without it this walked the whole of `MIX` regardless: `clues --sources slack`
+    filtered the tree's own enum to slack and then this put notion and email
+    straight back, so a plant asked for as slack-only came out 21/8/8. The quota
+    is renormalised over what is left, so asking for one source is a request for
+    that source and not a request for a third of it.
     """
-    quota = {source: max(1, round(share * len(rows))) for source, share in MIX}
+    mix = [(s, share) for s, share in MIX if allowed is None or s in allowed] or list(MIX)
+    total = sum(share for _, share in mix) or 1.0
+    mix = [(s, share / total) for s, share in mix]
+    quota = {source: max(1, round(share * len(rows))) for source, share in mix}
     # Two callers, two row shapes: `replace` passes placed clues, which carry
     # `clue_id`; `plan` passes tree leaves, which carry `id` and are not given a
     # `clue_id` until placement. The sort is only here to make the assignment
     # deterministic, so either identifier will do — reading one of them
     # unconditionally cost a $45 run its first tree call.
     for row in sorted(rows, key=lambda r: r.get("clue_id") or r.get("id") or ""):
-        can = [s for s, _ in MIX if (reach.get(row["holder"]) or {}).get(s)]
+        can = [s for s, _ in mix if (reach.get(row["holder"]) or {}).get(s)]
         if not can:
             continue
         # The scarcest reachable source this remark could still fill.
@@ -1772,7 +1858,11 @@ def replace(slug: str, *, run: str | None = None, budget: float = 3.0,
         rows = [c for c in rows if c["clue_id"] in only]
         herrings = [c for c in herrings if c["clue_id"] in only]
     else:
-        rebalance(rows, reach)
+        # A re-place must not silently widen a plant's sources. `--sources slack`
+        # asked for a slack-only corpus; re-placing it through the unrestricted
+        # MIX would hand a third of the remarks to notion and email, which is the
+        # same defect the `allowed` argument exists for, one pass later.
+        rebalance(rows, reach, tuple({r["source"] for r in rows if r.get("source")}) or None)
 
     # Slots already taken by remarks this pass is not touching stay taken.
     used, per_channel, per_page = occupancy(
@@ -1812,6 +1902,41 @@ def replace(slug: str, *, run: str | None = None, budget: float = 3.0,
               f"{(leaf['slot'] or {}).get('room', 'nowhere')}")
 
     return finish(task, corpus, ledger, "replaced_at")
+
+
+def consistency(slug: str, *, run: str | None = None, budget: float = 1.0) -> dict:
+    """Run the paid per-fact conflict check and store what it found.
+
+    `fact_consistency` has existed, complete and documented, with zero callers --
+    `finish` calls the pattern-matching `contradictions()` instead, and that one
+    binds quantities and cannot see a policy stated backwards. g2 has now lost two
+    facts to the class it was written for. The second, `g2.r1.observability`, is
+    the clearest case there will be: the planted remark says "the except handler's
+    salvage cap logs nothing", and the exchange reknit wrote around it ends
+    "presumably just the same call moved into the handler" -- the opposite
+    instruction, in the operative half of the sentence, and the last word on the
+    fact. Two rollouts read it and did what it said.
+
+    A stage rather than part of `finish` because it is a model call per fact and
+    `finish` is the tail of seven stages. It runs once, stores its findings, and
+    `problems()` re-reports them free on every later pass until they are fixed --
+    with `finish` adding "never run" or "stale" so an unasked check cannot read as
+    a clean one.
+    """
+    task = load(slug)
+    corpus = Corpus(pathlib.Path(run) if run else None)
+    ledger = json.loads((task.dir / "clues" / "plant.json").read_text())
+    entry = ledger["tasks"][0]
+
+    found = fact_consistency(task, entry, budget=budget)
+    entry["fact_conflicts"] = found
+    ledger["fact_conflicts_at"] = dt.datetime.now(
+        dt.timezone.utc).isoformat(timespec="seconds")
+    for row in found:
+        print(f"  ! {row}")
+    if not found:
+        print("  no fact is stated wrongly and left standing")
+    return finish(task, corpus, ledger, "consistency_at")
 
 
 def reverse(slug: str, *, run: str | None = None, budget: float = 3.0,
@@ -2369,12 +2494,29 @@ def fact_consistency(task: Task, entry: dict, *, budget: float = 1.0) -> list[st
     for req in entry["requirements"]:
         requirement = req.get("requirement") or {}
         for fact, stated in requirement.items():
-            rows = [c for c in req["clues"] if fact in (c.get("covers") or [])]
-            if len(rows) < 2:
+            # EVERY remark in the requirement, not only the ones filed under this
+            # fact. `covers` is the tree's own claim about what a remark carries
+            # and `normalise()` truncates it to two entries, so a remark that
+            # settles this fact in passing -- or that was filed under a sibling
+            # fact, or that lives in mail rather than chat -- was invisible here.
+            # A conflict was then reported against a corpus that resolves it a
+            # few remarks later, in another source.
+            #
+            # `repair` was fixed the same way and for the same reason: it "sees
+            # every remark in the requirement, not only the ones filed under the
+            # failing fact, which is the only reason it could find that one".
+            covering = [c for c in req["clues"] if fact in (c.get("covers") or [])]
+            if len(covering) < 2:
                 continue                    # nothing to disagree with
+            rows = req["clues"]
+            named = {c["clue_id"] for c in covering}
             when = {c["clue_id"]: _clue_date(c) for c in rows}
             remarks = "\n\n".join(
-                f"### {c['clue_id']} — {when[c['clue_id']] or 'undated'}\n"
+                f"### {c['clue_id']} — {when[c['clue_id']] or 'undated'}"
+                + (" — filed under this fact" if c["clue_id"] in named
+                   else f" — filed under {', '.join(c.get('covers') or []) or 'nothing'}"
+                        f", {c.get('source') or 'slack'}")
+                + "\n"
                 + (render_thread(c.get("invented") or {}) or c.get("text") or "")
                 for c in sorted(rows, key=lambda c: when[c["clue_id"]] or ""))
             ask = prompt("clue_consistency.md", requirement=stated or "",

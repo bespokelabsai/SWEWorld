@@ -75,7 +75,7 @@ def slug_of(brief: pathlib.Path) -> str:
 # --------------------------------------------------------------------------- start
 
 def cmd_start(args) -> int:
-    order = plan.steps_through(args.through)
+    order = plan.steps_through(args.through, args.stop_after)
     briefs = discover_briefs(pathlib.Path(args.briefs))
     ids = [i.strip() for i in args.ids.split(",") if i.strip()]
     if len(ids) != len(briefs):
@@ -108,6 +108,8 @@ def cmd_start(args) -> int:
 
     run_id = args.run_id or datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     run = state.new(run_id, through=args.through, budget_usd=args.budget_usd, tasks=tasks)
+    if args.stop_after:
+        state.update(run_id, lambda st: st.update(stop_after=args.stop_after))
     print(f"run {run_id}: {len(tasks)} tasks through phase {args.through}, "
           f"budget ${args.budget_usd:.0f}\n  state: {state.path(run_id)}")
     launch(run_id, [t["slug"] for t in tasks], order, stagger=args.stagger)
@@ -238,7 +240,7 @@ def cmd_verify(args) -> int:
 
 def report(run_id: str) -> int:
     run = state.load(run_id)
-    order = plan.steps_through(run["through"])
+    order = plan.steps_through(run["through"], run.get("stop_after", ""))
     names = [s.name for s in order]
     print(f"\nrun {run_id}  started {run['started']}  through {run['through']}")
     print(f"{'task':6} {'slug':30} {'phase':6} {'step':22} {'status':8} {'spent':>8}  where")
@@ -286,20 +288,50 @@ def cmd_resume(args) -> int:
     # the same state file and the same paid steps. Done once here, by hand, on
     # a run whose last task was still evaluating.
     import subprocess as _sp
-    others = _sp.run(["pgrep", "-f", f"orchestrate.py (start|resume).*{run_id}"],
-                     capture_output=True, text=True).stdout.split()
-    others = [p for p in others if p and int(p) != os.getpid()]
+    found = _sp.run(["pgrep", "-f", f"orchestrate.py (start|resume).*{run_id}"],
+                    capture_output=True, text=True).stdout.split()
+    # Only PYTHON processes count. `pgrep -f` also matches the `bash -c …` wrapper
+    # that launched this one, and every shell in the ancestry whose command line
+    # happens to quote the same string -- so the first version of this guard
+    # refused a legitimate resume by finding the shell that was starting it.
+    others = []
+    for pid in found:
+        if not pid or int(pid) in (os.getpid(), os.getppid()):
+            continue
+        try:
+            argv = pathlib.Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\0")
+        except OSError:
+            continue
+        if argv and b"python" in argv[0]:
+            others.append(pid)
     if others and not args.force:
         raise SystemExit(
             f"run {run_id} already has an orchestrator alive (pid {', '.join(others)}).\n"
             "Stop it first, or pass --force if you are certain it is finished with "
             "every task you are about to restart.")
     run = state.load(run_id)
-    order = plan.steps_through(args.through or run["through"])
+    order = plan.steps_through(args.through or run["through"],
+                               args.stop_after or run.get("stop_after", ""))
     if args.through and args.through != run["through"]:
         state.update(run_id, lambda st: st.update(through=args.through))
         run = state.load(run_id)
     live = [s for s, r in run["tasks"].items() if r["status"] != "done"]
+    if args.only:
+        want = {x.strip() for x in args.only.split(",") if x.strip()}
+        unknown = want - set(run["tasks"])
+        if unknown:
+            raise SystemExit(f"--only names no task in this run: {', '.join(sorted(unknown))}")
+        live = [s for s in live if s in want]
+    if args.budget_usd:
+        state.update(run_id, lambda st: st.update(budget_usd=args.budget_usd))
+    if args.stop_after:
+        state.update(run_id, lambda st: st.update(stop_after=args.stop_after))
+    if args.sources:
+        def pin(st):
+            for slug in live:
+                st["tasks"][slug]["sources"] = args.sources
+        state.update(run_id, pin)
+    run = state.load(run_id)
     if not live:
         print("every task is done")
         return 0
@@ -343,6 +375,10 @@ def main(argv=None) -> int:
     start.add_argument("--dry-run", action="store_true", help="print the graph and the spend; free")
     start.add_argument("--force", action="store_true", help="proceed into slugs already on disk")
     start.add_argument("--only", default="", help="run only these slugs; ids stay paired as if all were run")
+    start.add_argument("--sources", default="")
+    start.add_argument("--stop-after", dest="stop_after", default="",
+                       help="halt cleanly after this step (a step name, not a phase) — "
+                            "the rest stays available to `resume` into later")
     start.set_defaults(fn=cmd_start)
 
     verify = subs.add_parser("verify", help="calibrate the gates against tasks already measured; free")
@@ -363,6 +399,13 @@ def main(argv=None) -> int:
     resume.add_argument("--stagger", type=int, default=30)
     resume.add_argument("--force", action="store_true",
                         help="resume even though another orchestrator is running this run")
+    resume.add_argument("--stop-after", dest="stop_after", default="")
+    resume.add_argument("--only", default="", help="resume only these slugs")
+    resume.add_argument("--sources", default="",
+                        help="which of slack,notion,email these tasks' remarks may live in "
+                             "(default: all three)")
+    resume.add_argument("--budget-usd", dest="budget_usd", type=float, default=None,
+                        help="raise the run's budget; phase C costs more than A+B")
     resume.add_argument("--from", dest="start", default="",
                         help="step name to restart at; default is where state left off")
     resume.set_defaults(fn=cmd_resume)

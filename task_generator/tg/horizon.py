@@ -591,12 +591,32 @@ def emit(task: Task, arms: tuple[str, ...] = ARMS,
         binding = None
         if (out / ".horizon" / "metadata.json").is_file():
             binding = (out / ".horizon" / "metadata.json").read_text()
+
+        # `.rollouts/` and `.validation/` are MEASUREMENTS, and re-emitting is not
+        # supposed to un-measure anything. They were being deleted with everything
+        # else: emitting the clues arm therefore threw away the blind and spec
+        # arms' rollouts -- the only evidence the spec/blind verdict is read from --
+        # and a later `verdict` reported "no rollouts on disk, nothing was
+        # measured" about arms that had been measured that morning. Pulling them
+        # back costs a round trip per arm and only works while the evaluation is
+        # still on the server.
+        keep = {}
+        for saved in (".rollouts", ".validation"):
+            if (out / saved).is_dir():
+                held = out.parent / f".{name}{saved}.keep"
+                if held.exists():
+                    shutil.rmtree(held)
+                shutil.move(str(out / saved), str(held))
+                keep[saved] = held
+
         if out.exists():
             shutil.rmtree(out)
         (out / "tests" / "suite").mkdir(parents=True)
         if binding:
             (out / ".horizon").mkdir(parents=True, exist_ok=True)
             (out / ".horizon" / "metadata.json").write_text(binding)
+        for saved, held in keep.items():
+            shutil.move(str(held), str(out / saved))
         (out / "data").mkdir(parents=True)
 
         # A REAL file, not the template's empty `.empty` placeholder. `horizon

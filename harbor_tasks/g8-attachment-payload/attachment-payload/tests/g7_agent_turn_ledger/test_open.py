@@ -124,6 +124,15 @@ class Conversation:
         processor = SimpleNamespace(
             create_api_specific_request_online=lambda request: {"model": "gpt-4o-mini"},
             call_single_request=call_single_request,
+            # A real request processor carries its config, and `APIRequest` is
+            # built with an `attempts_left`. Curator's own code passes a literal
+            # `1` there; an implementation that reaches for
+            # `_request_processor.config.max_retries` instead is doing something
+            # reasonable that this fixture must not punish. Without this the
+            # whole open feature failed on `AttributeError: 'SimpleNamespace'
+            # object has no attribute 'config'` -- fifty-one assertions lost to
+            # a line the ticket never mentions and the suite does not grade.
+            config=SimpleNamespace(max_retries=1, max_concurrent_requests=1),
         )
         return SimpleNamespace(
             name=name,

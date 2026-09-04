@@ -7,7 +7,7 @@
 | `blind` | the ticket |
 | `spec` | the ticket + both hidden requirements |
 | `clues` | the ticket + all 48 remarks, quoted |
-| `world` | the ticket, against `sweworld:0.4.4` where the 48 remarks live in chat — this plant is Slack-only, so nothing was placed in the wiki or mail |
+| `world` | the ticket, against `sweworld:0.4.4` where the 48 remarks live in chat, the wiki and mail |
 
 Scores are per run and live with the run, not here.
 
@@ -45,7 +45,7 @@ Each is graded as five independent facts, 0.1 each. `open_feature` carries weigh
 
 ## Where the remarks are spread
 
-48 remarks in total — 40 clues, 4 herrings and 4 reversals — across 1 surfaces and 10 chat channels. `spread_problems()` is the gate that forces this: every requirement needs at least 2 sources, 3 weeks and 2 channels, so no single sitting recovers one.
+48 remarks in total — 40 clues, 4 herrings and 4 reversals — across 1 surfaces and 10 chat channels. `clues.spread()` reports on this — at least 2 sources, 3 weeks and 2 rooms per requirement, so no single sitting recovers one. It is advisory, not enforced: read the numbers rather than trusting that something refused a plant without them.
 
 | surface | remarks | where they sit |
 |---|---|---|
@@ -137,7 +137,7 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 - **gideon** (2025-04-28, #viewer): one thing I hit while digging - with cache off, run_id "" and run_id None both piled into the same dir, three jobs, no way to tell them apart.
 - **konrad** (2025-05-06, #incidents): Look, our CI wrapper passes os.environ.get("CURATOR_RUN_ID") straight in as run_id and nothing was exported, so the disable-cache sweep came back RunIdentityError. Exported it, three dirs.
 - **dermot** (2025-05-01, #engineering): same shape: someone passed a run id on a normal cached run, we ignored it, lost an hour on why the dir was the old one. it should refuse.
-- **nikolai** (2025-06-03, #engineering): check moved ahead of run dir creation - compute_run_identity refuses an id on a cached run, and refuses cache off with run_id None or "". LLM.__call__ never trips that second one though, it always has an id by then - CURATOR_RUN_ID or a fresh uuid4 - so what surfaces out of __call__ is the cached-run case. nothing left on disk either way.
+- **nikolai** (2025-06-03, #engineering): check moved ahead of run dir creation - compute_run_identity refuses an id on a cached run, and refuses cache off with run_id None or "". LLM.__call__ is where the default gets minted - CURATOR_RUN_ID when it is set, otherwise a fresh uuid4 - and it passes that down as the run_id argument, so the only refusal that ever surfaces out of __call__ is the cached-run one. nothing left on disk either way.
 - **dario** (2025-05-02, #releases): to be honest on dermot's one: cache_enabled True with any run_id that isn't None — "" counts — is a RunIdentityError, we don't get to guess which dir they meant
 
 ### g4.r2.sc4 — A cache-off identity is marked out by its own hash prefix, is byte-for-byte reproducible from the same id and different for a different id, and the module computing it holds no source of randomness.
@@ -220,7 +220,7 @@ Replace the ad-hoc cache fingerprint in `llm/llm.py` with an explicit, versioned
 | 2025-05-01 | chat | #engineering | emil | [`g4.r2.l11`](#g4r2l11) | 9 | clue | `failure_behavior` |
 | 2025-05-02 | chat | #releases | dermot | [`g4.r2.say19`](#g4r2say19) | 8 | clue | `failure_behavior` |
 | 2025-05-06 | chat | #incidents | gideon | [`g4.r2.l10`](#g4r2l10) | 8 | clue | `failure_behavior` |
-| 2025-06-03 | chat | #engineering | dermot | [`g4.r2.l12`](#g4r2l12) | 8 | clue | `failure_behavior`, `scope` |
+| 2025-06-03 | chat | #engineering | dermot | [`g4.r2.l12`](#g4r2l12) | 9 | clue | `failure_behavior`, `scope` |
 
 #### `g4.r2.h2-isoformat-segment` · **herring**
 
@@ -1112,7 +1112,7 @@ As it appears, spread across the exchange:
 15:16  dario     its _get_function_hash(llm.prompt_formatter.parse_func), for what thats worth
 15:17  dermot    so it is hashing the function. then why did nothing move
 15:19  nikolai   same helper prompt_func_hash goes through just handed a differnt function so the two never match
-15:21  dario     that tracks. honestly id been reading them as the same value, nobodys gone in and touched it yet
+15:21  dario     that tracks. and they land in the digest under those exact names, parse_func_hash and prompt_func_hash, suffix and all — not the bare function names. honestly id been reading them as the same value, nobodys gone in and touched it yet
 15:22  dermot    yeah ok. thats my whole morning explained then, nothing to do with the parser at all
 ```
 
@@ -1341,18 +1341,19 @@ As it appears, spread across the exchange:
 
 What the remark has to leave a reader with:
 
-> check moved ahead of run dir creation - compute_run_identity refuses an id on a cached run, and refuses cache off with run_id None or "". LLM.__call__ never trips that second one though, it always has an id by then - CURATOR_RUN_ID or a fresh uuid4 - so what surfaces out of __call__ is the cached-run case. nothing left on disk either way.
+> check moved ahead of run dir creation - compute_run_identity refuses an id on a cached run, and refuses cache off with run_id None or "". LLM.__call__ is where the default gets minted - CURATOR_RUN_ID when it is set, otherwise a fresh uuid4 - and it passes that down as the run_id argument, so the only refusal that ever surfaces out of __call__ is the cached-run one. nothing left on disk either way.
 
 As it appears, spread across the exchange:
 
 ```
-15:12  dermot    the identity check — does that sit before the run dir gets made now or after
-15:14  nikolai   before thats the order we landed on
-15:16  dermot    so compute_run_identity refuses an id on a cached run. is there a second way to trip it or just the one
-15:18  nikolai   two yep cache off with run_id None or "" gets refused as well
-15:20  dermot    the empty string one i dont follow, who actually reaches that
-15:24  nikolai   not `LLM.__call__` i'd say by the time your in there theres always an id CURATOR_RUN_ID or a fresh uuid4 so the only one that ever surfaces out of `__call__` is the cached run case
-15:25  emil      The dir though — do we end up with a half made one sitting there when it refuses
-15:26  nikolai   no nothing left on disk either way thats the whole reason the check moved ahead of it
+15:11  dermot    quick one on the run identity check, does it sit before or after we make the run dir? i had a half written run folder left behind from an id that got rejected
+15:14  nikolai   before  we settled on moving the check ahead of the dir creation  refuse first then create so nothing is left on disk either way
+15:16  dermot    mhm. and what is compute_run_identity actually refusing on
+15:19  nikolai   two things  an id passed on a cached run  and cache off with run_id None or ""
+15:23  emil      wait, the empty one too? so restating it back at you, anything hitting LLM.__call__ without an id explodes on every uncached run? that cant be right
+15:26  nikolai   no  __call__ mints the default itself  CURATOR_RUN_ID when its set otherwise a fresh uuid4  and passes that down as the run_id arg
+15:28  emil      ah ok. so out of __call__ the only refusal you can ever actually surface is the cached-run one. The None/empty case is for people coming in further down
+15:30  nikolai   yep  thats the only one youd see from there
+15:32  dermot    mine was a cached run with an id set, so that tracks
 ```
 

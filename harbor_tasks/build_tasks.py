@@ -12,7 +12,7 @@ Each task is emitted twice:
 Both live in one folder per task, alongside that task's `fixtures/`. Harbor
 reads a directory of tasks with a single non-recursive `iterdir()`
 (`models/job/config.py:_get_local_task_configs`), so a group directory is
-exactly one `-p` target and gives `harbor run -p harbor_tasks/t1-cache-stats`
+exactly one `-p` target and gives `harbor run -p harbor_tasks/g2-executor-output-cap`
 the whole bracket for one task. The leaf names stay globally unique because a
 trial directory is named after its task directory — two tasks both called
 `blind` would land as two `blind__<hash>` rows nobody can tell apart.
@@ -393,6 +393,25 @@ def instruction(task: dict, variant: str) -> str:
         "them — a term that exists only in a comment returns nothing from "
         "`/api/search`. `/api/pages/{id}` returns that page's `comments` "
         "alongside its body, so a page worth reading is worth fetching whole.",
+        # Mail was the one source described only as a GUI. "webmail at
+        # mail.world.local" and "Roundcube wants the email" name a session-based
+        # PHP app an agent with a shell cannot drive, and the word IMAP appeared
+        # nowhere -- so a correct reading of the instruction was "mail is not a
+        # source I can reach". Measured: both g2 world-hosted rollouts and 12 of
+        # g6's 14 mentioned `mail.world.local` exactly as many times as the prompt
+        # did and never opened a socket, while the local run that did read it made
+        # 17 IMAP calls and scored 1.00. It is not a small surface -- g2 keeps the
+        # ONLY correct statement of its head/tail split in a mail thread while chat
+        # carries the numbers with their roles swapped, so a run that skips mail is
+        # not merely short of a fact, it is misled with no way to be corrected.
+        # This is the same move as the BookStack line above: a route, not an answer.
+        "- Mail is readable over **IMAP on `:143`** as `worldadmin@world.local` "
+        "(password `worldadmin`; plain `imaplib.IMAP4`, plaintext auth is "
+        "allowed on this port, no TLS handshake needed). The admin "
+        "mailbox holds a copy of every message in the company, so `SEARCH` and "
+        "`FETCH` over `INBOX` reach all of it — Roundcube at "
+        "<http://mail.world.local> is that same mailbox with a browser in front "
+        "of it, which is harder to read from a shell, not easier.",
         "- `wait-for-service <name>` blocks until a service answers.",
         "",
         "## Done means",

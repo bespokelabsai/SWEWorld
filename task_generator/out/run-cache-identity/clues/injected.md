@@ -17,6 +17,9 @@ To   `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/runs/latest-g4`
 ## Could not have happened then — none
 
 
+## A rival vocabulary nobody retracted — none
+
+
 ## Landed on a busy day — read these
 
 - g4.r1.l-keys-order: #code-review 2025-04-16 — 1 existing message(s) fall inside the new thread's 15:12–15:25

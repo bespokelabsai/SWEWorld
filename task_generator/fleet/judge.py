@@ -43,7 +43,10 @@ ACTIONS = {
     "amend_ticket":  "state a missing detail in ticket.md and task.json's description, then rebuild naive and spec",
     "reformat_ticket": "re-lay-out the ticket as structured markdown, dropping nothing, changing no wording",
     "repair":        "rewrite only the remarks the proof blamed, in place",
-    "replace":       "re-place every remark, same wording",
+    "replace":       "re-place every remark, same wording — placement is wrong, the words are not",
+    "reclues":       "re-plant from scratch: the TREE is wrong, not the placement or the prose",
+    "rewrite_exchanges": "re-weave only the exchanges a gate named — the wording of the conversation "
+                         "is wrong, the remark and its placement are not",
     "stop":          "park this task and report; going on would spend into a defect",
 }
 
@@ -57,8 +60,22 @@ SITUATIONS = {
     "tests": (("proceed", "retry", "stop"), ("tests/test_open.py", "ticket.md")),
     "crash": (("retry", "stop"), ()),
     "hosted": (("proceed", "retry", "stop"), ("ticket.md", "hidden.md")),
-    "clues": (("proceed", "repair", "replace", "stop"), ("clues/README.md",)),
-    "prove": (("repair", "replace", "stop"), ("clues/proof.md", "clues/README.md")),
+    # The plant itself. `repair` is not offered here: `cli.py repair` reads
+    # `clues/proof.json` and exits if it is absent, which it is until `prove` has
+    # run, so offering it would buy a no-op that still advanced the walk.
+    "clues": (("proceed", "reclues", "replace", "stop"),
+              ("clues/README.md", "clues/tree.md")),
+    # Every pass after the plant that rewrites it: settle, reverse, reorder,
+    # reknit, consistency. They report through the same ledger and the same
+    # repairs answer them.
+    "plant": (("proceed", "replace", "reclues", "rewrite_exchanges", "stop"),
+              ("clues/README.md", "clues/plant.json", "clues/settled.md")),
+    "prove": (("repair", "replace", "reclues", "rewrite_exchanges", "stop"),
+              ("clues/proof.md", "clues/README.md")),
+    # `horizon --arms …,clues` refuses when the rendered digest never types a
+    # graded name. Retrying is guaranteed to fail identically.
+    "emit_clues": (("reclues", "replace", "stop"),
+                   ("clues/README.md", "clues/plant.json")),
 }
 
 

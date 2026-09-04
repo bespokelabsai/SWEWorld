@@ -1,0 +1,572 @@
+{
+ "slug": "token-capacity-budget",
+ "task": "g10",
+ "digest": "7104a89b2f723a63",
+ "verdicts": {
+  "g10.r1.exclusions_or_crossover#1": {
+   "key": "g10.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Emil says a refill \"just gets capped back at the per-minute limit\" and Nils says \"every refill that tops out at the limit\", so a reader is told outright that refill on the token axis stops at max_tokens_per_minute rather than running on to 1200.",
+   "clues": [
+    "g10.r1.g10.r1.s4.l2",
+    "g10.r1.g10.r1.s4.l1"
+   ],
+   "source": "assert refilled.available_token_capacity == 1000.0     # capped, not 1200.0"
+  },
+  "g10.r1.exclusions_or_crossover#2": {
+   "key": "g10.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "Every cap remark is about the token/per-minute allowance; nobody says the request axis has its own ceiling it refills up to, so the reader has to generalise the token-side cap to available_request_capacity on their own.",
+   "clues": [
+    "g10.r1.g10.r1.s4.l2",
+    "g10.r1.g10.r1.s2.l4"
+   ],
+   "source": "assert refilled.available_request_capacity == 60.0"
+  },
+  "g10.r1.exclusions_or_crossover#3": {
+   "key": "g10.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Nils reports the counter reaching 47 on a run that never went under and says refills topping out at the limit \"shouldn't be\" ticking it, and Emil agrees there is \"nothing worth recording\" \u2014 the exclusion is decided out loud.",
+   "clues": [
+    "g10.r1.g10.r1.s4.l1",
+    "g10.r1.g10.r1.s4.l2",
+    "g10.r1.g10.r1.s3.l1"
+   ],
+   "source": "assert clamp_count(refilled) == 0"
+  },
+  "g10.r1.exclusions_or_crossover#4": {
+   "key": "g10.r1.exclusions_or_crossover",
+   "verdict": "implied",
+   "why": "Nikolai's remark is aimed at the counter, and only describes in passing that a big over-reservation \"puts us right on the ceiling\"; the reader is left to supply that release itself clamps down to max_tokens_per_minute instead of adding through to 1800.",
+   "clues": [
+    "g10.r1.g10.r1.s4.l3",
+    "g10.r1.g10.r1.s4.l2"
+   ],
+   "source": "assert released.available_token_capacity == 1000.0     # capped, not 1800.0"
+  },
+  "g10.r1.exclusions_or_crossover#5": {
+   "key": "g10.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Nikolai says a release that hands back a big over-reservation and lands on the ceiling \"is not the event we're watching for\", which is the decision not to increment.",
+   "clues": [
+    "g10.r1.g10.r1.s4.l3"
+   ],
+   "source": "assert clamp_count(released) == 0"
+  },
+  "g10.r1.exclusions_or_crossover#6": {
+   "key": "g10.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Konrad's remark carries the exact scenario and figure \u2014 a settle that leaves us at +100 on a 1000 tracker \u2014 so the post-settlement capacity value is named in the corpus rather than inferred.",
+   "clues": [
+    "g10.r1.g10.r1.s4.l4"
+   ],
+   "source": "assert settled.available_token_capacity == 100.0"
+  },
+  "g10.r1.exclusions_or_crossover#7": {
+   "key": "g10.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Konrad says a settle leaving +100 on a 1000 tracker \"is not it either\" and that it should only tick \"when we actually stopped the fall\", i.e. only when the debt floor is applied.",
+   "clues": [
+    "g10.r1.g10.r1.s4.l4",
+    "g10.r1.rev2"
+   ],
+   "source": "assert clamp_count(settled) == 0"
+  },
+  "g10.r1.observability#1": {
+   "key": "g10.r1.observability",
+   "verdict": "stated",
+   "why": "gideon says the tracker carries \"a plain counter starting at 0\" and dermot/emil name that counter num_capacity_debt_clamps, so the default value of the field is decided out loud.",
+   "clues": [
+    "g10.r1.g10.r1.s3.l1",
+    "g10.r1.rev2",
+    "g10.r1.g10.r1.s3.l2"
+   ],
+   "source": "assert clamp_count(sep) == 0"
+  },
+  "g10.r1.observability#2": {
+   "key": "g10.r1.observability",
+   "verdict": "stated",
+   "why": "the counter starts at 0 (gideon) and the whole s4 thread rules out ticking on refills capped at the limit, over-reservation releases and settles that stay positive \u2014 konrad: \"It should only tick when we actaully stopped the fall.\"",
+   "clues": [
+    "g10.r1.g10.r1.s3.l1",
+    "g10.r1.g10.r1.s4.l1",
+    "g10.r1.g10.r1.s4.l2",
+    "g10.r1.g10.r1.s4.l4"
+   ],
+   "source": "assert clamp_count(sep) == 0                            # nothing clamped yet"
+  },
+  "g10.r1.observability#3": {
+   "key": "g10.r1.observability",
+   "verdict": "stated",
+   "why": "dario answers dermot's double-count report with \"one call one tick \u2014 whether it was a single axis sitting at the bottom or both of them clamped in the same settle, it still only counts once,\" which is exactly one increment for a clamping call.",
+   "clues": [
+    "g10.r1.g10.r1.s3.l3",
+    "g10.r1.g10.r1.s3.l2",
+    "g10.r1.rev2"
+   ],
+   "source": "assert clamp_count(sep) == 1"
+  },
+  "g10.r1.observability#4": {
+   "key": "g10.r1.observability",
+   "verdict": "stated",
+   "why": "\"one call one tick\" plus emil's \"counts each such call\" fixes the per-call increment, so a second clamping call reaching 2 is the stated rule applied again rather than something the reader must work out.",
+   "clues": [
+    "g10.r1.g10.r1.s3.l3",
+    "g10.r1.rev2"
+   ],
+   "source": "assert clamp_count(sep) == 2"
+  },
+  "g10.r1.rule#1": {
+   "key": "g10.r1.rule",
+   "verdict": "stated",
+   "why": "Konrad names the constant CAPACITY_DEBT_FLOOR_FRACTION, its home in capacity_budget.py, and its value 0.25 in a single remark, and rev1 repeats the name-value pairing.",
+   "clues": [
+    "g10.r1.g10.r1.s1.l4",
+    "g10.r1.rev1",
+    "g10.r1.rev2"
+   ],
+   "source": "assert fraction == 0.25"
+  },
+  "g10.r1.rule#2": {
+   "key": "g10.r1.rule",
+   "verdict": "not_required",
+   "why": "A positive 1000-minus-800 reading that is identical before and after the revision \u2014 the suite verifying its own tracker state before the step under test.",
+   "clues": [
+    "g10.r1.clamp-at-zero-decision"
+   ],
+   "source": "assert t.available_token_capacity == 200.0"
+  },
+  "g10.r1.rule#3": {
+   "key": "g10.r1.rule",
+   "verdict": "stated",
+   "why": "rev1 and rev2 both say capacity now goes negative and is floored per axis at -CAPACITY_DEBT_FLOOR_FRACTION * limit with 0.25, and nikolai independently fixes the depth at a quarter of the minute's allowance, ruling out the no-floor, -limit and zero alternatives.",
+   "clues": [
+    "g10.r1.rev1",
+    "g10.r1.rev2",
+    "g10.r1.g10.r1.s1.l3",
+    "g10.r1.g10.r1.s1.l2"
+   ],
+   "source": "# -250.0: not -500.0 (no floor), not -1000.0 (floor at -limit), not 0.0 (floor at zero)\n    assert t.available_token_capacity == -250.0"
+  },
+  "g10.r1.scope#1": {
+   "key": "g10.r1.scope",
+   "verdict": "stated",
+   "why": "nils says the row where the caller passed 0 \"still has the 100k default standing behind it, so it isn't a special case\", which is the decision that a 0 argument reads back as the 100_000 per-minute limit.",
+   "clues": [
+    "g10.r1.g10.r1.s2.l1",
+    "g10.r1.g10.r1.s2.l2"
+   ],
+   "source": "assert defaulted.max_tokens_per_minute == 100_000"
+  },
+  "g10.r1.scope#2": {
+   "key": "g10.r1.scope",
+   "verdict": "not_required",
+   "why": "This is the tracker's pre-existing starting state before any settle \u2014 the suite's own baseline for the contrast with the floored value, not anything the debt-floor change decides.",
+   "clues": [
+    "g10.r1.g10.r1.s1.l1"
+   ],
+   "source": "assert defaulted.available_token_capacity == 0.0"
+  },
+  "g10.r1.scope#3": {
+   "key": "g10.r1.scope",
+   "verdict": "stated",
+   "why": "rev1 commits outright to \"floored per axis at -CAPACITY_DEBT_FLOOR_FRACTION * limit, 0.25\" and nils commits to the 100k limit behind a 0 argument, so -25000.0 is the composition of two decisions each made out loud.",
+   "clues": [
+    "g10.r1.rev1",
+    "g10.r1.rev2",
+    "g10.r1.g10.r1.s2.l2"
+   ],
+   "source": "assert defaulted.available_token_capacity == -25000.0"
+  },
+  "g10.r1.scope#4": {
+   "key": "g10.r1.scope",
+   "verdict": "not_required",
+   "why": "Positive per-axis capacity after ordinary usage is the fixture's pre-floor baseline; no remark supplies 300/400/700 and none needs to.",
+   "clues": [
+    "g10.r1.g10.r1.s2.l1"
+   ],
+   "source": "assert token_axes(sep.available_token_capacity) == (300, 400, 700)"
+  },
+  "g10.r1.scope#5": {
+   "key": "g10.r1.scope",
+   "verdict": "stated",
+   "why": "gideon names the bug of holding both halves against the input number when output's own limit is 500/minute, and rev1 settles the fix as a floor \"per axis\" at -0.25 * limit, so each axis bottoming at a quarter of its own allowance was decided aloud.",
+   "clues": [
+    "g10.r1.rev1",
+    "g10.r1.g10.r1.s2.l1"
+   ],
+   "source": "assert token_axes(sep.available_token_capacity) == (-250, -125, -375)"
+  },
+  "g10.r1.scope#6": {
+   "key": "g10.r1.scope",
+   "verdict": "stated",
+   "why": "dermot reports settle doing arithmetic on a None for a model with no token ceiling and rules \"no ceiling, nothing to take a share of, leave it be\" \u2014 i.e. that axis gets no floor and stays None.",
+   "clues": [
+    "g10.r1.g10.r1.s2.l3"
+   ],
+   "source": "assert unlimited.available_token_capacity is None"
+  },
+  "g10.r1.scope#7": {
+   "key": "g10.r1.scope",
+   "verdict": "absent",
+   "why": "dermot's \"leave it be\" is about the token ceiling only and emil's request-bucket remark is about it going negative; nobody says a request axis with no limit reads back None.",
+   "clues": [
+    "g10.r1.g10.r1.s2.l3",
+    "g10.r1.g10.r1.s2.l4"
+   ],
+   "source": "assert unlimited.available_request_capacity is None"
+  },
+  "g10.r1.scope#8": {
+   "key": "g10.r1.scope",
+   "verdict": "stated",
+   "why": "emil names available_request_capacity directly and rules that since \"we reserve exactly one slot per request, it can't overspend, so that one should never be under zero at all\", which is exactly the never-floored, minus-one-per-check behaviour.",
+   "clues": [
+    "g10.r1.g10.r1.s2.l4"
+   ],
+   "source": "# the request bucket is never floored: it only falls by one after a successful check\n    assert defaulted.available_request_capacity == 59.0"
+  },
+  "g10.r1.scope#9": {
+   "key": "g10.r1.scope",
+   "verdict": "stated",
+   "why": "emil's ruling on the request bucket is about the bucket itself, not about a mode, so it covers the separate-axis tracker's request capacity as well.",
+   "clues": [
+    "g10.r1.g10.r1.s2.l4"
+   ],
+   "source": "assert sep.available_request_capacity == 59.0"
+  },
+  "g10.r2.exclusions_or_crossover#1": {
+   "key": "g10.r2.exclusions_or_crossover",
+   "verdict": "not_required",
+   "why": "This reads back the blocked estimate the suite itself constructed (and the input/total axes of _TokenUsage, which belong to another requirement); the 100-output booking is the only piece the corpus happens to echo, and nothing turns on 900/1000 for the implementation.",
+   "clues": [
+    "g10.r2.s4_l2",
+    "g10.r2.rev2"
+   ],
+   "source": "assert token_axes(blocked) == (900, 100, 1000)"
+  },
+  "g10.r2.exclusions_or_crossover#2": {
+   "key": "g10.r2.exclusions_or_crossover",
+   "verdict": "not_required",
+   "why": "This is the pre-refund snapshot of the tracker the suite seeded (one slot spent, 1000 of 10000 tokens held), not a claim the failure-path code has to satisfy.",
+   "clues": [
+    "g10.r2.s1_l2"
+   ],
+   "source": "assert (t.available_request_capacity, t.available_token_capacity) == (59.0, 9000.0)"
+  },
+  "g10.r2.exclusions_or_crossover#3": {
+   "key": "g10.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "dermot says refund_capacity returns the entire token reservation rather than whatever was left unspent, rev1/rev2 say failure refunds the whole estimate via refund_capacity(blocked), and nils says on the throw-away path the booking is the only number we trust \u2014 with s4_l2 naming the finish_reason length / 800-vs-100 case explicitly.",
+   "clues": [
+    "g10.r2.s2_l2",
+    "g10.r2.rev1",
+    "g10.r2.rev2",
+    "g10.r2.s4_l3",
+    "g10.r2.s4_l2"
+   ],
+   "source": "# the whole estimate comes back: 9000 + 1000. A settlement against the reported\n    # usage would have given 9000 + (1000 - 1700) == 8300.0 and left the slot spent.\n    assert t.available_token_capacity == 10000.0"
+  },
+  "g10.r2.exclusions_or_crossover#4": {
+   "key": "g10.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "rev1 says failure refunds the estimate plus 1.0 slot back, rev2 says the slot returns on failure, and konrad says an errored call hands its slot back one per attempt.",
+   "clues": [
+    "g10.r2.rev1",
+    "g10.r2.rev2",
+    "g10.r2.s2_l4"
+   ],
+   "source": "assert t.available_request_capacity == 60.0"
+  },
+  "g10.r2.observability#1": {
+   "key": "g10.r2.observability",
+   "verdict": "implied",
+   "why": "Konrad names the two counters and Nikolai reports \"the release counts sat at zero\" during a run, but nobody says the counters are initialized to 0 \u2014 the reader supplies the conventional default for a `num_*` field.",
+   "clues": [
+    "g10.r2.s5_l2",
+    "g10.r2.s5_l3"
+   ],
+   "source": "assert (settlements(settled), refunds(settled)) == (0, 0)"
+  },
+  "g10.r2.observability#2": {
+   "key": "g10.r2.observability",
+   "verdict": "implied",
+   "why": "Konrad frames both counters as telling apart \"the two kinds of release\" and Dermot's rule is about release calls, so a reader can infer acquisition ticks neither, but no remark says consuming leaves both counters untouched.",
+   "clues": [
+    "g10.r2.s5_l2",
+    "g10.r2.s5_l4"
+   ],
+   "source": "assert (settlements(settled), refunds(settled)) == (0, 0)   # consuming counts as neither"
+  },
+  "g10.r2.observability#3": {
+   "key": "g10.r2.observability",
+   "verdict": "stated",
+   "why": "Konrad asks for num_capacity_settlements and num_capacity_refunds as separate counters for the two kinds of release, Dario's rev1 makes the success path the settlement (free_capacity(used, blocked)), and Dermot says a release increments \u2014 so a settlement bumping settlements and not refunds was decided out loud.",
+   "clues": [
+    "g10.r2.s5_l2",
+    "g10.r2.s5_l4",
+    "g10.r2.rev1"
+   ],
+   "source": "assert (settlements(settled), refunds(settled)) == (1, 0)"
+  },
+  "g10.r2.observability#4": {
+   "key": "g10.r2.observability",
+   "verdict": "stated",
+   "why": "The same separate-counters decision plus rev1 naming the failure path refund_capacity(blocked) makes a refund tick num_capacity_refunds only, which is exactly what the assertion checks.",
+   "clues": [
+    "g10.r2.s5_l2",
+    "g10.r2.s5_l4",
+    "g10.r2.rev1"
+   ],
+   "source": "assert (settlements(refunded), refunds(refunded)) == (0, 1)"
+  },
+  "g10.r2.observability#5": {
+   "key": "g10.r2.observability",
+   "verdict": "stated",
+   "why": "Dermot says outright to count the call rather than whether it moved a number \u2014 a release against an unlimited axis goes through the same code path and still increments \u2014 which is the (1, 1) after one settlement and one refund on a no-limit tracker.",
+   "clues": [
+    "g10.r2.s5_l4",
+    "g10.r2.s5_l3"
+   ],
+   "source": "assert (settlements(unlimited), refunds(unlimited)) == (1, 1)"
+  },
+  "g10.r2.observability#6": {
+   "key": "g10.r2.observability",
+   "verdict": "implied",
+   "why": "\"No token ceiling set\" and \"unlimited axis ... whether it moved a number\" point at the axis staying unlimited through a release, but nobody in this corpus says the tracker carries an attribute called available_token_capacity, let alone that it holds None.",
+   "clues": [
+    "g10.r2.s5_l4",
+    "g10.r2.s5_l3"
+   ],
+   "source": "assert unlimited.available_token_capacity is None"
+  },
+  "g10.r2.observability#7": {
+   "key": "g10.r2.observability",
+   "verdict": "implied",
+   "why": "Only Dermot's \"unlimited axis\" bears on it; the name available_request_capacity and its None value on an unlimited tracker are supplied by the reader, not by any remark.",
+   "clues": [
+    "g10.r2.s5_l4"
+   ],
+   "source": "assert unlimited.available_request_capacity is None"
+  },
+  "g10.r2.rule#1": {
+   "key": "g10.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 names refund_capacity(blocked) and spells out its two effects \u2014 the whole estimate back plus a literal 1.0 slot \u2014 with rev2 and s2_l2 confirming the whole-reservation refund.",
+   "clues": [
+    "g10.r2.rev1",
+    "g10.r2.rev2",
+    "g10.r2.s2_l2"
+   ],
+   "source": "assert (refunded.available_request_capacity, refunded.available_token_capacity) == (59.0, 9200.0)"
+  },
+  "g10.r2.rule#2": {
+   "key": "g10.r2.rule",
+   "verdict": "stated",
+   "why": "konrad says the errored call's slot goes back one per attempt and \"never above what the minute started with\", which is the request-axis clamp at the per-minute maximum.",
+   "clues": [
+    "g10.r2.s2_l4",
+    "g10.r2.rev1"
+   ],
+   "source": "assert refunded.available_request_capacity == 60.0"
+  },
+  "g10.r2.rule#3": {
+   "key": "g10.r2.rule",
+   "verdict": "implied",
+   "why": "s4_l1 reports a bucket finishing above the limit but s4_l2/s4_l3 resolve it by refunding the booking instead of the reported usage, so the reader is left to supply a token-axis clamp nobody asked for.",
+   "clues": [
+    "g10.r2.s4_l1",
+    "g10.r2.s4_l3",
+    "g10.r2.s2_l4"
+   ],
+   "source": "assert refunded.available_token_capacity == 10000.0"
+  },
+  "g10.r2.rule#4": {
+   "key": "g10.r2.rule",
+   "verdict": "stated",
+   "why": "same clamp on available_request_capacity that s2_l4 states directly \u2014 one slot per attempt, never above the minute's starting ceiling.",
+   "clues": [
+    "g10.r2.s2_l4",
+    "g10.r2.rev1"
+   ],
+   "source": "assert refunded.available_request_capacity == 60.0"
+  },
+  "g10.r2.rule#5": {
+   "key": "g10.r2.rule",
+   "verdict": "implied",
+   "why": "the only remark about exceeding the token limit is a symptom whose stated cure is refunding the estimate rather than reported usage; the reader must invent the min-against-limit themselves.",
+   "clues": [
+    "g10.r2.s4_l1",
+    "g10.r2.s4_l3"
+   ],
+   "source": "assert refunded.available_token_capacity == 10000.0"
+  },
+  "g10.r2.rule#6": {
+   "key": "g10.r2.rule",
+   "verdict": "stated",
+   "why": "dario says a clean response puts back only \"the gap between what we booked and what it actually spent\", and rev1 attaches that to free_capacity(used, blocked).",
+   "clues": [
+    "g10.r2.s1_l2",
+    "g10.r2.rev1"
+   ],
+   "source": "assert settled.available_token_capacity == 9400.0"
+  },
+  "g10.r2.rule#7": {
+   "key": "g10.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 says on success the slot stays spent and rev2 that the slot returns on failure only, with s1_l3/s1_l4 giving the 240-in-a-200-minute reason.",
+   "clues": [
+    "g10.r2.rev1",
+    "g10.r2.rev2",
+    "g10.r2.s1_l4",
+    "g10.r2.s1_l3"
+   ],
+   "source": "assert settled.available_request_capacity == 59.0     # NOT 60.0"
+  },
+  "g10.r2.rule#8": {
+   "key": "g10.r2.rule",
+   "verdict": "implied",
+   "why": "s3_l3 names _refund_capacity as the thing that should fire on giving up and rev1 names the tracker's refund_capacity(blocked), but nobody says the processor method delegates to the tracker's or what arguments it takes \u2014 that shape is borrowed by analogy from h1, a remark rev1 overturns.",
+   "clues": [
+    "g10.r2.s3_l3",
+    "g10.r2.rev1",
+    "g10.r2.h1"
+   ],
+   "source": "assert (delegated.available_request_capacity, delegated.available_token_capacity) == (59.0, 9200.0)"
+  },
+  "g10.r2.rule#9": {
+   "key": "g10.r2.rule",
+   "verdict": "implied",
+   "why": "the request-slot clamp is stated, but reaching it through a processor-level _refund_capacity that forwards to the tracker is a delegation nobody describes.",
+   "clues": [
+    "g10.r2.s3_l3",
+    "g10.r2.s2_l4",
+    "g10.r2.rev1"
+   ],
+   "source": "assert delegated.available_request_capacity == 60.0"
+  },
+  "g10.r2.rule#10": {
+   "key": "g10.r2.rule",
+   "verdict": "implied",
+   "why": "both halves are unstated \u2014 the token clamp at the limit and the processor helper's forwarding to status_tracker.refund_capacity.",
+   "clues": [
+    "g10.r2.s3_l3",
+    "g10.r2.s4_l1",
+    "g10.r2.rev1"
+   ],
+   "source": "assert delegated.available_token_capacity == 10000.0"
+  },
+  "g10.r2.scope#1": {
+   "key": "g10.r2.scope",
+   "verdict": "not_required",
+   "why": "This is the suite's own pre-state check that the fixture's reservation of input=700/output=300 was booked (1.0 slot, 1000 tokens) before either branch runs; the reservation arithmetic is the setup this requirement is measured from, not something r2's remarks owe.",
+   "clues": [],
+   "source": "assert (t.available_request_capacity, t.available_token_capacity) == (59.0, 9000.0)"
+  },
+  "g10.r2.scope#2": {
+   "key": "g10.r2.scope",
+   "verdict": "stated",
+   "why": "s3_l3 says _refund_capacity should fire at the point we give up on a request entirely and nothing calls it there, rev1 says failure refunds estimate plus 1.0 slot back, and s2_l4 caps the slot return at what the minute started with \u2014 60.0.",
+   "clues": [
+    "g10.r2.s3_l3",
+    "g10.r2.rev1",
+    "g10.r2.s2_l4",
+    "g10.r2.s3_l2"
+   ],
+   "source": "assert exhausted.available_request_capacity == 60.0"
+  },
+  "g10.r2.scope#3": {
+   "key": "g10.r2.scope",
+   "verdict": "stated",
+   "why": "s2_l2 says an errored attempt returns the entire token reservation rather than whatever was left unspent, and s3_l3/s3_l2 put that refund on the give-up branch, so the 1000-token booking comes back whole to 10000.0.",
+   "clues": [
+    "g10.r2.s2_l2",
+    "g10.r2.s3_l3",
+    "g10.r2.s3_l2",
+    "g10.r2.rev1"
+   ],
+   "source": "assert exhausted.available_token_capacity == 10000.0"
+  },
+  "g10.r2.scope#4": {
+   "key": "g10.r2.scope",
+   "verdict": "not_required",
+   "why": "A branch-taken sanity check on the retry loop's existing attempts_left decrement, which the suite sets up and no remark is being asked to specify.",
+   "clues": [
+    "g10.r2.s3_l2"
+   ],
+   "source": "assert request.attempts_left == 0                     # it really took the requeue branch"
+  },
+  "g10.r2.scope#5": {
+   "key": "g10.r2.scope",
+   "verdict": "stated",
+   "why": "s2_l4 says outright that an errored call hands its slot back, one per attempt, never above the minute's starting figure, and rev1 repeats the 1.0 slot on the failure path.",
+   "clues": [
+    "g10.r2.s2_l4",
+    "g10.r2.rev1",
+    "g10.r2.s2_l3"
+   ],
+   "source": "assert requeued.available_request_capacity == 60.0"
+  },
+  "g10.r2.scope#6": {
+   "key": "g10.r2.scope",
+   "verdict": "stated",
+   "why": "s3_l4 says holding the old booking against a requeued request charges the budget twice since it gets estimated again, and s2_l2 fixes the refund at the entire reservation, giving the full 10000.0.",
+   "clues": [
+    "g10.r2.s3_l4",
+    "g10.r2.s2_l2",
+    "g10.r2.s3_l1",
+    "g10.r2.rev1"
+   ],
+   "source": "assert requeued.available_token_capacity == 10000.0"
+  },
+  "g10.r2.scope#7": {
+   "key": "g10.r2.scope",
+   "verdict": "stated",
+   "why": "rev1 says in as many words that on success the slot stays spent, with s1_l3/s1_l4 giving the reason (a request that reached the provider does not un-happen), so the tracker sits at 59.0.",
+   "clues": [
+    "g10.r2.rev1",
+    "g10.r2.s1_l3",
+    "g10.r2.s1_l4"
+   ],
+   "source": "assert succeeded.available_request_capacity == 59.0"
+  },
+  "g10.r2.scope#8": {
+   "key": "g10.r2.scope",
+   "verdict": "stated",
+   "why": "s1_l2 says on a clean response the only thing returned is the gap between the booking and actual spend, and rev1 names the success call as free_capacity(used, blocked): 1000 booked minus 800 reported puts 200 back onto 9000.0.",
+   "clues": [
+    "g10.r2.s1_l2",
+    "g10.r2.rev1",
+    "g10.r2.s1_l1"
+   ],
+   "source": "assert succeeded.available_token_capacity == 9200.0"
+  }
+ },
+ "counts": {
+  "stated": 33,
+  "implied": 11,
+  "absent": 1,
+  "not_required": 7
+ },
+ "short": [
+  "g10.r2.rule",
+  "g10.r2.observability",
+  "g10.r1.exclusions_or_crossover",
+  "g10.r1.scope"
+ ],
+ "applied": {
+  "rewritten": [
+   "g10.r2.s4_l3 (g10.r2.rule)",
+   "g10.r2.s5_l3 (g10.r2.observability)",
+   "g10.r2.s5_l1 (g10.r2.observability)",
+   "g10.r1.g10.r1.s4.l2 (g10.r1.exclusions_or_crossover)",
+   "g10.r1.g10.r1.s4.l3 (g10.r1.exclusions_or_crossover)"
+  ],
+  "added": [
+   "g10.r2.say23 (g10.r2.rule) -> #incidents",
+   "g10.r2.say24 (g10.r2.observability) -> #general",
+   "g10.r2.say25 (g10.r2.observability) -> #viewer",
+   "g10.r1.say19 (g10.r1.scope) -> #incidents"
+  ],
+  "unfixed": []
+ }
+}

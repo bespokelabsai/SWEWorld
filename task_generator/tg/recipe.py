@@ -106,6 +106,16 @@ STAGES = [
           labels=("clue-thread", "clue-carry", "clue-reknit"),
           note="GATE: turn each remark into the exchange it was made in — the "
                "step that makes a plant into a corpus rather than a list"),
+    # AFTER reknit, because it reads the exchanges and not the remarks. The defect
+    # it exists for is one reknit can introduce: g2's `r1.observability` remark says
+    # "the except handler's salvage cap logs nothing" and the exchange written
+    # around it ends "presumably just the same call moved into the handler". Both
+    # local rollouts read that and did what it said.
+    Stage("consistency", paid=8.0, gate=True, labels=("clue-consistency",),
+          note="GATE: a fact stated backwards by a remark nothing later overturns. "
+               "A model call per fact, so it is a stage and not part of `finish` — "
+               "`finish` re-reports what it stored, free, and says so when the "
+               "plant has moved since"),
     # NOT optional. It is a gate, and `make` skips optional stages by default, so
     # `out_of_order` -- which only `reorder` reads -- went unrun on the happy path
     # and eight chronology inversions shipped in g1's plant.

@@ -32,7 +32,7 @@ Support passing an existing rate limiter instance between two `curator.LLM` bloc
 | `fixtures/naive.py` | the obvious implementation; must pass the ticket and fail the hidden rows |
 
 ```bash
-harbor run -p harbor_tasks/t3-shared-limiter -a oracle
+harbor run -p failed_tasks/t3-shared-limiter -a oracle
 ```
 
 ## Measured
@@ -48,4 +48,4 @@ harbor run -p harbor_tasks/t3-shared-limiter -a oracle
 | r2 | `rule` | fail | fail | PASS | **hidden** |
 | r2 | `scope` | fail | fail | PASS | **hidden** |
 
-5 genuinely hidden, 2 coincidence, 0 unmeasurable. See [../BRACKET.md](../BRACKET.md) for what those mean.
+5 genuinely hidden, 2 coincidence, 0 unmeasurable. See [BRACKET.md](../../harbor_tasks/BRACKET.md) for what those mean.

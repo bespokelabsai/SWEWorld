@@ -173,5 +173,1475 @@
   "turns": 3,
   "seconds": 39.5,
   "session": "7a20d759-cd36-4338-b15b-74479612757b"
+ },
+ {
+  "label": "clue-tree-g7.r1",
+  "cost_usd": 0.6569,
+  "turns": 2,
+  "seconds": 263.0,
+  "session": "616a89bd-9f76-4afc-b447-0d0e84fa1f8f"
+ },
+ {
+  "label": "clue-herring-g7.r1",
+  "cost_usd": 0.1395,
+  "turns": 3,
+  "seconds": 14.3,
+  "session": "ed28a70d-d60d-4db3-a161-0173a7736ca6"
+ },
+ {
+  "label": "clue-place-g7.r1.l1",
+  "cost_usd": 0.2034,
+  "turns": 2,
+  "seconds": 32.2,
+  "session": "d800dfd5-0715-4e92-bd44-a5d8976d7fd9"
+ },
+ {
+  "label": "clue-place-g7.r1.l2",
+  "cost_usd": 0.113,
+  "turns": 2,
+  "seconds": 30.8,
+  "session": "ae47a77e-b725-426c-9996-a93312d0925d"
+ },
+ {
+  "label": "clue-mail-g7.r1.l2",
+  "cost_usd": 0.1241,
+  "turns": 2,
+  "seconds": 40.2,
+  "session": "cc8125d3-2c5c-4182-86d0-e728fefb911f"
+ },
+ {
+  "label": "clue-place-g7.r1.l3",
+  "cost_usd": 0.1177,
+  "turns": 2,
+  "seconds": 24.1,
+  "session": "c542ad6e-5db8-4e96-b765-f25d5cf7cb7c"
+ },
+ {
+  "label": "clue-mail-g7.r1.l3",
+  "cost_usd": 0.0677,
+  "turns": 2,
+  "seconds": 27.6,
+  "session": "b08d9f55-6ef9-4a8c-802b-8b5ea160e054"
+ },
+ {
+  "label": "clue-place-g7.r1.l4",
+  "cost_usd": 0.2106,
+  "turns": 2,
+  "seconds": 32.1,
+  "session": "3fda87f4-39f1-49c1-86fc-61561a531d68"
+ },
+ {
+  "label": "clue-place-g7.r1.l5",
+  "cost_usd": 0.1682,
+  "turns": 2,
+  "seconds": 20.6,
+  "session": "fe013f1f-d886-41b4-8874-f0e18e30f7e8"
+ },
+ {
+  "label": "clue-tree-g7.r1",
+  "cost_usd": 0.6435,
+  "turns": 2,
+  "seconds": 265.9,
+  "session": "ed939ee2-99f3-47e5-a341-5b0f740558ff"
+ },
+ {
+  "label": "clue-herring-g7.r1",
+  "cost_usd": 0.1268,
+  "turns": 2,
+  "seconds": 11.9,
+  "session": "29f5f4e2-83f7-47d4-9dcf-88b728ff191a"
+ },
+ {
+  "label": "clue-place-g7.r1.l1",
+  "cost_usd": 0.1514,
+  "turns": 2,
+  "seconds": 30.8,
+  "session": "82769384-af90-4a2d-a8fa-ec4ca0ceff94"
+ },
+ {
+  "label": "clue-place-g7.r1.l2",
+  "cost_usd": 0.1951,
+  "turns": 2,
+  "seconds": 32.3,
+  "session": "e99cd80c-928c-4f7c-92c9-56ea72cf02da"
+ },
+ {
+  "label": "clue-place-g7.r1.l3",
+  "cost_usd": 0.1464,
+  "turns": 2,
+  "seconds": 34.1,
+  "session": "967faa6b-6b81-4b67-9fa4-f21f56cf2bc0"
+ },
+ {
+  "label": "clue-mail-g7.r1.l3",
+  "cost_usd": 0.1189,
+  "turns": 2,
+  "seconds": 36.9,
+  "session": "34eab443-c141-4cc4-8c3a-70d3a370a5f5"
+ },
+ {
+  "label": "clue-place-g7.r1.l4",
+  "cost_usd": 0.1768,
+  "turns": 2,
+  "seconds": 25.2,
+  "session": "46bd1267-68a8-4fb7-8f7f-09c7f9f546a8"
+ },
+ {
+  "label": "clue-place-g7.r1.l5",
+  "cost_usd": 0.1969,
+  "turns": 2,
+  "seconds": 29.9,
+  "session": "01c8eb38-e947-408d-b475-1c80f9d6d782"
+ },
+ {
+  "label": "clue-place-g7.r1.l6",
+  "cost_usd": 0.2778,
+  "turns": 2,
+  "seconds": 58.6,
+  "session": "b204cdce-2a73-4ce7-bf23-53669a218cfb"
+ },
+ {
+  "label": "clue-place-g7.r1.l7",
+  "cost_usd": 0.1631,
+  "turns": 2,
+  "seconds": 33.9,
+  "session": "dffc5a4c-36b2-4425-980d-0197d69f7e93"
+ },
+ {
+  "label": "clue-mail-g7.r1.l7",
+  "cost_usd": 0.1014,
+  "turns": 2,
+  "seconds": 41.9,
+  "session": "cd89baa9-79e2-4f14-ad51-4834dad7c668"
+ },
+ {
+  "label": "clue-place-g7.r1.l8",
+  "cost_usd": 0.1852,
+  "turns": 2,
+  "seconds": 23.0,
+  "session": "83b42dea-44f6-4c2d-b499-45e612cb7af1"
+ },
+ {
+  "label": "clue-place-g7.r1.l9",
+  "cost_usd": 0.1615,
+  "turns": 2,
+  "seconds": 35.4,
+  "session": "2ef9c319-84ad-41f1-b621-b30221beeb6d"
+ },
+ {
+  "label": "clue-mail-g7.r1.l9",
+  "cost_usd": 0.089,
+  "turns": 2,
+  "seconds": 35.6,
+  "session": "fda188b0-4609-4dbf-b4fb-c198b35a77c0"
+ },
+ {
+  "label": "clue-place-g7.r1.l10",
+  "cost_usd": 0.2503,
+  "turns": 2,
+  "seconds": 45.4,
+  "session": "f90bb59e-0870-4ab0-ac1f-546f7ea0770a"
+ },
+ {
+  "label": "clue-place-g7.r1.l11",
+  "cost_usd": 0.1927,
+  "turns": 2,
+  "seconds": 28.4,
+  "session": "3837be1f-06c0-473f-a1e0-602598f578f7"
+ },
+ {
+  "label": "clue-place-g7.r1.l12",
+  "cost_usd": 0.1662,
+  "turns": 3,
+  "seconds": 40.6,
+  "session": "2d1d26db-ebb5-409f-bcfb-ecf932d8f809"
+ },
+ {
+  "label": "clue-mail-g7.r1.l12",
+  "cost_usd": 0.0759,
+  "turns": 2,
+  "seconds": 31.9,
+  "session": "40f56a37-d0f5-48d7-8e65-35d2388a6f83"
+ },
+ {
+  "label": "clue-place-g7.r1.l13",
+  "cost_usd": 0.2356,
+  "turns": 2,
+  "seconds": 39.9,
+  "session": "59fafc7b-d322-4290-8cd7-110e371a7e8c"
+ },
+ {
+  "label": "clue-place-g7.r1.l14",
+  "cost_usd": 0.2162,
+  "turns": 2,
+  "seconds": 46.1,
+  "session": "c4b465ac-6f63-45b6-8eae-3c6a56483df1"
+ },
+ {
+  "label": "clue-doc-g7.r1.l14",
+  "cost_usd": 0.11,
+  "turns": 2,
+  "seconds": 35.0,
+  "session": "8693c6dc-0e56-4eef-b838-d23deabf4929"
+ },
+ {
+  "label": "clue-place-g7.r1.l15",
+  "cost_usd": 0.1526,
+  "turns": 2,
+  "seconds": 34.9,
+  "session": "02523e0b-0be6-4c18-9745-db4b738a9e07"
+ },
+ {
+  "label": "clue-place-g7.r1.l16",
+  "cost_usd": 0.1887,
+  "turns": 4,
+  "seconds": 52.2,
+  "session": "f1fd8695-5409-4416-915d-614402bb0420"
+ },
+ {
+  "label": "clue-mail-g7.r1.l16",
+  "cost_usd": 0.0672,
+  "turns": 2,
+  "seconds": 28.7,
+  "session": "ccc1155a-13be-4305-9118-4d8d68ccf9b2"
+ },
+ {
+  "label": "clue-place-g7.r1.g7-h1-checkpoint-authoritative",
+  "cost_usd": 0.2237,
+  "turns": 2,
+  "seconds": 30.1,
+  "session": "eb1f892e-8b32-40ee-a393-f65d1140e8b7"
+ },
+ {
+  "label": "clue-place-g7.r1.g7-h2-truncate-is-the-pattern",
+  "cost_usd": 0.1793,
+  "turns": 2,
+  "seconds": 22.5,
+  "session": "81d9b165-2cb8-4894-ad54-660d81e1a0e8"
+ },
+ {
+  "label": "clue-reversal-g7.r1",
+  "cost_usd": 0.1691,
+  "turns": 2,
+  "seconds": 18.6,
+  "session": "f883cc1a-513a-44f5-8428-ab635a3646a4"
+ },
+ {
+  "label": "clue-place-g7.r1.rev1",
+  "cost_usd": 0.2368,
+  "turns": 2,
+  "seconds": 42.3,
+  "session": "a34f3325-514f-402a-bb2d-d99dd5b0418d"
+ },
+ {
+  "label": "clue-place-g7.r1.rev2",
+  "cost_usd": 0.2491,
+  "turns": 2,
+  "seconds": 54.3,
+  "session": "a18c0652-1e10-4e03-a07e-38a1e2c4899e"
+ },
+ {
+  "label": "clue-tree-g7.r2",
+  "cost_usd": 0.4045,
+  "turns": 2,
+  "seconds": 166.3,
+  "session": "92d58134-7ec5-40b1-801e-7a13a23b38eb"
+ },
+ {
+  "label": "clue-herring-g7.r2",
+  "cost_usd": 0.0834,
+  "turns": 2,
+  "seconds": 11.1,
+  "session": "f0852dad-a2fc-4437-8242-6e7786cfa345"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l01",
+  "cost_usd": 0.2243,
+  "turns": 2,
+  "seconds": 39.3,
+  "session": "599c24e2-db50-462a-a4b3-b53846099942"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l02",
+  "cost_usd": 0.202,
+  "turns": 2,
+  "seconds": 26.7,
+  "session": "408afb13-eb20-45ce-81f9-ebbffae581d2"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l03",
+  "cost_usd": 0.2229,
+  "turns": 3,
+  "seconds": 29.7,
+  "session": "ffb5056b-cb44-46a9-a91a-75529f3200a7"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l04",
+  "cost_usd": 0.1835,
+  "turns": 2,
+  "seconds": 22.3,
+  "session": "70354ca5-97fe-4f18-b6e0-633c00a76e73"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l05",
+  "cost_usd": 0.1572,
+  "turns": 3,
+  "seconds": 28.0,
+  "session": "f54b8b57-f2a4-43c2-95d5-9735cf583ba3"
+ },
+ {
+  "label": "clue-mail-g7.r2.g7r2-l05",
+  "cost_usd": 0.06,
+  "turns": 2,
+  "seconds": 22.6,
+  "session": "21b51c8d-d6bb-4a9e-9598-9c66b2283aaf"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l06",
+  "cost_usd": 0.191,
+  "turns": 2,
+  "seconds": 31.0,
+  "session": "2c9b3608-c3ec-4966-afba-70761e5a40d5"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l07",
+  "cost_usd": 0.1868,
+  "turns": 2,
+  "seconds": 28.4,
+  "session": "84391de5-5d9a-4333-89e1-cbd2a90f2082"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l07",
+  "cost_usd": 0.0795,
+  "turns": 2,
+  "seconds": 37.6,
+  "session": "c2239c76-12c5-42b8-a3b7-60d99f19cfe3"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l08",
+  "cost_usd": 0.0808,
+  "turns": 2,
+  "seconds": 24.9,
+  "session": "ef8c1149-cd4a-4b86-a9b3-34727aab4a6e"
+ },
+ {
+  "label": "clue-mail-g7.r2.g7r2-l08",
+  "cost_usd": 0.0874,
+  "turns": 2,
+  "seconds": 36.5,
+  "session": "b9bf9ed9-b755-461b-a452-dc65ace4a02d"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l09",
+  "cost_usd": 0.2105,
+  "turns": 2,
+  "seconds": 20.8,
+  "session": "23532598-af84-438e-a112-b2b8163c3c38"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l10",
+  "cost_usd": 0.1739,
+  "turns": 2,
+  "seconds": 19.1,
+  "session": "1b1bb8bc-7bf7-4bc2-8895-1a614fb11cec"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l11",
+  "cost_usd": 0.1522,
+  "turns": 2,
+  "seconds": 27.8,
+  "session": "614c5e5a-2e34-4053-aca1-80e1fdcb7613"
+ },
+ {
+  "label": "clue-mail-g7.r2.g7r2-l11",
+  "cost_usd": 0.0627,
+  "turns": 2,
+  "seconds": 23.8,
+  "session": "8d9a08fb-27eb-4a25-81b4-56cb446819c9"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l12",
+  "cost_usd": 0.223,
+  "turns": 2,
+  "seconds": 37.0,
+  "session": "f4201fb2-ecfc-4afd-a64e-250570b4d5d3"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l13",
+  "cost_usd": 0.2166,
+  "turns": 2,
+  "seconds": 43.6,
+  "session": "1ee12804-7915-4da6-9c47-38ba0a7b6839"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l13",
+  "cost_usd": 0.0925,
+  "turns": 2,
+  "seconds": 41.2,
+  "session": "eeb5a9fc-5a0c-423b-b034-ec95241a5432"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l14",
+  "cost_usd": 0.1828,
+  "turns": 2,
+  "seconds": 27.7,
+  "session": "38f2c517-9a84-4bad-857f-54cd7fc2e296"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l14",
+  "cost_usd": 0.0876,
+  "turns": 2,
+  "seconds": 38.1,
+  "session": "064de1fb-d51a-4fea-9299-176fba48ba38"
+ },
+ {
+  "label": "clue-place-g7.r2.h1-sentinel-substring-ci",
+  "cost_usd": 0.2483,
+  "turns": 3,
+  "seconds": 35.7,
+  "session": "448430a1-6e5e-41c6-b2f6-ee9cb1c6ba52"
+ },
+ {
+  "label": "clue-place-g7.r2.h2-sentinel-placement-free",
+  "cost_usd": 0.2085,
+  "turns": 2,
+  "seconds": 30.0,
+  "session": "593b3550-d21f-4fac-a12f-4f9f886f6ae3"
+ },
+ {
+  "label": "clue-reversal-g7.r2",
+  "cost_usd": 0.1542,
+  "turns": 2,
+  "seconds": 15.4,
+  "session": "cb3cc917-e67e-428e-8454-6da85c375295"
+ },
+ {
+  "label": "clue-place-g7.r2.rev1",
+  "cost_usd": 0.2634,
+  "turns": 3,
+  "seconds": 39.4,
+  "session": "eec6f028-dec7-479d-861e-96c853e701a0"
+ },
+ {
+  "label": "clue-place-g7.r2.rev2",
+  "cost_usd": 0.1896,
+  "turns": 2,
+  "seconds": 23.5,
+  "session": "bce52e51-2879-4603-97e3-574744a19945"
+ },
+ {
+  "label": "fleet-judge-clues-clues",
+  "cost_usd": 0.3424,
+  "turns": 4,
+  "seconds": 21.6,
+  "session": "63fcd5f2-f315-49c7-bcf1-970b6b1d8708"
+ },
+ {
+  "label": "clue-claims-g7.r1.failure_behavior",
+  "cost_usd": 0.2384,
+  "turns": 2,
+  "seconds": 68.8,
+  "session": "48b471d7-4268-4110-995c-977eff0463cc"
+ },
+ {
+  "label": "clue-claims-g7.r1.observability",
+  "cost_usd": 0.2304,
+  "turns": 2,
+  "seconds": 65.3,
+  "session": "dc1f4750-642b-4700-b7d1-e8f0c9d1741d"
+ },
+ {
+  "label": "clue-claims-g7.r1.rule",
+  "cost_usd": 0.2367,
+  "turns": 2,
+  "seconds": 71.4,
+  "session": "39440936-47a7-4fa6-bccd-693eb691690e"
+ },
+ {
+  "label": "clue-claims-g7.r1.scope",
+  "cost_usd": 0.233,
+  "turns": 2,
+  "seconds": 68.7,
+  "session": "07411517-0871-4718-8888-39758aabf3ef"
+ },
+ {
+  "label": "clue-claims-g7.r2.failure_behavior",
+  "cost_usd": 0.1273,
+  "turns": 2,
+  "seconds": 26.0,
+  "session": "1585c748-25c7-429a-8e52-9fedabe49b5a"
+ },
+ {
+  "label": "clue-claims-g7.r2.observability",
+  "cost_usd": 0.1544,
+  "turns": 2,
+  "seconds": 35.8,
+  "session": "bf6c0bb8-4841-4c66-b2d2-0ce746bd4035"
+ },
+ {
+  "label": "clue-claims-g7.r2.rule",
+  "cost_usd": 0.1633,
+  "turns": 2,
+  "seconds": 40.2,
+  "session": "a26259dd-8e00-429d-9b36-5b75fc0c722a"
+ },
+ {
+  "label": "clue-claims-g7.r2.scope",
+  "cost_usd": 0.1279,
+  "turns": 2,
+  "seconds": 23.1,
+  "session": "649229c7-fa65-4156-89f4-de587f0f9873"
+ },
+ {
+  "label": "clue-settle-g7.r1.failure_behavior",
+  "cost_usd": 0.3245,
+  "turns": 2,
+  "seconds": 111.5,
+  "session": "695e1ada-4fae-45ea-a85f-eda63985fb7f"
+ },
+ {
+  "label": "clue-place-g7.r1.say20",
+  "cost_usd": 0.1875,
+  "turns": 2,
+  "seconds": 24.9,
+  "session": "d2082cac-2fd2-4ba4-8a3c-11aae04f3cc5"
+ },
+ {
+  "label": "clue-settle-g7.r1.observability",
+  "cost_usd": 0.3808,
+  "turns": 2,
+  "seconds": 146.8,
+  "session": "b47c185a-5b3a-4824-b782-e5329d231850"
+ },
+ {
+  "label": "clue-place-g7.r1.say21",
+  "cost_usd": 0.2148,
+  "turns": 2,
+  "seconds": 30.8,
+  "session": "acaadea7-9dc5-4456-807b-d7607a3087e0"
+ },
+ {
+  "label": "clue-settle-g7.r1.rule",
+  "cost_usd": 0.3272,
+  "turns": 2,
+  "seconds": 122.7,
+  "session": "497b8724-04c0-4229-88b0-a148f9d0229a"
+ },
+ {
+  "label": "clue-place-g7.r1.say22",
+  "cost_usd": 0.1781,
+  "turns": 2,
+  "seconds": 24.2,
+  "session": "277ffbef-fec8-4295-8f86-011c9c51ab7d"
+ },
+ {
+  "label": "clue-place-g7.r1.say23",
+  "cost_usd": 0.1819,
+  "turns": 2,
+  "seconds": 21.6,
+  "session": "fe599b4f-ecb0-45d5-9326-ea5f298c4939"
+ },
+ {
+  "label": "clue-settle-g7.r1.scope",
+  "cost_usd": 0.2334,
+  "turns": 2,
+  "seconds": 88.8,
+  "session": "e3bb3304-2d25-433a-b935-f6d7ef17a7bc"
+ },
+ {
+  "label": "clue-place-g7.r1.say24",
+  "cost_usd": 0.2825,
+  "turns": 3,
+  "seconds": 44.6,
+  "session": "9d527a11-c839-4ada-a9ec-0f09ceb05431"
+ },
+ {
+  "label": "clue-place-g7.r1.say25",
+  "cost_usd": 0.1771,
+  "turns": 2,
+  "seconds": 26.1,
+  "session": "04684ec6-3878-4f61-b52d-47cae6bfa728"
+ },
+ {
+  "label": "clue-settle-g7.r2.observability",
+  "cost_usd": 0.1426,
+  "turns": 2,
+  "seconds": 41.9,
+  "session": "5a4e0efe-38b4-4712-a595-15d287b10d35"
+ },
+ {
+  "label": "clue-place-g7.r2.say18",
+  "cost_usd": 0.2134,
+  "turns": 2,
+  "seconds": 34.7,
+  "session": "f128e231-e475-49d3-a20e-4a92bd667f98"
+ },
+ {
+  "label": "clue-place-g7.r2.say19",
+  "cost_usd": 0.193,
+  "turns": 2,
+  "seconds": 22.6,
+  "session": "6879e799-1205-4aa4-8b43-05ad732d7444"
+ },
+ {
+  "label": "clue-claims-g7.r1.failure_behavior",
+  "cost_usd": 0.2286,
+  "turns": 2,
+  "seconds": 65.9,
+  "session": "1725ae17-dc04-4c43-9f4d-ca8d29c91304"
+ },
+ {
+  "label": "clue-claims-g7.r1.observability",
+  "cost_usd": 0.2276,
+  "turns": 2,
+  "seconds": 61.9,
+  "session": "fdb0aed0-cbb6-4f4e-9bee-6e2395351990"
+ },
+ {
+  "label": "clue-claims-g7.r1.rule",
+  "cost_usd": 0.2075,
+  "turns": 2,
+  "seconds": 53.2,
+  "session": "b161e8a5-c084-4c67-8ab5-3c53e141c4a4"
+ },
+ {
+  "label": "clue-claims-g7.r1.scope",
+  "cost_usd": 0.23,
+  "turns": 2,
+  "seconds": 69.0,
+  "session": "b628de7b-c381-440c-9624-b05bec18b945"
+ },
+ {
+  "label": "clue-claims-g7.r2.failure_behavior",
+  "cost_usd": 0.1151,
+  "turns": 2,
+  "seconds": 23.2,
+  "session": "2cc81af1-e700-4642-b1f3-7dc4073302d7"
+ },
+ {
+  "label": "clue-claims-g7.r2.observability",
+  "cost_usd": 0.1503,
+  "turns": 2,
+  "seconds": 34.7,
+  "session": "1ee0cfd0-c44b-400c-ac9c-f46ffd813c28"
+ },
+ {
+  "label": "clue-claims-g7.r2.rule",
+  "cost_usd": 0.1315,
+  "turns": 2,
+  "seconds": 28.7,
+  "session": "d6d01f57-da5f-4fff-b321-39fda41ee21d"
+ },
+ {
+  "label": "clue-claims-g7.r2.scope",
+  "cost_usd": 0.1283,
+  "turns": 2,
+  "seconds": 26.6,
+  "session": "b9deea2a-a5d9-4759-a43d-cb62e571d484"
+ },
+ {
+  "label": "clue-settle-g7.r1.observability",
+  "cost_usd": 0.2253,
+  "turns": 2,
+  "seconds": 61.7,
+  "session": "b366c195-a565-4e4d-b16d-fb187dd1c000"
+ },
+ {
+  "label": "clue-settle-g7.r1.failure_behavior",
+  "cost_usd": 0.1703,
+  "turns": 2,
+  "seconds": 50.7,
+  "session": "6601614c-aa5a-44a3-86fb-8ac836050a7e"
+ },
+ {
+  "label": "fleet-judge-settle-plant",
+  "cost_usd": 0.6116,
+  "turns": 5,
+  "seconds": 46.0,
+  "session": "84f923ee-195d-41c5-8352-6554c5498ae2"
+ },
+ {
+  "label": "fleet-judge-reverse-plant",
+  "cost_usd": 0.6229,
+  "turns": 6,
+  "seconds": 51.9,
+  "session": "8b3fec2d-cdb5-464f-86ed-d1ca470dc108"
+ },
+ {
+  "label": "clue-place-g7.r1.l6",
+  "cost_usd": 0.1361,
+  "turns": 2,
+  "seconds": 20.0,
+  "session": "16b24e91-a7db-4fc3-b98e-3539f3ea7a6b"
+ },
+ {
+  "label": "clue-place-g7.r1.l7",
+  "cost_usd": 0.1356,
+  "turns": 2,
+  "seconds": 29.0,
+  "session": "cabf98a1-1972-4d00-b474-0885f548e3bb"
+ },
+ {
+  "label": "clue-mail-g7.r1.l7",
+  "cost_usd": 0.1027,
+  "turns": 2,
+  "seconds": 29.1,
+  "session": "85e6ce9b-e8f5-48a8-a05c-fe1d8bf0182f"
+ },
+ {
+  "label": "clue-place-g7.r1.l8",
+  "cost_usd": 0.1846,
+  "turns": 2,
+  "seconds": 34.0,
+  "session": "8800ed13-4eef-4c3d-a082-ed19f1d22c68"
+ },
+ {
+  "label": "clue-doc-g7.r1.l8",
+  "cost_usd": 0.1305,
+  "turns": 2,
+  "seconds": 46.0,
+  "session": "dbc7b40b-e0b8-428e-bf8b-8c46bbd5393a"
+ },
+ {
+  "label": "clue-place-g7.r1.say20",
+  "cost_usd": 0.1701,
+  "turns": 3,
+  "seconds": 29.1,
+  "session": "81fb4681-2d60-4215-99bc-41627f5933b4"
+ },
+ {
+  "label": "clue-place-g7.r1.say22",
+  "cost_usd": 0.1384,
+  "turns": 2,
+  "seconds": 28.7,
+  "session": "bfa30178-aba7-4a75-8dc4-e7483ed673a3"
+ },
+ {
+  "label": "clue-place-g7.r1.say25",
+  "cost_usd": 0.1927,
+  "turns": 2,
+  "seconds": 29.5,
+  "session": "ee5ab951-2c4d-4afc-8f6c-e7b498f9e625"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l12",
+  "cost_usd": 0.1716,
+  "turns": 2,
+  "seconds": 27.3,
+  "session": "6a335c54-a7a3-46ed-921a-8c9a711164f1"
+ },
+ {
+  "label": "clue-place-g7.r2.g7r2-l14",
+  "cost_usd": 0.1364,
+  "turns": 2,
+  "seconds": 27.1,
+  "session": "35c5bea7-cecf-4128-8a39-628ca47246e9"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l14",
+  "cost_usd": 0.0905,
+  "turns": 2,
+  "seconds": 39.0,
+  "session": "d6fc4314-20fa-4631-9451-eb240fc1b718"
+ },
+ {
+  "label": "clue-place-g7.r2.say18",
+  "cost_usd": 0.1299,
+  "turns": 2,
+  "seconds": 27.4,
+  "session": "abb388e7-c31a-4318-8b0b-e096ed824f00"
+ },
+ {
+  "label": "clue-place-g7.r2.say19",
+  "cost_usd": 0.1506,
+  "turns": 2,
+  "seconds": 26.2,
+  "session": "41cea46b-ab6b-4f35-8647-fc65df43e3e0"
+ },
+ {
+  "label": "fleet-judge-reorder-plant",
+  "cost_usd": 0.8961,
+  "turns": 10,
+  "seconds": 85.7,
+  "session": "d950cde2-78b7-44f1-9726-137119960ed0"
+ },
+ {
+  "label": "clue-thread-g7.r1.l1",
+  "cost_usd": 0.1308,
+  "turns": 2,
+  "seconds": 27.1,
+  "session": "98266d73-88fc-491e-9a6d-5b240ce87aea"
+ },
+ {
+  "label": "clue-carry-g7.r1.l1",
+  "cost_usd": 0.0878,
+  "turns": 2,
+  "seconds": 20.2,
+  "session": "51166d7d-a84f-4163-8620-7caff7c43bae"
+ },
+ {
+  "label": "clue-doc-g7.r1.l2",
+  "cost_usd": 0.0893,
+  "turns": 2,
+  "seconds": 33.9,
+  "session": "e0af116d-6d72-4a0f-bd01-b3dc82147890"
+ },
+ {
+  "label": "clue-carry-g7.r1.l2",
+  "cost_usd": 0.053,
+  "turns": 2,
+  "seconds": 17.8,
+  "session": "b4c34753-b0aa-4054-8e09-72bc980da482"
+ },
+ {
+  "label": "clue-thread-g7.r1.l4",
+  "cost_usd": 0.1109,
+  "turns": 2,
+  "seconds": 31.8,
+  "session": "e0ce268a-b1fd-4204-add4-7b01a2023a7d"
+ },
+ {
+  "label": "clue-carry-g7.r1.l4",
+  "cost_usd": 0.0566,
+  "turns": 2,
+  "seconds": 20.8,
+  "session": "c95f7f9d-f496-4a66-8844-d7f3de7e7369"
+ },
+ {
+  "label": "clue-doc-g7.r1.l5",
+  "cost_usd": 0.0808,
+  "turns": 2,
+  "seconds": 30.7,
+  "session": "18e2be65-5f67-4ad6-b2bf-70ee1563a9e7"
+ },
+ {
+  "label": "clue-carry-g7.r1.l5",
+  "cost_usd": 0.06,
+  "turns": 2,
+  "seconds": 20.5,
+  "session": "51e2b2ad-a568-4a39-a751-96c066036bd7"
+ },
+ {
+  "label": "clue-thread-g7.r1.l6",
+  "cost_usd": 0.113,
+  "turns": 2,
+  "seconds": 34.8,
+  "session": "35d8b893-4e00-479f-9eda-74e97c37e746"
+ },
+ {
+  "label": "clue-carry-g7.r1.l6",
+  "cost_usd": 0.0547,
+  "turns": 2,
+  "seconds": 19.9,
+  "session": "3ef6f338-1a34-4584-89e0-76e18f89ac26"
+ },
+ {
+  "label": "clue-doc-g7.r1.l8",
+  "cost_usd": 0.0863,
+  "turns": 2,
+  "seconds": 34.6,
+  "session": "7d6df207-1b77-43f7-9bcb-5d31137b6d36"
+ },
+ {
+  "label": "clue-carry-g7.r1.l8",
+  "cost_usd": 0.0648,
+  "turns": 2,
+  "seconds": 27.0,
+  "session": "3e702477-1ff4-46bf-af2e-03975e240af8"
+ },
+ {
+  "label": "clue-mail-g7.r1.l9",
+  "cost_usd": 0.1708,
+  "turns": 2,
+  "seconds": 75.3,
+  "session": "9dbfad0a-9a35-41bd-9634-90dff0fd4214"
+ },
+ {
+  "label": "clue-carry-g7.r1.l9",
+  "cost_usd": 0.0662,
+  "turns": 2,
+  "seconds": 20.6,
+  "session": "8eb93055-1092-45d0-a9fe-69be89bbe0db"
+ },
+ {
+  "label": "clue-thread-g7.r1.l10",
+  "cost_usd": 0.1037,
+  "turns": 2,
+  "seconds": 27.4,
+  "session": "71e0130b-bcb1-4c20-a094-6e987f9c9e5f"
+ },
+ {
+  "label": "clue-carry-g7.r1.l10",
+  "cost_usd": 0.0687,
+  "turns": 2,
+  "seconds": 24.4,
+  "session": "108c1213-62eb-44e6-a5b9-362b65e10754"
+ },
+ {
+  "label": "clue-doc-g7.r1.l11",
+  "cost_usd": 0.1044,
+  "turns": 2,
+  "seconds": 43.0,
+  "session": "1504db06-409f-474a-810b-5930806efde2"
+ },
+ {
+  "label": "clue-carry-g7.r1.l11",
+  "cost_usd": 0.0653,
+  "turns": 2,
+  "seconds": 23.9,
+  "session": "4d3b3270-8d63-4f9b-97fc-7f9f7902d255"
+ },
+ {
+  "label": "clue-mail-g7.r1.l12",
+  "cost_usd": 0.1361,
+  "turns": 2,
+  "seconds": 61.3,
+  "session": "4ffa13a9-1000-4a99-9517-9bda3a57b42d"
+ },
+ {
+  "label": "clue-carry-g7.r1.l12",
+  "cost_usd": 0.0775,
+  "turns": 2,
+  "seconds": 26.1,
+  "session": "af146fe9-07d6-4def-b75a-d50e5756e974"
+ },
+ {
+  "label": "clue-thread-g7.r1.l13",
+  "cost_usd": 0.1198,
+  "turns": 2,
+  "seconds": 35.5,
+  "session": "2d72ca4b-ae2a-47b5-b138-c1ee1fa07574"
+ },
+ {
+  "label": "clue-carry-g7.r1.l13",
+  "cost_usd": 0.0454,
+  "turns": 2,
+  "seconds": 15.6,
+  "session": "af771a08-b77f-4be0-99e5-d3b41258b6ab"
+ },
+ {
+  "label": "clue-doc-g7.r1.l14",
+  "cost_usd": 0.1056,
+  "turns": 2,
+  "seconds": 46.6,
+  "session": "6063a7b1-368e-419c-a05d-310365e52396"
+ },
+ {
+  "label": "clue-carry-g7.r1.l14",
+  "cost_usd": 0.0676,
+  "turns": 2,
+  "seconds": 24.2,
+  "session": "7c5cfbcf-d1e4-4637-bb86-360304f20676"
+ },
+ {
+  "label": "clue-thread-g7.r1.l15",
+  "cost_usd": 0.1106,
+  "turns": 2,
+  "seconds": 32.6,
+  "session": "b3cd2acf-8a46-4c16-8b95-327b18bb491a"
+ },
+ {
+  "label": "clue-carry-g7.r1.l15",
+  "cost_usd": 0.0406,
+  "turns": 2,
+  "seconds": 13.9,
+  "session": "037ea53b-9b5b-4fe6-a971-3b5916279c97"
+ },
+ {
+  "label": "clue-mail-g7.r1.l16",
+  "cost_usd": 0.1353,
+  "turns": 2,
+  "seconds": 56.9,
+  "session": "d347a8af-7574-4b0d-a9c9-36b63f352ba0"
+ },
+ {
+  "label": "clue-carry-g7.r1.l16",
+  "cost_usd": 0.0741,
+  "turns": 2,
+  "seconds": 23.1,
+  "session": "bfe1d3c3-a6fb-4544-a1dd-6d4d47302dbc"
+ },
+ {
+  "label": "clue-thread-g7.r1.g7-h1-checkpoint-authoritative",
+  "cost_usd": 0.1176,
+  "turns": 2,
+  "seconds": 36.5,
+  "session": "b34767a1-a308-43f3-a69e-25ae6ad0398f"
+ },
+ {
+  "label": "clue-carry-g7.r1.g7-h1-checkpoint-authoritative",
+  "cost_usd": 0.0509,
+  "turns": 2,
+  "seconds": 18.1,
+  "session": "c7d3bf3b-4958-46b5-abaf-5d57b9465e03"
+ },
+ {
+  "label": "clue-thread-g7.r1.g7-h2-truncate-is-the-pattern",
+  "cost_usd": 0.1096,
+  "turns": 2,
+  "seconds": 31.1,
+  "session": "25462e7c-08b6-4eec-aa56-14675bd38a28"
+ },
+ {
+  "label": "clue-carry-g7.r1.g7-h2-truncate-is-the-pattern",
+  "cost_usd": 0.0467,
+  "turns": 2,
+  "seconds": 17.8,
+  "session": "40006153-3e52-418e-838b-58ef92631f2c"
+ },
+ {
+  "label": "clue-thread-g7.r1.rev1",
+  "cost_usd": 0.1104,
+  "turns": 2,
+  "seconds": 31.8,
+  "session": "c1e5e8ed-8f4d-4c53-9dcb-f87320392a3e"
+ },
+ {
+  "label": "clue-carry-g7.r1.rev1",
+  "cost_usd": 0.0641,
+  "turns": 2,
+  "seconds": 21.8,
+  "session": "8d30ba53-5949-4fb7-b053-dba0a77d1627"
+ },
+ {
+  "label": "clue-thread-g7.r1.rev2",
+  "cost_usd": 0.1501,
+  "turns": 2,
+  "seconds": 54.1,
+  "session": "b02daf3b-9daa-4313-a6f8-291902b608e8"
+ },
+ {
+  "label": "clue-carry-g7.r1.rev2",
+  "cost_usd": 0.0634,
+  "turns": 2,
+  "seconds": 22.3,
+  "session": "b94dd3c1-814e-4b55-afc7-97760319b865"
+ },
+ {
+  "label": "clue-thread-g7.r1.say20",
+  "cost_usd": 0.1162,
+  "turns": 2,
+  "seconds": 35.9,
+  "session": "8bd9cc38-70ee-475d-af6b-af52b8a9794c"
+ },
+ {
+  "label": "clue-carry-g7.r1.say20",
+  "cost_usd": 0.0444,
+  "turns": 2,
+  "seconds": 14.8,
+  "session": "5d7841fd-dea1-4b6b-9c0a-32f2d308b54d"
+ },
+ {
+  "label": "clue-thread-g7.r1.say21",
+  "cost_usd": 0.1285,
+  "turns": 2,
+  "seconds": 39.1,
+  "session": "2a075c9e-1890-47a8-9d48-538510034e8c"
+ },
+ {
+  "label": "clue-carry-g7.r1.say21",
+  "cost_usd": 0.0857,
+  "turns": 2,
+  "seconds": 34.7,
+  "session": "c7710e9e-acd5-4f33-9ee7-2a0c12062302"
+ },
+ {
+  "label": "clue-thread-g7.r1.say21",
+  "cost_usd": 0.1711,
+  "turns": 2,
+  "seconds": 59.8,
+  "session": "cbf1be85-3d99-4238-8257-8fc3e40827e7"
+ },
+ {
+  "label": "clue-carry-g7.r1.say21",
+  "cost_usd": 0.0758,
+  "turns": 2,
+  "seconds": 27.9,
+  "session": "a3879001-82bf-4a25-b952-68e41fddf521"
+ },
+ {
+  "label": "clue-thread-g7.r1.say22",
+  "cost_usd": 0.1069,
+  "turns": 2,
+  "seconds": 32.0,
+  "session": "ce12376a-771e-4dff-acfd-ef5248ed5786"
+ },
+ {
+  "label": "clue-carry-g7.r1.say22",
+  "cost_usd": 0.0468,
+  "turns": 2,
+  "seconds": 15.9,
+  "session": "d90a5ced-d721-426f-ba00-2603d705b3fa"
+ },
+ {
+  "label": "clue-thread-g7.r1.say23",
+  "cost_usd": 0.1176,
+  "turns": 2,
+  "seconds": 37.5,
+  "session": "a5e0cc0d-4b74-4d17-9f96-e7af50a080cf"
+ },
+ {
+  "label": "clue-carry-g7.r1.say23",
+  "cost_usd": 0.0791,
+  "turns": 2,
+  "seconds": 17.2,
+  "session": "1907e6b0-a351-46f3-9ab2-ddb0e47124d8"
+ },
+ {
+  "label": "clue-thread-g7.r1.say24",
+  "cost_usd": 0.137,
+  "turns": 2,
+  "seconds": 28.3,
+  "session": "7bb10da0-4acf-4ec8-8471-930e3da58f93"
+ },
+ {
+  "label": "clue-carry-g7.r1.say24",
+  "cost_usd": 0.0562,
+  "turns": 2,
+  "seconds": 20.3,
+  "session": "b083e0bd-842f-429a-9e84-9b92f1bc34e2"
+ },
+ {
+  "label": "clue-thread-g7.r1.say25",
+  "cost_usd": 0.1267,
+  "turns": 2,
+  "seconds": 21.3,
+  "session": "1eed1d5d-f772-4848-ae12-6650b43fd45d"
+ },
+ {
+  "label": "clue-carry-g7.r1.say25",
+  "cost_usd": 0.0859,
+  "turns": 2,
+  "seconds": 19.5,
+  "session": "c4fa0f6a-76d8-4797-96b4-da9b86dbd4a7"
+ },
+ {
+  "label": "clue-thread-g7.r2.g7r2-l01",
+  "cost_usd": 0.1228,
+  "turns": 2,
+  "seconds": 41.4,
+  "session": "2ed8e694-efd5-4478-b618-5165bc45f329"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l01",
+  "cost_usd": 0.0544,
+  "turns": 2,
+  "seconds": 19.3,
+  "session": "fe080287-29e2-4bd2-b928-3054d178379f"
+ },
+ {
+  "label": "clue-thread-g7.r2.g7r2-l02",
+  "cost_usd": 0.0987,
+  "turns": 2,
+  "seconds": 31.0,
+  "session": "b3768a0e-f587-4a6d-8a09-79e09b5f39a3"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l02",
+  "cost_usd": 0.0498,
+  "turns": 2,
+  "seconds": 15.8,
+  "session": "4bc56b61-c0a1-4560-9353-03694c420154"
+ },
+ {
+  "label": "clue-thread-g7.r2.g7r2-l03",
+  "cost_usd": 0.0929,
+  "turns": 2,
+  "seconds": 20.8,
+  "session": "995f66ae-02c9-4cbf-b948-9a4b524dabe0"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l03",
+  "cost_usd": 0.0481,
+  "turns": 2,
+  "seconds": 18.0,
+  "session": "0a35b2cf-c4a0-45c3-b6d0-d80c4a11157b"
+ },
+ {
+  "label": "clue-mail-g7.r2.g7r2-l05",
+  "cost_usd": 0.1177,
+  "turns": 2,
+  "seconds": 52.2,
+  "session": "139f578b-25a8-4bbb-bb44-b4ea4c2e13b7"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l05",
+  "cost_usd": 0.0519,
+  "turns": 2,
+  "seconds": 15.2,
+  "session": "891c3bb7-6f0c-4526-9ed4-0919023ecba9"
+ },
+ {
+  "label": "clue-thread-g7.r2.g7r2-l06",
+  "cost_usd": 0.1126,
+  "turns": 2,
+  "seconds": 33.4,
+  "session": "677c387c-fbfd-4137-b259-6247572d39a5"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l06",
+  "cost_usd": 0.0519,
+  "turns": 2,
+  "seconds": 19.0,
+  "session": "cf823f86-9570-45ec-a3a0-b77d50d3d5ab"
+ },
+ {
+  "label": "clue-thread-g7.r2.g7r2-l06",
+  "cost_usd": 0.1583,
+  "turns": 2,
+  "seconds": 58.3,
+  "session": "55101ede-e968-478d-90ca-effe53b090b1"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l06",
+  "cost_usd": 0.0523,
+  "turns": 2,
+  "seconds": 20.5,
+  "session": "0bc0506f-22fd-483a-816c-706848f85330"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l07",
+  "cost_usd": 0.0839,
+  "turns": 2,
+  "seconds": 35.4,
+  "session": "43b24ec4-2d9c-40b7-b6b0-330209c36bd0"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l07",
+  "cost_usd": 0.0577,
+  "turns": 2,
+  "seconds": 21.5,
+  "session": "20754aa6-9b18-4a6f-ac31-4b3756f81c63"
+ },
+ {
+  "label": "clue-thread-g7.r2.g7r2-l09",
+  "cost_usd": 0.121,
+  "turns": 2,
+  "seconds": 39.0,
+  "session": "001c1374-52d9-491c-b723-47b704dfc67a"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l09",
+  "cost_usd": 0.0443,
+  "turns": 2,
+  "seconds": 15.2,
+  "session": "00d91c62-38e8-47f2-b05c-705619a09c77"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l10",
+  "cost_usd": 0.0887,
+  "turns": 2,
+  "seconds": 35.0,
+  "session": "f3bff93e-8a6a-4706-b861-0779f565c9d5"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l10",
+  "cost_usd": 0.0595,
+  "turns": 2,
+  "seconds": 21.1,
+  "session": "1f28a1ae-7b4d-4557-92db-667541ea5ae9"
+ },
+ {
+  "label": "clue-thread-g7.r2.g7r2-l12",
+  "cost_usd": 0.1126,
+  "turns": 2,
+  "seconds": 32.1,
+  "session": "5598b608-46ac-458b-8fc1-38aaa776a497"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l12",
+  "cost_usd": 0.0661,
+  "turns": 2,
+  "seconds": 26.1,
+  "session": "49330d3a-9df2-4865-8df9-0c52651205dd"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l13",
+  "cost_usd": 0.0911,
+  "turns": 2,
+  "seconds": 37.5,
+  "session": "4925b606-8e49-4e1a-90e3-b655cef0086e"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l13",
+  "cost_usd": 0.0403,
+  "turns": 2,
+  "seconds": 12.1,
+  "session": "05058e96-5d77-44ca-aeb0-c07bb423633d"
+ },
+ {
+  "label": "clue-doc-g7.r2.g7r2-l14",
+  "cost_usd": 0.0565,
+  "turns": 2,
+  "seconds": 18.4,
+  "session": "f0414387-904f-45e5-b71a-6e4ea459918a"
+ },
+ {
+  "label": "clue-carry-g7.r2.g7r2-l14",
+  "cost_usd": 0.0811,
+  "turns": 2,
+  "seconds": 33.4,
+  "session": "94f3243b-9474-4b87-a8cb-b625e5ea9b30"
+ },
+ {
+  "label": "clue-thread-g7.r2.h1-sentinel-substring-ci",
+  "cost_usd": 0.1169,
+  "turns": 2,
+  "seconds": 36.3,
+  "session": "2a896c00-5535-4b7b-b5f8-d197e3fcd248"
+ },
+ {
+  "label": "clue-carry-g7.r2.h1-sentinel-substring-ci",
+  "cost_usd": 0.0439,
+  "turns": 2,
+  "seconds": 17.6,
+  "session": "1351b291-8aa3-4832-8fc3-b5e43262be68"
+ },
+ {
+  "label": "clue-thread-g7.r2.h2-sentinel-placement-free",
+  "cost_usd": 0.1195,
+  "turns": 2,
+  "seconds": 39.1,
+  "session": "8ea4216e-48a2-4ad3-b8f4-71d91230b92c"
+ },
+ {
+  "label": "clue-carry-g7.r2.h2-sentinel-placement-free",
+  "cost_usd": 0.0526,
+  "turns": 2,
+  "seconds": 18.9,
+  "session": "bd211ab4-28ab-4daf-90b4-6951273d2fb4"
+ },
+ {
+  "label": "clue-thread-g7.r2.rev1",
+  "cost_usd": 0.1225,
+  "turns": 2,
+  "seconds": 35.9,
+  "session": "19f8aba5-50d8-43ca-be2b-52d4afe1e8b2"
+ },
+ {
+  "label": "clue-carry-g7.r2.rev1",
+  "cost_usd": 0.0641,
+  "turns": 2,
+  "seconds": 21.2,
+  "session": "a662c34c-038d-45cf-adf2-1b5b0a92eae0"
+ },
+ {
+  "label": "clue-thread-g7.r2.rev2",
+  "cost_usd": 0.1282,
+  "turns": 2,
+  "seconds": 40.7,
+  "session": "17a5e2ff-0cc3-49e2-83b2-87a7a920c4f2"
+ },
+ {
+  "label": "clue-carry-g7.r2.rev2",
+  "cost_usd": 0.0654,
+  "turns": 2,
+  "seconds": 21.7,
+  "session": "3b17bd9d-10d4-439e-a548-caa85b0ec8df"
+ },
+ {
+  "label": "clue-thread-g7.r2.say18",
+  "cost_usd": 0.0818,
+  "turns": 2,
+  "seconds": 19.6,
+  "session": "b2977a84-075b-48b9-af93-1c2cf778bd1b"
+ },
+ {
+  "label": "clue-carry-g7.r2.say18",
+  "cost_usd": 0.0513,
+  "turns": 2,
+  "seconds": 20.4,
+  "session": "0052c3ad-9f45-4849-a600-51cc292fab7f"
+ },
+ {
+  "label": "clue-thread-g7.r2.say19",
+  "cost_usd": 0.1007,
+  "turns": 2,
+  "seconds": 29.6,
+  "session": "9fd17016-4c7a-4459-8751-4c66f355d9a5"
+ },
+ {
+  "label": "clue-carry-g7.r2.say19",
+  "cost_usd": 0.0486,
+  "turns": 2,
+  "seconds": 17.6,
+  "session": "a8807bd7-1df8-456b-81dd-f4a74c3fff27"
+ },
+ {
+  "label": "fleet-judge-reknit-plant",
+  "cost_usd": 0.59,
+  "turns": 7,
+  "seconds": 55.0,
+  "session": "5ae115e6-1d66-487a-94a9-1260899d5986"
+ },
+ {
+  "label": "clue-consistency-g7.r1.rule",
+  "cost_usd": 0.2928,
+  "turns": 2,
+  "seconds": 47.8,
+  "session": "a00eb6ad-10fc-4b35-b19a-bbce5d9a4014"
+ },
+ {
+  "label": "clue-consistency-g7.r1.scope",
+  "cost_usd": 0.37,
+  "turns": 2,
+  "seconds": 103.3,
+  "session": "7ae33e90-cab9-4933-8a5e-4ff65fc52828"
+ },
+ {
+  "label": "clue-consistency-g7.r1.failure_behavior",
+  "cost_usd": 0.3541,
+  "turns": 2,
+  "seconds": 95.1,
+  "session": "184889e9-6558-4067-99e1-74e7482ca2c1"
+ },
+ {
+  "label": "clue-consistency-g7.r1.observability",
+  "cost_usd": 0.3237,
+  "turns": 2,
+  "seconds": 80.5,
+  "session": "037b9fdd-73bf-4b86-b1d6-e8a4d76f7810"
+ },
+ {
+  "label": "clue-consistency-g7.r2.rule",
+  "cost_usd": 0.2071,
+  "turns": 2,
+  "seconds": 51.6,
+  "session": "d32512b9-9738-40c7-8adb-51803efe4985"
+ },
+ {
+  "label": "clue-consistency-g7.r2.scope",
+  "cost_usd": 0.2222,
+  "turns": 2,
+  "seconds": 59.5,
+  "session": "85f2c700-8801-4374-8f75-75ecfdfa55c6"
+ },
+ {
+  "label": "clue-consistency-g7.r2.failure_behavior",
+  "cost_usd": 0.2533,
+  "turns": 2,
+  "seconds": 82.0,
+  "session": "c33ecf64-e075-40ef-939e-7f63420320af"
+ },
+ {
+  "label": "clue-consistency-g7.r2.observability",
+  "cost_usd": 0.2105,
+  "turns": 2,
+  "seconds": 51.6,
+  "session": "455bc81e-f962-4063-8cd6-a9b36d88a10f"
+ },
+ {
+  "label": "fleet-judge-consistency-plant",
+  "cost_usd": 0.689,
+  "turns": 7,
+  "seconds": 75.6,
+  "session": "dc74a426-7690-4720-84f8-605e6acacec5"
+ },
+ {
+  "label": "clue-consistency-g7.r1.rule",
+  "cost_usd": 0.1519,
+  "turns": 2,
+  "seconds": 68.8,
+  "session": "7063daa2-a617-4531-a3a4-062357886325"
  }
 ]

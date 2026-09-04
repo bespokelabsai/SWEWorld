@@ -142,15 +142,24 @@ def test_failure_behavior__a_budget_below_the_floor_of_sixteen_is_refused_by_out
 
     assert MIN_MAX_OUTPUT_BYTES == 16
     assert issubclass(OutputCapError, ValueError)
-    built = OutputCapError(8)
-    assert built.max_bytes == 8
-    assert str(built) == "max_bytes must be 0 or at least 16, got 8"
 
+    # The raised object, never a constructor call. This used to say
+    # `OutputCapError(8)`, which grades an ARITY the corpus never states: konrad
+    # settles that the value has to be readable off the exception instead of
+    # regexed out of the sentence -- "we hang the offending value on the
+    # exception as .max_bytes and the message can keep saying whatever it says"
+    # -- and says nothing about how it is built. A `__init__(self, message,
+    # max_bytes)` raised as `OutputCapError(f"...got {v}", v)` satisfies every
+    # word of that and died here on a TypeError, losing the fact while passing
+    # its every other assertion. Same reasoning as the relaxation in the
+    # observability test below: grade what the world argued for.
+    #
     # at request time
     install_sandbox(monkeypatch, exit_code=0, stdout="A" * 300, stderr="")
     with pytest.raises(OutputCapError) as refused:
         sandbox_backend._execute_in_sandbox(code="print('hi')", code_input="", timeout=10, backend_name="local", sandbox_kwargs={}, max_output_bytes=8)
     assert refused.value.max_bytes == 8
+    assert str(refused.value) == "max_bytes must be 0 or at least 16, got 8"
 
     assert run(monkeypatch, exit_code=0, stdout="A" * 300, stderr="", max_output_bytes=16).message == "success", "16 is the floor and must be accepted"
 

@@ -68,6 +68,17 @@ YAML
 # own switch so the adapter drops it even if something else puts it back.
 set -a; . ./.env; set +a
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
+# A second subscription to spend from. The default account carries the session
+# limit for interactive work, and a trial is 15-40 minutes of agent turns against
+# the same quota -- so a day of measuring can lock the terminal out mid-task.
+# Opt-in only: unset, this changes nothing, and the token still reaches the agent
+# through the one variable the adapter reads.
+if [ "${USE_PERSONAL_TOKEN:-0}" = "1" ]; then
+  [ -n "${CLAUDE_CODE_PERSONAL_OAUTH_TOKEN:-}" ] || {
+    echo "REFUSED $JOB: USE_PERSONAL_TOKEN=1 but CLAUDE_CODE_PERSONAL_OAUTH_TOKEN is not in .env" >&2; exit 5; }
+  export CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_PERSONAL_OAUTH_TOKEN"
+  echo "$JOB: running on the personal subscription token"
+fi
 export CLAUDE_FORCE_OAUTH=1
 harbor run -c "$CFG" --job-name "$JOB" > "/tmp/$JOB.log" 2>&1
 rc=$?

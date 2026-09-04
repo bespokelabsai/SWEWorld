@@ -1,3 +1,16 @@
+
+## What you are being shown
+
+Every remark in this requirement, oldest first — not only the ones filed under
+the fact in question. Each is labelled either *filed under this fact* or with
+the facts it is filed under and the source it lives in.
+
+**Read all of them before calling anything a conflict.** A remark that settles
+the point may be filed under a sibling fact, or live in mail or the wiki rather
+than in chat, and `covers` is truncated to two entries so it is not a reliable
+index of what a remark carries. A statement is only a conflict if nothing later
+in this list — from ANY source — puts it right.
+
 You are reading a company's chat, wiki and mail the way a new engineer would: in
 date order, with no answer key, trusting what people say.
 

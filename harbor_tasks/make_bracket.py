@@ -23,6 +23,11 @@ ROOT = pathlib.Path(__file__).resolve().parent
 MATRIX = ROOT / "_suites" / "bracket_matrix.txt"
 TASKS_JSON = ROOT.parent / "data_gen" / "input" / "tasks.json"
 
+# The four groups this report covers all live in `failed_tasks/` now, not
+# beside this script. Writing to ROOT/<group>/README.md after the move raised
+# FileNotFoundError on a parent that is no longer there.
+GROUPS_ROOT = ROOT.parent / "failed_tasks"
+
 GROUP = {"t1": "t1-cache-stats", "t2": "t2-batch-cost-estimate",
          "t3": "t3-shared-limiter", "t4": "t4-deepseek-empty-retry"}
 SLUG = {"t1": "cache-stats", "t2": "batch-cost-estimate",
@@ -115,14 +120,15 @@ def write_readmes(rows: dict, meta: dict) -> None:
                  f"| `fixtures/naive.py` | the obvious implementation; must "
                  "pass the ticket and fail the hidden rows |", "",
                  "```bash",
-                 f"harbor run -p harbor_tasks/{group} -a oracle",
+                 f"harbor run -p failed_tasks/{group} -a oracle",
                  "```", "",
                  "## Measured", ""] + table + [
                  "", f"{tally['hidden']} genuinely hidden, "
                  f"{tally['coincidence']} coincidence, "
                  f"{tally['unmeasurable']} unmeasurable. "
-                 "See [../BRACKET.md](../BRACKET.md) for what those mean.", ""]
-        (ROOT / group / "README.md").write_text("\n".join(body))
+                 "See [BRACKET.md](../../harbor_tasks/BRACKET.md) for what those "
+                 "mean.", ""]
+        (GROUPS_ROOT / group / "README.md").write_text("\n".join(body))
 
 
 def write_bracket(rows: dict, meta: dict, head: str, tail: str) -> None:
@@ -134,8 +140,8 @@ def write_bracket(rows: dict, meta: dict, head: str, tail: str) -> None:
         per_task[task] = tally
         total.update(tally)
         parts.append(f"## {task} — {meta[task]['title']}\n"
-                     f"`harbor_tasks/{group}/` — "
-                     f"[README]({group}/README.md)\n\n"
+                     f"`failed_tasks/{group}/` — "
+                     f"[README](../failed_tasks/{group}/README.md)\n\n"
                      + "\n".join(table) + "\n")
     totals = ["## Totals", "",
               "| task | genuinely hidden | coincidence | unmeasurable |",

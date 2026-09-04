@@ -1,0 +1,974 @@
+{
+ "slug": "agent-turn-ledger",
+ "task": "g7",
+ "digest": "8d48072f1ebd9819",
+ "verdicts": {
+  "g7.r1.failure_behavior#1": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 spells the full chain out loud: TurnLedgerDesyncError is a TurnLedgerError, \"itself just a RuntimeError\".",
+   "clues": [
+    "g7.r1.rev1"
+   ],
+   "source": "assert issubclass(desync, base) and issubclass(base, RuntimeError)"
+  },
+  "g7.r1.failure_behavior#2": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l9 decides a missing file is benign and the log is adopted, and rev2 supplies the exact status token \"adopted\" for the non-abort arm.",
+   "clues": [
+    "g7.r1.l9",
+    "g7.r1.rev2"
+   ],
+   "source": "# (a) absent, unreadable, or a version this build does not speak.\n    assert read_field(load(tmp_path), \"status\") == \"adopted\""
+  },
+  "g7.r1.failure_behavior#3": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l11 makes the call for a half-written line that dies in json.loads \u2014 \"we dont discard an intact log over that - adopt it\".",
+   "clues": [
+    "g7.r1.l11",
+    "g7.r1.rev2"
+   ],
+   "source": "assert read_field(load(tmp_path), \"status\") == \"adopted\""
+  },
+  "g7.r1.failure_behavior#4": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2 says a missing or below-2 version \"just gets status adopted\" and only a version-2 mismatch aborts.",
+   "clues": [
+    "g7.r1.rev2",
+    "g7.r1.l10"
+   ],
+   "source": "assert read_field(load(tmp_path), \"status\") == \"adopted\""
+  },
+  "g7.r1.failure_behavior#5": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "say20 states the verified arm nearly verbatim: version 2, responses and last_author both matching, status verified.",
+   "clues": [
+    "g7.r1.say20"
+   ],
+   "source": "assert read_field(load(tmp_path), \"status\") == \"verified\""
+  },
+  "g7.r1.failure_behavior#6": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 says a current-version checkpoint disagreeing on responses raises TurnLedgerDesyncError.",
+   "clues": [
+    "g7.r1.rev1",
+    "g7.r1.l16"
+   ],
+   "source": "with pytest.raises(desync) as caught:"
+  },
+  "g7.r1.failure_behavior#7": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l10 says the error's .path attribute holds the turn_ledger.json path, and l15 establishes write_sidecar hands back an absolute path for tests to compare against.",
+   "clues": [
+    "g7.r1.l10",
+    "g7.r1.l15"
+   ],
+   "source": "assert os.path.realpath(error.path) == os.path.realpath(path)"
+  },
+  "g7.r1.failure_behavior#8": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l12 names .log_responses as an attribute on the exception carrying the log-derived count, not just message text.",
+   "clues": [
+    "g7.r1.l12"
+   ],
+   "source": "assert error.log_responses == 2"
+  },
+  "g7.r1.failure_behavior#9": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l16 reports recorded_responses coming off the exception in a stale-checkpoint repro, fixing both the name and that it is the file's side.",
+   "clues": [
+    "g7.r1.l16"
+   ],
+   "source": "assert error.recorded_responses == 1"
+  },
+  "g7.r1.failure_behavior#10": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l12 names .log_last_author explicitly as an exception attribute holding the log's author.",
+   "clues": [
+    "g7.r1.l12"
+   ],
+   "source": "assert error.log_last_author == SEEDER"
+  },
+  "g7.r1.failure_behavior#11": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l16 names recorded_last_author as coming off the exception, holding the checkpoint's author.",
+   "clues": [
+    "g7.r1.l16"
+   ],
+   "source": "assert error.recorded_last_author == SEEDER"
+  },
+  "g7.r1.failure_behavior#12": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "absent",
+   "why": "No remark quotes any fragment of the message; l12 only concedes a message exists, leaving its entire wording, ordering, \"response(s)\" phrasing and !r quoting unsourced.",
+   "clues": [
+    "g7.r1.l12"
+   ],
+   "source": "assert str(error) == (\n        f\"{error.path} records 1 response(s) last authored by {SEEDER!r}, \"\n        f\"the log holds 2 last authored by {SEEDER!r}\"\n    )"
+  },
+  "g7.r1.failure_behavior#13": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "rev1 names last_author disagreement as a raising condition alongside responses.",
+   "clues": [
+    "g7.r1.rev1"
+   ],
+   "source": "with pytest.raises(desync) as caught:"
+  },
+  "g7.r1.failure_behavior#14": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l12 fixes .log_last_author as the attribute holding the log's author; the SEEDER value is the suite's fixture.",
+   "clues": [
+    "g7.r1.l12"
+   ],
+   "source": "assert caught.value.log_last_author == SEEDER"
+  },
+  "g7.r1.failure_behavior#15": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l16 fixes recorded_last_author as the attribute holding the checkpoint's author; PARTNER is fixture-side.",
+   "clues": [
+    "g7.r1.l16"
+   ],
+   "source": "assert caught.value.recorded_last_author == PARTNER"
+  },
+  "g7.r1.failure_behavior#16": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l12 names .log_responses and rev1 makes clear an author-only disagreement still raises, so the matching counts still populate.",
+   "clues": [
+    "g7.r1.l12",
+    "g7.r1.rev1"
+   ],
+   "source": "assert caught.value.log_responses == 2"
+  },
+  "g7.r1.failure_behavior#17": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l16 names recorded_responses and rev1 establishes the raise fires on last_author alone, so both counts are carried even when equal.",
+   "clues": [
+    "g7.r1.l16",
+    "g7.r1.rev1"
+   ],
+   "source": "assert caught.value.recorded_responses == 2"
+  },
+  "g7.r1.failure_behavior#18": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "Same raise condition rev1 states directly.",
+   "clues": [
+    "g7.r1.rev1"
+   ],
+   "source": "with pytest.raises(desync):"
+  },
+  "g7.r1.failure_behavior#19": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l16 files the four burned calls as the bug \u2014 \"it should be refusing before the first call\" \u2014 and rev1 confirms the raise precedes the first request.",
+   "clues": [
+    "g7.r1.l16",
+    "g7.r1.rev1"
+   ],
+   "source": "assert conversation.calls == []"
+  },
+  "g7.r1.failure_behavior#20": {
+   "key": "g7.r1.failure_behavior",
+   "verdict": "stated",
+   "why": "l6 decides the jsonl is left alone when the two disagree, and rev1 puts the raise before the first request, so the three seeded lines stand.",
+   "clues": [
+    "g7.r1.l6",
+    "g7.r1.rev1"
+   ],
+   "source": "assert len(log_lines(tmp_path)) == 3"
+  },
+  "g7.r1.observability#1": {
+   "key": "g7.r1.observability",
+   "verdict": "not_required",
+   "why": "This is the suite's own fixture \u2014 a fake call_single_request rigged to raise on its first call \u2014 not a behaviour the corpus owes anything to.",
+   "clues": [],
+   "source": "with pytest.raises(Boom):"
+  },
+  "g7.r1.observability#2": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l13 reports killing a run on its very first call and finding turn_ledger.json already there, saying the seed line alone triggers the write, and l4 repeats that the record goes out after every append, seed line included.",
+   "clues": [
+    "g7.r1.l13",
+    "g7.r1.l4"
+   ],
+   "source": "assert path.exists(), \"the seed line was not checkpointed before the first request\""
+  },
+  "g7.r1.observability#3": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "Every element is said out loud: eight keys (l4), version 2 (rev2), responses 0/turns 1/last_author client (l13), next_speaker advisor after a client line (say24), interleave_faults 0 on a clean log (say25), completed false while running (say22), completion_reason \"open\" mid-run (say23), and sort_keys/indent 2/trailing newline (l14).",
+   "clues": [
+    "g7.r1.l4",
+    "g7.r1.l13",
+    "g7.r1.l14",
+    "g7.r1.say22",
+    "g7.r1.say23",
+    "g7.r1.say24",
+    "g7.r1.say25",
+    "g7.r1.rev2"
+   ],
+   "source": "assert path.read_text() == (\n        \"{\\n\"\n        '  \"completed\": false,\\n'\n        '  \"completion_reason\": \"open\",\\n'\n        '  \"interleave_faults\": 0,\\n'\n        '  \"last_author\": \"client\",\\n'\n        '  \"next_speaker\": \"advisor\",\\n'\n        '  \"responses\": 0,\\n'\n        '  \"turns\": 1,\\n'\n        '  \"version\": 2\\n'\n        \"}\\n\"\n    )"
+  },
+  "g7.r1.observability#4": {
+   "key": "g7.r1.observability",
+   "verdict": "implied",
+   "why": "No remark mentions a byte size; the reader has to notice that the fully-specified key set, values and formatting fix the file's length at 186 and that nobody ever said so.",
+   "clues": [
+    "g7.r1.l14",
+    "g7.r1.l4",
+    "g7.r1.l13"
+   ],
+   "source": "assert path.stat().st_size == 186"
+  },
+  "g7.r1.observability#5": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "say21 describes a clean four-turn run ending with turns 4 and l2 defines turns as the jsonl line count with the seed line included, so the completed log is four lines.",
+   "clues": [
+    "g7.r1.say21",
+    "g7.r1.l2"
+   ],
+   "source": "assert len(log_lines(done)) == 4"
+  },
+  "g7.r1.observability#6": {
+   "key": "g7.r1.observability",
+   "verdict": "implied",
+   "why": "The completed record's keys, values and formatting are all stated, but nobody attaches any byte count to the file, so 189 is left for the reader to arrive at.",
+   "clues": [
+    "g7.r1.l14",
+    "g7.r1.say21",
+    "g7.r1.l4"
+   ],
+   "source": "assert sidecar.stat().st_size == 189"
+  },
+  "g7.r1.observability#7": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "say21 gives responses 3, turns 4, last_author advisor, next_speaker null, completed true, completion_reason agent_signal; rev2 gives version 2, say25 gives interleave_faults 0, l4 fixes the eight keys and l15 says read_sidecar takes the working dir and returns the record as a dict.",
+   "clues": [
+    "g7.r1.say21",
+    "g7.r1.rev2",
+    "g7.r1.say25",
+    "g7.r1.l4",
+    "g7.r1.l15"
+   ],
+   "source": "assert read_sidecar(str(done)) == {\n        \"version\": 2,\n        \"responses\": 3,\n        \"turns\": 4,\n        \"last_author\": PARTNER,\n        \"next_speaker\": None,\n        \"interleave_faults\": 0,\n        \"completed\": True,\n        \"completion_reason\": \"agent_signal\",\n    }"
+  },
+  "g7.r1.observability#8": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "rev1 says a current-version checkpoint disagreeing on responses or last_author raises TurnLedgerDesyncError, which is exactly the stale 3-line-log case.",
+   "clues": [
+    "g7.r1.rev1",
+    "g7.r1.rev2",
+    "g7.r1.l16"
+   ],
+   "source": "with pytest.raises(desync) as caught:"
+  },
+  "g7.r1.observability#9": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l10 says the error's .path attribute holds that turn_ledger.json path, and l12 shows it carrying the working dir's turn_ledger.json.",
+   "clues": [
+    "g7.r1.l10",
+    "g7.r1.l12"
+   ],
+   "source": "assert os.path.realpath(caught.value.path) == os.path.realpath(str(sidecar))"
+  },
+  "g7.r1.observability#10": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l12 says the log side hangs off the exception as .log_responses 2.",
+   "clues": [
+    "g7.r1.l12"
+   ],
+   "source": "assert caught.value.log_responses == 2"
+  },
+  "g7.r1.observability#11": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l16 reports recorded_responses 3 coming off the exception in this same stale-checkpoint repro.",
+   "clues": [
+    "g7.r1.l16"
+   ],
+   "source": "assert caught.value.recorded_responses == 3"
+  },
+  "g7.r1.observability#12": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l12 names .log_last_author 'client' as an attribute of the exception, not just message text.",
+   "clues": [
+    "g7.r1.l12"
+   ],
+   "source": "assert caught.value.log_last_author == SEEDER"
+  },
+  "g7.r1.observability#13": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l16 reports recorded_last_author 'advisor' coming off the exception.",
+   "clues": [
+    "g7.r1.l16"
+   ],
+   "source": "assert caught.value.recorded_last_author == PARTNER"
+  },
+  "g7.r1.observability#14": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "rev1 says the raise happens before the first request and l16 complains that four calls were burned when it should refuse before the first call.",
+   "clues": [
+    "g7.r1.rev1",
+    "g7.r1.l16"
+   ],
+   "source": "assert stale.calls == []"
+  },
+  "g7.r1.observability#15": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "rev2, rev1 and l6 all say the trim-back-to-recorded-count is gone and the jsonl is left alone when the two disagree, so the 3-line log stays 3 lines.",
+   "clues": [
+    "g7.r1.rev2",
+    "g7.r1.rev1",
+    "g7.r1.l6"
+   ],
+   "source": "assert len(log_lines(done)) == 3"
+  },
+  "g7.r1.observability#16": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l9 says a missing json file is benign and we adopt the log, and rev2 says missing or below-version checkpoints just get status adopted, with say20/l8 establishing status as a field on the ledger.",
+   "clues": [
+    "g7.r1.l9",
+    "g7.r1.rev2",
+    "g7.r1.say20",
+    "g7.r1.l8"
+   ],
+   "source": "assert read_field(second.ledger, \"status\") == \"adopted\""
+  },
+  "g7.r1.observability#17": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l9 spells out the resumed behaviour as exactly one call_single_request(advisor, 2).",
+   "clues": [
+    "g7.r1.l9"
+   ],
+   "source": "assert resumed.calls == [(PARTNER, 2)]"
+  },
+  "g7.r1.observability#18": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "l11 says an adopted intact log gets the one line appended, three becomes four.",
+   "clues": [
+    "g7.r1.l11",
+    "g7.r1.l9"
+   ],
+   "source": "assert len(log_lines(done)) == 4"
+  },
+  "g7.r1.observability#19": {
+   "key": "g7.r1.observability",
+   "verdict": "stated",
+   "why": "rev2 says a checkpoint missing the version key or below TURN_LEDGER_VERSION 2 just gets status adopted, and l10 calls pre-version-2 checkpoints stale rather than wrong.",
+   "clues": [
+    "g7.r1.rev2",
+    "g7.r1.l10"
+   ],
+   "source": "assert read_field(load(older), \"status\") == \"adopted\""
+  },
+  "g7.r1.rule#1": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l2 names the constant and its value together: \"the working dir gets TURN_LEDGER_FILENAME, turn_ledger.json\".",
+   "clues": [
+    "g7.r1.l2"
+   ],
+   "source": "assert sym(\"TURN_LEDGER_FILENAME\") == \"turn_ledger.json\""
+  },
+  "g7.r1.rule#2": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "rev2 says the stamp is the \"version\" key holding TURN_LEDGER_VERSION 2, and l10 repeats the constant name with the number 2.",
+   "clues": [
+    "g7.r1.rev2",
+    "g7.r1.l10"
+   ],
+   "source": "assert sym(\"TURN_LEDGER_VERSION\") == 2"
+  },
+  "g7.r1.rule#3": {
+   "key": "g7.r1.rule",
+   "verdict": "not_required",
+   "why": "Boom is the suite's own injected client failure, not anything the corpus owes.",
+   "clues": [],
+   "source": "with pytest.raises(Boom):"
+  },
+  "g7.r1.rule#4": {
+   "key": "g7.r1.rule",
+   "verdict": "not_required",
+   "why": "This checks the fixture's own log state \u2014 the alternating seed/partner/seed jsonl the base conversation loop already produces.",
+   "clues": [
+    "g7.r1.say25"
+   ],
+   "source": "assert authors(tmp_path) == [SEEDER, PARTNER, SEEDER]"
+  },
+  "g7.r1.rule#5": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "say23 says it writes mid-run, l13 says the seed line alone triggers the write, and l4 says it goes back out after every append \u2014 so a file exists when the run dies mid-flight.",
+   "clues": [
+    "g7.r1.say23",
+    "g7.r1.l13",
+    "g7.r1.l4"
+   ],
+   "source": "assert os.path.exists(path), \"no checkpoint was written before the run failed\""
+  },
+  "g7.r1.rule#6": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l4 says ledger.sidecar_state is exactly eight keys and enumerates all eight by name.",
+   "clues": [
+    "g7.r1.l4"
+   ],
+   "source": "assert set(state) == EIGHT_KEYS, sorted(state)"
+  },
+  "g7.r1.rule#7": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "rev2 attaches the value directly to the key: the \"version\" key holds TURN_LEDGER_VERSION 2.",
+   "clues": [
+    "g7.r1.rev2"
+   ],
+   "source": "assert state[\"version\"] == 2"
+  },
+  "g7.r1.rule#8": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l13 pins responses 0 at the seed line and say21 pins responses 3 for a four-turn run, with l2's responses-plus-one relation fixing the count as appended responses.",
+   "clues": [
+    "g7.r1.l13",
+    "g7.r1.say21",
+    "g7.r1.l2"
+   ],
+   "source": "assert state[\"responses\"] == 2"
+  },
+  "g7.r1.rule#9": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l2 defines turns as the jsonl line count including the seed line, i.e. responses plus one.",
+   "clues": [
+    "g7.r1.l2",
+    "g7.r1.l13",
+    "g7.r1.say21"
+   ],
+   "source": "assert state[\"turns\"] == 3"
+  },
+  "g7.r1.rule#10": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l13 and say21 both report last_author as whoever wrote the final log line, and l8 calls it \"who wrote last\".",
+   "clues": [
+    "g7.r1.l13",
+    "g7.r1.say21",
+    "g7.r1.l8"
+   ],
+   "source": "assert state[\"last_author\"] == SEEDER"
+  },
+  "g7.r1.rule#11": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "say24 states next_speaker is nothing more than the partner of last_author, with a worked example.",
+   "clues": [
+    "g7.r1.say24"
+   ],
+   "source": "assert state[\"next_speaker\"] == PARTNER"
+  },
+  "g7.r1.rule#12": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "say25 says a clean client/advisor alternation always rebuilds interleave_faults to 0.",
+   "clues": [
+    "g7.r1.say25"
+   ],
+   "source": "assert state[\"interleave_faults\"] == 0"
+  },
+  "g7.r1.rule#13": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "say22 says completed is seeded false and stays false through every append, flipping true only when the run finishes.",
+   "clues": [
+    "g7.r1.say22",
+    "g7.r1.say21"
+   ],
+   "source": "assert state[\"completed\"] is False"
+  },
+  "g7.r1.rule#14": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "say23 says completion_reason sits at \"open\" on every write while the run is still going.",
+   "clues": [
+    "g7.r1.say23"
+   ],
+   "source": "assert state[\"completion_reason\"] == \"open\""
+  },
+  "g7.r1.rule#15": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l4 names sidecar_state as the eight-key record and says that record is what goes back out through write_sidecar, so the method's return matches the file.",
+   "clues": [
+    "g7.r1.l4"
+   ],
+   "source": "assert ledger.sidecar_state() == state"
+  },
+  "g7.r1.rule#16": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l15 says write_sidecar already returns the absolute path it wrote.",
+   "clues": [
+    "g7.r1.l15"
+   ],
+   "source": "assert os.path.isabs(returned)"
+  },
+  "g7.r1.rule#17": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l15 says the returned path is the path it wrote and that tests read straight off it, with l2 placing that file at turn_ledger.json in the working dir.",
+   "clues": [
+    "g7.r1.l15",
+    "g7.r1.l2"
+   ],
+   "source": "assert os.path.realpath(returned) == os.path.realpath(path)"
+  },
+  "g7.r1.rule#18": {
+   "key": "g7.r1.rule",
+   "verdict": "stated",
+   "why": "l14 says turn_ledger.json goes out as sort_keys/indent-2 JSON and l15 says reading the working dir gives the record back as a dict, so the file's JSON is the eight-key state.",
+   "clues": [
+    "g7.r1.l14",
+    "g7.r1.l15",
+    "g7.r1.l4"
+   ],
+   "source": "assert json.loads(open(path).read()) == state"
+  },
+  "g7.r1.scope#1": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "All three status strings are named out loud as the ledger's status \u2014 \"created\" for a first write (l8), \"adopted\" for a missing/older stamp (rev2, l9), \"verified\" for a matching version-2 checkpoint (say20).",
+   "clues": [
+    "g7.r1.l8",
+    "g7.r1.rev2",
+    "g7.r1.say20",
+    "g7.r1.l9"
+   ],
+   "source": "assert set(statuses) == {\"created\", \"adopted\", \"verified\"}"
+  },
+  "g7.r1.scope#2": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "rev2 says a missing or below-version-2 stamp \"just gets status adopted\", and l9 confirms the missing-file case adopts the log.",
+   "clues": [
+    "g7.r1.rev2",
+    "g7.r1.l9"
+   ],
+   "source": "assert read_field(adopted, \"status\") == \"adopted\""
+  },
+  "g7.r1.scope#3": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "l6 says the counters rebuild from the log when the sidecar is not trusted, and l2 fixes responses as the jsonl line count minus the seed line, so the adopted record's responses follows from the fixture log.",
+   "clues": [
+    "g7.r1.l6",
+    "g7.r1.l2",
+    "g7.r1.l9"
+   ],
+   "source": "assert read_field(adopted, \"responses\") == 2"
+  },
+  "g7.r1.scope#4": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "l5 complains that opening a finished run had load rewrite the file and states it \"gets read back and verified not replaced\", and say20 says the file stays exactly as it was; l4 puts the writing at append time.",
+   "clues": [
+    "g7.r1.l5",
+    "g7.r1.say20",
+    "g7.r1.l4"
+   ],
+   "source": "assert sorted(os.listdir(str(tmp_path))) == listing, \"load_ledger wrote to the directory\""
+  },
+  "g7.r1.scope#5": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "say20 says a version-2 checkpoint whose responses and last_author both match the log \"comes back status verified\".",
+   "clues": [
+    "g7.r1.say20",
+    "g7.r1.l8"
+   ],
+   "source": "assert read_field(ledger, \"status\") == \"verified\""
+  },
+  "g7.r1.scope#6": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "l2 states turns is the jsonl line count with the seed line included, i.e. responses plus one.",
+   "clues": [
+    "g7.r1.l2"
+   ],
+   "source": "assert read_field(ledger, \"turns\") == 3"
+  },
+  "g7.r1.scope#7": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "l2 pins responses as turns minus the seed line and l6 says the counters rebuild off the log, so the count for a three-line log is dictated.",
+   "clues": [
+    "g7.r1.l2",
+    "g7.r1.l6"
+   ],
+   "source": "assert read_field(ledger, \"responses\") == 2"
+  },
+  "g7.r1.scope#8": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "say24 says next_speaker is nothing more than the partner of last_author, with the worked example of a log ending on client coming back advisor.",
+   "clues": [
+    "g7.r1.say24"
+   ],
+   "source": "assert read_field(ledger, \"next_speaker\") == PARTNER"
+  },
+  "g7.r1.scope#9": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "say25 says interleave_faults counts where the log doubles back on one author, so a clean client/advisor alternation always rebuilds to 0.",
+   "clues": [
+    "g7.r1.say25"
+   ],
+   "source": "assert read_field(ledger, \"interleave_faults\") == 0"
+  },
+  "g7.r1.scope#10": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "say22 says the record is seeded completed false and stays false through every append until the run finishes, and say21 shows true only on a run carried to the end.",
+   "clues": [
+    "g7.r1.say22",
+    "g7.r1.say21"
+   ],
+   "source": "assert read_field(ledger, \"completed\") is False"
+  },
+  "g7.r1.scope#11": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "say23 says completion_reason sits at \"open\" on every write while the run is still going.",
+   "clues": [
+    "g7.r1.say23",
+    "g7.r1.say21"
+   ],
+   "source": "assert read_field(ledger, \"completion_reason\") == \"open\""
+  },
+  "g7.r1.scope#12": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "rev1 and rev2 both retract the truncate-back-to-the-checkpoint behaviour, l6 says the jsonl is left alone on disagreement, and say20 says the file stays exactly as it was.",
+   "clues": [
+    "g7.r1.rev1",
+    "g7.r1.rev2",
+    "g7.r1.l6",
+    "g7.r1.say20"
+   ],
+   "source": "# Nothing was written, and no log line was truncated, re-ordered or rewritten\n    # to agree with the file.\n    assert open(path, \"rb\").read() == recorded"
+  },
+  "g7.r1.scope#13": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "The same retraction covers the desync path: the run raises before the first request and the log bytes are left untouched rather than trimmed.",
+   "clues": [
+    "g7.r1.l6",
+    "g7.r1.rev1",
+    "g7.r1.rev2"
+   ],
+   "source": "assert open(before, \"rb\").read() == log_bytes"
+  },
+  "g7.r1.scope#14": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "l6 and say20 commit to leaving the jsonl exactly as it was, so the recorded lines keep their authors and their order across a load.",
+   "clues": [
+    "g7.r1.l6",
+    "g7.r1.say20",
+    "g7.r1.say25"
+   ],
+   "source": "assert authors(tmp_path) == [SEEDER, PARTNER, SEEDER]"
+  },
+  "g7.r1.scope#15": {
+   "key": "g7.r1.scope",
+   "verdict": "not_required",
+   "why": "Boom is the suite's own injected exception and the assertion only checks that it propagates out of the run; the corpus owes nothing to that fixture plumbing.",
+   "clues": [],
+   "source": "with pytest.raises(Boom):"
+  },
+  "g7.r1.scope#16": {
+   "key": "g7.r1.scope",
+   "verdict": "stated",
+   "why": "l8 says a first write has not been compared against anything so the ledger says created, and l13 confirms the seed line alone triggers that first write.",
+   "clues": [
+    "g7.r1.l8",
+    "g7.r1.l13"
+   ],
+   "source": "assert read_field(processor.ledger, \"status\") == \"created\""
+  },
+  "g7.r2.failure_behavior#1": {
+   "key": "g7.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2 names is_completed and says outright that a non-str argument returns False, and l08/l09 establish the dict-shaped reply as the concrete case it covers.",
+   "clues": [
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l08",
+    "g7.r2.g7r2-l09"
+   ],
+   "source": "assert agent.is_completed({\"text\": SENTINEL}) is False"
+  },
+  "g7.r2.failure_behavior#2": {
+   "key": "g7.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "rev2's \"non-str returns False\" is a general rule about is_completed's return value, and None is a non-str argument with no competing remark.",
+   "clues": [
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l10"
+   ],
+   "source": "assert agent.is_completed(None) is False"
+  },
+  "g7.r2.failure_behavior#3": {
+   "key": "g7.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "A list is non-str, so rev2's stated return value applies directly without the reader inferring anything.",
+   "clues": [
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l09"
+   ],
+   "source": "assert agent.is_completed([SENTINEL]) is False"
+  },
+  "g7.r2.failure_behavior#4": {
+   "key": "g7.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "An int is non-str and rev2 fixes the return as False, so the reader writes the isinstance guard because they were told to, not because they worked it out.",
+   "clues": [
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l10"
+   ],
+   "source": "assert agent.is_completed(42) is False"
+  },
+  "g7.r2.observability#1": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "gideon's test-writing page fixes the scenario as budget 6 with \"the fake answered three times\", which is the call count the assertion checks, and emil pins the third reply as the sentinel-bearing one.",
+   "clues": [
+    "g7.r2.g7r2-l13",
+    "g7.r2.g7r2-l12"
+   ],
+   "source": "assert len(conversation.calls) == 3, conversation.calls"
+  },
+  "g7.r2.observability#2": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "l13 says \"four lines in responses_0.jsonl\" for exactly this run, and dermot independently reports the jsonl log at four lines.",
+   "clues": [
+    "g7.r2.g7r2-l13",
+    "g7.r2.say18"
+   ],
+   "source": "assert len(log_lines(tmp_path)) == 4"
+  },
+  "g7.r2.observability#3": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "l13 states \"the tracker reporting three responses\" for the same budget-6/three-reply run, attaching the count 3 to the tracker itself.",
+   "clues": [
+    "g7.r2.g7r2-l13"
+   ],
+   "source": "assert read_field(processor.status_tracker, \"num_responses\") == 3"
+  },
+  "g7.r2.observability#4": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "l13 names the field outright: \"the ledger's own responses field at 3 too\".",
+   "clues": [
+    "g7.r2.g7r2-l13"
+   ],
+   "source": "assert read_field(processor.ledger, \"responses\") == 3"
+  },
+  "g7.r2.observability#5": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "nils' ledger page says a run that ended on the marker has completion_reason reading \"agent_signal\", never budget.",
+   "clues": [
+    "g7.r2.g7r2-l14"
+   ],
+   "source": "assert read_field(processor.ledger, \"completion_reason\") == \"agent_signal\""
+  },
+  "g7.r2.observability#6": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "konrad says completed reads True on the ledger for runs the agent ended itself, calling it a finish rather than a cut-short run.",
+   "clues": [
+    "g7.r2.say19"
+   ],
+   "source": "assert read_field(processor.ledger, \"completed\") is True"
+  },
+  "g7.r2.observability#7": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "dermot reports the dataset coming out at four rows, same count as the jsonl log, \"closing message and all\", and dario's l11 frames the bug as the closing message missing from the arrow file.",
+   "clues": [
+    "g7.r2.say18",
+    "g7.r2.g7r2-l11"
+   ],
+   "source": "assert len(rows) == 4"
+  },
+  "g7.r2.observability#8": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "emil quotes the exact third reply string and demands that entire string be the content of the last dataset row.",
+   "clues": [
+    "g7.r2.g7r2-l12"
+   ],
+   "source": "assert rows[-1][\"content\"] == last"
+  },
+  "g7.r2.observability#9": {
+   "key": "g7.r2.observability",
+   "verdict": "stated",
+   "why": "emil's same remark specifies the role of that last row as PARTNER.",
+   "clues": [
+    "g7.r2.g7r2-l12"
+   ],
+   "source": "assert rows[-1][\"role\"] == PARTNER"
+  },
+  "g7.r2.rule#1": {
+   "key": "g7.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 names the constant `COMPLETION_SENTINEL` as the operand of the endswith check and, in the same breath, identifies the thing being matched as the literal `<<END_OF_CONVERSATION>>`, with l02 and l12 confirming that literal is the marker agents append.",
+   "clues": [
+    "g7.r2.rev1",
+    "g7.r2.g7r2-l02",
+    "g7.r2.g7r2-l12",
+    "g7.r2.rev2"
+   ],
+   "source": "assert sym(\"COMPLETION_SENTINEL\") == SENTINEL"
+  },
+  "g7.r2.rule#2": {
+   "key": "g7.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 and rev2 give the check verbatim as `response.rstrip().endswith(COMPLETION_SENTINEL)` and l05 says explicitly that it counts as a stop when the marker is the tail end of the reply.",
+   "clues": [
+    "g7.r2.rev1",
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l05"
+   ],
+   "source": "assert agent.is_completed(f\"all set {SENTINEL}\") is True"
+  },
+  "g7.r2.rule#3": {
+   "key": "g7.r2.rule",
+   "verdict": "stated",
+   "why": "A response that is exactly the marker is a direct application of the endswith rule spelled out in rev1/rev2, and l12/l02 establish the marker as the trailing token of a closing message.",
+   "clues": [
+    "g7.r2.rev1",
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l12"
+   ],
+   "source": "assert agent.is_completed(SENTINEL) is True"
+  },
+  "g7.r2.rule#4": {
+   "key": "g7.r2.rule",
+   "verdict": "stated",
+   "why": "The endswith formula given in rev1/rev2 returns False for text lacking the marker, and l03 says the base agent's check should look for the marker rather than answer no forever, i.e. it answers no when the marker is absent.",
+   "clues": [
+    "g7.r2.rev1",
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l03"
+   ],
+   "source": "assert agent.is_completed(\"all set\") is False"
+  },
+  "g7.r2.scope#1": {
+   "key": "g7.r2.scope",
+   "verdict": "stated",
+   "why": "rev1 and rev2 both hand over the expression `response.rstrip().endswith(COMPLETION_SENTINEL)` by name, and l07 says explicitly that a trailing newline tacked on by providers must not change the match.",
+   "clues": [
+    "g7.r2.rev1",
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l07",
+    "g7.r2.g7r2-l05"
+   ],
+   "source": "assert agent.is_completed(f\"all set {SENTINEL}  \\n\") is True"
+  },
+  "g7.r2.scope#2": {
+   "key": "g7.r2.scope",
+   "verdict": "stated",
+   "why": "rev2 says trailing whitespace is ignored and names rstrip(), which covers a trailing tab as directly as a trailing newline; no inference beyond the named call is needed.",
+   "clues": [
+    "g7.r2.rev2",
+    "g7.r2.rev1",
+    "g7.r2.g7r2-l07"
+   ],
+   "source": "assert agent.is_completed(f\"all set {SENTINEL}\\t\") is True"
+  },
+  "g7.r2.scope#3": {
+   "key": "g7.r2.scope",
+   "verdict": "stated",
+   "why": "l05 says a marker mid-paragraph is obviously still going, and rev1/l04 record the incident where a mid-sentence paste wrongly ended the run, so suffix-only is decided out loud.",
+   "clues": [
+    "g7.r2.g7r2-l05",
+    "g7.r2.rev1",
+    "g7.r2.g7r2-l04"
+   ],
+   "source": "assert agent.is_completed(f\"{SENTINEL} but wait\") is False"
+  },
+  "g7.r2.scope#4": {
+   "key": "g7.r2.scope",
+   "verdict": "stated",
+   "why": "rev1 says case-sensitive, rev2 says exact casing, l06 says capitals included, and l12/l02 give the marker in uppercase, so a lowercase tail must not match.",
+   "clues": [
+    "g7.r2.rev1",
+    "g7.r2.rev2",
+    "g7.r2.g7r2-l06",
+    "g7.r2.g7r2-l12"
+   ],
+   "source": "assert agent.is_completed(\"all set <<end_of_conversation>>\") is False"
+  },
+  "g7.r2.scope#5": {
+   "key": "g7.r2.scope",
+   "verdict": "stated",
+   "why": "The check named in rev1/rev2 is endswith on the sentinel, so a reply that never contains the marker returning False is the decision as stated, not something the reader must work out.",
+   "clues": [
+    "g7.r2.rev2",
+    "g7.r2.rev1",
+    "g7.r2.g7r2-l03"
+   ],
+   "source": "assert agent.is_completed(\"all set\") is False"
+  }
+ },
+ "counts": {
+  "stated": 88,
+  "implied": 2,
+  "absent": 1,
+  "not_required": 4
+ },
+ "short": [
+  "g7.r1.observability",
+  "g7.r1.failure_behavior"
+ ],
+ "applied": {
+  "rewritten": [
+   "g7.r1.l13 (g7.r1.observability)",
+   "g7.r1.say21 (g7.r1.observability)",
+   "g7.r1.l12 (g7.r1.failure_behavior)"
+  ],
+  "added": [],
+  "unfixed": []
+ }
+}

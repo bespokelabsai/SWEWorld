@@ -85,7 +85,7 @@ estimator renders rows itself, which the requirement never says.
 # fixtures copied in — the harbor task itself is not involved, which is the
 # point: this measures the tests, not the plumbing around them.
 docker cp harbor_tasks/_suites devbox:/tests
-docker cp harbor_tasks/t1-cache-stats/fixtures devbox:/fixtures/t1
+docker cp failed_tasks/t1-cache-stats/fixtures devbox:/fixtures/t1
 
 docker exec devbox bash -c '
   cp -r /opt/world-state/input/curator /tmp/oracle

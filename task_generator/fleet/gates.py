@@ -245,6 +245,8 @@ VERDICT_MODEL = "biggie-max"     # the only model the spec floor is applied to
 GATING_MODEL = "cipher-omni"     # what a new task must run first; informational
 SPEC_FLOOR = 0.95
 BLIND_CEILING = 0.10
+# One rollout at 1.00 proves the remarks carry the requirement. See verdict_clues.
+CLUES_FLOOR = 1.00
 
 
 def verdict_ab(task: Task, spec_dir: pathlib.Path, blind_dir: pathlib.Path) -> Verdict:
@@ -344,23 +346,104 @@ PROMOTED = ("contradictions",)
 
 
 def clue_gate(task: Task) -> Verdict:
+    """Everything the plant says about itself, read after EVERY pass that writes it.
+
+    `settle`, `reverse`, `reorder`, `reknit` and `consistency` all mutate
+    `clues/plant.json` through `clues.finish()`, which recomputes every derived
+    field. `cli.py audit_plant` reads it for the commands that end there, but
+    `settle` is not one of them -- `cmd_settle` returns 0 unconditionally on the
+    apply path -- so a $10 pass that rewrites remarks reported success no matter
+    what it did. This is the fleet's reader, and the worker calls it after all of
+    them.
+    """
     ledger = task.dir / "clues" / "plant.json"
     if not ledger.is_file():
         return Verdict("clues", False, ["clues/plant.json was never written"])
     entry = json.loads(ledger.read_text())["tasks"][0]
     hard, soft = tg_clues.problems(entry)
     hard, soft = list(hard), list(soft)
+    owed = []
+
+    # A FRESH PLANT IS NOT A BROKEN ONE.
+    #
+    # `finish()` appends "never run — cli.py consistency <slug> …" to
+    # `fact_conflicts`, which is HARD, so a perfectly good first plant always
+    # exits non-zero. Parking on that would stop all five tasks on the stage that
+    # costs the most and works. What it means is that a later stage is owed, and
+    # the plan already runs it.
+    kept = []
+    for row in hard:
+        if row.startswith("fact_conflicts") and ("never run" in row or "stale" in row):
+            owed.append(row.split(":", 1)[-1].strip()[:150])
+        else:
+            kept.append(row)
+    hard = kept
+
     for name in PROMOTED:
         rows = entry.get(name) or []
         if rows:
             hard.append(f"{name}: {len(rows)} finding(s) — promoted from advisory by the fleet")
-    # `clues.unstated()` writes STRINGS -- `f"{key}: {verdict} — {why}"` -- for
-    # both `implied` and `absent`, not the verdict dicts. Reading it as dicts
-    # crashed on every plant that had any rows at all, and passed on g6 only
-    # because g6's list is empty.
+
     absent = [r for r in (entry.get("unstated") or [])
               if isinstance(r, str) and r.split(": ", 1)[-1].startswith("absent")]
     if absent:
         hard.append(f"unstated: {len(absent)} graded assertion(s) nothing in the corpus bears on")
+
+    for req in entry.get("requirements", []):
+        rid = req.get("req_id", "?")
+        # A NAME CANNOT BE INFERRED. The tests read these by position -- an
+        # attribute, a keyword, a dict key -- so a fact whose name no remark
+        # types scores zero however well the corpus reads, and no amount of
+        # reasoning recovers it. Printed by `cmd_clues` today and in neither
+        # HARD nor SOFT, which is why it is hard here.
+        missing = req.get("missing_identifiers") or []
+        if missing:
+            hard.append(f"{rid}: no remark says {', '.join(missing)} — the tests reach "
+                        "for those by name, so those facts cannot pass")
+        if req.get("gaps"):
+            hard.append(f"{rid}: nothing carries {', '.join(req['gaps'])}")
+        # Diversity across slack / notion / email, and across weeks and rooms.
+        # `finish()` recomputes this on every pass, so it is current here even
+        # after `settle` has added remarks -- but `cmd_clues` is the only thing
+        # that ever prints it, and only at plant time.
+        for row in req.get("spread") or []:
+            soft.append(f"{rid}: {row}")
+        for row in req.get("unprinted_values") or []:
+            soft.append(f"{rid}: nothing prints {row}")
+
+    detail = {"owed": owed,
+              "remarks": sum(len(r.get("clues") or []) for r in entry.get("requirements", []))}
     return Verdict("clues", not hard, hard, soft,
+                   detail=json.dumps(detail),
                    evidence=_read(task.dir / "clues" / "README.md", 20000))
+
+
+def verdict_clues(task: Task, clues_dir: pathlib.Path) -> Verdict:
+    """Are the planted remarks enough to solve the task?
+
+    Read as an EXISTENCE claim, exactly like the spec ceiling: one rollout at
+    1.00 says the scattered evidence is sufficient. A mean would be answering a
+    different question -- how reliably a given model finds and uses it -- which
+    is what the world arm is for, and which no shipped clue arm has ever been
+    held to (g1's never cleared 0.70 against a spec arm at 1.00).
+    """
+    rows = read_rollouts(clues_dir, model=VERDICT_MODEL) or read_rollouts(clues_dir)
+    if not rows:
+        return Verdict("verdict.clues", False,
+                       ["clues: no rollouts on disk — nothing was measured"])
+    scores = [float(r.get("score") or 0) for r in rows]
+    best = max(scores)
+    opens = [v for r in rows for k, v in _subscores(r).items()
+             if k.endswith("open_feature")]
+    report = {"n": len(scores), "best": round(best, 4),
+              "mean": round(sum(scores) / len(scores), 4),
+              "open_feature": round(sum(opens) / len(opens), 3) if opens else None}
+    hard, soft = [], []
+    if best < CLUES_FLOOR:
+        hard.append(f"clues: best rollout {best:.3f} over {len(scores)} — no run has "
+                    f"reached {CLUES_FLOOR:.2f}, so nothing has shown the planted "
+                    "remarks are sufficient to solve the task")
+    if len(scores) > 1 and sum(scores) / len(scores) < best:
+        soft.append(f"clues: {len(scores)} rollouts range {min(scores):.2f}-{best:.2f} — "
+                    "a clue arm splits between engaging a requirement and skipping it")
+    return Verdict("verdict.clues", not hard, hard, soft, detail=json.dumps(report, indent=1))

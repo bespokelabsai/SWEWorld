@@ -1,7 +1,7 @@
 # Are the hidden requirements real?
 
 Every grading test, run against three implementations of the same task.
-Regenerated from measured runs on 2026-08-26 by `make_bracket.py`.
+Regenerated from measured runs on 2026-09-04 by `make_bracket.py`.
 | implementation | what it is | must |
 |---|---|---|
 | **pristine** | untouched curator | fail everything — proves the test discriminates |
@@ -66,7 +66,7 @@ Prove it by trying.
 
 
 ## t1 — Prompt-level response cache keying
-`harbor_tasks/t1-cache-stats/` — [README](t1-cache-stats/README.md)
+`failed_tasks/t1-cache-stats/` — [README](../failed_tasks/t1-cache-stats/README.md)
 
 | requirement | field | pristine | naive | oracle | verdict |
 |---|---|---|---|---|---|
@@ -82,7 +82,7 @@ Prove it by trying.
 | r2 | `scope` | fail | PASS | PASS | coincidence |
 
 ## t2 — Batch mode cost estimate before submission
-`harbor_tasks/t2-batch-cost-estimate/` — [README](t2-batch-cost-estimate/README.md)
+`failed_tasks/t2-batch-cost-estimate/` — [README](../failed_tasks/t2-batch-cost-estimate/README.md)
 
 | requirement | field | pristine | naive | oracle | verdict |
 |---|---|---|---|---|---|
@@ -96,7 +96,7 @@ Prove it by trying.
 | r2 | `scope` | fail | fail | PASS | **hidden** |
 
 ## t3 — Rate limiter shared across chained LLM blocks
-`harbor_tasks/t3-shared-limiter/` — [README](t3-shared-limiter/README.md)
+`failed_tasks/t3-shared-limiter/` — [README](../failed_tasks/t3-shared-limiter/README.md)
 
 | requirement | field | pristine | naive | oracle | verdict |
 |---|---|---|---|---|---|
@@ -110,7 +110,7 @@ Prove it by trying.
 | r2 | `scope` | fail | fail | PASS | **hidden** |
 
 ## t4 — DeepSeek empty-response retry handling
-`harbor_tasks/t4-deepseek-empty-retry/` — [README](t4-deepseek-empty-retry/README.md)
+`failed_tasks/t4-deepseek-empty-retry/` — [README](../failed_tasks/t4-deepseek-empty-retry/README.md)
 
 | requirement | field | pristine | naive | oracle | verdict |
 |---|---|---|---|---|---|
@@ -157,7 +157,7 @@ estimator renders rows itself, which the requirement never says.
 # fixtures copied in — the harbor task itself is not involved, which is the
 # point: this measures the tests, not the plumbing around them.
 docker cp harbor_tasks/_suites devbox:/tests
-docker cp harbor_tasks/t1-cache-stats/fixtures devbox:/fixtures/t1
+docker cp failed_tasks/t1-cache-stats/fixtures devbox:/fixtures/t1
 
 docker exec devbox bash -c '
   cp -r /opt/world-state/input/curator /tmp/oracle

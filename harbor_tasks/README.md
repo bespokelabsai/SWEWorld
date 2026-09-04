@@ -4,18 +4,21 @@ Harbor tasks built from `data_gen/input/tasks.json`, one folder per task
 holding every version of it.
 
 ```
-t1-cache-stats/
-    cache-stats/          the real task — the ticket, and nothing about the
-                          hidden requirements
-    cache-stats-spec/     the control — the same task with both hidden
-                          requirements written into instruction.md
-    cache-stats-clues/    every remark phase 3 planted for this task, quoted
-                          in date order with who said it and where, herrings
-                          among them — the requirement is never stated
-    fixtures/oracle.py    the informed implementation
-    fixtures/naive.py     the obvious one
-    README.md             what this task asks, and whether each fact is
-                          measurable (generated)
+g2-executor-output-cap/
+    executor-output-cap/          the real task — the ticket, and nothing
+                                  about the hidden requirements
+    executor-output-cap-spec/     the control — the same task with both hidden
+                                  requirements written into instruction.md
+    executor-output-cap-clues/    every remark phase 3 planted for this task,
+                                  quoted in date order with who said it and
+                                  where, herrings among them — the requirement
+                                  is never stated
+    executor-output-cap-world/    the same task inside the populated world, the
+                                  remarks left where they were planted
+    fixtures/oracle.py            the informed implementation
+    fixtures/naive.py             the obvious one
+    README.md                     what this task asks, and whether each fact is
+                                  measurable (generated)
 ```
 
 The three arms decompose a low blind score, which is otherwise ambiguous
@@ -26,9 +29,12 @@ remarks; the blind arm whether those remarks can be *found* in a world at all.
 gap is retrieval; `-clues` matching the blind arm means the plant is too thin
 and no amount of corpus work will fix it.
 
-`t0-smoke/` is the environment sanity task: no hidden requirements, no
-control, and it exists to separate "the world is broken" from "the agent
-failed".
+The `t*` tasks that used to sit here — `t0-smoke` through `t40`, the first
+hand-written batch — moved to `failed_tasks/` at the repo root. They are kept
+for the record, not run: `all.yaml` and `clues.yaml` still name them, now by
+their new paths. `t0-smoke/` among them is the environment sanity task: no
+hidden requirements, no control, and it exists to separate "the world is
+broken" from "the agent failed".
 
 Shared, not per task: `_suites/` (the graders, copied into every task's
 `tests/` at build time), `_env/Dockerfile` (the `sweworld:repo-only-dev`
@@ -38,9 +44,9 @@ reports), and `BRACKET.md` (whether the hidden requirements are real).
 ## Running
 
 ```bash
-harbor run -c harbor_tasks/all.yaml -a oracle          # everything
-harbor run -p harbor_tasks/t1-cache-stats -a oracle    # one task, both versions
-harbor run -p harbor_tasks/t1-cache-stats/cache-stats  # one version
+harbor run -c harbor_tasks/all.yaml -a oracle                       # the failed_tasks batch
+harbor run -p harbor_tasks/g2-executor-output-cap -a oracle          # one task, every arm
+harbor run -p harbor_tasks/g2-executor-output-cap/executor-output-cap  # one arm
 ```
 
 **`-p harbor_tasks` runs nothing.** Harbor expands a dataset directory with a

@@ -1,0 +1,20 @@
+From: gideon@world.local
+To: emil@world.local, nikolai@world.local, dario@world.local
+Subject: support: run on a revoked key retried all night
+Date: Wed, 23 Apr 2025 09:12:00 +0000
+Message-ID: <178838444847.3512899.1883285718109996624@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Hey, forwarding something from support before it gets lost in the queue. A us=
+er had their API key revoked partway through a run (org admin rotated it, the=
+y didn't know) and the run just... kept going. All night. Every single call c=
+ame back 429, nothing ever got through, and the process was still alive when =
+they checked in the morning with a log file that was like 400MB.
+
+So basically they expected it to die after a while and it never did. They're =
+not angry, they just want to know what the intended behavior is so they can t=
+ell their team. Honestly though I couldn't answer that with confidence, I dun=
+no if we treat auth-shaped 429s differently from real rate limits anywhere. W=
+ho owns this bit?

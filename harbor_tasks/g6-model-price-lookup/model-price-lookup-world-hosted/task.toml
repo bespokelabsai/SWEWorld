@@ -45,7 +45,7 @@ timeout_sec = 2400.0
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
 network_mode = "public"
-cpus = 8
+cpus = 2
 memory_mb = 13000
 
 [environment.healthcheck]

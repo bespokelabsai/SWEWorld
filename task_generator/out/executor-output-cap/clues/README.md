@@ -8,7 +8,77 @@ Clue window `2025-03-14` to `2026-01-27`; herrings before `2025-03-13`.
 
 ## The task the agent is given
 
-Sandboxed runs return whatever the program wrote, so a runaway `print` loop ships megabytes of stdout through `CodeExecutionOutput` into the response file. Add a configurable per-stream byte budget for the stdout/stderr that `SandboxCodeExecutionBackend` returns. In `types.py`: `CodeExecutionBackendConfig` gains `max_output_bytes: int = Field(default=65536, ge=0)` — `_factory.py:31` already does `CodeExecutionBackendConfig(**backend_params)`, so the knob is reachable as `CodeExecutor(backend_params={"max_output_bytes": ...})` for every backend name (`local`, `docker`, `e2b`, `modal`, `daytona`, and the `multiprocessing` alias) with no factory edit, and a negative value must be rejected at construction with pydantic's `ValidationError`; `CodeExecutionResult` and `CodeExecutionOutput` each gain a non-Optional `truncated_streams: list[str] = []` naming exactly which of `"stdout"`/`"stderr"` were shortened on that run, sorted alphabetically (a stream that is `None`, empty or within budget contributes nothing), and the field must survive a `CodeExecutionResponse(...).model_dump()` round trip. In `code_execution_backend/sandbox_backend.py`: `__init__` sets `self.max_output_bytes: int`, `execute_request` passes `max_output_bytes=self.max_output_bytes` into the existing `partial(_execute_in_sandbox, ...)`, and the module-level function becomes `_execute_in_sandbox(code, code_input, timeout, backend_name, sandbox_kwargs, *, max_output_bytes: int = 65536)` — keyword-only after a bare `*`, so a positional sixth argument raises `TypeError`. The budget applies at all four `CodeExecutionOutput` construction sites (success, the `exit_code == 124` timeout, non-zero exit, and the `except Exception` path, whose streams are salvaged with `getattr(result, "stdout", None)` and may be `None`), and on the non-zero-exit path `_format_exit_code_error` is handed the capped stderr rather than `result.stderr`; that helper keeps its current signature and its exact `"Program exited with status code {status}\n\nError details:\n{stderr}"` text. `files`/`_collect_sandbox_files` is untouched and never capped; nothing in `_factory.py`, `code_executor.py` or `db.py` changes. Put the capping rule itself in a new module `src/bespokelabs/curator/code_executor/output_cap.py` that exports `DEFAULT_MAX_OUTPUT_BYTES: int = 65536` and stays a pure function of its arguments (no clock, randomness, I/O or environment reads); the shape of the helpers inside it is yours to choose. Python 3.10, pydantic `>=2.9.2`, no new dependency; everything must be testable through the fake `bespokelabs.sandbox` module seam already used by `tests/code_executor/test_sandbox_backend.py` (a `Sandbox` whose `execute_command` returns `SimpleNamespace(exit_code=.., stdout=.., stderr=..)`, plus a patched `_collect_sandbox_files`).
+Sandboxed runs return whatever the program wrote, so a runaway `print` loop ships megabytes of
+stdout through `CodeExecutionOutput` into the response file. Add a configurable per-stream byte
+budget for the stdout/stderr that `SandboxCodeExecutionBackend` returns.
+
+### 1. `types.py`
+
+`CodeExecutionBackendConfig` gains:
+
+```python
+max_output_bytes: int = Field(default=65536, ge=0)
+```
+
+`_factory.py:31` already does `CodeExecutionBackendConfig(**backend_params)`, so the knob is
+reachable as `CodeExecutor(backend_params={"max_output_bytes": ...})` for every backend name
+(`local`, `docker`, `e2b`, `modal`, `daytona`, and the `multiprocessing` alias) with no factory
+edit. A negative value must be rejected at construction with pydantic's `ValidationError`.
+
+`CodeExecutionResult` and `CodeExecutionOutput` each gain:
+
+```python
+truncated_streams: list[str] = []
+```
+
+- Non-Optional, on **both** models.
+- Names exactly which of `"stdout"` / `"stderr"` were shortened on that run, sorted
+  alphabetically. A stream that is `None`, empty or within budget contributes nothing.
+- The field must survive a `CodeExecutionResponse(...).model_dump()` round trip.
+
+### 2. `code_execution_backend/sandbox_backend.py`
+
+- `__init__` sets `self.max_output_bytes: int`.
+- `execute_request` passes `max_output_bytes=self.max_output_bytes` into the existing
+  `partial(_execute_in_sandbox, ...)`.
+- The module-level function becomes:
+
+```python
+_execute_in_sandbox(code, code_input, timeout, backend_name, sandbox_kwargs, *,
+                    max_output_bytes: int = 65536)
+```
+
+  Keyword-only after a bare `*`, so a positional sixth argument raises `TypeError`.
+
+The budget applies at **all four** `CodeExecutionOutput` construction sites:
+
+| site | note |
+|---|---|
+| success | |
+| timeout | `exit_code == 124` |
+| non-zero exit | `_format_exit_code_error` is handed the capped stderr, not `result.stderr` |
+| `except Exception` | streams salvaged with `getattr(result, "stdout", None)`, and may be `None` |
+
+`_format_exit_code_error` keeps its current signature and its exact text:
+
+```
+Program exited with status code {status}\n\nError details:\n{stderr}
+```
+
+### 3. New module — `src/bespokelabs/curator/code_executor/output_cap.py`
+
+Put the capping rule itself here. It exports `DEFAULT_MAX_OUTPUT_BYTES: int = 65536` and stays a
+pure function of its arguments — no clock, randomness, I/O or environment reads. The shape of the
+helpers inside it is yours to choose.
+
+### Constraints
+
+- `files` / `_collect_sandbox_files` is untouched and never capped.
+- Nothing in `_factory.py`, `code_executor.py` or `db.py` changes.
+- Python 3.10, pydantic `>=2.9.2`, no new dependency.
+- Everything must be testable through the fake `bespokelabs.sandbox` module seam already used by
+  `tests/code_executor/test_sandbox_backend.py` — a `Sandbox` whose `execute_command` returns
+  `SimpleNamespace(exit_code=.., stdout=.., stderr=..)`, plus a patched `_collect_sandbox_files`.
 
 ## Every remark, in the order a reader would meet them
 
@@ -90,7 +160,8 @@ Sandboxed runs return whatever the program wrote, so a runaway `print` loop ship
 
 **Names the tests reach for that the ticket withholds:**
 
-- said: `A`, `MIN_MAX_OUTPUT_BYTES`, `OutputCapError`, `TRUNCATION_LOG_TEMPLATE`, `The`, `UTF`, `ValueError`, `budget`, `count`, `max_bytes`, `streams`
+- said: `MIN_MAX_OUTPUT_BYTES`, `OutputCapError`, `TRUNCATION_LOG_TEMPLATE`, `UTF`, `ValidationError`, `ValueError`, `count`, `max_bytes`
+- **never said: `logger`** — a reader cannot produce a name nobody wrote, so every fact needing one scores zero however well the rest is read.
 
 > **Spread:** g2.r1.sc-floor: two remarks in #cookbooks within 3 days; g2.r1.sc-log: two remarks in #pipeline within 2 days
 
@@ -130,7 +201,7 @@ Sandboxed runs return whatever the program wrote, so a runaway `print` loop ship
 11:41  nils: That matches what I got. i pulled the same log this morning and what was in it was the pip install banner. wheel downloads, resolver noise, 64k of setup, and then it stops mid sentence. none of the traceback made it into the file at all
 11:44  konrad: so nothign from the end. presumably thats where the part you actually wanted is, no?
 11:49  nils: on a failed run, yes. the traceback is the only part i open these for - i don't think i have ever read the head of one on purpose. let me think through that though, the head is still worth a little for the image and version lines. so the cut takes from both ends: first 16k, last 48k, and a marker between them so nobody reads the file as contiguous
-11:53  dermot: mhm. the tail is the half we actually lose today so weighting it that way is right. that said the marker wants to be loud, a bare ... line is going to get read as part of the output
+11:54  dermot: mhm. the tail is the half we actually lose today so weighting it that way is right. that said the marker wants to be loud, a bare ... line is going to get read as part of the output
 11:57  konrad: right. and the pip banner is like 300 lines on its own so the head slice is more or less just that, which is fine, its what tells you which image the thing ran on
 ```
 
@@ -406,7 +477,7 @@ From: None  To:
 14:09  nikolai: how did you get to 900 in the first place
 14:14  emil: counted the characters in the source string honestly. its ~1200 kana and i wanted a bit over two thirds of it kept. not entirely sure that was the right way to measure it though
 14:21  gideon: ya thats the thing, um, the cap never sees your characters at all. The trimmer runs on the encoded buffer, so basically it measures the utf-8 after encode, not the string you counted before it. took me a while to spot that honestly, i had the exact same confusion with a cyrillic fixture back in march
-14:26  emil: let me think through that. so the 900 isnt 900 of the thing i counted, its 900 of the encoded thing? that gets me to a third only if each of those kana is eating more than one of whatever the unit is
+14:27  emil: let me think through that. so the 900 isnt 900 of the thing i counted, its 900 of the encoded thing? that gets me to a third only if each of those kana is eating more than one of whatever the unit is
 14:31  gideon: exactly, three each. so its a byte count and not a character count, 900 bytes lands you at 300 kana and your fixture is behaving correct. so the expected number in that test wants to be written in bytes, and the cut walks back to the start of the codepoint rather than slicing thru the middle of one, otherwise the tail comes out as half a character
 14:36  nikolai: right and 3 is only the kana i mean the emoji rows further down that same file are 4 each so the ratio moves around depending which fixture youre staring at
 ```
@@ -436,7 +507,7 @@ From: None  To:
 ```
 14:07  konrad: quick one on the output cap before I lose the terminal. I ran it over a log that is mostly japanese and the joined result has a replacement diamond sitting right where head meets tail
 14:08  konrad: the black one with the question mark in it. not entirely sure if that is my terminal being unhelpful or the file is genuinely bad
-14:16  emil: let me think through that. i believe thats the file and not your terminal. we take the tail as the last cap/2 *bytes* and then start reading forward from wherever that offset happens to land, and for CJK that offset lands inside a character more often than not - 3 bytes per char, so two chances in three. so the tail is beginning halfway through one, lead byte on the head side of the cut and the continuation bytes orphaned at the front of the tail
+14:16  emil: let me think through that. i believe thats the file and not your terminal. we take the tail as a count of *bytes* and then start reading forward from wherever that offset happens to land, and for CJK that offset lands inside a character more often than not - 3 bytes per char, so two chances in three. so the tail is beginning halfway through one, lead byte on the head side of the cut and the continuation bytes orphaned at the front of the tail
 14:21  konrad: mhm ok. but does that actually matter to us, or is it only ugly. a viewer draws the diamond and moves on, and the log is readable eiather way
 14:30  emil: it matters, honestly. orphaned continuation bytes with no lead byte in front of them are not valid UTF-8, so anything that decodes strictly rejects the blob rather than just drawing a diamond - the strict decode path is the one that bites us. and we're not handing back mangled output for input that came in perfectly clean, that's the part i keep comming back to. so the tail offset walks forward to the next lead byte before we cut. costs us two bytes in the worst case
 14:34  konrad: right, and the head end has exactly the same hole, I just did not notice because that cap happened to land clean on my file. anyway the log is still in my scratch dir, 20k of japanese rows out of the tokenizer
@@ -560,7 +631,7 @@ full byte count with a zero-cut field or
 *A new conversation in #code-review on 2025-05-13:*
 
 ```
-14:02  emil: while i'm still in 654 — the clamp on max_output_bytes. if someone sets it to 8 we push it up to the floor and thats obviously right, but i ran the config through with 0 in there and it came back as the floor too. so truncation on, 512 byte cap, on a config that was meant to turn the whole thing off. not entirely sure the guard is wrong exactly, 0 IS less than the floor
+14:02  emil: while i'm still in 654 — the floor check on max_output_bytes. a cap of 8 getting stopped there is obviously right, but i ran the config through with 0 in there and it went the same way. so a config that was meant to turn the whole thing off does not load at all. not entirely sure the guard is wrong exactly, 0 IS less than the floor
 14:09  nikolai: i'd say 0 shouldnt be going anywhere near the floor check
 14:14  emil: so you'd short circuit it before the comparison ever runs. let me think through that one though because honestly my hesitation is it looks like special casing for its own sake — the check is a less than, 0 is less than, the code is doing precisely what it says on the tin
 14:21  nikolai: its not somebody asking for a tiny cap though thats the whole difference i mean the check is there for people who typed 8 when they meant 8k 0 has always been the off switch in that field so theres no small number to correct upward its just not in that conversation
@@ -863,7 +934,7 @@ full byte count with a zero-cut field or
 10:47  konrad: right. The row whose sandbox threw on cleanup still had its stdout capped, we just never went through the code that normally does it. cleanup raising drops us into the except branch and there is a second cap sitting in there, so we hand back something instead of nothing
 10:49  dario: ok but the normal one warns. it prints the trimmed line every time, ive seen it on plenty of rows. so why nothing here
 10:52  konrad: because that salvage cap in the except handler logs nothing. no warnign, no counter, nothing, it just quietly returns the short buffer. so from outside it reads like the process printed that much and stopped
-anyway thats the fix, we log where we cut. the byte offset, not only "output truncated" — otherwise you still cannot tell if 40 bytes went missing or 40k. same line the happy path already emits, presumably just the same call moved into the handler. which ticket it rides on i dont know, the cleanup timeout is its own seperate mess
+anyway thats deliberate, we log where we cut and the handler isnt where we cut. the line comes off the capping step itself, not off whichever return the run happens to take, and the salvage copy in there stays quiet on purpose. which ticket it rides on i dont know, the cleanup timeout is its own seperate mess
 10:54  dario: yeah those shouldnt get tangled together. im pulling 118 out of the archive now, i want to diff it against the raw capture and see how much we actually dropped on the floor
 ```
 
@@ -1016,7 +1087,8 @@ anyway thats the fix, we log where we cut. the byte offset, not only "output tru
 
 **Names the tests reach for that the ticket withholds:**
 
-- said: `CodeExecutionResult.model_fields`, `E`, `Execution`, `False`, `Optional`, `RuntimeError`, `True`, `X`, `error`, `error_truncated`, `exec_output`, `message`
+- said: `CodeExecutionResult`, `CodeExecutionResult.model_fields`, `E`, `Execution`, `False`, `RuntimeError`, `True`, `X`, `error`, `error_truncated`, `exec_output`, `files`, `message`
+- **never said: `CodeExecutionResponse`** — a reader cannot produce a name nobody wrote, so every fact needing one scores zero however well the rest is read.
 
 > **Spread:** g2.r2.s-obs: two remarks in #releases within 2 days
 
@@ -1545,7 +1617,7 @@ From: None  To:
 *A new conversation in #releases on 2025-01-21:*
 
 ```
-15:02  emil: unrelated to the notes, but while i have both files open — the truncation bookkeeping for the error string. we cut the error body at the same cap as everything else now and nothing anywhere records that we did it. truncated_streams only knows about stdout and stderr. so does error get its own flag next to the result, or does it go into that block
+15:03  emil: unrelated to the notes, but while i have both files open — the truncation bookkeeping for the error string. we cut the error body at the same cap as everything else now and nothing anywhere records that we did it. truncated_streams only knows about stdout and stderr. so does error get its own flag next to the result, or does it go into that block
 15:11  dermot: into the block, i'd say. if i had to guess the alternative is a truncated_error bool somewhere on the envelope and then there are two places you have to check before you trust the text, and that's the failure mode i keep running into on the old payloads. truncated_streams is already the answer to the question "what got cut", error is a thing that got cut
 15:16  emil: ok let me think through that. so truncated_streams stays as the single container and error lives in it, fine, i'm with you on the one-place part. but in it how — stdout and stderr are entries keyed by name in there aren't they, so is error a peer of those or something nested under one of them. honestly not entirely sure which you mean
 15:24  dario: peer. keyed by name is right so it's just a third entry sitting alongside stdout and stderr, key is "error", same shape as the other two carry. and nothing new gets added for it — no field on the envelope, no field hanging off the result, in any case the whole point is you look in one place. best we can do without reworking the reader

@@ -1,0 +1,22 @@
+From: dario@world.local
+To: nikolai@world.local, emil@world.local
+Subject: Re: 429 handling in the online request processor
+Date: Wed, 11 Jun 2025 14:06:00 +0000
+Message-ID: <178838444851.3512899.2132076358237093829@world.local>
+In-Reply-To: <178838444850.3512899.5732154255618213059@world.local>
+References: <178838444850.3512899.5732154255618213059@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+makes sense, and honestly the jitter part matters more than the doubling does=
+. every worker waking up at the same instant is how we got the sawtooth in th=
+e first place, i think, so if they all come back staggered we probably stop h=
+ammering the boundary.
+
+one thing i want to be clear on before you write it =E2=80=94 is the ceiling =
+per attempt or is it a total elapsed thing across the whole retry chain? thos=
+e behave very differently on a long run and i can see arguments either way. a=
+ctually if it is per attempt we should probably say what happens when we are =
+still getting 429s at the ceiling, do we keep going at the cap or do we give =
+up on that request.
