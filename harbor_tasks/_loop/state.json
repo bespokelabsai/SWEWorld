@@ -446,7 +446,7 @@
    "note": "weakest of the three: r1 is the ticket restated, and r2.scope became a coincidence once it was corrected to the parity claim the requirement actually makes"
   }
  },
- "run_cap": 114,
+ "run_cap": 116,
  "disk_floor_mb": 2500,
  "disk_baseline_mb": 4718,
  "reading_pass": {

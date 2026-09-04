@@ -551,3 +551,34 @@ DILUTION: `clues` reads 46 short remarks, `located` reads 46 conversations in fu
 which is thousands of lines of chat with the load-bearing sentence somewhere in it.
 
 **Worth a second g2 rollout** to tell that apart from noise on one fact.
+
+### The re-run, and what g2 actually supports
+
+The arity fix landed and the arms were re-run (`clues` 5/5 and `spec` passed that fact
+already, so only these two could move):
+
+| rollout | grader | score | missed |
+|---|---|---|---|
+| `world-g2-1` | old | 0.444 | r1.rule, r1.failure_behavior, r1.observability, r2.rule, r2.observability |
+| `world-g2-2` | fixed | **0.778** | r1.failure_behavior, r1.observability |
+| `located-g2-1` | old | 0.778 | r1.failure_behavior *(the arity defect)*, r1.observability |
+| `located-g2-2` | fixed | 0.778 | r1.observability, r2.exclusions_or_crossover |
+
+world 0.611 (n=2), located 0.778 (n=2) — **overlapping**. The world arm's second
+rollout matched located outright, so **g2 does not separate the two arms at this
+sample size**. The g1 result (0.333 over six vs 1.00) is the one that carries weight
+so far.
+
+Neither re-run miss is a grader defect. `world-g2-2` never added the up-front
+`@field_validator`, so its failure_behavior is a real half-miss ("DID NOT RAISE
+ValidationError") — and `world-g2-1`'s was `'OutputCapError' object has no attribute
+'max_bytes'`, i.e. it never stored the value at all, so its 0.444 stands unchanged
+under the fixed grader. `located-g2-2` invented an extra public field `output_capped`
+on `CodeExecutionOutput`, and that fact's own requirement states the exact field set.
+
+**`r1.observability` has never been recovered in a world arm** — 0 for 4 here, and 3
+of 5 `clues` rollouts miss it with every remark quoted in the prompt. It is the
+task's ceiling-limiter, not a retrieval problem.
+
+- [ ] If g2 is worth separating, it needs 3-4 more rollouts per arm; the per-fact
+      noise is ~1 fact per run, which is 0.111 on a 9-fact task.
