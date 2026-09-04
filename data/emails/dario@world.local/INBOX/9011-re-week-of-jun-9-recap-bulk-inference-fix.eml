@@ -1,0 +1,15 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 13:42:00 +0000
+Message-ID: <178822443473.2088454.7829025129444435726@world.local>
+In-Reply-To: <178822443473.2088454.5841823510433336111@world.local>
+References: <178822443473.2088454.5841823510433336111@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+asdict on it yep
+you get max_requests_per_batch and max_bytes_per_batch and max_batches_per_pl=
+an out of it all three
+no reason to write one and leave the others

@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "rebuilds everything from responses_0.jsonl on every load and writes no checkpoint file at all, or invents one with a different name and all twelve ledger fields dumped via model_dump/asdict"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "writes the checkpoint once at the end of run() (or on the stop_tracker path) and treats it as a resume cursor whose value is trusted"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "on any disagreement either silently rebuilds from the log, or trusts the recorded cursor and ignores/truncates the extra log lines, with no dedicated exception type and no attributes to inspect"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "no file exists mid-run, or one with different keys, unsorted/compact JSON and no trailing newline, so neither the 186-byte first write nor the five desync attributes can be observed"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P10",
+  "blind_alternative": "leaves is_completed returning False as today, or picks TERMINATE, [END], <END> or DONE as the token"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "tests for the token as a substring anywhere in the message, case-insensitively, or compares the whole message for equality"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P10",
+  "blind_alternative": "writes response.rstrip().endswith(...) directly, raising AttributeError when response_message is a structured-output dict or None"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "treats the terminating message as a control signal and stops before appending it, or strips it from the dataset, yielding one fewer call, log line and row"
+ }
+]

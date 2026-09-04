@@ -1,0 +1,552 @@
+{
+ "slug": "model-price-lookup",
+ "task": "g6",
+ "digest": "bdc6abe66e354278",
+ "verdicts": {
+  "g6.r1.exclusions_or_crossover#1": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l4 names the exact triple-bad call (bad model, bad provider, unrecognised window) as a failing lookup, and l2/l3 commit out loud that a failing lookup raises UnpricedModelError carrying a reason.",
+   "clues": [
+    "g6.r1.l4",
+    "g6.r1.l2",
+    "g6.r1.l3"
+   ],
+   "source": "# provider, model and window are all wrong at once: the provider check is first.\n        with pytest.raises(UnpricedModelError) as excinfo:"
+  },
+  "g6.r1.exclusions_or_crossover#2": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l4 gives that literal call and says it yields unknown_provider with 'not a word about the model or the window', and l6 confirms the first-wrong-thing ordering rule.",
+   "clues": [
+    "g6.r1.l4",
+    "g6.r1.l6"
+   ],
+   "source": "assert reason_of(excinfo) == \"unknown_provider\""
+  },
+  "g6.r1.exclusions_or_crossover#3": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l5 describes the same args with a registered provider as still an error case, and l2 states such a lookup raises UnpricedModelError.",
+   "clues": [
+    "g6.r1.l5",
+    "g6.r1.l2"
+   ],
+   "source": "# provider is fine, model and window are both wrong: the model check is next.\n        with pytest.raises(UnpricedModelError) as excinfo:"
+  },
+  "g6.r1.exclusions_or_crossover#4": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l5 says verbatim that with a registered provider it comes back unknown_model and the junk window never even gets looked at.",
+   "clues": [
+    "g6.r1.l5"
+   ],
+   "source": "assert reason_of(excinfo) == \"unknown_model\""
+  },
+  "g6.r1.exclusions_or_crossover#5": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l2 says that when the table has no number the lookup should raise UnpricedModelError rather than return a price with a hole, and l7/l8 identify the null-input-price row as exactly that case.",
+   "clues": [
+    "g6.r1.l2",
+    "g6.r1.l7",
+    "g6.r1.l8"
+   ],
+   "source": "with pytest.raises(UnpricedModelError) as excinfo:"
+  },
+  "g6.r1.exclusions_or_crossover#6": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l8 rules that a null input price 'should come back exactly the way a missing key does' and l5 fixes the missing-key reason as unknown_model, so the reason string for these rows is decided out loud.",
+   "clues": [
+    "g6.r1.l8",
+    "g6.r1.l7",
+    "g6.r1.l5"
+   ],
+   "source": "assert reason_of(excinfo) == \"unknown_model\", f\"{name}: {reason_of(excinfo)!r}\""
+  },
+  "g6.r1.exclusions_or_crossover#7": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "not_required",
+   "why": "0.045 is the suite's own wildcard-tier fixture price, asserted only to show the '*' row exists and was not borrowed; no remark owes this number.",
+   "clues": [],
+   "source": "assert wildcard == 0.045"
+  },
+  "g6.r1.exclusions_or_crossover#8": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l10 says a model map with no row for the requested window is an unknown_window failure, and l2/l3 establish that such failures surface as a raised UnpricedModelError.",
+   "clues": [
+    "g6.r1.l10",
+    "g6.r1.l2"
+   ],
+   "source": "with pytest.raises(UnpricedModelError) as excinfo:"
+  },
+  "g6.r1.exclusions_or_crossover#9": {
+   "key": "g6.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "l10 states the reason string and forbids silently borrowing the '*' tier, with l9 reporting the wildcard fallthrough as the bug being fixed.",
+   "clues": [
+    "g6.r1.l10",
+    "g6.r1.l9"
+   ],
+   "source": "assert reason_of(excinfo) == \"unknown_window\""
+  },
+  "g6.r1.observability#1": {
+   "key": "g6.r1.observability",
+   "verdict": "stated",
+   "why": "l2 says outright that when the table has no number the lookup should raise UnpricedModelError at the call site rather than return a holed price, and l3 refers to its constructor and REASONS, so the exception type and the fact that a bad lookup raises it were both decided out loud.",
+   "clues": [
+    "g6.r1.l2",
+    "g6.r1.l3",
+    "g6.r1.l4"
+   ],
+   "source": "with pytest.raises(UnpricedModelError) as excinfo:"
+  },
+  "g6.r1.observability#2": {
+   "key": "g6.r1.observability",
+   "verdict": "stated",
+   "why": "l4 gives the exact call and the exact string \"unknown_provider\", l5 gives \"unknown_model\" for the same args with a registered provider and says the junk window is never reached, l10 gives \"unknown_window\" for a model whose map lacks the window, and l6 fixes the precedence \u2014 the three strings and their order are all said, with l3 naming the `reason` argument that carries them.",
+   "clues": [
+    "g6.r1.l4",
+    "g6.r1.l5",
+    "g6.r1.l10",
+    "g6.r1.l6",
+    "g6.r1.l3"
+   ],
+   "source": "assert seen == [\"unknown_provider\", \"unknown_model\", \"unknown_window\"]"
+  },
+  "g6.r1.observability#3": {
+   "key": "g6.r1.observability",
+   "verdict": "stated",
+   "why": "l12 states the rule directly \u2014 every cost() method should catch the unresolvable-price error and hand back 0.0 rather than end a run over an accounting number \u2014 with l11 supplying the incident that motivates it.",
+   "clues": [
+    "g6.r1.l12",
+    "g6.r1.l11"
+   ],
+   "source": "assert processor.cost(completion_window=\"24h\", prompt=\"a\", completion=\"b\") == 0.0, (\n                    f\"{processor_cls.__name__}(batch={batch}) did not degrade to 0.0\"\n                )"
+  },
+  "g6.r1.observability#4": {
+   "key": "g6.r1.observability",
+   "verdict": "stated",
+   "why": "l13 names both tracker attributes by their exact spelling and says they just stay empty when the price can't be resolved, and l14/l1 establish that \"empty\" here means None and specifically not a displayed zero.",
+   "clues": [
+    "g6.r1.l13",
+    "g6.r1.l1",
+    "g6.r1.l14"
+   ],
+   "source": "assert (tracker.input_cost_per_million, tracker.output_cost_per_million) == (None, None), name"
+  },
+  "g6.r1.observability#5": {
+   "key": "g6.r1.observability",
+   "verdict": "stated",
+   "why": "l13 says the reason sits on the field named `price_unavailable_reason` on the trackers, and l5 fixes the reason string for a registered provider that doesn't list the model as \"unknown_model\".",
+   "clues": [
+    "g6.r1.l13",
+    "g6.r1.l5",
+    "g6.r1.l11"
+   ],
+   "source": "assert read_field(tracker, \"price_unavailable_reason\") == \"unknown_model\", name"
+  },
+  "g6.r1.observability#6": {
+   "key": "g6.r1.observability",
+   "verdict": "stated",
+   "why": "Same as #5 for the second tracker \u2014 l13 speaks of \"the trackers\" in the plural and puts the reason on `price_unavailable_reason`, and l5 supplies \"unknown_model\" for that scenario.",
+   "clues": [
+    "g6.r1.l13",
+    "g6.r1.l5",
+    "g6.r1.l11"
+   ],
+   "source": "assert read_field(tracker, \"price_unavailable_reason\") == \"unknown_model\", name"
+  },
+  "g6.r1.observability#7": {
+   "key": "g6.r1.observability",
+   "verdict": "stated",
+   "why": "Same as #4 for the second tracker: l13 names both cost-per-million attributes and says they stay empty rather than carrying a number.",
+   "clues": [
+    "g6.r1.l13",
+    "g6.r1.l1",
+    "g6.r1.l14"
+   ],
+   "source": "assert (tracker.input_cost_per_million, tracker.output_cost_per_million) == (None, None), name"
+  },
+  "g6.r1.rule#1": {
+   "key": "g6.r1.rule",
+   "verdict": "stated",
+   "why": "l3 names the attribute outright (`UnpricedModelError.REASONS`), says the constructor validates against it and that it is \"those three strings and nothing else\", and l4/l5/l10 each speak one of the three strings \u2014 unknown_provider, unknown_model, unknown_window \u2014 as the reason for a specific failure.",
+   "clues": [
+    "g6.r1.l3",
+    "g6.r1.l4",
+    "g6.r1.l5",
+    "g6.r1.l10"
+   ],
+   "source": "assert set(UnpricedModelError.REASONS) == REASON_STRINGS"
+  },
+  "g6.r1.rule#2": {
+   "key": "g6.r1.rule",
+   "verdict": "stated",
+   "why": "l2 says the lookup should raise rather than \"hand back a price with a hole in it\" and l8 says a row whose input price is null \"should come back exactly the way a missing key does\", so a successfully returned price carrying a null field is ruled out in so many words (only the bool-exclusion nicety is the suite's own hardening).",
+   "clues": [
+    "g6.r1.l2",
+    "g6.r1.l8",
+    "g6.r1.l7",
+    "g6.r1.l1"
+   ],
+   "source": "assert isinstance(value, (int, float)) and not isinstance(value, bool), (\n                            f\"{provider}/{model}/{window}: {field} is {value!r}\"\n                        )"
+  },
+  "g6.r1.rule#3": {
+   "key": "g6.r1.rule",
+   "verdict": "not_required",
+   "why": "This guards the suite's own iteration over its price-table fixture \u2014 that something was actually measured \u2014 and is not a claim about the implementation at all.",
+   "clues": [],
+   "source": "assert checked > 0, \"the external price table is empty; nothing was measured\""
+  },
+  "g6.r1.rule#4": {
+   "key": "g6.r1.rule",
+   "verdict": "stated",
+   "why": "l2 names the exception type and the behaviour together \u2014 \"i would rather the lookup raise UnpricedModelError at the call site\" \u2014 and l3 confirms it is a constructed exception class with a validated reason argument.",
+   "clues": [
+    "g6.r1.l2",
+    "g6.r1.l3",
+    "g6.r1.l4",
+    "g6.r1.l5"
+   ],
+   "source": "with pytest.raises(UnpricedModelError) as excinfo:"
+  },
+  "g6.r1.rule#5": {
+   "key": "g6.r1.rule",
+   "verdict": "stated",
+   "why": "l3 says the constructor rejects a reason outside `UnpricedModelError.REASONS` with ValueError, so every raised instance carries a reason drawn from that set, and l4/l5/l10 name the members it is drawn from.",
+   "clues": [
+    "g6.r1.l3",
+    "g6.r1.l4",
+    "g6.r1.l5",
+    "g6.r1.l10"
+   ],
+   "source": "assert reason_of(excinfo) in REASON_STRINGS, f\"{reason_of(excinfo)!r} is not a declared reason\""
+  },
+  "g6.r2.exclusions_or_crossover#1": {
+   "key": "g6.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Nikolai's wiki page decides it outright \u2014 a per-million price that came from the user is already what they pay, so \"batch mode shouldnt be knocking anything off it either\" \u2014 and rev1/s4-l2 fix batch_multiplier() as the single place that factor lives, so \"no discount\" for every processor class means that call returning 1.0.",
+   "clues": [
+    "g6.r2.g6r2-s3-l2",
+    "g6.r2.g6r2-s3-l1",
+    "g6.r2.rev1",
+    "g6.r2.g6r2-s4-l2"
+   ],
+   "source": "assert multiplier(processor) == 1.0, f\"{processor_cls.__name__} discounted a user-supplied price\""
+  },
+  "g6.r2.exclusions_or_crossover#2": {
+   "key": "g6.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Emil states the shape of cost() (\"just scaling the resolved price by self.batch_multiplier()\") and konrad states the bug as a batch run reporting \"half of what they typed\", so the reader is told cost() must come back at the typed price, not a fraction of it.",
+   "clues": [
+    "g6.r2.g6r2-s4-l2",
+    "g6.r2.g6r2-s3-l1",
+    "g6.r2.g6r2-s3-l2"
+   ],
+   "source": "assert processor.cost(completion_window=\"*\", prompt=\"a\", completion=\"b\") == pytest.approx(raw)"
+  },
+  "g6.r2.exclusions_or_crossover#3": {
+   "key": "g6.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Rev1 says batch_multiplier() is \"1.0 on klusterai and inference.net\" and rev2 generalises it to \"where a table already lists batch prices, batch_multiplier() returns 1.0\", with dermot putting the who-is-exempt decision on the class as a flag.",
+   "clues": [
+    "g6.r2.rev1",
+    "g6.r2.rev2",
+    "g6.r2.g6r2-s3-l3"
+   ],
+   "source": "assert multiplier(exempt(config=config, batch=True)) == 1.0"
+  },
+  "g6.r2.exclusions_or_crossover#4": {
+   "key": "g6.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Gideon pins the number and the call by name: \"batch_multiplier() comes back 0.5 on the base cost processor and 0.5 on azure ... outside batch mode both hand back 1.0.\"",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.g6r2-s4-l2"
+   ],
+   "source": "assert multiplier(discounting(config=config, batch=True)) == factor"
+  },
+  "g6.r2.exclusions_or_crossover#5": {
+   "key": "g6.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Nils writes the field and its value into a resolve_model_price test in the same breath \u2014 \"same test, source == \\\"litellm\\\"\" \u2014 so both the attribute name and the string a litellm-answered lookup reports are named for the reader.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3"
+   ],
+   "source": "assert read_field(listed, \"source\") == \"litellm\""
+  },
+  "g6.r2.exclusions_or_crossover#6": {
+   "key": "g6.r2.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Nils says a litellm-sourced resolve_model_price \"halves input_cost_per_million and output_cost_per_million both\", dermot says batch=True scales what batch=False returned using the same number batch_multiplier() hands out, and gideon fixes that number at 0.5.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3",
+    "g6.r2.g6r2-s1-l4",
+    "g6.r2.g6r2-s4-l1"
+   ],
+   "source": "assert read_field(batched, \"input_cost_per_million\") == pytest.approx(read_field(listed, \"input_cost_per_million\") * factor)"
+  },
+  "g6.r2.observability#1": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "Gideon names the function and the value outright: \"batch_multiplier() comes back 0.5 on the base cost processor and 0.5 on azure\".",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.rev1"
+   ],
+   "source": "assert multiplier(base_cls(config=config, batch=True)) == 0.5"
+  },
+  "g6.r2.observability#2": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "Same remark closes with \"outside batch mode both hand back 1.0\", and Emil repeats that azure and the base processor are identical in and out of batch mode.",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.g6r2-s4-l2"
+   ],
+   "source": "assert multiplier(base_cls(config=config, batch=False)) == 1.0"
+  },
+  "g6.r2.observability#3": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "\"0.5 on azure ... one number for both\" is the decision said out loud, reinforced by Emil's \"we agreed identical\".",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.g6r2-s4-l2"
+   ],
+   "source": "assert multiplier(azure_cls(config=config, batch=True)) == 0.5"
+  },
+  "g6.r2.observability#4": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "\"outside batch mode both hand back 1.0\" covers azure explicitly, since \"both\" is base plus azure.",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.g6r2-s4-l2"
+   ],
+   "source": "assert multiplier(azure_cls(config=config, batch=False)) == 1.0"
+  },
+  "g6.r2.observability#5": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "Dario's revision states \"batch_multiplier() is the only place that factor lives now, 1.0 on klusterai and inference.net, no cost() override\", overriding the January cancel-with-x2 line.",
+   "clues": [
+    "g6.r2.rev1",
+    "g6.r2.rev2"
+   ],
+   "source": "assert multiplier(kluster_cls(config=config, batch=True)) == 1.0"
+  },
+  "g6.r2.observability#6": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "The same revision names inference.net alongside klusterai at 1.0, and Nikolai confirms its published number is already the batch price.",
+   "clues": [
+    "g6.r2.rev1",
+    "g6.r2.g6r2-s2-l2",
+    "g6.r2.rev2"
+   ],
+   "source": "assert multiplier(infnet_cls(config=config, batch=True)) == 1.0"
+  },
+  "g6.r2.observability#7": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "Nils pins the batch=True resolve at \"same float as batch=False\", Emil says table-sourced prices come back exactly as listed, and Dario says the out-of-batch list price comes through untouched \u2014 the three-way equality with the raw price is asserted, not inferred.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3",
+    "g6.r2.g6r2-s2-l4",
+    "g6.r2.rev2",
+    "g6.r2.g6r2-s2-l3"
+   ],
+   "source": "assert in_batch == out_of_batch == pytest.approx(raw)"
+  },
+  "g6.r2.observability#8": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "The listed == batched equality for an externally-sourced table price is stated by Konrad and Emil; the literal 3.0 is the suite's own fixture value and the corpus owes it nothing.",
+   "clues": [
+    "g6.r2.rev2",
+    "g6.r2.g6r2-s2-l4",
+    "g6.r2.g6r2-s4-l3"
+   ],
+   "source": "assert listed == batched == 3.0"
+  },
+  "g6.r2.observability#9": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "Dario settles that outside batch mode the list price comes through untouched and Dermot says batch=True scales what batch=False returned, so batch=False returning the raw fixture number is told; the 2.0 itself is fixture.",
+   "clues": [
+    "g6.r2.g6r2-s2-l3",
+    "g6.r2.g6r2-s1-l4"
+   ],
+   "source": "# A litellm-sourced model is halved, exactly.\n        assert read_field(resolve_model_price(LITELLM_MODEL, batch=False), \"input_cost_per_million\") == 2.0"
+  },
+  "g6.r2.observability#10": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "Nils writes that for source == \"litellm\" the same test halves input_cost_per_million, naming the function, the flag and the field.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3",
+    "g6.r2.g6r2-s1-l4"
+   ],
+   "source": "assert read_field(resolve_model_price(LITELLM_MODEL, batch=True), \"input_cost_per_million\") == 1.0"
+  },
+  "g6.r2.observability#11": {
+   "key": "g6.r2.observability",
+   "verdict": "stated",
+   "why": "The same sentence names output_cost_per_million as halved too (\"input_cost_per_million and output_cost_per_million both\"), with 4.0 being half the fixture's listed output price.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3"
+   ],
+   "source": "assert read_field(resolve_model_price(LITELLM_MODEL, batch=True), \"output_cost_per_million\") == 4.0"
+  },
+  "g6.r2.rule#1": {
+   "key": "g6.r2.rule",
+   "verdict": "stated",
+   "why": "Emil spells out the shape of cost() outright -- \"cost() just scaling the resolved price by self.batch_multiplier()\" -- and rev1/rev2 confirm the factor lives only there with the cancelling overrides deleted, so the reader is told the product, the method name, and that azure matches the base.",
+   "clues": [
+    "g6.r2.g6r2-s4-l2",
+    "g6.r2.rev1",
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.rev2"
+   ],
+   "source": "assert actual == pytest.approx(expected), f\"{processor_cls.__name__}(batch={batch}) is not completion_cost * batch_multiplier()\""
+  },
+  "g6.r2.rule#2": {
+   "key": "g6.r2.rule",
+   "verdict": "not_required",
+   "why": "This is the suite guarding its own arithmetic before dividing by the factor it just read; the corpus owes nothing to a non-zero precondition (and s4-l1's 0.5/1.0 values would satisfy it anyway).",
+   "clues": [
+    "g6.r2.g6r2-s4-l1"
+   ],
+   "source": "assert factor_before, f\"{processor_cls.__name__} reports a zero multiplier\""
+  },
+  "g6.r2.rule#3": {
+   "key": "g6.r2.rule",
+   "verdict": "not_required",
+   "why": "A fixture sanity check that the baseline price is non-zero so the substitution has something to move, not a behavioural claim about the product.",
+   "clues": [],
+   "source": "assert before, f\"{processor_cls.__name__} priced at zero; nothing to substitute against\""
+  },
+  "g6.r2.rule#4": {
+   "key": "g6.r2.rule",
+   "verdict": "stated",
+   "why": "\"only one place in the tree gets to touch the price for batch\" plus rev1's \"batch_multiplier() is the only place that factor lives now ... no cost() override\" and Emil's cost()-scales-by-self.batch_multiplier() is exactly the sole-owner property this substitution measures.",
+   "clues": [
+    "g6.r2.rev1",
+    "g6.r2.g6r2-s1-l3",
+    "g6.r2.g6r2-s4-l2",
+    "g6.r2.g6r2-s1-l2",
+    "g6.r2.rev2"
+   ],
+   "source": "# Relative, not absolute: the answer must move exactly as the multiplier\n                # moved, whatever the figure it started from. That is the whole of r2's\n                # claim -- one owner, nothing else multiplying on the way out.\n                assert after == pytest.approx(before / factor_before * 3.0), (\n                    f\"{processor_cls.__name__} applies something other than batch_multiplier()\"\n                )"
+  },
+  "g6.r2.rule#5": {
+   "key": "g6.r2.rule",
+   "verdict": "stated",
+   "why": "Dermot says resolve_model_price has no separate batch row and batch=True scales what batch=False returned by the same number batch_multiplier() hands the processors, and Nils pins the concrete consequence (litellm-sourced input and output per-million both halved).",
+   "clues": [
+    "g6.r2.g6r2-s1-l4",
+    "g6.r2.g6r2-s4-l3",
+    "g6.r2.g6r2-s4-l1"
+   ],
+   "source": "assert discounted == pytest.approx(listed * factor)"
+  },
+  "g6.r2.scope#1": {
+   "key": "g6.r2.scope",
+   "verdict": "stated",
+   "why": "Gideon says batch_multiplier() \"comes back 0.5 on the base cost processor\", a concrete factor strictly between 0 and 1, and Dario/rev1 confirms that single halving factor now lives only in batch_multiplier().",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.rev1",
+    "g6.r2.g6r2-s1-l1"
+   ],
+   "source": "assert 0.0 < factor < 1.0, f\"the batch discount factor is {factor!r}\""
+  },
+  "g6.r2.scope#2": {
+   "key": "g6.r2.scope",
+   "verdict": "stated",
+   "why": "Gideon states outright that \"outside batch mode both hand back 1.0\", and Dario confirms the list price comes through untouched outside batch mode.",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.g6r2-s2-l3"
+   ],
+   "source": "assert multiplier(processor_cls(config=config, batch=False)) == 1.0, processor_cls.__name__"
+  },
+  "g6.r2.scope#3": {
+   "key": "g6.r2.scope",
+   "verdict": "stated",
+   "why": "Gideon pins azure's batch_multiplier() at the same 0.5 as the base processor (\"one number for both\") and Emil restates the agreement that azure's is identical to the base processor's in and out of batch mode.",
+   "clues": [
+    "g6.r2.g6r2-s4-l1",
+    "g6.r2.g6r2-s4-l2",
+    "g6.r2.g6r2-s1-l2"
+   ],
+   "source": "# In batch mode the two list-priced processors discount ...\n        assert multiplier(azure_cls(config=config, batch=True)) == factor"
+  },
+  "g6.r2.scope#4": {
+   "key": "g6.r2.scope",
+   "verdict": "stated",
+   "why": "Dario's revision says batch_multiplier() is \"1.0 on klusterai and inference.net\" with no cost() override, Konrad repeats that where a table already lists batch prices batch_multiplier() returns 1.0, and the 1.0-outside-batch rule covers the non-batch case.",
+   "clues": [
+    "g6.r2.rev1",
+    "g6.r2.rev2",
+    "g6.r2.g6r2-s4-l1"
+   ],
+   "source": "assert multiplier(processor_cls(config=config, batch=batch)) == 1.0, f\"{processor_cls.__name__}(batch={batch})\""
+  },
+  "g6.r2.scope#5": {
+   "key": "g6.r2.scope",
+   "verdict": "implied",
+   "why": "Konrad names an \"external-sourced price\" and Nils names a field called `source` whose value can be \"litellm\", but nobody puts the two together to say the returned record carries `source == \"external\"` \u2014 the reader must supply that the adjective is that field's literal value.",
+   "clues": [
+    "g6.r2.rev2",
+    "g6.r2.g6r2-s4-l3",
+    "g6.r2.g6r2-s2-l4"
+   ],
+   "source": "assert read_field(batched, \"source\") == \"external\""
+  },
+  "g6.r2.scope#6": {
+   "key": "g6.r2.scope",
+   "verdict": "stated",
+   "why": "Nils pins resolve_model_price(..., batch=True).input_cost_per_million at \"the same float as batch=False\" for a table-listed provider, and Konrad and Emil both say table-sourced prices come back exactly as listed.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3",
+    "g6.r2.rev2",
+    "g6.r2.g6r2-s2-l4"
+   ],
+   "source": "assert read_field(batched, field) == read_field(listed, field), f\"{provider}/{model}/{window} was discounted on the {field}\""
+  },
+  "g6.r2.scope#7": {
+   "key": "g6.r2.scope",
+   "verdict": "stated",
+   "why": "Nils writes the discriminator literally \u2014 'same test, source == \"litellm\" halves input_cost_per_million and output_cost_per_million both'.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3"
+   ],
+   "source": "assert read_field(batched, \"source\") == \"litellm\""
+  },
+  "g6.r2.scope#8": {
+   "key": "g6.r2.scope",
+   "verdict": "stated",
+   "why": "Nils says litellm-sourced prices halve both cost fields under batch=True, and Dermot ties resolve_model_price's batch scaling to the very number batch_multiplier() hands the processors, which Gideon fixes at 0.5.",
+   "clues": [
+    "g6.r2.g6r2-s4-l3",
+    "g6.r2.g6r2-s1-l4",
+    "g6.r2.g6r2-s4-l1"
+   ],
+   "source": "assert read_field(batched, field) == pytest.approx(read_field(listed, field) * factor), field"
+  }
+ },
+ "counts": {
+  "stated": 46,
+  "implied": 1,
+  "absent": 0,
+  "not_required": 4
+ },
+ "short": [
+  "g6.r2.scope"
+ ]
+}

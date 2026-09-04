@@ -1,0 +1,102 @@
+{
+ "task": "g7",
+ "suite": "g7_agent_turn_ledger",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g7.open_feature": 0.0,
+    "g7.r1.rule": 0.0,
+    "g7.r1.scope": 0.0,
+    "g7.r1.failure_behavior": 0.0,
+    "g7.r1.observability": 0.0,
+    "g7.r2.rule": 0.0,
+    "g7.r2.scope": 0.0,
+    "g7.r2.failure_behavior": 0.0,
+    "g7.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9
+   },
+   "collected": true,
+   "stdout_tail": "ited: an untouched checkout satisfies it by doing nothing.\n\nharness.py:83: Failed\n---------------------------------------------------------------------------------------------------- Captured log call -----------------------------------------------------------------------------------------------------\nDEBUG    curator.bespokelabs.curator.log:base_request_processor.py:52 Adjusting file descriptor limit from 524288 to 524288 (hard limit: 524288)\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g7_agent_turn_ledger-f7c3d9de/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g7_agent_turn_ledger/test_open.py::test_open_feature__the_seed_is_logged_and_max_length_budgets_generated_responses - assert 4 == 5\nFAILED g7_agent_turn_ledger/test_r1.py::test_rule__a_versioned_checkpoint_rewritten_after_every_appended_response - Failed: no module of bespokelabs.curator.agent exports 'TURN_LEDGER_FILENAME'\nFAILED g7_agent_turn_ledger/test_r1.py::test_scope__load_ledger_writes_nothing_and_the_log_outranks_the_checkpoint - Failed: no module of bespokelabs.curator.agent exports 'LEDGER_STATUSES'\nFAILED g7_agent_turn_ledger/test_r1.py::test_failure_behavior__absent_or_old_is_adopted_and_a_disagreeing_one_aborts - Failed: no module of bespokelabs.curator.agent exports 'TurnLedgerDesyncError'\nFAILED g7_agent_turn_ledger/test_r1.py::test_observability__the_checkpoint_reads_186_bytes_mid_run_and_189_at_the_end - Failed: no module of bespokelabs.curator.agent exports 'read_sidecar'\nFAILED g7_agent_turn_ledger/test_r2.py::test_rule__the_sentinel_is_the_end_of_conversation_token - Failed: no module of bespokelabs.curator.agent exports 'COMPLETION_SENTINEL'\nFAILED g7_agent_turn_ledger/test_r2.py::test_scope__matching_is_case_sensitive_suffix_only_and_ignores_trailing_space - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that go...\nFAILED g7_agent_turn_ledger/test_r2.py::test_failure_behavior__a_structured_or_missing_reply_answers_false - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it ...\nFAILED g7_agent_turn_ledger/test_r2.py::test_observability__the_message_that_ends_the_talk_is_still_a_turn - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it ...\n9 failed, 5 warnings in 8.33s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g7.open_feature": 1.0,
+    "g7.r1.rule": 0.0,
+    "g7.r1.scope": 0.0,
+    "g7.r1.failure_behavior": 0.0,
+    "g7.r1.observability": 0.0,
+    "g7.r2.rule": 0.0,
+    "g7.r2.scope": 0.0,
+    "g7.r2.failure_behavior": 0.0,
+    "g7.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 8,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "      \"nothing.\")\nE           Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it cannot be credited: an untouched checkout satisfies it by doing nothing.\n\nharness.py:83: Failed\n---------------------------------------------------------------------------------------------------- Captured log call -----------------------------------------------------------------------------------------------------\nDEBUG    curator.bespokelabs.curator.log:base_request_processor.py:52 Adjusting file descriptor limit from 524288 to 524288 (hard limit: 524288)\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g7_agent_turn_ledger-bb1090f5/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g7_agent_turn_ledger/test_r1.py::test_rule__a_versioned_checkpoint_rewritten_after_every_appended_response - Failed: no module of bespokelabs.curator.agent exports 'TURN_LEDGER_FILENAME'\nFAILED g7_agent_turn_ledger/test_r1.py::test_scope__load_ledger_writes_nothing_and_the_log_outranks_the_checkpoint - AssertionError: assert 'verified' == 'adopted'\nFAILED g7_agent_turn_ledger/test_r1.py::test_failure_behavior__absent_or_old_is_adopted_and_a_disagreeing_one_aborts - Failed: no module of bespokelabs.curator.agent exports 'TurnLedgerDesyncError'\nFAILED g7_agent_turn_ledger/test_r1.py::test_observability__the_checkpoint_reads_186_bytes_mid_run_and_189_at_the_end - Failed: no module of bespokelabs.curator.agent exports 'read_sidecar'\nFAILED g7_agent_turn_ledger/test_r2.py::test_rule__the_sentinel_is_the_end_of_conversation_token - AssertionError: assert '[[CONVERSATION_COMPLETE]]' == '<<END_OF_CONVERSATION>>'\nFAILED g7_agent_turn_ledger/test_r2.py::test_scope__matching_is_case_sensitive_suffix_only_and_ignores_trailing_space - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that go...\nFAILED g7_agent_turn_ledger/test_r2.py::test_failure_behavior__a_structured_or_missing_reply_answers_false - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it ...\nFAILED g7_agent_turn_ledger/test_r2.py::test_observability__the_message_that_ends_the_talk_is_still_a_turn - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it ...\n8 failed, 1 passed, 5 warnings in 5.95s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g7.open_feature": 1.0,
+    "g7.r1.rule": 1.0,
+    "g7.r1.scope": 1.0,
+    "g7.r1.failure_behavior": 1.0,
+    "g7.r1.observability": 1.0,
+    "g7.r2.rule": 1.0,
+    "g7.r2.scope": 1.0,
+    "g7.r2.failure_behavior": 1.0,
+    "g7.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g7_agent_turn_ledger-17fbd7d2/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 5 warnings in 6.38s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g7.open_feature": 1.0,
+    "g7.r1.rule": 1.0,
+    "g7.r1.scope": 1.0,
+    "g7.r1.failure_behavior": 1.0,
+    "g7.r1.observability": 1.0,
+    "g7.r2.rule": 1.0,
+    "g7.r2.scope": 1.0,
+    "g7.r2.failure_behavior": 1.0,
+    "g7.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g7_agent_turn_ledger-f36cb600/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 5 warnings in 5.87s\n"
+  }
+ },
+ "verdicts": {
+  "g7.open_feature": "open_feature",
+  "g7.r1.rule": "hidden",
+  "g7.r1.scope": "hidden",
+  "g7.r1.failure_behavior": "hidden",
+  "g7.r1.observability": "hidden",
+  "g7.r2.rule": "hidden",
+  "g7.r2.scope": "hidden",
+  "g7.r2.failure_behavior": "hidden",
+  "g7.r2.observability": "hidden"
+ }
+}

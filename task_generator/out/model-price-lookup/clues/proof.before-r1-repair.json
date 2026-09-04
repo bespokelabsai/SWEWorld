@@ -1,0 +1,90 @@
+{
+ "slug": "model-price-lookup",
+ "task": "g6",
+ "runs": 3,
+ "source": "remarks",
+ "facts": {
+  "g6.open_feature": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g6.r1.exclusions_or_crossover": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g6.r1.observability": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g6.r1.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g6.r2.exclusions_or_crossover": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g6.r2.observability": {
+   "passed": false,
+   "per_run": [
+    true,
+    false,
+    true
+   ],
+   "rate": "2/3",
+   "why": "assert 0.0 == 4.0 \u00b1 4.0e-06"
+  },
+  "g6.r2.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g6.r2.scope": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  }
+ },
+ "passed": 7,
+ "total": 8
+}

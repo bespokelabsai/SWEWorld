@@ -1,0 +1,13 @@
+{
+  "id": "a1088157-b93a-4800-85ab-523cf4c003fc",
+  "evaluation_id": "70ee2ab5-678b-4ceb-a7a1-c8f72e2e6078",
+  "run_number": 1,
+  "model": "cipher-omni",
+  "agent_type": "typhoon",
+  "score": null,
+  "success": false,
+  "task_version": 1,
+  "grade_result": null,
+  "created_at": "2026-09-03T20:57:02.848Z",
+  "completed_at": null
+}

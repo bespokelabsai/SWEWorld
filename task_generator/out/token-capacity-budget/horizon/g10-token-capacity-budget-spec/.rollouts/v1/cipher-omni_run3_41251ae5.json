@@ -1,0 +1,13 @@
+{
+  "id": "41251ae5-c9b5-498c-8f69-bd402160025e",
+  "evaluation_id": "cac12faf-1fce-4fd4-84a5-7e6e0dc8dcc3",
+  "run_number": 3,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": 0.875,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g10.r1.rule\": 1.0,\n    \"g10.r1.scope\": 1.0,\n    \"g10.r1.exclusions_or_crossover\": 0.0,\n    \"g10.r1.observability\": 1.0,\n    \"g10.r2.rule\": 1.0,\n    \"g10.r2.scope\": 1.0,\n    \"g10.r2.exclusions_or_crossover\": 1.0,\n    \"g10.r2.observability\": 1.0,\n    \"g10.open_feature\": 1.0\n  },\n  \"weights\": {\n    \"g10.r1.rule\": 0.125,\n    \"g10.r1.scope\": 0.125,\n    \"g10.r1.exclusions_or_crossover\": 0.125,\n    \"g10.r1.observability\": 0.125,\n    \"g10.r2.rule\": 0.125,\n    \"g10.r2.scope\": 0.125,\n    \"g10.r2.exclusions_or_crossover\": 0.125,\n    \"g10.r2.observability\": 0.125,\n    \"g10.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"7 of 8 hidden requirements satisfied. Open feature: yes. Missed: g10.r1.exclusions_or_crossover.  [pytest rc=1 nodes=9] rator/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/ |     class RequestProcessorConfig(BaseModel): |  | ../../usr/local/lib/python3.12/dist-packages/pydantic/_internal/_generate_schema.py:319 | ../../usr/local/lib/python3.12/dist-packages/pydantic/_internal/_generate_schema.py:319 |   /usr/local/lib/python3.12/dist-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/ |     warnings.warn( |  | -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html | ================================================================================================= short test summary info ================================================================================================== | FAILED test_r1.py::test_exclusions__capping_at_the_limit_and_staying_above_the_floor_do_not_count - AssertionError: assert 1800.0 == 1000.0 | 1 failed, 8 passed, 3 warnings in 24.49s | \"\n  },\n  \"score\": 0.875\n}",
+  "created_at": "2026-09-03T20:09:34.201Z",
+  "completed_at": "2026-09-03T20:51:08.121Z"
+}

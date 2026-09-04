@@ -1,0 +1,13 @@
+{
+  "id": "0a14af39-cb1b-4082-a4db-fff621f994f3",
+  "evaluation_id": "8ad0c500-b80a-41ef-a554-7dd58c17ebcb",
+  "run_number": 7,
+  "model": "cipher-omni",
+  "agent_type": "typhoon",
+  "score": 0.5,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g10.r1.rule\": 1.0,\n    \"g10.r1.scope\": 1.0,\n    \"g10.r1.exclusions_or_crossover\": 0.0,\n    \"g10.r1.observability\": 1.0,\n    \"g10.r2.rule\": 0.0,\n    \"g10.r2.scope\": 0.0,\n    \"g10.r2.exclusions_or_crossover\": 0.0,\n    \"g10.r2.observability\": 1.0,\n    \"g10.open_feature\": 0.0\n  },\n  \"weights\": {\n    \"g10.r1.rule\": 0.125,\n    \"g10.r1.scope\": 0.125,\n    \"g10.r1.exclusions_or_crossover\": 0.125,\n    \"g10.r1.observability\": 0.125,\n    \"g10.r2.rule\": 0.125,\n    \"g10.r2.scope\": 0.125,\n    \"g10.r2.exclusions_or_crossover\": 0.125,\n    \"g10.r2.observability\": 0.125,\n    \"g10.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"4 of 8 hidden requirements satisfied. Open feature: no. Missed: g10.r1.exclusions_or_crossover, g10.r2.rule, g10.r2.scope, g10.r2.exclusions_or_crossover.  [pytest rc=1 nodes=9]  V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/ |     warnings.warn( |  | -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html | ================================================================================================= short test summary info ================================================================================================== | FAILED test_open.py::test_open_feature__one_capacity_budget_decodes_limits_and_reserves_all_or_nothing - AttributeError: 'StubProcessor' object has no attribute '_reserve_capacity'. Did you mean: '_free_capacity'? | FAILED test_r1.py::test_exclusions__capping_at_the_limit_and_staying_above_the_floor_do_not_count - AssertionError: assert 1800.0 == 1000.0 | FAILED test_r2.py::test_rule__a_refund_returns_the_whole_estimate_and_one_request_slot - AttributeError: 'StubProcessor' object has no attribute '_reserve_capacity'. Did you mean: '_free_capacity'? | FAILED test_r2.py::test_scope__both_failure_exits_refund_while_the_success_exit_settles - AttributeError: 'StubProcessor' object has no attribute '_reserve_capacity'. Did you mean: '_free_capacity'? | FAILED test_r2.py::test_exclusions__the_failure_refund_ignores_the_usage_the_response_reported - AttributeError: 'StubProcessor' object has no attribute '_reserve_capacity'. Did you mean: '_free_capacity'? | 5 failed, 4 passed, 3 warnings in 23.64s | \"\n  },\n  \"score\": 0.5\n}",
+  "created_at": "2026-09-03T20:18:16.599Z",
+  "completed_at": "2026-09-03T20:29:36.624Z"
+}

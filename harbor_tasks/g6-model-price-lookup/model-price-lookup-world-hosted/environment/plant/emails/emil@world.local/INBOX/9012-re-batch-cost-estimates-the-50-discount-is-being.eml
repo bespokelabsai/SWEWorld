@@ -1,0 +1,32 @@
+From: dermot@world.local
+To: nikolai@world.local, emil@world.local, dario@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Re: batch cost estimates: the 50% discount is being applied to every
+ processor
+Date: Wed, 18 Jun 2025 14:20:00 +0000
+Message-ID: <178853189196.489558.1895295641265141913@world.local>
+In-Reply-To: <178853189195.489558.7215506640640255862@world.local>
+References: <178853189195.489558.7215506640640255862@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Nikolai,
+
+If I had to guess, what you are describing is that inference.net does not pri=
+ce batch as a discount off an interactive rate at all, and that the single fi=
+gure on the page is the whole of it =E2=80=94 so the reduction we apply elsew=
+here would be a second discount on a price that has already absorbed one. Tha=
+t is my reading of your mail, and if it is right then I agree with where you =
+land.
+
+The failure mode is worth stating plainly, because it is the quiet kind. Noth=
+ing errors. The table fills in, the estimate comes out, and it is simply too =
+low by whatever fraction we shaved off, which nobody notices until an invoice=
+ contradicts it. That said, I am not entirely sure the page has always read t=
+hat way; my memory is of an older version that was less explicit. It does not=
+ change the conclusion, since we price against what is published now, but it =
+is the sort of thing that makes me want the note you mention to be in the tab=
+le itself and not in a commit message.
+
+Dermot

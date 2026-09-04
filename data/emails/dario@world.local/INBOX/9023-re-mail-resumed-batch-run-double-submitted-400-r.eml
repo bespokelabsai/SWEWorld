@@ -1,0 +1,15 @@
+From: dermot@world.local
+To:
+ nikolai@world.local, gideon@world.local, emil@world.local, dario@world.local
+Subject: Re: mail: resumed batch run double-submitted ~400 requests
+Date: Thu, 17 Apr 2025 15:11:00 +0000
+Message-ID: <178822443480.2088454.11351260883824785735@world.local>
+In-Reply-To: <178822443479.2088454.17579200674193164150@world.local>
+References: <178822443479.2088454.17579200674193164150@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+so on the resume path we're calling it for path derivation rather than to act=
+ually produce anything, that the shape of it? if i had to guess the resumer j=
+ust wants to know where the files it already wrote live

@@ -1,0 +1,13 @@
+{
+  "id": "05f91fdb-fc2f-43a0-a902-ca839ef63a7d",
+  "evaluation_id": "f9131a7c-92ed-475b-bb94-d4b9e2f0f6f8",
+  "run_number": 1,
+  "model": "biggie-max",
+  "agent_type": "typhoon",
+  "score": 1,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g4.r1.rule\": 1.0,\n    \"g4.r1.scope\": 1.0,\n    \"g4.r1.exclusions_or_crossover\": 1.0,\n    \"g4.r1.observability\": 1.0,\n    \"g4.r2.rule\": 1.0,\n    \"g4.r2.scope\": 1.0,\n    \"g4.r2.failure_behavior\": 1.0,\n    \"g4.r2.observability\": 1.0,\n    \"g4.open_feature\": 1.0\n  },\n  \"weights\": {\n    \"g4.r1.rule\": 0.125,\n    \"g4.r1.scope\": 0.125,\n    \"g4.r1.exclusions_or_crossover\": 0.125,\n    \"g4.r1.observability\": 0.125,\n    \"g4.r2.rule\": 0.125,\n    \"g4.r2.scope\": 0.125,\n    \"g4.r2.failure_behavior\": 0.125,\n    \"g4.r2.observability\": 0.125,\n    \"g4.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"8 of 8 hidden requirements satisfied. Open feature: yes. Nothing missed.\"\n  },\n  \"score\": 1.0\n}",
+  "created_at": "2026-09-03T17:24:15.591Z",
+  "completed_at": "2026-09-03T17:53:46.361Z"
+}

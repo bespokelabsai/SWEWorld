@@ -1,0 +1,14 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 13:29:00 +0000
+Message-ID: <178822443472.2088454.14665719474004733730@world.local>
+In-Reply-To: <178822443471.2088454.6157273782911565525@world.local>
+References: <178822443471.2088454.6157273782911565525@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+yeah thats the gap
+plan needs a limits key sitting next to the batches
+whatever BatchLimits it planned under gets written out with it

@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P4",
+  "blind_alternative": "leaves sizing entirely to the three existing per-provider `file_upload_limit_check` implementations and defines no base ceiling, no constants and no size-specific exception"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "applies one flat 20 MB limit to every attachment regardless of kind, and/or measures remote URLs by fetching them or rejects them as unmeasurable"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P4",
+  "blind_alternative": "calls the provider hook first on the reasoning that the provider's own limit is the more specific rule, and offers URL payloads to it as well"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P4",
+  "blind_alternative": "raises a bare `ValueError` (or lets the provider hook's own error surface) with no `.kind`/`.size_mb`/`.limit_mb` attributes"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "has no aggregate ceiling at all and returns a four-block content list, or checks the running total incrementally and reports `size_mb == 54.0` after only three hook calls"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P9",
+  "blind_alternative": "charges documents the same 85 as images, or the Anthropic 2048 already in the tree, or sizes them from the base64 payload length"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P9",
+  "blind_alternative": "prices only the OpenAI-shaped `file` block and mishandles the anthropic-shaped `document`/`image` blocks, or re-prices images off OpenAI's published tiled-image formula"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P9",
+  "blind_alternative": "raises on an unrecognised block type on the grounds that an unknown block is a bug worth surfacing, or keeps the `else: msg = msg[\"image_url\"]` branch and charges 85"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P9",
+  "blind_alternative": "totals 5+85+85+85+85+85 or 5+1024+1024+2048+2048+0, or raises `KeyError: 'image_url'` before producing any total"
+ }
+]

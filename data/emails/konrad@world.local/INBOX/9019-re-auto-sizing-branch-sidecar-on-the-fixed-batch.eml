@@ -1,0 +1,13 @@
+From: nikolai@world.local
+To:
+ konrad@world.local, gideon@world.local, emil@world.local, dario@world.local
+Subject: Re: auto-sizing branch: sidecar on the fixed batch_size path too?
+Date: Tue, 15 Apr 2025 14:18:00 +0000
+Message-ID: <178822443478.2088454.2438740544047449599@world.local>
+In-Reply-To: <178822443475.2088454.2372384230054378718@world.local>
+References: <178822443475.2088454.2372384230054378718@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+yep that works for me

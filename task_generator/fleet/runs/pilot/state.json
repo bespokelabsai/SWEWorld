@@ -1,0 +1,215 @@
+{
+ "run_id": "pilot",
+ "started": "2026-09-03T17:04:34Z",
+ "through": "B",
+ "budget_usd": 350.0,
+ "tasks": {
+  "agent-turn-ledger": {
+   "id": "g7",
+   "slug": "agent-turn-ledger",
+   "brief": "/home/nidhi_bespokelabs_ai/SWEWorld/task_generator/fleet/briefs/agent-turn-ledger.md",
+   "phase": "B",
+   "step": "verdict",
+   "status": "crashed",
+   "attempts": {
+    "new": 1,
+    "author": 1,
+    "build.oracle": 1,
+    "split": 1,
+    "tests": 1,
+    "build.naive": 1,
+    "build.spec": 1,
+    "bracket": 1,
+    "audit": 1,
+    "trim": 1,
+    "bracket.retrim": 1,
+    "emit": 1,
+    "horizon.ab": 1,
+    "push": 1,
+    "validate": 1,
+    "evaluate": 1,
+    "verdict": 1
+   },
+   "history": [
+    {
+     "at": "2026-09-03T17:04:34Z",
+     "step": "new",
+     "rc": 0,
+     "seconds": 0.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T17:13:17Z",
+     "step": "author",
+     "rc": 0,
+     "seconds": 522.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T17:22:27Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 549.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T17:33:29Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "No blocking findings and no leak: ticket.md never prints the sentinel's value, `sidecar`, `turn_ledger.json` or `Desync`. The three anchorless r2 facts rest on a chosen value \u2014 `\"<<END_OF_CONVERSATION>>\"`, which the table confirms is absent from curator by listing `end_of_conversation` as invented for `g7.r2.scope`.",
+     "action": "proceed",
+     "reason": "`resplit` is only for a leak, and split already re-cut itself once (9 facts to 8). A grep of ticket.md finds no sidecar/turn_ledger.json/END_OF_CONVERSATION/Desync, so r1's four facts rest on genuinely invented names (`read_sidecar`, `sidecar_state`, `verify_sidecar`, `TurnLedgerDesyncError`). The anchorless r2 facts are the stated exemption \u2014 a chosen value \u2014 and fact_sources.json gives each a real blind alternative (TERMINATE/[END]/DONE as token; substring, case-insensitive match; AttributeError on a dict; stopping before appending the sentinel turn). Predicted coincidence is measured at `tests`, and per rule 1 its repair is `author --extend`, never another split. Not `reformat_ticket`: the ticket already has the requested shape \u2014 goal line at L3, a `###` section per change at L5/20/29/42/49/54/58, specifics as bullets. The 3405-char \"paragraph\" is the contiguous bullet run at L31-40 with no blank lines between bullets, so the heuristic is counting a bullet block as a paragraph. Re-laying it out gains the grader nothing and risks the verbatim backticked signatures the step says must survive."
+    },
+    {
+     "at": "2026-09-03T17:43:17Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 559.4,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T17:48:57Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 339.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T17:57:56Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 539.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T17:58:38Z",
+     "step": "bracket",
+     "rc": 0,
+     "seconds": 41.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:26:24Z",
+     "step": "audit",
+     "rc": 1,
+     "seconds": 1666.2,
+     "ok": false,
+     "hard": [
+      "audit exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:27:32Z",
+     "step": "audit",
+     "rc": 1,
+     "judged": true,
+     "action": "stop",
+     "reason": "Not broken/unreachable, and naive is the healthy shape (open_feature only), so neither author_extend nor resplit applies. But the audit clears zero facts: 3 cut, 3 narrow, 2 retest. All three r2 cuts are graded behind require_feature(is_completed(f\"all set {SENTINEL}\") is True) \u2014 r2.rule's assertion verbatim \u2014 so their \"hidden\" verdicts are r2.rule re-counted; r2.failure_behavior is passed by the untouched checkout, which the ticket says returns False unconditionally. r1's four facts fire no_independent_content on each other (test_rule re-asserts observability's key/values; observability's desync block is failure_behavior arm (c) verbatim). Two correlated overshoots trace to one unstated sentence \u2014 is status stamped once or re-derived after each append \u2014 one defect per rule 5. I grepped: the r2 sentinel appears only in hidden.md, tests/test_r2.py and the oracle/spec patches, not in ticket-visible source, so the auditor's leak worry is clear; that does not rescue the cuts. Repairs are fact-text rewrites, test de-duplication and a Conversation observer hook \u2014 author-side edits no later stage produces. Proceeding grades three facts the audit says not to score (rule 7).",
+     "verdict": "The audit clears no fact: 3 cut (all of r2 but rule), 3 narrow, 2 retest, with r2's cut facts graded through a require_feature gate that is r2.rule's own assertion and r1's four facts mutually implying one another. The bracket ships only because it measures discrimination, not independence."
+    },
+    {
+     "at": "2026-09-03T18:35:48Z",
+     "step": "trim",
+     "rc": 0,
+     "seconds": 367.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:36:36Z",
+     "step": "bracket.retrim",
+     "rc": 0,
+     "seconds": 47.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:36:36Z",
+     "step": "emit",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:36:36Z",
+     "step": "horizon.ab",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:36:47Z",
+     "step": "push",
+     "rc": 0,
+     "seconds": 11.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:58:26Z",
+     "step": "validate",
+     "rc": 0,
+     "seconds": 1298.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:52:01Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 3214.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    }
+   ],
+   "blocked": {
+    "step": "verdict",
+    "why": "AttributeError: 'str' object has no attribute 'get'"
+   },
+   "hosted": {
+    "blind": {
+     "task_id": "90a13ece-6230-4d5c-a8c2-c96907cc8564",
+     "version": 1
+    },
+    "spec": {
+     "task_id": "5d800624-a6c6-41bb-81b5-6ae95f881841",
+     "version": 1
+    }
+   },
+   "evaluations": [
+    {
+     "id": "291a136b-efc2-4255-a502-a6e88dbffe4d",
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    }
+   ]
+  }
+ }
+}

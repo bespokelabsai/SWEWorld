@@ -1,0 +1,13 @@
+From: nikolai@world.local
+To:
+ gideon@world.local, dermot@world.local, emil@world.local, dario@world.local
+Subject: Re: mail: resumed batch run double-submitted ~400 requests
+Date: Thu, 17 Apr 2025 15:07:00 +0000
+Message-ID: <178822443479.2088454.10290351844120144892@world.local>
+In-Reply-To: <178822443479.2088454.17579200674193164150@world.local>
+References: <178822443479.2088454.17579200674193164150@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+i'd say careful there on resume we call create_request_files with dataset=None

@@ -1,0 +1,9 @@
+{
+  "build_id": "noop-val-2c34dbc0-1788451538905",
+  "type": "noop",
+  "status": "passed",
+  "score": 0,
+  "passed": true,
+  "feedback": "0 of 8 hidden requirements satisfied. Open feature: no. Missed: g4.r1.rule, \ng4.r1.scope, g4.r1.exclusions_or_crossover, g4.r1.observability, g4.r2.rule, \ng4.r2.scope, g4.r2.failure_behavior, g4.r2.observability.    name 'run_identity'\nfrom... | FAILED \ntest_r1.py::test_exclusions__only_four_backend_params_fork_the_cache_and_the_api\n_key_is_not_one - Failed: bespokelabs.curator.run_identity could not be \nimported: ImportError(\"cannot import name 'run_identity' f... | FAILED \ntest_r1.py::test_observability__the_stated_component_table_holds_and_no_api_key_\nreaches_the_stamp - Failed: bespokelabs.curator.run_identity could not be \nimported: ImportError(\"cannot import name 'run_identity'... | FAILED \ntest_r2.py::test_rule__a_cache_disabled_run_is_identified_by_a_run_id_its_caller\n_supplies - Failed: bespokelabs.curator.run_identity could not be imported: \nImportError(\"cannot import name 'run_identity' from 'b... | FAILED \ntest_r2.py::test_scope__the_call_mints_the_default_id_from_the_environment_and_p\nasses_it_down - Failed: bespokelabs.curator.run_identity could not be imported: \nImportError(\"cannot import name 'run_identity' fro... | FAILED \ntest_r2.py::test_failure_behavior__a_missing_id_and_an_unwanted_one_are_both_ref\nused - Failed: bespokelabs.curator.run_identity could not be imported: \nImportError(\"cannot import name 'run_identity' from 'bespok... | FAILED \ntest_r2.py::test_observability__the_nocache_run_hash_is_stable_and_the_module_re\nads_no_randomness - Failed: bespokelabs.curator.run_identity could not be \nimported: ImportError(\"cannot import name 'run_identity'... | 9 failed, 1 \nwarning in 2.05s |",
+  "updated_at": "2026-09-03T16:05:39.804Z"
+}

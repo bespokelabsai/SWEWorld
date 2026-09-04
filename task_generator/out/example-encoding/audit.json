@@ -1,0 +1,598 @@
+[
+ {
+  "key": "g9.r1.rule",
+  "req": 1,
+  "field": "rule",
+  "verdict": "retest",
+  "divergent_action": "`if start < window_start: continue` (equivalently `if s - window_start < 0: continue`) inside the loop that paints assistant spans into the weight vector \u2014 a guard that drops a span whose start precedes the window boundary, in place of the clamping form `s = max(start - window_start, 0)` or of no guard at all. Concretely, the informed agent writes `for start, end in spans: if start < window_start: continue; weights[start:end] = [1.0] * (end - start)` where the blind agent writes `for start, end in spans: weights[start:end] = [1.0] * (end - start)` and then slices `weights[window_start:]`. This is a real, nameable divergence: the ticket's own prescription (\"weights are built over the untruncated sequence and sliced with the identical [window_start:]\") produces the supervised tail, so the fact is not a coincidence along the instructed path.",
+  "divergent_action_note": "n/a",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The checkout has no window or span concept at all \u2014 the ticket describes deleting `try/except Exception: weights = [1.0] * len(tokens)` at `data_formatter.py:102-104` and replacing `_compute_weights` with `_supervised_spans`. There is nothing existing that could supply span-vs-boundary behaviour for free."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "Zeroing the straddler requires an added branch. Inaction along the ticket's own prescribed construction ('built over the untruncated sequence and sliced with the identical [window_start:]') yields the OPPOSITE result: the tail of span (48, 59) survives at windowed indices 0..7 and shows up at weights[0..6]. Doing nothing fails."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "'Do not train on a truncated assistant response' is a standard chat-SFT data-prep convention \u2014 a surviving tail here is a headless fragment of `'a'*10` with its `<|assistant|>` header and opening tokens cut away, which is obviously bad supervision. A model can supply `if start < window_start: continue` from priors about masking incomplete turns, with no clue at all. This is the strongest Catalog A hit."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket leans the other way. 'Weights are built over the untruncated sequence and sliced with the identical `[window_start:]`, so the end of the conversation survives and the oldest context is what is lost' describes mechanics that, read literally and applied without a filter, supervise the straddler's tail. Nothing in the visible text mentions span-vs-boundary at all."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "Both behaviours satisfy every open-ticket clause: `window_start = max(0, len(tokens) - self.max_seq_length)`, `windowed_tokens = tokens[window_start:]`, weights sliced identically, `supervised_tokens` = count of 1.0 in the pre-shift weights. The tail-supervised variant is a fully conforming implementation of A. The rule is a genuine extra fact."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Conditional on one design choice the ticket does not force. An engineer who builds the weight vector directly in windowed space (natural \u2014 it is the vector that reaches `loss_fn_inputs`) must handle `start - window_start < 0`, and `continue` is as idiomatic there as `max(..., 0)`. Along that path the fact falls out of normal defensive coding. The ticket's untruncated-then-slice sentence disfavours that path, which is why the single blind sample failed, but it does not preclude it."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "A straddling span is directly constructible and the test constructs it: GOOD_PAIRS at max_seq_length=40 gives window_start 51 with span (48, 59) crossing it. Nothing in the code refuses this combination."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No contradiction, but there is a one-directional precondition dependency worth recording: the rule test needs `failure_behavior`'s floor NOT to fire ('Neither example here is ever refused (31 prompt tokens survive)'). That holds only under the final-span reading of `s_last`; under a first-span reading `max(0, 48 - 51) == 0 < 16` and `to_tinker_datum` raises before any weight exists. Same requirement, different field, so a clued agent sees both \u2014 but the rule test is not self-contained."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The consequence is the graded artifact itself: seven extra 1.0 entries at `weights[0..6]` and `supervised_tokens` 16 instead of 9. Nothing downstream masks it."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "`supervised_tokens` is shared with `scope` (asserts 6) and with r2 (`supervised_tokens sums the supervised token counts of kept examples`), but the deciding assertion is the 1.0-index list, which no sibling asserts. The fact has its own channel."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "`scope` is about the tokenizer=None branch (window_start 0, no straddler possible), `exclusions` never touches DataFormatter, `failure_behavior` 'never inspects a weight vector'. The straddle rule is stated nowhere else."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "'a partially retained assistant turn is never supervised' reads as a universal quantifier over spans, not a time horizon. The test enumerates a finite weight vector in a single pure call; there is no waiting and no timeout."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Pure, single-process, deterministic. `tinker` is explicitly not installed and the dict envelope is 'the only shape reachable in this checkout', so the graded path needs nothing but stdlib and a fake tokenizer."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "Borderline but acceptable. `FakeTokenizer` (one token per character) plus a hand-picked max_seq_length=40 manufacture the straddle \u2014 the fake authors the situation. But the requirement is about the REACTION (zero it in full), and the decision `s >= window_start` lives in the implementation's arithmetic, not in the fake. That is the rubric's permitted case."
+   }
+  ],
+  "the_assertion": "`assert [i for i, w in enumerate(weights) if w == 1.0] == [30, 31, 32, 33, 34, 35, 36, 37, 38], (\"the straddling span (48, 59) must contribute nothing, not its surviving tail\")` \u2014 this is the only assertion the tail-supervised implementation fails (it would produce `[0, 1, 2, 3, 4, 5, 6, 30, ..., 38]`); `sum == 9.0`, `set == {0.0, 1.0}` and `supervised_tokens == 9` are all downstream of it. Passing depends on TWO things beyond this fact: (1) `r1.failure_behavior`'s `s_last` being the final assistant span \u2014 under the first-span reading the call raises `ExampleTooLongError` at `max_seq_length=40` and the assertion is never reached; and (2) `FakeTokenizer`'s exact character-per-token template in `test_open`, which fixes 91/48/59/82/91 and hence whether a straddle exists at all.",
+  "blind_pass": "Ticket-only, no clue. The engineer builds the weight vector in windowed space rather than untruncated space, and guards the negative index by skipping rather than clamping:\n\n```python\ndef to_tinker_datum(self, example, tokenizer=None):\n    validate_role_sequence(example.messages)\n    ...\n    tokens = tokenizer.encode(chat_text, add_special_tokens=False)\n    window_start = max(0, len(tokens) - self.max_seq_length)\n    windowed_tokens = tokens[window_start:]\n\n    windowed_weights = [0.0] * len(windowed_tokens)\n    if self.train_on_assistant_only:\n        for start, end in self._supervised_spans(example.messages, tokenizer):\n            s = start - window_start\n            if s < 0:\n                # this assistant turn was cut by the window; don't train on a fragment\n                continue\n            for i in range(s, min(end - window_start, len(windowed_weights))):\n                windowed_weights[i] = 1.0\n    else:\n        windowed_weights = [1.0] * len(windowed_tokens)\n```\n\n`if s < 0: continue` is written here purely as defensive index handling plus the ordinary SFT instinct that a truncated assistant response is bad supervision \u2014 not because anyone read the clue. It produces `supervised_tokens == 9`, `sum(weights) == 9.0`, and the 1.0 indices `[30..38]`, i.e. it passes the rule test in full. The `wide` half is unaffected because both spans start after 41. The bracket's single blind sample happened to follow the ticket's untruncated-then-slice phrasing instead; this variant is equally reasonable and is the sample it did not write.",
+  "correct_fail": "I could not construct one that is legitimate. The candidates all fail on inspection:\n\n- Counting `supervised_tokens` over the untruncated weight vector instead of the windowed one \u2014 a fair reading of 'the count of 1.0 in the pre-shift weights' \u2014 gives the same 9 and 20, because under this rule every 1.0 necessarily lies at or after `window_start`. The two readings provably coincide.\n- Snapping `window_start` back to the straddling turn's boundary instead of zeroing it (arguably a more faithful reading of 'multi-turn examples keep every complete turn') would break `window_start == 51` and `len(weights) == 39` \u2014 but it contradicts the OPEN ticket's `window_start = max(0, len(tokens) - self.max_seq_length)`, so it is not a legitimate reading.\n- Routing a straddling span into `ExampleTooLongError` rather than zeroing it is disambiguated by `failure_behavior`, which fixes the refusal condition to the retained-prompt floor.\n\nThe one way a correct-on-this-fact agent fails the test is the sibling coupling in `the_assertion`: a wrong `s_last` in `failure_behavior` aborts the rule test with an unrelated exception. That is a test defect, not an overshoot.",
+  "recommendation": "Do not ship as-is; two concrete changes, then re-bracket.\n\n1. Close the coincidence (Catalog A: `model_already_knows_it` + `obvious_implementation_does_it`). Re-run the blind condition at n=5, not n=1, and include at least one run whose prompt or scaffold nudges toward constructing the weight vector in WINDOWED space (e.g. a blind agent that writes `windowed_weights = [0.0] * len(windowed_tokens)` first). If any blind sample emits `if start < window_start: continue`, the fact is a coincidence and must be cut \u2014 the passing blind implementation is quoted in `blind_pass` and is behaviourally identical to golden, so no test change can separate them. If all five fail, the fact survives and the ticket's 'built over the untruncated sequence and sliced with the identical [window_start:]' sentence is doing the anti-coincidence work; keep that sentence verbatim and do not let it drift.\n\n2. Fix the silent sibling coupling in the test. Before the weight assertions, make the premise explicit so a misdefined `s_last` produces a diagnostic instead of an unrelated exception inside the rule test:\n\n```python\n# premise, not the fact under test: 31 prompt tokens survive, so the\n# retained-prompt floor must not fire here. If this raises, the bug is in\n# ExampleTooLongError's s_last (final assistant span), not in the span rule.\ntry:\n    datum = DataFormatter(max_seq_length=40).to_tinker_datum(example(*GOOD_PAIRS), tok)\nexcept encoding_names(\"ExampleTooLongError\") as e:\n    pytest.fail(f\"GOOD_PAIRS retains 31 prompt tokens and must not be refused; s_last must be the FINAL assistant span, got retained={e.retained_prompt_tokens}\")\n```\n\nEverything else in the rule test \u2014 the 1.0-index list, `sum == 9.0`, `set == {0.0, 1.0}`, `supervised_tokens == 9`, and the `wide` half at `window_start 41` / `supervised_tokens 20` \u2014 is exact, arithmetically consistent, and should stay unchanged."
+ },
+ {
+  "key": "g9.r1.scope",
+  "req": 1,
+  "field": "scope",
+  "verdict": "narrow",
+  "divergent_action": "In `_supervised_spans`, the `tokenizer is None` branch builds the chat text incrementally and records character-offset spans instead of returning `[]` or falling back to all-ones: `start = len(text) // 4; text += f\"<|{msg.role}|>\\n{msg.content}\\n\"; if msg.role == \"assistant\": spans.append((start, len(text) // 4))` \u2014 the whole per-message chunk, so `<|assistant|>\\n` sits inside the span. The informed agent also deletes the `min(..., self.max_seq_length)` cap so `tokens = list(range(len(chat_text) // 4))`. This is a real, nameable difference \u2014 but see catalog A: it is also what an agent writes without the clue.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The decisive number is not inherited: the current mock path takes the \"all-ones shortcut\" the fact names, so `supervised_tokens == 6` is not free. But the supporting assertions are inherited \u2014 `list(datum_part(datum, \"model_input\")) == [0, 1, 2, 3, 4, 5, 6, 7]` follows from the existing `tokens = list(range(...))`, and `token_count == 9` from the existing `len(chat_text) // 4`, which the ticket re-states anyway (\"the mock path keeps the `<|role|>\\n` template and the `len // 4` token count\"). Only one of six assertions in this test does any discriminating."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The clause \"it is no longer capped at max_seq_length\" is a deletion, and the test never exercises it: the case is `DataFormatter(max_seq_length=1024)` over a 9-token example, so `min(9, 1024) == 9`. An agent who leaves the existing cap in place passes every assertion here. Inaction on that clause is indistinguishable from compliance."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "`<|role|>\\n` plus `len // 4` is this repo's private mock convention, not a published one, and the header-inside-span offset is arbitrary. No prior gets you here."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The ticket supplies every ingredient but the offset: `_supervised_spans(self, messages: List[ChatMessage], tokenizer: Optional[Any])` \u2014 Optional, with no carve-out for None; `supervised_tokens` is \"the count of 1.0 in the pre-shift weights\" on a dict envelope the ticket calls \"the only shape reachable in this checkout\"; `\"train_on_assistant_only=False\" means weights are all 1.0` (so True must not be); and `metadata[\"original_text\"] ... the `<|role|>` text without one`. That is the whole `tokenizer is False` / `token_count 9` / `window_start 0` / all-ones-when-False half of the observable, handed over openly."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "For the \"honours train_on_assistant_only on the mock path\" half: given a `_supervised_spans` that takes `Optional[Any]`, a `supervised_tokens` key required on the only reachable branch, and all-1.0 explicitly reserved for `train_on_assistant_only=False`, supervising assistant spans on the None path is the only self-consistent build of the visible feature. Not entailed for the header-inside offset."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "This is the fatal one. The natural loop appends the whole `f\"<|{msg.role}|>\\n{msg.content}\\n\"` chunk per message and takes `len(before)//4, len(after)//4`; putting the header *outside* the span requires deliberately adding `len(f\"<|{msg.role}|>\\n\")` to the start. The fact's discriminator is the branch the careless write already takes \u2014 the clue is graded on a coin whose obvious face it picked. Note also `len(\"<|user|>\\nHello\\n\") // 4 == 3` equals the cumulative per-message sum `3`, so an agent who sums per-message `len(piece)//4` instead of using true prefix offsets also lands on `(3, 9)`."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The opposite: the ticket calls the dict envelope \"the only shape reachable in this checkout\", and `tinker` \"is not installed\". The tokenizer=None path is the most reachable state in the task."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No contradiction, but there is a coupling: the scope test's final line needs `r1.failure_behavior`'s floor to NOT fire on `GOOD_PAIRS` at `max_seq_length=40` (retained 31 >= 16). A correct-but-differently-tuned floor turns this scope assertion red for a failure_behavior reason."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Header-in vs header-out is 6 supervised tokens vs 2, and shortcut vs policy is [0,0,1,1,1,1,1,1] vs [1.0]*8. Fully observable in the returned weight vector."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The test's closing assertion \u2014 `weights_of(DataFormatter(max_seq_length=40, train_on_assistant_only=False).to_tinker_datum(example(*GOOD_PAIRS), FakeTokenizer())) == [1.0] * 39` \u2014 is on the tokenizer path and its length 39 encodes `window_start == 51`, which is `r1.rule`'s observable, while its non-refusal is `r1.failure_behavior`'s. The docstring asserts \"`scope` stays on the mock path\"; this line leaves it."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "The character-offset span with the header inside is stated by no neighbour; `rule` speaks only of `(s, e)` vs `window_start` on the tokenizer path. The content is independent even where its discriminating power is not."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Every claim is a finite, single-call, pure computation over a 39-character string."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Pure and deterministic, stdlib only, no tokenizer at all on the graded path \u2014 `tinker` is explicitly not required."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "There is no fake on the mock path; the `<|role|>\\n` template and `len // 4` are production code the ticket freezes. The fake (`FakeTokenizer`) appears only in the stray final assertion, and there it drives a reaction, not a trigger."
+   }
+  ],
+  "the_assertion": "`assert weights_of(datum) == [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]` (equivalently `assert read_field(encoding, \"supervised_tokens\") == 6, \"the mock path must honour train_on_assistant_only, with the header inside the span\"`). Passing it depends on two things beyond this requirement: the dict envelope and the causal shift `windowed_weights[1:]` from the open ticket, and \u2014 for the *test as a whole* to be green \u2014 `r1.rule`'s `window_start == 51` and `r1.failure_behavior`'s floor declining to refuse `GOOD_PAIRS` at 40, both pulled in by the final line.",
+  "blind_pass": "def _supervised_spans(self, messages: List[ChatMessage], tokenizer: Optional[Any]) -> List[Tuple[int, int]]:\n    spans: List[Tuple[int, int]] = []\n    if tokenizer is None:\n        # No real tokenizer: the mock path counts one token per four characters,\n        # so map each assistant message's character offsets the same way.\n        text = \"\"\n        for msg in messages:\n            start = len(text) // 4\n            text += f\"<|{msg.role}|>\\n{msg.content}\\n\"\n            if msg.role == \"assistant\":\n                spans.append((start, len(text) // 4))\n        return spans\n    ...  # existing prefix-tokenization boundary trick\n# Ticket-only reasoning that gets here: _supervised_spans is typed\n# `tokenizer: Optional[Any]` with no exception for None; metadata[\"encoding\"]\n# requires a real `supervised_tokens` on the branch the ticket calls \"the only\n# shape reachable in this checkout\"; and all-1.0 is reserved by the ticket for\n# train_on_assistant_only=False. Nothing about the header is considered \u2014 the\n# whole per-message chunk is appended, which is precisely the graded answer.\n# With max_seq_length=1024 the retained `min(..., self.max_seq_length)` cap\n# never binds, so leaving it in place also passes.",
+  "correct_fail": "def _supervised_spans(self, messages, tokenizer):\n    if tokenizer is None:\n        spans = []\n        text = \"\"\n        for msg in messages:\n            header = f\"<|{msg.role}|>\\n\"\n            if msg.role == \"assistant\":\n                # mirror the tokenizer path: apply_chat_template(pre,\n                # add_generation_prompt=True) puts the assistant header BEFORE\n                # the span, so the header is prompt, not supervised output.\n                spans.append(((len(text) + len(header)) // 4,\n                              (len(text) + len(header) + len(msg.content) + 1) // 4))\n            text += header + f\"{msg.content}\\n\"\n        return spans\n# Span (7, 9) -> supervised_tokens 2, weights [0,0,0,0,0,0,1,1]. This agent read\n# \"obeys the same policy\" as \"the header is excluded on both paths\", which is the\n# more faithful reading of the ticket's own description of the tokenizer path\n# (\"add_generation_prompt=True for the start index\"). The test rejects it.",
+  "recommendation": "Narrow, and invert the discriminator. (1) Flip the offset rule: make the mock-path span EXCLUDE the `<|assistant|>\\n` header, matching what the ticket already says the tokenizer path does with `add_generation_prompt=True`. As written, the graded answer (header inside) is what the obvious loop produces, so the clue buys nothing; header-outside costs a deliberate `+ len(header)` that only a clue-reader writes, and the `correct_fail` implementation above becomes the golden while the `blind_pass` one fails. Restate the fact's observable as span (7, 9), supervised_tokens 2, weights [0,0,0,0,0,0,1,1]. (2) Drop from the fact the clauses the ticket already gives \u2014 `<|role|>` template, `len // 4`, `tokenizer is False`, `token_count`, `window_start`, all-ones-when-False \u2014 and leave scope as the offset rule alone. (3) Delete the final assertion (`max_seq_length=40, train_on_assistant_only=False`, `FakeTokenizer`, `[1.0] * 39`): it is on the tokenizer path, encodes `r1.rule`'s `window_start == 51`, and depends on `r1.failure_behavior`'s floor not firing, contradicting the docstring's \"`scope` stays on the mock path\". Cover all-ones-when-False on the mock path instead: `weights_of(DataFormatter(max_seq_length=1024, train_on_assistant_only=False).to_tinker_datum(plain)) == [1.0] * 8`, which is already there. (4) Either test the un-capping or cut it: at `max_seq_length=1024` over 9 tokens the retained `min(..., max_seq_length)` cap never binds, so add a binding mock-path case (e.g. `DataFormatter(max_seq_length=5)` on the same example \u2192 `token_count == 9`, `window_start == 4`, `windowed is True`) or remove \"no longer capped at max_seq_length\" from the fact. (5) Use a multi-turn mock example so header-in/header-out cannot coincide with a per-message-sum shortcut, and re-run the blind condition against several samples after the inversion \u2014 the current bracket's single blind sample took a third path (the all-ones shortcut) and tells you nothing about the two paths that matter here."
+ },
+ {
+  "key": "g9.r1.exclusions_or_crossover",
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "verdict": "retest",
+  "divergent_action": "Two things a blind agent does not write: (1) a module-level `FIREWORKS_BYTES_PER_TOKEN = 3` in `encoding.py`, and (2) inside `FireworksDataFormatter.to_jsonl_lines`, a drop branch keyed on the serialized line's UTF-8 length \u2014 `if len(line.encode(\"utf-8\")) > self.max_seq_length * FIREWORKS_BYTES_PER_TOKEN: continue`. A blind `to_jsonl_lines` returns exactly one line per input example (the ticket says only \"validates every example's role sequence first\"), so `len(to_jsonl_lines([fits, over])) == 2` and `to_jsonl_lines([accented]) == [accented_line]`. That is a real, nameable divergence.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket states the opposite: \"Today `config.max_context_length` (`config.py:129`) reaches only the SFT job kwargs (`fireworks_trainer.py:331`), never the file that is uploaded.\" Nothing in the existing jsonl path drops or measures anything."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Half the fact is \"never windows or truncates anything\", graded by `json.loads(lines[0]) == {...}` with the message \"the kept line must be whole: nothing on this path is truncated\". No agent, blind or informed, was ever going to truncate a JSON line mid-string; this clause passes for free and tests no restraint. Only the drop-by-byte-budget half carries signal."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "The published heuristic is ~4 characters per token, which the fact explicitly rejects (\"not `len(chat_text) // 4`\"). 3 UTF-8 bytes per token, applied as a hard drop budget in a jsonl writer under the name `FIREWORKS_BYTES_PER_TOKEN`, is invented, not conventional. Priors point away from the answer."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket nudges \u2014 `from_config` wires `max_context_length` into `max_seq_length`, and it flags that the cap \"never [reaches] the file that is uploaded\" \u2014 so an agent may infer that *something* should now enforce the cap here. But the mechanism (bytes not tokens, \u00d73, strict `>`, drop rather than truncate) is absent. The ticket also never says the returned line count equals the example count, so dropping is permitted but not implied."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "`from_config` is fully satisfied by storing `max_seq_length` and leaving it unused on the jsonl path \u2014 that is the reading the ticket's own wording (`example_to_dict` and `write_jsonl` are unchanged) most supports. Building A correctly does not force B."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The natural implementation of the visible ticket's `to_jsonl_lines` change is a validation loop plus the pre-existing `json.dumps`. Nothing about it produces a byte budget or a strict-`>` boundary."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "An over-budget line is trivially constructible and the test constructs three of them; pure, single-process, deterministic."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling needs over-budget lines to survive. The relationship with r2.rule is dependency, not contradiction: r2.rule's Fireworks observable is `EncodingReport(kept=1, dropped=1, ..., dropped_indices=(1,))` for the *same* `[a, b]` at `max_seq_length=30`, which presupposes this fact's drop rule."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "A dropped line changes the uploaded training file \u2014 a real, observed difference in `to_jsonl_lines`' return value, and nothing downstream masks it."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "The deciding assertions (`encoding_names(\"FIREWORKS_BYTES_PER_TOKEN\") == 3`, `len(lines) == 1`, `to_jsonl_lines([accented]) == []`) are this fact's own channel; the test correctly notes \"`exclusions` never touches `DataFormatter`\". The contamination runs the other way: r2.rule borrows this fixture verbatim, so an agent who misses the byte budget loses two facts for one mistake. That is r2's defect to fix, but it inflates this fact's weight."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "rule, scope and failure_behavior are all `DataFormatter`-side (spans, windowing, `ExampleTooLongError`); this is the only fact about `FireworksDataFormatter.to_jsonl_lines`. It restates none of them."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "The wording is \"never windows or truncates anything\", but it is settled inside one finite call to `to_jsonl_lines`, not over an unobservable horizon. The clause's weakness is inaction-satisfaction (Catalog A), not time."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Stdlib `json` plus two `TrainingExample`s; no tokenizer, no `tinker`, no network."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": true,
+    "why": "No mock is involved, but the *trigger threshold* is authored by a formatting detail the requirement never pins. The line is 90 bytes only because `json.dumps` defaults to `\", \"`/`\": \"` separators; those eight spaces are the entire margin against a 90-byte budget. With `separators=(\",\", \":\")` the same example serializes to 82 bytes and the 93-byte one to 85, so both fit. The fact pins `ensure_ascii=False` and stays silent on separators, so the harness \u2014 not the requirement \u2014 decided when the trigger fires."
+   }
+  ],
+  "the_assertion": "`assert len(lines) == 1, f\"expected the 90-byte line and not the 93-byte one, got {lines}\"` \u2014 with its companion `assert len(lines[0].encode(\"utf-8\")) == 90`. Passing depends on more than this requirement: the second assertion is purely about `json.dumps` separator style and `ensure_ascii`, not about the byte budget, and the first sits at an exact 90-vs-90 boundary that any serialization difference (compact separators, `sort_keys`, an added key) flips. I could not read the checkout's current `to_jsonl_lines`, so I also cannot rule out that the `max_seq_length=34` assertion silently requires the agent to *add* `ensure_ascii=False` \u2014 a change no clause of the ticket or the fact asks for.",
+  "blind_pass": null,
+  "correct_fail": "FIREWORKS_BYTES_PER_TOKEN = 3  # in encoding.py\n\ndef to_jsonl_lines(self, examples: List[TrainingExample]) -> List[str]:\n    for ex in examples:\n        validate_role_sequence(ex.messages)\n    budget = self.max_seq_length * FIREWORKS_BYTES_PER_TOKEN\n    lines: List[str] = []\n    for ex in examples:\n        # compact separators: this is a jsonl file, not a document\n        line = json.dumps(self.example_to_dict(ex), ensure_ascii=False, separators=(\",\", \":\"))\n        if len(line.encode(\"utf-8\")) > budget:\n            continue\n        lines.append(line)\n    return lines\n\n# Satisfies every stated clause \u2014 constant 3, budget = max_seq_length * 3, strict >,\n# len(line.encode(\"utf-8\")), ensure_ascii=False, nothing truncated \u2014 and still fails:\n#   len(lines) == 1            -> 82 and 85 bytes both fit a 90-byte budget, gets 2\n#   len(lines[0].encode()) == 90 -> gets 82\n#   to_jsonl_lines([accented]) == [] -> 92 bytes fits the 99-byte budget, gets 1 line",
+  "recommendation": "Retest. The rule is real and discriminating; the test grades serialization formatting at zero margin. Three changes:\n\n(1) Pin the serialization where the agent can see it. Add to the visible ticket's Fireworks bullet: \"`to_jsonl_lines` keeps its existing `json.dumps(self.example_to_dict(ex), ensure_ascii=False)` \u2014 default separators, no `sort_keys`.\" First confirm the checkout already passes `ensure_ascii=False`; if it does not, the ticket must say to add it, because the `max_seq_length=34` assertion depends on it.\n\n(2) Make the test self-calibrating instead of hard-coding 90. Measure the formatter's own output, then place the budget on either side of it:\n    n = len(FireworksDataFormatter(max_seq_length=10**6).to_jsonl_lines([fits])[0].encode(\"utf-8\"))\n    assert n % 3 == 0  # or ceil to the next multiple\n    assert len(FireworksDataFormatter(max_seq_length=n // 3).to_jsonl_lines([fits])) == 1      # strict >\n    assert FireworksDataFormatter(max_seq_length=(n // 3) - 1).to_jsonl_lines([fits]) == []\nThis tests strict-`>` and the \u00d73 budget without grading separator style. Delete `assert len(lines[0].encode(\"utf-8\")) == 90`.\n\n(3) Keep the accented case \u2014 bytes-not-characters is the substance of the fact \u2014 but calibrate it the same way: measure the emitted line, assert `len(line.encode(\"utf-8\")) > len(line)`, then set the cap so the budget falls between the character count and the byte count.\n\nAlso: drop \"never windows or truncates anything\" as a graded clause (satisfied by inaction), and give r2.rule its own fixture rather than reusing `[a, b]` at `max_seq_length=30`, so a single miss here is not counted twice."
+ },
+ {
+  "key": "g9.r1.failure_behavior",
+  "req": 1,
+  "field": "failure_behavior",
+  "verdict": "retest",
+  "divergent_action": "In `to_tinker_datum`, after windowing and span computation, before building the datum:\n\n```python\nMIN_RETAINED_PROMPT_TOKENS = 16   # module constant in encoding.py\n\ns_last = spans[-1][0]\nif window_start > 0 and s_last - window_start < MIN_RETAINED_PROMPT_TOKENS:\n    raise ExampleTooLongError(\n        token_count=len(tokens),\n        max_seq_length=self.max_seq_length,\n        retained_prompt_tokens=max(0, s_last - window_start),\n        num_messages=len(example.messages),\n    )\n```\nplus `class ExampleTooLongError(EncodingError)` with the four keyword-only attributes and the exact `__str__`, and `except ExampleTooLongError: continue` in `format_batch`. A ticket-only agent writes none of this: the ticket resolves over-length purely by windowing (\"the end of the conversation survives and the oldest context is what is lost\") and gives `to_tinker_datum` no failure mode beyond `InvalidRoleSequenceError` / `TokenizerCapabilityError`. It returns a datum for every valid example.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The checkout's over-length policy is tokenizer-side truncation plus the `try/except Exception: weights = [1.0] * len(tokens)` fallback at data_formatter.py:102-104 that the ticket orders deleted. Nothing in the existing code refuses an example; there is no ExampleTooLongError and no retained-prompt notion anywhere."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "This is a positive obligation \u2014 raise a new exception type with four attributes and an exact message, and swallow it in format_batch. Inaction returns a datum and fails `pytest.raises(ExampleTooLongError)`."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "'Drop examples that don't fit' is a common SFT practice, but the specific predicate \u2014 refuse only when `window_start > 0` AND `s_last - window_start < 16`, keep unwindowed examples however short their prompt \u2014 is not a published convention. No prior gives a 16-token retained-prompt floor keyed off the FINAL assistant span start."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket's only nod is the exports clause 'plus any other public name the policy introduces', which signals that some extra public name exists but names nothing. Everything else points away: 'Weights are built over the untruncated sequence and sliced with the identical [window_start:], so the end of the conversation survives'."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature specifies a complete, self-consistent answer to over-length input (window and keep). Refusal is an alternative to it, not an entailment of it \u2014 the fully-correct open implementation returns a datum for `TOO_LONG_PAIRS`."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The obvious implementation of the ticket has exactly one raise site on this path (`TokenizerCapabilityError`) and one earlier (`validate_role_sequence`). Windowing is unconditional; there is no natural instinct that invents a second floor after already having windowed successfully."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Reachable and cheaply constructed: `[user 'u'*10, assistant 'a'*100]` at max_seq_length=40 gives token_count 129, window_start 89, s_last 28 \u2014 a windowed example whose whole prompt is off the front of the window."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "I checked the arithmetic of every sibling observable: rule uses GOOD_PAIRS at 40 and 50 (retained 31 and 41), scope's train_on_assistant_only=False case uses GOOD_PAIRS at 40 (retained 31), and scope's mock-path cases all have window_start 0. All sit above the floor, so the floor never pre-empts a sibling's precondition. Worth noting the reverse gap: scope claims the mock path honours 'the same retained-prompt floor' but every mock observable has window_start 0, so that clause of scope is asserted nowhere."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Raise vs. return a datum is the whole difference, and it propagates: format_batch returns 1 item instead of 2 and r2's report records dropped_indices == (1,). Nothing downstream is fatal either way."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "The decisive channel \u2014 the ExampleTooLongError instance and its four attributes \u2014 exists only for this fact. Caveat: the block's supporting assertions are borrowed observables (`window_start == 51`, `token_count == 6` are the open ticket's encoding metadata; `len(batch) == 1` shares its trigger with r2.rule's `dropped_indices == (1,)`), so a broken open windowing fails this block for reasons unrelated to the floor."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "No neighbour mentions refusal. r2.failure_behavior consumes it ('format_batch absorbs only the over-long refusal') but that is a dependency in the safe direction \u2014 r2 needs r1, not the other way round."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "The fact says 'An example that was NOT windowed is never refused', but that is universal quantification over inputs, decided in one synchronous call, not a time horizon. The test discharges it with one finite case (`ShortHeaderTokenizer`, window_start 0, token_count 6)."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Pure, single-process, no network; `tinker` is not required since the dict envelope is the only reachable shape."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "Nuance, not a hit. `FakeTokenizer` (one token per character) and the bespoke `ShortHeaderTokenizer` do fix token_count, window_start and s_last \u2014 the exact quantities the predicate compares \u2014 and `ShortHeaderTokenizer` exists solely to manufacture the 'unwindowed but tiny prompt' case. But the fakes only supply deterministic token text; the implementation computes window_start and the spans itself and decides whether to raise. The fake authors the input, not the answer."
+   }
+  ],
+  "the_assertion": "`assert str(error) == (\"example of 129 tokens exceeds max_seq_length=40: 0 prompt tokens would survive, minimum is 16\")`, guarded by `with pytest.raises(ExampleTooLongError) as excinfo: formatter.to_tinker_datum(too_long, tok)`. Passing depends on more than this requirement: the numbers 129 and 0 are produced by the open ticket's untruncated `token_count` and `window_start = max(0, token_count - max_seq_length)`, and by the reused prefix-tokenization boundary trick that fixes `s_last = 28`. A correct floor on top of a mis-built `token_count` fails this assertion; that coupling is acceptable (the open feature is graded elsewhere too) but it means this block is not a clean single-fact probe.",
+  "blind_pass": null,
+  "correct_fail": "Two, one certain and one conditional.\n\nCERTAIN (the reverse problem \u2014 the test accepts a wrong floor rather than rejecting a right one, which is the same defect seen from the other side). The fact's central claim is `MIN_RETAINED_PROMPT_TOKENS == 16` with strict `<`. The test's three graded points are retained 0 (refuse), 8 (refuse), 31 (keep). So this passes every assertion:\n\n```python\nMIN_RETAINED_PROMPT_TOKENS = 20          # wrong constant\n...\nif window_start > 0 and s_last - window_start <= MIN_RETAINED_PROMPT_TOKENS:   # wrong comparison\n    raise ExampleTooLongError(...)       # message still ends \"minimum is 16\"\n```\nAny MIN in [9, 31] with either `<` or `<=` is graded green, and the literal 16 survives only inside the mandated f-string. The boundary the fact turns on is unmeasured \u2014 unlike the exclusions sibling, which does pin its own boundary (90 bytes == budget kept, strict `>`).\n\nCONDITIONAL (I could not read `harness.py`/`test_open.py` to confirm, so I state it as a risk, not a fact). The requirement says only \"a new exception ExampleTooLongError(EncodingError)\" and \"MIN_RETAINED_PROMPT_TOKENS is a module constant\" \u2014 it never names the module. A reasonable clue-reader puts the refusal next to the code that raises it:\n\n```python\n# data_formatter.py\nfrom .encoding import EncodingError\n\nMIN_RETAINED_PROMPT_TOKENS = 16\n\nclass ExampleTooLongError(EncodingError):\n    def __init__(self, *, token_count, max_seq_length, retained_prompt_tokens, num_messages):\n        self.token_count = token_count\n        ...\n```\nexported from `finetune/__init__.py` as the ticket demands. If `encoding_names(\"ExampleTooLongError\")` resolves against `curator.finetune.encoding` only, that correct implementation dies on the first line of the block. The sibling's `encoding_names(\"FIREWORKS_BYTES_PER_TOKEN\") == 3` is evidence the helper must be lenient (that constant's natural home is `fireworks_data_formatter.py`) \u2014 but if it is lenient, it is lenient by luck, not by specification.",
+  "recommendation": "Keep the fact \u2014 the divergent action is concrete and no blind implementation reaches `encoding_names(\"ExampleTooLongError\")` \u2014 but fix the test, which currently grades the mechanism and not the number.\n\n1. Add the boundary pair, using the existing `GOOD_PAIRS` fixture (retained = max_seq_length - 9, since s_last = 82 and token_count = 91):\n   - `DataFormatter(max_seq_length=25).to_tinker_datum(good, FakeTokenizer())` must return a datum (retained exactly 16 \u2192 kept, pinning strict `<` rather than `<=`), and assert `read_field(encoding_of(datum), \"window_start\") == 66`.\n   - `pytest.raises(ExampleTooLongError)` at `max_seq_length=24` with `excinfo.value.retained_prompt_tokens == 15` (pinning the constant from below).\n   Together these force `MIN_RETAINED_PROMPT_TOKENS == 16` exactly; today anything in [9, 31] passes.\n2. Assert the constant directly: `assert encoding_names(\"MIN_RETAINED_PROMPT_TOKENS\") == 16`, so the value cannot live only inside the message f-string.\n3. State the module in the fact text and in the clue: \"defined in `encoding.py` and added to `finetune/__init__.__all__`\", for both `ExampleTooLongError` and `MIN_RETAINED_PROMPT_TOKENS` (and, in the sibling, `FIREWORKS_BYTES_PER_TOKEN`). Otherwise `encoding_names` is pinning a placement the requirement never asked for. If `encoding_names` already falls back to the `finetune` package, say so in the fact so the ambiguity is harmless by design rather than by accident.\n4. Optional, to decouple from the open feature: keep one refusal assertion that does not restate open metadata \u2014 the `str(e)` check is fine, but drop or move `token_count == 6` / `window_start == 51`, which grade the ticket's own windowing inside a hidden-fact block."
+ },
+ {
+  "key": "g9.r2.rule",
+  "req": 2,
+  "field": "rule",
+  "verdict": "retest",
+  "divergent_action": "Concretely, the clued agent writes in encoding.py: `@dataclass(frozen=True)\\nclass EncodingReport:\\n    kept: int = 0\\n    dropped: int = 0\\n    windowed: int = 0\\n    dropped_indices: Tuple[int, ...] = ()\\n    supervised_tokens: int = 0`, adds `\"EncodingReport\"` to finetune/__init__.py's imports and __all__, adds `self.last_report = EncodingReport()` to DataFormatter.__init__, and terminates format_batch with a wholesale `self.last_report = EncodingReport(kept=len(out), dropped=len(dropped_idx), windowed=windowed_n, dropped_indices=tuple(dropped_idx), supervised_tokens=total_sup)` placed AFTER the loop, plus the same assignment with `windowed=0, supervised_tokens=0` at the end of FireworksDataFormatter.to_jsonl_lines. The blind agent writes none of this: the open ticket never mentions a report, a counter, a dropped example, or an attribute named last_report, and its format_batch is a bare `return [self.to_tinker_datum(e, tokenizer) for e in examples]`. The name `EncodingReport` and the five field spellings in that order are not reachable by inference from the ticket.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket describes the pre-existing format_batch as returning a list of data built per example; there is no reporting attribute anywhere in the described checkout. Nothing in data_formatter.py or fireworks_data_formatter.py as characterised (`_compute_weights`, `to_jsonl_lines`, `write_jsonl`) accumulates or publishes per-batch statistics."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Two sub-clauses are free. 'while still returning a plain list (no tuple return, no changed signature)' is satisfied by not doing extra work, and the test's `assert isinstance(kept, list)` and `isinstance(lines, list)` cost nothing. Likewise 'is 0 on the Fireworks path along with windowed' \u2014 the Fireworks path has no tokenizer and no windowing, so `windowed=0, supervised_tokens=0` is what you get by leaving the two fields at their declared defaults. These clauses test nothing; the discriminating content is the class shape and the two assignment sites."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention that a chat-example formatter exposes a frozen `EncodingReport` on `self.last_report` with these five counters. `dropped_indices` as an ascending tuple of INPUT positions, and `windowed` counting only kept examples, are arbitrary house choices, not a documented default a model reproduces from priors."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "Partially, and only for the free clause: the ticket already states `format_batch(self, examples: List[TrainingExample], tokenizer: Optional[Any] = None) -> List[Any]` processes examples in input order; its return type stays a list.' That is the rule's 'no tuple return, no changed signature' word for word. The ticket gives away nothing about EncodingReport itself."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is fully implementable with `format_batch` as a plain comprehension. Nothing in the dict envelope, the windowing, the span computation or the Fireworks from_config requires batch-level accounting; per-example `metadata['encoding']` already carries everything the ticket asks a caller to see."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The most natural implementation of the visible ticket has no drop concept at all (ExampleTooLongError is itself hidden, in r1.failure_behavior), so there is nothing to count. Even an agent who invented batch stats on instinct would not land on the exact name `EncodingReport`, the field ordering, or `dropped_indices` as a tuple of input positions \u2014 `encoding_names(\"EncodingReport\")` is an exact-name lookup."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Everything the fact describes is reachable in one process: `DataFormatter(max_seq_length=40)` plus a FakeTokenizer produces a windowed keep and an over-long drop, and `FireworksDataFormatter(max_seq_length=30)` produces a 90-byte keep and a 93-byte drop."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "r2.scope ('to_tinker_datum never touches self.last_report') and r2.failure_behavior ('assigned only after a complete pass') both require the same wholesale-assignment-at-the-end design that rule specifies. r1.failure_behavior's 'format_batch skips a refused example and returns the others' is the precondition rule needs, not a contradiction of it."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The report is the only channel by which a caller learns an example was silently discarded \u2014 under r1.failure_behavior format_batch swallows the refusal, so without the report the drop is invisible. Violating this fact changes what the caller can observe."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "This is the core defect. Four of the five counters are observable only through r1's drop machinery. `dropped == 1` / `dropped_indices == (1,)` / `len(kept) == 1` exist only if the agent implemented r1.failure_behavior's refusal (`window_start > 0 AND s_last - window_start < MIN_RETAINED_PROMPT_TOKENS` = 16); `windowed == 1` only if r1's windowing puts GOOD_PAIRS over the boundary at 40; and the decisive Fireworks assertion `fireworks.last_report == EncodingReport(kept=1, dropped=1, ...)` fires only if r1.exclusions_or_crossover's `FIREWORKS_BYTES_PER_TOKEN = 3` strict-`>` budget dropped example b. Both halves of the rule's observable route through a sibling requirement's fact. The test authors recognised the hazard for exactly one field \u2014 'compare against what the one surviving datum says about itself rather than to a number r1 owns' \u2014 and did not extend it to kept/dropped/windowed/dropped_indices."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "Rule owns the class shape (frozen, five names, order, defaults), the export, the __init__ seed and the two publication sites. r2.scope only reads the report to assert to_tinker_datum leaves it alone; r2.failure_behavior only asserts it is unchanged after an abort. Neither states the shape. The overlap is one line \u2014 both rule and scope check `(0, 0, 0, (), 0)` \u2014 which is minor."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "The rule is phrased around a finite event: 'reassign self.last_report wholesale after a complete pass.' The 'never touches' phrasing lives in the sibling r2.scope, and even there it is bounded to one single-example call."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, single interpreter, no restart, no concurrency, no signals. `DataFormatter`, `FireworksDataFormatter`, a FakeTokenizer and dataclasses.fields are all the harness needs."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": true,
+    "why": "Partially. FakeTokenizer authors the token counts that decide which of GOOD_PAIRS/TOO_LONG_PAIRS is windowed and which is over-long \u2014 i.e. the fake decides the trigger (`windowed == 1`, `dropped == 1`), not just the reaction. This is tolerable in principle because r2 is about the accounting rather than the threshold, but combined with the coupling above it means the assertion `read_field(report, 'windowed') == 1` is a statement about the fixture and r1, with only the arithmetic belonging to r2."
+   }
+  ],
+  "the_assertion": "`assert fireworks.last_report == EncodingReport(kept=1, dropped=1, windowed=0, dropped_indices=(1,), supervised_tokens=0)` \u2014 it is the one assertion that checks class identity, field shape and all five values at once, via dataclass __eq__. Yes, it depends on more than r2: it can only be reached if the agent implemented r1.exclusions_or_crossover exactly (the module constant FIREWORKS_BYTES_PER_TOKEN = 3, measured as len(line.encode('utf-8')) on ensure_ascii=False output, strict > not >=), because that alone is what makes example b at max_seq_length=30 a drop and example a a keep. Get the byte budget off by one, or measure characters, and this assertion fails with a perfectly correct EncodingReport. The same is true of the tinker-path block, which depends on r1.failure_behavior's MIN_RETAINED_PROMPT_TOKENS = 16 refusal.",
+  "blind_pass": null,
+  "correct_fail": "A ticket-plus-r2-clue agent who implements the report exactly as specified but reads r1's refusal as the simpler 'an example that does not fit is dropped': `def format_batch(self, examples, tokenizer=None):\\n    out, dropped_idx, windowed_n, sup = [], [], 0, 0\\n    for i, ex in enumerate(examples):\\n        try:\\n            d = self.to_tinker_datum(ex, tokenizer)\\n        except ExampleTooLongError:   # raised whenever token_count > self.max_seq_length\\n            dropped_idx.append(i)\\n            continue\\n        enc = d[\"metadata\"][\"encoding\"]\\n        if enc[\"window_start\"] > 0:\\n            windowed_n += 1\\n        sup += enc[\"supervised_tokens\"]\\n        out.append(d)\\n    self.last_report = EncodingReport(kept=len(out), dropped=len(dropped_idx), windowed=windowed_n, dropped_indices=tuple(dropped_idx), supervised_tokens=sup)\\n    return out`. Every clause of r2.rule is honoured \u2014 frozen dataclass, field order, defaults, wholesale assignment after a complete pass, input-position indices, kept-only sums, plain list return \u2014 yet GOOD_PAIRS is also over-long at max_seq_length=40 (r2.scope confirms it windows there), so the report reads (0, 2, 0, (0, 1), 0) and `assert read_field(report, \"kept\") == 1` fails. r2 is right; r1 is wrong; the test blames r2. A second, milder one: summing the post-shift `sum(datum[\"loss_fn_inputs\"][\"weights\"])` instead of the pre-shift `metadata[\"encoding\"][\"supervised_tokens\"]` is a defensible reading of 'sums the supervised token counts of kept examples' and diverges whenever a span starts exactly at window_start.",
+  "recommendation": "Retest \u2014 keep the fact, decouple the test from r1. Three concrete changes to test_rule__both_batch_entry_points_publish_a_frozen_encoding_report: (1) after `formatter, kept = dropping_batch()`, gate the r1 dependency the way the two sibling tests already gate theirs \u2014 `require_feature(len(kept) == 1, \"r1.failure_behavior refusing the over-long example\")` \u2014 so an agent with a correct report and a mis-set MIN_RETAINED_PROMPT_TOKENS is skipped rather than failed on r2. (2) Make the counters self-relative against the pass that actually happened, extending the trick the file already uses for supervised_tokens: assert `read_field(report, \"kept\") == len(kept)`, `read_field(report, \"dropped\") == 2 - len(kept)`, and `read_field(report, \"windowed\") == sum(1 for d in kept if read_field(encoding_of(d), \"windowed\"))`. Keep `dropped_indices == (1,)` as the one hard number, since input-position identity is genuinely r2's own content and is meaningless if derived. (3) Do the same for the Fireworks block: gate on `require_feature(len(lines) == 1, \"r1.exclusions_or_crossover byte budget\")` before the dataclass-equality assertion, so that assertion grades the report rather than the 3-bytes-per-token constant. Also drop `assert isinstance(kept, list)` from the credited surface or stop counting it \u2014 the ticket states 'its return type stays a list' verbatim, so it is free."
+ },
+ {
+  "key": "g9.r2.scope",
+  "req": 2,
+  "field": "scope",
+  "verdict": "cut",
+  "divergent_action": "",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "There is no `last_report`, no `EncodingReport` and no batch bookkeeping in the checkout; `format_batch` today is a plain list comprehension over `to_tinker_datum`. Nothing pre-existing supplies the attribute."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The whole fact is 'to_tinker_datum never touches self.last_report \u2014 neither on success nor when it raises'. Satisfying it requires writing zero lines. The clue-informed agent and the rule-informed agent produce byte-identical `to_tinker_datum` bodies; the difference is an absent statement, not a present one. This is the textbook 'must not do X where X was never going to be written' case."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "Not a documented default or published convention. The nearest thing is a design instinct (batch summaries belong to the batch method), which I score under `obvious_implementation_does_it` rather than double-count here."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The open ticket never mentions `last_report`, `EncodingReport`, dropping, or any per-batch reporting; `format_batch` is specified only as 'processes examples in input order; its return type stays a list.'"
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature has no report at all, so the visible ticket entails nothing here. The damaging entailment is from a SIBLING, not from the open feature \u2014 see `no_independent_content` in catalog B."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Given r2.rule, the single most natural `format_batch` is `kept=[]; dropped=[]` accumulated in a loop that calls `self.to_tinker_datum(...)` inside `try/except ExampleTooLongError`, then one `self.last_report = EncodingReport(...)` at the end. The counters (`kept`, `dropped`, `dropped_indices`) are meaningless for a single example, so no engineer implementing r2.rule would think to assign the report from `to_tinker_datum`. The test cannot distinguish 'read the scope clue' from 'implemented r2.rule normally'."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Both states the test exercises are reachable: a direct `to_tinker_datum` success on GOOD_PAIRS at max_seq_length=40 and a raise on TOO_LONG_PAIRS."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "r2.rule ('reassign wholesale after a complete pass') and r2.failure_behavior ('assigned only after a complete pass') are consistent with scope \u2014 indeed they already imply it, which is the different problem below."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "A `to_tinker_datum` that wrote the report would leave an observably wrong `kept/dropped` for direct callers, and the test can see it. The violation has a consequence; it is just a violation nobody would commit."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "Two of the four assertions in the scope test are other facts' channels: `ExampleTooLongError = encoding_names(\"ExampleTooLongError\")` plus `with pytest.raises(ExampleTooLongError)` is r1.failure_behavior's exact observable, and `assert read_field(encoding_of(datum), \"windowed\") is True` is r1's `metadata['encoding']` observable. The baseline is r2.rule's, and the test says so itself: `require_feature(after_batch != (0, 0, 0, (), 0), \"format_batch writing self.last_report\")`. An agent with a perfect r2 but no `ExampleTooLongError` fails this test at `encoding_names`."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "Clause 2 of scope \u2014 'a freshly constructed DataFormatter(max_seq_length=40) has last_report == EncodingReport(kept=0, dropped=0, windowed=0, dropped_indices=(), supervised_tokens=0)' \u2014 is r2.rule verbatim: 'DataFormatter.__init__ sets self.last_report = EncodingReport()'. Clause 1 ('only the batch entry points write it') is the stated premise of r2.failure_behavior ('because the report is assigned only after a complete pass'). There is no implementation that fails scope while passing rule and failure_behavior, so the fact carries no information."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": true,
+    "why": "Phrased as 'to_tinker_datum never touches self.last_report \u2014 neither on success nor when it raises'. The pre-flight checkbox 'Nothing in the requirement is phrased as unbounded-in-time (\"always,\" \"never\")' is unchecked. Mitigating: the test bounds the universal to two concrete calls, so this is the weak form \u2014 the fatal issue is the inaction, not the horizon."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, single interpreter, in-memory attribute read; the harness builds it fine."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "FakeTokenizer and the shared TOO_LONG_PAIRS fixture do author when the drop/raise fires, but that trigger belongs to r1.failure_behavior. What r2.scope grades is the reaction (the attribute not moving), which the fake does not control."
+   }
+  ],
+  "the_assertion": "`assert report_tuple(formatter.last_report) == after_batch` \u2014 asserted twice, after a successful `to_tinker_datum` and after one that raises. Passing/failing depends on three things that are not this requirement: r2.rule (that `format_batch` assigns a non-default report at all \u2014 the test concedes this with `require_feature(after_batch != (0, 0, 0, (), 0), \"format_batch writing self.last_report\")`), r1.failure_behavior (that `ExampleTooLongError` exists and fires for TOO_LONG_PAIRS at max_seq_length=40, else `encoding_names` / `pytest.raises` errors first), and r1's windowing (`read_field(encoding_of(datum), \"windowed\") is True`). Its own content contributes nothing an agent must write.",
+  "blind_pass": null,
+  "correct_fail": null,
+  "recommendation": "Cut r2.scope as a separate graded fact and fold its two assertions into r2.rule's test (the fresh-formatter default check is already r2.rule's `__init__` clause; the 'to_tinker_datum leaves it alone' check is two extra lines of regression guard, worth keeping but not worth a fact). Do not report it as an independently discriminating hidden fact: the bracket's `hidden` result is produced by r2.rule and r1.failure_behavior, since a blind agent errors at `fresh.last_report` and `encoding_names(\"ExampleTooLongError\")` long before scope's negative is reached, and no rule-correct implementation can fail it.\n\nIf r2 needs a third fact with real content, replace scope with something that requires a positive line of code and that a rule-only agent plausibly gets wrong. The best candidate in this design is the empty/no-op pass: `format_batch([], tok)` and `to_jsonl_lines([])` must still publish `EncodingReport()` wholesale \u2014 i.e. `self.last_report = EncodingReport()` must be reached rather than short-circuited by an early `if not examples: return []`, and a second clean pass must overwrite a previous dropping pass rather than merging into it. That is a genuine fork (`if not examples: return []` versus assign-then-return; wholesale reassign versus `dataclasses.replace`/accumulate), it is observable without touching `ExampleTooLongError` or r1's `metadata['encoding']`, and it can be failed by an agent who read r2.rule but not the new clue. Re-run the blind and full-spec conditions on that formulation before shipping it."
+ },
+ {
+  "key": "g9.r2.failure_behavior",
+  "req": 2,
+  "field": "failure_behavior",
+  "verdict": "cut",
+  "divergent_action": "The only code an informed agent writes that a blind one does not is the *absence* of a line: not writing `self.last_report = EncodingReport()` at the top of `format_batch`, and spelling the guard `except ExampleTooLongError:` rather than `except EncodingError:`. Both are omissions. The positive code the fact implies \u2014 accumulate `dropped_indices`/`windowed`/`supervised` in locals and construct the frozen `EncodingReport` once, after the loop \u2014 is already forced by r2.rule declaring the report `frozen=True` (you cannot mutate it in-flight, so build-at-end is the only spelling), and the narrow `except` is already forced by r1.failure_behavior naming `ExampleTooLongError` as the thing `format_batch` skips. I cannot name a positive expression, call, or branch that belongs to this fact alone.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": true,
+    "why": "Propagation is the pre-existing default. The ticket's own `format_batch(self, examples, tokenizer=None) -> List[Any]` is described only as 'processes examples in input order; its return type stays a list' \u2014 i.e. a bare loop, which already lets `InvalidRoleSequenceError` and `TokenizerCapabilityError` out. The fact's clause 'they are neither caught nor counted as drops' describes what the untouched loop shape does for free."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Every enforceable clause is a non-action. 'neither caught nor counted' = write no `except` for them. 'self.last_report still holds the value it had before the aborted call' = write no reset at the top of the pass. Violating this fact requires deliberate extra work (a broad `except EncodingError`, or an opening `self.last_report = EncodingReport()`); satisfying it requires typing nothing."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "'Catch the narrowest exception you actually intend to handle' and 'don't publish partial state on an aborted operation' are both textbook Python/engineering conventions models reproduce from priors. Given r1.fb says the only thing to skip is the over-long refusal, `except ExampleTooLongError:` is the conventional spelling, not a clue-derived one."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The ticket already establishes propagate-don't-swallow as the house style twice: 'Delete the try/except Exception: weights = [1.0] * len(tokens) fallback ... that exception propagates unchanged' and 'to_jsonl_lines ... validates every example's role sequence first, propagating InvalidRoleSequenceError.' An agent reading only the ticket has been told, in the ticket's own words, that encoding errors propagate."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature has no `EncodingReport` and no `last_report` at all, so the 'no partial report' half is not entailed by the visible ticket. It is entailed by a *sibling* (r2.rule), which is a Catalog B problem, not this one."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Because r2.rule specifies a frozen dataclass, the obvious and essentially only implementation accumulates counters in locals and assigns `self.last_report = EncodingReport(...)` once after the loop \u2014 which is exactly 'no partial report is written' on an abort. Combined with `except ExampleTooLongError:` from r1.fb, the natural code passes this test without anyone intending it."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Both trigger states are reachable and the test builds them: `example(('user','q'), ('user','q again'))` for the role error and `NoTemplateTokenizer()` for the capability error."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling rule makes the abort branch unreachable; r2.rule's 'complete pass' wording is consistent with an incomplete pass raising."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Weakly arguable \u2014 after `format_batch` raises, the caller is unwinding and the staleness of `last_report` rarely changes any end state \u2014 but the harness can and does read the attribute after catching, so there is a real differentiating observable. Not scoring this one."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The test's setup and its baseline are both other facts' observables. `dropping_batch()` and `report_tuple(...)` are r2.rule's channel verbatim; `assert before[1] == 1, 'the over-long example must be absorbed as a drop, not raised'` is r1.failure_behavior's observable ('format_batch skips a refused example and returns the others'). The fact is graded by re-reading r2.rule's report through a precondition owned by r1.fb."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "The fact is r2.rule's clause 'reassign self.last_report wholesale AFTER A COMPLETE PASS' plus r1.fb's clause 'format_batch skips a refused example and returns the others', restated as a failure mode. Concretely: an agent shown r2.rule and r1.fb but never shown r2.failure_behavior writes the frozen-report-built-after-the-loop with `except ExampleTooLongError:` and passes this test unmodified. There is no way to fail this fact without already having deviated from r2.rule or r1.fb."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "'neither caught nor counted' and 'still holds the value it had before' are both finite, single-call, immediately-observable claims."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, single interpreter, two fakes; the harness builds it."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`NoTemplateTokenizer` does author the `TokenizerCapabilityError` trigger, but the fact is about the reaction (propagate, don't record), which the rubric explicitly permits: 'this is fine if the requirement is about the reaction'."
+   }
+  ],
+  "the_assertion": "`assert report_tuple(formatter.last_report) == before, (\"an aborted pass must not write a partial report\")` \u2014 and it depends on two other facts, not just this one. It cannot even be reached unless r2.rule's `EncodingReport`/`last_report` exist and `format_batch` publishes them, and the preceding guard `assert before[1] == 1` requires r1.failure_behavior's `ExampleTooLongError` refusal to fire correctly on `TOO_LONG_PAIRS` at `max_seq_length=40` (i.e. r1's `MIN_RETAINED_PROMPT_TOKENS == 16` and final-assistant-span arithmetic). An agent with a correct r2.failure_behavior but an off-by-one in r1's retained-prompt threshold fails this assertion's setup.",
+  "blind_pass": null,
+  "correct_fail": "A defensible reading of r2.rule alone \u2014 \"the report describes the current pass, so a pass that dies must not leave the previous pass's numbers lying around to be misread as this pass's\" \u2014 clears the report on entry and still reassigns wholesale at the end:\n\n```python\ndef format_batch(self, examples, tokenizer=None):\n    self.last_report = EncodingReport()      # this pass owns the attribute from here on\n    data, dropped, windowed, supervised = [], [], 0, 0\n    for i, ex in enumerate(examples):\n        try:\n            datum = self.to_tinker_datum(ex, tokenizer)\n        except ExampleTooLongError:\n            dropped.append(i)\n            continue\n        enc = datum[\"metadata\"][\"encoding\"]\n        windowed += bool(enc[\"window_start\"])\n        supervised += enc[\"supervised_tokens\"]\n        data.append(datum)\n    self.last_report = EncodingReport(\n        kept=len(data), dropped=len(dropped), windowed=windowed,\n        dropped_indices=tuple(dropped), supervised_tokens=supervised,\n    )\n    return data\n```\n\nThis satisfies r2.rule word for word (\"reassign self.last_report wholesale after a complete pass\"), still returns a plain list, propagates both `InvalidRoleSequenceError` and `TokenizerCapabilityError` uncaught, and absorbs only the over-long refusal. The test rejects it at `assert report_tuple(formatter.last_report) == before`. Note the direction of the discrimination: the *blind* agent never writes the reset line, so this test fails the more deliberate implementation and passes the naive one.",
+  "recommendation": "Cut r2.failure_behavior as a separately graded fact and fold its one non-redundant clause into r2.rule.\n\nReasons, in order of weight: (1) no independent content \u2014 an agent given r2.rule and r1.failure_behavior and never given this fact writes code that passes `test_failure_behavior__...` unchanged, because `frozen=True` forces build-the-report-after-the-loop and r1.fb names `ExampleTooLongError` as the only thing to skip; (2) every enforceable clause is an omission (no broad `except`, no reset at the top), so the clue's divergent action is \"don't type a line,\" which is what the blind agent does anyway; (3) the deciding assertion runs through r2.rule's report and r1.fb's refusal threshold, so it can fail a correct r2 for an r1 bug; (4) it overshoots in the wrong direction \u2014 the reset-on-entry implementation quoted above is a reasonable engineer's reading of r2.rule that this test rejects, while the naive implementation sails through.\n\nThe bracket's `hidden` result is real but misattributed: blind fails because `EncodingReport` and `last_report` do not appear anywhere in the ticket, which is r2.**rule**'s hiddenness. Grading r2.rule alone loses no signal.\n\nIf you want to keep something here rather than cut, narrow it to the single clause with teeth and state it as a rule, not a failure mode: \"`format_batch` must not write `self.last_report` before the pass completes \u2014 in particular it must not clear it on entry,\" and add the negative case to `test_rule__...` (raise mid-pass, assert the prior report survives) so it is no longer gated on `before[1] == 1` and r1's threshold arithmetic. Drop the `InvalidRoleSequenceError`/`TokenizerCapabilityError` propagation clause entirely \u2014 the ticket already says encoding errors propagate (\"that exception propagates unchanged\", \"propagating InvalidRoleSequenceError\"), so it can never discriminate."
+ }
+]

@@ -1,0 +1,13 @@
+{
+  "id": "7c8e6bda-a352-4d81-895b-aba5f482421d",
+  "evaluation_id": "59e6be24-892d-4eb6-a9b6-bbbba5bb4abf",
+  "run_number": 5,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": 0,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g4.r1.rule\": 0.0,\n    \"g4.r1.scope\": 0.0,\n    \"g4.r1.exclusions_or_crossover\": 0.0,\n    \"g4.r1.observability\": 0.0,\n    \"g4.r2.rule\": 0.0,\n    \"g4.r2.scope\": 0.0,\n    \"g4.r2.failure_behavior\": 0.0,\n    \"g4.r2.observability\": 0.0,\n    \"g4.open_feature\": 0.0\n  },\n  \"weights\": {\n    \"g4.r1.rule\": 0.125,\n    \"g4.r1.scope\": 0.125,\n    \"g4.r1.exclusions_or_crossover\": 0.125,\n    \"g4.r1.observability\": 0.125,\n    \"g4.r2.rule\": 0.125,\n    \"g4.r2.scope\": 0.125,\n    \"g4.r2.failure_behavior\": 0.125,\n    \"g4.r2.observability\": 0.125,\n    \"g4.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"0 of 8 hidden requirements satisfied. Open feature: no. Missed: g4.r1.rule, g4.r1.scope, g4.r1.exclusions_or_crossover, g4.r1.observability, g4.r2.rule, g4.r2.scope, g4.r2.failure_behavior, g4.r2.observability.  [pytest rc=1 nodes=9]  name 'run_identity' from... | FAILED test_r1.py::test_exclusions__only_four_backend_params_fork_the_cache_and_the_api_key_is_not_one - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\\\"cannot import name 'run_identity' f... | FAILED test_r1.py::test_observability__the_stated_component_table_holds_and_no_api_key_reaches_the_stamp - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\\\"cannot import name 'run_identity'... | FAILED test_r2.py::test_rule__a_cache_disabled_run_is_identified_by_a_run_id_its_caller_supplies - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\\\"cannot import name 'run_identity' from 'b... | FAILED test_r2.py::test_scope__the_call_mints_the_default_id_from_the_environment_and_passes_it_down - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\\\"cannot import name 'run_identity' fro... | FAILED test_r2.py::test_failure_behavior__a_missing_id_and_an_unwanted_one_are_both_refused - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\\\"cannot import name 'run_identity' from 'bespok... | FAILED test_r2.py::test_observability__the_nocache_run_hash_is_stable_and_the_module_reads_no_randomness - Failed: bespokelabs.curator.run_identity could not be imported: ImportError(\\\"cannot import name 'run_identity'... | 9 failed, 1 warning in 1.35s | \"\n  },\n  \"score\": 0.0\n}",
+  "created_at": "2026-09-03T16:18:03.148Z",
+  "completed_at": "2026-09-03T16:20:38.269Z"
+}

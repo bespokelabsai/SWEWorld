@@ -1,0 +1,15 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 13:54:00 +0000
+Message-ID: <178822443474.2088454.6777454415969252046@world.local>
+In-Reply-To: <178822443474.2088454.11106534650348386225@world.local>
+References: <178822443474.2088454.11106534650348386225@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+right thats the whole point of it
+767 bytes on its own in a plan file tells you nothign a month later
+you want the limits it was planned under sitting right there beside the number
+nobodys writing the serializer today anyway we can do that when we get to it

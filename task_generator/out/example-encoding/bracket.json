@@ -1,0 +1,97 @@
+{
+ "task": "g9",
+ "suite": "g9_example_encoding",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g9.open_feature": 0.0,
+    "g9.r1.rule": 0.0,
+    "g9.r1.scope": 0.0,
+    "g9.r1.exclusions_or_crossover": 0.0,
+    "g9.r1.failure_behavior": 0.0,
+    "g9.r2.rule": 0.0,
+    "g9.r2.scope": 0.0,
+    "g9.r2.failure_behavior": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 8
+   },
+   "collected": true,
+   "stdout_tail": ".py`,\n        then the module \u2014 which file a constant is written in is not the fact being\n        graded anywhere but in the export assertion below.\n        \"\"\"\n        import importlib\n    \n        found = []\n        package = importlib.import_module(\"bespokelabs.curator.finetune\")\n        try:\n            module = importlib.import_module(\"bespokelabs.curator.finetune.encoding\")\n        except Exception:\n            module = None\n        for name in names:\n            value = getattr(package, name, None)\n            if value is None and module is not None:\n                value = getattr(module, name, None)\n            if value is None:\n>               pytest.fail(\n                    f\"the encoding policy exposes no {name!r}; \"\n                    f\"bespokelabs.curator.finetune has {surface(package)}\"\n                )\nE               Failed: the encoding policy exposes no 'InvalidRoleSequenceError'; bespokelabs.curator.finetune has ['AdamParams', 'BaseTrainer', 'ChatMessage', 'CheckpointInfo', 'DataFormatter', 'FinetuneStatusTracker', 'FireworksDataFormatter', 'FireworksTrainer', 'FireworksTrainerConfig', 'LoRAConfig', 'SamplingConfig', 'TinkerTrainer', 'TinkerTrainerConfig', 'TrainingExample', 'TrainingResult', 'TrainingStats', 'config', 'data_formatter', 'fireworks_data_formatter', 'status_tracker', 'trainer', 'types']\n\ng9_example_encoding/test_open.py:119: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g9_example_encoding-80008cc4/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g9_example_encoding/test_open.py::test_open_feature__roles_are_validated_and_an_over_long_example_keeps_its_completion - Failed: the encoding policy exposes no 'ALLOWED_ROLES'; bespokelabs.curator.finetune has ...\nFAILED g9_example_encoding/test_r1.py::test_rule__an_assistant_turn_the_window_cuts_in_half_is_not_supervised_at_all - assert 90 == 39\nFAILED g9_example_encoding/test_r1.py::test_scope__the_tokenizer_free_branch_supervises_assistant_spans_from_character_offsets - AssertionError: expected one of ('encoding',) on dict; it has ['num_messages', 'original...\nFAILED g9_example_encoding/test_r1.py::test_exclusions__fireworks_drops_over_budget_lines_by_utf8_bytes_and_truncates_nothing - Failed: the encoding policy exposes no 'FIREWORKS_BYTES_PER_TOKEN'; bespokelabs.curator.f...\nFAILED g9_example_encoding/test_r1.py::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_tokens_is_refused - Failed: the encoding policy exposes no 'ExampleTooLongError'; bespokelabs.curator.finetune...\nFAILED g9_example_encoding/test_r2.py::test_rule__both_batch_entry_points_publish_a_frozen_encoding_report - Failed: the encoding policy exposes no 'EncodingReport'; bespokelabs.curator.finetune has ['AdamParams', 'Ba...\nFAILED g9_example_encoding/test_r2.py::test_scope__only_the_batch_entry_points_write_the_report - AttributeError: 'DataFormatter' object has no attribute 'last_report'\nFAILED g9_example_encoding/test_r2.py::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report - Failed: the encoding policy exposes no 'InvalidRoleSequenceError'; bespokelabs.curator....\n8 failed, 1 warning in 2.19s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g9.open_feature": 1.0,
+    "g9.r1.rule": 0.0,
+    "g9.r1.scope": 0.0,
+    "g9.r1.exclusions_or_crossover": 0.0,
+    "g9.r1.failure_behavior": 0.0,
+    "g9.r2.rule": 0.0,
+    "g9.r2.scope": 0.0,
+    "g9.r2.failure_behavior": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 7,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "s', 'validate_role_sequence']\n\ng9_example_encoding/test_open.py:119: Failed\n_________________________________________________________________________________ test_scope__only_the_batch_entry_points_write_the_report _________________________________________________________________________________\n\n    def test_scope__only_the_batch_entry_points_write_the_report():\n        require_curator()\n    \n        # A freshly built formatter carries the all-defaults report.\n        fresh = DataFormatter(max_seq_length=40)\n>       assert report_tuple(fresh.last_report) == (0, 0, 0, (), 0)\n                            ^^^^^^^^^^^^^^^^^\nE       AttributeError: 'DataFormatter' object has no attribute 'last_report'\n\ng9_example_encoding/test_r2.py:118: AttributeError\n_________________________________________________________________ test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report _________________________________________________________________\n\n    def test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report():\n        require_curator()\n    \n        InvalidRoleSequenceError = encoding_names(\"InvalidRoleSequenceError\")\n        TokenizerCapabilityError = encoding_names(\"TokenizerCapabilityError\")\n    \n        formatter, _ = dropping_batch()\n>       before = report_tuple(formatter.last_report)\n                              ^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'DataFormatter' object has no attribute 'last_report'\n\ng9_example_encoding/test_r2.py:149: AttributeError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g9_example_encoding-142d6bd6/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g9_example_encoding/test_r1.py::test_rule__an_assistant_turn_the_window_cuts_in_half_is_not_supervised_at_all - AssertionError: the straddling span (48, 59) must contribute nothing, not its surviving tail\nFAILED g9_example_encoding/test_r1.py::test_scope__the_tokenizer_free_branch_supervises_assistant_spans_from_character_offsets - AssertionError: the mock path must honour train_on_assistant_only, with the header insid...\nFAILED g9_example_encoding/test_r1.py::test_exclusions__fireworks_drops_over_budget_lines_by_utf8_bytes_and_truncates_nothing - Failed: the encoding policy exposes no 'FIREWORKS_BYTES_PER_TOKEN'; bespokelabs.curator.f...\nFAILED g9_example_encoding/test_r1.py::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_tokens_is_refused - Failed: the encoding policy exposes no 'ExampleTooLongError'; bespokelabs.curator.finetune...\nFAILED g9_example_encoding/test_r2.py::test_rule__both_batch_entry_points_publish_a_frozen_encoding_report - Failed: the encoding policy exposes no 'EncodingReport'; bespokelabs.curator.finetune has ['ALLOWED_ROLES', ...\nFAILED g9_example_encoding/test_r2.py::test_scope__only_the_batch_entry_points_write_the_report - AttributeError: 'DataFormatter' object has no attribute 'last_report'\nFAILED g9_example_encoding/test_r2.py::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report - AttributeError: 'DataFormatter' object has no attribute 'last_report'\n7 failed, 1 passed, 1 warning in 2.21s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g9.open_feature": 1.0,
+    "g9.r1.rule": 1.0,
+    "g9.r1.scope": 1.0,
+    "g9.r1.exclusions_or_crossover": 1.0,
+    "g9.r1.failure_behavior": 1.0,
+    "g9.r2.rule": 1.0,
+    "g9.r2.scope": 1.0,
+    "g9.r2.failure_behavior": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 8
+   },
+   "collected": true,
+   "stdout_tail": "........                                                                                                                                                                                                             [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g9_example_encoding-2d9239d5/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n8 passed, 1 warning in 1.93s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g9.open_feature": 1.0,
+    "g9.r1.rule": 1.0,
+    "g9.r1.scope": 1.0,
+    "g9.r1.exclusions_or_crossover": 1.0,
+    "g9.r1.failure_behavior": 1.0,
+    "g9.r2.rule": 1.0,
+    "g9.r2.scope": 1.0,
+    "g9.r2.failure_behavior": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 8
+   },
+   "collected": true,
+   "stdout_tail": "........                                                                                                                                                                                                             [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g9_example_encoding-e1f62350/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n8 passed, 1 warning in 1.91s\n"
+  }
+ },
+ "verdicts": {
+  "g9.open_feature": "open_feature",
+  "g9.r1.rule": "hidden",
+  "g9.r1.scope": "hidden",
+  "g9.r1.exclusions_or_crossover": "hidden",
+  "g9.r1.failure_behavior": "hidden",
+  "g9.r2.rule": "hidden",
+  "g9.r2.scope": "hidden",
+  "g9.r2.failure_behavior": "hidden"
+ }
+}

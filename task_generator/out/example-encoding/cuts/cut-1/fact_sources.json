@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P1",
+  "blind_alternative": "keeps data_formatter.py:123 as written \u2014 tokenizer.encode(chat_text, max_length=self.max_seq_length, truncation=True), i.e. right truncation by the tokenizer, or hand-rolled tokens[:max_seq_length]"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "leaves data_formatter.py:130-132 alone \u2014 caps the synthetic ids at max_seq_length and hands back [1.0] * len(tokens), so train_on_assistant_only is ignored without a tokenizer"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P3",
+  "blind_alternative": "supervises the surviving tail of a straddling span, weights 1.0 on [max(s, window_start), e), copying the file's own min(end_idx, len(weights)) clamping idiom"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P2",
+  "blind_alternative": "raises ExampleTooLongError whenever the token count exceeds max_seq_length (no floor, no windowed-only condition), with an ad-hoc message and no retained_prompt_tokens attribute"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P6",
+  "blind_alternative": "keeps `chat_text if tokenizer is None else \"\"` at line 157 and either adds no counters or flattens truncated/window_start onto metadata, reporting the post-window length as the token count"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P8",
+  "blind_alternative": "applies no length policy on the Fireworks path at all, or reuses the mock path's len(chat_text) // 4 ratio, or measures len(line) in characters and truncates instead of dropping"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "enforces length only in format_batch and leaves to_jsonl_lines a pure serializer with no report, or has to_tinker_datum mutate the report itself"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P7",
+  "blind_alternative": "lets every EncodingError propagate so one over-long row fails the batch, or keeps the offending example in place as None so indices line up with the input"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P7",
+  "blind_alternative": "returns a (data, report) tuple or a plain dict of counts from format_batch instead of assigning a frozen EncodingReport with those five field names to self.last_report"
+ }
+]

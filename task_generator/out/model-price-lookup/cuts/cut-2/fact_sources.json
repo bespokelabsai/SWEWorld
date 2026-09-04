@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2",
+  "blind_alternative": "check litellm.model_cost first (matching every existing call site) and only consult the external table if litellm lacks the model"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P2",
+  "blind_alternative": "route both named and default providers through the same litellm-first-then-external order"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P2",
+  "blind_alternative": "fall back to litellm.model_cost when the named provider's table doesn't contain the model, rather than raising"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P2",
+  "blind_alternative": "prefer litellm's number over the external table's number when both exist, since that's what the current code does"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "apply one discount function uniformly after the lookup regardless of source, halving external-table batch prices too"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "key the exemption off a hardcoded list of provider name strings rather than off the resolved source"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "exempt every provider-named call from the discount once a provider is set, including ones that resolve through litellm"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "produce a halved number for both external- and litellm-sourced prices when batch=True, since multiplying once at the end regardless of source is the natural implementation"
+ }
+]

@@ -1,0 +1,13 @@
+{
+  "id": "1c780379-e9f6-4885-82b0-ed559b4cf1da",
+  "evaluation_id": "4bd20e1a-068d-412d-9179-d5fe052f7006",
+  "run_number": 3,
+  "model": "cipher-omni",
+  "agent_type": "typhoon",
+  "score": 0,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g7.r1.rule\": 0.0,\n    \"g7.r1.scope\": 0.0,\n    \"g7.r1.failure_behavior\": 0.0,\n    \"g7.r1.observability\": 0.0,\n    \"g7.r2.rule\": 0.0,\n    \"g7.r2.scope\": 0.0,\n    \"g7.r2.failure_behavior\": 0.0,\n    \"g7.r2.observability\": 0.0,\n    \"g7.open_feature\": 0.0\n  },\n  \"weights\": {\n    \"g7.r1.rule\": 0.125,\n    \"g7.r1.scope\": 0.125,\n    \"g7.r1.failure_behavior\": 0.125,\n    \"g7.r1.observability\": 0.125,\n    \"g7.r2.rule\": 0.125,\n    \"g7.r2.scope\": 0.125,\n    \"g7.r2.failure_behavior\": 0.125,\n    \"g7.r2.observability\": 0.125,\n    \"g7.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"0 of 8 hidden requirements satisfied. Open feature: no. Missed: g7.r1.rule, g7.r1.scope, g7.r1.failure_behavior, g7.r1.observability, g7.r2.rule, g7.r2.scope, g7.r2.failure_behavior, g7.r2.observability.  [pytest rc=1 nodes=9] _LEDGER_FILENAME' | FAILED test_r1.py::test_scope__load_ledger_writes_nothing_and_the_log_outranks_the_checkpoint - Failed: no module of bespokelabs.curator.agent exports 'LEDGER_STATUSES' | FAILED test_r1.py::test_failure_behavior__absent_or_old_is_adopted_and_a_disagreeing_one_aborts - Failed: no module of bespokelabs.curator.agent exports 'TurnLedgerDesyncError' | FAILED test_r1.py::test_observability__the_checkpoint_reads_186_bytes_mid_run_and_189_at_the_end - Failed: no module of bespokelabs.curator.agent exports 'read_sidecar' | FAILED test_r2.py::test_rule__the_sentinel_is_the_end_of_conversation_token - Failed: no module of bespokelabs.curator.agent exports 'COMPLETION_SENTINEL' | FAILED test_r2.py::test_scope__matching_is_case_sensitive_suffix_only_and_ignores_trailing_space - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it cannot be ... | FAILED test_r2.py::test_failure_behavior__a_structured_or_missing_reply_answers_false - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it cannot be credited: a... | FAILED test_r2.py::test_observability__the_message_that_ends_the_talk_is_still_a_turn - Failed: Agent.is_completed's default sentinel match is not implemented, so the constraint that goes with it cannot be credited: a... | 9 failed, 5 warnings in 23.98s | \"\n  },\n  \"score\": 0.0\n}",
+  "created_at": "2026-09-03T20:11:28.397Z",
+  "completed_at": "2026-09-03T20:18:45.450Z"
+}

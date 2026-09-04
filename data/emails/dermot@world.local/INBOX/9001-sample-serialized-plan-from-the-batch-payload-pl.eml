@@ -1,0 +1,13 @@
+From: gideon@world.local
+To: dermot@world.local, emil@world.local, dario@world.local
+Subject: sample serialized plan from the batch payload plan work
+Date: Thu, 10 Apr 2025 11:03:00 +0000
+Message-ID: <178822443468.2088454.12106931049711485458@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ok so im writing the loader for the serialized plans and i hit a thing =E2=80=
+=94 when we pick a file up off disk, what actually tells us which shape we're=
+ looking at? right now i'm just trying the newest parser and catching the exp=
+losion which honestly is not great

@@ -1,0 +1,13 @@
+{
+  "id": "e2d83e5b-df9e-4372-bb76-b30c4576855d",
+  "evaluation_id": "8ad0c500-b80a-41ef-a554-7dd58c17ebcb",
+  "run_number": 2,
+  "model": "cipher-omni",
+  "agent_type": "typhoon",
+  "score": 1,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g10.r1.rule\": 1.0,\n    \"g10.r1.scope\": 1.0,\n    \"g10.r1.exclusions_or_crossover\": 1.0,\n    \"g10.r1.observability\": 1.0,\n    \"g10.r2.rule\": 1.0,\n    \"g10.r2.scope\": 1.0,\n    \"g10.r2.exclusions_or_crossover\": 1.0,\n    \"g10.r2.observability\": 1.0,\n    \"g10.open_feature\": 1.0\n  },\n  \"weights\": {\n    \"g10.r1.rule\": 0.125,\n    \"g10.r1.scope\": 0.125,\n    \"g10.r1.exclusions_or_crossover\": 0.125,\n    \"g10.r1.observability\": 0.125,\n    \"g10.r2.rule\": 0.125,\n    \"g10.r2.scope\": 0.125,\n    \"g10.r2.exclusions_or_crossover\": 0.125,\n    \"g10.r2.observability\": 0.125,\n    \"g10.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"8 of 8 hidden requirements satisfied. Open feature: yes. Nothing missed.\"\n  },\n  \"score\": 1.0\n}",
+  "created_at": "2026-09-03T20:18:15.494Z",
+  "completed_at": "2026-09-03T20:40:50.890Z"
+}

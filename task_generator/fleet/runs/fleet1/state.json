@@ -1,0 +1,1141 @@
+{
+ "run_id": "fleet1",
+ "started": "2026-09-03T18:08:48Z",
+ "through": "B",
+ "budget_usd": 350.0,
+ "tasks": {
+  "attachment-payload": {
+   "id": "g8",
+   "slug": "attachment-payload",
+   "brief": "/home/nidhi_bespokelabs_ai/SWEWorld/task_generator/fleet/briefs/attachment-payload.md",
+   "phase": "B",
+   "step": "verdict",
+   "status": "crashed",
+   "attempts": {
+    "new": 1,
+    "author": 1,
+    "build.oracle": 2,
+    "split": 2,
+    "tests": 2,
+    "build.naive": 2,
+    "build.spec": 2,
+    "bracket": 2,
+    "audit": 1,
+    "trim": 2,
+    "bracket.retrim": 1,
+    "emit": 1,
+    "horizon.ab": 1,
+    "push": 1,
+    "validate": 1,
+    "evaluate": 1,
+    "verdict": 2
+   },
+   "history": [
+    {
+     "at": "2026-09-03T18:08:48Z",
+     "step": "new",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:17:37Z",
+     "step": "author",
+     "rc": 0,
+     "seconds": 528.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:23:32Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 355.8,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:28:53Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 320.9,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "6/9 facts rest on no invented name",
+      "9 facts quote an identifier the ticket already prints",
+      "9 facts quote an identifier already in curator/src"
+     ]
+    },
+    {
+     "at": "2026-09-03T18:30:12Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "Split's second cut already produced the structured-markdown ticket the log asked for (goal line, then a `###` section per file with bullets), and the only findings are advisory: 6/9 facts lack an invented name, which here is the heuristic's own stated exception \u2014 each rests on a chosen value or a policy the code is silent about.",
+     "action": "proceed",
+     "reason": "No blocking findings; split's own `next:` is `cli.py tests`. Not a leak: every identifier in \"named in the ticket\" also sits in \"already in curator\" (`_handle_multi_modal_prompt`, `payload`, `self`, `calculate_input_tokens`, `document`, `image`), so no re-cut can hide them, and split already re-cut once for this (rules 1-2). What the hidden facts actually carry is chosen values and silent policy: `{\"image\": 20.0, \"document\": 24.0}`, `45.0`, strict `>`, base ceiling ordered before `file_upload_limit_check`, `_OPENAI_TOKENS_PER_DOCUMENT = 1400`, unknown block types costing 0, plus `AttachmentTooLarge`, which the ticket does not print. fact_sources.json gives all 9 facts concrete blind alternatives (\"one flat 20 MB limit\", \"the Anthropic 2048 already in the tree\", \"raises on an unrecognised block type\"). reformat_ticket would be near no-op: ticket.md:5-69 is already `###` sections with bullets; the 3273-char \"paragraph\" is a blank-line-free bullet run, and re-running risks dropping a backticked name the grader may need. If that gate re-fires, a human inserting blank lines is the cheap fix."
+    },
+    {
+     "at": "2026-09-03T18:38:57Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 524.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:44:02Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 305.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:49:11Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 309.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:50:13Z",
+     "step": "bracket",
+     "rc": 1,
+     "seconds": 62.1,
+     "ok": false,
+     "hard": [
+      "g8.r2.failure_behavior: coincidence",
+      "g8.r2.failure_behavior: naive scores 1.0 \u2014 not hidden from a ticket-only build"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:50:49Z",
+     "step": "bracket",
+     "rc": 1,
+     "judged": true,
+     "verdict": "Bracket is clean except one coincidence: g8.r2.failure_behavior (unknown block types cost 0 tokens, raise nothing) passes on the ticket-only naive build. Oracle 10/10, spec 10/10, pristine 0/10, naive 2/10 with open_feature passing \u2014 otherwise the healthy shape.",
+     "action": "author_extend",
+     "reason": "Rule 1 applies literally. The leak is not about which facts were hidden: ticket.md:59-63 must specify that calculate_input_tokens dispatches on block['type'] via .get over exactly text/image_url/image/file/document for the rest of r2 to be gradeable, and fixtures/naive.patch:255-265 shows the naive build wrote the plain if/elif chain that necessarily contributes 0 and raises nothing for a 'thinking' block. That fact carries no content the ticket and codebase cannot supply, so re-cutting only moves which derivable part is hidden \u2014 the documented 2 to 4 to 2 anchor churn. Everything else measures healthy: naive missed the 1400-per-document constant (guessed 85, naive.patch:230), so r2.rule/scope/observability are genuinely hidden, and r1 is 0/5 on naive. No broken, no unreachable, so stop is unwarranted; hand_cut has nothing small and specific to fix, because the defect is in the specification's content, not the cut. author --extend keeps the parts and the oracle and adds r2 content the codebase cannot derive."
+    },
+    {
+     "at": "2026-09-03T18:58:41Z",
+     "step": "author --extend",
+     "rc": 0
+    },
+    {
+     "at": "2026-09-03T19:05:16Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 395.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:12:31Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 434.9,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "5/9 facts rest on no invented name",
+      "9 facts quote an identifier the ticket already prints",
+      "9 facts quote an identifier already in curator/src"
+     ]
+    },
+    {
+     "at": "2026-09-03T19:13:17Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "action": "proceed",
+     "verdict": "No blocking findings: split already self-re-cut once (leak + wall-of-text), and ticket.md on disk is now the prescribed shape \u2014 a one-line goal then `### ` sections of bullets. The only exit-1 driver is the advisory coincidence *prediction* that 5/9 facts carry no invented name.",
+     "reason": "Each of the five \"no invented name\" facts hits the report's own escape clause \u2014 they rest on chosen values the codebase cannot supply: 45.0 MB prompt aggregate and its post-conversion placement (r1.scope), size_mb None / no contribution for url blocks (r1.exclusions), _OPENAI_TOKENS_PER_DOCUMENT = 1400 and the 2975 total (r1.observability), _MAX_ATTACHMENT_FILENAME_LEN = 64 with extension-preserving truncation (r2.scope), and fingerprinting the payload string incl. query with literal digests (r2.exclusions). resplit is wrong twice over: rule 1 (coincidence \u21d2 extend, never resplit) and rule 2 (split already re-cut itself for the leak). reformat_ticket would be cosmetic churn \u2014 ticket.md:3 is the goal line and ticket.md:5-75 are `### ` sections with bullets already; the 1989-char \"paragraph\" is a contiguous bullet block, not prose. hand_cut/stop need a defect named in a measurement; there is none, and the bracket has not run. Let `cli.py tests attachment-payload` measure it."
+    },
+    {
+     "at": "2026-09-03T19:28:17Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 900.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:32:47Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 269.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:37:56Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 309.8,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:38:35Z",
+     "step": "bracket",
+     "rc": 0,
+     "seconds": 38.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:06:04Z",
+     "step": "audit",
+     "rc": 1,
+     "seconds": 1649.2,
+     "ok": false,
+     "hard": [
+      "audit exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:06:31Z",
+     "step": "audit",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The measured bracket is the healthy shape \u2014 pristine 0/10, naive passes only `g8.open_feature` and fails all nine hidden facts, oracle and spec both 10/10, \"Ships: yes\" \u2014 while `audit.md` raises only predicted quality nits (2 `cut`, 1 `narrow`, 4 `retest`, 2 `ship`) about shared hook/warning channels and sibling-derivable exclusions.",
+     "action": "proceed",
+     "reason": "No measured defect: bracket.md shows no `broken`, no `unreachable`, no coincidence (zero hidden facts passed on `naive`), and exactly the healthy naive shape from rule 4. Every audit complaint is the kind the run notes call normal: the `cut` verdicts on `r1/r2.exclusions_or_crossover` rest on `no_independent_content` and `observable_belongs_to_another_fact` (i.e. \"the facts are not independent\"), and the `retest` verdicts on r1.rule / r1.failure_behavior / r2.failure_behavior hinge on assertions routed through the shared `file_upload_limit_check` recorder or the root-logger warning count \u2014 shared gates and overlapping assertions shipped in g1, g3, g6. The audit concedes it is unverified: r2.rule is \"ship, after three cheap verifications I could not run here (no file tools in this session)\", and other findings hedge (\"I could not read `test_open.py` to settle which\"). An uncalibrated prediction is outranked by the measurement. The item worth carrying forward, not stopping for: r1.rule's unit ambiguity (`get_base64_size` mebibytes vs 10^6) and `size_mb: float` vs `float | None` \u2014 a clue-text edit, and the hosted blind arm can settle it."
+    },
+    {
+     "at": "2026-09-03T20:12:00Z",
+     "step": "trim",
+     "rc": 1,
+     "seconds": 328.9,
+     "ok": false,
+     "hard": [
+      "trim exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:12:42Z",
+     "step": "trim",
+     "rc": 1,
+     "judged": true,
+     "verdict": "No task defect in the artifact: `trim` died on a harness-level model failure (`error_max_structured_output_retries`), raised at tg/agent.py:72 before any trimming judgment was made. The pre-trim bracket is textbook healthy \u2014 Ships: yes, naive 1/10 passing only `g8.open_feature`, all nine facts `hidden`, oracle and spec 10/10.",
+     "action": "retry",
+     "reason": "Exit 1 here is the structured-output retry ceiling, not a verdict about the cut. Precedent on this exact stage: g6/model-price-lookup's trim died three times with `error_max_structured_output_retries`, a different fact each run, then completed and shipped with the post-trim bracket still Ships:yes, 7/7 hidden (PROGRESS.md:122-126, tasks/todo.md:206-209). None of the stop-worthy signals is present \u2014 no `broken`, no `unreachable`, no coincidence (naive is 1/10, exactly the healthy shape from rule 4), no leak. Nothing specific to hand-cut either: the failure is in one per-fact prompt (`r2.rule`), not in the ticket or hidden requirements. Re-running unchanged is the cheap move; the per-prompt disk cache means completed facts are not re-paid for. If it dies the same way a third time on this task, park it and give `trim` the `--model` escape hatch `split` has (still-open item, PROGRESS.md:480-481)."
+    },
+    {
+     "at": "2026-09-03T20:15:46Z",
+     "step": "trim",
+     "rc": 0,
+     "seconds": 184.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:16:23Z",
+     "step": "bracket.retrim",
+     "rc": 0,
+     "seconds": 37.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:16:23Z",
+     "step": "emit",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:16:24Z",
+     "step": "horizon.ab",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:16:33Z",
+     "step": "push",
+     "rc": 0,
+     "seconds": 9.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:32:49Z",
+     "step": "validate",
+     "rc": 0,
+     "seconds": 976.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:58:07Z",
+     "step": "verdict",
+     "rc": 0,
+     "seconds": 0.0,
+     "ok": false,
+     "hard": [
+      "spec: no biggie-max rollouts on disk \u2014 only 0 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)",
+      "blind: no biggie-max rollouts on disk \u2014 only 0 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T21:01:08Z",
+     "step": "verdict",
+     "rc": 0,
+     "judged": true,
+     "verdict": "The verdict artifact is `{}` \u2014 `verdict_ab` found zero rollouts of any model on either arm, so nothing about g8 was measured; the two \"no biggie-max rollouts on disk\" lines are the gate reporting an absent measurement, not a task defect.",
+     "action": "stop",
+     "reason": "The report is empty because there is no `.rollouts/` directory at all under out/attachment-payload/horizon/g8-attachment-payload{,-spec} \u2014 not even the 10 cipher-omni gating runs that g7, g9 and g11 all have on disk. state.json confirms the cause upstream: `attempts.evaluate: 1` and an evaluation id (3f211492) recorded, but no `evaluate` history row and no evaluate.1.log, i.e. the hosted step crashed between submit and `hosted.pull` (worker.py:327-331). So no stop-trigger is present: the last bracket is the healthy shape (naive 1/10, only `g8.open_feature`; oracle and spec 10/10; Ships: yes), audit was judged advisory, and hosted `validate` passed 20:32:49. `retry` cannot help \u2014 `verdict_ab` is a pure disk read (gates.py:169-186) and re-running it unchanged yields the identical BLOCKED output until someone re-runs `evaluate`, which burns the $30 hosted step and, per hosted.py:118-121, must be preceded by `horizon whoami --json` since an exhausted budget errors every rollout and reads exactly like this. That is a spend call for the person; park and report. Note g9 shows the same zero-rollout blind arm, so the fault looks systemic to evaluate/pull, not to g8's cut."
+    },
+    {
+     "at": "2026-09-03T21:04:40Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 1911.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    }
+   ],
+   "blocked": {
+    "step": "verdict",
+    "why": "AttributeError: 'str' object has no attribute 'get'"
+   },
+   "hosted": {
+    "blind": {
+     "task_id": "1bcde9b8-6393-44e3-a96a-d2e031832927",
+     "version": 1
+    },
+    "spec": {
+     "task_id": "9039a7db-4896-4f30-8af7-c71fdb7244f4",
+     "version": 1
+    }
+   },
+   "rewinds": 1,
+   "evaluations": [
+    {
+     "id": "3f211492-b65c-477e-8cb9-9da77fe00c7e",
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    }
+   ]
+  },
+  "example-encoding": {
+   "id": "g9",
+   "slug": "example-encoding",
+   "brief": "/home/nidhi_bespokelabs_ai/SWEWorld/task_generator/fleet/briefs/example-encoding.md",
+   "phase": "B",
+   "step": "verdict",
+   "status": "parked",
+   "attempts": {
+    "new": 1,
+    "author": 1,
+    "build.oracle": 1,
+    "split": 1,
+    "tests": 1,
+    "build.naive": 1,
+    "build.spec": 1,
+    "bracket": 1,
+    "audit": 1,
+    "trim": 1,
+    "bracket.retrim": 1,
+    "emit": 1,
+    "horizon.ab": 1,
+    "push": 1,
+    "validate": 1,
+    "evaluate": 1,
+    "verdict": 2
+   },
+   "history": [
+    {
+     "at": "2026-09-03T18:11:48Z",
+     "step": "new",
+     "rc": 0,
+     "seconds": 0.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:18:34Z",
+     "step": "author",
+     "rc": 0,
+     "seconds": 405.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:23:01Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 267.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:33:18Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 616.2,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "7/7 facts rest on no invented name"
+     ]
+    },
+    {
+     "at": "2026-09-03T18:35:10Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The 0-of-7 \"no invented name\" result is an artifact: leak.anchors() reads only backticked spans (tg/leak.py:53) and this hidden.md is plain prose with no backticks. The facts do rest on invented names \u2014 ExampleTooLongError, MIN_RETAINED_PROMPT_TOKENS, FIREWORKS_BYTES_PER_TOKEN, EncodingReport, last_report, dropped_indices \u2014 none of which appear in the ticket or in curator/src.",
+     "action": "proceed",
+     "reason": "No blocking finding, and the one advisory is a false negative I can name: anchors() scans only text inside backticks (tg/leak.py:53), and hidden.md is plain prose, so has_anchor is False for all 7 by construction. Grepping the real names from hidden.md r1/r2 against curator/src returns zero matches, and ticket.md prints none of them (it hedges with \"plus any other public name the policy introduces\"). That is the opposite of a leak, so resplit is wrong by rule 2; nothing has been measured as a coincidence, and rule 1 says that repair would be author_extend after the bracket anyway. The trailing \"wall of text\" line is unstructured() (tg/steps.py:251) counting a blank-line-separated run of bullets as one paragraph \u2014 ticket.md already has eight \"### \" sections, bullets throughout and a code block, exactly the shape that message asks for. Paying for a reformat of graded text to insert blank lines risks dropping a name the grader may require, for no readability gain. Next step is tests; let the bracket decide."
+    },
+    {
+     "at": "2026-09-03T18:42:41Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 451.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:45:36Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 175.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:49:48Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 251.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:50:16Z",
+     "step": "bracket",
+     "rc": 0,
+     "seconds": 28.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:10:55Z",
+     "step": "audit",
+     "rc": 1,
+     "seconds": 1239.5,
+     "ok": false,
+     "hard": [
+      "audit exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:11:29Z",
+     "step": "audit",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The measured bracket is the healthy shape \u2014 pristine 0/8, naive passes only `g9.open_feature` and fails all seven hidden facts, oracle 8/8, spec 8/8, `Ships: yes`. The audit's seven findings are all Catalog A/B predictions (predicted coincidences, overlapping observables, \"no independent content\"), with no measured defect behind them.",
+     "action": "proceed",
+     "reason": "bracket.md names no stop condition: no `broken`, no `unreachable`, no measured coincidence (naive failed every hidden fact), and the naive shape is exactly rule 4's healthy pattern. audit.md is an uncalibrated prediction \u2014 its r1.rule and r1.scope cases are hypothetical blind builds it concedes the actual sample did not write (\"the sample it did not write\"), and its two `cut` verdicts rest on no_independent_content / observable_belongs_to_another_fact for r2.scope and r2.failure_behavior. The run note says not to stop on \"the facts are not independent\" or \"the audit clears no fact\" \u2014 g1, g3 and g6 shipped with shared require_feature gates and >30% overlapping assertions \u2014 and to let the hosted blind arm at three rollouts settle what free predictors merely dispute. The audit's strongest claim against r1.rule is contingent (\"does not preclude it\"), and it could construct no legitimate correct-build-rejected case there. What remains is real test hygiene (unmeasured MIN_RETAINED_PROMPT_TOKENS boundary, 90-byte separator margin) \u2014 fold in later, not grounds to park."
+    },
+    {
+     "at": "2026-09-03T19:18:37Z",
+     "step": "trim",
+     "rc": 0,
+     "seconds": 427.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:18:55Z",
+     "step": "bracket.retrim",
+     "rc": 0,
+     "seconds": 18.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:18:55Z",
+     "step": "emit",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:18:55Z",
+     "step": "horizon.ab",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:19:04Z",
+     "step": "push",
+     "rc": 0,
+     "seconds": 9.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:34:01Z",
+     "step": "validate",
+     "rc": 0,
+     "seconds": 896.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:07:57Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 2036.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:58:37Z",
+     "step": "verdict",
+     "rc": 0,
+     "seconds": 0.0,
+     "ok": false,
+     "hard": [
+      "blind: no biggie-max rollouts on disk \u2014 only 0 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T21:00:05Z",
+     "step": "verdict",
+     "rc": 0,
+     "judged": true,
+     "action": "stop",
+     "verdict": "Not a task defect \u2014 a missing measurement. The blind arm was never measured (out/example-encoding/horizon/g9-example-encoding has no .validation and no .rollouts at all), and the spec arm's biggie-max verdict rests on 1 of 3 rollouts: v2 run2 and run1 have \"score\": null with \"completed_at\": null, i.e. still in flight, while run3 completed at 1.00 with open_feature 1.0.",
+     "reason": "No blocking defect is measured: nothing here is broken, unreachable, a coincidence, or an unhealthy naive shape. gates.py:266-273 blocks solely because read_rollouts found no VERDICT_MODEL rows for the blind arm, and the disk confirms why \u2014 the blind arm directory holds only task.yaml/tests/metadata; it was never pushed, validated, or evaluated (compare the spec arm, which has .validation and .rollouts/v1+v2). The spec.cipher-omni 0.5143 is real for this task, not echoed from g6 (v1 scores: 0.8571 x6, 0 x4). `retry` cannot clear this: verdict_ab is a pure read of disk and does not submit or pull anything, so re-running it unchanged re-blocks identically and burns a message. The repair is upstream and outside this choice set \u2014 push/validate/evaluate the blind arm (per plan.py:107, `push` exits 0 having done nothing if the name is not piped, which matches an unpushed blind arm), then re-pull spec once the two in-flight biggie-max runs land. Park and report per rule 7."
+    }
+   ],
+   "blocked": {
+    "step": "verdict",
+    "why": "No blocking defect is measured: nothing here is broken, unreachable, a coincidence, or an unhealthy naive shape. gates.py:266-273 blocks solely because read_rollouts found no VERDICT_MODEL rows for the blind arm, and the disk confirms why \u2014 the blind arm directory holds only task.yaml/tests/metadata; it was never pushed, validated, or evaluated (compare the spec arm, which has .validation and .rollouts/v1+v2). The spec.cipher-omni 0.5143 is real for this task, not echoed from g6 (v1 scores: 0.8571 x6, 0 x4). `retry` cannot clear this: verdict_ab is a pure read of disk and does not submit or pull anything, so re-running it unchanged re-blocks identically and burns a message. The repair is upstream and outside this choice set \u2014 push/validate/evaluate the blind arm (per plan.py:107, `push` exits 0 having done nothing if the name is not piped, which matches an unpushed blind arm), then re-pull spec once the two in-flight biggie-max runs land. Park and report per rule 7."
+   },
+   "hosted": {
+    "blind": {
+     "task_id": "d25a499b-84e3-4f9b-9d66-8864ffcda335",
+     "version": 1
+    },
+    "spec": {
+     "task_id": "79aa786a-ea26-4f1d-95ae-ad388bfae49c",
+     "version": 1
+    }
+   },
+   "evaluations": [
+    {
+     "id": "27b9e751-6649-4eb9-ba22-ff008209f18c",
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    }
+   ]
+  },
+  "token-capacity-budget": {
+   "id": "g10",
+   "slug": "token-capacity-budget",
+   "brief": "/home/nidhi_bespokelabs_ai/SWEWorld/task_generator/fleet/briefs/token-capacity-budget.md",
+   "phase": "B",
+   "step": "verdict",
+   "status": "parked",
+   "attempts": {
+    "new": 1,
+    "author": 1,
+    "build.oracle": 1,
+    "split": 1,
+    "tests": 1,
+    "build.naive": 1,
+    "build.spec": 1,
+    "bracket": 1,
+    "audit": 1,
+    "trim": 1,
+    "bracket.retrim": 1,
+    "emit": 1,
+    "horizon.ab": 1,
+    "push": 1,
+    "validate": 1,
+    "evaluate": 1,
+    "verdict": 3
+   },
+   "history": [
+    {
+     "at": "2026-09-03T18:14:48Z",
+     "step": "new",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:26:29Z",
+     "step": "author",
+     "rc": 0,
+     "seconds": 700.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:34:58Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 509.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:42:10Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 431.9,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "5/8 facts rest on no invented name",
+      "8 facts quote an identifier the ticket already prints",
+      "8 facts quote an identifier already in curator/src"
+     ]
+    },
+    {
+     "at": "2026-09-03T18:43:25Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "No blocking findings: the ticket never prints the names its hidden facts turn on (CAPACITY_DEBT_FLOOR_FRACTION, refund_capacity, num_capacity_debt_clamps, num_capacity_refunds, num_capacity_settlements are in neither ticket.md nor curator/src), and ticket.md is already goal-line + ### sections + bullets. The only complaint left is a readability metric counting a bullet list as one paragraph.",
+     "action": "proceed",
+     "reason": "No leak, so rule 2 rules out resplit \u2014 split already re-cut itself once for exactly that (\"5 of 9 facts rested on a name the ticket printed\"). The 2144-char \"paragraph\" is the six-bullet block under `### BaseOnlineRequestProcessor` (ticket.md:57-62); the file is already in the demanded layout, so reformat_ticket could only satisfy the measure by padding blank lines between bullets \u2014 churn with no reader benefit and rewrite risk to verbatim identifiers. The \"5/8 facts rest on no invented name\" advisory is a prediction, and the fleet note says a measured bracket outranks a free predictor. All five hit the stated escape clause: r1.rule/r1.scope rest on chosen values (0.25 floor, -250.0, -25000.0, floors off the post-normalisation limit); r1/r2 exclusions on policies the code is silent about (upper cap doesn't tick the counter; failure refund ignores reported token_usage); r2.scope on which terminal paths release. fact_sources.json gives each a distinct blind alternative \u2014 r1.scope's (floor from the raw ctor arg) is what a naive build would produce. stop/hand_cut need a defect nameable in a measurement; there is none."
+    },
+    {
+     "at": "2026-09-03T18:55:45Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 739.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:04:37Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 532.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:17:37Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 779.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:18:21Z",
+     "step": "bracket",
+     "rc": 0,
+     "seconds": 43.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:43:00Z",
+     "step": "audit",
+     "rc": 1,
+     "seconds": 1479.3,
+     "ok": false,
+     "hard": [
+      "audit exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:43:28Z",
+     "step": "audit",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The audit is entirely narrow/retest/cut quality critiques (fact overlap, shared `require_feature` gates, hypothetical correct-fails) \u2014 no `broken`, no `unreachable`, no coincidence. The measured bracket is the healthy shape: pristine 0/9, naive passes only `open_feature` and fails all 8 hidden facts, oracle 9/9, spec 9/9, **Ships: yes**.",
+     "action": "proceed",
+     "reason": "bracket.md measures exactly the shape rule 4 calls healthy (naive: only open_feature passes; oracle and spec 9/9), so there is no defect nameable in the measurement. Every audit finding is a prediction about discrimination quality: no_independent_content between siblings, observable_belongs_to_another_fact, and shared require_feature gates on r1 \u2014 the patterns the run note says shipped in g1, g3, g6 and must not trigger a stop. The two `cut` verdicts rest on hand-written \"blind build that passes anyway\" sketches for r2.scope and r2.exclusions, but the real blind arm failed both; a measured bracket outranks an uncalibrated adversarial predictor on its first run. Nothing fits resplit (no leak), author_extend (no coincidence) or hand_cut (not one small fix \u2014 the audit asks for eight test rewrites). Carry forward, don't stop on: audit r1.rule item 3 says the fact prose cites -700.0 where the unfloored result is -500.0 (possible answer-key slip), and r2.rule's naming asymmetry (refund_op accepts refund/refund_capacity, test hardcodes proc._refund_capacity) is the finding most likely to cost a correct hosted rollout."
+    },
+    {
+     "at": "2026-09-03T19:49:06Z",
+     "step": "trim",
+     "rc": 0,
+     "seconds": 338.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:49:40Z",
+     "step": "bracket.retrim",
+     "rc": 0,
+     "seconds": 34.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:49:41Z",
+     "step": "emit",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:49:41Z",
+     "step": "horizon.ab",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:49:51Z",
+     "step": "push",
+     "rc": 0,
+     "seconds": 10.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:06:33Z",
+     "step": "validate",
+     "rc": 0,
+     "seconds": 1001.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:59:07Z",
+     "step": "verdict",
+     "rc": 0,
+     "seconds": 0.0,
+     "ok": false,
+     "hard": [
+      "spec: no biggie-max rollouts on disk \u2014 only 0 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)",
+      "blind: no biggie-max rollouts on disk \u2014 only 0 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T21:01:18Z",
+     "step": "verdict",
+     "rc": 0,
+     "judged": true,
+     "verdict": "The verdict gate read zero rollouts of any model in both arm dirs \u2014 the report is literally `{}` \u2014 so nothing has been measured; `evaluate` submitted evaluation cac12faf but its rollouts were never pulled to `horizon/g10-token-capacity-budget{,-spec}/.rollouts/`.",
+     "action": "retry",
+     "reason": "This is gates.py:266-272's \"not measured yet\" branch, whose own comment marks it reported-never-gated: hard[] fires because read_rollouts() found no files, not because a score missed a band. State shows evaluate ran (attempts.evaluate=1, evaluations[0]=cac12faf, both arms) but wrote no history row, and no .rollouts dir exists under either arm \u2014 the process died before hosted.pull(), a delivery failure, not an artifact defect. Everything measured is healthy: bracket \"Ships: yes\" (naive passes only open_feature, oracle/spec 9/9) and hosted validate 1.00 oracle / 0.00 noop on both arms. No broken, unreachable, coincidence, or unhealthy naive shape. Rule 7's \"spending forward into a defect\" does not apply: verdict is a free check step (paid=0.0, 0.0s). Retry costs one disk re-read; if rollouts are still absent, MAX_ATTEMPTS=2 parks the task automatically with the same outcome stop would give, so retry is dominant and preserves an already-paid $30 evaluation."
+    },
+    {
+     "at": "2026-09-03T21:01:18Z",
+     "step": "verdict",
+     "rc": 0,
+     "seconds": 0.0,
+     "ok": false,
+     "hard": [
+      "spec: no biggie-max rollouts on disk \u2014 only 0 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)",
+      "blind: no biggie-max rollouts on disk \u2014 only 0 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T21:05:04Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 3511.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T21:07:16Z",
+     "step": "verdict",
+     "rc": 0,
+     "judged": true,
+     "verdict": "No defect is measured: bracket.json is healthy (oracle 9/9, spec 9/9, naive passes only open_feature, pristine 0/9) and hosted validation is oracle 1.00 / noop 0.00 on both arms. The gate's `{}` means the hosted arms held no readable rollouts \u2014 and the ones that have since landed are 10 cipher-omni per arm (spec mean 0.00; blind open_feature 1.0 in only 3 of 10), which the gate cannot read.",
+     "action": "stop",
+     "reason": "Retry is now strictly dominated. (1) It cannot pass: gates.py:287 hard-blocks unless biggie-max rollouts exist, and both `.rollouts/v1` dirs hold only cipher-omni files. The blind cheap-model fallback (gates.py:281-285) also fails \u2014 open_feature is 1.0 in just 3 of 10 blind rollouts, so min(wopen) != 1.0, exactly the g7 case where the cheap number means nothing. (2) It parks regardless: state.json shows attempts.verdict = 3 against worker.py:39 MAX_ATTEMPTS = 2, so worker.py:452 raises Parked on a retry \u2014 same outcome as stop, one judge call more expensive, and recorded under a misleading \"the judge still says retry\". The prior judge already spent the one useful retry, and the evaluate it was waiting on has since completed (history 21:05:04, ok true). Nothing here is `broken`, `unreachable`, a coincidence or an unhealthy naive shape; cipher-omni's 0.00 on the spec arm is weak-model evidence by gates.py:234-243's own measurement (g6: 0.514 vs biggie-max 1.00). What this task needs is the paid biggie-max verdict run on both arms (VERDICT_RUNS=1) \u2014 a step neither action available to me can trigger. Park and report."
+    }
+   ],
+   "blocked": {
+    "step": "verdict",
+    "why": "Retry is now strictly dominated. (1) It cannot pass: gates.py:287 hard-blocks unless biggie-max rollouts exist, and both `.rollouts/v1` dirs hold only cipher-omni files. The blind cheap-model fallback (gates.py:281-285) also fails \u2014 open_feature is 1.0 in just 3 of 10 blind rollouts, so min(wopen) != 1.0, exactly the g7 case where the cheap number means nothing. (2) It parks regardless: state.json shows attempts.verdict = 3 against worker.py:39 MAX_ATTEMPTS = 2, so worker.py:452 raises Parked on a retry \u2014 same outcome as stop, one judge call more expensive, and recorded under a misleading \"the judge still says retry\". The prior judge already spent the one useful retry, and the evaluate it was waiting on has since completed (history 21:05:04, ok true). Nothing here is `broken`, `unreachable`, a coincidence or an unhealthy naive shape; cipher-omni's 0.00 on the spec arm is weak-model evidence by gates.py:234-243's own measurement (g6: 0.514 vs biggie-max 1.00). What this task needs is the paid biggie-max verdict run on both arms (VERDICT_RUNS=1) \u2014 a step neither action available to me can trigger. Park and report."
+   },
+   "hosted": {
+    "blind": {
+     "task_id": "ddb0c383-c43d-4fda-9b70-26557f740693",
+     "version": 1
+    },
+    "spec": {
+     "task_id": "9c26a09a-61d1-4ccf-b384-a4bec5132776",
+     "version": 1
+    }
+   },
+   "evaluations": [
+    {
+     "id": "cac12faf-1fce-4fd4-84a5-7e6e0dc8dcc3",
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    }
+   ]
+  },
+  "training-step-ledger": {
+   "id": "g11",
+   "slug": "training-step-ledger",
+   "brief": "/home/nidhi_bespokelabs_ai/SWEWorld/task_generator/fleet/briefs/training-step-ledger.md",
+   "phase": "B",
+   "step": "verdict",
+   "status": "parked",
+   "attempts": {
+    "new": 1,
+    "author": 1,
+    "build.oracle": 1,
+    "split": 1,
+    "tests": 1,
+    "build.naive": 2,
+    "build.spec": 2,
+    "bracket": 2,
+    "audit": 1,
+    "trim": 1,
+    "bracket.retrim": 1,
+    "emit": 1,
+    "horizon.ab": 1,
+    "push": 1,
+    "validate": 1,
+    "evaluate": 1,
+    "verdict": 2
+   },
+   "history": [
+    {
+     "at": "2026-09-03T18:17:48Z",
+     "step": "new",
+     "rc": 0,
+     "seconds": 0.4,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:29:22Z",
+     "step": "author",
+     "rc": 0,
+     "seconds": 693.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:38:04Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 522.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T18:46:59Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 534.8,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "5/9 facts rest on no invented name",
+      "9 facts quote an identifier the ticket already prints",
+      "9 facts quote an identifier already in curator/src"
+     ]
+    },
+    {
+     "at": "2026-09-03T18:48:05Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "No blocking findings and no leak: none of the hidden names (reasons, CHECKPOINT_REASONS, canonical_reasons, MIN_LR_RATIO, effective_warmup) appear in ticket.md. Split already self-re-cut twice; the ticket is now 85 lines of structured markdown, longest paragraph under 1000 chars, so the log's \"1743-character wall of text\" describes the pre-rewrite state.",
+     "action": "proceed",
+     "reason": "Exit 1 is the no-invented-name heuristic (5/9), and its own escape clause covers all five: r1.scope is a policy the code is silent about (\"final\" fires regardless of config, where today a default run writes zero checkpoints), r1.exclusions is a chosen policy (epoch_of_batch vs the `for epoch in range(...)` loop variable at :367/:386), and r2.exclusions/failure_behavior/observability rest on chosen values (0.1 floor, warmup clipping, the exact 8-value series). fact_sources.json names a concrete mainstream blind alternative for each \u2014 decay-to-zero, unclamped past total_steps, dividing by raw warmup_steps \u2014 which is what a real coincidence would lack. \"9 facts quote an identifier the ticket prints\" is scaffolding overlap (CheckpointInfo, step, epoch), not a leak, so rule 2 rules out resplit; rule 1 says a measured coincidence would call for author_extend anyway. reformat_ticket is a no-op on an already-structured ticket, and stop/hand_cut need a defect nameable in a measurement. Let the bracket at `tests` measure it."
+    },
+    {
+     "at": "2026-09-03T19:04:13Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 967.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:11:24Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 431.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:19:57Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 513.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:20:16Z",
+     "step": "bracket",
+     "rc": 1,
+     "seconds": 18.2,
+     "ok": false,
+     "hard": [
+      "g11.open_feature: the open feature does not pass on naive \u2014 a build given only the ticket cannot produce it, so it grades something the ticket does not state and no blind score can be read against it",
+      "g11.open_feature: unreachable \u2014 a build given the ticket and the hidden requirements still fails it, so the requirement does not say what the suite grades",
+      "g11.open_feature: naive scores 0.0 \u2014 a build given only the ticket cannot produce the open feature, so a blind 0.00 cannot be told apart from an agent that built nothing"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:21:53Z",
+     "step": "bracket",
+     "rc": 1,
+     "judged": true,
+     "verdict": "All nine hidden facts bracket cleanly (fail/fail/pass/pass); the only failure is `g11.open_feature`, and on both `naive` and `spec` it is the identical `KeyError: 'gradient_accumulation_steps'` from the metadata loop at tests/test_open.py:418-426 \u2014 a metadata key the ticket never states.",
+     "action": "amend_ticket",
+     "reason": "bracket.json shows naive and spec dying on the same assertion (rule 5: correlated failures are one defect). ticket.md:55 says metadata only \"gains 'dataset_signature'\", and pristine tinker_trainer.py:432-438 carries five keys without gradient_accumulation_steps, so no build but the oracle can produce it \u2014 this is rule 4's unhealthy naive shape, whose repair is to state the missing detail and rebuild naive and spec. The \"unreachable\" flag is the same missing sentence surfacing in spec, not a hidden-requirement wording defect (rule 3's stop case), because the graded detail belongs to the open feature, not to r1/r2; hidden.md stays byte-identical, so no verdicts are thrown away. Not author_extend: no hidden fact passed on naive, so there is no coincidence. Not hand_cut/resplit: the cut is sound \u2014 every hidden fact already fails pristine+naive and passes oracle+spec. Not stop: the defect is one nameable line in the ticket, not a broken oracle."
+    },
+    {
+     "at": "2026-09-03T19:25:45Z",
+     "step": "amend_ticket",
+     "rc": 0
+    },
+    {
+     "at": "2026-09-03T19:32:29Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 404.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:39:55Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 445.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T19:40:12Z",
+     "step": "bracket",
+     "rc": 0,
+     "seconds": 17.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:10:56Z",
+     "step": "audit",
+     "rc": 1,
+     "seconds": 1844.3,
+     "ok": false,
+     "hard": [
+      "audit exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:11:31Z",
+     "step": "audit",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The bracket measures the healthy shape \u2014 pristine 0/10, naive passes only `open_feature` and fails all nine hidden facts, oracle 10/10, spec 10/10, \"Ships: yes\" \u2014 while `audit` is an uncalibrated adversarial prediction returning cut/narrow/retest on all nine facts without naming a measured defect.",
+     "action": "proceed",
+     "reason": "No stop condition appears in the measurement. Not `broken` (oracle 10/10); not `unreachable` (spec 10/10, so the hidden wording does say what the suite grades); no coincidence (naive fails every hidden fact \u2014 audit's `blind_pass` builds are hypotheses, and the run note says the hosted blind arm at three rollouts settles those); and the naive shape is rule 4's healthy one, not the 0.00-everything shape that would call for `amend_ticket`. What audit actually asserts is overlap and dependence \u2014 `observable_belongs_to_another_fact` / `no_independent_content` on r1.exclusions, r1.observability, r2.exclusions, r2.failure_behavior \u2014 which the recorded base rate (g1's four >30% test pairs, g3's four facts behind one gate) says is normal and explicitly not grounds to stop. Its two `cut` calls rest on predicted blind passes the bracket already contradicts; its r2.rule clamp-vs-rescale \"correct build the test rejects\" is the one substantive risk, but spec passing 10/10 measures that the requirement text carries the disambiguator. Treat the recommendations as later tightening, not a park."
+    },
+    {
+     "at": "2026-09-03T20:17:25Z",
+     "step": "trim",
+     "rc": 0,
+     "seconds": 354.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:17:42Z",
+     "step": "bracket.retrim",
+     "rc": 0,
+     "seconds": 16.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:17:42Z",
+     "step": "emit",
+     "rc": 0,
+     "seconds": 0.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:17:42Z",
+     "step": "horizon.ab",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:17:51Z",
+     "step": "push",
+     "rc": 0,
+     "seconds": 9.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:33:53Z",
+     "step": "validate",
+     "rc": 0,
+     "seconds": 961.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:52:28Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 1114.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T20:59:37Z",
+     "step": "verdict",
+     "rc": 0,
+     "seconds": 0.0,
+     "ok": false,
+     "hard": [
+      "spec: no biggie-max rollouts on disk \u2014 only 5 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)",
+      "blind: no biggie-max rollouts on disk \u2014 only 8 on cipher-omni, which cannot carry a spec ceiling (measured: 0.514 against biggie-max's 1.00 on the same g6 spec arm)"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-03T21:02:01Z",
+     "step": "verdict",
+     "rc": 0,
+     "judged": true,
+     "verdict": "The gate found no biggie-max rollouts on either arm, so nothing was measured against the spec floor \u2014 an absent measurement, not a task defect. What is on disk looks healthy: spec 0.5778 on cipher-omni (above g6's known-good 0.514 on the same gating model) and blind 0.00, the shape g1 and g6 shipped with.",
+     "action": "stop",
+     "reason": "`verdict_ab` (gates.py:250) is a pure disk read of `.rollouts/v*/` filtered to VERDICT_MODEL; it creates nothing. Rollouts come from `evaluate`, whose biggie-max stage never landed files \u2014 only cipher-omni_run*.json exist under both g11 arm dirs. Re-running verdict re-reads the same directory and returns the identical BLOCKED. g10 proved this minutes ago: judge said `retry` at 21:01:18, the rerun logged the same two findings at 21:01:18, 0.0 seconds later. Worse, state.json has g11 at attempts.verdict: 2 and worker.py:39 sets MAX_ATTEMPTS = 2, so `retry` trips worker.py:452 and parks anyway with a worse message. No rule-3/4 defect: nothing reads broken or unreachable, and blind 0.00 matches g6 and g1, both shipped. Two notes for the human: 10 rollout jsons exist per arm but only 5 spec / 8 blind carry a non-null score \u2014 the rest errored and were dropped, which gates.py flags as the signature of an exhausted account budget, the likely reason biggie-max produced nothing. The unblock is an evaluate submission on biggie-max, not another verdict read."
+    }
+   ],
+   "blocked": {
+    "step": "verdict",
+    "why": "`verdict_ab` (gates.py:250) is a pure disk read of `.rollouts/v*/` filtered to VERDICT_MODEL; it creates nothing. Rollouts come from `evaluate`, whose biggie-max stage never landed files \u2014 only cipher-omni_run*.json exist under both g11 arm dirs. Re-running verdict re-reads the same directory and returns the identical BLOCKED. g10 proved this minutes ago: judge said `retry` at 21:01:18, the rerun logged the same two findings at 21:01:18, 0.0 seconds later. Worse, state.json has g11 at attempts.verdict: 2 and worker.py:39 sets MAX_ATTEMPTS = 2, so `retry` trips worker.py:452 and parks anyway with a worse message. No rule-3/4 defect: nothing reads broken or unreachable, and blind 0.00 matches g6 and g1, both shipped. Two notes for the human: 10 rollout jsons exist per arm but only 5 spec / 8 blind carry a non-null score \u2014 the rest errored and were dropped, which gates.py flags as the signature of an exhausted account budget, the likely reason biggie-max produced nothing. The unblock is an evaluate submission on biggie-max, not another verdict read."
+   },
+   "hosted": {
+    "blind": {
+     "task_id": "fdb2505b-5b16-4cfe-90e8-aa64e9504b09",
+     "version": 1
+    },
+    "spec": {
+     "task_id": "72934def-885c-4848-b9c6-4c6443913f0c",
+     "version": 1
+    }
+   },
+   "rewinds": 1,
+   "evaluations": [
+    {
+     "id": "0b30ed12-494c-4b78-ab7c-b9062f2fcc92",
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    }
+   ]
+  }
+ }
+}

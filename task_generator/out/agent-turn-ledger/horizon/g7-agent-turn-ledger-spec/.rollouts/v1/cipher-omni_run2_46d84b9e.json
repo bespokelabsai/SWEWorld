@@ -1,0 +1,13 @@
+{
+  "id": "46d84b9e-8d54-438b-a806-91c15e270952",
+  "evaluation_id": "291a136b-efc2-4255-a502-a6e88dbffe4d",
+  "run_number": 2,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": 0.75,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g7.r1.rule\": 1.0,\n    \"g7.r1.scope\": 0.0,\n    \"g7.r1.failure_behavior\": 1.0,\n    \"g7.r1.observability\": 0.0,\n    \"g7.r2.rule\": 1.0,\n    \"g7.r2.scope\": 1.0,\n    \"g7.r2.failure_behavior\": 1.0,\n    \"g7.r2.observability\": 1.0,\n    \"g7.open_feature\": 1.0\n  },\n  \"weights\": {\n    \"g7.r1.rule\": 0.125,\n    \"g7.r1.scope\": 0.125,\n    \"g7.r1.failure_behavior\": 0.125,\n    \"g7.r1.observability\": 0.125,\n    \"g7.r2.rule\": 0.125,\n    \"g7.r2.scope\": 0.125,\n    \"g7.r2.failure_behavior\": 0.125,\n    \"g7.r2.observability\": 0.125,\n    \"g7.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"6 of 8 hidden requirements satisfied. Open feature: yes. Missed: g7.r1.scope, g7.r1.observability.  [pytest rc=1 nodes=9] 9: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/ |     warnings.warn( |  | -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html | ================================================================================================= short test summary info ================================================================================================== | FAILED test_r1.py::test_scope__load_ledger_writes_nothing_and_the_log_outranks_the_checkpoint - AssertionError: assert 'adopted' == 'created' | FAILED test_r1.py::test_observability__the_checkpoint_reads_186_bytes_mid_run_and_189_at_the_end - AssertionError: assert 'created' == 'adopted' | 2 failed, 7 passed, 5 warnings in 25.59s |  | Conversation: \\u001b[96mpartner\\u001b[0m [\\u001b[92m0 responses\\u001b[0m \u2022 \\u001b[91m1 errors\\u001b[0m \u2022 \\u001b[94m0/4 turns\\u001b[0m \u2022 \\u001b[95m$0.000 spent\\u001b[0m \u2022 \\u001b[94m0 tokens\\u001b[0m]:   0%|          | 0/4 [00:00<?, ?turn/s] |  | Conversation: \\u001b[96mpartner\\u001b[0m [\\u001b[92m0 responses\\u001b[0m \u2022 \\u001b[91m1 errors\\u001b[0m \u2022 \\u001b[94m0/4 turns\\u001b[0m \u2022 \\u001b[95m$0.000 spent\\u001b[0m \u2022 \\u001b[94m0 tokens\\u001b[0m]:   0%|          | 0/4 [00:00<?, ?turn/s] |  | Conversation between client and advisor:   0%|          | 0/6 [00:00<?, ?turn/s] | \"\n  },\n  \"score\": 0.75\n}",
+  "created_at": "2026-09-03T19:01:37.233Z",
+  "completed_at": "2026-09-03T19:31:58.707Z"
+}

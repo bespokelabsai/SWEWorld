@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "lets an under-estimate drive capacity arbitrarily negative (what today's `free_capacity` docstring blesses: \"This can be a negative number incase of under estimation\"), or clamps at 0.0 so debt is simply forgotten"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P5 (with P3's normalisation)",
+  "blind_alternative": "writes no floor at all; if it writes one it derives the bound from the raw constructor argument or a fixed literal, so a tracker built with `max_tokens_per_minute=0` floors at 0 rather than at -25% of the substituted 100_000 default"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P5 (boundary with P2's refill cap)",
+  "blind_alternative": "has no clamp concept, so nothing counts; an agent that adds a counter naturally ticks it on the upper cap in `update_capacity` too, or ticks once per clamped axis"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "exposes no counter field at all, so the attribute does not exist; capacity is asserted only as a float"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P6",
+  "blind_alternative": "keeps one release method \u2014 a refund is just `free_capacity(used=_TokenUsage(input=0, output=0), blocked=blocked)` \u2014 and either returns the request slot on every release or (today's behaviour) on none, leaving `available_request_capacity` to the time-based refill"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "releases on the exhausted path only, on the theory that a requeued attempt will reserve again and releasing there double-counts"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P8",
+  "blind_alternative": "settles the failure path symmetrically with the success path using the `used_tokens` value the `except` block already builds at lines 528-530 for `update_cost_projection`"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P6",
+  "blind_alternative": "adds no counters, or a single `num_capacity_releases`, so the two release kinds are indistinguishable to a caller"
+ }
+]

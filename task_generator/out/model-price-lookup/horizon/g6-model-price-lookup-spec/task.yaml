@@ -1,0 +1,117 @@
+prompt: |
+    You are an engineer on the team that maintains `bespokelabs/curator`.
+
+    The repository is checked out at `/workdir/curator` — a normal working tree, yours
+    to edit. It is a `src` layout: the package lives at
+    `/workdir/curator/src/bespokelabs/curator/`.
+
+    To run anything against it, put the source tree on the path:
+
+        cd /workdir/curator && PYTHONPATH=/workdir/curator/src python3 -c '...'
+
+    curator's dependencies are installed; curator itself deliberately is not, so your
+    tree is what gets imported. There is no network.
+
+    Your work is graded from the tree at `/workdir/curator`. Nothing needs to be
+    committed or pushed.
+
+    ---
+
+    ## The ticket
+
+    Consolidate the scattered, inconsistent model-price lookups into one canonical path.
+
+    Today that logic is spread across `src/bespokelabs/curator/cost.py` — which mixes external-table and litellm-table logic ad hoc across `external_model_cost()` and four separate `cost()` methods — and across the batch/online status trackers.
+
+    ### 1. Add a frozen dataclass `ModelPrice`
+
+    With these fields:
+
+    - `model: str`
+    - `provider: str | None`
+    - `completion_window: str`
+    - `input_cost_per_million: float`
+    - `output_cost_per_million: float`
+    - `source: str` ("litellm" or "external")
+    - `batch: bool`
+    - `output_price_inferred: bool`
+    - `max_tokens: int | None`
+
+    Plus `input_cost_per_token`/`output_cost_per_token` properties (`round(value, 9)` for per-million figures, `round(per_million/1e6, 15)` for per-token).
+
+    ### 2. Add `UnpricedModelError(LookupError)`
+
+    - A class-level `REASONS` frozenset naming the permitted reason strings.
+    - A keyword-only `__init__(*, model, provider, completion_window, reason)` that raises `ValueError` for an unrecognized `reason`.
+    - Otherwise it produces the message `f"{reason}: model={model!r} provider={provider!r} completion_window={completion_window!r}"`.
+
+    ### 3. Add `resolve_model_price(model, *, provider=None, completion_window=None, batch=False) -> ModelPrice`
+
+    The single function that consults `_DEFAULT_COST_MAP`'s external provider tables and `litellm.model_cost`. It:
+
+    - Raises `UnpricedModelError` instead of ever returning a `None`-valued price.
+    - Applies a batch-rate discount to the returned per-million prices where the pricing data calls for it when `batch=True`.
+    - When a table entry has no explicit output price, copies the input price into the output price and sets `output_price_inferred=True`.
+
+    ### 4. Add `register_price_with_litellm(price: ModelPrice) -> dict`
+
+    - Writes `{"max_tokens": ..., "input_cost_per_token": ..., "output_cost_per_token": ..., "litellm_provider": ...}` into `litellm.model_cost` via `litellm.register_model`.
+    - Raises `ValueError` if `price.batch` is `True`.
+    - Returns that same four-key `{"max_tokens": ..., "input_cost_per_token": ..., "output_cost_per_token": ..., "litellm_provider": ...}` dict — the entry it just wrote, not `{price.model: {...}}`.
+
+    ### 5. Add `format_cost_strings(price: ModelPrice | None, *, rich: bool) -> tuple[str, str]`
+
+    The sole place display strings like `"$0.045"` (or `"[red]$0.045[/red]"` when `rich`) are built. It:
+
+    - Appends `"*"` to the output string when `output_price_inferred` is true.
+    - Returns `("N/A", "N/A")` (or the `[dim]`-wrapped equivalent) for `price is None`.
+
+    ### 6. Rewrite `external_model_cost(model, completion_window="*", provider="default") -> dict[str, float]`
+
+    As a thin shim over `resolve_model_price(..., batch=False)`.
+
+    ### 7. Delete `_get_litellm_cost_map`
+
+    ### 8. Give `BatchStatusTracker`/`OnlineStatusTracker` two new fields and one new method
+
+    New fields:
+
+    - `price_unavailable_reason: Optional[str]`
+    - `output_price_inferred: bool`
+
+    New method `refresh_model_price(*, price_model: str | None = None) -> Optional[str]`, called from `model_post_init`/`__post_init__` and from the batch request processors' `set_model_cost()`. It:
+
+    - Re-resolves and assigns the two per-million prices, `output_price_inferred`, and `input_cost_str`/`output_cost_str` (via `format_cost_strings`).
+    - Sets `price_unavailable_reason` to `None` on success or to `err.reason` on `UnpricedModelError`.
+    - Never raises.
+
+    ---
+
+    ## Requirements settled earlier
+
+    These were agreed before the ticket was written. They are not optional.
+
+    ### r1
+
+    - **rule** — `resolve_model_price` never returns a `ModelPrice` carrying a `None` price: every failure raises `UnpricedModelError`, and the `reason` it carries is exactly one of the three strings `unknown_provider`, `unknown_model`, `unknown_window`.
+    - **exclusions_or_crossover** — An unregistered provider is `unknown_provider` even when the model is also absent and the window is also unrecognised, and a missing model key is `unknown_model` even when the window is also unrecognised. A model present in `litellm.model_cost` but carrying a missing or `None` input price is `unknown_model`, and a window that is absent from a model's price map is `unknown_window` rather than a fallback to the wildcard tier.
+    - **observability** — `resolve_model_price("no-such-model", provider="not-a-provider", completion_window="96h")` raises with `reason == "unknown_provider"`; the same call with a registered provider raises with `reason == "unknown_model"`; a model that provider does list, asked for an unlisted window, raises with `reason == "unknown_window"`. Every `cost()` method and both trackers catch `UnpricedModelError` and degrade — `cost()` to `0.0`, a tracker to `None` prices and a recorded reason.
+
+    ### r2
+
+    - **rule** — The batch discount factor is applied by exactly one method, `batch_multiplier()`, on the cost processors; no `cost()` override multiplies or divides its result by anything. `resolve_model_price(..., batch=True)` applies that same fixed factor to the per-million numbers it returns.
+    - **scope** — `batch_multiplier()` returns the discount factor only where the pricing data is a list price: it returns `1.0` when the processor is not in batch mode, and `1.0` on the klusterai and inference.net processors in every mode. `resolve_model_price` discounts a `source == "litellm"` price and leaves a `source == "external"` price exactly as the table lists it.
+    - **exclusions_or_crossover** — A user-supplied per-million price is never discounted: `batch_multiplier()` returns `1.0` whenever the config carries an explicit input cost, even in batch mode on a processor that would otherwise discount. Which processors are exempt is decided by a class-level flag and by which source answered the lookup.
+    - **observability** — `batch_multiplier()` is the discount factor on the base and Azure processors in batch mode and `1.0` out of it, and `1.0` on the klusterai and inference.net processors even in batch mode. `resolve_model_price(model, provider="klusterai", completion_window="*", batch=True).input_cost_per_million` equals the `batch=False` value exactly, while a litellm-sourced model's `batch=True` value is exactly half its `batch=False` value.
+metadata:
+    category: "Software Engineering"
+    difficulty: "Medium"
+    tags:
+        - "curator"
+        - "python"
+        - "hidden-requirements"
+        - "spec"
+        - "g6"
+        - "task_generator"
+    memory_limit: 8192
+    time_limit: 3600

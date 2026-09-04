@@ -1,0 +1,769 @@
+[
+ {
+  "key": "g8.r1.rule",
+  "req": 1,
+  "field": "rule",
+  "verdict": "retest",
+  "divergent_action": "In `_canonical_attachment_block`, after resolving `kind`/`source`/`payload` and before offering the payload to `file_upload_limit_check`:\n\n```python\n_PER_KIND_LIMIT_MB: dict[str, float] = {\"image\": 20.0, \"document\": 24.0}\n\nsize_mb = None\nif source == \"base64\":\n    size_mb = get_base64_size(payload)\n    limit_mb = _PER_KIND_LIMIT_MB[kind]\n    if size_mb > limit_mb:\n        raise AttachmentTooLarge(kind, size_mb, limit_mb)\nself.file_upload_limit_check(payload)\nreturn AttachmentBlock(..., size_mb=size_mb)\n```\n\nplus `class AttachmentTooLarge(AttachmentError)` in `attachment.py` storing `.kind/.size_mb/.limit_mb`, and a `size_mb: float | None` field added to the frozen model. A ticket-only agent writes none of it: the ticket enumerates `AttachmentBlock`'s fields as a closed list of six and the refusals as a closed numbered list of three, so a blind agent's block has no `size_mb`, no size comparison, and no `AttachmentTooLarge` symbol for `attachment_symbol()` to find.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The measuring helper pre-exists \u2014 the test does `from bespokelabs.curator.file_utilities import get_base64_size` \u2014 and `file_upload_limit_check` reads as pre-existing provider machinery. But the shared per-kind ceiling does not exist: nothing in the untouched tree defines `AttachmentTooLarge` or a `size_mb` field on a canonical block, and the free bracket confirms an untouched checkout fails. The pre-existing helper is a hazard for the *unit* (see catalog B / correct_fail), not a free pass."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "This is a positive obligation: measure, record `size_mb` on the frozen model, compare, raise a named exception. Doing nothing yields `read_field(block, 'size_mb')` failing and `attachment_symbol('AttachmentTooLarge')` failing."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "Partial risk only. 20 MB is OpenAI's documented base64 image ceiling and a model may reach for it unprompted. But 24.0 MB for documents is invented \u2014 the real published Anthropic PDF limit is 32 MB and OpenAI's file limit is 512 MB \u2014 so the pair cannot be reproduced from priors, and the test additionally pins the exception name, the `.kind/.size_mb/.limit_mb` attribute names and the exact message `\"image attachment is 24.0 MB, over the 20.0 MB limit.\"`"
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket actively excludes it. `AttachmentBlock` fields are listed exhaustively (`kind, source, mime_type, payload, filename, detail`) with no `size_mb`, and refusals are given as a closed ordered list: 'Refusals, in this order: 1... 2... 3...' with `MissingLocalAttachment`, `UnknownAttachmentMimeType`, `EmptyAttachment`. `file_upload_limit_check` is not mentioned anywhere in the ticket."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is complete without any ceiling \u2014 `_format_multimodal(...) -> self._render_attachment_block(self._canonical_attachment_block(data))` renders a 24 MB payload happily. Nothing about correct canonicalization forces a size check."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The natural implementation of the ticket's three-step refusal chain stops at `EmptyAttachment`. There is no engineering instinct that produces a `size_mb` float field on a frozen provider-independent block plus two specific asymmetric constants."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The oversize state is trivially reachable: the test constructs `Image(content='A' * 33_554_432)` directly and both the raising and recording stubs reach the comparison."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "Checked all four. `scope` needs 18.0 and 6.0 to be individually legal against a 20.0 image ceiling \u2014 they are. `failure_behavior` uses 13 four-byte payloads, 'far under every megabyte ceiling'. `exclusions` needs url blocks unmeasured, which r1.rule scopes to base64 only. No sibling's failure branch is made unreachable by the rule."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The outcomes differ observably: base-refusal raises `AttachmentTooLarge('image', 24.0, 20.0)` while a non-implementing version reaches the hook and raises `RuntimeError('provider')`. The test distinguishes them by type and by `refusing.calls == []`."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The ordering half of the rule is graded entirely through `file_upload_limit_check` call records \u2014 `assert refusing.calls == []` and `assert recording.calls == [PAYLOAD_24MB]`. That hook is never mentioned in the visible ticket, and r1.rule only constrains position *relative* to it, never mandates calling it or fixes its signature. `recording.calls == [PAYLOAD_24MB]` therefore grades 'you invoke the provider hook, once, with the raw base64 string' \u2014 a contract owned by `test_open`'s `StubOnline`/`raising_stub`, not by this fact. If the open bracket does not already pin it, a clue-informed, ceiling-correct implementation fails here. (I could not read `test_open.py` to settle which.)"
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "`scope` consumes this fact's `size_mb` but asserts a disjoint outcome \u2014 `triple(exc) == ('prompt', 60.0, 45.0)` and `len(stub.calls) == 4` \u2014 with every attachment individually legal, so it cannot pass or fail for the same reason as the per-kind ceiling."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "The phrase 'the provider hook only ever sees payloads the shared ceiling already accepted' is universally quantified, but it is witnessed finitely and immediately by two calls in one process; there is no waiting window and no slow-but-correct implementation that looks broken."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, no network, no sleeps. Worth noting only that the fixtures allocate ~83 MB of Python `str` before any copying (`33_554_432` + `3 x 25_165_824` + `8_388_608` chars); if `BaseType.serialize()` copies or re-encodes a `str` `content`, peak RSS is a multiple of that. Not a blocker, but the test is not free."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger is the real payload size the test constructs; the stub controls only the reaction (record vs. raise `RuntimeError('provider')`). `raising_stub` is the reaction under test, not the condition being graded."
+   }
+  ],
+  "the_assertion": "`assert triple(exc) == (\"image\", 24.0, 20.0)` \u2014 i.e. `(read_field(exc, \"kind\"), read_field(exc, \"size_mb\"), read_field(exc, \"limit_mb\"))` off the `AttachmentTooLarge` raised for `Image(content=PAYLOAD_24MB)`.\n\nIt depends on three things beyond this requirement. (1) The measurement convention of the pre-existing `get_base64_size` \u2014 mebibytes of the *decoded* byte count \u2014 which the fact text does not state; the `24.0` literal is only correct under that one convention. (2) `Image.serialize()` returning a `str` `content` verbatim rather than re-encoding it; if it re-encodes, every number in the file shifts by 4/3 and the fact fails for an open-path reason. (3) `kind` resolution from `mime_type` (`\"image/\"` prefix), which is ticket-owned. The companion assertions `refusing.calls == []` / `recording.calls == [PAYLOAD_24MB]` add a fourth dependency: that the base calls `file_upload_limit_check` at all.",
+  "blind_pass": null,
+  "correct_fail": "A clue-informed agent who implements the sentence as written \u2014 \"measured once in megabytes from its base64 length\" \u2014 and takes megabyte to mean 10^6, or takes \"base64 length\" to mean the length of the base64 text:\n\n```python\n_PER_KIND_LIMIT_MB: dict[str, float] = {\"image\": 20.0, \"document\": 24.0}\n\n\ndef _payload_size_mb(payload: str) -> float:\n    \"\"\"Megabytes, measured from the base64 length.\"\"\"\n    return len(payload) / 1_000_000\n\n\n# ... inside _canonical_attachment_block, before the provider hook:\nsize_mb = None\nif source == \"base64\":\n    size_mb = _payload_size_mb(payload)\n    limit_mb = _PER_KIND_LIMIT_MB[kind]\n    if size_mb > limit_mb:\n        raise AttachmentTooLarge(kind, size_mb, limit_mb)\nself.file_upload_limit_check(payload)\n```\n\nThis has the ceiling, the field, the exception, the strict comparison and the base-before-hook ordering \u2014 everything the fact asserts \u2014 and is rejected: `triple(exc)` is `(\"image\", 33.554432, 20.0)`, not `(\"image\", 24.0, 20.0)`, and the 24 MB document now crosses its own ceiling instead of reaching the hook, so `pytest.raises(RuntimeError)` fails too. The milder decimal-MB-of-decoded-bytes reading (`get_base64_size`-style byte count `/ 1_000_000`) fails identically at `25.165824 != 24.0`, and even the `size_mb` smoke assertion `measured == 8.58306884765625e-06` rejects it (`9e-06`). The test is resolving a unit ambiguity the requirement text leaves open.",
+  "recommendation": "Retest \u2014 the fact is real and discriminating, but two graded properties are not in the fact text.\n\n1. Pin the unit in the fact and the clue. Replace \"measured once in megabytes from its base64 length\" with: \"measured once with `bespokelabs.curator.file_utilities.get_base64_size(payload)` \u2014 decoded bytes divided by 1024**2 \u2014 and recorded as `size_mb`.\" Right now the test's `assert measured == get_base64_size(PDF_B64) == 8.58306884765625e-06` and the `24.0`/`18.0`/`6.0` literals are only reachable under one of three literal readings of the sentence, and the fact never says which. This is the change that matters most; without it a correct agent fails on arithmetic.\n\n2. Decide who owns `file_upload_limit_check`. If `test_open` already asserts that `_canonical_attachment_block` calls the hook once with the base64 payload, keep `assert recording.calls == [PAYLOAD_24MB]` and add the hook to the visible ticket's description of `_canonical_attachment_block` so the contract is stated where it is graded. If it does not, drop that assertion and grade the ordering the way the fact states it \u2014 the oversize image raises `AttachmentTooLarge` and `refusing.calls == []` \u2014 which does not require an implementation to invoke a hook the ticket never asked for.\n\n3. Optional, cheap: `PAYLOAD_24MB`/`PAYLOAD_18MB` cost ~83 MB of resident `str` before any `serialize()` copy. Shrinking the ceilings in the fact (e.g. 2.0/2.4 MB) would preserve every discrimination the docstring claims at a hundredth of the memory. Only do this if the clue's numbers move with it."
+ },
+ {
+  "key": "g8.r1.scope",
+  "req": 1,
+  "field": "scope",
+  "verdict": "narrow",
+  "divergent_action": "In `_handle_multi_modal_prompt`, after the per-attachment loop and outside `_canonical_attachment_block`:\n\n```python\nblocks = [self._canonical_attachment_block(a) for a in attachments]\ntotal_mb = sum(b.size_mb for b in blocks if b.size_mb is not None)\nif total_mb > _PROMPT_ATTACHMENT_SIZE_LIMIT_MB:   # 45.0\n    raise AttachmentTooLarge(\"prompt\", total_mb, _PROMPT_ATTACHMENT_SIZE_LIMIT_MB)\n```\n\nThree things here are unreachable from the ticket: the module constant `45.0`, the literal string `\"prompt\"` occupying the `kind` slot of an exception whose `kind` is otherwise a block kind, and the placement of the sum in the prompt method rather than incrementally inside the block builder. A ticket-only agent writes `_handle_multi_modal_prompt` exactly as the ticket specifies it \u2014 render blocks, then texts, no refusal \u2014 and emits none of these.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The measurement primitive pre-exists \u2014 the test imports `from bespokelabs.curator.file_utilities import get_base64_size` \u2014 but no whole-prompt aggregate does. The ticket specifies `_handle_multi_modal_prompt` exhaustively and with no refusal path at all: 'Result length is `len(images) + len(files) + len(texts)`; a new list each call.' Caveat: I could not read the repo (Bash disabled, no file tools), so this rests on the ticket text plus the bracket's report that an untouched checkout fails."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The trailing clause '`_canonical_attachment_block` / `_format_multimodal` never apply it' is satisfied by doing nothing. Applying a 45.0 MB ceiling in the per-block path is deliberate extra work no engineer does, and the sibling `rule` ('strictly greater than 20.0 MB ... 24.0 MB') already makes it impossible for that ceiling to fire on a single block. The clause tests no restraint and the test file never probes it."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "45.0 MB is not a published provider limit and `kind == \"prompt\"` is not a convention. (The sibling `rule`'s 20.0 MB image ceiling is close to OpenAI's documented image cap and carries some prior-knowledge risk, but that is rule's exposure, not scope's.)"
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket contains no size vocabulary whatsoever \u2014 no `size_mb`, no MB, no `AttachmentTooLarge`, no `file_upload_limit_check`. Its refusal list is closed and enumerated: 'Refusals, in this order: 1. ... MissingLocalAttachment ... 2. ... UnknownAttachmentMimeType ... 3. ... EmptyAttachment.'"
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The visible feature is complete and shippable without any aggregate; the ticket's own worked example `['image_url', 'file', 'text', 'text']` is produced by an implementation that never sums anything."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The natural `_handle_multi_modal_prompt` is `[self._render_attachment_block(self._canonical_attachment_block(a)) for a in message.attachments()] + [{'type': 'text', 'text': t} for t in message.texts]`. It computes no total and raises nothing, so `pytest.raises(AttachmentTooLarge)` fails at the outset."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": true,
+    "why": "For the clause '`_canonical_attachment_block` / `_format_multimodal` never apply it': a single block exceeding 45.0 MB cannot exist, because the sibling per-kind ceilings refuse at 20.0 (image) and 24.0 (document) first. 'Correctly not applying a 45.0 ceiling per block' and 'never being in a position where it could matter' are indistinguishable. The core of the fact \u2014 the aggregate at 45.0 with `kind == \"prompt\"` \u2014 is reachable and is what the test exercises."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": true,
+    "why": "Same clause, read the other way: `rule` guarantees no block survives above 24.0 MB, which is the precondition that would have to be false for the per-block-path prohibition to be observable. The rubric's pattern exactly \u2014 'satisfying the rule makes the failure branch unreachable.' No contradiction exists in the graded part: 3x18.0 + 6.0 keeps every attachment under 20.0, so `scope`'s scenario and `rule`'s ceilings coexist cleanly."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Refusing a 60 MB prompt in-process versus rendering it and handing it to a provider are materially different end states, and the test observes the difference locally (`pytest.raises` vs. a returned 5-element list)."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "`assert len(stub.calls) == 4` measures hook invocation, a channel invented and owned by the sibling `rule` ('before the payload is offered to the provider's `file_upload_limit_check` hook'), and `triple(exc)` reads `.kind/.size_mb/.limit_mb` off an exception `rule` defines, at a float precision `rule` pins. A scope-correct agent whose block builder does not call the hook per base64 payload fails scope's test for a rule defect. Severity is limited by these being fields of the same requirement r1 and by scope owning its own discriminator (`size_mb == 60.0` separates aggregate from incremental on its own), but the per-field grade is not independent."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "45.0, `kind == \"prompt\"`, and prompt-level rather than block-level placement are content `rule` does not contain. Delete the aggregate and `rule`'s test still passes in full; delete `rule`'s per-kind check and scope's 3x18.0 + 6.0 scenario still crosses only the aggregate."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "The fact says 'never apply it', but that is a universal over calls, not over time \u2014 one call decides it. It is unmeasurable for the reachability reason above, not for a time-horizon reason. No 'forever' / 'rather than stalling' phrasing anywhere."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, no network, no sleeps. Worth noting the module-level constants alone are ~67 MB of `str` (33.5 + 25 + 8) before `serialize()` and the r2 sha256 fingerprint touch them again, so the scope test's working set is on the order of 100 MB \u2014 a resource note for the runner, not a blocker."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`StubOnline` records the reaction; the implementation decides when `file_upload_limit_check` fires and when the sum is compared. The stub does not author the answer. It does, however, own the only channel the ordering clause is graded through \u2014 see `observable_belongs_to_another_fact`."
+   }
+  ],
+  "the_assertion": "`assert triple(exc) == (\"prompt\", 60.0, 45.0)` \u2014 the whole-prompt sum, not the running total at the crossing point (54.0), against the literal 45.0 with the literal kind \"prompt\". It does depend on more than this fact: the exception class, its three attribute names, and the exactness of `size_mb` as a float are all defined by the sibling `rule`, so `rule` must be implemented for this assertion to be reachable at all. The companion `assert len(stub.calls) == 4` depends on `rule`'s hook-invocation clause outright.",
+  "blind_pass": null,
+  "correct_fail": "A clue-faithful agent who is told there is a 45.0 MB whole-prompt ceiling but not told when it is evaluated, and who sizes the prompt up front to avoid rendering work it is about to throw away:\n\n```python\ndef _handle_multi_modal_prompt(self, message):\n    attachments = message.attachments()\n    if len(attachments) > _ATTACHMENT_COUNT_LIMIT:\n        raise TooManyAttachments(len(attachments), _ATTACHMENT_COUNT_LIMIT)\n    payloads = [None if a.is_remote else a.serialize() for a in attachments]\n    total_mb = sum(get_base64_size(p) for p in payloads if p is not None)\n    if total_mb > _PROMPT_ATTACHMENT_SIZE_LIMIT_MB:      # 45.0\n        raise AttachmentTooLarge(\"prompt\", total_mb, _PROMPT_ATTACHMENT_SIZE_LIMIT_MB)\n    blocks = [self._canonical_attachment_block(a) for a in attachments]\n    return [self._render_attachment_block(b) for b in blocks] + [\n        {\"type\": \"text\", \"text\": t} for t in message.texts\n    ]\n```\n\nThis is a whole-prompt aggregate, at 45.0, in `_handle_multi_modal_prompt`, not incremental, reporting the whole-prompt sum \u2014 it produces the identical `(\"prompt\", 60.0, 45.0)` triple and passes `triple(exc)`. It is rejected solely by `assert len(stub.calls) == 4`, because it refuses before any hook fires. Whether that rejection is fair turns entirely on whether the clue states the ordering; I could not read the clue set to check.",
+  "recommendation": "Narrow the fact and adjust one assertion.\n\n1. Delete the clause \"and `_canonical_attachment_block` / `_format_multimodal` never apply it\" from the fact text. It is unreachable \u2014 the sibling's 20.0/24.0 per-kind ceilings mean no single block ever reaches 45.0 \u2014 and it is satisfied by inaction. Nothing in the test grades it, and nothing could. Keep the positive placement claim (\"it belongs to `_handle_multi_modal_prompt`\"), which the test does grade via the 4-block scenario.\n\n2. Keep \"It is not evaluated incrementally\" only if the clue explicitly says the sum is taken after every block is built and every hook has fired. If it does not, drop `assert len(stub.calls) == 4` \u2014 as written it is the sole rejector of the pre-pass implementation quoted in `correct_fail`, which is otherwise a faithful reading, and it grades through the sibling `rule`'s hook channel rather than through anything scope owns. The `size_mb == 60.0` assertion already separates aggregate from incremental on its own (an incremental implementation reports 54.0).\n\n3. Optional, to give scope an observable that does not route through `rule`: add two 24.0 MB documents in one prompt \u2014 each individually legal under the 24.0 document ceiling \u2014 and assert the aggregate raises with `size_mb == 48.0` while `block_of(stub, <one of them>)` does not raise. That pins the aggregate/per-block split using only scope's own constant."
+ },
+ {
+  "key": "g8.r1.exclusions_or_crossover",
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "verdict": "cut",
+  "divergent_action": "The only candidate is the url branch of `_canonical_attachment_block` plus a nullable field: `size_mb: float | None = None` on `AttachmentBlock`, and `if data.is_remote and data.url: source, payload, size_mb = \"url\", data.url, None` with `size_mb = get_base64_size(payload)` and the per-kind comparison living only in the `else` (base64) branch. But that code is written entirely off `r1.rule` (\"each base64 payload is measured once ... recorded on the block as a size_mb field\"). An agent shown `r1.rule` and `r1.scope` and NOT shown this fact writes byte-identical code, because both siblings already restrict themselves to base64 blocks. So relative to its own siblings there is no divergent action; the blind-vs-informed gap the bracket measured is entirely `r1.rule`'s gap, borrowed.",
+  "the_assertion": "`assert read_field(remote, \"size_mb\") is None` (in `test_exclusions__a_url_block_is_never_measured_and_never_counted`). It depends on more than this requirement: the field `size_mb` only exists because of `r1.rule`, the symbol lookup `too_large()` on the line above is `r1.rule`'s `AttachmentTooLarge`, and `stub.calls == []` / `mixed.calls == [PDF_B64]` depend on `r1.rule`'s unspecified `file_upload_limit_check(payload)` calling convention (payload string vs. block vs. decoded bytes \u2014 the requirement only says \"the payload is offered to the hook\"). Nothing in this test can fail while `r1.rule` is implemented as its own text describes.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "`get_base64_size` pre-exists (`from bespokelabs.curator.file_utilities import get_base64_size`), but nothing in the untouched tree records `size_mb` on a block or skips url blocks, because no block type exists yet. Caveat: Bash and file tools are disabled in this session, so I could not confirm this against the checkout."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The whole fact is a prohibition \u2014 \"is never measured ... not compared ... contributes nothing\". Satisfying it requires writing no code at all in the url branch; violating it requires deliberately calling `get_base64_size(a_url_string)`, i.e. weighing a ~50-character URL as if it were base64. No engineer does that on purpose, so the rule never tests restraint."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "It is forced by physics plus the ticket's own constraint list: \"Nothing here imports `aiohttp`, opens a socket, sleeps, or spawns anything.\" You cannot know a remote URL's byte size without fetching it, and fetching is banned. Excluding url blocks from a size ceiling is not a fact to be learned, it is the only implementable option."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The open ticket already teaches this exact exclusion for the sibling payload check: refusal 3 reads \"A `source == \"base64\"` attachment whose `serialize()` returns `\"\"` raises `EmptyAttachment` ... A remote URL is never read, so it is never checked for emptiness.\" Same branch, same reasoning, spelled out openly. Once an agent learns from a clue that a size ceiling exists, the ticket has already told them which attachments are subject to payload inspection."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "The open ticket fixes the branch structure: \"A remote `url` (per `is_remote`) gives `source == \"url\"` with the URL as `payload`; anything else gives `source == \"base64\"` with `BaseType.serialize()` output as `payload`.\" There is exactly one place a base64 payload comes into existence, and it is the `else` arm. Any measurement of a base64 payload lands there by construction; the url arm has no payload to weigh."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Given `r1.rule`'s literal wording \u2014 \"each base64 payload is measured once in megabytes from its base64 length\" \u2014 the obvious implementation puts `get_base64_size(payload)` and the ceiling comparison inside the base64 branch and leaves the url branch alone. The test cannot distinguish \"read the exclusions clue\" from \"read the rule clue and wrote the normal branch\"."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`Image(url=REMOTE_JPEG)` builds a url block fine; `is_remote` is defined in the open ticket. The state is reachable and cheaply constructed."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": true,
+    "why": "`r1.rule` specifies the field as \"recorded on the block as a `size_mb: float` field\", on an `AttachmentBlock` whose `model_config = ConfigDict(frozen=True)` pydantic model. This fact requires `size_mb is None` for url blocks. An agent that types the field exactly as the rule clue spells it (`size_mb: float`) gets a pydantic `ValidationError` when it tries to pass `None`, and an agent that keeps `float` and uses `0.0` is failed by the assertion. The two facts cannot both be implemented literally."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": true,
+    "why": "Two of the fact's three clauses are unobservable at any realistic input. A violating implementation that measured the url string would get `get_base64_size(\"https://...\")` \u2248 0.00004 MB \u2014 it would still clear the 20.0/24.0 ceilings and still not move the 45.0 sum. The test's own comment concedes the aggregate half is untestable on its merits: \"Deliberately a few bytes, not a few megabytes\". Only the sentinel value differs, and the sentinel is spelling, not behaviour."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "Every channel this test uses is `r1.rule`'s: the `size_mb` field, the `AttachmentTooLarge` symbol (`too_large()  # the ceiling this fact excludes url blocks from must exist`), and the `StubOnline.calls` hook recorder (`mixed.calls == [PDF_B64]`, which grades `r1.rule`'s unspecified hook calling convention, not this fact). Grading through them double-counts `r1.rule`."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "`r1.rule` says \"each base64 payload is measured\"; `r1.scope` says \"the `size_mb` values of the `source == \"base64\"` blocks are summed\". Both siblings already state the restriction affirmatively. This fact is their contrapositive with a sentinel bolted on. There is no way to fail it without failing or contradicting `r1.rule`."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"never measured\" and \"a remote URL is never read\" are scoped to a single synchronous `_canonical_attachment_block` call, not to a time horizon; the harness observes the whole window. The phrasing is unbounded but the observable is finite."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "`object.__new__(StubOnline)`, a `tmp_path` file and in-memory pydantic objects; no process, socket or restart needed."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger (a remote-url attachment) is authored with real `Image`/`File` objects; `StubOnline` only records the reaction. It does shape `mixed.calls == [PDF_B64]` into a specific hook signature the requirement never pins down, but that is an overshoot on `r1.rule`, not a fabricated trigger here."
+   }
+  ],
+  "blind_pass": null,
+  "correct_fail": "class AttachmentBlock(BaseModel):\n    model_config = ConfigDict(frozen=True)\n    ...\n    size_mb: float = 0.0   # r1.rule spells this `size_mb: float`; a url carries no payload to weigh\n\ndef _canonical_attachment_block(self, data: BaseType) -> AttachmentBlock:\n    ...\n    if data.url and data.is_remote:\n        source, payload, size_mb = \"url\", data.url, 0.0\n    else:\n        source, payload = \"base64\", data.serialize()\n        if not payload:\n            raise EmptyAttachment(url=data.url, filename=filename)\n        size_mb = get_base64_size(payload)\n        limit = 20.0 if kind == \"image\" else 24.0\n        if size_mb > limit:\n            raise AttachmentTooLarge(kind, size_mb, limit)\n        self.file_upload_limit_check(payload)\n    return AttachmentBlock(kind=kind, source=source, mime_type=mime, payload=payload,\n                           filename=filename, detail=detail, size_mb=size_mb)\n\n# This satisfies every behavioural clause of the audited fact: the URL is never\n# measured, never compared against 20.0/24.0, never offered to the hook, and\n# contributes 0.0 \u2014 nothing \u2014 to the 45.0 MB prompt sum. It is also strictly more\n# faithful to r1.rule's declared `size_mb: float` than the golden is. It is failed\n# by `assert read_field(remote, \"size_mb\") is None`.",
+  "recommendation": "Cut `r1.exclusions_or_crossover`. It has no content its siblings do not already carry: `r1.rule` (\"each base64 payload is measured once\") and `r1.scope` (\"the `size_mb` values of the `source == \"base64\"` blocks are summed\") both state the restriction affirmatively, the open ticket already teaches the identical url exclusion for `EmptyAttachment` (\"A remote URL is never read, so it is never checked for emptiness\"), and the ticket's no-socket constraint makes measuring a remote payload impossible anyway. Delete `test_exclusions__a_url_block_is_never_measured_and_never_counted` and, if anything, move its remote-only-prompt case into `r1.scope`'s test as a control.\n\nTwo fixes to make regardless of that decision, because they currently mis-grade a correct agent on the sibling facts:\n1. Reconcile the type. `r1.rule` must say `size_mb: float | None = None` (not `size_mb: float`), or the golden's `None` for url blocks is unreachable on a frozen pydantic model that follows the rule's own annotation. As written the two facts contradict each other.\n2. Pin the hook contract in `r1.rule`. `mixed.calls == [PDF_B64]` requires `file_upload_limit_check` to be called with the base64 string; the requirement only says \"the payload is offered to the hook\", so passing the block, the decoded bytes, or `(payload, mime_type)` is an equally legitimate reading that the test rejects.\n\nIf you need a fifth field on r1 and want to keep an exclusion, replace it with one that has an independent observable and cannot be derived from the rule's own scoping \u2014 e.g. what happens to `size_mb` and the aggregate for a base64 block that was refused by the provider hook, or an interaction between the count ceiling and the aggregate. Do not grade a sentinel value that the rule's declared type forbids."
+ },
+ {
+  "key": "g8.r1.failure_behavior",
+  "req": 1,
+  "field": "failure_behavior",
+  "verdict": "retest",
+  "divergent_action": "In `attachment.py`: `_ATTACHMENT_COUNT_LIMIT: int = 12` plus `class TooManyAttachments(AttachmentError): def __init__(self, count: int, limit: int): self.count = count; self.limit = limit; super().__init__(f\"Prompt has {count} attachments, over the limit of {limit}.\")`; and as the first two statements of `_handle_multi_modal_prompt`, before any call to `self._canonical_attachment_block`: `attachments = message.attachments()` / `if len(attachments) > _ATTACHMENT_COUNT_LIMIT: raise TooManyAttachments(len(attachments), _ATTACHMENT_COUNT_LIMIT)`. A ticket-only agent writes `_handle_multi_modal_prompt` with no cardinality guard at all \u2014 the ticket's spec is \"Result length is len(images) + len(files) + len(texts)\", unconditionally.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket enumerates the whole exception set the base owns \u2014 `AttachmentError`, `UnknownAttachmentMimeType`, `MissingLocalAttachment`, `EmptyAttachment` \u2014 and the three refusals of `_canonical_attachment_block` ('Refusals, in this order: 1... 2... 3...'), with no cardinality guard anywhere. Caveat: file tools were disabled this session, so I could not open the curator checkout to confirm no pre-existing per-message attachment cap; nothing in the ticket, the siblings or the test hints at one."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Only for one sub-assertion, not the fact. '`file_upload_limit_check` is not called for an over-count prompt' is graded by `assert stub.calls == []`, which is satisfied by any implementation that never calls the hook at all \u2014 including every blind one. It witnesses nothing about ordering. The fact still requires an active raise, so the fact as a whole is not inaction-passable."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "12 is not a published limit. Anthropic documents up to 20 images per API request; OpenAI publishes no per-message attachment count. The exception name, the `.count`/`.limit` attributes and the message string `\"Prompt has 13 attachments, over the limit of 12.\"` are unguessable."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket points the other way: 'Result length is len(images) + len(files) + len(texts); a new list each call' with no exception path, so a ticket-only agent has an affirmative reason to believe no cap exists."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "`attachments()` is specified in the open ticket ('returning `self.images + self.files`'), which makes the count trivially available, but nothing about the canonical-block refactor requires bounding it. The feature is complete and correct with no limit."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The natural `_handle_multi_modal_prompt` is `[self._render_attachment_block(self._canonical_attachment_block(a)) for a in message.attachments()] + [{\"type\": \"text\", \"text\": t} for t in message.texts]` \u2014 it raises nothing for 13 attachments."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`_MultiModalPrompt(texts=[\"a\"], images=[tiny] * 13)` constructs fine; no sibling raises before 13 attachments can coexist."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The siblings' failure tests use 1, 4 and 7 attachments (`images=[Image(url=REMOTE_JPEG) for _ in range(5)]`, `files=[...two...]`), all well under 12, so the cap never pre-empts a sibling's branch, and the 13 tiny `b\"x\"` payloads never approach 20.0/24.0/45.0 MB."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Violating it produces 13 rendered blocks and a successful return instead of a typed refusal \u2014 a plainly different end state."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "`assert len(twelve.calls) == 12` and `assert len(texts.calls) == 1` grade the `file_upload_limit_check` recorder, which is `r1.rule`'s and `r1.scope`'s channel ('BEFORE the payload is offered to `file_upload_limit_check`'; 'four hook calls'; 'it is never offered to the hook'). This fact says nothing about hook counts on an accepted prompt. A correct count cap with the hook sited only on document payloads fails this fact's test at `len(calls) == 0`."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "A cardinality cap is a distinct constant, a distinct exception type and a distinct check site from the per-kind MB ceiling (`rule`) and the 45.0 MB aggregate (`scope`); an implementation can pass any one and fail the others."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Every claim is a finite, single-call assertion: one raise, one exception's `.count`/`.limit`, one list length."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "`object.__new__(StubOnline)` plus in-memory `Image(content=b\"x\")` objects; no process, socket, file or clock involved."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": true,
+    "why": "Partial. The trigger (13 attachments) is authored by the test directly, which is fine. But the 'counted first' half of the fact is observed only through `StubOnline.calls`, a stub-owned hook whose call sites are defined by a *different* fact's spec \u2014 the fake decides what 'nothing was read' looks like, and it reads empty for an implementation that simply never wired the hook."
+   }
+  ],
+  "the_assertion": "`with pytest.raises(TooManyAttachments) as caught: stub._handle_multi_modal_prompt(...[tiny] * 13...)` followed by `assert (read_field(exc, \\\"count\\\"), read_field(exc, \\\"limit\\\")) == (13, 12)` and `assert str(exc) == \\\"Prompt has 13 attachments, over the limit of 12.\\\"`. That assertion depends on nothing but this requirement. The test as a whole does not: `assert len(twelve.calls) == 12` and `assert len(texts.calls) == 1` depend on r1.rule/r1.scope's placement of `self.file_upload_limit_check`, and `assert stub.calls == []` depends on it too (passing vacuously when it was never wired).",
+  "blind_pass": null,
+  "correct_fail": "```python\n# attachment.py \u2014 this fact implemented exactly as stated\n_ATTACHMENT_COUNT_LIMIT: int = 12\n\nclass TooManyAttachments(AttachmentError):\n    def __init__(self, count: int, limit: int):\n        self.count, self.limit = count, limit\n        super().__init__(f\"Prompt has {count} attachments, over the limit of {limit}.\")\n\n# base_online_request_processor.py\ndef _canonical_attachment_block(self, data):\n    ...\n    if source == \"base64\":\n        size_mb = get_base64_size(payload)\n        limit_mb = 20.0 if kind == \"image\" else 24.0\n        if size_mb > limit_mb:\n            raise AttachmentTooLarge(kind, size_mb, limit_mb)\n        # the hook is named file_upload_limit_check: it prices *uploaded files*,\n        # so only document payloads are offered to it. r1.rule only constrains the\n        # ORDER (\"the provider hook only ever sees payloads the shared ceiling\n        # already accepted\"), never that images are offered at all.\n        if kind == \"document\":\n            self.file_upload_limit_check(payload)\n    return AttachmentBlock(..., size_mb=size_mb)\n\ndef _handle_multi_modal_prompt(self, message):\n    attachments = message.attachments()\n    if len(attachments) > _ATTACHMENT_COUNT_LIMIT:\n        raise TooManyAttachments(len(attachments), _ATTACHMENT_COUNT_LIMIT)\n    blocks = [self._canonical_attachment_block(a) for a in attachments]\n    total = sum(b.size_mb for b in blocks if b.source == \"base64\")\n    if total > 45.0:\n        raise AttachmentTooLarge(\"prompt\", total, 45.0)\n    return [self._render_attachment_block(b) for b in blocks] + [\n        {\"type\": \"text\", \"text\": t} for t in message.texts\n    ]\n```\nThis raises `TooManyAttachments(13, 12)` with the exact message, counts before a single block is built, does not count texts, and accepts 12 \u2014 every clause of r1.failure_behavior \u2014 yet the test rejects it at `assert len(twelve.calls) == 12` (twelve images produce zero hook calls) and again at `assert len(texts.calls) == 1`.",
+  "recommendation": "Retest, keeping the fact. The clue-derived code (the constant, the exception class, the guard at the head of `_handle_multi_modal_prompt`) is genuinely divergent and no ticket-only implementation reaches it. Change the test: (1) delete `assert len(twelve.calls) == 12` and `assert len(texts.calls) == 1` \u2014 they grade r1.rule/r1.scope's `file_upload_limit_check` placement, not this fact; (2) replace `assert stub.calls == []`, which passes by inaction, with a channel this fact owns: give the test a `StubOnline` subclass whose `_canonical_attachment_block` appends to a `built` list before delegating to `super()`, then assert `built == []` for the 13-attachment prompt and `len(built) == 12` / `len(built) == 1` for the two controls. That measures \"counted before a single block is built\" directly and leaves the pass/fail of this fact dependent only on this fact's implementation. Keep unchanged: the `pytest.raises` block, the `(count, limit) == (13, 12)` and message assertions, the `AttachmentError`/`ValueError` subclass checks, the optional `_ATTACHMENT_COUNT_LIMIT == 12` probe, and `len(content) == 13` / `41`."
+ },
+ {
+  "key": "g8.r1.observability",
+  "req": 1,
+  "field": "observability",
+  "verdict": "retest",
+  "divergent_action": "In `openai_request_mixin.calculate_input_tokens`, the informed agent writes a module-level `_OPENAI_TOKENS_PER_DOCUMENT: int = 1400` and a dispatch arm `elif block.get(\"type\") in (\"file\", \"document\"): total += _OPENAI_TOKENS_PER_DOCUMENT`. The blind agent writes the same arm with a different right-hand side \u2014 overwhelmingly `_OPENAI_TOKENS_PER_IMAGE[\"low\"]` (85), because the ticket's own sentence order is \"`\"image_url\"` and `\"image\"` both cost `_OPENAI_TOKENS_PER_IMAGE[\"low\"]` (unchanged). `\"file\"` and `\"document\"` blocks must also be priced by this function.\" \u2014 or `0`, or `len(encoding.encode(block[\"file\"][\"file_data\"]))`. The divergence is a single integer literal, but it is a real one: nothing in the ticket, the codebase, or public provider docs points at 1400.",
+  "divergent_action_note": "The hidden content of this fact is exactly one magic number. That is legitimate discrimination but it is clue-retrieval difficulty, not implementation difficulty.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket states the opposite of the current behaviour: \"Today the function does `msg = msg[\"image_url\"]` for every non-`text` block, so an anthropic-shaped block ... or any document block raises `KeyError: 'image_url'`.\" There is no document price in the tree to inherit; an untouched checkout raises."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The fact is phrased partly as a prohibition (\"not the image rate\") but satisfying it requires a positive act: a new constant and a new dispatch arm. Inaction produces `KeyError: 'image_url'`, which fails."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "1400 is not a published convention. The nearby real numbers are Anthropic's ~1500-3000 tokens per PDF page and Gemini's 258, and OpenAI bills file input by extracted text, not a flat rate. 85 for a low-detail image IS a known constant, and it is already in the codebase as `_OPENAI_TOKENS_PER_IMAGE[\"low\"]` \u2014 which is precisely the wrong answer here. No prior lands a model on 1400."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket gives away the branch and its dispatch keys \u2014 \"`\"file\"` and `\"document\"` blocks must also be priced by this function\" \u2014 but not the magnitude. Worth stating plainly, though: everything except the literal `1400` is in the open ticket, so the clue is carrying one integer."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "Building `AttachmentBlock`, `_render_openai_block` and `_render_anthropic_block` correctly constrains the SHAPES that reach the estimator (`{\"type\": \"file\", ...}`, `{\"type\": \"document\", ...}`) but places no constraint at all on what those shapes cost. Every price from 0 upward is compatible with a perfect implementation of A."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The most natural blind implementation reuses the constant already in the file. The ticket's phrasing (\"both cost `_OPENAI_TOKENS_PER_IMAGE[\"low\"]` (unchanged)\" immediately followed by \"must also be priced\") actively invites `total += _OPENAI_TOKENS_PER_IMAGE[\"low\"]` for documents, which the test explicitly rejects via `assert calculate_input_tokens([openai_file], encoder) == 1400` against `== 85` for images."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The test hands `calculate_input_tokens` plain dict literals; both shapes are exactly what the ticket's own renderers emit (`{\"type\": \"file\", \"file\": {...}}` from `_render_openai_block`, `{\"type\": \"document\", \"source\": {...}}` from `_render_anthropic_block`). Fully reachable, and reachable without constructing a processor."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The siblings are all about the 20.0/24.0/45.0 MB ceilings and the 12-attachment count. None of them constrains `calculate_input_tokens`, and this fact constrains none of their preconditions. `PDF_B64` here is ~12 characters, nowhere near any ceiling."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The return value is asserted directly (`== 1400`, `== 2975`, `isinstance(total, int)`); a wrong price is immediately visible. It is not fatal-either-way one layer down."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "No sibling of r1 or r2 touches `calculate_input_tokens`; this channel is exclusively this fact's. The inverse is the real problem, and it isn't one of the eight: r1 is titled \"the size and count ceilings the base owns\", and document token pricing has nothing to do with size or count ceilings. This fact would sit equally well under r2, or under neither. It reads as a sixth requirement filed under r1 for want of an observability field."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "It is fully independent of rule/scope/exclusions/failure_behavior \u2014 arguably too independent (see above). It restates no neighbour and no neighbour's test can pass or fail on account of it."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"costs exactly 1400 tokens\" is a finite, single-call, pure-function assertion. No \"always\"/\"never\"/\"eventually\" anywhere in the fact."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "A module-level pure function plus a `FakeEncoder`; no processor, no config, no I/O, no second process. This is the most cheaply testable fact in the whole task."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": true,
+    "why": "Borderline but worth recording. `FakeEncoder` (1 token per character) is a reaction-side scale and does not touch the flat 1400 \u2014 that part is clean. But the fake DOES author the `5` in `5 + 85 + 85 + 1400 + 1400 + 0`, and more importantly the test's own dict literal `{\"type\": \"thinking\", \"thinking\": \"ignored\"}` is where the `+ 0` term comes from: the test picks an unrecognized type and then asserts the answer to how unrecognized types are priced, a question neither the ticket nor this fact's headline settles. The trigger for the 0-term is authored by the test."
+   }
+  ],
+  "the_assertion": "`assert calculate_input_tokens([openai_file], encoder) == 1400` (with its twin `assert calculate_input_tokens([anthropic_document], encoder) == 1400`, and `assert calculate_input_tokens([openai_image], encoder) == 85` as the contrast that rules out the image rate). These three are clean: they isolate one block each and depend on nothing but this requirement's implementation. The later `assert total == 5 + 85 + 85 + 1400 + 1400 + 0 == 2975` is NOT clean \u2014 it additionally requires that an unrecognized `\"thinking\"` block cost 0, a rule the open ticket never states, and it requires the `FakeEncoder` text path. There is also a harness-level coupling shared by every test in the suite: `importable()` runs first, so a tree whose `attachment.py` fails to import fails this fact for reasons belonging entirely to the open ticket.",
+  "blind_pass": null,
+  "correct_fail": "```python\n# openai_request_mixin.py \u2014 prices documents at exactly 1400, per the clue,\n# but is conservative about block types it does not recognize rather than\n# silently pricing them at zero (the ticket says nothing about unknown types).\n_OPENAI_TOKENS_PER_DOCUMENT = 1400\n\ndef calculate_input_tokens(messages, token_encoding):\n    if isinstance(messages, str):\n        return len(token_encoding.encode(messages, disallowed_special=()))\n    total = 0\n    for block in messages:\n        kind = block.get(\"type\")\n        if kind == \"text\":\n            total += len(token_encoding.encode(str(block.get(\"text\", \"\")), disallowed_special=()))\n        elif kind in (\"image_url\", \"image\"):\n            total += _OPENAI_TOKENS_PER_IMAGE[\"low\"]\n        elif kind in (\"file\", \"document\"):\n            total += _OPENAI_TOKENS_PER_DOCUMENT\n        else:\n            # don't undercount a block shape we don't know yet\n            total += len(token_encoding.encode(str(block), disallowed_special=()))\n    return total\n```\nThis passes `calculate_input_tokens([openai_file], encoder) == 1400`, `[anthropic_document] == 1400`, `[openai_image] == 85` and `[anthropic_image] == 85` \u2014 it implements the audited fact exactly \u2014 and then fails `assert total == 2975`, because `{\"type\": \"thinking\", \"thinking\": \"ignored\"}` costs `len(str(block))` \u2248 40 instead of 0. Unknown-block pricing is a separate rule that this fact's headline (\"a file or document block costs exactly 1400\") does not carry, and that the ticket's only relevant sentence (\"dispatch on `block[\"type\"]` using `.get`, never on the absence of a `\"text\"` key\") does not settle.",
+  "second_correct_fail": "```python\n# mirrors the existing `_OPENAI_TOKENS_PER_IMAGE` dict style\n_OPENAI_TOKENS_PER_DOCUMENT = {\"low\": 1400, \"high\": 1400}\n...\nelif kind in (\"file\", \"document\"):\n    total += _OPENAI_TOKENS_PER_DOCUMENT[\"low\"]\n```\nEvery behavioural assertion passes; the trailing `if per_document is not None: assert per_document == 1400` fails on the shape of the constant, not on the price. Lower-probability than the first (the fact does spell out `_OPENAI_TOKENS_PER_DOCUMENT = 1400`), but it is a structural assertion buying nothing the behavioural ones don't already pin.",
+  "recommendation": "Keep the fact \u2014 it is genuinely discriminating and cheaply testable \u2014 and fix the test, in three edits:\n\n1. **Split the unknown-block rule out of the deciding total.** Either drop `unknown` from the mixed list (making it `5 + 85 + 85 + 1400 + 1400 == 2975 - 0`, i.e. re-baseline to 2975 with five entries), or keep it but assert it separately as `assert calculate_input_tokens([unknown], encoder) == 0` so a failure is attributable to the unknown-type rule rather than to the document price. If unknown-types-cost-0 is meant to be graded, it belongs in the open ticket's `calculate_input_tokens` bullet list (\"a block whose `type` is none of these contributes 0\"), not smuggled into an arithmetic identity in a hidden fact about documents.\n\n2. **Relax the constant-shape check.** Replace `assert per_document == 1400` with something that accepts a mapping (`assert 1400 in (per_document.values() if isinstance(per_document, dict) else (per_document,))`), or delete it \u2014 the four single-block assertions already pin the price exactly, and the symbol check only adds a way for a correct implementation to fail on naming style.\n\n3. **Re-file the fact.** This is not an observability of r1's size/count ceilings; it has no relationship to them. Either move it under a requirement about the estimator, or state r1 as covering two things. As written, a reader of r1 cannot tell why this clause is there, and the clue that reveals \"documents are 1400\" has to be planted independently of the clue that reveals the 20/24/45 MB ceilings anyway.\n\nAfter edits 1 and 2, re-run the blind bracket: the fact should still come back `hidden`, since the divergence (1400 vs `_OPENAI_TOKENS_PER_IMAGE[\"low\"]`) is untouched by any of them."
+ },
+ {
+  "key": "g8.r2.rule",
+  "req": 2,
+  "field": "rule",
+  "verdict": "ship",
+  "divergent_action": "In `attachment.py`: `_ATTACHMENT_FINGERPRINT_HEX_LEN: int = 12` and `def attachment_fingerprint(payload: str) -> str: return \"sha256:\" + hashlib.sha256(payload.encode(\"utf-8\")).hexdigest()[:_ATTACHMENT_FINGERPRINT_HEX_LEN]`, plus a seventh required field `fingerprint: str` on the frozen `AttachmentBlock`; and in `_canonical_attachment_block`, after `payload` is decided (url text or `serialize()` output), passing `fingerprint=attachment_fingerprint(payload)` into the block constructor. The blind agent constructs `AttachmentBlock(kind=..., source=..., mime_type=..., payload=..., filename=..., detail=...)` with exactly the six fields the ticket lists and imports no `hashlib` at all.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "`AttachmentBlock` is a brand-new module the ticket asks the agent to create (\"New module \u2014 src/bespokelabs/curator/types/attachment.py\"), so there is no pre-existing field to inherit. Nothing in `prompt.py` as described (`serialize`, `_load_file_as_b64`, `_is_local_uri`) computes or returns a digest."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "This is a positive requirement \u2014 a field must exist and hold a specific value. Inaction produces a pydantic model with no `fingerprint` attribute and `read_field(block, \"fingerprint\")` cannot succeed."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "The `\"sha256:\"` prefix alone is a known OCI/Docker convention, but the composite \u2014 prefix AND `[:12]` truncation AND digest over the base64 *text* rather than the bytes AND a field literally named `fingerprint` on this new model \u2014 is not a published default. A prior-driven guess would far more likely emit the full 64-char hexdigest, or an unprefixed one, and `assert fingerprint == \"sha256:fc1c4358d4aa\"` rejects both."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket's field list is closed and does not contain it: \"Fields: kind..., source..., mime_type..., payload..., filename..., detail...\". Both renderers are specified as emitting \"No other keys\", so the ticket actively suggests the block carries nothing beyond what providers render. There is no hint of hashing anywhere in the visible ask."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is a rendering seam: `_render_openai_block` and `_render_anthropic_block` never read `fingerprint`, so a fully correct implementation of A renders byte-identical provider dicts with or without it. It is strictly additive, not entailed."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The obvious implementation is `return AttachmentBlock(kind=kind, source=source, mime_type=mime, payload=payload, filename=filename, detail=detail)`. No normal engineering instinct adds a content hash to a value object that is immediately consumed by a pure renderer that ignores it; there is no cache, no dedup and no log line in the ticket that would want one."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Every block the test builds is reachable through the ticket's own paths: a local `File(url=tmp_path/report.pdf)` (source base64), `Image(content=b\"x\")` (source base64), `Image(content=PDF_BYTES, mime_type=\"application/pdf\")` (kind document, base64). None of them trip a refusal."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The fingerprint neither creates nor removes any precondition a sibling failure test needs. r2.failure_behavior builds `Image(content=b\"x\", detail=\"ultra\")` blocks, r1.failure_behavior counts attachments before building \u2014 fingerprinting is orthogonal to both. One mild interaction worth noting rather than a contradiction: fingerprinting needs the payload, so a careless agent could compute `serialize()` before the `MissingLocalAttachment` check and turn `File(url=\"/tmp/definitely-missing/notes\")` into a `FileNotFoundError`. That breaks an OPEN-ticket refusal-order test, not a hidden sibling, and correct ordering is already spelled out in the ticket."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Borderline and the strongest criticism I have. The fingerprint reaches no provider payload \u2014 both renderers emit \"No other keys\" \u2014 so it is inert in production and its ONLY consequence is the value of the field itself. But that field is a real, finite, single-process observable the harness reads directly via `read_field(block, \"fingerprint\")`, and correct vs. incorrect implementations give visibly different values, so the pattern does not fire. It does mean the fact is arbitrary-by-construction rather than engineering-motivated."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "`rule` reads `fingerprint` off base64 blocks with a literal digest; `exclusions` reads it off a url block relationally and deliberately avoids the literal (\"asserting the exact string here would fail this fact for an implementation whose only mistake was in that one\"); `scope` reads `filename`; `failure_behavior` reads `detail`. The channels are genuinely partitioned."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "False for `rule`, but the redundancy runs the other way and is worth acting on: r2.exclusions_or_crossover (\"a url block is fingerprinted identically... the digest is taken over the payload *string*\") is almost fully entailed by `rule`'s \"every canonical block carries\" + \"sets from the block's payload\". A single `fingerprint=attachment_fingerprint(payload)` at the one site where payload is decided satisfies both, so one line of code is graded as two facts. `rule` itself carries the independent content (the formula, prefix and truncation)."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"Every canonical block\" is a quantifier over a finite, enumerable set of blocks built in-process, not a temporal \"never/forever\". The test settles it with four concrete blocks."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "`hashlib` is stdlib; the test needs `object.__new__(StubOnline)`/no-arg init and one `tmp_path` file, exactly what the ticket says tests may assume. No socket, no subprocess, no restart."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`StubOnline` only supplies an instance so `_canonical_attachment_block` can be called; the payload, the digest and the field are all produced by the code under test. The fake does not decide what gets fingerprinted or when."
+   }
+  ],
+  "the_assertion": "`assert fingerprint == \\\"sha256:fc1c4358d4aa\\\"`, immediately reinforced by `assert fingerprint == digest_of(PDF_B64)`. It depends on one thing outside this requirement: the OPEN ticket's definition of `payload` (a non-remote `url` gives `source == \\\"base64\\\"` with `BaseType.serialize()` output as `payload`). An agent who fingerprints correctly but botches base64 serialization fails r2.rule as collateral. That coupling is to A, not to a sibling hidden fact, and is unavoidable since the fingerprint is defined over the payload \u2014 but it means this assertion is not hermetic to r2.",
+  "blind_pass": null,
+  "correct_fail": null,
+  "recommendation": "Ship r2.rule, after three cheap verifications I could not run here (no file tools in this session):\n\n1. CLUE PRECISION \u2014 the decisive assertion is a literal equality with three free parameters. Confirm the planted clue states, verbatim and together: the `\"sha256:\"` prefix, truncation to 12 hex characters, that the digest covers the payload STRING (base64 text, not decoded bytes), and the field name `fingerprint`. A clue reading \"we stamp each block with a short content hash\" leaves an informed agent to guess all four and fail `== \"sha256:fc1c4358d4aa\"`. This is the only realistic way this fact fails a correct agent.\n\n2. `read_field` LENIENCY \u2014 confirm `harness.read_field(block, \"fingerprint\")` resolves a pydantic `@computed_field` or plain `@property`, not just an entry in `model_fields`. Deriving the fingerprint from `payload` as a computed property is a legitimate reading of \"carries a fingerprint\" and is observationally identical; if `read_field` inspects `model_fields`, add a getattr fallback.\n\n3. REQUIRED-FIELD BLAST RADIUS \u2014 r2.rule and r1.rule each add a REQUIRED field to a frozen model. Confirm `test_open.py` never constructs `AttachmentBlock(...)` with an exhaustive or positional field list (it should always go through `block_of`), or a correct hidden implementation will red the open suite.\n\nSeparately, and outside this field: cut or rewrite r2.exclusions_or_crossover. As written it is satisfied by the same single expression as `rule`, so it grades one line twice. If you want it to carry weight, point it at something `rule` does not force \u2014 e.g. that a url block's fingerprint is computed even though the URL is never fetched, asserted against a *fake that would raise if read*."
+ },
+ {
+  "key": "g8.r2.scope",
+  "req": 2,
+  "field": "scope",
+  "verdict": "ship",
+  "divergent_action": "In the filename-derivation branch of `_canonical_attachment_block` (or a helper in `attachment.py`), the informed agent writes a cap keyed on a new constant `_MAX_ATTACHMENT_FILENAME_LEN: int = 64`, extension-preserving:\n\n```python\nname = os.path.basename(data.url.split(\"?\", 1)[0]) or _FALLBACK_ATTACHMENT_FILENAME\nif len(name) > _MAX_ATTACHMENT_FILENAME_LEN:\n    ext = os.path.splitext(name)[1]\n    name = name[: _MAX_ATTACHMENT_FILENAME_LEN - len(ext)] + ext if len(ext) < _MAX_ATTACHMENT_FILENAME_LEN else name[:_MAX_ATTACHMENT_FILENAME_LEN]\nfilename = name\n```\n\nThe blind agent writes exactly the ticket's sentence and stops: `filename = os.path.basename(data.url.split(\"?\", 1)[0]) or _FALLBACK_ATTACHMENT_FILENAME`, with no `len(...) >` branch, no `splitext` call, and no length constant anywhere in the tree. The two diverge concretely on the presence of the `64 - len(ext)` slice.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The behaviour lives in code the agent is writing from scratch (`_canonical_attachment_block` is new in this ticket), and the only existing primitive it builds on, `os.path.basename`, does not truncate. Nothing in `prompt.py`'s reused surface (`serialize`, `_is_local_uri`, `_load_file_as_b64`, `is_local`) touches filenames at all."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "This is an affirmative transformation, not a prohibition. Inaction yields the full 73-character basename and fails: `assert capped == \"2024-q4-consolidated-financial-statements-and-notes-final-ap.pdf\"`. The one prohibition-shaped clause \u2014 \"the attachment's own `url` is never modified\" \u2014 is satisfied by inaction, but it is not what the deciding assertion measures; `long_pdf.url == LONG_PDF_URL` is a guard beside the real assertion, not the assertion itself."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention that message-block filenames cap at 64. The conventional prior is 255 (POSIX NAME_MAX), and neither OpenAI's `{\"type\": \"file\", \"file\": {\"filename\": ...}}` shape nor Anthropic's document blocks (which per the ticket carry no filename at all) document a 64-character limit. Passing also requires the specific extension-preserving formula, not merely the number."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket points the other way: \"`filename` is derived from `os.path.basename(data.url.split(\"?\", 1)[0])` when that is non-empty, else `_FALLBACK_ATTACHMENT_FILENAME`\" \u2014 a complete-sounding rule with no cap. The ticket does name a sibling constant (`_FALLBACK_ATTACHMENT_FILENAME: str = \"attachment.bin\"`), which makes a second filename constant stylistically plausible, but supplies neither the value 64 nor the `name[: 64 - len(ext)] + ext` shape. If anything the ticket makes this fact harder, not easier."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "Nothing in the open feature requires bounded filenames. Every rendered shape in the ticket (`{\"filename\": ..., \"file_url\": ...}`, `{\"filename\": ..., \"file_data\": ...}`) accepts an arbitrarily long string, `AttachmentBlock.filename` is typed only `str` with the constraint \"never empty\", and `_render_anthropic_block` omits filename entirely. A tree with no cap builds the visible feature correctly."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The most natural implementation is a one-liner `basename(...) or fallback` \u2014 the ticket even dictates it. Truncation is extra deliberate work, and the extension-preserving variant (`splitext`, then slice the whole name to `64 - len(ext)` rather than slicing the stem) is a considered choice rather than an instinctive one."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "A >64-character basename is trivially constructible and the test constructs three of them from plain string literals; `File(url=LONG_PDF_URL)` is remote so it never hits the `MissingLocalAttachment` or `EmptyAttachment` refusals, and the `.pdf` suffix guesses to `application/pdf` so it clears the `UnknownAttachmentMimeType` gate."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling needs long filenames to survive. r2.rule/exclusions assert on `fingerprint`, r2.failure_behavior on `detail`, r1 on `size_mb`/counts/token prices. The one place the ticket reuses a capped filename \u2014 `EmptyAttachment(url=data.url, filename=<block filename>)` \u2014 is not exercised by any r2 fact and its message is defined in terms of the block filename anyway, so capping cannot falsify it."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The capped value is a field of the shipped product: it appears verbatim in the rendered provider payload (`{\"filename\": \"...ap.pdf\", \"file_url\": <full url>}`). Violating it changes the observable dict rather than dying identically one layer down; nothing downstream raises either way."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "`filename` is r2.scope's own channel \u2014 no sibling in r2 or r1 asserts on it. It is partly the open ticket's channel (basename derivation and the `attachment.bin` fallback), but the capping assertion is orthogonal to both. Caveat, not a hit: the follow-on `render_openai(block) == {...}` full-dict equality does route through the open ticket's document/url branch, so a failure there is not purely attributable to r2 \u2014 but that is not the deciding assertion."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "It shares no field with any neighbour: `filename` vs `fingerprint` (rule, exclusions) vs `detail` (failure_behavior) vs `size_mb`/`count`/token price (all of r1). Each is separately failable, exactly as the test docstring claims: \"`scope` reads `filename` off a block whose payload it also checks was left alone\"."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "The requirement uses \"never\" (\"the attachment's own `url` is never modified\"), but as a within-call invariant checked in a finite window by `assert long_pdf.url == LONG_PDF_URL` immediately after one synchronous `block_of` call \u2014 not as an unfalsifiable time horizon. No timeout, no waiting, no \"eventually\"."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Pure in-process string work. The scope test needs no `tmp_path`, no filesystem, no socket, no second process \u2014 it builds `StubOnline()` and passes three URL literals, consistent with the ticket's \"no I/O beyond a `tmp_path` file\"."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`StubOnline` supplies only a bare processor instance (`object.__new__` / no-arg `__init__`) so `_canonical_attachment_block` can be called; the trigger \u2014 a 73-character basename \u2014 is defined by a test-owned URL literal, and the reaction (the cap) is what is graded. The fake controls neither the length nor the truncation."
+   }
+  ],
+  "the_assertion": "`assert capped == \"2024-q4-consolidated-financial-statements-and-notes-final-ap.pdf\"` (with `capped = read_field(block_of(stub, File(url=LONG_PDF_URL)), \"filename\")`).\n\nDependencies: it needs `_canonical_attachment_block` to exist and to derive a filename from the basename at all \u2014 both open-ticket obligations \u2014 and it needs the `.pdf` MIME guess to succeed so the block builds instead of raising `UnknownAttachmentMimeType`. Given the open ticket is implemented, the *value* of this assertion depends on nothing but r2.scope: no sibling fact, no r1 fact, and no other hidden requirement can change it. The adjacent `render_openai(block) == {...}` line is the one place where an open-ticket renderer bug could sink this fact for an unrelated reason.",
+  "blind_pass": null,
+  "correct_fail": null,
+  "recommendation": "Ship as-is. The divergent action is concrete (the `_MAX_ATTACHMENT_FILENAME_LEN = 64` constant plus the `name[: 64 - len(ext)] + ext` slice), the ticket actively points the other way, the three boundary literals check out by hand (73\u219264 with `.pdf` kept, 64 untouched, 72-with-no-extension\u2192first 64), and no Catalog A or B pattern lands.\n\nTwo non-blocking notes for whoever maintains this:\n\n1. The `render_openai(block) == {\"type\": \"file\", \"file\": {...}}` full-dict equality inside the scope test imports the open ticket's document/url branch into r2.scope's verdict. Since the preceding bare `capped == ...` line already decides the fact, consider weakening the render check to `render_openai(block)[\"file\"][\"filename\"] == capped and render_openai(block)[\"file\"][\"file_url\"] == LONG_PDF_URL` so a renderer bug is charged to the open ticket rather than to this hidden fact. Optional; it only affects triage, not discrimination.\n\n2. This fact overrides the ticket's filename sentence rather than extending it, so the clue must read as authoritative about the cap. If validation condition 3 (ticket + clues) ever regresses here, fix the clue's wording \u2014 not the test.\n\nUnrelated inconsistency spotted while auditing, worth a look but outside this fact: the ticket derives the filename by splitting on `?` only, so `Image(url=\".../cat.jpeg#page=2\")` yields filename `\"cat.jpeg#page=2\"`, which contradicts the comment in r2.exclusions' test that a fragment \"neither reaches the filename\". No assertion depends on it today."
+ },
+ {
+  "key": "g8.r2.exclusions_or_crossover",
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "verdict": "cut",
+  "divergent_action": "None exists that is distinct from the sibling r2.rule. Given rule (\"a required `fingerprint: str` field that `_canonical_attachment_block` sets from the block's payload\") and the open ticket (\"A remote `url` ... gives `source == \"url\"` with the URL as `payload`\"), the code both a clue-informed and a rule-informed agent writes is the same single expression at the one construction site: `fingerprint=attachment_fingerprint(payload)`. There is no url branch, no `.split(\"?\")`, no decode step for this fact to add. The only code that *violates* it is an extra special case (`attachment_fingerprint(data.url.split(\"?\", 1)[0])` or leaving the field off url blocks), i.e. deliberate additional work. Per the rubric's diagnostic, that makes this a coincidence relative to its own sibling.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "No fingerprint concept exists in the tree today; `AttachmentBlock` itself is new in this task. Nothing inherits this for free from the existing code."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The fact is a negative carve-out \u2014 'fingerprinted identically rather than left without one' and 'never the decoded bytes'. Both are satisfied by writing no url-specific code and by not decoding. `fingerprint: str` is a required pydantic field on a frozen model, so omitting a url block's fingerprint is not even inaction, it is a validation error the agent must work around. Restraint is never tested."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention that says 'hash the URL string including its query' for attachment blocks; this is task-local. (Hashing the string you already hold is instinct, but that is the next pattern, not prior knowledge.)"
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The residual content of this fact \u2014 that the digest covers the URL 'exactly as given, query and fragment included' \u2014 is handed over by the open ticket's own definition of the thing being hashed: 'A remote `url` (per `is_remote`) gives `source == \"url\"` with the URL as `payload`.' Once the sibling says 'set from the block's payload', the ticket has already said what that payload is."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "Strictly false: the open ticket never mentions a fingerprint at all, so building A correctly does not produce one. But it IS entailed by the sibling r2.rule, which is the same failure with a different name \u2014 see catalog_b.no_independent_content."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The single most natural implementation of r2.rule is one line at the one place a block is constructed: `AttachmentBlock(..., payload=payload, fingerprint=attachment_fingerprint(payload))`. That is source-agnostic by construction and passes every assertion in this test. An agent who read only the `rule` half of the clue passes `exclusions` without ever considering url blocks."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`Image(url=REMOTE_JPEG)` yielding `source == \"url\"` is squarely reachable \u2014 the open ticket mandates it and the test builds it."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "Nothing here makes another fact's failure branch unreachable. r1's ceilings explicitly skip url blocks ('A `source == \"url\"` block is never measured'), which is consistent, not contradictory."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Borderline and worth flagging: `fingerprint` has no consumer anywhere in the system \u2014 both renderers are specified as 'No other keys', `calculate_input_tokens` never sees it, no exception carries it. It is an inert field observable only by reading it off the block, which the test does directly. So it is gradeable, but nothing downstream differs between a right and a wrong fingerprint."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The only channel is `read_field(block, \"fingerprint\")`, which is exactly r2.rule's channel. r2.rule's test already asserts the full digest semantics including the base64-text half of this fact: `assert fingerprint == digest_of(PDF_B64)` and `assert fingerprint == \"sha256:fc1c4358d4aa\"` for a file holding `PDF_BYTES`. Grading this fact through that field double-counts `rule`: any tree that fails `rule` fails this too, mechanically."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "The fact restates its neighbour. Half of it ('a base64 block hashes its base64 text, never the decoded bytes') is already decided by rule's exact-value assertions; the other half ('a url block is fingerprinted too, over the payload string') is the arithmetic of rule's 'sets from the block's payload' plus the ticket's 'the URL as `payload`'. The single non-redundant assertion in the entire test is `read_field(bare, \"fingerprint\") != fingerprint` (the query participates), which is a one-line clarification of rule, not a fact."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "'never the decoded bytes' quantifies over inputs, not over a time horizon; the test checks it in a finite, single-process way (`hashlib.sha256(PDF_BYTES).hexdigest()[:12] not in text_id`)."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "`object.__new__(StubOnline)`, a `tmp_path` file and pure string hashing \u2014 no socket, no subprocess, no restart."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`StubOnline` supplies only the processor seam; the trigger (a remote url attachment) is a real `Image(url=...)` and the digest is computed by the implementation, not by the stub."
+   }
+  ],
+  "the_assertion": "`assert fingerprint == read_field(inline, \"fingerprint\")` (with `assert fingerprint is not None` gating it). It depends on two things other than this requirement: (1) r2.rule \u2014 if `fingerprint` does not exist or is not `attachment_fingerprint(payload)`, this fails for rule's reason, not this one; and (2) the open ticket's own payload/MIME semantics \u2014 it requires `Image(content=REMOTE_JPEG).serialize()` to return the str unchanged (asserted as `read_field(inline, \"payload\") == REMOTE_JPEG`), and the neighbouring `fragment` case requires the ticket's fragment-stripping MIME guess, without which `Image(url=\".../cat.jpeg#page=2\")` raises `UnknownAttachmentMimeType` and this test errors for a reason entirely outside r2.",
+  "blind_pass": null,
+  "correct_fail": null,
+  "recommendation": "Cut `r2.exclusions_or_crossover` as a separate graded fact and fold its one piece of real content into `r2.rule`. Concretely: delete `test_exclusions__a_url_block_is_fingerprinted_over_its_url_text` and add to `test_rule__...` the two lines that are not already there \u2014 `assert read_field(block_of(stub, Image(url=REMOTE_JPEG)), \\\"fingerprint\\\") == digest_of(REMOTE_JPEG)` and `assert read_field(block_of(stub, Image(url=\\\"https://cdn.example.com/photos/cat.jpeg\\\")), \\\"fingerprint\\\") != digest_of(REMOTE_JPEG)`. Also reword r2.rule to say the field is set from `block.payload` for every source, so the clue carries the query-inclusion consequence directly instead of needing a second sentence. If you would rather keep four facts in r2, replace this one with something that requires its own branch and cannot be derived from `rule` plus the ticket \u2014 e.g. a fingerprint that must survive a specific re-derivation path, or a distinct field with its own construction rule. Separately, whatever survives should stop relying on `Image(url=\\\".../cat.jpeg#page=2\\\")`: that case is decided by the open ticket's fragment-stripping MIME guess and will red this fact for an unrelated defect."
+ },
+ {
+  "key": "g8.r2.failure_behavior",
+  "req": 2,
+  "field": "failure_behavior",
+  "verdict": "retest",
+  "divergent_action": "In `attachment.py`, `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...] = (\"auto\", \"low\", \"high\")` plus `def normalize_detail(value): candidate = str(value).strip().lower() if value is not None else \"auto\"; if candidate in _SUPPORTED_IMAGE_DETAILS: return candidate; logger.warning(...); return \"auto\"`, wired into `_canonical_attachment_block` as `detail = normalize_detail(getattr(data, \"detail\", \"auto\")) if kind == \"image\" else None`. The blind agent writes the line the ticket's wording points at instead: `detail = getattr(data, \"detail\", \"auto\") if kind == \"image\" else None` \u2014 no vocabulary tuple, no `.strip().lower()`, no fallback branch, no warning. The concrete divergence is the `if candidate in _SUPPORTED_IMAGE_DETAILS: ... else: logger.warning(); return \"auto\"` branch and the `.strip().lower()` on it.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Nothing in the existing tree normalizes `detail`; the three per-provider `_format_multimodal` overrides being deleted passed `detail` (or omitted it) verbatim, and the test's own `assert written.detail == \"ultra\"` shows `Image.detail` is a free `str` that stores whatever it is handed. The normalization does not exist anywhere yet."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The fact demands positive work in three parts \u2014 lowercase/strip, membership check against a vocabulary, and a warning on the fallback. Doing nothing yields pass-through, which the test rejects at `assert read_field(block_of(stub, Image(content=b\"x\", detail=\"HIGH\")), \"detail\") == \"high\"`."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "`(\"auto\", \"low\", \"high\")` is the published OpenAI `image_url.detail` enum, reproduced from priors by any model. The clue therefore contributes only the *policy* (normalize at block-build, downgrade rather than reject, warn once) \u2014 not the vocabulary itself, which is the part of the fact stated most concretely: `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...] = (\"auto\", \"low\", \"high\")`."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket's only word on the subject is the opposite: \"`detail` is derived from the attachment's `detail` attribute when `kind == \\\"image\\\"` (and is `\\\"auto\\\"` when the attribute is absent)\" \u2014 which reads as pass-through with a default, not as vocabulary clamping. It never names `normalize_detail` or the tuple."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open ticket's `_render_openai_block` contract is `{\"detail\": block.detail}` verbatim; a correct build of A carries whatever string the model holds. `_render_anthropic_block` drops `detail` entirely (\"`detail` and `filename` do not appear\"), so nothing downstream forces canonicalization."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Partially, and this is the live risk the one blind sample may have missed. The ticket makes the agent write, in this very module, `normalize_mime_type` \u2014 \"lowercase, strip surrounding whitespace\" \u2014 and also establishes the unknown-value idiom \"If the guess fails, `mime_type` stays `None` ... and exactly one `logger.warning` is emitted.\" A symmetric `normalize_detail` doing `.strip().lower()` plus a warned fallback is the primed, house-style move in a file the agent is already writing, against an enum it already knows."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`Image(content=b\"x\", detail=\"ultra\")` constructs, per `assert written.detail == \"ultra\"`. (I could not open `prompt.py` \u2014 tools are disabled \u2014 but if `detail` were a `Literal` the golden tree would fail this line, and the bracket reports it passing.)"
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "Siblings add `fingerprint` (r2.rule) and `size_mb` (r1.rule) fields and cap `filename` (r2.scope); none of them touches `detail` or the image path's reachability. r1.failure_behavior's 12-attachment ceiling lives in `_handle_multi_modal_prompt`, which this test never calls."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The consequence is observable in-process twice: the block field (`read_field(downgraded, \"detail\") == \"auto\"`) and the wire shape (`render_openai(...)[\"image_url\"][\"detail\"]`). Nothing downstream is fatal either way \u2014 a bad `detail` would just be sent."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The warning-count channel is shared with the open ticket's own MIME rule (\"exactly one `logger.warning` is emitted\"), and `recorder`/`quiet` count every WARNING record on root, not just detail ones. The final assertion also re-grades the open feature: `assert render_openai(...) == {\"type\": \"image_url\", \"image_url\": {\"url\": \"data:image/png;base64,eA==\", \"detail\": \"high\"}}` fails an agent whose only mistake is in `_render_openai_block` or the `image/png` inline default."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "`detail` is read by no sibling: rule and exclusions read `fingerprint`, scope reads `filename` and `payload`, and r1 reads sizes, counts and token prices. The docstring's split (\"`failure_behavior` reads `detail`\") holds."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Every claim is a finite single-call assertion: one block build, one return value, one record count."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "`object.__new__(StubOnline)`/no-arg `__init__`, no I/O, no network \u2014 as the ticket's own test constraints promise."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`StubOnline` supplies only the processor instance; the trigger (`detail=\"ultra\"`) is set on the real `Image` model and the reaction is the real `_canonical_attachment_block`. The stub does not decide when the fallback fires."
+   }
+  ],
+  "the_assertion": "`assert read_field(block_of(stub, Image(content=b\"x\", detail=\"HIGH\")), \"detail\") == \"high\"` (with `assert read_field(downgraded, \"detail\") == \"auto\"` as its partner for the unknown-value half). It depends on more than this requirement: it needs the open ticket's `_canonical_attachment_block` to exist and to take the inline-content path, and the surrounding `assert recorder.count == 1` / `assert quiet.count == 0` depend on the *global* WARNING count on the root logger plus on curator's log routing (`capture_warnings` attaches to `logging.getLogger(\"curator\")`, which is not an ancestor of `bespokelabs.curator.*`, so capture rides entirely on propagation to root).",
+  "blind_pass": "```python\n# base_online_request_processor.py, ticket only \u2014 the agent has just written\n# normalize_mime_type (\"lowercase, strip\") next door, and knows the OpenAI enum.\n_SUPPORTED_DETAILS = (\"auto\", \"low\", \"high\")\n\n...\nif kind == \"image\":\n    raw = getattr(data, \"detail\", \"auto\")\n    detail = str(raw).strip().lower() if raw is not None else \"auto\"\n    if detail not in _SUPPORTED_DETAILS:\n        logger.warning(\"Unsupported image detail %r; using 'auto'.\", raw)\n        detail = \"auto\"\nelse:\n    detail = None\n```\nThis is ticket-only defensive code: the ticket hands over the `.strip().lower()` idiom in `normalize_mime_type` and the \"unknown value -> fallback + exactly one `logger.warning`\" idiom in the MIME rule, and `(\"auto\",\"low\",\"high\")` is published OpenAI surface. It passes every assertion in the failure_behavior test, including `quiet.count == 0`, without the helper existing (so the `normalize_detail is not None` and `_SUPPORTED_IMAGE_DETAILS` guarded branches are skipped). Not the modal blind implementation, but a plausible one the single blind sample did not draw.",
+  "correct_fail": "```python\n# attachment.py \u2014 the helper kept PURE, exactly as the fact's own word demands.\n_SUPPORTED_IMAGE_DETAILS: tuple[str, ...] = (\"auto\", \"low\", \"high\")\n\ndef normalize_detail(value: str | None) -> str:\n    \"\"\"Pure: no I/O, no logging.\"\"\"\n    if value is None:\n        return \"auto\"\n    candidate = str(value).strip().lower()\n    return candidate if candidate in _SUPPORTED_IMAGE_DETAILS else \"auto\"\n\n# base_online_request_processor.py \u2014 the warning lives at the call site.\ndetail = normalize_detail(getattr(data, \"detail\", \"auto\"))\nif raw is not None and detail == \"auto\" and str(raw).strip().lower() != \"auto\":\n    logger.warning(\"Unsupported image detail %r; falling back to 'auto'.\", raw)\n```\nEvery block-level and render-level assertion passes and exactly one warning is emitted per downgraded block. The test still fails it at `with capture_warnings() as recorder: assert normalize_detail(\"ultra\") == \"auto\"` / `assert recorder.count == 1`, because the guarded branch demands the *helper itself* warn. The fact says \"a **pure** `normalize_detail(value: str | None) -> str` ... emitting exactly one `logger.warning`\" \u2014 those clauses contradict, and this is the reading that honours \"pure\". A second correct-fails variant: any implementation that logs a warning when the filename falls back to `_FALLBACK_ATTACHMENT_FILENAME` (all probes use `Image(content=b\"x\")` with no `url`) reads `recorder.count == 2` and `quiet.count > 0`; nothing forbids that warning.",
+  "recommendation": "Retest \u2014 keep the fact, fix two things in the grader. (1) Scope the warning count to this fact: have `Recorder.emit` keep only records whose `record.getMessage()` contains the rejected value (`\"ultra\"`) or the word `detail`, and assert on that filtered count, so an unrelated-but-legal warning on the `attachment.bin` filename fallback in the same `_canonical_attachment_block` call cannot fail a correct agent. (2) In the `if normalize_detail is not None:` branch, drop `assert recorder.count == 1` and keep only `assert normalize_detail(\"ultra\") == \"auto\"` \u2014 the fact calls the helper \"pure\", so warning at the call site must be allowed; grade \"exactly one warning\" solely at block-build time. Optionally (3) drop the full-dict `render_openai(...) == {...}` equality in favour of `render_openai(...)[\"image_url\"][\"detail\"] == \"high\"`, so a broken `_render_openai_block` fails the open ticket rather than r2. Also worth re-running the blind bracket with a second sample seeded toward defensive enum-clamping, given the ticket's neighbouring `normalize_mime_type` primes `.strip().lower()` and the fallback-plus-one-warning shape."
+ }
+]

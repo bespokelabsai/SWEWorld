@@ -1,0 +1,705 @@
+diff --git a/src/bespokelabs/curator/cost.py b/src/bespokelabs/curator/cost.py
+index 3180d9d..051e59b 100644
+--- a/src/bespokelabs/curator/cost.py
++++ b/src/bespokelabs/curator/cost.py
+@@ -1,4 +1,8 @@
++"""Model pricing lookups and cost processors."""
++
+ from collections import defaultdict
++from dataclasses import dataclass
++from typing import Optional
+ 
+ import litellm
+ 
+@@ -10,6 +14,253 @@ RATE_LIMIT_HEADER = {
+     "api.together.xyz": {"request-key": {"key": "x-ratelimit-limit", "type": "rps"}, "token-key": {"key": "x-ratelimit-limit-tokens", "type": "tps"}}
+ }
+ 
++# Batch APIs priced off litellm's online table are billed at half the online rate.
++_BATCH_DISCOUNT = 0.5
++
++# Completion window used when a caller doesn't care about (or doesn't have) one.
++_DEFAULT_COMPLETION_WINDOW = "*"
++
++# Fallback context length for models registered with litellm without one.
++_DEFAULT_MAX_TOKENS = 8192
++
++
++@dataclass(frozen=True)
++class ModelPrice:
++    """Resolved price of a single model, as returned by `resolve_model_price`.
++
++    Attributes:
++        model: Model name the price was resolved for.
++        provider: Provider the price was requested for, if any.
++        completion_window: Completion window the price applies to.
++        input_cost_per_million: Cost in dollars per million input tokens.
++        output_cost_per_million: Cost in dollars per million output tokens.
++        source: Pricing table the price came from, either "litellm" or "external".
++        batch: Whether the prices are batch rates.
++        output_price_inferred: Whether the output price was copied from the input price
++            because the pricing table has no explicit output price.
++        max_tokens: Context length of the model, when the pricing table knows it.
++    """
++
++    model: str
++    provider: Optional[str]
++    completion_window: str
++    input_cost_per_million: float
++    output_cost_per_million: float
++    source: str
++    batch: bool = False
++    output_price_inferred: bool = False
++    max_tokens: Optional[int] = None
++
++    @property
++    def input_cost_per_token(self) -> float:
++        """Cost in dollars per input token."""
++        return round(self.input_cost_per_million / 1e6, 15)
++
++    @property
++    def output_cost_per_token(self) -> float:
++        """Cost in dollars per output token."""
++        return round(self.output_cost_per_million / 1e6, 15)
++
++
++class UnpricedModelError(LookupError):
++    """Raised when no price is available for a model.
++
++    Attributes:
++        REASONS: The reason strings a `UnpricedModelError` is allowed to carry.
++    """
++
++    REASONS = frozenset(
++        {
++            # The requested provider has no pricing table of its own.
++            "unknown_provider",
++            # No pricing table knows the model.
++            "unknown_model",
++            # The model is priced, but not for the requested completion window.
++            "unknown_completion_window",
++            # The model has a pricing entry, but it carries no token price.
++            "missing_price",
++        }
++    )
++
++    def __init__(self, *, model: str, provider: Optional[str], completion_window: Optional[str], reason: str) -> None:
++        """Initialize the error.
++
++        Args:
++            model: Model the price was requested for.
++            provider: Provider the price was requested for, if any.
++            completion_window: Completion window the price was requested for, if any.
++            reason: Why the price is unavailable, one of `UnpricedModelError.REASONS`.
++
++        Raises:
++            ValueError: If `reason` is not one of `UnpricedModelError.REASONS`.
++        """
++        if reason not in self.REASONS:
++            raise ValueError(f"Unknown reason {reason!r}, expected one of {sorted(self.REASONS)}.")
++        self.model = model
++        self.provider = provider
++        self.completion_window = completion_window
++        self.reason = reason
++        super().__init__(f"{reason}: model={model!r} provider={provider!r} completion_window={completion_window!r}")
++
++
++def _external_price(model: str, provider: str, completion_window: str, batch: bool) -> ModelPrice:
++    """Build a `ModelPrice` from an external provider's pricing table."""
++    entry = _DEFAULT_COST_MAP["external"]["providers"][provider]["cost"][model]
++    input_costs = entry.get("input_cost_per_million") or {}
++    if completion_window not in input_costs:
++        raise UnpricedModelError(model=model, provider=provider, completion_window=completion_window, reason="unknown_completion_window")
++
++    input_cost_per_million = input_costs[completion_window]
++    if input_cost_per_million is None:
++        raise UnpricedModelError(model=model, provider=provider, completion_window=completion_window, reason="missing_price")
++
++    output_cost_per_million = (entry.get("output_cost_per_million") or {}).get(completion_window)
++    output_price_inferred = output_cost_per_million is None
++    if output_price_inferred:
++        output_cost_per_million = input_cost_per_million
++
++    # External tables are already quoted per completion window, so batch rates need no discount.
++    return ModelPrice(
++        model=model,
++        provider=provider,
++        completion_window=completion_window,
++        input_cost_per_million=round(input_cost_per_million, 9),
++        output_cost_per_million=round(output_cost_per_million, 9),
++        source="external",
++        batch=batch,
++        output_price_inferred=output_price_inferred,
++        max_tokens=entry.get("max_tokens"),
++    )
++
++
++def _litellm_price(model: str, provider: Optional[str], completion_window: str, batch: bool) -> ModelPrice:
++    """Build a `ModelPrice` from litellm's pricing table."""
++    entry = litellm.model_cost[model]
++    input_cost_per_token = entry.get("input_cost_per_token")
++    if input_cost_per_token is None:
++        raise UnpricedModelError(model=model, provider=provider, completion_window=completion_window, reason="missing_price")
++
++    output_cost_per_token = entry.get("output_cost_per_token")
++    output_price_inferred = output_cost_per_token is None
++    if output_price_inferred:
++        output_cost_per_token = input_cost_per_token
++
++    discount = _BATCH_DISCOUNT if batch else 1.0
++    return ModelPrice(
++        model=model,
++        provider=provider,
++        completion_window=completion_window,
++        input_cost_per_million=round(input_cost_per_token * 1e6 * discount, 9),
++        output_cost_per_million=round(output_cost_per_token * 1e6 * discount, 9),
++        source="litellm",
++        batch=batch,
++        output_price_inferred=output_price_inferred,
++        max_tokens=entry.get("max_tokens"),
++    )
++
++
++def resolve_model_price(model: str, *, provider: Optional[str] = None, completion_window: Optional[str] = None, batch: bool = False) -> ModelPrice:
++    """Resolve the price of a model.
++
++    Provider specific pricing from the external cost map wins over litellm's table, since
++    external providers quote their own (completion window dependent) rates for models that
++    litellm may also know under the same name.
++
++    Args:
++        model: Model to price.
++        provider: Provider serving the model, if any.
++        completion_window: Completion window to price, defaulting to `"*"`.
++        batch: Whether to return batch rates instead of online rates.
++
++    Returns:
++        ModelPrice: The resolved price, never carrying a `None` cost.
++
++    Raises:
++        UnpricedModelError: If no price is available for the model.
++    """
++    completion_window = completion_window or _DEFAULT_COMPLETION_WINDOW
++    external_providers = _DEFAULT_COST_MAP["external"]["providers"]
++
++    if provider in external_providers and model in external_providers[provider]["cost"]:
++        return _external_price(model, provider, completion_window, batch)
++
++    if model in litellm.model_cost:
++        return _litellm_price(model, provider, completion_window, batch)
++
++    if provider is not None and provider not in external_providers:
++        raise UnpricedModelError(model=model, provider=provider, completion_window=completion_window, reason="unknown_provider")
++
++    raise UnpricedModelError(model=model, provider=provider, completion_window=completion_window, reason="unknown_model")
++
++
++def register_price_with_litellm(price: ModelPrice) -> dict:
++    """Register a price with litellm so that `litellm.completion_cost` can use it.
++
++    Args:
++        price: Price to register, which must be an online (non batch) price since litellm
++            applies its own batch discount on top of its table.
++
++    Returns:
++        dict: The entry written into `litellm.model_cost` for `price.model`.
++
++    Raises:
++        ValueError: If `price` is a batch price.
++    """
++    if price.batch:
++        raise ValueError(f"Cannot register batch prices with litellm: model={price.model!r}.")
++
++    entry = {
++        "max_tokens": price.max_tokens or _DEFAULT_MAX_TOKENS,
++        "input_cost_per_token": price.input_cost_per_token,
++        "output_cost_per_token": price.output_cost_per_token,
++        "litellm_provider": litellm.model_cost.get(price.model, {}).get("litellm_provider") or "openai",
++    }
++    litellm.register_model({price.model: entry})
++    return entry
++
++
++def format_cost_strings(price: Optional[ModelPrice], *, rich: bool) -> tuple[str, str]:
++    """Format the per million token prices for display.
++
++    Args:
++        price: Price to format, or None if no price is available.
++        rich: Whether the strings are rendered by rich rather than printed as plain text.
++
++    Returns:
++        tuple[str, str]: The input and output cost strings. The output string is suffixed
++            with `"*"` when the output price was inferred from the input price.
++    """
++    if price is None:
++        unavailable = "[dim]N/A[/dim]" if rich else "N/A"
++        return unavailable, unavailable
++
++    input_cost_str = f"${price.input_cost_per_million:.3f}"
++    output_cost_str = f"${price.output_cost_per_million:.3f}"
++    if rich:
++        input_cost_str = f"[red]{input_cost_str}[/red]"
++        output_cost_str = f"[red]{output_cost_str}[/red]"
++    if price.output_price_inferred:
++        output_cost_str += "*"
++    return input_cost_str, output_cost_str
++
++
++def external_model_cost(model: str, completion_window: str = "*", provider: str = "default") -> dict[str, float]:
++    """Get the cost of the model from the external providers registered.
++
++    Args:
++        model: Model to price.
++        completion_window: Completion window to price.
++        provider: Provider serving the model.
++
++    Returns:
++        dict[str, float]: The per token input and output costs.
++
++    Raises:
++        UnpricedModelError: If no price is available for the model.
++    """
++    price = resolve_model_price(model, provider=provider, completion_window=completion_window, batch=False)
++    return {"input_cost_per_token": price.input_cost_per_token, "output_cost_per_token": price.output_cost_per_token}
++
+ 
+ class _LitellmCostProcessor:
+     def __init__(self, config, batch=False) -> None:
+@@ -48,35 +299,6 @@ class _LitellmCostProcessor:
+         return cost_to_complete
+ 
+ 
+-def _get_litellm_cost_map(model, completion_window="*", provider="default"):
+-    cost = external_model_cost(model, completion_window=completion_window, provider=provider)
+-    litellm_cost_map = {
+-        model: {
+-            "max_tokens": 8192,
+-            "input_cost_per_token": cost["input_cost_per_token"],
+-            "output_cost_per_token": cost["output_cost_per_token"],
+-            "litellm_provider": "openai",
+-        }
+-    }
+-
+-    return litellm_cost_map
+-
+-
+-def external_model_cost(model, completion_window="*", provider="default"):
+-    """Get the cost of the model from the external providers registered."""
+-    if provider not in _DEFAULT_COST_MAP["external"]["providers"]:
+-        return {"input_cost_per_token": None, "output_cost_per_token": None}
+-    provider_cost = _DEFAULT_COST_MAP["external"]["providers"][provider]["cost"]
+-    if model not in provider_cost:
+-        raise KeyError(f"Model {model} is not supported by {provider}.")
+-
+-    if completion_window not in provider_cost[model]["input_cost_per_million"]:
+-        raise KeyError(f"Completion window {completion_window} is not supported for {model} by {provider}.")
+-
+-    cost = provider_cost[model]["input_cost_per_million"][completion_window]
+-    return {"input_cost_per_token": cost / 1e6, "output_cost_per_token": cost / 1e6}
+-
+-
+ # source: https://www.kluster.ai/#pricing
+ class _KlusterAICostProcessor(_LitellmCostProcessor):
+     _registered_models = set()
+@@ -94,7 +316,7 @@ class _KlusterAICostProcessor(_LitellmCostProcessor):
+         if _KlusterAICostProcessor._wrap(self.config.model, completion_window) in _KlusterAICostProcessor._registered_models:
+             return super().cost(completion_window=completion_window, **kwargs) * times
+ 
+-        litellm.register_model(_get_litellm_cost_map(self.config.model, provider="klusterai", completion_window=completion_window))
++        register_price_with_litellm(resolve_model_price(self.config.model, provider="klusterai", completion_window=completion_window))
+         _KlusterAICostProcessor._registered_models.add(_KlusterAICostProcessor._wrap(self.config.model, completion_window))
+         return super().cost(completion_window=completion_window, **kwargs) * times
+ 
+@@ -120,7 +342,7 @@ class _InferenceNetCostProcessor(_LitellmCostProcessor):
+         if _InferenceNetCostProcessor._wrap(model, completion_window) in _InferenceNetCostProcessor._registered_models:
+             return super().cost(completion_window=completion_window, **kwargs) * times
+ 
+-        litellm.register_model(_get_litellm_cost_map(model, provider="inference.net", completion_window=completion_window))
++        register_price_with_litellm(resolve_model_price(model, provider="inference.net", completion_window=completion_window))
+         _InferenceNetCostProcessor._registered_models.add(_InferenceNetCostProcessor._wrap(model, completion_window))
+         return super().cost(completion_window=completion_window, **kwargs) * times
+ 
+diff --git a/src/bespokelabs/curator/request_processor/batch/azure_batch_request_processor.py b/src/bespokelabs/curator/request_processor/batch/azure_batch_request_processor.py
+index 0396ab5..7227749 100644
+--- a/src/bespokelabs/curator/request_processor/batch/azure_batch_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/batch/azure_batch_request_processor.py
+@@ -1,4 +1,3 @@
+-from litellm import model_cost
+ 
+ from bespokelabs.curator.request_processor.batch.openai_batch_request_processor import OpenAIBatchRequestProcessor
+ from bespokelabs.curator.request_processor.config import BatchRequestProcessorConfig
+@@ -44,10 +43,8 @@ class AzureBatchRequestProcessor(OpenAIBatchRequestProcessor):
+ 
+     def set_model_cost(self):
+         """Set tracker cost information, preferring litellm's `azure/`-prefixed pricing table."""
+-        azure_model = f"azure/{self.prompt_formatter.model_name}"
+-        if azure_model in model_cost:
+-            self.tracker.input_cost_per_million = (model_cost[azure_model]["input_cost_per_token"] * 1_000_000) * 0.5
+-            self.tracker.output_cost_per_million = (model_cost[azure_model]["output_cost_per_token"] * 1_000_000) * 0.5
+-            self.tracker.start_tracker(self._tracker_console)
+-        else:
++        if self.tracker.refresh_model_price(price_model=f"azure/{self.prompt_formatter.model_name}") is not None:
+             super().set_model_cost()
++            return
++
++        self.tracker.start_tracker(self._tracker_console)
+diff --git a/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py b/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
+index e3ccf10..3a57372 100644
+--- a/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
+@@ -6,7 +6,6 @@ from collections import Counter
+ from typing import Optional
+ 
+ import aiofiles
+-from litellm import model_cost
+ 
+ from bespokelabs.curator.cost import cost_processor_factory
+ from bespokelabs.curator.log import logger
+@@ -319,25 +318,7 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+ 
+     def set_model_cost(self):
+         """Set cost information for the current model."""
+-        # Set cost information if available
+-        if self.prompt_formatter.model_name in model_cost:
+-            # Batch requests are 50% cheaper
+-            self.tracker.input_cost_per_million = (model_cost[self.prompt_formatter.model_name]["input_cost_per_token"] * 1_000_000) * 0.5
+-            self.tracker.output_cost_per_million = (model_cost[self.prompt_formatter.model_name]["output_cost_per_token"] * 1_000_000) * 0.5
+-        else:
+-            from bespokelabs.curator.cost import external_model_cost
+-
+-            cost_info = external_model_cost(
+-                self.prompt_formatter.model_name,
+-                provider=self.compatible_provider,
+-                completion_window=self.config.completion_window,
+-            )
+-            input_cost = cost_info["input_cost_per_token"]
+-            output_cost = cost_info["output_cost_per_token"]
+-            if input_cost is not None:
+-                self.tracker.input_cost_per_million = input_cost * 1_000_000
+-            if output_cost is not None:
+-                self.tracker.output_cost_per_million = output_cost * 1_000_000
++        self.tracker.refresh_model_price()
+ 
+         # Start the tracker with the console from constructor
+         self.tracker.start_tracker(self._tracker_console)
+diff --git a/src/bespokelabs/curator/request_processor/batch/mistral_batch_request_processor.py b/src/bespokelabs/curator/request_processor/batch/mistral_batch_request_processor.py
+index 77b2891..4a3fe34 100644
+--- a/src/bespokelabs/curator/request_processor/batch/mistral_batch_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/batch/mistral_batch_request_processor.py
+@@ -4,7 +4,6 @@ import uuid
+ import httpx
+ import instructor
+ import litellm
+-from litellm import model_cost
+ from litellm.litellm_core_utils.core_helpers import map_finish_reason
+ from mistralai import Mistral
+ from mistralai.models import BatchJobOut, UploadFileOutTypedDict
+@@ -76,12 +75,9 @@ class MistralBatchRequestProcessor(BaseBatchRequestProcessor):
+ 
+     def set_model_cost(self):
+         """Set input and output tracker cost information for the Mistral model."""
+-        if f"mistral/{self.prompt_formatter.model_name}" in model_cost:
+-            self.tracker.input_cost_per_million = (model_cost["mistral/" + self.prompt_formatter.model_name]["input_cost_per_token"] * 1_000_000) * 0.5
+-            self.tracker.output_cost_per_million = (model_cost["mistral/" + self.prompt_formatter.model_name]["output_cost_per_token"] * 1_000_000) * 0.5
+-
+-        else:
++        if self.tracker.refresh_model_price(price_model=f"mistral/{self.prompt_formatter.model_name}") is not None:
+             super().set_model_cost()
++            return
+ 
+         # Start the tracker with the console from constructor
+         self.tracker.start_tracker(self._tracker_console)
+diff --git a/src/bespokelabs/curator/status_tracker/agent_status_tracker.py b/src/bespokelabs/curator/status_tracker/agent_status_tracker.py
+index fd09df7..d46cd0d 100644
+--- a/src/bespokelabs/curator/status_tracker/agent_status_tracker.py
++++ b/src/bespokelabs/curator/status_tracker/agent_status_tracker.py
+@@ -4,7 +4,6 @@ from dataclasses import asdict, dataclass, field
+ from enum import Enum
+ 
+ import tqdm
+-from litellm import model_cost
+ from rich import box
+ from rich.console import Group
+ from rich.live import Live
+@@ -13,7 +12,7 @@ from rich.progress import BarColumn, Progress, TextColumn, TimeElapsedColumn, Ti
+ from rich.table import Table
+ 
+ from bespokelabs.curator import _CONSOLE
+-from bespokelabs.curator.cost import external_model_cost
++from bespokelabs.curator.cost import UnpricedModelError, format_cost_strings, resolve_model_price
+ from bespokelabs.curator.log import USE_RICH_DISPLAY, logger
+ from bespokelabs.curator.status_tracker.tqdm_constants.colors import COST, END, ERROR, HEADER, METRIC, MODEL, SUCCESS
+ from bespokelabs.curator.telemetry.client import TelemetryEvent, telemetry_client
+@@ -107,57 +106,16 @@ class AgentStatusTracker:
+             is_seeder: Whether this is for the seeder agent (True) or partner agent (False).
+         """
+         agent_type = "seeder" if is_seeder else "partner"
++        provider = self.seeder_compatible_provider if is_seeder else self.partner_compatible_provider
+         try:
+-            if model in model_cost:
+-                model_pricing = model_cost[model]
+-                self.input_cost_per_million[agent_type] = (
+-                    model_pricing.get("input_cost_per_token", 0) * 1_000_000 if model_pricing.get("input_cost_per_token") is not None else None
+-                )
+-                self.output_cost_per_million[agent_type] = (
+-                    model_pricing.get("output_cost_per_token", 0) * 1_000_000 if model_pricing.get("output_cost_per_token") is not None else None
+-                )
+-            else:
+-                try:
+-                    provider = self.seeder_compatible_provider if is_seeder else self.partner_compatible_provider
+-                    external_pricing = external_model_cost(model, provider=provider)
+-                    self.input_cost_per_million[agent_type] = (
+-                        external_pricing.get("input_cost_per_token", 0) * 1_000_000 if external_pricing.get("input_cost_per_token") is not None else None
+-                    )
+-                    self.output_cost_per_million[agent_type] = (
+-                        external_pricing.get("output_cost_per_token", 0) * 1_000_000 if external_pricing.get("output_cost_per_token") is not None else None
+-                    )
+-                except (KeyError, TypeError):
+-                    self.input_cost_per_million[agent_type] = None
+-                    self.output_cost_per_million[agent_type] = None
+-
+-            self._format_cost_strings(agent_type)
+-        except Exception as e:
++            price = resolve_model_price(model, provider=provider)
++        except UnpricedModelError as e:
+             logger.warning(f"Could not determine model costs for {agent_type}: {e}")
+-            self.input_cost_per_million[agent_type] = None
+-            self.output_cost_per_million[agent_type] = None
+-            self._format_cost_strings(agent_type)
+-
+-    def _format_cost_strings(self, agent_type: str) -> None:
+-        """Format the cost strings based on the values.
+-
+-        Args:
+-            agent_type: Either "seeder" or "partner"
+-        """
+-        if self.input_cost_per_million[agent_type] is not None:
+-            if USE_RICH_DISPLAY:
+-                self.input_cost_str[agent_type] = f"[red]${self.input_cost_per_million[agent_type]:.3f}[/red]"
+-            else:
+-                self.input_cost_str[agent_type] = f"${self.input_cost_per_million[agent_type]:.3f}"
+-        else:
+-            self.input_cost_str[agent_type] = "[dim]N/A[/dim]" if USE_RICH_DISPLAY else "N/A"
++            price = None
+ 
+-        if self.output_cost_per_million[agent_type] is not None:
+-            if USE_RICH_DISPLAY:
+-                self.output_cost_str[agent_type] = f"[red]${self.output_cost_per_million[agent_type]:.3f}[/red]"
+-            else:
+-                self.output_cost_str[agent_type] = f"${self.output_cost_per_million[agent_type]:.3f}"
+-        else:
+-            self.output_cost_str[agent_type] = "[dim]N/A[/dim]" if USE_RICH_DISPLAY else "N/A"
++        self.input_cost_per_million[agent_type] = price.input_cost_per_million if price is not None else None
++        self.output_cost_per_million[agent_type] = price.output_cost_per_million if price is not None else None
++        self.input_cost_str[agent_type], self.output_cost_str[agent_type] = format_cost_strings(price, rich=USE_RICH_DISPLAY)
+ 
+     def estimate_request_cost(self, input_tokens: int, output_tokens: int, is_seeder: bool) -> float:
+         """Estimate cost for a request based on token counts.
+diff --git a/src/bespokelabs/curator/status_tracker/batch_status_tracker.py b/src/bespokelabs/curator/status_tracker/batch_status_tracker.py
+index 3583667..eca77a6 100644
+--- a/src/bespokelabs/curator/status_tracker/batch_status_tracker.py
++++ b/src/bespokelabs/curator/status_tracker/batch_status_tracker.py
+@@ -5,7 +5,6 @@ import time
+ from typing import Optional
+ 
+ import tqdm
+-from litellm import model_cost
+ from pydantic import BaseModel, Field
+ from rich import box
+ from rich.console import Console, Group
+@@ -17,6 +16,7 @@ from rich.table import Table
+ from bespokelabs.curator import _CONSOLE
+ from bespokelabs.curator.client import Client
+ from bespokelabs.curator.constants import PUBLIC_CURATOR_VIEWER_HOME_URL
++from bespokelabs.curator.cost import UnpricedModelError, format_cost_strings, resolve_model_price
+ from bespokelabs.curator.log import USE_RICH_DISPLAY, logger
+ from bespokelabs.curator.status_tracker.tqdm_constants.colors import COST, END, ERROR, HEADER, METRIC, MODEL, SUCCESS, WARNING
+ from bespokelabs.curator.telemetry.client import TelemetryEvent, telemetry_client
+@@ -81,6 +81,8 @@ class BatchStatusTracker(BaseModel):
+     output_cost_per_million: Optional[float] = Field(default=None)
+     input_cost_str: Optional[str] = Field(default=None)
+     output_cost_str: Optional[str] = Field(default=None)
++    price_unavailable_reason: Optional[str] = Field(default=None)
++    output_price_inferred: bool = Field(default=False)
+ 
+     # Track start time
+     start_time: float = Field(default_factory=time.time)
+@@ -106,43 +108,36 @@ class BatchStatusTracker(BaseModel):
+         """Post init processing after model initialization."""
+         super().model_post_init(__context__)
+ 
+-        # Initialize cost strings with appropriate formatting based on display mode
++        self.refresh_model_price()
++
++    def refresh_model_price(self, *, price_model: str | None = None) -> Optional[str]:
++        """Re-resolve the price of the model and update the cached pricing fields.
++
++        Args:
++            price_model: Model name to price, defaulting to the tracked model.
++
++        Returns:
++            Optional[str]: None if a price was resolved, otherwise the reason why it wasn't.
++        """
+         try:
+-            if self.model in model_cost:
+-                self.input_cost_per_million = model_cost[self.model]["input_cost_per_token"] * 1_000_000
+-                self.output_cost_per_million = model_cost[self.model]["output_cost_per_token"] * 1_000_000
+-            elif self.compatible_provider:
+-                from bespokelabs.curator.cost import external_model_cost
+-
+-                costs = external_model_cost(
+-                    self.model,
+-                    provider=self.compatible_provider,
+-                    completion_window=self.completion_window,
+-                )
+-                self.input_cost_per_million = costs["input_cost_per_token"] * 1_000_000
+-                self.output_cost_per_million = costs["output_cost_per_token"] * 1_000_000
+-        except Exception as e:
+-            logger.warning(f"Could not determine model costs: {e}")
+-            self.input_cost_per_million = None
+-            self.output_cost_per_million = None
+-
+-    def _format_cost_str(self):
+-        # Format the cost strings based on the values we got
+-        if self.input_cost_per_million is not None:
+-            if USE_RICH_DISPLAY:
+-                self.input_cost_str = f"[red]${self.input_cost_per_million:.3f}[/red]"
+-            else:
+-                self.input_cost_str = f"${self.input_cost_per_million:.3f}"
++            price = resolve_model_price(
++                price_model or self.model,
++                provider=self.compatible_provider,
++                completion_window=self.completion_window,
++                batch=True,
++            )
++        except UnpricedModelError as e:
++            logger.debug(f"Could not determine model costs: {e}")
++            price = None
++            self.price_unavailable_reason = e.reason
+         else:
+-            self.input_cost_str = "[dim]N/A[/dim]" if USE_RICH_DISPLAY else "N/A"
++            self.price_unavailable_reason = None
+ 
+-        if self.output_cost_per_million is not None:
+-            if USE_RICH_DISPLAY:
+-                self.output_cost_str = f"[red]${self.output_cost_per_million:.3f}[/red]"
+-            else:
+-                self.output_cost_str = f"${self.output_cost_per_million:.3f}"
+-        else:
+-            self.output_cost_str = "[dim]N/A[/dim]" if USE_RICH_DISPLAY else "N/A"
++        self.input_cost_per_million = price.input_cost_per_million if price is not None else None
++        self.output_cost_per_million = price.output_cost_per_million if price is not None else None
++        self.output_price_inferred = price.output_price_inferred if price is not None else False
++        self.input_cost_str, self.output_cost_str = format_cost_strings(price, rich=USE_RICH_DISPLAY)
++        return self.price_unavailable_reason
+ 
+     def start_tracker(self, console: Optional[Console] = None):
+         """Start the progress tracker."""
+@@ -211,7 +206,6 @@ class BatchStatusTracker(BaseModel):
+             refresh_per_second=4,
+             transient=True,
+         )
+-        self._format_cost_str()
+         self._live.start()
+ 
+     def _start_tqdm_tracker(self):
+@@ -223,7 +217,6 @@ class BatchStatusTracker(BaseModel):
+             unit="req",
+         )
+         # Log initial stats
+-        self._format_cost_str()
+         self._log_stats()
+ 
+     def _log_stats(self):
+diff --git a/src/bespokelabs/curator/status_tracker/online_status_tracker.py b/src/bespokelabs/curator/status_tracker/online_status_tracker.py
+index 7603945..c6df604 100644
+--- a/src/bespokelabs/curator/status_tracker/online_status_tracker.py
++++ b/src/bespokelabs/curator/status_tracker/online_status_tracker.py
+@@ -5,7 +5,6 @@ from enum import Enum
+ from typing import Optional
+ 
+ import tqdm
+-from litellm import model_cost
+ from rich import box
+ from rich.console import Console, Group
+ from rich.live import Live
+@@ -16,7 +15,7 @@ from rich.table import Table
+ from bespokelabs.curator import _CONSOLE
+ from bespokelabs.curator.client import Client
+ from bespokelabs.curator.constants import PUBLIC_CURATOR_VIEWER_HOME_URL
+-from bespokelabs.curator.cost import external_model_cost
++from bespokelabs.curator.cost import UnpricedModelError, format_cost_strings, resolve_model_price
+ from bespokelabs.curator.log import USE_RICH_DISPLAY, logger
+ from bespokelabs.curator.status_tracker.tqdm_constants.colors import COST, DIM, END, ERROR, HEADER, METRIC, MODEL, SUCCESS, WARNING
+ from bespokelabs.curator.telemetry.client import TelemetryEvent, telemetry_client
+@@ -77,6 +76,8 @@ class OnlineStatusTracker:
+     input_cost_per_million: Optional[float] = None
+     output_cost_per_million: Optional[float] = None
+     compatible_provider: Optional[str] = None
++    price_unavailable_reason: Optional[str] = None
++    output_price_inferred: bool = False
+ 
+     start_time: float = field(default_factory=time.time, init=False)
+ 
+@@ -103,38 +104,31 @@ class OnlineStatusTracker:
+             if not self.max_tokens_per_minute:
+                 self.max_tokens_per_minute = _TokenUsage()
+ 
+-        # Initialize cost strings
+-        if self.model in model_cost:
+-            model_pricing = model_cost[self.model]
+-            if model_pricing.get("input_cost_per_token") is not None:
+-                self.input_cost_per_million = model_pricing.get("input_cost_per_token", 0) * 1_000_000
+-            else:
+-                self.input_cost_per_million = None
+-            if model_pricing.get("output_cost_per_token") is not None:
+-                self.output_cost_per_million = model_pricing.get("output_cost_per_token", 0) * 1_000_000
+-            else:
+-                self.output_cost_per_million = None
+-        else:
+-            try:
+-                external_pricing = external_model_cost(self.model, provider=self.compatible_provider)
+-                self.input_cost_per_million = (
+-                    external_pricing.get("input_cost_per_token", 0) * 1_000_000 if external_pricing.get("input_cost_per_token") is not None else None
+-                )
+-                self.output_cost_per_million = (
+-                    external_pricing.get("output_cost_per_token", 0) * 1_000_000 if external_pricing.get("output_cost_per_token") is not None else None
+-                )
+-            except (KeyError, TypeError):
+-                self.input_cost_per_million = None
+-                self.output_cost_per_million = None
++        self.refresh_model_price()
+ 
+-        # Handle None values for cost per million tokens
+-        self.input_cost_str = f"[red]${self.input_cost_per_million:.3f}[/red]" if self.input_cost_per_million is not None else "[dim]N/A[/dim]"
+-        if not USE_RICH_DISPLAY:
+-            self.input_cost_str = f"${self.input_cost_per_million:.3f}" if self.input_cost_per_million is not None else "N/A"
++    def refresh_model_price(self, *, price_model: str | None = None) -> Optional[str]:
++        """Re-resolve the price of the model and update the cached pricing fields.
+ 
+-        self.output_cost_str = f"[red]${self.output_cost_per_million:.3f}[/red]" if self.output_cost_per_million is not None else "[dim]N/A[/dim]"
+-        if not USE_RICH_DISPLAY:
+-            self.output_cost_str = f"${self.output_cost_per_million:.3f}" if self.output_cost_per_million is not None else "N/A"
++        Args:
++            price_model: Model name to price, defaulting to the tracked model.
++
++        Returns:
++            Optional[str]: None if a price was resolved, otherwise the reason why it wasn't.
++        """
++        try:
++            price = resolve_model_price(price_model or self.model, provider=self.compatible_provider)
++        except UnpricedModelError as e:
++            logger.debug(f"Could not determine model costs: {e}")
++            price = None
++            self.price_unavailable_reason = e.reason
++        else:
++            self.price_unavailable_reason = None
++
++        self.input_cost_per_million = price.input_cost_per_million if price is not None else None
++        self.output_cost_per_million = price.output_cost_per_million if price is not None else None
++        self.output_price_inferred = price.output_price_inferred if price is not None else False
++        self.input_cost_str, self.output_cost_str = format_cost_strings(price, rich=USE_RICH_DISPLAY)
++        return self.price_unavailable_reason
+ 
+     def __str__(self):
+         """String representation of the token limit strategy."""

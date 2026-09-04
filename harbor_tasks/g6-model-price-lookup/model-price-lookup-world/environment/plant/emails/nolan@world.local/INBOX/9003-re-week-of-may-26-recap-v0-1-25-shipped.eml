@@ -1,0 +1,23 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, nikolai@world.local,
+ nolan@world.local, gideon@world.local
+Subject: Re: Week of May 26 recap: v0.1.25 shipped
+Date: Mon, 02 Jun 2025 12:20:00 +0000
+Message-ID: <178853189188.489558.17025657467915203116@world.local>
+In-Reply-To: <178853189187.489558.4981719448697006120@world.local>
+References: <178853189187.489558.4981719448697006120@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Right, that matches what I found once I read the class properly. One of the t=
+hree covers my case and I have switched to it, so nothing needs to change in =
+the code.
+
+On the confusing part, I have put a short note on PR 681 saying that the cons=
+tructor validates the reason against UnpricedModelError.REASONS and raises Va=
+lueError if it does not match. That is the sentence I would have wanted to re=
+ad before I passed reason=3D'no_pricing_data' and spent a while wondering why=
+ my exception had turned into a different one.
+
+Konrad

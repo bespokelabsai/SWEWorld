@@ -1,0 +1,14 @@
+From: gideon@world.local
+To:
+ nikolai@world.local, dermot@world.local, emil@world.local, dario@world.local
+Subject: mail: resumed batch run double-submitted ~400 requests
+Date: Thu, 17 Apr 2025 15:02:00 +0000
+Message-ID: <178822443479.2088454.17579200674193164150@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ok separate thing, I'm partway into the stale file cleanup. so basically the =
+plan was create_request_files wipes anything already sitting in the request d=
+ir before it writes the new shards, because right now a killed run leaves hal=
+f written jsonl behind and we happily pick it up next time

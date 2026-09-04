@@ -1,0 +1,44 @@
+[
+ {
+  "label": "author",
+  "cost_usd": 2.1333,
+  "turns": 22,
+  "seconds": 490.9,
+  "session": "4a17c6c1-970d-4a45-b32e-4d6a8dcf14b8"
+ },
+ {
+  "label": "build-oracle",
+  "cost_usd": 4.8015,
+  "turns": 59,
+  "seconds": 585.6,
+  "session": "7ee60542-5b4c-43ac-9ef7-165703c3486d"
+ },
+ {
+  "label": "split",
+  "cost_usd": 0.3866,
+  "turns": 5,
+  "seconds": 153.6,
+  "session": "47057679-2d85-4f5d-8d69-93ab03cfa3a5"
+ },
+ {
+  "label": "split",
+  "cost_usd": 0.4118,
+  "turns": 3,
+  "seconds": 213.2,
+  "session": "d2d5ad97-5ec5-4ffd-b5be-601e0bdd0305"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 5.3379,
+  "turns": 54,
+  "seconds": 732.0,
+  "session": "f4a476db-c9a7-4da5-8cfc-4aeb42e5b72e"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 4.8523,
+  "turns": 56,
+  "seconds": 975.1,
+  "session": "f8b45749-d345-4661-a7a1-57868092176f"
+ }
+]

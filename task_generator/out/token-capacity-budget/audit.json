@@ -1,0 +1,683 @@
+[
+ {
+  "key": "g10.r1.rule",
+  "req": 1,
+  "field": "rule",
+  "verdict": "narrow",
+  "divergent_action": "In `capacity_budget.py`, a module-level `CAPACITY_DEBT_FLOOR_FRACTION: float = 0.25`, and in the tracker a floor applied to the *result* of a settlement rather than a clamp at zero: under `combined`, `self.available_token_capacity = max(new_value, -self.max_tokens_per_minute * CAPACITY_DEBT_FLOOR_FRACTION)` (a `float`), and under `seperate` a per-axis `max(axis_value, math.ceil(-limit_axis * CAPACITY_DEBT_FLOOR_FRACTION))` (an `int`), run at the end of `consume_capacity` and of the release path. The blind agent writes one of exactly two other things: no clamp at all (`self.available_token_capacity += blocked.total - used.total`, landing on `-500.0`) or the reflexive non-negativity clamp `max(0.0, ...)` (landing on `0.0`). Both are named and excluded by the test's own comment: \"not -500.0 (no floor), not -1000.0 (floor at -limit), not 0.0 (floor at zero)\". No blind agent invents the identifier `CAPACITY_DEBT_FLOOR_FRACTION` or the value 0.25.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket describes the pre-existing state as \"ad-hoc rate-limit bookkeeping\" being replaced; the openly-stated contract for the settlement is only \"`free_capacity` settles the token axes by `blocked - used` (per axis under `seperate`, `blocked.total - used.total` under `combined`)\", with no floor, no debt concept and no clamp counter anywhere. There is nothing in the existing tree to inherit a -25 % floor from."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "For this field the requirement is a positive action, not a restraint. Inaction (no clamping) yields `-500.0` and the deciding assertion `t.available_token_capacity == -250.0` fails. (Note the sibling `exclusions` IS largely inaction-satisfied \u2014 once the counter increments only inside the floor branch, `clamp_count(refilled) == 0`, `clamp_count(released) == 0` and `clamp_count(settled) == 0` come free \u2014 but that is a different field.)"
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "0.25 is arbitrary. There is no published convention for a rate-limiter debt floor at a quarter of the per-minute limit, and no library default named `CAPACITY_DEBT_FLOOR_FRACTION`. Prior knowledge pushes the other way: the standard token-bucket convention is a floor at zero, which the test explicitly rejects."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The visible ticket never mentions negative capacity, debt, a floor, a fraction or a clamp counter. Its only nearby wording is \"`free_capacity` settles the token axes by `blocked - used`\" and \"An axis whose capacity is `None` is read, skipped and left `None`\". The \"Out of scope\" list does not mention it either, so nothing hints that a floor exists to be found."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The whole open feature \u2014 reading, normalisation, `has_capacity`/`consume_capacity`/`free_capacity`, `CapacityExceedsLimitError`, `_reserve_capacity` \u2014 is fully implementable with either an unclamped settlement or a clamp at zero. The floor is orthogonal to every openly stated behaviour; nothing in A forces it."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The two most natural implementations are precisely the two the test rules out. An engineer who thinks about it at all writes `max(0.0, ...)` for a capacity bucket; one who does not writes a bare `+=`. Landing on exactly `-250.0` requires having been told the fraction."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The over-settlement is reachable and the test reaches it directly: `t.free_capacity(used=T(input=1000, output=500), blocked=T(input=700, output=100))`. (The sibling `scope`'s clause \"`available_request_capacity` is never floored because it is only decremented after a successful `has_capacity`\" IS unreachable-by-construction \u2014 the request bucket cannot go negative, so floored and unfloored are indistinguishable \u2014 which is why `test_scope` had to substitute a different, r2-owned observable for it.)"
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "r1.rule is consistent with r1.scope/exclusions/observability and with r2. Nothing the floor guarantees makes another fact's failure branch unreachable; `exclusions` deliberately exercises the above-floor case (`settled.available_token_capacity == 100.0`) that the floor leaves alone."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The consequence is the bucket value itself and it is read directly by the deciding assertion. -250.0 vs -500.0 vs 0.0 are three different resting states with three different subsequent refill behaviours; nothing downstream flattens them."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "`test_rule` hard-asserts `assert t.available_token_capacity == 200.0` before the settlement. That is `consume_capacity` correctness \u2014 an openly stated behaviour the docstring itself says is \"graded in `test_open`\". The test author neutralised the seeding fact via `seed_full` (\"so that an agent who got the debt floor right and the seeding wrong loses one fact rather than two\") but then re-introduced the same double-jeopardy one line later for consume. A tree with a perfect floor loses r1.rule if `consume_capacity` deviates at all \u2014 e.g. if it calls `update_capacity()` first and the default `capacity_clock=time.time` refills a fraction of a token."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "r1.rule is strictly entailed by r1.scope. `test_scope`'s first block is itself a *combined* tracker: `defaulted.free_capacity(...)` then `assert defaulted.available_token_capacity == -25000.0` on a 100_000 limit. That single assertion already pins the fraction at 0.25, the combined-axis float, and the placement of the floor at the end of the settlement. Any tree that passes `scope` necessarily passes `rule`; only the converse can fail (flooring against the pre-normalisation limit). Given scope, rule adds only `assert fraction == 0.25` \u2014 and scope already requires the constant to exist via `require_feature(has_floor_constant(), ...)`."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Everything is a finite, synchronous, single-call assertion on a value. No \"always\"/\"never\"/\"forever\" phrasing, no waiting, no timeout; `test_rule` does not even touch the clock."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "One in-process object constructed directly: `tracker(max_requests_per_minute=60, max_tokens_per_minute=1_000)`, two method calls, one attribute read. No network, no subprocess, no restart, no concurrency."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger \u2014 an under-estimate discovered at settlement \u2014 is supplied as ordinary arguments (`used=T(input=1000, output=500)` vs `blocked=T(input=700, output=100)`), not by a double. The injected `Clock` appears only in `test_exclusions`, where it drives the refill whose *reaction* (no clamp) is what is graded, which is the legitimate use."
+   }
+  ],
+  "the_assertion": "`assert t.available_token_capacity == -250.0` (with `assert fraction == 0.25` as a prerequisite gate). Yes, it depends on more than this requirement: (a) on `consume_capacity`, which the test asserts against separately at `assert t.available_token_capacity == 200.0` \u2014 an openly stated, `test_open`-graded behaviour; (b) on the open ticket's settlement direction `blocked - used` under `combined`; (c) on `__post_init__` shape coercion, partially neutralised by `seed_full`. It does NOT depend on r2 (test_rule makes no `available_request_capacity` assertion) \u2014 that coupling lives in `test_scope`, whose `assert defaulted.available_request_capacity == 59.0` and `assert sep.available_request_capacity == 59.0` are true only under r2.rule's split of settlement from refund.",
+  "blind_pass": null,
+  "correct_fail": "A tree with a textbook-correct debt floor whose `consume_capacity` refills before spending \u2014 the ticket forbids this only for `has_capacity` (\\\"The check runs **before** `update_capacity()`\\\"), never for `consume_capacity`:\n\n```python\ndef consume_capacity(self, token_estimate: _TokenUsage) -> None:\n    self.update_capacity()          # refill before spending; the ticket never forbids it\n    if self.available_token_capacity is not None:\n        if self.token_limit_strategy == TokenLimitStrategy.combined:\n            self.available_token_capacity -= token_estimate.total\n        else:\n            self.available_token_capacity = _TokenUsage(\n                input=self.available_token_capacity.input - token_estimate.input,\n                output=self.available_token_capacity.output - token_estimate.output,\n            )\n    if self.available_request_capacity is not None:\n        self.available_request_capacity -= 1\n    self._apply_debt_floor()        # exactly -CAPACITY_DEBT_FLOOR_FRACTION * limit\n```\n\nThe floor is right and the settlement lands on exactly `-250.0`, but the bundled prerequisite `assert t.available_token_capacity == 200.0` sees `200.0000031\u2026` because `update_capacity` refilled `1000 * elapsed / 60` against the default `capacity_clock=time.time`, and r1.rule is lost for a reason that belongs to `test_open`. This is conditional on `tracker()` in `test_open.py` not injecting a frozen clock by default \u2014 I could not read that helper. If it does inject one this specific route is closed, but the double-jeopardy on `consume_capacity` (any other deviation in it fails r1.rule too) stands regardless.",
+  "recommendation": "Narrow `rule` so it measures the floor and nothing else, and so it stops being a subset of `scope`.\n\n1. Delete the prerequisite `assert t.available_token_capacity == 200.0` from `test_rule`, or replace it with a re-seed (`t.available_token_capacity = 200.0`) in the same spirit as `seed_full`. As written it re-grades `consume_capacity`, which `test_open` owns.\n\n2. Give `rule` content that `scope` does not already imply, or merge the two. `test_scope`'s `defaulted.available_token_capacity == -25000.0` is itself a combined-axis case and already pins the 0.25 fraction, so `rule` is currently free once `scope` passes. Two candidates for genuinely independent content: assert the combined axis is a `float` and the `seperate` axes are `int` (`isinstance(t.available_token_capacity, float)`; `all(isinstance(v, int) for v in (c.input, c.output))`), which no other test checks; and exercise the floor at the end of `consume_capacity` \u2014 a consume that alone drives the bucket past the floor \u2014 which `scope`, `exclusions` and `observability` never do even though the fact says the floor is \"applied at the end of `consume_capacity`\".\n\n3. Fix the answer key. The fact says the case ends at `-250.0` \"(not `-700.0`, not `0.0`)\". `-700` is the delta; the unfloored result is `-500.0`, as the test's own comment says. Correct the fact text and any clue that repeats the number.\n\n4. Move the two r2-owned assertions out of `test_scope`: `assert defaulted.available_request_capacity == 59.0` and `assert sep.available_request_capacity == 59.0` hold only under r2.rule's settlement/refund split, so an agent who found the debt-floor clue but not the release-split clue loses r1.scope for an r2 reason. If `scope` needs to say something about the request bucket, assert only `>= 0` or drop the clause \u2014 \"never floored\" is unobservable anyway, since `has_capacity` gating means the request bucket can never reach a floor.\n\n5. Reword r1.rule's \"applied at the end of `consume_capacity` and of both release operations\": \"both release operations\" presupposes r2's two-method split and leaks it, while r1's own test only ever calls `free_capacity`. Say \"at the end of `consume_capacity` and of every operation that adds capacity back\"."
+ },
+ {
+  "key": "g10.r1.scope",
+  "req": 1,
+  "field": "scope",
+  "verdict": "narrow",
+  "divergent_action": "Under `seperate`, computing each axis's floor from that axis's own normalised limit \u2014 `math.ceil(-limit.input * CAPACITY_DEBT_FLOOR_FRACTION)` and `math.ceil(-limit.output * ...)` \u2014 rather than one floor from `limit.total` (which would give -375/-375 instead of -250/-125). That is the whole of the divergence. The other half of the fact (\"effective, i.e. post-`__post_init__`, limit\") names no divergent code at all: at settle time `self.max_tokens_per_minute` IS the effective limit, because `__post_init__` overwrote `0` with `DEFAULT_MAX_TOKENS_PER_MINUTE_COMBINED` in place; an agent would have to deliberately stash the constructor argument (`self._raw_limit = max_tokens_per_minute`) to fail it, and nothing in the ticket invites that.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The capacity-budget module and the debt floor are both new (\"New module `src/bespokelabs/curator/status_tracker/capacity_budget.py`\"); there is no pre-existing floor for a blind agent to inherit. The existing tree has no `CAPACITY_DEBT_FLOOR_FRACTION` and the free bracket confirms an untouched checkout fails."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Two of scope's clauses are satisfied by doing nothing extra. \"An axis whose limit and capacity are `None` has no floor and stays `None`\" is already the open ticket's rule \u2014 \"An axis whose capacity is `None` is read, skipped and left `None` by all of these\" \u2014 so the `if limit is None: return` guard the agent already wrote for the open feature satisfies it. \"`available_request_capacity` is never floored\" likewise requires writing no code: nobody floors a bucket they were never told to floor."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "0.25 as a debt-floor fraction is an invented policy, not a documented convention. But note this belongs to r1.rule, not to scope; scope adds no fact a model could know or not know."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "Everything in scope except the existence of a floor is stated openly. The ticket already specifies \"A limit of `0` \u2026 is replaced by the matching `DEFAULT_*` constant axis by axis\", the `combined`/`seperate` shape coercion, and \"An axis whose capacity is `None` is read, skipped and left `None`\". `test_scope` even asserts the open facts directly: `assert defaulted.max_tokens_per_minute == 100_000` and `assert unlimited.available_token_capacity is None`."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "Conditioned on the sibling r1.rule (\"each axis is floored at `-CAPACITY_DEBT_FLOOR_FRACTION * limit`\"), the open feature supplies the only limit in existence. Because `__post_init__` mutates `self.max_tokens_per_minute` in place, `-0.25 * self.max_tokens_per_minute` at settle time is necessarily the effective limit \u2014 there is no alternative implementation of rule that omits scope, except the `.total`-vs-per-axis slip."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The natural floor helper is `floor = -self.max_tokens_per_minute * CAPACITY_DEBT_FLOOR_FRACTION`. It reads the normalised field because that is the only field there is, and under `seperate` a per-axis loop (`for axis in ('input','output')`) is the obvious shape since the ticket already forces per-axis arithmetic everywhere else (\"Under `seperate` the refill increment is `math.floor(limit_axis * elapsed / 60.0)`\")."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Every state scope names is constructible directly: `tracker(max_tokens_per_minute=0)`, `tracker(..., seperate, _TokenUsage(input=1_000, output=500))`, `tracker(max_tokens_per_minute=None)`. The test builds all three in-process with no network and no sleep."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling's rule makes scope's fixtures unreachable; r1.rule's floor is what scope depends on, not what blocks it."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The floor value is a plain field read (`available_token_capacity == -25000.0`); nothing downstream masks it."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "Twice. (a) The deciding channel, `available_token_capacity` landing on a fraction of the limit, is r1.rule's own observable \u2014 `test_rule` already asserts `t.available_token_capacity == -250.0`. (b) `assert defaulted.available_request_capacity == 59.0` and `assert sep.available_request_capacity == 59.0` are read AFTER a `free_capacity` call, which makes them assertions about r2.rule (\"`available_request_capacity` is left exactly as `consume_capacity` left it\") and about where the `-1` lives \u2014 neither is r1.scope's content."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "Scope is r1.rule evaluated on two more fixtures. Strip the open-ticket assertions and the r2 assertions and what remains is `-25000.0` (= rule's `-0.25 * limit` on a limit the open ticket already fixed at 100_000) and `(-250, -125, -375)` (= rule's `math.ceil(-limit*0.25)` \"for each `seperate` axis\", verbatim). Only the `.total`-vs-per-axis disambiguation is new."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"`available_request_capacity` is never floored\" reads as unbounded but is a finite structural claim the test checks with one equality (`== 59.0`); there is no timeout or waiting."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, injected clock, direct construction \u2014 \"No network, no real `asyncio.sleep` waits\"."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The `Clock` stub is not even used in `test_scope`; the trigger (an over-settlement) is produced by real calls to `consume_capacity`/`free_capacity`."
+   }
+  ],
+  "the_assertion": "`assert token_axes(sep.available_token_capacity) == (-250, -125, -375)` \u2014 the only assertion whose failure is uniquely scope's. Yes, it depends on other requirements: it cannot pass unless r1.rule's floor exists at all (`CAPACITY_DEBT_FLOOR_FRACTION`, applied in `free_capacity`), and the same test's other assertions depend on the open ticket's `0` \u2192 `100_000` defaulting, on the open `None`-axis skip rule, and \u2014 via `assert defaulted.available_request_capacity == 59.0` after a `free_capacity` \u2014 on r2.rule.",
+  "blind_pass": null,
+  "correct_fail": "A tree with a textbook-correct debt floor that fails `test_scope` on where the request slot is spent. r1.scope itself says the request bucket \"is only decremented after a successful `has_capacity`\", and the open ticket never says `consume_capacity` touches the request axis \u2014 it only says `_reserve_capacity` \"on `False` \u2026 returns `None` having consumed nothing, neither tokens nor the request slot\". So this is a legitimate reading:\n\n```python\n# tracker\ndef consume_capacity(self, token_estimate: _TokenUsage) -> None:\n    \"\"\"Spend the token axes; the request slot is spent by the reserver.\"\"\"\n    self._spend_tokens(token_estimate)\n    self._apply_debt_floor()          # r1.rule/scope, per axis, effective limit\n\n# processor\ndef _reserve_capacity(self, status_tracker, messages):\n    estimate = self.estimate_total_tokens(messages)\n    if not status_tracker.has_capacity(estimate):\n        return None\n    status_tracker.consume_capacity(estimate)\n    if status_tracker.available_request_capacity is not None:\n        status_tracker.available_request_capacity -= 1   # only after a successful has_capacity\n    return estimate\n```\n\nThis lands on `-25000.0` and `(-250, -125, -375)` exactly, and still fails `test_scope` at `assert defaulted.available_request_capacity == 59.0` (it is `60.0`, because the test calls `t.consume_capacity(...)` directly and never goes through `_reserve_capacity`). A second variant fails the same line for an r2 reason: an agent who has `free_capacity` return the request slot has a perfect r1 and still reads `60.0`.",
+  "recommendation": "Narrow the fact and the test to the one thing that is not a restatement of r1.rule or of the open ticket: the per-axis floor under `seperate`.\n\nIn `test_scope__the_floor_follows_the_normalised_limit_of_each_axis`, delete:\n- `assert defaulted.available_request_capacity == 59.0` and `assert sep.available_request_capacity == 59.0` \u2014 these grade r2.rule and an unstated choice about whether the `-1` lives in `consume_capacity` or in `_reserve_capacity`, and they fail a correct r1 implementation (see correct_fail);\n- the `unlimited = tracker(...)` block \u2014 \"an axis whose capacity is `None` is read, skipped and left `None` by all of these\" is an openly stated ticket fact already graded in `test_open`;\n- `assert defaulted.max_tokens_per_minute == 100_000` and `assert defaulted.available_token_capacity == 0.0` \u2014 open-ticket normalisation and seeding, likewise already graded.\n\nKeep `defaulted.available_token_capacity == -25000.0` (cheap, and it is the one place \"effective limit\" is nominally observable) and make `token_axes(sep.available_token_capacity) == (-250, -125, -375)` the deciding assertion, with the fact's wording reduced to: \"under `seperate` each axis is floored against its own normalised limit, not against `limit.total`.\" Also add the discriminator that currently has no test \u2014 a `seperate` tracker built with `max_tokens_per_minute=_TokenUsage(input=0, output=500)`, where only the input axis defaults, so the floors are `-25000` and `-125` \u2014 otherwise the `.total`-based implementation is the only wrong answer the fact can catch and the fact stays thin. If you are unwilling to add that, cut scope and fold the `seperate` fixture into `test_rule`, which already owns this observable."
+ },
+ {
+  "key": "g10.r1.exclusions_or_crossover",
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "verdict": "retest",
+  "divergent_action": "There is no divergent action unique to this fact against a BLIND agent \u2014 the blind agent writes neither `CAPACITY_DEBT_FLOOR_FRACTION` nor `num_capacity_debt_clamps`, so it dies on `require_feature(has_floor_constant() and has_clamp_counter(probe), ...)`, which is r1.rule's and r1.observability's artifacts, not this one's. The only divergence this fact owns is INSIDE the clue-seeing population: an agent who factors clamping as one shared helper \u2014 `def _clamp(self, v, lo, hi): c = min(max(v, lo), hi); if c != v: self.num_capacity_debt_clamps += 1; return c` \u2014 called from the refill path, the release path and the floor path, versus an agent who increments only in the floor path (`floored = max(new, -limit * CAPACITY_DEBT_FLOOR_FRACTION); if floored != new: self.num_capacity_debt_clamps += 1`) and uses a bare `min(new, limit)` for the ceiling. That is the whole measurable delta, and the sibling-supplied field name \"debt clamps\" already steers agents away from the shared-helper version.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "`capacity_budget.py` is a new module and `num_capacity_debt_clamps` is a new field; the existing ad-hoc rate-limit bookkeeping has no clamp counter to inherit. Nothing is gotten for free by not touching a path."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "This is the strongest hit. The fact is stated as a must-NOT: 'the refill ... capping an axis at its limit, and a release capping an axis at its limit, leave the clamp counter untouched.' The ceiling caps come from the OPEN ticket ('refill is capped above at the limit') and are written as `min(new, limit)` before any counter exists; the counter is introduced later, bound to the floor. Incrementing on a ceiling cap requires deliberate extra work in a different code path. Doing nothing satisfies the rule, so the test never exercises restraint for the overwhelming majority of implementations."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "'Only debt clamps count toward num_capacity_debt_clamps' is not a published convention or documented default; it is a local naming decision. No prior-knowledge shortcut."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "Not the open ticket, but the sibling clue the informed agent necessarily has: r1.observability names the field `num_capacity_debt_clamps` and defines it as 'increments by exactly one per call that clamped at least one axis' in a requirement whose entire subject is the DEBT floor. Anyone with that field name has been told, in the identifier itself, that a ceiling cap is not a debt clamp. The exclusion adds nothing the naming has not already given away."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "r1.rule fixes the structure: the floor 'is applied at the end of `consume_capacity` and of both release operations.' Put the increment where the floor is applied \u2014 the only natural place \u2014 and the ceiling caps in `update_capacity` and the release, which are separate expressions from a separate (open) requirement, cannot possibly increment it. Once the floor is built as specified, the exclusion is not an additional choice."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The single most natural code is `available = min(available + refill, limit)` for the ceiling (open ticket) and a distinct floor step `if floored != raw: self.num_capacity_debt_clamps += 1` for the debt. Normal engineering instinct \u2014 increment the counter next to the thing it is named after \u2014 passes all three scenarios without anyone intending the exclusion."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": true,
+    "why": "The `released` scenario constructs `released.free_capacity(used=T(0,0), blocked=T(700,100))` on a bucket the tracker seeded full at 1000.0 with no prior `consume_capacity`. In the real flow `_reserve_capacity` always consumes before `handle_single_request_with_retries` settles, and it settles against the very estimate it consumed, so a settlement can never push an axis above its limit. The ceiling-cap-on-release behaviour this half of the fact grades is unreachable through the codebase's own path and exists only under direct construction."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": true,
+    "why": "Flagging this as a specification conflict rather than a literal unreachable-branch conflict. r2.rule says the refund 'gain[s] the whole `blocked` estimate back (capped above at the limit)' and contrasts it with the settlement, described as 'the token axes gain `blocked - used`' with no cap mentioned. An agent reading both siblings has positive reason to write an UNCAPPED settlement \u2014 and then fails this test's `assert released.available_token_capacity == 1000.0`. One sibling's wording steers a correct agent into the other's failure."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The counter is diagnostic and nothing in the request path reads it, but a counter is a legitimate exact observable and a wrong value is directly assertable. Not fatal-either-way."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "`num_capacity_debt_clamps` is declared by r1.observability ('A tracker field `num_capacity_debt_clamps: int = 0` increments by exactly one per call that clamped at least one axis'). This fact has no channel of its own; `clamp_count()` is r1.observability's channel, and `require_feature(...has_clamp_counter...)` makes the fact ungradable unless that sibling was implemented. Grading here double-counts observability."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "Scenario three \u2014 'a settlement whose result stays above the floor ... leaves the counter at `0`' \u2014 is the exact contrapositive of observability's 'increments by exactly one per call that CLAMPED at least one axis.' No clamp, no increment. It cannot fail without observability failing. Only the refill-ceiling scenario carries content the neighbour does not already assert."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "'leave the clamp counter untouched' is a finite, single-call assertion; the test observes three bounded operations with an injected clock. No 'always'/'never'/'forever' horizon."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, direct `OnlineStatusTracker` construction, injected `Clock`, no network, no restart or cross-worker state. The harness builds this trivially."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`clock.now = 1060.0` does decide when the refill overshoots the ceiling, but the requirement is about the REACTION (counter untouched), not about when or how often the ceiling is hit, and the injectable clock is an openly stated part of the ticket. Legitimate use of a fake."
+   }
+  ],
+  "the_assertion": "`assert clamp_count(refilled) == 0` (after `clock.now = 1060.0; refilled.update_capacity()` caps the bucket at 1000.0). It is the only assertion in the test that is exclusion-specific. Passing or failing it depends on much besides this requirement: on r1.rule (`has_floor_constant()` must be true or the gate fires), on r1.observability (`has_clamp_counter()` must be true, and the counter must exist and start at 0), and on the OPEN ticket's `update_capacity` refill capping at the limit. The other two `clamp_count(...) == 0` assertions are worse \u2014 `clamp_count(released) == 0` is preceded by `assert released.available_token_capacity == 1000.0`, which grades an unstated ceiling cap in `free_capacity`, and `clamp_count(settled) == 0` is r1.observability's contrapositive.",
+  "blind_pass": null,
+  "correct_fail": "A settlement with a debt floor but no ceiling cap \u2014 the reading r2.rule invites by capping the refund and pointedly not capping the settlement:\n\n```python\ndef free_capacity(self, used: _TokenUsage, blocked: _TokenUsage) -> None:\n    self.num_capacity_settlements += 1\n    if self.available_token_capacity is None:\n        return\n    if self.token_limit_strategy == TokenLimitStrategy.combined:\n        # a settlement only returns what was reserved and not spent; it has no\n        # reason to rise above the limit, so only the debt floor is applied\n        new = self.available_token_capacity + float(blocked.total - used.total)\n        floor = -float(self.max_tokens_per_minute) * CAPACITY_DEBT_FLOOR_FRACTION\n        if new < floor:\n            new = floor\n            self.num_capacity_debt_clamps += 1\n        self.available_token_capacity = new\n    else:\n        ...  # per-axis, same shape, math.ceil floor, one increment per call\n```\n\nThis satisfies r1.rule (`-250.0` on the worked case), r1.scope (`-25000.0` defaulted, `(-250, -125, -375)` under `seperate`), r1.observability (one increment per clamping call, two calls -> 2) and the whole open ticket, which never says `free_capacity` caps above. It fails this fact on `assert released.available_token_capacity == 1000.0`, landing on `1800.0` \u2014 in a state (`used=0` against a full, never-consumed bucket) the processor cannot produce.",
+  "recommendation": "Retest, narrowed to the one measurement the fact actually owns.\n\n1. Delete the `released` scenario entirely (`released.free_capacity(used=T(0,0), blocked=T(700,100))` and both of its assertions). It grades a ceiling cap on `free_capacity` that appears in no visible ticket, is contradicted by the natural reading of r2.rule, and describes a state the processor flow cannot reach. If you want release-caps-at-ceiling graded, state it in the open ticket next to \"refill is capped above at the limit\" and assert it in `test_open`, not here.\n\n2. Delete the `settled` scenario. `settled.free_capacity(used=T(700,200), blocked=T(700,100))` -> `100.0`, counter `0` is the contrapositive of r1.observability's \"increments by exactly one per call that clamped at least one axis\" and cannot fail independently of it.\n\n3. Keep only the refill scenario, and restate the fact to match: \"the ceiling cap in `update_capacity` is not a debt clamp \u2014 a refill that saturates an axis at its limit leaves `num_capacity_debt_clamps` at `0`.\" That is the one thing a shared `_clamp(value, lo, hi)` implementation gets wrong.\n\n4. Accept that even so this fact is gated behind r1.rule and r1.observability via `require_feature`, so it can never fail alone and it is a prohibition satisfied by inaction for any agent who puts the increment beside the floor. If the bracket needs facts that discriminate independently, this is the r1 sub-fact to cut rather than the one to keep \u2014 cutting it costs r1 nothing, since rule, scope and observability already carry the discriminating content."
+ },
+ {
+  "key": "g10.r1.observability",
+  "req": 1,
+  "field": "observability",
+  "verdict": "retest",
+  "divergent_action": "The informed agent declares `num_capacity_debt_clamps: int = 0` on `OnlineStatusTracker` and, in the shared floor helper called at the end of `consume_capacity`/`free_capacity`/`refund_capacity`, hoists the increment out of the per-axis loop: `floored_in = max(math.ceil(-lim.input * CAPACITY_DEBT_FLOOR_FRACTION), raw_in); floored_out = max(math.ceil(-lim.output * CAPACITY_DEBT_FLOOR_FRACTION), raw_out); if floored_in != raw_in or floored_out != raw_out: self.num_capacity_debt_clamps += 1` \u2014 one `+= 1` guarded by an `or` across axes, rather than an increment inside a `_floor_axis()` helper invoked once per axis. The blind agent writes neither the field nor any floor at all: the ticket's `free_capacity` is specified as \"settles the token axes by `blocked - used`\" with no lower bound and no counter anywhere in the tracker field list.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket enumerates the tracker's fields exhaustively (`max_tokens_per_minute`, `max_requests_per_minute`, `available_request_capacity`, `available_token_capacity`, new `capacity_clock`, new `token_limit_origin`/`request_limit_origin`) and no counter appears. The only pre-existing counters (`num_rate_limit_errors`) are explicitly \"Out of scope\". Nothing in the tree increments on a floor because the tree has no floor."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "This is a positive obligation \u2014 a field must exist and must increment. Inaction yields no attribute at all, and `clamp_count()` reads three spellings, none of which would resolve."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "`num_capacity_debt_clamps` and the 25 % debt floor are invented for this task; there is no published convention to recall. The weak prior in play \u2014 'count the event, not its parts' \u2014 is a style instinct, not a documented default, and it is contradicted by the equally natural instinct to increment inside the per-axis helper you already wrote."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The words debt, floor, clamp, negative and counter do not occur in the ticket. The ticket's closest statement is the opposite: \"`free_capacity` settles the token axes by `blocked - used` (per axis under `seperate`, `blocked.total - used.total` under `combined`)\" \u2014 no bound, no bookkeeping."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature (reserve/consume/settle through an injected clock) is complete and passes `test_open` with no floor and no counter. The counter is pure bookkeeping; nothing in the reservation loop `while (token_estimate := self._reserve_capacity(...)) is None` reads it."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The opposite, and this is the fact's main source of signal: once you have a floor you write it per axis (`sep` needs `math.ceil(-limit * 0.25)` per axis), so the obvious place for `+= 1` is inside that per-axis helper, which yields `2` and fails. Flagged as a residual risk in the other direction: this means the clue must say 'per call, not per axis' in so many words, or an informed agent loses the fact on a coin flip. I could not read the clue set to confirm it does."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The state is constructed directly: `sep.free_capacity(used=T(input=2000, output=1000), blocked=T(input=700, output=100))` drives both axes below their floors in one call, in-process, no provider."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling forbids the counted state. Adjacent oddity, not a contradiction: r1.rule says the floor is applied 'at the end of `consume_capacity` and of both release operations', but r2's `refund_capacity` only adds capacity capped above at the limit, so the floor can never fire there \u2014 that half of the rule is inert rather than conflicting."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Strictly, incrementing the counter changes no capacity decision \u2014 `has_capacity`, `consume_capacity` and `_reserve_capacity` never read it, so a run behaves identically with a wrong count. But it is directly observable by construction, which is what an observability fact is for; the rubric's pattern is about outcomes that are fatal one layer down either way, and that does not apply."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The counter is also the entire content and sole observable of the sibling r1.exclusions_or_crossover \u2014 'leave the clamp counter untouched', 'leaves the counter at `0`' \u2014 and `test_exclusions` gates on it: `require_feature(has_floor_constant() and has_clamp_counter(probe), \"a capacity debt floor with a clamp counter\")`. An agent who implements the debt floor correctly but adds no counter field loses two of r1's four facts on one omission. The test's own docstring concedes the sharing ('`exclusions` and `observability` read the counter') rather than resolving it."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "It is not a restatement: 'one increment per call, not per axis' is decided only here (`clamp_count(sep) == 1` where per-axis gives 2), and 'the upper cap is not a clamp' is decided only in exclusions (`refilled`/`released` capping at 1000.0 with `clamp_count == 0`). The two are separable in both directions despite the shared field."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Finite and bounded: three synchronous calls, two exact integer assertions, no waiting, no `asyncio.sleep`."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, direct construction via `tracker(...)`, no network, no restart, no concurrency. The default `time.time` clock is used here but the values are ~5000 below the floors, so a slow run cannot flip a count."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "No double is involved in this test \u2014 `Clock` is injected only in the exclusions refill case. The trigger (a settlement whose delta drives axes below the floor) is produced by real arguments to the real method."
+   }
+  ],
+  "the_assertion": "`assert clamp_count(sep) == 1` \u2014 after `sep.free_capacity(used=T(input=2000, output=1000), blocked=T(input=700, output=100))` floors both axes in one call. Yes, it depends on more than this fact: it can only reach 1 if r1.rule's floor exists *and* is applied inside `free_capacity`, so an agent who adds a correct per-call counter but applies the floor only in `consume_capacity` reads 0 and fails this fact for a rule-fact error. The coupling is partial rather than total \u2014 a floor-at-zero implementation loses `rule` and `scope` yet still yields 1 then 2 here \u2014 so the fact does retain independent signal.",
+  "blind_pass": null,
+  "correct_fail": "```python\ndef _apply_debt_floor(self) -> None:\n    cap, lim = self.available_token_capacity, self.max_tokens_per_minute\n    if cap is None or lim is None:\n        return\n    was_saturated = self._at_debt_floor          # set at the end of the previous call\n    if isinstance(cap, _TokenUsage):\n        fin = math.ceil(-lim.input * CAPACITY_DEBT_FLOOR_FRACTION)\n        fout = math.ceil(-lim.output * CAPACITY_DEBT_FLOOR_FRACTION)\n        now_saturated = cap.input < fin or cap.output < fout\n        self.available_token_capacity = _TokenUsage(\n            input=max(fin, cap.input), output=max(fout, cap.output)\n        )\n    else:\n        floor = -lim * CAPACITY_DEBT_FLOOR_FRACTION\n        now_saturated = cap < floor\n        self.available_token_capacity = max(floor, cap)\n    # a call \"clamped\" when it drove an axis into debt saturation; an axis already\n    # resting on its floor is not clamped again by a further over-settlement\n    if now_saturated and not was_saturated:\n        self.num_capacity_debt_clamps += 1\n    self._at_debt_floor = now_saturated\n```\nThis satisfies the fact as written \u2014 \"increments by exactly one per call that clamped at least one axis\", one per call and not per axis, and the `seperate` double-floor case yields exactly 1 \u2014 and it matches the rule's framing that the floor is what happens when \"a settlement discovers an under-estimate\". It fails only the final assertion, `assert clamp_count(sep) == 2`, because the second settlement re-clamps axes that were already resting on `(-250, -125)`. Nothing in the fact statement says a re-clamp of an already-floored axis counts; the test grades that unstated semantic, and it is compounded by `blocked=T(input=0, output=0)` \u2014 a settlement of a reservation that was never made, a shape no path through `handle_single_request_with_retries` can produce.",
+  "recommendation": "Retest \u2014 keep the fact, fix the last assertion. (1) Make the second increment come from an unsaturated state instead of a re-clamp: insert `seed_full(sep)` (or build a second fresh `seperate` tracker) before the final settlement, and give it a real reservation \u2014 e.g. `sep.consume_capacity(T(input=700, output=100))` then `sep.free_capacity(used=T(input=5000, output=5000), blocked=T(input=700, output=100))` \u2014 so `clamp_count(sep) == 2` tests \"a second clamping call is a second increment\" without also deciding whether re-clamping an already-floored axis counts and without a `blocked=T(0,0)` settlement. If the intent really is that a re-clamp counts, say so in the fact text and in the clue; do not leave the test to legislate it. (2) Decouple the double-count with r1.exclusions_or_crossover: exclusions is gated on `has_clamp_counter`, so one missing field costs two facts. Either give exclusions an observable of its own (assert the capped values `1000.0` and the untouched `available_request_capacity` as its decider, with the counter as a secondary check) or fold exclusions' counter clauses into this fact. (3) Before shipping, confirm the clue states \"one per call, not per axis\" explicitly \u2014 the natural implementation increments inside the per-axis floor helper and returns 2, so without that wording an informed agent fails this fact on a coin flip."
+ },
+ {
+  "key": "g10.r2.rule",
+  "req": 2,
+  "field": "rule",
+  "verdict": "retest",
+  "divergent_action": "The informed agent adds a FOURTH tracker capacity operation and a SECOND processor delegate that the ticket's exhaustive API list does not contain:\n\n```python\n# OnlineStatusTracker\ndef refund_capacity(self, blocked: _TokenUsage) -> None:\n    self.num_capacity_refunds += 1\n    if self.available_request_capacity is not None:\n        self.available_request_capacity = min(\n            float(self.max_requests_per_minute),\n            self.available_request_capacity + 1.0,\n        )\n    ...  # token axes gain the WHOLE blocked estimate, capped at the limit\n\n# BaseOnlineRequestProcessor\ndef _refund_capacity(self, status_tracker, blocked_capacity) -> None:\n    status_tracker.refund_capacity(blocked_capacity)\n```\nand calls `self._refund_capacity(status_tracker, token_estimate)` in the `except Exception` branch.\n\nThe blind agent writes, in that same branch, `self._free_capacity(status_tracker, _TokenUsage(input=0, output=0), token_estimate)` \u2014 full tokens back, `available_request_capacity` left at 59.0 \u2014 because the ticket says `free_capacity` \"settles the token axes by `blocked - used`\" and never mentions the request slot, while already demanding release on all three terminal paths. The concrete divergence is the `+ 1.0` on `available_request_capacity` and the separate method carrying it.",
+  "divergent_action_note": "n/a",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Asserted from the ticket text only \u2014 Bash was disabled and no file tools were exposed this session, so I could not read the upstream `curator` source. The ticket's own description of the code being replaced is token-only bookkeeping: `free_capacity` at line 584 and a dead `def free_capacity(self, tracker, tokens)` at line 312 with an 'empty body, no caller'. Nothing in the ticket describes any existing path that increments `available_request_capacity` back on failure. If the repo did contain such a path, this pattern would flip; that check is the one thing I could not perform."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The fact is entirely affirmative and requires deliberate new code: a new method, a `+ 1.0`, a `min(...)` cap, and a new call site. Doing nothing yields 59.0, which the test rejects with an explicit comment: `assert settled.available_request_capacity == 59.0     # NOT 60.0`."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention here, and the prior arguably runs the other way. A failed attempt was actually sent to the provider and consumed a real request against its per-minute quota, so 'the slot stays spent' is the defensible token-bucket instinct. The requirement picks the contrary policy ('`available_request_capacity` gains exactly `1.0`'), which is a team decision, not a documented default."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket enumerates the tracker's capacity operations exhaustively \u2014 '`def has_capacity(...)`, `def consume_capacity(...)`, `def free_capacity(self, used, blocked)`' \u2014 and the processor's as '`def _free_capacity(self, status_tracker, used_capacity, blocked_capacity) -> None` delegates to the tracker'. It says the reservation 'is released exactly once per attempt on every terminal path' but describes that release purely in token terms. The words 'refund', 'request slot' and 'gains exactly 1.0' appear nowhere."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is fully buildable with one release operation: call `_free_capacity(tracker, _TokenUsage(0,0), estimate)` on the failure paths and `_free_capacity(tracker, reported_usage, estimate)` on the success path. That satisfies 'released exactly once per attempt on every terminal path' with the token arithmetic the ticket specifies, and leaves the slot spent. A second operation is not the only way \u2014 it is not even the shorter way."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The most natural implementation reuses the one release method the ticket names. Adding a fourth capacity operation to a class whose API the ticket lists in full is an act of deliberate deviation from the spec in front of you. There is also no forcing function pushing an agent there: the drained slot refills through `update_capacity`, so no deadlock or visible symptom drives the discovery."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Every state the fact names is directly constructible. `test_rule` builds the tracker and calls the operations by hand, and the failure path is reached through the real coroutine via `make_response(\"length\", ...)` \u2014 `finish_reason=\"length\"` is in `config.invalid_finish_reasons`, which the ticket confirms is left unchanged."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling needs the slot to stay spent on failure. r1's debt floor touches only the token axes and r1.scope says outright '`available_request_capacity` is never floored because it is only decremented after a successful `has_capacity`'. Note the coupling runs one way only: r1.rule's phrase 'both release operations' presupposes r2's second method, so r1's test may be contaminated by r2 \u2014 but r2.rule's assertions involve no negative capacity and no floor, so r2 is clean."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The consequence is a directly-read field with two distinguishable values, 60.0 versus 59.0, and it is functionally real: refunding versus not refunding changes how many requests the processor may issue in the next minute."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "`rule`'s observable is the arithmetic of a single refund call (`available_request_capacity == 60.0` and `available_token_capacity == 10000.0`, plus the cap on a second call), read straight off the tracker. `scope`'s observable is WHICH coroutine exits release, `observability`'s is the counters, `exclusions`' is HOW MUCH comes back. `rule` does reuse the delegation leg that `scope` also exercises, but its first two blocks stand alone."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "`rule` establishes that two operations exist and differ; `scope` presupposes that and asks which code paths call which. Failing `rule` (no refund method at all) is distinguishable from failing `scope` (refund exists but the requeued branch forgets it), and `test_scope`'s `assert request.attempts_left == 0` pins that separate question."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "No 'always'/'never'/'forever' quantifier over time. Every clause is a single-call postcondition: 'gains exactly 1.0, capped above at `max_requests_per_minute`'. The test's window is three direct method calls and three coroutine invocations."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, no network, injected `capacity_clock`, one `pytest-asyncio` coroutine, sleeps avoided because `_reserve_capacity` succeeds on first try. The ticket's Tests section already commits to exactly this harness."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "For `rule` the trigger is a literal call the test writes itself, and the reaction under test is the real `OnlineStatusTracker` method. In the delegation leg, `StubProcessor` only supplies the five abstract methods and the estimate; `_reserve_capacity` and `_refund_capacity` are the real base-class implementations."
+   }
+  ],
+  "the_assertion": "`assert refunded.available_request_capacity == 60.0` \u2014 immediately after `refund_op(refunded)(T(input=600, output=200))`, contrasted against `assert settled.available_request_capacity == 59.0     # NOT 60.0`.\n\nIt depends on two things beyond this requirement. (1) The open ticket's `_reserve_capacity`/`consume_capacity` must decrement the request slot by exactly one, which the preceding `assert (refunded.available_request_capacity, refunded.available_token_capacity) == (59.0, 9200.0)` pins \u2014 that is open-feature behaviour, correctly a precondition rather than a confound. (2) More seriously, it is unreachable unless `refund_op` finds an attribute named `refund_capacity` or `refund`, since `refund_op` calls `pytest.fail` otherwise. So the gate is a name check first and the arithmetic second. It does not depend on any other HIDDEN requirement \u2014 not on r1's floor (no value goes negative), not on r2's counters.",
+  "blind_pass": null,
+  "correct_fail": "A fully correct implementation that the test rejects on naming alone \u2014 it takes the tracker name `refund_op` explicitly blesses, then names the processor delegate symmetrically:\n\n```python\n# OnlineStatusTracker \u2014 accepted by refund_op, which tries (\"refund_capacity\", \"refund\")\ndef refund(self, blocked: _TokenUsage) -> None:\n    self.num_capacity_refunds += 1\n    if self.available_request_capacity is not None:\n        self.available_request_capacity = min(\n            float(self.max_requests_per_minute), self.available_request_capacity + 1.0\n        )\n    if self.available_token_capacity is None:\n        return\n    if self.token_limit_strategy == TokenLimitStrategy.combined:\n        self.available_token_capacity = min(\n            float(self.max_tokens_per_minute),\n            self.available_token_capacity + blocked.total,\n        )\n    else:\n        self.available_token_capacity = _TokenUsage(\n            input=min(self.max_tokens_per_minute.input,\n                      self.available_token_capacity.input + blocked.input),\n            output=min(self.max_tokens_per_minute.output,\n                       self.available_token_capacity.output + blocked.output),\n        )\n\n# BaseOnlineRequestProcessor \u2014 mirrors free_capacity -> _free_capacity\ndef _refund(self, status_tracker: OnlineStatusTracker, blocked_capacity: _TokenUsage) -> None:\n    status_tracker.refund(blocked_capacity)\n```\n\nSemantics are exactly the requirement: whole estimate back, capped; slot `+1.0`, capped; settlement untouched; counters separate; `None` axes skipped. `test_rule` passes its first two blocks and then dies with `AttributeError: 'StubProcessor' object has no attribute '_refund_capacity'` on the hardcoded `proc._refund_capacity(delegated, blocked)`. The test concedes on line one of `refund_op` that the exact identifier is not what this fact is about, then contradicts itself four lines later \u2014 it punishes the direct consequence of a choice it just permitted.",
+  "recommendation": "Retest \u2014 keep the fact, fix the naming asymmetry in the test. The fact discriminates for a real reason (the `+1.0` on the request slot is invisible in the ticket, and the contrary policy is the defensible instinct), and I could not build a blind implementation that passes it.\n\nThe single change: add a delegate helper mirroring `refund_op` and use it instead of the hardcoded attribute.\n\n```python\ndef refund_delegate(proc):\n    \"\"\"The processor's failure release, which r2 names `_refund_capacity`.\"\"\"\n    for name in (\"_refund_capacity\", \"_refund\"):\n        fn = getattr(proc, name, None)\n        if callable(fn):\n            return fn\n    pytest.fail(\n        f\"{type(proc).__name__} has no refund delegate; the failure path cannot \"\n        \"reach the tracker's refund\"\n    )\n```\n\nthen in `test_rule`, replace `proc._refund_capacity(delegated, blocked)` with `refund_delegate(proc)(delegated, blocked)`. Either tolerate both names on both sides or neither \u2014 the current split is what fails a correct agent.\n\nTwo things I did not verify and would check before shipping. First, I had no repo access this session (Bash disabled, no file tools), so I could not confirm that nothing in the existing `handle_single_request_with_retries` already restores `available_request_capacity` on a retry; if it does, this fact collapses into `codebase_already_does_it` and becomes a cut. Second, confirm the world clue actually names `refund_capacity`/`_refund_capacity` rather than merely describing \"give the slot back\" \u2014 if it only describes the behaviour, the name gate is unfair even with the helper above, and `refund_op`'s synonym list should widen (`release_capacity`, `return_capacity`)."
+ },
+ {
+  "key": "g10.r2.scope",
+  "req": 2,
+  "field": "scope",
+  "verdict": "cut",
+  "divergent_action": "None attributable to this field. The informed and the blind agent both place a release call at all three terminal sites, because the open ticket instructs it: \"the reservation is released exactly once per attempt on **every** terminal path \u2014 the success path, the requeued-failure path and the exhausted-failure path \u2014 rather than only at line 584.\" The only code that diverges is which call goes there \u2014 `self._refund_capacity(status_tracker, token_estimate)` versus `self._free_capacity(status_tracker, used, token_estimate)` \u2014 and that is r2.rule's content, tested directly by `test_rule__a_refund_returns_the_whole_estimate_and_one_request_slot`, which asserts the same `60.0` / `10000.0` on the tracker with no coroutine involved.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The current code releases only at line 584 (the success path); the ticket describes that as the defect to fix (\"rather than only at line 584\"). The failure-path releases genuinely do not exist yet."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The fact demands positive action (a call before each return), not restraint. Doing nothing fails."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "\"Release the reservation on every exit path\" is textbook cleanup discipline (finally/RAII/acquire-release symmetry). An agent reaches for a release at each `return` in an `except` branch from prior convention, not from a clue \u2014 especially once the ticket has enumerated the three paths."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "Verbatim in the open ticket: \"the reservation is released exactly once per attempt on **every** terminal path \u2014 the success path, the requeued-failure path and the exhausted-failure path\". The fact's placement clause (\"both the requeued case (`attempts_left > 0`) and the exhausted case (`attempts_left == 0`). The success `else` path keeps the settlement at its current position\") is a restatement of that sentence."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "Given the ticket's every-terminal-path sentence plus r2.rule (the failure release is `_refund_capacity`), the placement in this fact is the only way to write it. A `finally`-based release is excluded because the success path must settle with the reported usage, so the refund cannot be shared; nothing is left for `scope` to decide."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The natural implementation of the ticket sentence is one release statement immediately before each `return` in the `except` branch and the existing one in the `else`. That is exactly what the fact describes, arrived at by normal engineering."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Both branches are reachable and the test proves it: `assert request.attempts_left == 0  # it really took the requeue branch` after `attempts_left=1`."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling rule makes either failure exit unreachable; r1's debt floor is inert at these magnitudes (capacities stay positive) and `exclusions` uses the same branch with different usage."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "A missed failure-path release permanently leaks a request slot and 1000 tokens per failed attempt; the tracker state after the call is directly observable and differs (59.0/9000.0 vs 60.0/10000.0)."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The deciding numbers are r2.rule's. `test_rule` already asserts `refunded.available_request_capacity == 60.0` and `refunded.available_token_capacity == 10000.0` straight on the tracker, and asserts the settlement leaves `59.0  # NOT 60.0`. `scope` re-reads the same channel one layer up; an agent who gets rule wrong fails scope, and an agent who gets rule right passes scope for free because the ticket dictated the placement."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "scope = (the ticket's \"every terminal path\" sentence) + (r2.rule's refund semantics). Subtract those two and nothing remains. There is no implementation that satisfies the ticket and rule yet fails scope, and none that fails rule yet passes scope."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"Every terminal path\" quantifies over a finite, enumerated set of three code paths, not over an unbounded time window; each is exercised in one bounded coroutine call."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, injected clock, stub processor, one `pytest-asyncio` coroutine; no network, no restart, no concurrency."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`make_response(\"length\", ...)` and `attempts_left=0/1` select the branch, but the requirement is about the reaction (which release runs), and the test confirms the real control flow independently via `assert request.attempts_left == 0`. Borderline only in that `run_attempt` hands the handler a pre-made `blocked` estimate, which pins the handler's signature."
+   }
+  ],
+  "the_assertion": "\"assert requeued.available_request_capacity == 60.0\" (the requeued branch is the only path not already covered by `test_rule` or by the exhausted case). Passing or failing it depends squarely on r2.rule: an agent whose `refund_capacity` returns the whole estimate and exactly 1.0 slot passes it automatically, because the ticket already told them to release on the requeued path; an agent whose release is a settlement fails it regardless of where they put the call. The assertion cannot separate \"knew which paths\" from \"knew what a refund is.\"",
+  "blind_pass": "\"# ticket only: `free_capacity` settles token axes by `blocked - used`, and the ticket says\\n# to release on every terminal path. The attempt failed, so nothing was spent; and the\\n# requeued request goes back to `retry_queue` where the loop at 432-439 will reserve a\\n# fresh slot, so hand this one back or we double-count it.\\ndef _release_failed_attempt(self, status_tracker, blocked_capacity):\\n    self._free_capacity(status_tracker, _TokenUsage(input=0, output=0), blocked_capacity)\\n    if status_tracker.available_request_capacity is not None:\\n        status_tracker.available_request_capacity = min(\\n            float(status_tracker.max_requests_per_minute),\\n            status_tracker.available_request_capacity + 1.0,\\n        )\\n\\n# ... in handle_single_request_with_retries:\\nexcept Exception as e:\\n    status_tracker.num_other_errors += 1\\n    if request.attempts_left > 0:\\n        request.attempts_left -= 1\\n        self._release_failed_attempt(status_tracker, token_estimate)\\n        await retry_queue.put(request)\\n        return\\n    else:\\n        logger.error(...)\\n        self._release_failed_attempt(status_tracker, token_estimate)\\n        await append_generic_response(...)\\n        return\\nelse:\\n    # unchanged success settlement at its current position\\n    self._free_capacity(status_tracker, generic_response.token_usage, token_estimate)\\n\\n# scope test outcome: exhausted -> 60.0 / 10000.0, requeued -> 60.0 / 10000.0,\\n# success -> 59.0 / 9200.0. All three assertions pass with no refund_capacity anywhere.\"",
+  "correct_fail": null,
+  "recommendation": "Cut r2.scope as a separately graded fact and fold `test_scope__both_failure_exits_refund_while_the_success_exit_settles` into r2.rule's test as its end-to-end arm \u2014 that is what it actually measures. Two reasons, either sufficient: (1) the open ticket states the fact almost word for word (\"released exactly once per attempt on **every** terminal path \u2014 the success path, the requeued-failure path and the exhausted-failure path\"), so there is no divergent action left for a clue to cause; (2) the `used=_TokenUsage(0, 0)` blind release above passes the whole scope test without ever knowing a refund is a distinct operation, so the free bracket's single blind sample understates the pass rate. If the requirement must keep a `scope` field, it has to assert something the ticket does not already say and rule does not already number \u2014 e.g. that the refund fires before `await retry_queue.put(request)` rather than after, observed by a tracker whose `refund_capacity` is instrumented to record the queue depth at call time \u2014 and even then check it is not just rule's observable again. Also worth fixing while you are in here: `run_attempt(proc, tracker, blocked, ...)` pins `handle_single_request_with_retries` to receiving the estimate as a parameter; keep that helper in the visible `test_open` so the agent can conform, as it currently is."
+ },
+ {
+  "key": "g10.r2.exclusions_or_crossover",
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "verdict": "cut",
+  "divergent_action": "On the `except Exception` branch of `handle_single_request_with_retries`, the informed agent writes `self._refund_capacity(status_tracker, token_estimate)` and never mentions `generic_response.token_usage`; the blind agent writes `self._free_capacity(status_tracker, generic_response.token_usage, token_estimate)`. But that is the divergent action of the sibling `rule`/`scope`, not of this fact: once `_refund_capacity(self, status_tracker, blocked_capacity)` exists as `rule` specifies, there is no parameter through which usage could be consulted, so \"ignores token_usage\" names no code of its own. Its own subject \u2014 HOW MUCH comes back on the token axis \u2014 is written identically by an agent who never saw any clue and passes `used=_TokenUsage()` on the failure path.",
+  "the_assertion": "`assert t.available_token_capacity == 10000.0` (the fact's own subject; the companion `assert t.available_request_capacity == 60.0` is rule's and scope's observable). Yes, it depends on more than this requirement: it is satisfied by any release on the failure path whose `used` is zero or absent \u2014 i.e. by an implementation that has no refund concept at all \u2014 and it also depends on `_reserve_capacity`/`consume_capacity` from the open ticket and on the refund's cap-at-limit from `rule`. The only assertion in this test that fails a plausible wrong implementation is the request-slot one, which belongs to `rule` and `scope`.",
+  "blind_pass": "```python\n# BaseOnlineRequestProcessor.handle_single_request_with_retries, ticket-only agent\nexcept Exception as e:\n    logger.warning(f\"Request {request.task_id} failed: {e}\")\n    # the attempt blew up; we have no trustworthy usage for it (generic_response\n    # may not even be bound here), so nothing was used and the whole\n    # reservation goes back\n    self._free_capacity(status_tracker, _TokenUsage(input=0, output=0), token_estimate)\n    if request.attempts_left > 0:\n        request.attempts_left -= 1\n        retry_queue.put_nowait(request)\n        return\n    ...\n```\nThis agent never heard of a refund, never reads `generic_response.token_usage`, and lands on `available_token_capacity == 10000.0` \u2014 the assertion this fact is actually about. It fails only `available_request_capacity == 60.0`, which is `rule`/`scope`'s observable, not this fact's.",
+  "correct_fail": null,
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The untouched checkout releases only at the success path (\"rather than only at line 584\") and carries a dead `def free_capacity(self, tracker, tokens)` at line 312 with \"empty body, no caller\". Nothing pre-existing releases on the failure paths, so the behaviour is not inherited for free."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The fact is a prohibition \u2014 \"ignores `generic_response.token_usage` even when the failed response carried one\". Honouring it is pure inaction: not reading a field. Reading it is the extra work, and in the `except Exception` branch it is *awkward* extra work, since `generic_response` can be unbound when the exception came from `call_single_request`. The rule never tests restraint; it tests that the agent didn't go out of its way."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "Reserve/commit/rollback is a published convention: a rollback returns the reservation, not the observed spend. An agent with no clue at all, asked to release a reservation after a failure, reaches for \"give back what I took\" from prior knowledge."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The visible ticket points the other way \u2014 it names only `_free_capacity(self, status_tracker, used_capacity, blocked_capacity)` and says the reservation is \"released exactly once per attempt on every terminal path\", which invites passing the reported usage as `used`. This is the one pattern that does not apply."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature admits a settlement against `generic_response.token_usage` on the failure path; the ticket's `_free_capacity(used, blocked)` signature makes that the natural reading. Not entailed by A."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The most natural failure-path release is `self._free_capacity(status_tracker, _TokenUsage(input=0, output=0), token_estimate)` \u2014 because a raised exception leaves no reliable usage in scope. On the token axis that is arithmetically identical to refunding the estimate: 9000 + 1000 = 10000.0. The obvious implementation passes the assertion this fact is about."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "A failed response carrying usage is reachable: `finish_reason=\"length\"` is in `config.invalid_finish_reasons`, and `make_response(\"length\", T(input=900, output=800))` constructs exactly that against a 900/100 reservation."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling makes this branch unreachable; `scope` deliberately drives the same `except` branch with `used == blocked` while this fact makes them differ."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The two readings give different numbers \u2014 10000.0 versus \"9000 + (1000 - 1700) == 8300.0\" \u2014 so a violation is observable in principle."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The test's decisive assertion is `assert t.available_request_capacity == 60.0`, which is `rule`'s (\"59.0 vs 60.0\", \"assert settled.available_request_capacity == 59.0  # NOT 60.0\") and `scope`'s (\"either failure path ends at `available_request_capacity == 60.0`\") observable, asserted verbatim in both sibling tests. The token assertion this fact owns is passed by any zero-used settlement, so grading this fact really re-grades rule/scope."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "`rule` already fixes the failure release as \"`_refund_capacity(self, status_tracker, blocked_capacity)`, which delegates to `status_tracker.refund_capacity(blocked_capacity)`\". That signature has no `used`/`token_usage` parameter, so an implementation that satisfies `rule` cannot fail `exclusions`. The fact restates half of its neighbour."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"ignores ... even when the failed response carried one\" is a single-call, finite claim checked in one attempt."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, injected clock, stub processor, one coroutine under pytest-asyncio; `run_attempt` and `make_response` come from the open test file."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`make_response(\"length\", T(input=900, output=800))` authors the trigger, but the graded behaviour is the reaction (how much capacity returns), which the rubric allows."
+   }
+  ],
+  "recommendation": "Cut `r2.exclusions_or_crossover`. It cannot be repaired by re-testing: on the token axis, \"refund the whole blocked estimate\" and \"settle with `used = 0`\" are the same arithmetic for every choice of numbers, so no assertion on `available_token_capacity` can ever separate this fact from an agent who simply had no usage in hand on the `except` path. The only separating axis is `available_request_capacity`, which `rule` and `scope` already assert verbatim, and `rule`'s `_refund_capacity(self, status_tracker, blocked_capacity)` signature already forecloses consulting `token_usage`. Keep `rule`, `scope` and `observability` as the three facts of r2 and let `scope`'s failed responses keep their `token_usage`. If r2 needs a fourth fact, give it its own observable rather than a restatement \u2014 e.g. the crossover with r1: a failure whose reported usage would drive an axis below `-CAPACITY_DEBT_FLOOR_FRACTION * limit` leaves `num_capacity_debt_clamps == 0` because the refund never looks at that usage, which no zero-used settlement reproduces."
+ },
+ {
+  "key": "g10.r2.observability",
+  "req": 2,
+  "field": "observability",
+  "verdict": "retest",
+  "divergent_action": "Two new dataclass fields on `OnlineStatusTracker` \u2014 `num_capacity_settlements: int = 0` and `num_capacity_refunds: int = 0` \u2014 plus one increment each, placed as the *first* statement of its own method, ahead of the `None` short-circuit:\n\n```python\ndef free_capacity(self, used: _TokenUsage, blocked: _TokenUsage) -> None:\n    self.num_capacity_settlements += 1          # before any `is None` guard\n    if self.available_token_capacity is None:\n        return\n    ...\n\ndef refund_capacity(self, blocked: _TokenUsage) -> None:\n    self.num_capacity_refunds += 1              # before any `is None` guard\n    if self.available_request_capacity is not None:\n        self.available_request_capacity = min(...)\n    ...\n```\n\nThe part of that which belongs to *this* field rather than to r2.rule is only the two `int = 0` declarations and the placement of the increments above the guards. Note that the second half of the divergence \u2014 `refund_capacity` existing at all \u2014 is r2.rule's content, and it is what the blind agent actually misses.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "`OnlineStatusTracker` in the pre-change tree has no settlement/refund concept at all; the ticket's only release is `free_capacity(used, blocked)`. Nothing increments a per-release counter today."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The negative half \u2014 'incremented ... by neither the other's' \u2014 is not satisfied by inaction: doing nothing leaves both counters absent, and `read_field` then fails. Both counters must be positively written."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention that a capacity tracker exposes `num_capacity_settlements`/`num_capacity_refunds`, and none that a counter must tick on a no-op release. The names are local invention."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket never mentions any counter, and its `Out of scope` list does not touch this. It in fact points the other way: `_free_capacity` 'delegates to the tracker' as the single release."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "Nothing in the codebase reads these counters \u2014 the ticket says the display code is untouched \u2014 so the open feature works identically without them. They are inert state whose only consumer is the test."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Partially, and for the clause that matters. Once a rule-informed agent writes `refund_capacity`, the tracker it lives in is already dense with `num_*` counters (`num_tasks_started`, `num_rate_limit_errors`), and `read_field` accepts the loose aliases `num_settlements`, `num_capacity_frees`, `num_refunds`. More sharply: the distinguishing clause 'both counters still increment when the affected capacity is `None`' is satisfied for free by the single most natural placement \u2014 `self.num_capacity_settlements += 1` as the first line of the method. The test cannot distinguish 'read the clue about no-ops' from 'wrote the increment at the top like everyone does'."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`tracker(max_requests_per_minute=None, max_tokens_per_minute=None)` is reachable: the ticket specifies 'A limit of `None` means **unlimited**' and the Tests section sanctions constructing `OnlineStatusTracker` directly. Worth noting the unlimited tracker may be test-only in practice (the processor's manual \u2192 header \u2192 default precedence is unlikely to ever yield `None`), so the one clause with teeth fires only in a state production never reaches."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling needs the counters to be absent or the unlimited path to mutate. r1's `num_capacity_debt_clamps` is a third, independent counter, and the settlement here (9200 + 200 = 9400 on a 10_000 tracker) stays well above r1's -2500 floor, so the two facts do not interact."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Not in the rubric's sense \u2014 nothing is fatal one layer down; the counters are exactly observable via the assertions. But they are consumed by nothing in the product, so violating this fact changes no end state outside the test."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "The channel is the counters, which r2.rule's test never reads (rule reads `available_request_capacity == 60.0` vs `59.0`). It is a prerequisite relation, not a shared observable \u2014 but see `the_assertion`: the prerequisite is what the blind bracket actually measured."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "The counters are genuinely new state; an agent can implement r2.rule perfectly (`refund_capacity` returning the whole estimate and 1.0 request slot) and still fail every counter assertion. The field is not a restatement of rule \u2014 it is merely ungradable without rule."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "'by neither the other's' is universal in phrasing but the test bounds it to two calls on two trackers; nothing is 'never' or 'forever' in a way a finite window cannot decide."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, direct tracker construction, injected clock, no network, no asyncio in this test. Fully buildable."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The observability test does not touch `StubProcessor`, `make_response` or `run_attempt` at all \u2014 it calls `free_capacity` and `refund_op` on a real tracker. No fake authors the trigger."
+   }
+  ],
+  "the_assertion": "`assert (settlements(unlimited), refunds(unlimited)) == (1, 1)` \u2014 the only assertion that is not implied by 'a rule-correct agent added two counters'. Yes, its pass/fail depends on something other than this field: the preceding `require_feature(has_refund(settled), ...)` and `refund_op(unlimited)` mean the whole test is gated on r2.rule's `refund_capacity` existing, and a ticket-only agent dies there \u2014 so the bracket's 'blind fails' is r2.rule's signal, not this field's. The earliest counter assertion, `assert (settlements(settled), refunds(settled)) == (0, 0)`, is likewise reached only after that gate.",
+  "blind_pass": null,
+  "correct_fail": "```python\ndef free_capacity(self, used: _TokenUsage, blocked: _TokenUsage) -> None:\n    if self.available_token_capacity is None:      # unlimited: nothing to settle\n        return\n    self.num_capacity_settlements += 1\n    ...\n\ndef refund_capacity(self, blocked: _TokenUsage) -> None:\n    if self.available_token_capacity is None and self.available_request_capacity is None:\n        return\n    self.num_capacity_refunds += 1\n    ...\n```\nAn agent that has correctly derived 'settlement and refund are two operations, count them separately' and is also honouring the *open ticket's* rule that 'An axis whose capacity is `None` is read, skipped and left `None` by all of these' guards first and counts second. Every other assertion in the test passes; it dies only on `assert (settlements(unlimited), refunds(unlimited)) == (1, 1)`. Whether this is overshoot turns entirely on whether the clue states the no-op clause \u2014 the fact's text does, but the agent only ever sees the clue.",
+  "recommendation": "Retest, three concrete changes.\n\n1. **Stop the field borrowing its signal from r2.rule.** Split `test_observability__...` in two. The first test must not mention the refund at all: construct `tracker(max_requests_per_minute=60, max_tokens_per_minute=10_000)`, `consume_capacity`, assert `settlements(t) == 0`, `free_capacity(used=..., blocked=...)`, assert `settlements(t) == 1` \u2014 no `require_feature`, no `refund_op`. Move the `require_feature(has_refund(...))` gate and the `(0, 1)` / `(1, 1)` blocks into the second test. Then a rule-correct-but-counter-blind agent fails the first test on the counter itself rather than on the missing method.\n\n2. **Re-run the blind bracket with the right control.** The recorded 'blind fails' does not support this field. Run the bracket against an implementation that has a full, correct `refund_capacity` (r2.rule satisfied) and *no* counters, and confirm `g10.r2.observability` still fails while `g10.r2.rule` passes. Also confirm how `harness.require_feature` scores a missing feature \u2014 if it skips and a skip is booked as a fail, this field is inheriting r2.rule's discrimination outright.\n\n3. **Back the no-op clause with the clue, or drop it.** `assert (settlements(unlimited), refunds(unlimited)) == (1, 1)` is the only assertion in the test that a counter-adding agent does not get for free, and it is the one that rejects the guard-then-count implementation quoted in `correct_fail` \u2014 an implementation the open ticket's own 'read, skipped and left `None`' sentence encourages. Check that the r2 clue says in so many words that the counter ticks even when the release moves nothing; if it does not, delete the `unlimited` block and accept that the field's remaining content is the `(1, 0)` / `(0, 1)` separation."
+ }
+]

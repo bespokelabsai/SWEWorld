@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P3",
+  "blind_alternative": "last-write-wins: the most recent line for an idx in the append log is authoritative"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P3",
+  "blind_alternative": "folds duplicates independently per responses_N.jsonl instead of across the whole working directory"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P3",
+  "blind_alternative": "lets a newer FAILED retry line overwrite an earlier SUCCEEDED line for the same request"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P3",
+  "blind_alternative": "reports idx5='second' (last line) and idx7 as whichever line arrived first, ignoring status"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P6",
+  "blind_alternative": "keeps rewriting the file on resume (temp-file + os.replace) and treats UNPARSEABLE as done since a response body already arrived"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P6",
+  "blind_alternative": "folds duplicates across the whole working directory rather than confining resolution to the single file being resumed"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "puts EMPTY into retryable_row_indices (no rows produced looks unfinished) and/or marks UNPARSEABLE complete"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P6",
+  "blind_alternative": "leaves a shrunk file with different byte content and a lingering *.temp artifact after resume"
+ }
+]

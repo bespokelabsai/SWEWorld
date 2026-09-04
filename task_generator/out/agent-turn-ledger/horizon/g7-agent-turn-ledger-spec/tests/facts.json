@@ -1,0 +1,15 @@
+{
+ "task_id": "g7",
+ "arm": "spec",
+ "fact_keys": [
+  "g7.r1.rule",
+  "g7.r1.scope",
+  "g7.r1.failure_behavior",
+  "g7.r1.observability",
+  "g7.r2.rule",
+  "g7.r2.scope",
+  "g7.r2.failure_behavior",
+  "g7.r2.observability"
+ ],
+ "open_key": "g7.open_feature"
+}

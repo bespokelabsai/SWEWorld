@@ -140,7 +140,26 @@ def slugify(text: str) -> str:
 # reads exactly like a score of zero. Asking for 8 failed on this box AND on
 # Horizon's validation runner, which has four too. g1's world-hosted has always
 # said 4 and has always validated.
-HOSTED_CPUS = 4
+#
+# TWO, and the two runners are not the same size -- which is why this looked for
+# hours like an agent-type problem. Measured on 2026-09-03:
+#
+#   validation runner:  "range of CPUs is from 0.01 to 4.00, as there are only 4"
+#   evaluation runner:  "range of CPUs is from 0.01 to 2.00, as there are only 2"
+#
+# Docker REFUSES a `cpus` above the host count rather than capping it, so 4 passes
+# `tasks validate` with a clean Final Score: 1.0 and then errors EVERY rollout at
+# `docker compose up --detach --wait`, buried under a screen of BuildKit progress
+# lines. A green validation is therefore no evidence that the eval will start.
+# Set this to the SMALLER runner.
+#
+# Raising it is only safe in company with `evaluations submit --machine-type`, which
+# is what actually gives the eval runner more cores -- and `tasks validate` has no
+# such flag, so a task.toml above 4 cannot be validated at all any more. g6's
+# world-hosted arm is hand-set to 8 for a run submitted with `--machine-type
+# e2-standard-8`; rebuilding it from here puts it back to 2, which is correct for a
+# default-machine submit and wrong for that one.
+HOSTED_CPUS = 2
 LOCAL_CPUS = 4
 
 

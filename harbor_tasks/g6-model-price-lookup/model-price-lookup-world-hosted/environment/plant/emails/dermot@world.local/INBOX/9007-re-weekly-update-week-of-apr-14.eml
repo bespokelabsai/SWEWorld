@@ -1,0 +1,44 @@
+From: dario@world.local
+To: emil@world.local, nikolai@world.local, gideon@world.local,
+ dermot@world.local, tomas@world.local, tobias@world.local
+Subject: Re: Weekly update: week of Apr 14
+Date: Mon, 21 Apr 2025 13:08:00 +0000
+Message-ID: <178853189192.489558.14127803092391273904@world.local>
+In-Reply-To: <178770212973.2301745.4705747507669611471@world.local>
+References: <178770212973.2301745.4705747507669611471@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: what the trackers should report when we have no price for a model (W=
+S-054)
+
+Nikolai, Emil, Dermot,
+
+I have been working through the cost accounting piece on WS-054 and I have hi=
+t the question we all knew was coming, which is what a tracker should report =
+for a model whose price we simply do not have. This happens more than I expec=
+ted: a model that is new enough that the registry has not caught up, a provid=
+er that never published per-token numbers in the first place, and the various=
+ self-hosted cases where there is no meaningful list price at all.
+
+The tempting option is to put a zero in and move on, and I think that is actu=
+ally the worst thing we could do, because a zero is a number and a number get=
+s summed, charted and quoted back at us in a monthly total that is quietly wr=
+ong. My proposal is the opposite: for those models input_cost_per_million and=
+ output_cost_per_million just stay empty on the tracker, and we do not substi=
+tute anything for them. Nothing gets invented and nothing gets added up that =
+should not be.
+
+Empty on its own is not very helpful to whoever is reading the output, though=
+, so the second half of the proposal is that the tracker carries price_unavai=
+lable_reason alongside those two fields, and that is where the explanation go=
+es - the model is not in the registry, the provider publishes no pricing, sel=
+f-hosted, whichever applies. The point is that we can show why there is no nu=
+mber rather than showing a number we made up.
+
+Either we do that, or we pick a sentinel value and spend the next year explai=
+ning it to people. I would rather have the empty fields and the reason.
+
+Best,
+Dario

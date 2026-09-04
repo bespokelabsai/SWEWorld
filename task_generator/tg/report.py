@@ -13,6 +13,26 @@ from . import bracket, trial
 from .model import Task, declared_facts
 
 
+def _fold(rewards) -> dict:
+    """One metrics dict from `trial.rewards`, which returns one dict PER TRIAL.
+
+    It is a list even at `n_trials == 1`, and every read site here wanted a dict.
+    Two of them did `.get` on it and raised `AttributeError: 'list' object has no
+    attribute 'get'`, killing `report` after both paid arms had already run — the
+    one moment the command exists for. Folding once here rather than at each site
+    is also what makes `--runs 3` mean something: the arm reports its mean.
+    """
+    rows = [r for r in (rewards if isinstance(rewards, list) else [rewards])
+            if isinstance(r, dict)]
+    keys = {k for r in rows for k in r}
+    folded = {}
+    for key in keys:
+        values = [r[key] for r in rows if isinstance(r.get(key), (int, float))]
+        if values:
+            folded[key] = sum(values) / len(values)
+    return folded
+
+
 def render(task: Task) -> str:
     d = task.dir
     measured = json.loads((d / "bracket.json").read_text()) if (d / "bracket.json").is_file() else None
@@ -23,7 +43,8 @@ def render(task: Task) -> str:
     arms = {}
     for arm in ("spec", "blind"):
         for candidate in sorted((trial.JOBS).glob(f"{arm}-{task.id}-*")):
-            arms[arm] = {"job": candidate.name, **{"metrics": trial.rewards(candidate.name)}}
+            arms[arm] = {"job": candidate.name,
+                         "metrics": _fold(trial.rewards(candidate.name))}
 
     lines = [f"# {task.id} — {task.title}", "", f"*{task.slug}*", "",
              "## The ticket the agent sees", "", task.description, "",

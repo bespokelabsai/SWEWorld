@@ -1,0 +1,13 @@
+{
+  "id": "6305d378-d1c6-4e3d-b0ac-42379a23378b",
+  "evaluation_id": "59689f29-8e7a-4617-86d2-b23a789797ae",
+  "run_number": 1,
+  "model": "biggie-max",
+  "agent_type": "typhoon",
+  "score": 0,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g7.r1.rule\": 0.0,\n    \"g7.r1.scope\": 0.0,\n    \"g7.r1.failure_behavior\": 0.0,\n    \"g7.r1.observability\": 0.0,\n    \"g7.r2.rule\": 0.0,\n    \"g7.r2.scope\": 0.0,\n    \"g7.r2.failure_behavior\": 0.0,\n    \"g7.r2.observability\": 0.0,\n    \"g7.open_feature\": 0.0\n  },\n  \"weights\": {\n    \"g7.r1.rule\": 0.125,\n    \"g7.r1.scope\": 0.125,\n    \"g7.r1.failure_behavior\": 0.125,\n    \"g7.r1.observability\": 0.125,\n    \"g7.r2.rule\": 0.125,\n    \"g7.r2.scope\": 0.125,\n    \"g7.r2.failure_behavior\": 0.125,\n    \"g7.r2.observability\": 0.125,\n    \"g7.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"0 of 8 hidden requirements satisfied. Open feature: no. Missed: g7.r1.rule, g7.r1.scope, g7.r1.failure_behavior, g7.r1.observability, g7.r2.rule, g7.r2.scope, g7.r2.failure_behavior, g7.r2.observability.  [pytest rc=1 nodes=9] advisor', 0), ('advisor', 0), ('advisor', 0), ('advisor', 0), ... | FAILED test_r1.py::test_rule__a_versioned_checkpoint_rewritten_after_every_appended_response - Failed: no module of bespokelabs.curator.agent exports 'TURN_LEDGER_FILENAME' | FAILED test_r1.py::test_scope__load_ledger_writes_nothing_and_the_log_outranks_the_checkpoint - AssertionError: assert 'verified' == 'adopted' | FAILED test_r1.py::test_failure_behavior__absent_or_old_is_adopted_and_a_disagreeing_one_aborts - Failed: no module of bespokelabs.curator.agent exports 'TurnLedgerDesyncError' | FAILED test_r1.py::test_observability__the_checkpoint_reads_186_bytes_mid_run_and_189_at_the_end - Failed: no module of bespokelabs.curator.agent exports 'read_sidecar' | FAILED test_r2.py::test_rule__the_sentinel_is_the_end_of_conversation_token - AssertionError: assert '<END_OF_CONVERSATION>' == '<<END_OF_CONVERSATION>>' | FAILED test_r2.py::test_scope__matching_is_case_sensitive_suffix_only_and_ignores_trailing_space - AssertionError: assert True is False | FAILED test_r2.py::test_failure_behavior__a_structured_or_missing_reply_answers_false - AssertionError: assert True is False | FAILED test_r2.py::test_observability__the_message_that_ends_the_talk_is_still_a_turn - AssertionError: [('advisor', 0), ('advisor', 0), ('advisor', 0), ('advisor', 0), ('advisor', 0), ('advisor', 0), ...] | 9 failed, 5 warnings in 25.45s | \"\n  },\n  \"score\": 0.0\n}",
+  "created_at": "2026-09-03T21:25:55.716Z",
+  "completed_at": "2026-09-03T21:46:17.207Z"
+}

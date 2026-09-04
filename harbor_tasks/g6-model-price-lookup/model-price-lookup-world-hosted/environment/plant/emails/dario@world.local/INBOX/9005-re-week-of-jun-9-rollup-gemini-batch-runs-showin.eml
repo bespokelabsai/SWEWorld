@@ -1,0 +1,36 @@
+From: nikolai@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Re: Week of Jun 9 rollup: gemini batch runs showing $0.00
+Date: Wed, 18 Jun 2025 14:05:00 +0000
+Message-ID: <178853189189.489558.10585867768467680648@world.local>
+In-Reply-To: <178853189188.489558.3636424625000809666@world.local>
+References: <178853189188.489558.3636424625000809666@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+It is something else, and the something else is worse than a missing entry.
+
+Right, that Gemini row does exist in litellm.model_cost. I pulled it up befor=
+e writing this because I expected to find what you described and did not. The=
+ row is present, it has the model name we look up under, it has an output pri=
+ce on it. What it does not have is a price on the input side: input_cost_per_=
+token on that row is null. So the lookup succeeds. It hands back a row, we re=
+ad the field, we get a null, and the arithmetic downstream turns that into a =
+zero without raising anything or logging anything.
+
+The consequence is that we priced a whole week of runs at zero off the back o=
+f it. Not a fraction of the cost, not a few outlier runs =E2=80=94 the entire=
+ input side of every run in that window that touched the model. A genuinely a=
+bsent entry would have been the easy version of this, because we would have g=
+ot a lookup failure and someone would have seen it the same day.
+
+I would say the reporting side is solid enough otherwise; this is one null in=
+ one row propagating quietly. What we do about the general case of a partiall=
+y populated row is a separate question and I have to think that one through p=
+roperly.
+
+Nikolai

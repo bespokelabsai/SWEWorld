@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "writes no sidecar at all and rebuilds everything from responses_0.jsonl on every load, since the append-only log is self-describing and a second file is a second thing that can be wrong"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "writes the checkpoint once at the end of run() (or on the stop_tracker path), one write instead of N, which is what 'checkpoint' usually means"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "treats the persisted cursor as the authority and truncates or ignores log lines beyond it, the usual resumable-writer pattern since the cursor is written after a successful append"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "either raises on a missing or unreadable sidecar (treating absence as corruption) or silently rebuilds from the log in all mismatch cases, with no TurnLedgerDesyncError and no per-arm status vocabulary"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "if a sidecar is written at all, uses model_dump_json() or json.dumps with default separators and insertion order, a different filename, a different key set, and no version field \u2014 so no byte-exact content and no desync attributes to assert on"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P10",
+  "blind_alternative": "leaves is_completed returning False as a pure subclass hook (today's body, which the ticket does not ask to change), or invents a different token such as '[END]', '<END>', 'TERMINATE' or 'DONE'"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "documents 'agent_signal' as reachable only for user-written Agent subclasses, leaving the base class with no protocol token at all"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P10",
+  "blind_alternative": "uses a substring test anywhere in the message, compares case-insensitively, lets a non-str response_message raise (or coerces it with str() first), and/or drops the terminating message from the log or the dataset as a control signal rather than content"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "an end-to-end run in which the fake is called max_length times and the log reaches max_length + 1 lines because nothing ever signals completion, with completion_reason 'budget' instead of 'agent_signal'"
+ }
+]

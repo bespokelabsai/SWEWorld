@@ -1,0 +1,375 @@
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-16T15:12:00+00:00", "text": "Quick one on the identity stuff - is the list in _identity.py the one people import, or is there a second one floating around"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-16T15:14:00+00:00", "text": "thats the one. IDENTITY_COMPONENT_KEYS is the only tuple we export"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-16T15:16:00+00:00", "text": "right. and the order in it isnt the signature order, so what is it supposed to be"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-16T15:18:00+00:00", "text": "alphabetical. so basically return_completions_object, run_id, system_prompt just fall at the bottom and nobody has to think about it"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-16T15:19:00+00:00", "text": "mhm. so backend_params sits after backend"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-16T15:21:00+00:00", "text": "yes, and thats the nit actually - batch_mode is above backend in the diff. should read backend, backend_params, batch_mode"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-16T15:23:00+00:00", "text": "ah. off the top of my head batch_mode is the newest key there, presumably it just got appended and then moved wrong"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-16T15:25:00+00:00", "text": "probably, honestly. its a one line move, whoever is in that file next"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:43:00+00:00", "text": "quick one before i forget - whats keeping the identity hash and its test from drifting apart"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:44:00+00:00", "text": "so basically the test doesnt look at values at all, it just counts what compute_run_identity hands back"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:45:00+00:00", "text": "only a count? honestly that feels thin"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:46:00+00:00", "text": "12 components, and sorted, so the order is pinned too. The whole thing is like four lines tbh"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:48:00+00:00", "text": "mhm. so it screams the second someone hashes something that never made it into the list"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:49:00+00:00", "text": "exactly, right there in ci, before anyone is wondering why two identcal runs got different keys"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:51:00+00:00", "text": "yup. who's writing it though, does it ride along with 581 or does it want its own pr"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T13:41:00+00:00", "text": "the component names are written out in two places right"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T13:42:00+00:00", "text": "mhm. and they dont match anymore, thats the problem"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T13:44:00+00:00", "text": "which copy is the stale one"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T13:45:00+00:00", "text": "off the top of my head i couldnt tell you, i think both moved a bit"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T13:45:00+00:00", "text": "anyway look, it should be one tuple we export"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-17T13:47:00+00:00", "text": "so neither place spells them out, they both just read the tuple?"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T13:48:00+00:00", "text": "right, both read from it. then adding a name is one edit and they cant drift again"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T12:53:34+00:00", "text": "edited parse_func this morning to drop the refusals, reran, and got yesterdays parsed rows straight back"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T12:55:34+00:00", "text": "theres a parse_func_hash in there i'd say that shouldve moved"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T12:56:34+00:00", "text": "mhm that was my assumption as well. it did not"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T12:58:34+00:00", "text": "its _get_function_hash(llm.prompt_formatter.parse_func), for what thats worth"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T12:59:34+00:00", "text": "so it is hashing the function. then why did nothing move"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T13:01:34+00:00", "text": "same helper prompt_func_hash goes through just handed a differnt function so the two never match"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T13:03:34+00:00", "text": "that tracks. honestly id been reading them as the same value, nobodys gone in and touched it yet"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T13:04:34+00:00", "text": "yeah ok. thats my whole morning explained then, nothing to do with the parser at all"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-23T11:43:06+00:00", "text": "seperate thing while i'm in here - does system_prompt make it into the hash at all, or is it outside the key like model is"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T11:46:06+00:00", "text": "that matches what i saw. rewrote the system_prompt late night and the run came back in two seconds"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T11:48:06+00:00", "text": "two seconds is a hit. did it use the new text or not"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T11:49:06+00:00", "text": "old wording. not entirely sure how long thats been the case"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-23T11:52:06+00:00", "text": "right so it goes into the key. what happens on the jobs that never set one though"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T11:55:06+00:00", "text": "it goes in as itself, its own thing, not glued onto the prompt text. None when there isnt one"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-23T11:57:06+00:00", "text": "mhm. that tracks"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T11:59:06+00:00", "text": "plenty of the batch ones dont set one at all fwiw"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-02T12:00:04+00:00", "text": "quick one, does the cache key look at the output flags at all? or only the prompt side"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-02T12:02:04+00:00", "text": "not the response flags, i believe. why, what did you hit"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-02T12:03:04+00:00", "text": "turned return_completions_object on, reran, and it just handed me back the old rows. no raw objects in any of them"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-02T12:05:04+00:00", "text": "so it served the previous run straight through. did you clear it"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-02T12:06:04+00:00", "text": "ya, deleted the dir by hand. again, thats twice now"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-02T12:08:04+00:00", "text": "thats the same family of annoyance as the job id thing this morning honestly — you change what actually lands on disk and nothing downstream notices. that should just miss."}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-02T12:09:04+00:00", "text": "mhm. no rm -rf as part of the workflow"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-02T12:10:04+00:00", "text": "yup. nobodys written it yet, im not entirely sure which pr it wants to sit on"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-02T12:12:04+00:00", "text": "i only caught it because the objects were the whole reason i reran tbh"}
+{"channel": "random", "author": "gideon", "created_at": "2025-04-17T13:48:50+00:00", "text": "honestly though its not only helpers"}
+{"channel": "random", "author": "gideon", "created_at": "2025-04-17T13:49:50+00:00", "text": "a run landed in two seperate directories last night"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-04-17T13:51:50+00:00", "text": "two dirs is two runs no"}
+{"channel": "random", "author": "gideon", "created_at": "2025-04-17T13:52:50+00:00", "text": "thats what i assumed too. it was the same run"}
+{"channel": "random", "author": "dermot", "created_at": "2025-04-17T13:54:50+00:00", "text": "so one pass had something set and the other didnt, if i had to guess"}
+{"channel": "random", "author": "gideon", "created_at": "2025-04-17T13:55:50+00:00", "text": "ya. one had generation_params=None, the other an empty dict. thats all of it"}
+{"channel": "random", "author": "dermot", "created_at": "2025-04-17T13:56:50+00:00", "text": "mhm. unset spelled two ways"}
+{"channel": "random", "author": "gideon", "created_at": "2025-04-17T13:57:50+00:00", "text": "exactly, so they come out in one dir. nothing does that today, we paid for both halves"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-18T14:55:24+00:00", "text": "one more on the key stuff - if we do end up folding the gen params in, what happens when a caller just passes nothing"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-18T14:58:24+00:00", "text": "honestly the trap there is that some paths hand you None and some hand you an empty dict. so we carry it as dict(... or {})"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-18T15:00:24+00:00", "text": "carry it where tho, at the call site or inside the hashing bit"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-18T15:03:24+00:00", "text": "right before it goes in, always. then the missing case and the empty case hash to one thing"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-18T15:05:24+00:00", "text": "mhm. otherwise the same call misses itself depending which path built it"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-18T15:07:24+00:00", "text": "ya. i had two calls last week that looked identical to me and both missed, could easily be this tbh"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-21T12:43:00+00:00", "text": "unrelated to the PRs but - i ended up with two cache dirs yesterday for what i'm fairly sure was one run. same model, same params, different hash"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-21T12:45:00+00:00", "text": "same machine both times, or two different ones?"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-21T12:46:00+00:00", "text": "two. thats honestly the only variable i can find"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-21T12:48:00+00:00", "text": "then i'd look at response_format first. let me think - by the time it gets anywhere near us it isn't the class anymore, it arrives as rf.model_json_schema(), so a plain dict"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-21T12:50:00+00:00", "text": "and a dict there is not guaranteed in any particular order, presumably? what comes out of that call i mean"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-21T12:52:00+00:00", "text": "ok that would do it. i diffed the two - same pydantic model on both boxes, but the keys came back in a different order on one of them. nothing else moved"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-21T12:53:00+00:00", "text": "yeah. we've been treating that dict as if the order were stable and nobody ever promised us that, so it needs normalising before it goes in. that's worth documenting somewhere too"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-21T12:55:00+00:00", "text": "mhm. i had been reading that thing as a schema and not as a dict that happens to look like one"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:06:00+00:00", "text": "ran the same call twice yesterday and it didnt reuse the first one at all"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:07:00+00:00", "text": "only thing different between them was the response format arg. is that going in as the dict or do we serialize it first"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:09:00+00:00", "text": "not the dict. look, it goes in as a string"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:09:00+00:00", "text": "json.dumps with sort_keys=True, otherwise you get exactly what you saw"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:11:00+00:00", "text": "mhm that tracks, key order. separators too or is the default spacing ok"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:12:00+00:00", "text": "separators=(\",\", \":\") as well, no spaces anywhere. thats the whole call presumably"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:14:00+00:00", "text": "and the ones that pass no format at all, that slot just ends up empty then"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:16:00+00:00", "text": "no we put \"text\" in for those"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:17:00+00:00", "text": "yeah ok, thats the bit i would have gotten wrong"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-17T14:02:00+00:00", "text": "same job ran twice today and i got two cache dirs out of it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-17T14:04:00+00:00", "text": "LLM(model_name=\"gpt-4o-mini\") in one, and the same call with backend=\"openai\" typed out in the other. two different run_hash"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-17T14:06:00+00:00", "text": "two? the processor is the same in both presumably"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-17T14:09:00+00:00", "text": "mhm, same processor either way. openai is just what it picks when you dont say"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-17T14:11:00+00:00", "text": "right. so nothing about the run differs, one call only spelled out what the other left off"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-17T14:13:00+00:00", "text": "look, naming the default cant change identity. writing model_name and the backend out is the same run as writing one of them"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-17T14:15:00+00:00", "text": "yeah ok. half the examples spell the backend out, so thats been quietly forking runs for a while"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-11T18:29:52+00:00", "text": "Question on the key - where does the name come from? presumably we just read what the caller passed in"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-04-11T18:32:52+00:00", "text": "we do today, thats the problem. same key, while i was in there - the caller hands us None most of the time"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-11T18:33:52+00:00", "text": "Ah. so mostly empty then"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-04-11T18:34:52+00:00", "text": "mhm. the thing that actually resolves it sits further down"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T18:36:52+00:00", "text": "so either we resolve it a second time up there, or we ask the thing that already did it. i think the second?"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-04-11T18:37:52+00:00", "text": "second. LLM gets a `backend` property"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T18:38:52+00:00", "text": "returning what the processor settled on"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-04-11T18:40:52+00:00", "text": "yeah - returns `self._request_processor.backend`, the resolved name. so what came in doesnt matter"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T18:42:52+00:00", "text": "mhm. i went looking for that property a while back and decided i was misremembering the name"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-23T13:52:00+00:00", "text": "passed a few things in backend_params and by the end of the run theyre gone. am i dropping them somewhere"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-23T13:55:00+00:00", "text": "no. honestly the processor edits backend_params in place mid-run, so the handle you kept isnt what you passed anymore"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-23T13:57:00+00:00", "text": "right, so what does LLM hand back then, that same mutated one"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-23T13:59:00+00:00", "text": "a dict() of what came into __init__"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-23T14:00:00+00:00", "text": "so basically the trim hits the live one after that? um, order matters here"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-23T14:02:00+00:00", "text": "mhm, its copied before anything downstream trims it"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-23T14:03:00+00:00", "text": "ok good, nothing for me to fix on my side then"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-20T17:12:36+00:00", "text": "@Emil while you're in there - is llm.backend_params yours, or did 584 leave that one alone"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-20T17:13:36+00:00", "text": "left alone i believe. why, is it not handing things back"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-20T17:15:36+00:00", "text": "it is. passed {\"batch_size\": 64, \"max_retries\": 7} this morning and got both back off it. its the pass-nothing case im looking at"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-20T17:16:36+00:00", "text": "ah. yeah thats None, not an empty one"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-20T17:17:36+00:00", "text": "mhm and three call sites check for that before they touch it, thats the part that annoys me"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-20T17:19:36+00:00", "text": "should just be {} then. none of the three actually want None specifically"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-20T17:20:36+00:00", "text": "yup. wrong pr for it though"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T13:42:00+00:00", "text": "quick one, i bumped max_retries from 5 to 8 before a rerun yesterday. thats the only thing i touched"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T13:43:00+00:00", "text": "curator went and re-ran all 40k rows. nothing reused at all"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:47:00+00:00", "text": "new cache dir or the old one"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T13:49:00+00:00", "text": "new one. thats the bit i dont get, the prompts are identical"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:52:00+00:00", "text": "then the retry setting is going into the fingerprint. thats what moved it"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T13:54:00+00:00", "text": "so a knob about how we handle failures ends up hashed in with the actual work"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:56:00+00:00", "text": "mhm and it has no business being there. retry counts dont change a single output row, they shouldnt buy you a whole new cache directory"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T13:58:00+00:00", "text": "ya. so it was never supposed to be in the hash in the first place"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-20T16:03:00+00:00", "text": "the identity stamp - do we actually know whats in the file it reads from? i never opened it"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-20T16:05:00+00:00", "text": "i grepped it on the shared box this morning. its more than i assumed honestly"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-20T16:06:00+00:00", "text": "more as in the timing knobs"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-20T16:08:00+00:00", "text": "request_timeout, max_retries, yeah. and api_key sitting right there next to them, in cleartext"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-20T16:09:00+00:00", "text": "cleartext in run_identity.json? ugh"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-20T16:10:00+00:00", "text": "yup. and none of that belongs in the stamp, or in the digest. the key obviously, but the timeout and the retry count have no business in either one"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-20T16:12:00+00:00", "text": "yeah ok"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-20T16:13:00+00:00", "text": "months of it sitting on that box like that then, cool"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-24T14:02:00+00:00", "text": "gideon that rerun yesterday did it actually go out or did it come back off cache"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T14:04:00+00:00", "text": "cache. so basically i switched completion_window to 24h and it happily reused the directory"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-24T14:06:00+00:00", "text": "reused as in, the dir from the first run? the 1h batch"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T14:07:00+00:00", "text": "ya that one. nothing about the window is in what we key the dir on aparently"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-24T14:08:00+00:00", "text": "so two different batches one folder"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T14:09:00+00:00", "text": "exactly. that one really does need to fork honestly, its not the same job at all"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-24T14:11:00+00:00", "text": "yup. i would have read those results as fresh, honestly"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-21T12:42:40+00:00", "text": "back on backend_params — if nothing validates the keys do we end up hashing the whole dict"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-21T12:44:40+00:00", "text": "no, only the ones that are identity. IDENTITY_BACKEND_PARAM_KEYS, a frozenset[str], sat with the other identity bits"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-21T12:45:40+00:00", "text": "read where"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-21T12:47:40+00:00", "text": "building the components. we walk llm.backend_params and keep whatever is a member of it"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-21T12:48:40+00:00", "text": "and the ones that arent"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-21T12:49:40+00:00", "text": "knobs. they dont go near the components at all"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-21T12:50:40+00:00", "text": "theres nothing like that in the tree today though"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-21T12:52:40+00:00", "text": "no, thats ours to write. base_url, azure_deployment, batch_size, completion_window"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-21T12:55:40+00:00", "text": "mhm. i had two batch submissions in march i genuinely could not tell apart from the components, completion_window would have done it"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-01-30T15:45:20+00:00", "text": "coming back to the model scope thing - when that gets keyed properly, is it just the model name going in, or the whole backend_params"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-01-30T15:47:20+00:00", "text": "the way i'm scoping it its the whole dict, not just the model. every key in there is part of what identifies the run"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-01-30T15:48:20+00:00", "text": "mhm. does it go in raw or does something normalise it first? dict ordering is the bit i'd worry about"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-01-30T15:50:20+00:00", "text": "sorted items, and the same line shape as generation_params. so its another line in the digest that reads exactly like the one next to it, nothing clever"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-01-30T15:51:20+00:00", "text": "so basically it sits right beside generation_params. is anyone on this already or should i look at the digest side tomorrow"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-01-30T15:52:20+00:00", "text": "not me, i've got the sweep doc. i was half expecting an argument about which of those keys actually change output though"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-01-30T15:53:20+00:00", "text": "honestly none of them are safe to guess at, thats sort of the whole reason im not picking"}
+{"channel": "code-review", "author": "ilse", "created_at": "2025-01-28T11:04:00+00:00", "text": "quick one on the cache key - backend_params, does the fingerprint take the whole dict or just the bits that touch the request?"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-28T11:06:00+00:00", "text": "whole thing. that was settled in review this morning"}
+{"channel": "code-review", "author": "ilse", "created_at": "2025-01-28T11:08:00+00:00", "text": "gotcha. sorted first i assume, otherwise two identical configs hash apart depending on insert order"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-28T11:09:00+00:00", "text": "right, sorted. same as generation_params, nothing special about it"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-01-28T11:12:00+00:00", "text": "so basically if i flip one value in there i get a fresh run? or does it reuse the old one"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-28T11:14:00+00:00", "text": "fresh. any param change is a diferent run and a diferent cache dir"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-01-28T11:16:00+00:00", "text": "ya ok. nobodys written it yet though, its still just the decision right"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-28T11:18:00+00:00", "text": "not yet. someone has to pick it up, presumably on the fingerprint ticket, off the top of my head i dont remember the number"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-21T16:43:11+00:00", "text": "quick one, i bumped max_retries on the azure worker and the reattach called it a mismatch. thats expected?"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-21T16:44:11+00:00", "text": "nothing about the prompts or the model moved tbh"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-21T16:47:11+00:00", "text": "expected of the code today, yes. we scoped it as backend_params goes into the digest whole, sorted items, same line shape as generation_params - every key in that dict part of the run identity"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-21T16:48:11+00:00", "text": "thats gone as of this morning. hashing the lot means a retry knob or a client secret shifts the digest and you resubmit a day of batch for nothing. nobody has done the edit yet so it still behaves the old way"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-21T16:50:11+00:00", "text": "so whats in it instead"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-21T16:52:11+00:00", "text": "a named set, IDENTITY_BACKEND_PARAM_KEYS - base_url, azure_deployment, batch_size, completion_window"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-21T16:53:11+00:00", "text": "ok but where do those four come from, is it just what felt important"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-21T16:56:11+00:00", "text": "theyre what run_identity.json carries on disk, so the digest and the file agree. api_key isnt in it, honestly it never should have been near the hash"}
+{"channel": "pipeline", "author": "theo", "created_at": "2025-04-21T16:58:11+00:00", "text": "max_retries sitting in the same dict as the url always read wrong to me"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:31:00+00:00", "text": "i bumped max_retries on the poem run yesterday and it recomputed the whole thing. new cache dir, cold, every request again"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:33:00+00:00", "text": "right, thats the old review call - whole backend_params dict hashed sorted, same as generation_params, any param change is a diferent run and a different cache dir. that ones gone, it was costing us full reruns for nothing"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:34:00+00:00", "text": "gone as in replaced by what"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:35:00+00:00", "text": "only the four names in IDENTITY_BACKEND_PARAM_KEYS fork the dir. anything else in the dict doesnt count. nobody has written it yet but thats the shape"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:37:00+00:00", "text": "so max_retries and request_timeout sit outside those four, if i had to guess"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:38:00+00:00", "text": "mhm, neither reaches the digest at all. api_key either"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:40:00+00:00", "text": "wait, api_key was going into the hash?"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:41:00+00:00", "text": "it was in the dict so yes. that one i would call a bug rather than a decision, presumably nobody looked at what was actually in there"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:41:00+00:00", "text": "one more on parse_func before i lose it — plenty of the runs just dont carry one. do we skip those or push it through anyway"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:44:00+00:00", "text": "push it through"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:45:00+00:00", "text": "meaning None goes straight into _get_function_hash, no branch either side of it?"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:47:00+00:00", "text": "right no conditional round it at all"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:49:00+00:00", "text": "i assumed that would blow up honestly, i had it in my head the helper wanted a real callable"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:52:00+00:00", "text": "nah it hashes None fine thats why i never wrapped it"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-21T13:55:00+00:00", "text": "yup. i went looking for that guard last month and couldnt work out where it was meant to sit"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T13:07:00+00:00", "text": "quick one while i have the file open - is dataset_hash one of the twelve, or is it something we keep off to the side"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T13:09:00+00:00", "text": "one of the twelve."}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T13:11:00+00:00", "text": "ok so it goes into the components dict with the others. and we hash the dataset ourselves there, presumably?"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T13:13:00+00:00", "text": "ya thats the bit i wasnt sure on either tbh"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T13:15:00+00:00", "text": "with the others, yes. let me think - but no on the second part. it goes in exactly as the caller handed it to us, we dont re-derive it on our side"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T13:16:00+00:00", "text": "right. stale in, stale out then"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T13:17:00+00:00", "text": "basically. not our job to check it"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T13:19:00+00:00", "text": "ok so my branch recomputing it is just wrong, thats coming back out"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T14:02:00+00:00", "text": "back to the cache key thing from this morning - if i had to guess, the digest is reaching into the client to work out which backend actually ran it?"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:04:00+00:00", "text": "no. it just asks `llm.backend` and takes whatever comes back"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T14:06:00+00:00", "text": "mhm, that part i follow. but where does it land, the components dict has its own naming and i couldnt find where it gets set"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-19T14:09:00+00:00", "text": "it goes in as the `backend` value, straight through, no translation. and the digest doesnt go poking at the processor itself, thats the bit i think we were talking past each other on"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:10:00+00:00", "text": "right. so nothing walks the client internals at all"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-19T14:11:00+00:00", "text": "nope. one value handed over, thats it. best we can do without the digest knowing about clients"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T14:13:00+00:00", "text": "yeah ok. i had half a lookup written into the digest for exactly that"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-26T10:14:00+00:00", "text": "put rev1 of the cache identity spec on the wiki this morning, the main change from the sketch is that backend_params is a named set now instead of hashing the whole dict wholesale. would appreciate comments before i take it any further"}
+{"channel": "engineering", "author": "nils", "created_at": "2025-03-26T10:36:00+00:00", "text": "read it through. the doc claims unset params just dont appear in the components at all, so i went and checked rather than take it on faith — @Dario poked at components[\"backend_params\"][\"completion_window\"] on a run that never set one and got a KeyError, not a None — thats what i'd want honestly"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-26T10:44:00+00:00", "text": "so let me restate — a run that omits it and a run that sets it explicitly to whatever the provider default happens to be end up with different identities? not entirely sure thats what we want but i believe thats what falls out of it either way"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-26T10:58:00+00:00", "text": "mhm, that tracks. the alternative is normalising defaults per provider and thats a whole table someone has to keep current, which i dont think we want to sign up for. rev1 doesnt say anything about it either way, i left it open on purpose"}
+{"channel": "engineering", "author": "nils", "created_at": "2025-03-26T11:03:00+00:00", "text": "fair enough. i'll put the rest of my notes inline on the wiki page, mostly wording on the section about ordering"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-17T09:12:00+00:00", "text": "so following up on yesterday, i changed the model in the config and the restarted run picked the old batch id anyway. my guess is the identity is hashed off a subset of the params and model isn't in it? or it is and something upstream normalizes it away"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-17T09:19:00+00:00", "text": "model is in there i checked\n\npulled run_identity.json off the box after that rerun - response_format in there is one line no spaces, comes back a str when i json.load it thats what i wanted"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-17T09:24:00+00:00", "text": "yeah ok. so if the serialization is stable the hash should have moved when i touched the model. unless the file i was looking at wasn't the one it read"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-17T09:31:00+00:00", "text": "honestly i think there's a decent chance you edited the config after the working dir was already resolved, i've done that. to be honest that whole ordering is not obvious from the outside"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-17T09:36:00+00:00", "text": "could be that\n\ngotta think through that one properly before we change anything"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-17T09:41:00+00:00", "text": "mhm. i'll re-run it clean this afternoon and diff the two files, that said i'm on 632 review first"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-14T16:09:19+00:00", "text": "look, i took batch_size out before a run yesterday and it still went out batched. presumably im doing it in the wrong place"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T16:11:19+00:00", "text": "so basically ya, same thing bit me. on the params side i popped batch_size off what llm.backend_params handed me"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-14T16:12:19+00:00", "text": "and then what, did it take"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T16:14:19+00:00", "text": "no. read it again and batch_size was still there. so mutating what you got back doesnt reach the llm at all"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-14T16:15:19+00:00", "text": "right. so that line of mine was doing nothing the whole time"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T16:17:19+00:00", "text": "yup. set it where the llm gets built and leave what comes back out of it, for both of you"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T16:18:19+00:00", "text": "exactly. i printed the thing twice before i belived it tbh"}
+{"channel": "help", "author": "gideon", "created_at": "2025-03-27T09:02:00+00:00", "text": "also on the caching-and-resume cleanup, i kicked the same disable-cache sweep off twice yesterday for the flake hunt"}
+{"channel": "help", "author": "dermot", "created_at": "2025-03-27T09:04:00+00:00", "text": "twice as in the same config both times, or did you change something in between"}
+{"channel": "help", "author": "gideon", "created_at": "2025-03-27T09:05:00+00:00", "text": "same thing both times, i just wanted to see if the flake came back. and they landed in two diferent run dirs somehow"}
+{"channel": "help", "author": "dario", "created_at": "2025-03-27T09:07:00+00:00", "text": "so is one of them the real one, or are you stuck picking"}
+{"channel": "help", "author": "gideon", "created_at": "2025-03-27T09:08:00+00:00", "text": "thats the problem tbh, i had nothing to point CI at. two dirs and neither of them is the run"}
+{"channel": "help", "author": "dario", "created_at": "2025-03-27T09:10:00+00:00", "text": "mhm. the second one should have found the first and kept going in it i think"}
+{"channel": "help", "author": "dermot", "created_at": "2025-03-27T09:11:00+00:00", "text": "if i had to guess the second never went looking for the first at all"}
+{"channel": "help", "author": "gideon", "created_at": "2025-03-27T09:13:00+00:00", "text": "ya. so basically same sweep with nothing changed, it comes back to the same place and carries on from where the first one stopped, and then theres one path to hand CI"}
+{"channel": "help", "author": "dermot", "created_at": "2025-03-27T09:16:00+00:00", "text": "yeah ok. each one resumed itself fine, they just never met"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-03T13:01:27+00:00", "text": "if we do start writing somethign at submit time, how do we find it again after a restart"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-03T13:03:27+00:00", "text": "one file per run, keyed on the label the run was given. that's the only handle that survives the process dying"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-03T13:05:27+00:00", "text": "what happens if you pass the same label again, it just picks up the same file?"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-03T13:06:27+00:00", "text": "thats the intent yeah"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-03T13:08:27+00:00", "text": "only if the label always hashes down to the same thing though. honestly not sure it does today"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-03T13:10:27+00:00", "text": "it has to. same label twice has to give the same hash, otherwise reattaching to a run is guesswork"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-03T13:11:27+00:00", "text": "ya, you'd be opening files hoping one of them is yours"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-03T13:12:27+00:00", "text": "yup. rules out anything with the clock in it then"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-31T15:33:00+00:00", "text": "quick one - with the cache disabled, where is the run id supposed to come from? i dont see anything deriving one"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-31T15:36:00+00:00", "text": "it doesnt, thats the whole problem. honestly with the cache off theres no stable input of ours to key on"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-31T15:38:00+00:00", "text": "so basically nothing to hash. then what, we generate one?"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-31T15:43:00+00:00", "text": "no, the id gets handed in. run_id: Optional[str] = None on the signature, caller sets it or it just stays unset"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-31T15:46:00+00:00", "text": "and the layers under it? each one takes its own or um"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-31T15:50:00+00:00", "text": "threaded down from __call__, same value all the way through. nothing below that makes up a new one"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-31T15:54:00+00:00", "text": "mhm, that tracks. Optional so the paths that dont care about it dont have to change at all"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:21:00+00:00", "text": "two comments left on the identity thing, one on the spelling in the signature and one on how it actually gets passed in"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:24:00+00:00", "text": "signature one is easy its run_id there not runId"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:26:00+00:00", "text": "right, thats what i assumed. the second one is the part im not entirely sure about"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-03T15:29:00+00:00", "text": "the call site was pulling it out of the bag when i last read it, if thats what you mean"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:31:00+00:00", "text": "mhm thats the one. so what does __call__ take"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:35:00+00:00", "text": "named keyword only arg on __call__ not something we dig out of **kwargs"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:36:00+00:00", "text": "so both spots you flagged come out of the same edit ill take them together"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:38:00+00:00", "text": "ok. i typed runId in the comment myself so ignore me there"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T13:12:00+00:00", "text": "spent ten minutes looking for last nights eval sweep output and couldnt tell which dir was ours. is that id something we set or whatever the harness feels like"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T13:14:00+00:00", "text": "we set it. the CI job on our side exports CURATOR_RUN_ID=$GITHUB_RUN_ID before the eval sweep now"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-19T13:16:00+00:00", "text": "this is the sweep on A youre talking about? the ones i was digging through this morning were not that"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T13:17:00+00:00", "text": "mhm, A"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T13:19:00+00:00", "text": "exporting it in ci doesnt get me anywhere on its own though, unless something on the other end actually reads the var"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T13:21:00+00:00", "text": "os.environ.get picks it up, and that string is the run_id component. so i can find the direcotry straight off the build number"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T13:23:00+00:00", "text": "yeah ok. nothing in our tooling looks it up yet, but at least its sitting there to look up"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-19T13:25:00+00:00", "text": "yup. beats what i was doing, which was matching timestamps and hoping"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:04:00+00:00", "text": "quick one - what sets the run id when im just running this on my laptop? nothing in my env has it"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T13:06:00+00:00", "text": "i had assumed something upstream handed it in tbh"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T13:08:00+00:00", "text": "let me think - locally nobody exports it. so llm.py mints one itself, uuid4"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:09:00+00:00", "text": "mints it and then what, does it sit on the object or"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T13:11:00+00:00", "text": "no, it gets handed down as the run_id argument. LLM.__call__ takes it and LLM._run_identity takes it too"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:12:00+00:00", "text": "so basically both signatures grow a run_id. and its the hex, not the uuid object?"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T13:14:00+00:00", "text": "uuid.uuid4().hex yes, a plain string the whole way down"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:15:00+00:00", "text": "ya thats clear, i can stop grepping my env for it"}
+{"channel": "random", "author": "gideon", "created_at": "2025-03-18T11:27:20+00:00", "text": "hey so i was trying to work out which runs actually came off disk last week, filtered the stamps by run_id and got almost nothing back"}
+{"channel": "random", "author": "emil", "created_at": "2025-03-18T11:30:20+00:00", "text": "nothing back at all, or nothing for the cached ones specifically?"}
+{"channel": "random", "author": "gideon", "created_at": "2025-03-18T11:31:20+00:00", "text": "just the cached ones. the fresh runs all came out fine"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-03-18T11:33:20+00:00", "text": "whats in the field on a cached one"}
+{"channel": "random", "author": "emil", "created_at": "2025-03-18T11:36:20+00:00", "text": "null. components has \"run_id\": null on those, so theres nothing to match against. same gap as this mornings thing honestly, just on the metadata side"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-03-18T11:37:20+00:00", "text": "right so the filter isnt broken theres just nothing there to find"}
+{"channel": "random", "author": "emil", "created_at": "2025-03-18T11:39:20+00:00", "text": "yup. it wants the run_id written in at stamp time rather than left empty, thats the fix"}
+{"channel": "random", "author": "gideon", "created_at": "2025-03-18T11:41:20+00:00", "text": "ya ok. so the disk numbers i sent round monday were only ever the fresh half"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T15:02:00+00:00", "text": "what goes in the id field when we hit cache? the record i pulled back had null there and i cant tell if thats a bug or the point"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T15:05:00+00:00", "text": "honestly it should stay null for a cache hit. thats not a bug"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-24T15:07:00+00:00", "text": "hm. i had it in my head we stamped one on every run regardless"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T15:10:00+00:00", "text": "only on the way into the disable_cache branch. thats the one place we reach for an id at all"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T15:12:00+00:00", "text": "ok but then whats pinning the row. two hits in a row would look identical to me"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T15:15:00+00:00", "text": "they dont need one, a cached run is already pinned by the rest of the components block. an id on top of that is just noise"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-24T15:17:00+00:00", "text": "sounds right, better than making one up. nothing in there enforces it today though"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T15:19:00+00:00", "text": "ya, i was half way through writing the opposite into my patch"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-28T13:16:48+00:00", "text": "@Gideon did the two verification runs tell you anything useful in the end"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T13:19:48+00:00", "text": "not really. honestly though i hit somethign else while digging in there - i had it running with cache off"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-28T13:21:48+00:00", "text": "and what happens with cache off"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T13:23:48+00:00", "text": "three jobs, one directroy. um, and they were not the same job"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-28T13:28:48+00:00", "text": "same dir because they resolved to the same name, or because nothing named them at all"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T13:30:48+00:00", "text": "same name. one of them had run_id \"\" and one had None"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-28T13:32:48+00:00", "text": "so after the fact you cant tell which of the three wrote what"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T13:33:48+00:00", "text": "exactly, no way to tell them apart. the empty one cant keep landing where None does"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-28T13:35:48+00:00", "text": "that tracks. the panel would hand you three identical rows for that too"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-05-06T14:02:00+00:00", "text": "ok what is RunIdentityError. the whole disable-cache sweep came back with that and basically nothing ran"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-05-06T14:04:00+00:00", "text": "which wrapper did you launch it from, the CI one?"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-05-06T14:05:00+00:00", "text": "ya the CI one"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-05-06T14:07:00+00:00", "text": "right, thats it then. it does os.environ.get(\"CURATOR_RUN_ID\") and passes that straight in as run_id. no default, no check"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-05-06T14:08:00+00:00", "text": "so what was actually in the env"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-05-06T14:09:00+00:00", "text": "nothing. it was never exported in that job so what goes in is None"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-05-06T14:11:00+00:00", "text": "hm i thought get would hand you \"\" there? or is that only um, if someone sets it empty"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-05-06T14:13:00+00:00", "text": "only if someone sets it empty, yes. here nobody set it at all. anyway i exported it and reran, three dirs"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-05-01T12:53:00+00:00", "text": "if you hand it a run id and the run just hits cache, does that id do anything at all"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-05-01T12:55:00+00:00", "text": "no. we take it and ignore it, you get the existing dir back"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-05-01T12:55:00+00:00", "text": "silently? nothing in the log"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-05-01T12:56:00+00:00", "text": "silently yeah"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-05-01T12:57:00+00:00", "text": "thats the same shape then arg goes in nothing comes of it"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-05-01T12:59:00+00:00", "text": "i lost the better part of an hour on that in march, working out why the dir was the old one and not the one id named"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-05-01T13:01:00+00:00", "text": "yeah. if i had to guess most people read that arg as naming the run. it should refuse rather than accept it and do nothing"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-05-01T13:02:00+00:00", "text": "right, complain up front"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-05-01T13:03:00+00:00", "text": "sounds right. id have caught mine in a minute if it had just said something"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-03T16:51:08+00:00", "text": "quick one on the run identity check, does it sit before or after we make the run dir? i had a half written run folder left behind from an id that got rejected"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-03T16:54:08+00:00", "text": "before  we settled on moving the check ahead of the dir creation  refuse first then create so nothing is left on disk either way"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-03T16:56:08+00:00", "text": "mhm. and what is compute_run_identity actually refusing on"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-03T16:59:08+00:00", "text": "two things  an id passed on a cached run  and cache off with run_id None or \"\""}
+{"channel": "engineering", "author": "emil", "created_at": "2025-06-03T17:03:08+00:00", "text": "wait, the empty one too? so restating it back at you, anything hitting LLM.__call__ without an id explodes on every uncached run? that cant be right"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-03T17:06:08+00:00", "text": "no  __call__ mints the default itself  CURATOR_RUN_ID when its set otherwise a fresh uuid4  and passes that down as the run_id arg"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-06-03T17:08:08+00:00", "text": "ah ok. so out of __call__ the only refusal you can ever actually surface is the cached-run one. The None/empty case is for people coming in further down"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-03T17:10:08+00:00", "text": "yep  thats the only one youd see from there"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-03T17:12:08+00:00", "text": "mine was a cached run with an id set, so that tracks"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-03T11:48:12+00:00", "text": "theres a v3-nocache-9f2b1c0ad4e5f678 in the viewer listing, sat right beside the plain v3- dirs"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-03T11:49:12+00:00", "text": "is that wrong? off the top of my head thats where the nocache runs land"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-03T11:50:12+00:00", "text": "not wrong, just useless. so basically its the same row identity problem we had, only in the other direction tbh"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-03T11:51:12+00:00", "text": "other direction as in they look alike, or as in they dont line up at all"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-03T11:52:12+00:00", "text": "alike. always 27 chars either way, the prefix and then 16 hex"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-03T11:53:12+00:00", "text": "right, so the hex is the only part carrying anything and it doesnt tell you the run"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-03T11:54:12+00:00", "text": "ya, nothing in the name does. two of those next to each other and you cant say which run made either"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T15:44:00+00:00", "text": "the cache dir naming - has anyone actually confirmed the same id gives you the same dir twice, or are we still assuming that"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-15T15:46:00+00:00", "text": "i poked at it this morning actually. ran it twice with the same id and the two stamps diff clean"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-15T15:47:00+00:00", "text": "ok but what about two ids that are nearly the same? thats the case i dunno about tbh"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-15T15:49:00+00:00", "text": "did that too. changed one character of the id and got a different dir, which is what we want"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-15T15:50:00+00:00", "text": "ya exactly, that was the part worrying me"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T15:52:00+00:00", "text": "and none of this is in the code yet, if i had to guess"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-15T15:53:00+00:00", "text": "no, all by hand at a shell. still has to be written properly"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T15:55:00+00:00", "text": "mhm. that would explain the two dirs i found monday, i couldnt work out what was different between them"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-04-11T13:38:00+00:00", "text": "anyone been back through run_identity.py since the merge landed?"}
+{"channel": "incidents", "author": "emil", "created_at": "2025-04-11T13:39:00+00:00", "text": "yup, i grepped it again after. no random, no secrets in that module"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-04-11T13:41:00+00:00", "text": "and uuid? thats the one that got us last time"}
+{"channel": "incidents", "author": "emil", "created_at": "2025-04-11T13:42:00+00:00", "text": "no uuid, no os.urandom either. not even an import sitting there unused, honestly i expected to find one"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T13:44:00+00:00", "text": "so where does uuid live now, we definitely still pull it in somewhere"}
+{"channel": "incidents", "author": "emil", "created_at": "2025-04-11T13:45:00+00:00", "text": "llm.py. thats the only import of it left"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T13:46:00+00:00", "text": "mhm. nobody has actually written anything against that yet though"}
+{"channel": "incidents", "author": "konrad", "created_at": "2025-04-11T13:47:00+00:00", "text": "right, and llm.py is off the identity path anyway, so its the one file to keep clear"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-02-12T14:48:02+00:00", "text": "on the normalize-before-hashing item — what happens on the nocache path? do we normalize there too"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-02-12T14:50:02+00:00", "text": "nothing happens there, that path doesnt hash at all"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-02-12T14:51:02+00:00", "text": "um. so where does the id come from then"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-02-12T14:53:02+00:00", "text": "compute_run_identity. theres an `if disable_cache:` near the top that mints a uuid4 and returns, thats the whole arm"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-02-12T14:54:02+00:00", "text": "right same thing came up in the review"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-02-12T14:55:02+00:00", "text": "ok but then two identical runs get different ids. thats not a problem?"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-02-12T14:58:02+00:00", "text": "no, nothing to collide with and nothing to look up either. normalizing only earns you anything on the branch that actually builds a key"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-02-12T14:59:02+00:00", "text": "ya ok. i havent opened the file yet but so its only the branch under that one i touch"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-02-12T15:00:02+00:00", "text": "yep leave the uuid arm alone"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-01-22T15:26:00+00:00", "text": "the nocache run dirs, is there an order to them or is it just random. i cant find the one i ran twenty minutes ago"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:29:00+00:00", "text": "its the uuid4 in the disable_cache path. thats coming out, its doing nothing for us"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-01-22T15:30:00+00:00", "text": "out and replaced with what though, the dir still needs a name on it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:32:00+00:00", "text": "datetime.now().isoformat() goes in as that segment instead"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-01-22T15:34:00+00:00", "text": "so the nocache dirs come out sorted chronologically on disk then, just from the name"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:36:00+00:00", "text": "right. much easier to eyeball, thats the whole reason anyway"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-01-22T15:38:00+00:00", "text": "yep the uuid only ever told me two runs were different never which one came first"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-03-31T12:56:38+00:00", "text": "back on the normalize-before-hashing thread — i ran the same nocache job twice this morning and got two output dirs. is that intended"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T12:58:38+00:00", "text": "intended per what we settled in review, yeah. the nocache path doesnt hash at all, compute_run_identity just mints a uuid4 under `if disable_cache:`, nothing to collide with and nothing to look up"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T12:59:38+00:00", "text": "that ones gone though. reruns kept landing in a new dir every time and to be honest nobody ever wanted that, they just wanted the hashing skipped"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-03-31T13:00:38+00:00", "text": "so it hashes on that path now? not entirely sure what fills the slot otherwise"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T13:02:38+00:00", "text": "no, you hand it one. keyword only, run_id: Optional[str] = None on compute_run_identity, and the uuid4 comes out"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-31T13:03:38+00:00", "text": "ok but it goes where exactly. the rest of the identity is same as before?"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T13:05:38+00:00", "text": "same as before, and whatever you pass gets stored as the run_id component when cache_enabled is False"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-03-31T13:06:38+00:00", "text": "mhm. pass the same one twice and the rerun comes back to the same dir then"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-31T13:08:38+00:00", "text": "thats the entire reason for it. does it want its own ticket or can it ride along with 585"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:12:00+00:00", "text": "ran the nocache sweep twice on the same config today and got two dirs out of it"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:13:00+00:00", "text": "identical inputs so i dont know what im comparing"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:18:00+00:00", "text": "right thats the timestamp. we swapped the uuid4 in the disable_cache path for a datetime.now().isoformat() segment a while back so the nocache dirs would sort chronologically, easier to eyeball. its gone, it made every run unique to itself, which is exactly your two sweeps two dirs"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:20:00+00:00", "text": "so whats naming the dir instead"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:24:00+00:00", "text": "run_hash. v3-nocache- and then a digest of the whole components block"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:25:00+00:00", "text": "whole block including run_id though right that moves every time"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:29:00+00:00", "text": "run_id goes in as one entry, thats all it is. nothing in there varies per run anymore so the two sweeps land in the one dir"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-24T15:34:00+00:00", "text": "sounds right. i have a shell alias that sorts those by name, guess i can retire it"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-02T14:17:00+00:00", "text": "one thing before the cut, unrelated to 643. cache_enabled true and a run_id handed in at the same time — today it just picks one and carries on"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-05-02T14:20:00+00:00", "text": "picks which"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-02T14:21:00+00:00", "text": "thats sort of the problem, i couldnt tell you without reading the branch"}
+{"channel": "releases", "author": "dario", "created_at": "2025-05-02T14:25:00+00:00", "text": "then it shouldnt be picking at all, honestly. cache_enabled true with a run_id thats not None is a RunIdentityError"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-02T14:28:00+00:00", "text": "and the ones that come through with run_id as empty string? we get a fair few of those"}
+{"channel": "releases", "author": "dario", "created_at": "2025-05-02T14:31:00+00:00", "text": "\"\" counts. its not None, so same thing — we dont get to guess which dir they meant"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-05-02T14:33:00+00:00", "text": "mhm, better than silently landing somewhere"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-02T14:35:00+00:00", "text": "yeah ok. one caller in the smoke path was passing both, thats how i noticed at all"}

@@ -1,0 +1,14 @@
+{
+ "task_id": "g6",
+ "arm": "spec",
+ "fact_keys": [
+  "g6.r1.rule",
+  "g6.r1.exclusions_or_crossover",
+  "g6.r1.observability",
+  "g6.r2.rule",
+  "g6.r2.scope",
+  "g6.r2.exclusions_or_crossover",
+  "g6.r2.observability"
+ ],
+ "open_key": "g6.open_feature"
+}

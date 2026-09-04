@@ -1,0 +1,9 @@
+{
+  "build_id": "noop-val-72934def-1788467413746",
+  "type": "noop",
+  "status": "passed",
+  "score": 0,
+  "passed": true,
+  "feedback": "0 of 9 hidden requirements satisfied. Open feature: no. Missed: g11.r1.rule, \ng11.r1.scope, g11.r1.exclusions_or_crossover, g11.r1.failure_behavior, \ng11.r1.observability, g11.r2.rule, g11.r2.exclusions_or_crossover, \ng11.r2.failure_behavior, g11.r2.observability.   'step_ledger' from 'besp... | \nFAILED \ntest_r1.py::test_failure_behavior__an_unknown_reason_is_refused_and_a_repeat_nam\ne_merges - Failed: bespokelabs.curator.finetune.step_ledger could not be \nimported: ImportError(\"cannot import name 'step_ledger' f... | FAILED \ntest_r1.py::test_observability__the_two_checkpoints_of_the_end_to_end_run_read_b\nack - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: \nImportError(\"cannot import name 'step_ledger' from '... | FAILED \ntest_r2.py::test_rule__inclusive_warmup_then_a_linear_decay_to_a_tenth_of_the_ba\nse_rate - Failed: bespokelabs.curator.finetune.step_ledger could not be \nimported: ImportError(\"cannot import name 'step_ledger' fr... | FAILED \ntest_r2.py::test_exclusions__clamped_past_the_end_and_a_grown_run_never_re_enter\ns_warmup - Failed: bespokelabs.curator.finetune.step_ledger could not be \nimported: ImportError(\"cannot import name 'step_ledger' f... | FAILED \ntest_r2.py::test_failure_behavior__a_warmup_longer_than_the_run_is_clipped_to_it\n- Failed: bespokelabs.curator.finetune.step_ledger could not be imported: \nImportError(\"cannot import name 'step_ledger' from 'bes... | FAILED \ntest_r2.py::test_observability__the_stated_rate_vectors_and_the_three_rates_of_t\nhe_run - Failed: bespokelabs.curator.finetune.step_ledger could not be imported:\nImportError(\"cannot import name 'step_ledger' fro... | 10 failed, 1 warning in \n1.81s |",
+  "updated_at": "2026-09-03T20:33:50.907Z"
+}

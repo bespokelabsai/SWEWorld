@@ -1,0 +1,15 @@
+From: konrad@world.local
+To:
+ gideon@world.local, nikolai@world.local, emil@world.local, dario@world.local
+Subject: Re: auto-sizing branch: sidecar on the fixed batch_size path too?
+Date: Tue, 15 Apr 2025 14:11:00 +0000
+Message-ID: <178822443476.2088454.6540615790845656819@world.local>
+In-Reply-To: <178822443475.2088454.2372384230054378718@world.local>
+References: <178822443475.2088454.2372384230054378718@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Look, if a fixed batch_size run also drops a plan_id file next to the request=
+s, my loader will read that run as auto-sized. that file is the whole signal =
+on my side, presence or absense of it

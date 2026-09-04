@@ -1,0 +1,62 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P4 (per-kind 20.0/24.0), P5 (45.0 aggregate), P12 (count 12), P13 (empty payload)",
+  "blind_alternative": "no base-owned ceilings at all \u2014 leave sizing entirely to the existing `file_upload_limit_check` hook, add no `size_mb` field, no count cap, and build a block for a zero-byte file"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4 (base before provider hook), P12 (count checked first, in `_handle_multi_modal_prompt` only), P13 (the fixed refusal order)",
+  "blind_alternative": "calls the provider hook immediately after serializing, with nothing before it, and puts any limit it does invent in the provider override or after the blocks are built"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P4 (url blocks unmeasured, `size_mb is None`), P5 (url blocks contribute nothing), P12 (texts not counted)",
+  "blind_alternative": "no `size_mb` on the block at all, and if capping counts, counts the rendered content list including text blocks"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P4 (`AttachmentTooLarge`), P5 (`kind=\"prompt\"`), P12 (`TooManyAttachments`), P13 (`EmptyAttachment`)",
+  "blind_alternative": "raises nothing; or a bare `ValueError`/`FileNotFoundError` with no `.kind`/`.size_mb`/`.limit_mb`, `.count`/`.limit`, `.url`/`.filename` and no `AttachmentError` base"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P5 (`len(stub.calls) == 4`, `size_mb == 60.0`), P12 (`stub.calls == []` at 13), P4 (24.0 MB image refused, same payload as document accepted)",
+  "blind_alternative": "returns a 4-block list for 60 MB and a 13-block list for 13 attachments, with the hook called for every base64 payload and no exception anywhere"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P15 (`attachment_fingerprint`, `fingerprint`, 12 hex), P14 (64-char cap keeping the extension), P11 (`normalize_detail`, `_SUPPORTED_IMAGE_DETAILS`)",
+  "blind_alternative": "six-field block with no fingerprint, `os.path.basename(...)` used uncapped, and `getattr(data, \"detail\", \"auto\")` copied through verbatim"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P15 (digest over the payload string, url included), P14 (only `filename` capped), P11 (`Image.detail` untouched on the model)",
+  "blind_alternative": "no derived metadata exists, so nothing is computed at block-build time; an agent that did add an id would hash the decoded bytes and leave a url block without one"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P15 (renderers unchanged, no `fingerprint`/`size_mb` key), P14 (capped filename beside the full `file_url`), P7/P11 (normalized `detail` in the rendered image block)",
+  "blind_alternative": "renders the 73-character basename verbatim and the raw `detail` string, since there is no capping or normalization step to exclude from the payload"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P11 (unknown detail downgraded to `\"auto\"` with exactly one `logger.warning`, never raised)",
+  "blind_alternative": "passes `\"ultra\"` straight through to the provider with no warning, or validates the vocabulary at `Image` construction and raises there"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P15 (the three exact `sha256:` strings), P14 (the exact 64-character filename and the boundary cases), P11 (`\"high\"`/`\"low\"`/`\"auto\"` on the block and in the rendered dict)",
+  "blind_alternative": "`AttributeError` on `.fingerprint`, a 73-character filename, and `detail == \"HIGH\"`/`\"ultra\"` in the rendered `image_url` block"
+ }
+]

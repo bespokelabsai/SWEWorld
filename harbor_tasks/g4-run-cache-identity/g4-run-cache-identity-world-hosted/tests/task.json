@@ -1,0 +1,49 @@
+{
+ "task_id": "g4",
+ "suite": "g4_run_cache_identity",
+ "variant": "world-hosted",
+ "control": false,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "The digest is computed over exactly twelve component keys, exported as `IDENTITY_COMPONENT_KEYS: tuple[str, ...]` in alphabetical order: `backend`, `backend_params`, `batch_mode`, `dataset_hash`, `generation_params`, `model_name`, `parse_func_hash`, `prompt_func_hash`, `response_format`, `return_completions_object`, `run_id`, `system_prompt`. The parse function participates via `_get_function_hash(llm.prompt_formatter.parse_func)` exactly as the prompt function does, `system_prompt` and `return_completions_object` participate, `generation_params` is always carried (`dict(... or {})`), and `response_format` is `json.dumps(rf.model_json_schema(), sort_keys=True, separators=(\",\", \":\"))` or the literal string `\"text\"` when it is `None`.",
+    "scope": "`backend` is the *resolved* backend name read off `llm.backend`, which is `self._request_processor.backend`; `LLM.backend_params` is a copy of the dict handed to `__init__`, `{}` when it was `None`.",
+    "exclusions_or_crossover": "`backend_params` is filtered to exactly the four keys of `IDENTITY_BACKEND_PARAM_KEYS: frozenset[str] = frozenset({\"azure_deployment\", \"base_url\", \"batch_size\", \"completion_window\"})`. Every other backend param is not identity and must not fork the cache directory \u2014 `max_retries`, `request_timeout`, `require_all_responses`, `batch_check_interval`, `seconds_to_pause_on_rate_limit`, `max_requests_per_minute`, `delete_successful_batch_files`, and `api_key`.",
+    "observability": "For a stub with `backend_params={\"base_url\": \"https://x/v1\", \"max_retries\": 7, \"api_key\": \"sk-secret\", \"request_timeout\": 30}`: `tuple(sorted(compute_run_identity(S, \"d0\").components)) == IDENTITY_COMPONENT_KEYS` with `len == 12`; `.components[\"backend_params\"] == {\"base_url\": \"https://x/v1\"}`; the string `\"sk-secret\"` occurs nowhere in the serialised components or in the written `run_identity.json`; `run_hash` is byte-equal to that of a stub differing only in `api_key`, `max_retries` and `request_timeout`; and `run_hash` differs when only the parse function, only `system_prompt`, only `return_completions_object`, or only the resolved backend differs. `LLM(model_name=\"gpt-4o-mini\")` and `LLM(model_name=\"gpt-4o-mini\", backend=\"openai\")` yield the same `run_hash`."
+   },
+   "hidden_requirement_types": [
+    "chosen value (the four-key allowlist)",
+    "policy with no local evidence (api_key and retry knobs are the same run)",
+    "invented name (IDENTITY_COMPONENT_KEYS, IDENTITY_BACKEND_PARAM_KEYS)",
+    "deliberate departure (resolved backend, not the declared argument)"
+   ],
+   "fragmentation_sources": [
+    "#eng-curator thread arguing about cache thrash after a key rotation",
+    "wiki page 'What counts as the same run' listing the four transport knobs that do count",
+    "mail thread on the parse-function cache collision that started the ticket",
+    "a code-review comment asking why `llm.backend` and not the `backend=` kwarg"
+   ],
+   "earlier_reversed_version": "An earlier build hashed the whole `backend_params` dict (mirroring the `sorted(generation_params.items())` line already in `llm.py`); it was reversed after every `api_key` rotation and every `max_retries` tweak minted a fresh cache directory, and after the cleartext `api_key` was noticed in a stamp file on a shared box."
+  },
+  {
+   "requirement": {
+    "rule": "A cache-disabled run gets its identity from a caller-supplied id: `compute_run_identity` (and the component builder, `LLM._run_identity` and `LLM.__call__`) take a keyword-only `run_id: Optional[str] = None`, which is stored as the `run_id` component when `cache_enabled is False`, so replaying the same `run_id` is deterministic.",
+    "scope": "A default id is minted from `os.environ.get(\"CURATOR_RUN_ID\")`, falling back to `uuid.uuid4().hex`, then passed down as a parameter. A cached run carries `run_id: None` in its components.",
+    "failure_behavior": "`cache_enabled=False` with `run_id` `None` or `\"\"` raises `RunIdentityError`; `cache_enabled=True` with a non-`None` `run_id` also raises `RunIdentityError`. The refusal reaches the caller out of `LLM.__call__` and is raised before the run directory is created, so a refused call leaves no directory behind.",
+    "observability": "`compute_run_identity(S, \"d0\", cache_enabled=False, run_id=\"local-run-7\").run_hash` starts with `\"v3-nocache-\"` and has `len == 27`; a second identical call is byte-equal to it; `run_id=\"other\"` gives a different value; `compute_run_identity(S, \"d0\").components[\"run_id\"] is None`; and an AST scan of `run_identity.py` finds no import of `random`, `secrets` or `uuid` and no `urandom` attribute access."
+   },
+   "hidden_requirement_types": [
+    "deliberate departure (surrounding code mints os.urandom(8) at exactly this spot)",
+    "chosen value (the `nocache-` infix, the `CURATOR_RUN_ID` env var)",
+    "policy with no local evidence (raising when a run_id is supplied for a cached run)"
+   ],
+   "fragmentation_sources": [
+    "support thread where a `--no-cache` reproduction could not be pointed at its output directory",
+    "#eng-curator message about `du -sh ~/.cache/curator` and un-greppable orphan directories",
+    "wiki note on running curator under CI with a job-id env var",
+    "review comment rejecting a timestamped directory name"
+   ],
+   "earlier_reversed_version": "The first cut kept `uuid4()` inside the identity function guarded by `if disable_cache:`, then briefly switched to a `datetime.now().isoformat()` segment so directories sorted; both were reversed once CI needed to re-attach to a specific disabled-cache run by id."
+  }
+ ]
+}

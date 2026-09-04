@@ -12,6 +12,51 @@ requirements attached afterwards, and the measured bracket says what that cost:
 the requirement, and 3 are unmeasurable. Each of those was discovered after a
 paid trial.
 
+## Overview: the whole pipeline, and the clues arm, in brief
+
+Each task goes from a brief to up to **five gradable arms of the same ticket**,
+proving the gap between them rather than asserting it:
+
+```
+author → build oracle/naive/spec → split → tests → bracket (gate: every fact
+must read `hidden`) → emit (writes the harbor artifacts) → [clues, optional]
+→ horizon (renders blind/spec/clues as hosted arms) → trial / hosted eval
+```
+
+- **`blind`** — the ticket alone. Should score ~0.
+- **`spec`** — ticket + the hidden requirements, stated outright. Should score
+  ~1.00: proof the requirements as written are sufficient to solve it.
+- **`clues`** — ticket + every planted remark quoted inline, date-ordered. The
+  ceiling — can an agent use evidence once it has already been pulled out for
+  it.
+- **`world`** / **`world-hosted`** — the plain blind ticket, but run against an
+  actual populated SWEWorld image whose chat, wiki and mail genuinely contain
+  those same remarks, scattered among everything else. The real test: can an
+  agent find the evidence itself, not just use it once handed over. See "The
+  in-world arm" below. (`world-hosted` is the same arm pushed to Horizon, and
+  lives in a separate project, `sweworld`, from the apex arms' `nidhi-test`.)
+
+**How a plant becomes a corpus (`cli.py clues <slug>`, `tg/clues.py`):** unlike
+`data_gen/phase3_plant.py`, which plants into conversation *specs* before
+anything is simulated, this plants **after** — into a corpus that already
+exists. Per hidden requirement: build a MuSR-style tree of subconclusions and
+leaf remarks, write any reversed-decision herrings, place each leaf in a real
+carrier (an existing chat day, wiki page, comment or mail thread) or invent one
+only if nothing fits, then turn a single remark into a real multi-turn exchange
+(`reknit`) and judge which claims actually survived it. `cli.py prove` then
+builds from just the ticket and the remarks and scores it with the real suite,
+to prove the plant is solvable before anything is trusted; `cli.py repair`
+fixes only the remarks `prove` blames, in place, rather than re-rolling the
+whole tree. `cli.py settle` is the strictest check of all — it decomposes each
+requirement's own test assertions and judges every one `stated` / `implied` /
+`absent` / `not_required` against the corpus (see "Rubric conditions 3 and 4"
+below).
+
+`tg/clues.py` itself only writes `out/<slug>/clues/` — the plant ledger, not
+the corpus. `tg/inject.py` is the only code that writes into an actual copy of
+the corpus (`messages.jsonl`, `comments.jsonl`, `docs/*.md`, `emails/*.eml`),
+which is what the `world` arm needs a re-baked image for.
+
 ## The two loops
 
 ```
@@ -335,6 +380,29 @@ the anchor count 2 → 4 → 2 and changed nothing, because re-cutting only choo
 One `cli author <slug> --extend` — which keeps the parts and the oracle and only
 adds parts carrying content the codebase cannot supply — took `naive` from 5/10 to
 1/10. **A coincidence is a fact about the specification, not about the cut.**
+
+### The paid clue passes checkpoint; run them detached
+
+`plan`, `repair`, `reknit`, `replace`, `reverse` and `reorder` all mutate one
+`ledger` in place and write it ONCE, at the end, through `finish()`. That single
+tail is deliberate — the first three each grew their own copy of it with a
+different hole — but it means an interrupted pass loses every call it has paid
+for, and leaves `plant.json` reading exactly as it did before.
+
+So each of them now starts at `clues.resume(task, stamp)`, which picks up
+`.{stamp}.partial.json` when an earlier pass was interrupted; `checkpoint()`
+writes that file after each item; and `finish()` deletes it once the real artifact
+is on disk. A kill costs one call rather than the whole pass.
+
+Launch them **detached**, not merely in the background:
+
+```bash
+setsid nohup python3 task_generator/cli.py reknit <slug> > reknit.log 2>&1 < /dev/null &
+```
+
+Eleven of g4's eighteen stages run longer than ten minutes, which is where several
+harnesses cut a child off. Detaching removes the question; tuning a timeout only
+moves it.
 
 ### `open_feature` is graded but not gated, and that is where a bad suite hides
 

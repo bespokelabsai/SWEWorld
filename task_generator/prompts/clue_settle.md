@@ -42,6 +42,11 @@ Someone hits a thing and someone else settles it is what makes this read as a
 company rather than a specification cut into pieces — and the complaint is what
 makes anybody care that a decision was needed.
 
+A **new** remark that settles something is dated where it is placed, and a decision
+that lands before the complaint it answers is thrown back and re-placed. So a new
+decision belongs to a step that already has somebody complaining; if the step has
+none, write the complaint rather than the answer.
+
 **One missing piece per remark.** A message carrying three decisions is a message
 written for a grader. Spread them: different people, different steps, and prefer
 whoever already owns that ground in the remarks above.

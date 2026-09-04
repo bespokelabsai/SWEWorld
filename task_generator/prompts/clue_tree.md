@@ -79,9 +79,30 @@ Two to four leaves per subconclusion, **never one**, and give each to somebody w
 owns that ground. Aim for three or four subconclusions that together add up to the
 whole requirement and nothing more.
 
+Within a subconclusion, **somebody has to hit the problem, not just settle it.** At
+least one leaf reports what the code does today — the run that came out wrong, the
+number nobody could explain — and the leaves that settle the point read as answers
+to it rather than as announcements. A step made only of decisions has nobody in it
+who wanted the change.
+
+This is dated later, and dating is not yours: a decision that lands earlier than the
+complaint it answers is thrown back and re-placed. What you control is whether the
+complaint exists at all, and whether the settling leaf would still make sense to
+somebody who had just read it.
+
 `covers` names which parts of the requirement each leaf carries — at most two.
 Across all leaves, every part listed above must be carried by at least one.
+
+**Never restate the requirement in a leaf.** Say the one thing that leaf knows, in
+the words the person would use; a remark that reproduces the requirement's own
+wording is the arm this one is measured against, and it is thrown back for it. If a
+leaf reads like a sentence out of a specification, it is one.
 
 `verbatim` lists the identifiers a leaf's own text contains literally. It is the
 only thing that protects a name between here and the corpus: a leaf claiming one it
 does not contain is thrown out, and so is any later rewrite that loses one.
+
+`leaves_open` is the other half of that, and every leaf needs one: the part of the
+requirement this remark deliberately does **not** settle, which a sibling leaf
+carries instead. It is what the later stages are shown to keep them from filling the
+gap in — a leaf that leaves nothing open has said the whole thing by itself.

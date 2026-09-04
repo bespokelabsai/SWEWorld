@@ -1,0 +1,44 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local, gideon@world.local,
+ nikolai@world.local, tomas@world.local
+Subject: Re: Weekly update: week of Apr 7
+Date: Mon, 14 Apr 2025 11:02:00 +0000
+Message-ID: <178853189199.489558.11927917767742768133@world.local>
+In-Reply-To: <178853189198.489558.15428574017693879820@world.local>
+References: <178853189198.489558.15428574017693879820@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Konrad,
+
+On your cost question =E2=80=94 both of those are working as intended, and I =
+can tell you exactly where each number comes from, because I went through the=
+ resolution path this morning to be sure I was not repeating something I half=
+ remembered.
+
+The klusterai case first. What you called is resolve_model_price with provide=
+r=3Dklusterai and batch=3DTrue, and the half-of-table figure it returned is t=
+he correct answer, not a lost digit. Batch pricing for that provider is a fif=
+ty percent reduction against the listed rate, and rather than carry a second =
+set of numbers that would drift out of date the moment the provider republish=
+es, the helper takes the listed rate and halves it at lookup time. So the rou=
+nd factor you noticed is the whole of the batch behaviour, and you can put th=
+e halved number on the sheet with a clear conscience. If it had come back at =
+anything other than exactly half the table rate, that would have been the thi=
+ng worth mailing about.
+
+On your second point, your assumption was the right one. Anything we read out=
+ of those provider tables comes back exactly as listed =E2=80=94 no rounding,=
+ no markup, no unit conversion, nothing applied on the way out. The table is =
+the source of truth for the non-batch path, and if the helper and the table e=
+ver disagree there, we have a bug rather than a policy. I say this with some =
+emphasis because we need to be intentional here about not accumulating quiet =
+adjustments in the lookup layer; the moment a number changes shape between th=
+e table and the caller, nobody can reconcile an invoice again. Batch halving =
+is the one transformation, and it only applies when you ask for it.
+
+So, concretely: halved for the klusterai batch line, as listed everywhere els=
+e.
+
+Emil

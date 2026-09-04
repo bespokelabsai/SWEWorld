@@ -1,0 +1,9 @@
+{
+  "build_id": "noop-val-79aa786a-1788468331135",
+  "type": "noop",
+  "status": "passed",
+  "score": 0,
+  "passed": true,
+  "feedback": "0 of 7 hidden requirements satisfied. Open feature: no. Missed: g9.r1.rule, \ng9.r1.scope, g9.r1.exclusions_or_crossover, g9.r1.failure_behavior, g9.r2.rule, \ng9.r2.scope, g9.r2.failure_behavior.    | FAILED \ntest_r1.py::test_rule__an_assistant_turn_the_window_cuts_in_half_is_not_supervis\ned_at_all - assert 90 == 39 | FAILED \ntest_r1.py::test_scope__the_tokenizer_free_branch_supervises_assistant_spans_fro\nm_character_offsets - AssertionError: expected one of ('encoding',) on dict; it \nhas ['num_messages', 'original_text'] | FAILED \ntest_r1.py::test_exclusions__fireworks_drops_over_budget_lines_by_utf8_bytes_and\n_truncates_nothing - Failed: the encoding policy exposes no \n'FIREWORKS_BYTES_PER_TOKEN'; bespokelabs.curator.finetune has ['AdamPa... | \nFAILED \ntest_r1.py::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_\ntokens_is_refused - Failed: the encoding policy exposes no \n'ExampleTooLongError'; bespokelabs.curator.finetune has ['AdamParams', ... | \nFAILED \ntest_r2.py::test_rule__both_batch_entry_points_publish_a_frozen_encoding_report \n- Failed: the encoding policy exposes no 'EncodingReport'; \nbespokelabs.curator.finetune has ['AdamParams', 'BaseTrainer', 'ChatMes... | \nFAILED test_r2.py::test_scope__only_the_batch_entry_points_write_the_report - \nAttributeError: 'DataFormatter' object has no attribute 'last_report' | FAILED \ntest_r2.py::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch\n_and_write_no_report - Failed: the encoding policy exposes no \n'InvalidRoleSequenceError'; bespokelabs.curator.finetune has ['AdamP... | 8 \nfailed, 1 warning in 1.28s |",
+  "updated_at": "2026-09-03T20:48:52.598Z"
+}

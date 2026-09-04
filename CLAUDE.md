@@ -13,7 +13,7 @@ Two halves that are easy to confuse:
 - **`data_gen/`** generates the *content* — the company, its people, and months of chat/docs/mail. Runs on your machine, costs LLM tokens, writes to `data_gen/build/`.
 - **`world/` + `scripts/`** build and populate the *container*. `data/` is the handoff between them.
 
-**`data/` currently holds placeholder content, not a generated corpus** — `messages.jsonl`, `commits.jsonl`, `comments.jsonl` and `emails/index.jsonl` are one line each, and `data/docs/` has no pages. Only `data/history/` is real (exported from `curator/` by `make history`). A world baked today is a world with schemas and no story. `data/schemas/*.md` is the hand-written contract; everything else under `data/` is generated.
+**`data/` holds a generated corpus** — 9,592 chat messages over 121 days, 114 wiki pages and 640 mails, installed from `data_gen/build/phase4/runs/corpus/` by `install_corpus.py` and baked into `sweworld:0.4.0`. `commits.jsonl` is still a placeholder; real history arrives through `data/history/` (exported from `curator/` by `make history`). `data/schemas/*.md` is the hand-written contract; everything else under `data/` is generated.
 
 ## Commands
 

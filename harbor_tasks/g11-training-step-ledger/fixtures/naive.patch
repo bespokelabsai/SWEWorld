@@ -1,0 +1,1101 @@
+diff --git a/src/bespokelabs/curator/finetune/__init__.py b/src/bespokelabs/curator/finetune/__init__.py
+index 7e8ba01..19c057c 100644
+--- a/src/bespokelabs/curator/finetune/__init__.py
++++ b/src/bespokelabs/curator/finetune/__init__.py
+@@ -52,6 +52,12 @@ from bespokelabs.curator.finetune.config import AdamParams, FireworksTrainerConf
+ from bespokelabs.curator.finetune.data_formatter import DataFormatter
+ from bespokelabs.curator.finetune.fireworks_data_formatter import FireworksDataFormatter
+ from bespokelabs.curator.finetune.status_tracker import FinetuneStatusTracker
++from bespokelabs.curator.finetune.step_ledger import (
++    ResumePlan,
++    ResumePlanMismatch,
++    StepLedgerError,
++    StepPlan,
++)
+ from bespokelabs.curator.finetune.trainer import BaseTrainer, FireworksTrainer, TinkerTrainer
+ from bespokelabs.curator.finetune.types import (
+     ChatMessage,
+@@ -79,6 +85,11 @@ __all__ = [
+     "ChatMessage",
+     "SamplingConfig",
+     "CheckpointInfo",
++    # Step ledger
++    "StepPlan",
++    "ResumePlan",
++    "StepLedgerError",
++    "ResumePlanMismatch",
+     # Utilities
+     "DataFormatter",
+     "FireworksDataFormatter",
+diff --git a/src/bespokelabs/curator/finetune/config.py b/src/bespokelabs/curator/finetune/config.py
+index 93478fa..3265653 100644
+--- a/src/bespokelabs/curator/finetune/config.py
++++ b/src/bespokelabs/curator/finetune/config.py
+@@ -48,6 +48,7 @@ class TinkerTrainerConfig(BaseModel):
+         checkpoint_every_n_steps: Save checkpoint every N steps (0 to disable)
+         checkpoint_every_epoch: Save checkpoint at the end of each epoch
+         checkpoint_name_prefix: Prefix for checkpoint names
++        seed: Seed for the trainer's random number generator
+     """
+ 
+     base_model: str
+@@ -64,6 +65,7 @@ class TinkerTrainerConfig(BaseModel):
+     checkpoint_every_n_steps: int = Field(default=0, ge=0)
+     checkpoint_every_epoch: bool = False
+     checkpoint_name_prefix: str = "checkpoint"
++    seed: int = Field(default=0, ge=0)
+ 
+     model_config = ConfigDict(extra="forbid")
+ 
+@@ -119,6 +121,7 @@ class FireworksTrainerConfig(BaseModel):
+         poll_interval_seconds: How often to poll the fine-tuning job for progress.
+         max_wait_seconds: Maximum time to wait for a fine-tuning job to complete.
+         inference_base_url: OpenAI-compatible base URL for inference.
++        seed: Seed for the trainer's random number generator.
+     """
+ 
+     base_model: str
+@@ -143,6 +146,7 @@ class FireworksTrainerConfig(BaseModel):
+     poll_interval_seconds: int = Field(default=10, gt=0)
+     max_wait_seconds: int = Field(default=3600, gt=0)
+     inference_base_url: str = "https://api.fireworks.ai/inference/v1"
++    seed: int = Field(default=0, ge=0)
+ 
+     model_config = ConfigDict(extra="forbid")
+ 
+diff --git a/src/bespokelabs/curator/finetune/step_ledger.py b/src/bespokelabs/curator/finetune/step_ledger.py
+new file mode 100644
+index 0000000..bf4e704
+--- /dev/null
++++ b/src/bespokelabs/curator/finetune/step_ledger.py
+@@ -0,0 +1,382 @@
++"""Step ledger for fine-tuning: one step unit, one checkpoint identity, one resume contract.
++
++A training run is described by a single immutable :class:`StepPlan` built up-front from
++the dataset size and the training hyper-parameters. The plan is the only authority on
++
++* how many batches the run walks (``total_batches``),
++* how many *optimizer* steps those batches amount to (``total_steps``) -- the unit in
++  which ``warmup_steps``, ``log_every_n_steps`` and ``checkpoint_every_n_steps`` speak,
++* which batch belongs to which step and epoch, and
++* the identity of the dataset the plan was built for (``dataset_signature``).
++
++Resuming a run is validated against that plan by :func:`plan_resume`, which refuses --
++loudly, via :class:`ResumePlanMismatch` -- a checkpoint that was taken in a different
++shape than the run about to be started.
++
++This module is a leaf: it imports nothing from the rest of ``finetune`` at runtime (and
++no clock and no RNG), so any module of the package may import it.
++"""
++
++import json
++import math
++from dataclasses import dataclass
++from typing import TYPE_CHECKING, Any, List, Mapping, Sequence, Tuple
++
++from xxhash import xxh64
++
++if TYPE_CHECKING:
++    from bespokelabs.curator.finetune.config import TinkerTrainerConfig
++    from bespokelabs.curator.finetune.types import CheckpointInfo
++
++# The unit ``total_steps`` is counted in. Tinker drives its own batch loop, so a step is
++# an optimizer step; Fireworks packs a whole epoch server-side into a single step.
++STEP_UNIT_OPTIMIZER = "optimizer_step"
++STEP_UNIT_PACKED = "packed_epoch_step"
++
++# Version prefix of the dataset signature, so a future change of the digest payload is
++# distinguishable from a content change.
++DATASET_SIGNATURE_PREFIX = "ds1"
++
++
++class StepLedgerError(ValueError):
++    """Raised when a step plan cannot be built from the given parameters."""
++
++
++class ResumePlanMismatch(StepLedgerError):
++    """Raised when a checkpoint cannot be resumed into the plan of the current run.
++
++    Attributes:
++        checkpoint_name: Name of the checkpoint that was rejected.
++        mismatched_fields: Names of the fields that disagree, sorted alphabetically.
++        expected: The values the current plan requires, keyed by field name.
++        found: The values the checkpoint carries, keyed by field name.
++    """
++
++    def __init__(
++        self,
++        checkpoint_name: str,
++        mismatched_fields: Tuple[str, ...],
++        expected: dict,
++        found: dict,
++    ):
++        """Initialize the mismatch with the checkpoint identity and the offending fields."""
++        self.checkpoint_name = checkpoint_name
++        self.mismatched_fields = tuple(mismatched_fields)
++        self.expected = expected
++        self.found = found
++        fields = ", ".join(self.mismatched_fields)
++        super().__init__(f"Checkpoint {checkpoint_name!r} cannot be resumed: {fields} differ(s) (expected {expected}, found {found})")
++
++
++@dataclass(frozen=True)
++class StepPlan:
++    """An immutable description of every batch and optimizer step of a training run.
++
++    Attributes:
++        step_unit: What ``total_steps`` counts (:data:`STEP_UNIT_OPTIMIZER` or
++            :data:`STEP_UNIT_PACKED`).
++        num_examples: Number of examples in the dataset.
++        batch_size: Number of examples per batch.
++        epochs: Number of passes over the dataset.
++        gradient_accumulation_steps: Batches accumulated per optimizer step.
++        batches_per_epoch: Batches in one pass over the dataset.
++        total_batches: Batches over the whole run.
++        total_steps: Optimizer steps over the whole run.
++        trailing_window_batches: Batches in the final accumulation window, which may be
++            shorter than ``gradient_accumulation_steps`` but still counts as one step.
++        dataset_signature: Signature of the dataset the plan was built for.
++    """
++
++    step_unit: str
++    num_examples: int
++    batch_size: int
++    epochs: int
++    gradient_accumulation_steps: int
++    batches_per_epoch: int
++    total_batches: int
++    total_steps: int
++    trailing_window_batches: int
++    dataset_signature: str
++
++    def step_of_batch(self, batch_ordinal: int) -> int:
++        """Return the 1-based optimizer step the given 1-based batch belongs to."""
++        return math.ceil(batch_ordinal / self.gradient_accumulation_steps)
++
++    def is_step_boundary(self, batch_ordinal: int) -> bool:
++        """Whether the optimizer steps after this 1-based batch.
++
++        The last batch of the run always closes its window, even a short one.
++        """
++        return batch_ordinal % self.gradient_accumulation_steps == 0 or batch_ordinal == self.total_batches
++
++    def epoch_of_batch(self, batch_ordinal: int) -> int:
++        """Return the 1-based epoch the given 1-based batch belongs to."""
++        return (batch_ordinal - 1) // self.batches_per_epoch + 1
++
++    def batch_slice(self, batch_ordinal: int) -> Tuple[int, int]:
++        """Return the ``(start, end)`` example indices covered by the given 1-based batch."""
++        index_in_epoch = (batch_ordinal - 1) % self.batches_per_epoch
++        start = index_in_epoch * self.batch_size
++        return start, min(start + self.batch_size, self.num_examples)
++
++    def logging_steps(self, log_every_n_steps: int) -> List[int]:
++        """Return the ascending steps at which the run logs, i.e. those divisible by N."""
++        if log_every_n_steps < 1:
++            raise StepLedgerError(f"log_every_n_steps must be >= 1, got {log_every_n_steps}")
++        return [step for step in range(1, self.total_steps + 1) if step % log_every_n_steps == 0]
++
++    def loss_history_steps(self, log_every_n_steps: int) -> List[int]:
++        """Return the ascending steps that contribute an entry to ``loss_history``.
++
++        That is the logging steps plus, for every epoch, the step whose window contains
++        that epoch's last batch, so a run always reports a loss for each epoch.
++        """
++        steps = set(self.logging_steps(log_every_n_steps))
++        for epoch in range(1, self.epochs + 1):
++            last_batch_of_epoch = min(self.batches_per_epoch * epoch, self.total_batches)
++            steps.add(self.step_of_batch(last_batch_of_epoch))
++        return sorted(steps)
++
++
++@dataclass(frozen=True)
++class ResumePlan:
++    """Where a validated checkpoint puts the run inside a :class:`StepPlan`.
++
++    Attributes:
++        checkpoint_name: Name of the checkpoint being resumed from.
++        start_batch_ordinal: Number of batches to skip, i.e. the 0-based ordinal of the
++            first batch to run.
++        start_epoch: 1-based epoch the run continues in.
++        start_batch_in_epoch: 0-based batch index within ``start_epoch`` to continue at.
++        completed_steps: Optimizer steps already taken.
++        remaining_batches: Batches still to run.
++    """
++
++    checkpoint_name: str
++    start_batch_ordinal: int
++    start_epoch: int
++    start_batch_in_epoch: int
++    completed_steps: int
++    remaining_batches: int
++
++
++def dataset_signature(examples: Sequence[Mapping[str, Any]]) -> str:
++    """Compute a stable signature of a dataset's content.
++
++    The signature is a function of every example, in order: reordering the examples or
++    editing a single character changes it, while the key order within an example does not.
++
++    Args:
++        examples: The dataset rows, in training order.
++
++    Returns:
++        A signature of the form ``ds1-<count>-<digest>``.
++    """
++    payload = json.dumps(list(examples), sort_keys=True, separators=(",", ":"), default=str, ensure_ascii=True).encode("utf-8")
++    return f"{DATASET_SIGNATURE_PREFIX}-{len(examples)}-{xxh64(payload).hexdigest()}"
++
++
++def plan_steps(
++    num_examples: int,
++    *,
++    batch_size: int,
++    epochs: int,
++    gradient_accumulation_steps: int = 1,
++    dataset_signature: str = "",
++) -> StepPlan:
++    """Build the step plan of a run that walks batches itself.
++
++    The accumulation window is counted over the whole run and is *not* reset at an epoch
++    boundary, so a window may span one; the final window may be short but still counts as
++    one whole optimizer step.
++
++    Args:
++        num_examples: Number of examples in the dataset.
++        batch_size: Number of examples per batch.
++        epochs: Number of passes over the dataset.
++        gradient_accumulation_steps: Batches accumulated per optimizer step.
++        dataset_signature: Signature of the dataset, see :func:`dataset_signature`.
++
++    Returns:
++        The StepPlan for the run.
++
++    Raises:
++        StepLedgerError: If the dataset is empty or any of the sizes is below 1.
++    """
++    if num_examples == 0:
++        raise StepLedgerError("Cannot plan training steps for an empty dataset")
++    if num_examples < 0:
++        raise StepLedgerError(f"num_examples must be >= 0, got {num_examples}")
++    if batch_size < 1:
++        raise StepLedgerError(f"batch_size must be >= 1, got {batch_size}")
++    if epochs < 1:
++        raise StepLedgerError(f"epochs must be >= 1, got {epochs}")
++    if gradient_accumulation_steps < 1:
++        raise StepLedgerError(f"gradient_accumulation_steps must be >= 1, got {gradient_accumulation_steps}")
++
++    batches_per_epoch = math.ceil(num_examples / batch_size)
++    total_batches = batches_per_epoch * epochs
++    total_steps = math.ceil(total_batches / gradient_accumulation_steps)
++    trailing_window_batches = total_batches - (total_steps - 1) * gradient_accumulation_steps
++
++    return StepPlan(
++        step_unit=STEP_UNIT_OPTIMIZER,
++        num_examples=num_examples,
++        batch_size=batch_size,
++        epochs=epochs,
++        gradient_accumulation_steps=gradient_accumulation_steps,
++        batches_per_epoch=batches_per_epoch,
++        total_batches=total_batches,
++        total_steps=total_steps,
++        trailing_window_batches=trailing_window_batches,
++        dataset_signature=dataset_signature,
++    )
++
++
++def plan_steps_for_config(config: "TinkerTrainerConfig", examples: Sequence[Mapping[str, Any]]) -> StepPlan:
++    """Build the step plan of a :class:`~bespokelabs.curator.finetune.config.TinkerTrainerConfig` run.
++
++    Args:
++        config: The trainer configuration the run is driven by.
++        examples: The dataset rows, in training order.
++
++    Returns:
++        The StepPlan for the run, signed with the dataset's signature.
++    """
++    return plan_steps(
++        len(examples),
++        batch_size=config.batch_size,
++        epochs=config.epochs,
++        gradient_accumulation_steps=config.gradient_accumulation_steps,
++        dataset_signature=dataset_signature(examples),
++    )
++
++
++def plan_packed_steps(num_examples: int, *, epochs: int, dataset_signature: str = "") -> StepPlan:
++    """Build the step plan of a managed run that packs one optimizer step per epoch.
++
++    Args:
++        num_examples: Number of examples in the dataset.
++        epochs: Number of passes over the dataset, one packed step each.
++        dataset_signature: Signature of the dataset, see :func:`dataset_signature`.
++
++    Returns:
++        The StepPlan for the run, counted in :data:`STEP_UNIT_PACKED`.
++
++    Raises:
++        StepLedgerError: If the dataset is empty or ``epochs`` is below 1.
++    """
++    if num_examples == 0:
++        raise StepLedgerError("Cannot plan training steps for an empty dataset")
++    if num_examples < 0:
++        raise StepLedgerError(f"num_examples must be >= 0, got {num_examples}")
++    if epochs < 1:
++        raise StepLedgerError(f"epochs must be >= 1, got {epochs}")
++
++    return StepPlan(
++        step_unit=STEP_UNIT_PACKED,
++        num_examples=num_examples,
++        batch_size=num_examples,
++        epochs=epochs,
++        gradient_accumulation_steps=1,
++        batches_per_epoch=1,
++        total_batches=epochs,
++        total_steps=epochs,
++        trailing_window_batches=1,
++        dataset_signature=dataset_signature,
++    )
++
++
++def plan_resume(plan: StepPlan, checkpoint: "CheckpointInfo") -> ResumePlan:
++    """Place a checkpoint inside the plan of the run about to start.
++
++    The checkpoint is validated against the plan in a fixed order -- shape, then
++    exhaustion, then consistency -- and a run that was reshaped since the checkpoint was
++    taken is refused rather than silently restarted. Raising ``epochs`` alone is legal:
++    the plan grows and the schedule continues where the checkpoint left off.
++
++    Args:
++        plan: The plan of the run about to start.
++        checkpoint: The checkpoint to resume from.
++
++    Returns:
++        The ResumePlan describing where the run continues.
++
++    Raises:
++        ResumePlanMismatch: If the checkpoint was taken in a different shape, if the
++            plan holds no batch after it, or if its step disagrees with its batch count.
++    """
++    expected = {
++        "batch_size": plan.batch_size,
++        "dataset_signature": plan.dataset_signature,
++        "gradient_accumulation_steps": plan.gradient_accumulation_steps,
++    }
++    found = {
++        "batch_size": checkpoint.batch_size,
++        "dataset_signature": checkpoint.dataset_signature,
++        "gradient_accumulation_steps": checkpoint.gradient_accumulation_steps,
++    }
++    mismatched = tuple(sorted(name for name in expected if expected[name] != found[name]))
++    if mismatched:
++        raise ResumePlanMismatch(
++            checkpoint_name=checkpoint.name,
++            mismatched_fields=mismatched,
++            expected={name: expected[name] for name in mismatched},
++            found={name: found[name] for name in mismatched},
++        )
++
++    batches_completed = checkpoint.batches_completed
++    if batches_completed >= plan.total_batches:
++        raise ResumePlanMismatch(
++            checkpoint_name=checkpoint.name,
++            mismatched_fields=("epochs",),
++            expected={"epochs": plan.epochs, "total_batches": plan.total_batches},
++            found={"batches_completed": batches_completed},
++        )
++
++    expected_step = plan.step_of_batch(batches_completed)
++    if checkpoint.step != expected_step:
++        raise ResumePlanMismatch(
++            checkpoint_name=checkpoint.name,
++            mismatched_fields=("step",),
++            expected={"step": expected_step},
++            found={"step": checkpoint.step},
++        )
++
++    return ResumePlan(
++        checkpoint_name=checkpoint.name,
++        start_batch_ordinal=batches_completed,
++        start_epoch=batches_completed // plan.batches_per_epoch + 1,
++        start_batch_in_epoch=batches_completed % plan.batches_per_epoch,
++        completed_steps=checkpoint.step,
++        remaining_batches=plan.total_batches - batches_completed,
++    )
++
++
++def learning_rate_at(step: int, total_steps: int, base_lr: float, warmup_steps: int) -> float:
++    """Return the learning rate of an optimizer step: linear warmup, then cosine decay.
++
++    The schedule is stretched over the whole run: the peak is reached at the end of
++    warmup and the rate decays over the remaining steps, so the same step of a longer
++    run gets a higher rate. The last step of a run still trains at a non-zero rate.
++
++    Args:
++        step: The 1-based optimizer step.
++        total_steps: Optimizer steps in the whole run.
++        base_lr: Peak learning rate, reached at the end of warmup.
++        warmup_steps: Optimizer steps spent ramping up to ``base_lr``.
++
++    Returns:
++        The learning rate for that step.
++    """
++    if step <= 0:
++        return 0.0
++    if warmup_steps > 0 and step < warmup_steps:
++        return base_lr * (step / warmup_steps)
++
++    decay_steps = total_steps - warmup_steps
++    if decay_steps <= 0:
++        return base_lr
++
++    progress = min(max((step - 1 - warmup_steps) / decay_steps, 0.0), 1.0)
++    return base_lr * 0.5 * (1.0 + math.cos(math.pi * progress))
+diff --git a/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py b/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py
+index 15b8ab8..4c80cd5 100644
+--- a/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py
++++ b/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py
+@@ -15,13 +15,15 @@ is available, the trainer runs in "mock mode" so examples and tests work offline
+ 
+ import inspect
+ import os
++import random
+ import re
+ import tempfile
+ import time
+-from typing import Any, Dict, List, Optional
++from typing import Any, Callable, Dict, List, Optional
+ 
+ from bespokelabs.curator.finetune.config import FireworksTrainerConfig
+ from bespokelabs.curator.finetune.fireworks_data_formatter import FireworksDataFormatter
++from bespokelabs.curator.finetune.step_ledger import plan_packed_steps
+ from bespokelabs.curator.finetune.trainer.base_trainer import BaseTrainer
+ from bespokelabs.curator.finetune.types import (
+     SamplingConfig,
+@@ -116,14 +118,24 @@ class FireworksTrainer(BaseTrainer):
+         ```
+     """
+ 
+-    def __init__(self, config: FireworksTrainerConfig):
++    def __init__(
++        self,
++        config: FireworksTrainerConfig,
++        *,
++        clock: Optional[Callable[[], float]] = None,
++        rng: Optional[random.Random] = None,
++    ):
+         """Initialize the FireworksTrainer.
+ 
+         Args:
+             config: FireworksTrainerConfig with training parameters.
++            clock: Callable returning the current time in seconds; defaults to time.time.
++            rng: Random number generator; defaults to one seeded with config.seed.
+         """
+         self.config = config
+         self.data_formatter = FireworksDataFormatter()
++        self._clock = clock if clock is not None else time.time
++        self._rng = rng if rng is not None else random.Random(config.seed)
+         self._output_model: Optional[str] = None
+         self._job_name: Optional[str] = None
+         self._job_url: Optional[str] = None
+@@ -240,7 +252,7 @@ class FireworksTrainer(BaseTrainer):
+         Returns:
+             TrainingResult with job metadata and the resulting model id.
+         """
+-        start_time = time.time()
++        start_time = self._clock()
+         data_list = self._normalize_dataset(dataset)
+         num_examples = len(data_list)
+         examples = [self.format_example(row) for row in data_list]
+@@ -283,12 +295,13 @@ class FireworksTrainer(BaseTrainer):
+                 pass
+ 
+         self._is_trained = True
+-        total_time = time.time() - start_time
++        total_time = self._clock() - start_time
+         loss_history = self._maybe_fetch_loss_history(job)
++        plan = plan_packed_steps(num_examples, epochs=self.config.epochs)
+ 
+         return TrainingResult(
+             final_loss=loss_history[-1] if loss_history else 0.0,
+-            total_steps=0,
++            total_steps=plan.total_steps,
+             total_epochs=self.config.epochs,
+             total_time=total_time,
+             tokens_processed=0,
+@@ -306,7 +319,10 @@ class FireworksTrainer(BaseTrainer):
+                 "lora_rank": self.config.lora_rank,
+                 "learning_rate": self.config.learning_rate,
+                 "account_id": self._account_id,
++                "step_unit": plan.step_unit,
+             },
++            total_batches=plan.total_batches,
++            step_plan=plan,
+         )
+ 
+     def _write_dataset_file(self, examples: List[TrainingExample]) -> str:
+@@ -434,24 +450,29 @@ class FireworksTrainer(BaseTrainer):
+ 
+     def _mock_train(self, num_examples: int, start_time: float) -> TrainingResult:
+         """Produce a mock TrainingResult when running without the SDK or a key."""
+-        import random
+-
+-        time.sleep(0.01)
+         self._is_trained = True
+         self._output_model = f"mock://accounts/{self._account_id or 'mock'}/models/{self.config.display_name}"
+-        mock_loss = 2.5 - (random.random() * 0.5)
++        mock_loss = 2.5 - (self._rng.random() * 0.5)
++        plan = plan_packed_steps(num_examples, epochs=self.config.epochs)
+         logger.info(f"Training (mock) complete. Output model: {self._output_model}")
+         return TrainingResult(
+             final_loss=mock_loss,
+-            total_steps=0,
++            total_steps=plan.total_steps,
+             total_epochs=self.config.epochs,
+-            total_time=time.time() - start_time,
++            total_time=self._clock() - start_time,
+             tokens_processed=0,
+             samples_processed=num_examples,
+             loss_history=[mock_loss],
+             weights_name=self._output_model,
+             checkpoints=[],
+-            metadata={"provider": "fireworks", "mock": True, "base_model": self.config.qualified_base_model},
++            metadata={
++                "provider": "fireworks",
++                "mock": True,
++                "base_model": self.config.qualified_base_model,
++                "step_unit": plan.step_unit,
++            },
++            total_batches=plan.total_batches,
++            step_plan=plan,
+         )
+ 
+     def save_weights(self, name: str) -> str:
+diff --git a/src/bespokelabs/curator/finetune/trainer/tinker_trainer.py b/src/bespokelabs/curator/finetune/trainer/tinker_trainer.py
+index 8c95ce4..ebdfa7c 100644
+--- a/src/bespokelabs/curator/finetune/trainer/tinker_trainer.py
++++ b/src/bespokelabs/curator/finetune/trainer/tinker_trainer.py
+@@ -1,12 +1,14 @@
+ """TinkerTrainer implementation for LoRA fine-tuning via Tinker API."""
+ 
+ import inspect
++import random
+ import time
+-from typing import Any, Dict, List, Optional
++from typing import Any, Callable, Dict, List, Optional
+ 
+ from bespokelabs.curator.finetune.config import TinkerTrainerConfig
+ from bespokelabs.curator.finetune.data_formatter import DataFormatter
+ from bespokelabs.curator.finetune.status_tracker import FinetuneStatusTracker
++from bespokelabs.curator.finetune.step_ledger import learning_rate_at, plan_resume, plan_steps_for_config
+ from bespokelabs.curator.finetune.trainer.base_trainer import BaseTrainer
+ from bespokelabs.curator.finetune.types import (
+     ChatMessage,
+@@ -60,11 +62,19 @@ class TinkerTrainer(BaseTrainer):
+         ```
+     """
+ 
+-    def __init__(self, config: TinkerTrainerConfig):
++    def __init__(
++        self,
++        config: TinkerTrainerConfig,
++        *,
++        clock: Optional[Callable[[], float]] = None,
++        rng: Optional[random.Random] = None,
++    ):
+         """Initialize the TinkerTrainer.
+ 
+         Args:
+             config: TinkerTrainerConfig with training parameters
++            clock: Callable returning the current time in seconds; defaults to time.time
++            rng: Random number generator; defaults to one seeded with config.seed
+         """
+         self.config = config
+         self.data_formatter = DataFormatter(max_seq_length=config.max_seq_length)
+@@ -72,8 +82,9 @@ class TinkerTrainer(BaseTrainer):
+         self._weights_path: Optional[str] = None
+         self._is_trained = False
+         self._checkpoints: List[CheckpointInfo] = []
+-        self._resume_from_step: int = 0
+-        self._resume_from_epoch: int = 0
++        self._resume_from: Optional[CheckpointInfo] = None
++        self._clock = clock if clock is not None else time.time
++        self._rng = rng if rng is not None else random.Random(config.seed)
+ 
+         # These will be initialized when Tinker SDK is available
+         self._service_client: Optional[Any] = None
+@@ -141,14 +152,32 @@ class TinkerTrainer(BaseTrainer):
+         ignored_kwargs = [key for key in kwargs if key not in supported_kwargs]
+         return supported_kwargs, ignored_kwargs
+ 
+-    def save_checkpoint(self, name: str, step: int, epoch: int, loss: float) -> Optional[CheckpointInfo]:
++    def save_checkpoint(
++        self,
++        name: str,
++        step: int,
++        epoch: int,
++        loss: float,
++        *,
++        batch_size: int = 0,
++        gradient_accumulation_steps: int = 0,
++        batches_completed: int = 0,
++        dataset_signature: str = "",
++    ) -> Optional[CheckpointInfo]:
+         """Save a training checkpoint.
+ 
++        Checkpoints are only written at optimizer-step boundaries, and record the shape
++        the run was in so that resuming into a reshaped run can be refused.
++
+         Args:
+             name: Name for the checkpoint
+-            step: Current training step
++            step: Optimizer steps completed at this point
+             epoch: Current epoch
+             loss: Current loss value
++            batch_size: Batch size of the run
++            gradient_accumulation_steps: Accumulation window size of the run
++            batches_completed: Batches completed so far, counted globally across epochs
++            dataset_signature: Signature of the dataset being trained on
+ 
+         Returns:
+             CheckpointInfo with checkpoint details, or None if saving failed
+@@ -165,6 +194,10 @@ class TinkerTrainer(BaseTrainer):
+                     step=step,
+                     epoch=epoch,
+                     loss=loss,
++                    batch_size=batch_size,
++                    gradient_accumulation_steps=gradient_accumulation_steps,
++                    batches_completed=batches_completed,
++                    dataset_signature=dataset_signature,
+                 )
+                 self._checkpoints.append(checkpoint)
+                 logger.info(f"Checkpoint saved: {name} at step {step} (path: {checkpoint_path})")
+@@ -182,6 +215,10 @@ class TinkerTrainer(BaseTrainer):
+                 step=step,
+                 epoch=epoch,
+                 loss=loss,
++                batch_size=batch_size,
++                gradient_accumulation_steps=gradient_accumulation_steps,
++                batches_completed=batches_completed,
++                dataset_signature=dataset_signature,
+             )
+             self._checkpoints.append(checkpoint)
+             logger.info(f"Checkpoint saved (mock): {name} at step {step}")
+@@ -193,6 +230,9 @@ class TinkerTrainer(BaseTrainer):
+         This replaces the current training client with one restored from the
+         checkpoint, which is the correct Tinker API for resuming training.
+ 
++        The checkpoint is remembered until the next :meth:`train` call, which validates
++        it against that run's step plan and continues from the batch after it.
++
+         Args:
+             checkpoint: CheckpointInfo from a previous save_checkpoint call
+ 
+@@ -203,16 +243,14 @@ class TinkerTrainer(BaseTrainer):
+             try:
+                 self._training_client = self._service_client.create_training_client_from_state_with_optimizer(checkpoint.path)
+                 self._tokenizer = self._training_client.get_tokenizer()
+-                self._resume_from_step = checkpoint.step
+-                self._resume_from_epoch = checkpoint.epoch
++                self._resume_from = checkpoint
+                 logger.info(f"Checkpoint loaded: {checkpoint.name} (step {checkpoint.step}, epoch {checkpoint.epoch})")
+                 return True
+             except Exception as e:
+                 logger.warning(f"Failed to load checkpoint: {e}")
+                 return False
+         else:
+-            self._resume_from_step = checkpoint.step
+-            self._resume_from_epoch = checkpoint.epoch
++            self._resume_from = checkpoint
+             logger.info(f"Checkpoint load (mock): {checkpoint.name} (step {checkpoint.step}, epoch {checkpoint.epoch})")
+             return True
+ 
+@@ -252,13 +290,21 @@ class TinkerTrainer(BaseTrainer):
+     def train(self, dataset: Any) -> TrainingResult:
+         """Run LoRA training on the provided dataset.
+ 
++        The run is planned up front (see :mod:`bespokelabs.curator.finetune.step_ledger`)
++        and then walked batch by batch, taking an optimizer step at every window boundary
++        of the plan -- including the final, possibly short, window.
++
+         Args:
+             dataset: HuggingFace Dataset or list of examples
+ 
+         Returns:
+             TrainingResult with training metrics
++
++        Raises:
++            ResumePlanMismatch: If a loaded checkpoint was taken in a different shape
++                than the run this plan describes.
+         """
+-        start_time = time.time()
++        start_time = self._clock()
+ 
+         if hasattr(dataset, "to_list"):
+             data_list = dataset.to_list()
+@@ -267,161 +313,119 @@ class TinkerTrainer(BaseTrainer):
+         else:
+             data_list = dataset
+ 
+-        num_examples = len(data_list)
+-        steps_per_epoch = (num_examples + self.config.batch_size - 1) // self.config.batch_size
+-        total_steps = steps_per_epoch * self.config.epochs
++        plan = plan_steps_for_config(self.config, data_list)
+ 
+-        # Determine resume point from a previously loaded checkpoint
+-        resume_step = self._resume_from_step
+-        resume_epoch = self._resume_from_epoch
+-        # Reset so subsequent train() calls without load_checkpoint start fresh
+-        self._resume_from_step = 0
+-        self._resume_from_epoch = 0
++        # Determine the resume point from a previously loaded checkpoint, and reset it so
++        # subsequent train() calls without load_checkpoint start fresh.
++        checkpoint = self._resume_from
++        self._resume_from = None
++        resume = plan_resume(plan, checkpoint) if checkpoint is not None else None
+ 
+-        if resume_step > 0:
++        if resume is not None:
++            first_batch = resume.start_batch_ordinal + 1
+             logger.info(
+-                f"Resuming training from step {resume_step} (epoch {resume_epoch}): "
+-                f"{num_examples} examples, {self.config.epochs} epochs, {total_steps} total steps"
++                f"Resuming training from step {resume.completed_steps} (epoch {resume.start_epoch}): "
++                f"{plan.num_examples} examples, {plan.epochs} epochs, {plan.total_steps} total steps, "
++                f"{resume.remaining_batches} batches remaining"
+             )
+         else:
+-            logger.info(f"Starting training: {num_examples} examples, {self.config.epochs} epochs, {total_steps} total steps")
++            first_batch = 1
++            logger.info(
++                f"Starting training: {plan.num_examples} examples, {plan.epochs} epochs, "
++                f"{plan.total_batches} batches, {plan.total_steps} total steps"
++            )
+ 
+         # Initialize status tracker
+         status_tracker = FinetuneStatusTracker(
+             model=self.config.base_model,
+             total_epochs=self.config.epochs,
+-            total_steps=total_steps,
++            total_steps=plan.total_steps,
+             batch_size=self.config.batch_size,
+         )
+         status_tracker.start_tracker()
+ 
+         loss_history: List[float] = []
++        loss_history_steps = set(plan.loss_history_steps(self.config.log_every_n_steps))
++        epoch_closing_steps = {plan.step_of_batch(plan.batches_per_epoch * epoch) for epoch in range(1, plan.epochs + 1)}
++        window_losses: List[float] = []
++        epoch_losses: List[float] = []
+         tokens_processed = 0
+         samples_processed = 0
+-
+-        # Compute loop start bounds from resume state (cookbook pattern:
+-        # adjust loop bounds rather than skipping inside loops)
+-        if resume_step > 0:
+-            steps_before_resume_epoch = (resume_epoch - 1) * steps_per_epoch
+-            resume_batch_offset = resume_step - steps_before_resume_epoch
+-            if resume_batch_offset >= steps_per_epoch:
+-                # Entire epoch was completed (e.g. end-of-epoch checkpoint)
+-                start_epoch = resume_epoch + 1
+-                start_batch_idx = 0
+-            else:
+-                start_epoch = resume_epoch
+-                start_batch_idx = resume_batch_offset
+-        else:
+-            start_epoch = 1
+-            start_batch_idx = 0
+-
+-        current_step = resume_step
++        completed_steps = resume.completed_steps if resume is not None else 0
+ 
+         try:
+-            for epoch in range(start_epoch, self.config.epochs + 1):
+-                epoch_loss = 0.0
+-                epoch_steps = 0
+-
+-                # On the first resumed epoch, skip already-completed batches;
+-                # subsequent epochs start from 0
+-                first_batch = start_batch_idx if epoch == start_epoch else 0
+-                batch_positions = list(range(0, num_examples, self.config.batch_size))
+-
+-                for batch_start in batch_positions[first_batch:]:
+-                    batch_end = min(batch_start + self.config.batch_size, num_examples)
+-                    batch = data_list[batch_start:batch_end]
+-
+-                    current_step += 1
+-                    lr = self._get_learning_rate(current_step, total_steps)
+-                    batch_data = self._prepare_batch(batch)
+-                    # Only step the optimizer after accumulating enough gradients
+-                    should_optim_step = current_step % self.config.gradient_accumulation_steps == 0
+-                    loss, batch_tokens = self._training_step(batch_data, learning_rate=lr, should_optim_step=should_optim_step)
+-
+-                    epoch_loss += loss
+-                    epoch_steps += 1
+-                    tokens_processed += batch_tokens
+-                    samples_processed += len(batch)
+-
+-                    stats = TrainingStats(
+-                        current_epoch=epoch,
+-                        total_epochs=self.config.epochs,
+-                        current_step=current_step,
+-                        total_steps=total_steps,
+-                        current_loss=loss,
+-                        tokens_processed=tokens_processed,
+-                        samples_processed=samples_processed,
+-                        learning_rate=lr,
+-                    )
+-                    status_tracker.update(stats)
++            for batch_ordinal in range(first_batch, plan.total_batches + 1):
++                epoch = plan.epoch_of_batch(batch_ordinal)
++                step = plan.step_of_batch(batch_ordinal)
++                should_optim_step = plan.is_step_boundary(batch_ordinal)
++                lr = self._get_learning_rate(step, plan.total_steps)
++
++                batch_start, batch_end = plan.batch_slice(batch_ordinal)
++                batch = data_list[batch_start:batch_end]
++                batch_data = self._prepare_batch(batch)
++                loss, batch_tokens = self._training_step(batch_data, learning_rate=lr, should_optim_step=should_optim_step)
++
++                completed_steps = step if should_optim_step else step - 1
++                window_losses.append(loss)
++                epoch_losses.append(loss)
++                tokens_processed += batch_tokens
++                samples_processed += len(batch)
++
++                stats = TrainingStats(
++                    current_epoch=epoch,
++                    total_epochs=self.config.epochs,
++                    current_step=completed_steps,
++                    total_steps=plan.total_steps,
++                    current_loss=loss,
++                    tokens_processed=tokens_processed,
++                    samples_processed=samples_processed,
++                    learning_rate=lr,
++                    current_batch=batch_ordinal,
++                    total_batches=plan.total_batches,
++                )
++                status_tracker.update(stats)
++
++                if should_optim_step:
++                    step_loss = sum(window_losses) / len(window_losses)
++                    window_losses = []
+ 
+-                    if current_step % self.config.log_every_n_steps == 0:
+-                        avg_loss = epoch_loss / epoch_steps
+-                        loss_history.append(avg_loss)
+-                        logger.debug(f"Step {current_step}/{total_steps}, Epoch {epoch}, Loss: {avg_loss:.4f}, LR: {lr:.2e}")
++                    if step in loss_history_steps:
++                        loss_history.append(step_loss)
++                        logger.debug(f"Step {step}/{plan.total_steps}, Epoch {epoch}, Loss: {step_loss:.4f}, LR: {lr:.2e}")
+ 
+-                    if self.config.checkpoint_every_n_steps > 0 and current_step % self.config.checkpoint_every_n_steps == 0:
+-                        checkpoint_name = f"{self.config.checkpoint_name_prefix}_step_{current_step}"
++                    save_for_step = self.config.checkpoint_every_n_steps > 0 and step % self.config.checkpoint_every_n_steps == 0
++                    save_for_epoch = self.config.checkpoint_every_epoch and step in epoch_closing_steps
++                    if save_for_step or save_for_epoch:
+                         self.save_checkpoint(
+-                            name=checkpoint_name,
+-                            step=current_step,
++                            name=self._checkpoint_name(step),
++                            step=step,
+                             epoch=epoch,
+-                            loss=loss,
++                            loss=step_loss,
++                            batch_size=plan.batch_size,
++                            gradient_accumulation_steps=plan.gradient_accumulation_steps,
++                            batches_completed=batch_ordinal,
++                            dataset_signature=plan.dataset_signature,
+                         )
+ 
+-                if epoch_steps > 0:
+-                    avg_epoch_loss = epoch_loss / epoch_steps
+-                    # Only append if the last step wasn't already logged by per-step logging
+-                    if current_step % self.config.log_every_n_steps != 0:
+-                        loss_history.append(avg_epoch_loss)
++                if batch_ordinal % plan.batches_per_epoch == 0:
++                    avg_epoch_loss = sum(epoch_losses) / len(epoch_losses)
++                    epoch_losses = []
+                     logger.info(f"Epoch {epoch}/{self.config.epochs} complete. Average loss: {avg_epoch_loss:.4f}")
+-                else:
+-                    avg_epoch_loss = 0.0
+-                    logger.info(f"Epoch {epoch}/{self.config.epochs} complete. No steps executed.")
+-
+-                if self.config.checkpoint_every_epoch:
+-                    checkpoint_name = f"{self.config.checkpoint_name_prefix}_epoch_{epoch}"
+-                    self.save_checkpoint(
+-                        name=checkpoint_name,
+-                        step=current_step,
+-                        epoch=epoch,
+-                        loss=avg_epoch_loss,
+-                    )
+-
+-            # Flush any remaining accumulated gradients from a partial window
+-            if (
+-                self.config.gradient_accumulation_steps > 1
+-                and current_step % self.config.gradient_accumulation_steps != 0
+-                and self._training_client is not None
+-                and TINKER_AVAILABLE
+-            ):
+-                try:
+-                    lr = self._get_learning_rate(current_step, total_steps)
+-                    adam_params = tinker.AdamParams(
+-                        learning_rate=lr,
+-                        beta1=self.config.adam_params.beta1,
+-                        beta2=self.config.adam_params.beta2,
+-                        eps=self.config.adam_params.epsilon,
+-                        weight_decay=self.config.adam_params.weight_decay,
+-                    )
+-                    self._training_client.optim_step(adam_params).result()
+-                except Exception as e:
+-                    logger.warning(f"Failed to flush final gradient accumulation: {e}")
+ 
+         finally:
+             status_tracker.stop_tracker()
+ 
+-        total_time = time.time() - start_time
++        total_time = self._clock() - start_time
+         final_loss = loss_history[-1] if loss_history else 0.0
+ 
+         self._is_trained = True
+ 
+         if self.config.save_weights_on_complete:
+-            self._weights_name = self.save_weights(f"{self.config.base_model}_lora_{int(time.time())}")
++            self._weights_name = self.save_weights(f"{self.config.base_model}_lora_{int(self._clock())}")
+ 
+         result = TrainingResult(
+             final_loss=final_loss,
+-            total_steps=current_step,
++            total_steps=completed_steps,
+             total_epochs=self.config.epochs,
+             total_time=total_time,
+             tokens_processed=tokens_processed,
+@@ -435,7 +439,11 @@ class TinkerTrainer(BaseTrainer):
+                 "learning_rate": self.config.adam_params.learning_rate,
+                 "lora_rank": self.config.lora_config.rank,
+                 "lora_alpha": self.config.lora_config.alpha,
++                "gradient_accumulation_steps": self.config.gradient_accumulation_steps,
++                "dataset_signature": plan.dataset_signature,
+             },
++            total_batches=plan.total_batches,
++            step_plan=plan,
+         )
+ 
+         logger.info(f"Training complete. Final loss: {final_loss:.4f}, Time: {total_time:.2f}s")
+@@ -478,15 +486,11 @@ class TinkerTrainer(BaseTrainer):
+             except Exception as e:
+                 logger.warning(f"Training step failed: {e}. Falling back to mock mode.")
+ 
+-        import random
+-
+-        mock_loss = 2.5 - (random.random() * 0.5)
++        mock_loss = 2.5 - (self._rng.random() * 0.5)
+         mock_tokens = self._get_batch_token_count(batch_data)
+         if mock_tokens == 0:
+             mock_tokens = len(batch_data) * 100
+ 
+-        time.sleep(0.01)
+-
+         return mock_loss, mock_tokens
+ 
+     @staticmethod
+@@ -537,18 +541,29 @@ class TinkerTrainer(BaseTrainer):
+         """Calculate learning rate with optional warmup.
+ 
+         Args:
+-            step: Current training step
+-            total_steps: Total number of training steps
++            step: Current optimizer step
++            total_steps: Total number of optimizer steps
+ 
+         Returns:
+             Current learning rate
+         """
+-        base_lr = self.config.adam_params.learning_rate
++        return learning_rate_at(
++            step,
++            total_steps,
++            self.config.adam_params.learning_rate,
++            self.config.warmup_steps,
++        )
+ 
+-        if self.config.warmup_steps > 0 and step < self.config.warmup_steps:
+-            return base_lr * (step / self.config.warmup_steps)
++    def _checkpoint_name(self, step: int) -> str:
++        """Derive the deterministic checkpoint name for an optimizer step.
+ 
+-        return base_lr
++        Args:
++            step: Optimizer steps completed at the checkpoint
++
++        Returns:
++            The checkpoint name
++        """
++        return f"{self.config.checkpoint_name_prefix}_step_{step}"
+ 
+     def save_weights(self, name: str) -> str:
+         """Save the trained LoRA weights.
+diff --git a/src/bespokelabs/curator/finetune/types.py b/src/bespokelabs/curator/finetune/types.py
+index c8e4615..e4d2e77 100644
+--- a/src/bespokelabs/curator/finetune/types.py
++++ b/src/bespokelabs/curator/finetune/types.py
+@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional
+ 
+ from pydantic import BaseModel, ConfigDict, Field
+ 
++from bespokelabs.curator.finetune.step_ledger import StepPlan
++
+ 
+ class ChatMessage(BaseModel):
+     """A single chat message."""
+@@ -38,7 +40,12 @@ class SamplingConfig(BaseModel):
+ 
+ @dataclass
+ class TrainingStats:
+-    """Real-time training statistics."""
++    """Real-time training statistics.
++
++    ``current_step`` counts the optimizer steps completed so far and ``total_steps`` the
++    optimizer steps of the whole run; ``current_batch`` is the 1-based ordinal of the
++    batch that just finished, counted globally across epochs.
++    """
+ 
+     current_epoch: int = 0
+     total_epochs: int = 0
+@@ -49,17 +56,29 @@ class TrainingStats:
+     samples_processed: int = 0
+     learning_rate: float = 0.0
+     elapsed_time: float = 0.0
++    current_batch: int = 0
++    total_batches: int = 0
+ 
+ 
+ @dataclass
+ class CheckpointInfo:
+-    """Information about a saved checkpoint."""
++    """Information about a saved checkpoint.
++
++    Besides the position in the run, a checkpoint records the shape it was taken in
++    (``batch_size``, ``gradient_accumulation_steps``, ``dataset_signature``) so that a
++    resume into a reshaped run can be refused. ``batches_completed`` is the number of
++    batches completed at that moment, counted globally across epochs.
++    """
+ 
+     name: str
+     path: str
+     step: int
+     epoch: int
+     loss: float
++    batch_size: int = 0
++    gradient_accumulation_steps: int = 0
++    batches_completed: int = 0
++    dataset_signature: str = ""
+ 
+ 
+ @dataclass
+@@ -76,3 +95,5 @@ class TrainingResult:
+     weights_name: Optional[str] = None
+     checkpoints: List[CheckpointInfo] = field(default_factory=list)
+     metadata: Dict[str, Any] = field(default_factory=dict)
++    total_batches: int = 0
++    step_plan: Optional[StepPlan] = None

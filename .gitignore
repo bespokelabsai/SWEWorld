@@ -47,3 +47,6 @@ data/history/
 
 # Corpora `build_located_arm.py --corpus image:<tag>` pulls out of a world image.
 harbor_tasks/.located-corpora/
+
+# A virtualenv, not project code.
+horizon_env/

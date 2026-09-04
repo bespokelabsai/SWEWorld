@@ -1,0 +1,107 @@
+{
+ "task": "g8",
+ "suite": "g8_attachment_payload",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g8.open_feature": 0.0,
+    "g8.r1.rule": 0.0,
+    "g8.r1.scope": 0.0,
+    "g8.r1.exclusions_or_crossover": 0.0,
+    "g8.r1.failure_behavior": 0.0,
+    "g8.r1.observability": 0.0,
+    "g8.r2.rule": 0.0,
+    "g8.r2.scope": 0.0,
+    "g8.r2.exclusions_or_crossover": 0.0,
+    "g8.r2.failure_behavior": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10
+   },
+   "collected": true,
+   "stdout_tail": "ment_block(); the \"\n                \"canonical attachment layer is the whole ticket.\"\n            )\nE           Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the canonical attachment layer is the whole ticket.\n\ng8_attachment_payload/test_open.py:176: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g8_attachment_payload-8b80ed61/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g8_attachment_payload/test_open.py::test_open_feature__one_canonical_block_every_provider_renders_from - Failed: bespokelabs.curator.types.attachment could not be imported: ImportError(\"cannot import name 'atta...\nFAILED g8_attachment_payload/test_r1.py::test_rule__per_kind_ceiling_measured_on_the_block_and_checked_before_the_hook - Failed: none of ('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor mod...\nFAILED g8_attachment_payload/test_r1.py::test_scope__the_prompt_aggregate_is_summed_after_every_block_was_built - Failed: none of ('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor modules (a...\nFAILED g8_attachment_payload/test_r1.py::test_exclusions__a_url_block_is_never_measured_and_never_counted - Failed: none of ('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor modules (attachm...\nFAILED g8_attachment_payload/test_r1.py::test_failure_behavior__a_thirteenth_attachment_is_refused_before_anything_is_read - Failed: none of ('TooManyAttachments',) is exported by curator's attachment/prompt/processor...\nFAILED g8_attachment_payload/test_r1.py::test_observability__a_document_block_costs_fourteen_hundred_tokens - KeyError: 'image_url'\nFAILED g8_attachment_payload/test_r2.py::test_rule__every_block_carries_a_short_sha256_fingerprint_of_its_payload - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the canonical attachment lay...\nFAILED g8_attachment_payload/test_r2.py::test_scope__the_filename_is_capped_at_sixty_four_with_its_extension_kept - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the canonical attachment lay...\nFAILED g8_attachment_payload/test_r2.py::test_exclusions__a_url_block_is_fingerprinted_over_its_url_text - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the canonical attachment layer is the...\nFAILED g8_attachment_payload/test_r2.py::test_failure_behavior__an_unsupported_detail_is_downgraded_to_auto_with_one_warning - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the canonical att...\n10 failed, 3 warnings in 5.98s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g8.open_feature": 1.0,
+    "g8.r1.rule": 0.0,
+    "g8.r1.scope": 0.0,
+    "g8.r1.exclusions_or_crossover": 0.0,
+    "g8.r1.failure_behavior": 0.0,
+    "g8.r1.observability": 0.0,
+    "g8.r2.rule": 0.0,
+    "g8.r2.scope": 0.0,
+    "g8.r2.exclusions_or_crossover": 0.0,
+    "g8.r2.failure_behavior": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "ne()\n    \n        # construction never rejects a detail; the model keeps what the caller wrote\n        written = Image(content=b\"x\", detail=\"ultra\")\n        assert written.detail == \"ultra\"\n        assert Image(content=b\"x\", detail=\"HIGH\").detail == \"HIGH\"\n    \n        # the block carries the normalized value\n>       assert read_field(block_of(stub, Image(content=b\"x\", detail=\"HIGH\")), \"detail\") == \"high\"\nE       AssertionError: assert 'HIGH' == 'high'\nE         \nE         - high\nE         + HIGH\n\ng8_attachment_payload/test_r2.py:260: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g8_attachment_payload-b1ec40bf/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g8_attachment_payload/test_r1.py::test_rule__per_kind_ceiling_measured_on_the_block_and_checked_before_the_hook - Failed: none of ('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor mod...\nFAILED g8_attachment_payload/test_r1.py::test_scope__the_prompt_aggregate_is_summed_after_every_block_was_built - Failed: none of ('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor modules (a...\nFAILED g8_attachment_payload/test_r1.py::test_exclusions__a_url_block_is_never_measured_and_never_counted - Failed: none of ('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor modules (attachm...\nFAILED g8_attachment_payload/test_r1.py::test_failure_behavior__a_thirteenth_attachment_is_refused_before_anything_is_read - Failed: none of ('TooManyAttachments',) is exported by curator's attachment/prompt/processor...\nFAILED g8_attachment_payload/test_r1.py::test_observability__a_document_block_costs_fourteen_hundred_tokens - AssertionError: assert 85 == 1400\nFAILED g8_attachment_payload/test_r2.py::test_rule__every_block_carries_a_short_sha256_fingerprint_of_its_payload - AssertionError: expected one of ('fingerprint',) on AttachmentBlock; it has ['construct', 'copy', 'de...\nFAILED g8_attachment_payload/test_r2.py::test_scope__the_filename_is_capped_at_sixty_four_with_its_extension_kept - AssertionError: assert '2024-q4-cons...proved-v3.pdf' == '2024-q4-cons...-final-ap.pdf'\nFAILED g8_attachment_payload/test_r2.py::test_exclusions__a_url_block_is_fingerprinted_over_its_url_text - AssertionError: expected one of ('fingerprint',) on AttachmentBlock; it has ['construct', 'copy', 'detail', 'd...\nFAILED g8_attachment_payload/test_r2.py::test_failure_behavior__an_unsupported_detail_is_downgraded_to_auto_with_one_warning - AssertionError: assert 'HIGH' == 'high'\n9 failed, 1 passed, 3 warnings in 6.30s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g8.open_feature": 1.0,
+    "g8.r1.rule": 1.0,
+    "g8.r1.scope": 1.0,
+    "g8.r1.exclusions_or_crossover": 1.0,
+    "g8.r1.failure_behavior": 1.0,
+    "g8.r1.observability": 1.0,
+    "g8.r2.rule": 1.0,
+    "g8.r2.scope": 1.0,
+    "g8.r2.exclusions_or_crossover": 1.0,
+    "g8.r2.failure_behavior": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g8_attachment_payload-f4d45c69/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 3 warnings in 6.89s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g8.open_feature": 1.0,
+    "g8.r1.rule": 1.0,
+    "g8.r1.scope": 1.0,
+    "g8.r1.exclusions_or_crossover": 1.0,
+    "g8.r1.failure_behavior": 1.0,
+    "g8.r1.observability": 1.0,
+    "g8.r2.rule": 1.0,
+    "g8.r2.scope": 1.0,
+    "g8.r2.exclusions_or_crossover": 1.0,
+    "g8.r2.failure_behavior": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g8_attachment_payload-d6a49735/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 3 warnings in 6.94s\n"
+  }
+ },
+ "verdicts": {
+  "g8.open_feature": "open_feature",
+  "g8.r1.rule": "hidden",
+  "g8.r1.scope": "hidden",
+  "g8.r1.exclusions_or_crossover": "hidden",
+  "g8.r1.failure_behavior": "hidden",
+  "g8.r1.observability": "hidden",
+  "g8.r2.rule": "hidden",
+  "g8.r2.scope": "hidden",
+  "g8.r2.exclusions_or_crossover": "hidden",
+  "g8.r2.failure_behavior": "hidden"
+ }
+}

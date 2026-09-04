@@ -1,0 +1,24 @@
+From: nikolai@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Re: PR 565: cost reporting before it lands
+Date: Tue, 08 Apr 2025 13:44:00 +0000
+Message-ID: <178853189202.489558.13386696732293575268@world.local>
+In-Reply-To: <178853189201.489558.15286106678992402137@world.local>
+References: <178853189201.489558.15286106678992402137@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Right, I agree with the direction. I have written that if-chain twice now and=
+ both times it felt like the wrong place to be typing provider names.
+
+One thing I want pinned down before anyone touches it. Does the flag sit on t=
+he base class with a default, so subclasses only speak up when they differ, o=
+r does every provider have to declare it explicitly? Off the top of my head t=
+he default is the nicer ergonomics, but it reintroduces the same silent failu=
+re you just described, only one level up =E2=80=94 a new provider that forget=
+s to set it inherits the default and nobody notices.
+
+The rest of it is solid enough as you have it. I would keep batch_multiplier =
+owning the arithmetic and nothing else.

@@ -1,0 +1,198 @@
+[
+ {
+  "label": "author",
+  "cost_usd": 3.4391,
+  "turns": 33,
+  "seconds": 700.5,
+  "session": "e1309221-3b39-46d4-ac7f-023d3daf368d"
+ },
+ {
+  "label": "build-oracle",
+  "cost_usd": 3.474,
+  "turns": 37,
+  "seconds": 507.1,
+  "session": "bcf7b449-7f37-4d9c-9854-027fd72996b4"
+ },
+ {
+  "label": "split",
+  "cost_usd": 1.1615,
+  "turns": 3,
+  "seconds": 272.3,
+  "session": "19e5f804-5027-40c8-a600-8ee8057b8617"
+ },
+ {
+  "label": "split",
+  "cost_usd": 0.6916,
+  "turns": 2,
+  "seconds": 159.0,
+  "session": "be44d78b-5ffb-4262-8bfd-9908efb2ca5c"
+ },
+ {
+  "label": "fleet-judge-split-split",
+  "cost_usd": 0.3969,
+  "turns": 8,
+  "seconds": 74.6,
+  "session": "cf88d639-049a-4732-86bf-721ec58babbe"
+ },
+ {
+  "label": "tests",
+  "cost_usd": 4.8542,
+  "turns": 47,
+  "seconds": 739.7,
+  "session": "987e9502-a9bf-4b6e-b695-4e62becb77fe"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 3.4003,
+  "turns": 45,
+  "seconds": 530.8,
+  "session": "76823e1c-8ed6-44d3-80a0-05cbc8e0e8a3"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 4.5589,
+  "turns": 53,
+  "seconds": 778.7,
+  "session": "d0ff68ea-f3ac-498b-a3e2-5e3139040cb2"
+ },
+ {
+  "label": "audit-r1-rule",
+  "cost_usd": 0.6923,
+  "turns": 4,
+  "seconds": 230.2,
+  "session": "d2946260-8e95-4430-ac07-7fab94e2a251"
+ },
+ {
+  "label": "audit-r1-scope",
+  "cost_usd": 0.5544,
+  "turns": 6,
+  "seconds": 164.6,
+  "session": "05ca6fa0-1da3-4560-9eca-d99f3b6da462"
+ },
+ {
+  "label": "audit-r1-exclusions_or_crossover",
+  "cost_usd": 0.5287,
+  "turns": 7,
+  "seconds": 166.0,
+  "session": "c6cee8cb-4a66-4ade-b431-1637fe97b8a1"
+ },
+ {
+  "label": "audit-r1-observability",
+  "cost_usd": 0.6925,
+  "turns": 6,
+  "seconds": 262.6,
+  "session": "9d263a99-14d8-4d2f-9c16-86d58f923462"
+ },
+ {
+  "label": "audit-r2-rule",
+  "cost_usd": 0.5548,
+  "turns": 4,
+  "seconds": 188.4,
+  "session": "f8fe4dfb-91e4-45d7-bfaf-c801ac14ee79"
+ },
+ {
+  "label": "audit-r2-scope",
+  "cost_usd": 0.4587,
+  "turns": 4,
+  "seconds": 146.9,
+  "session": "29c3f479-4069-45b9-94a9-d905bfd75d44"
+ },
+ {
+  "label": "audit-r2-exclusions_or_crossover",
+  "cost_usd": 0.5275,
+  "turns": 6,
+  "seconds": 153.9,
+  "session": "6b2cd1ef-bad8-4856-936f-f05d416bc36c"
+ },
+ {
+  "label": "audit-r2-observability",
+  "cost_usd": 0.4976,
+  "turns": 4,
+  "seconds": 166.4,
+  "session": "3883d995-db92-4c5b-b319-f4b860821a23"
+ },
+ {
+  "label": "fleet-judge-audit-audit",
+  "cost_usd": 0.3742,
+  "turns": 5,
+  "seconds": 28.0,
+  "session": "ffa7096a-05b3-4f68-9e47-0a3ee649fc9a"
+ },
+ {
+  "label": "trim-g10.r1.rule",
+  "cost_usd": 0.176,
+  "turns": 3,
+  "seconds": 42.6,
+  "session": "bfa98b93-398c-4fb2-aec3-f3761e5cf5a9"
+ },
+ {
+  "label": "trim-g10.r1.scope",
+  "cost_usd": 0.2106,
+  "turns": 5,
+  "seconds": 55.8,
+  "session": "58d1f030-b3d9-4409-bfa2-68af2e999201"
+ },
+ {
+  "label": "trim-g10.r1.exclusions_or_crossover",
+  "cost_usd": 0.1765,
+  "turns": 5,
+  "seconds": 47.0,
+  "session": "592420ff-6b42-4f44-a47a-fd9aa262968c"
+ },
+ {
+  "label": "trim-g10.r1.observability",
+  "cost_usd": 0.0542,
+  "turns": 2,
+  "seconds": 18.2,
+  "session": "a633cf22-c2db-4051-b299-e3b89a6c5812"
+ },
+ {
+  "label": "trim-g10.r2.rule",
+  "cost_usd": 0.1891,
+  "turns": 4,
+  "seconds": 51.7,
+  "session": "2a7a568c-0dc8-4484-93bb-f70f59f6b60e"
+ },
+ {
+  "label": "trim-g10.r2.scope",
+  "cost_usd": 0.218,
+  "turns": 4,
+  "seconds": 63.0,
+  "session": "96c40f75-8f20-4a7d-a5d2-a8ce3afedf52"
+ },
+ {
+  "label": "trim-g10.r2.exclusions_or_crossover",
+  "cost_usd": 0.1138,
+  "turns": 3,
+  "seconds": 32.9,
+  "session": "fbffad7e-d97c-44de-a2a9-074f890265ed"
+ },
+ {
+  "label": "trim-g10.r2.observability",
+  "cost_usd": 0.1007,
+  "turns": 3,
+  "seconds": 26.7,
+  "session": "e2f774fa-ec4d-42d8-a4c3-58ea859466c9"
+ },
+ {
+  "label": "fleet-judge-verdict-crash",
+  "cost_usd": 0.9395,
+  "turns": 22,
+  "seconds": 131.0,
+  "session": "cbf4c8d5-cdd9-46a3-890d-0424a6fb070f"
+ },
+ {
+  "label": "fleet-judge-verdict-crash",
+  "cost_usd": 1.1595,
+  "turns": 22,
+  "seconds": 358.2,
+  "session": "b1989f09-0cee-4f5a-8d71-981c12f9916f"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 4.0007,
+  "turns": 49,
+  "seconds": 695.2,
+  "session": "a7dbda03-94aa-4d55-b18e-ae763a396cd6"
+ }
+]

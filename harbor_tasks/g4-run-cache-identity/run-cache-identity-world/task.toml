@@ -1,0 +1,73 @@
+schema_version = "1.4"
+
+[task]
+name = "bespokelabs/sweworld-run-cache-identity-world"
+version = "1.0.0"
+description = "Versioned run identity for the curator cache. The requirements that decide correctness are not stated. The remarks they were inferred from are in the company's chat, wiki and mail, and the agent has to find them."
+authors = [{ name = "SWEWorld" }]
+keywords = ["sweworld", "curator", "python", "hidden-requirements", "world"]
+
+[metadata]
+category = "implementation"
+difficulty = "medium"
+source_task = "g4"
+variant = "world"
+# Kept beside `variant`: a reader that predates the extra arms falls back to
+# this. `spec` and `clues` are controls — they hand over what the task hides.
+# `world` is not: it is the blind ticket against a corpus that has the answers
+# in it somewhere, so a reader falling back should read it as blind.
+control = false
+
+[agent]
+# The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
+# /opt/world-state or the deploy queue.
+user = "ubuntu"
+timeout_sec = 3600.0
+
+[verifier]
+# Root, because grading reads the pristine tree at /opt/world-state/input/curator
+# (to tell an agent's new identifiers from curator's own) and the release
+# symlinks under /opt/sweworld/curator, neither of which the agent can touch —
+# so the state being graded cannot be forged.
+user = "root"
+# 2400, not 1800. Horizon's own lint rejects anything under 2000s, and the reason
+# is worth keeping: a grader that overruns is KILLED, and a killed grader scores
+# zero — so a perfect solution and a broken one produce the same result and
+# nothing in the output says which happened.
+timeout_sec = 2400.0
+
+[environment]
+# NO docker_image and NO docker-compose.yaml. One thin layer on the world image,
+# booting supervisord through ENTRYPOINT (environment/task-entrypoint.sh).
+# Harbor's compose template appends `command: ["sh","-c","sleep infinity"]`, and
+# Compose's `command:` overrides CMD rather than ENTRYPOINT, so with a compose
+# file those args reach supervisord as argv and the world never boots.
+build_timeout_sec = 3600.0
+# claude-code installs itself from downloads.claude.ai and calls the API.
+network_mode = "public"
+cpus = 4
+memory_mb = 13000
+
+[environment.healthcheck]
+# Each probe must be FAST: Harbor caps one probe at timeout_sec and does the
+# waiting itself through start_period_sec + retries, so wait-for-service's own
+# 600s default has to be capped or every probe blows the cap and counts failed.
+#
+# Gitea by name, not `--all`. These tasks need the repository and the CI
+# runner; Mattermost and BookStack are empty here and waiting on them only
+# adds minutes. (`--core` is AlphaShop's flag and does not exist in this
+# world: `wait-for-service` here takes [--all] [--quiet] [service...], and an
+# unknown name exits 1, which fails every probe.)
+#
+# This also carries task setup, because the healthcheck is the only hook that
+# runs as root before the agent starts. task-setup.sh is idempotent.
+command = "WAIT_TIMEOUT=15 wait-for-service --quiet gitea && /usr/local/bin/task-setup.sh"
+start_period_sec = 600.0
+start_interval_sec = 10.0
+interval_sec = 15.0
+# 900, not 120. Harbor caps ONE probe at this, and the probe now carries the
+# plant ingestion -- a Mattermost bulk import plus BookStack pages plus mail.
+# At 120 the probe is killed mid-import, the next one starts over, and the trial
+# dies having never finished a single pass.
+timeout_sec = 900.0
+retries = 20

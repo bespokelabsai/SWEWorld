@@ -1,0 +1,62 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2",
+  "blind_alternative": "resets the accumulation window at each epoch boundary (total_steps = ceil(batches_per_epoch/gas)*epochs = 4 for the worked config), or floors the remainder away (total_steps = total_batches // gas = 2), following the existing steps_per_epoch * epochs arithmetic at tinker_trainer.py:271-272"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P3",
+  "blind_alternative": "keeps the existing per-batch step counter as current_step and sets the tracker's total_steps to the batch count, so the bar advances once per batch"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P11",
+  "blind_alternative": "leaves FireworksTrainer's total_steps=0 in both branches as an honest 'unknown', or derives ceil(num_examples/config.batch_size)*epochs when batch_size is set"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P2",
+  "blind_alternative": "returns a StepPlan of zeros for an empty dataset and lets train() finish with final_loss=0.0, as the current loop does"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P3",
+  "blind_alternative": "pushes one stats record per optimizer step (or per batch with current_step as the 1-based step in progress), and leaves the final short window to a post-loop flush guarded by TINKER_AVAILABLE, so it never runs in mock mode"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P8",
+  "blind_alternative": "reconstructs the resume position from step * gradient_accumulation_steps and the loop's epoch variable, records CheckpointInfo.epoch from the trigger's epoch, and rewinds to the start of that epoch"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "keeps _resume_from_step/_resume_from_epoch, leaves the resume state set after train() so a second train() silently resumes again, and treats a changed epochs count as a mismatch too"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P8",
+  "blind_alternative": "validates the row count only (or nothing), adapts to a new batch_size by recomputing the position, and returns a finished TrainingResult for a checkpoint at the end of the run"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P8",
+  "blind_alternative": "logs logger.warning and restarts from scratch, or raises a bare ValueError with a message and no mismatched_fields/expected/found attributes, matching data_formatter.py:58 and the warn-and-continue handling at tinker_trainer.py:186/:210/:408"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P8",
+  "blind_alternative": "reports mismatches in the order they were noticed rather than alphabetically, and a resumed run reprocesses the checkpoint's whole epoch, so samples_processed comes out 10 rather than 4"
+ }
+]

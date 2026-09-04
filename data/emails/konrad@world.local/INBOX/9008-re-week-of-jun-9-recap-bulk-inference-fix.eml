@@ -1,0 +1,18 @@
+From: emil@world.local
+To:
+ nikolai@world.local, dario@world.local, konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 13:24:00 +0000
+Message-ID: <178822443471.2088454.6157273782911565525@world.local>
+In-Reply-To: <178771578160.2500381.12817086076544913041@world.local>
+References: <178771578160.2500381.12817086076544913041@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ok different thread since half of what i was going to do today is blocked on =
+people who arent here. im starting on the serializer for the batch payload pl=
+an and i want to be intentional here about what actually lands in the json. i=
+ was reading a plan file from the sunday run and one of the batches closed ou=
+t at 767 bytes and i could not tell you why. was that the cap, was it the req=
+uest count, did it just run out of rows to put in

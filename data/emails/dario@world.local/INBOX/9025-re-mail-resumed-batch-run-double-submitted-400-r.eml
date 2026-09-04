@@ -1,0 +1,14 @@
+From: nikolai@world.local
+To:
+ gideon@world.local, dermot@world.local, emil@world.local, dario@world.local
+Subject: Re: mail: resumed batch run double-submitted ~400 requests
+Date: Thu, 17 Apr 2025 15:19:00 +0000
+Message-ID: <178822443481.2088454.4371280623319429114@world.local>
+In-Reply-To: <178822443479.2088454.17579200674193164150@world.local>
+References: <178822443479.2088454.17579200674193164150@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+right it goes through purely to get the paths back nothing new gets written o=
+n that branch and i'd be unhappy if that call ever started taking files away

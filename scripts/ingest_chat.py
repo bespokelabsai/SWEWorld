@@ -475,6 +475,71 @@ def wait_for_job(job_id: str, timeout: int = 1800, verbose: bool = False) -> str
     return "timeout"
 
 
+def admin_session(world: wl.World, why: str):
+    """A logged-in session and auth header for the world admin account."""
+    sess = wl.session(world)
+    login = sess.post(world.url("chat", "/api/v4/users/login"), timeout=30,
+                      json={"login_id": world.admin_user,
+                            "password": world.admin_password})
+    if login.status_code != 200:
+        raise RuntimeError(
+            f"could not log into Mattermost to {why}: {login.status_code}")
+    return sess, {"Authorization": f"Bearer {login.headers.get('Token', '')}"}
+
+
+def join_admin_to_channels(world: wl.World, team: str,
+                           channels: dict[str, dict]) -> int:
+    """Put the admin account into every imported channel.
+
+    `build_import_lines` only creates memberships for personas the corpus
+    references, and the admin is created by bootstrap rather than by the
+    import, so it lands in Mattermost's defaults — town-square and off-topic,
+    both empty. Mattermost's search is member-scoped, so an agent handed the
+    admin credentials gets zero hits for every term in a 9,593-message corpus
+    and reasonably concludes there is no chat to read. Two world-arm trials
+    hit exactly that and fell back to querying PostgreSQL directly.
+
+    Nothing about this makes the admin a participant: no corpus message
+    changes author. Mattermost does write one `system_join_channel` post per
+    channel, dated now rather than inside the corpus window — that is the same
+    thing any real workspace shows when someone opens it, and suppressing it
+    would mean writing channelmembers rows behind the server's back.
+    """
+    sess, headers = admin_session(world, "join the admin to the channels")
+    me = sess.get(world.url("chat", "/api/v4/users/me"), headers=headers,
+                  timeout=30)
+    if me.status_code != 200:
+        raise RuntimeError(f"could not read the admin's own id: {me.status_code}")
+    user_id = me.json()["id"]
+
+    joined, missing = 0, []
+    for name in sorted(channels):
+        chan = sess.get(
+            world.url("chat", f"/api/v4/teams/name/{team}/channels/name/{name}"),
+            headers=headers, timeout=30)
+        if chan.status_code != 200:
+            missing.append(name)
+            continue
+        add = sess.post(
+            world.url("chat", f"/api/v4/channels/{chan.json()['id']}/members"),
+            headers=headers, timeout=30, json={"user_id": user_id})
+        # 201 is a fresh join; a re-run finds the membership already there.
+        if add.status_code in (200, 201):
+            joined += 1
+        else:
+            missing.append(f"{name} ({add.status_code})")
+
+    # Assert rather than log. A partial join is the same silent failure as no
+    # join at all: search still misses whatever channel was skipped, and the
+    # gap only shows up as an agent that could not find the corpus.
+    if missing:
+        raise RuntimeError(
+            "the admin could not be joined to " + ", ".join(missing) +
+            " — Mattermost search is member-scoped, so those channels would be "
+            "invisible to anyone using the admin account")
+    return joined
+
+
 def verify_threads(world: wl.World, team: str, messages: list[dict],
                    identities: wl.Identities) -> tuple[int, int]:
     """Confirm imported replies actually became threads.
@@ -490,14 +555,7 @@ def verify_threads(world: wl.World, team: str, messages: list[dict],
     if not expected:
         return 0, 0
 
-    sess = wl.session(world)
-    login = sess.post(world.url("chat", "/api/v4/users/login"), timeout=30,
-                      json={"login_id": world.admin_user,
-                            "password": world.admin_password})
-    if login.status_code != 200:
-        raise RuntimeError(f"could not log into Mattermost to verify threads: {login.status_code}")
-    token = login.headers.get("Token", "")
-    headers = {"Authorization": f"Bearer {token}"}
+    sess, headers = admin_session(world, "verify threads")
 
     found = 0
     channels = {m["channel"] for m in messages if m["thread_id"]}
@@ -594,6 +652,11 @@ def main(argv: list[str] | None = None) -> int:
     wl.ok(f"import job {job_id} completed: {status}")
 
     actions = [f"{len(messages)} message(s) imported into {len(channels)} channel(s)"]
+
+    joined = join_admin_to_channels(world, team, channels)
+    wl.ok(f"admin joined to {joined}/{len(channels)} channel(s), so search sees them")
+    actions.append(f"admin joined to {joined} channel(s)")
+
     if not args.no_verify_threads and threads:
         found, expected = verify_threads(world, team, messages, identities)
         if found >= expected:

@@ -1,0 +1,13 @@
+{
+  "id": "b175e030-7e99-4de1-b2a6-d17df5b0c35c",
+  "evaluation_id": "1b873b12-83aa-463e-8e8a-c39f9d8d366e",
+  "run_number": 10,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": null,
+  "success": false,
+  "task_version": 1,
+  "grade_result": null,
+  "created_at": "2026-09-02T21:22:30.452Z",
+  "completed_at": null
+}

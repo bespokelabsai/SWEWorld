@@ -1,0 +1,14 @@
+From: emil@world.local
+To: konrad@world.local, gideon@world.local, nikolai@world.local,
+ dario@world.local
+Subject: Re: auto-sizing branch: sidecar on the fixed batch_size path too?
+Date: Tue, 15 Apr 2025 14:13:00 +0000
+Message-ID: <178822443476.2088454.15095637415345112584@world.local>
+In-Reply-To: <178822443475.2088454.2372384230054378718@world.local>
+References: <178822443475.2088454.2372384230054378718@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+hm so you're saying the loader never looks at the config at all, just the dir=
+ectory? could it not check batch_size and decide from that

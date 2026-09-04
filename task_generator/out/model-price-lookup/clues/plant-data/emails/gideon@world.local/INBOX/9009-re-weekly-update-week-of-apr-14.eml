@@ -1,0 +1,32 @@
+From: emil@world.local
+To: dario@world.local, nikolai@world.local, gideon@world.local,
+ dermot@world.local, tomas@world.local, tobias@world.local
+Subject: Re: Weekly update: week of Apr 14
+Date: Mon, 21 Apr 2025 14:26:00 +0000
+Message-ID: <178853332748.507296.12291299089658024647@world.local>
+In-Reply-To: <178853332747.507296.207689246657495486@world.local>
+References: <178853332747.507296.207689246657495486@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dario, Nikolai,
+
+On the reason field, let me make sure I have understood the shape of it corre=
+ctly. You are saying that when a price is unknown, price_unavailable_reason i=
+s populated on the tracker and the two cost fields are left empty, so the pre=
+sence of a reason is effectively the signal that the numbers are absent by de=
+sign rather than by accident. If that is right then I am in agreement, becaus=
+e that is a much better story to tell a user than a silent zero.
+
+We need to be intentional about what actually goes into that string, though. =
+If it ends up as three different phrasings of the same situation depending on=
+ which code path filled it in, the display becomes noise. I would keep it to =
+a small set of reasons we can write down now and extend deliberately later, a=
+nd I would write them in language a user can read, not an internal identifier.
+
+On Nikolai's question about the summing path, I believe the summary only reac=
+hes for those fields when it has them, but I would not want to state that as =
+fact without looking.
+
+Emil

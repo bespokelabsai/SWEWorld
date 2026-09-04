@@ -1,0 +1,17 @@
+From: nikolai@world.local
+To:
+ konrad@world.local, gideon@world.local, emil@world.local, dario@world.local
+Subject: Re: auto-sizing branch: sidecar on the fixed batch_size path too?
+Date: Tue, 15 Apr 2025 14:07:00 +0000
+Message-ID: <178822443475.2088454.6494379854888050956@world.local>
+In-Reply-To: <178822443475.2088454.2372384230054378718@world.local>
+References: <178822443475.2088454.2372384230054378718@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+fixed path doesnt need it as far as i can tell you already know the sizing up=
+ front so theres nothing to recover
+
+i mean writing it anyway is harmless from where im sitting but i havent looke=
+d at what reads it downstream

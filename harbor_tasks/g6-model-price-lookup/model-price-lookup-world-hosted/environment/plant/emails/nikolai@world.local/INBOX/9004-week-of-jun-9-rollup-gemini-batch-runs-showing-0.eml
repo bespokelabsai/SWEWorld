@@ -1,0 +1,28 @@
+From: dermot@world.local
+To: nikolai@world.local, emil@world.local, dario@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Week of Jun 9 rollup: gemini batch runs showing $0.00
+Date: Wed, 18 Jun 2025 13:12:00 +0000
+Message-ID: <178853189188.489558.3636424625000809666@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: the gemini line coming back at zero for the week of the 9th
+
+Nikolai,
+
+I spent part of this morning reconciling the spend report for the week of the=
+ 9th and the Gemini line comes back at zero on every single run in the window=
+. It is not a rounding artefact and it is not one bad run =E2=80=94 it is 0.0=
+0 on the input side across the board, on runs that we know moved a serious vo=
+lume of tokens.
+
+If I had to guess, we simply never had a pricing entry for that model, the lo=
+okup found nothing, and the code fell through to a default of zero instead of=
+ raising. That said, I have not read the table itself, so I may have the mech=
+anism wrong and I would rather not go to Priya with a theory. You were closer=
+ to the pricing path than I was when it landed. Does that match what you woul=
+d expect, or is it something else entirely?
+
+Dermot

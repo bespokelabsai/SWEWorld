@@ -1,0 +1,133 @@
+Warning: 'horizon test-solution' is deprecated. Use 'horizon tasks validate -m 
+local' instead.
+
+inotify limits configured (max_user_watches=524288, max_user_instances=1024)
+
+No-Op Validation for Task: 72934def-885c-4848-b9c6-4c6443913f0c
+Task directory: /tmp/workdir/tasks/72934def-885c-4848-b9c6-4c6443913f0c
+Skipping solution.sh -- running setup.sh and grader only
+
+📦 Step 1: Building task container...
+Building task-specific Docker image for 72934def-885c-4848-b9c6-4c6443913f0c...
+Specimen Docker image built successfully!
+Task container ready: apex_arena:72934def-885c-4848-b9c6-4c6443913f0c
+🚀 Step 2: Starting container for all steps...
+⏳ Waiting for MCP server to be ready (up to 10 minutes)...
+You can check logs with: docker logs -f 
+apex_test_72934def-885c-4848-b9c6-4c6443913f0c_1788467595
+✅ MCP server ready at http://localhost:18001/mcp (attempt 2)
+
+============================================================
+Entrypoint Logs (MCP Server Ready)
+Log file: 
+/tmp/apex-arena-logs/apex_test_72934def-885c-4848-b9c6-4c6443913f0c_1788467595-e
+ntrypoint.log
+============================================================
+/usr/local/lib/python3.12/dist-packages/pydantic_settings/sources/utils.py:47: 
+IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition:
+its annotation contains an unresolved forward reference, so settings sources may
+fail to correctly resolve its value. Call `model_rebuild()` on the model where 
+the field is defined, once all the referenced types are defined.
+  warnings.warn(
+INFO:     Started server process [7]
+INFO:     Waiting for application startup.
+[09/03/26 20:33:18] INFO     StreamableHTTP       streamable_http_manager.py:110
+                             session manager                                    
+                             started                                            
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+[09/03/26 20:33:22] INFO     Created new          streamable_http_manager.py:233
+                             transport with                                     
+                             session ID:                                        
+                             25c3de1bd384455d8063                               
+                             7ebabb369767                                       
+INFO:     172.17.0.1:35216 - "GET /mcp HTTP/1.1" 406 Not Acceptable
+============================================================
+
+Running with 5400s default timeout, 5400s for solution.sh...
+🔧 Copying task to /tmp...
+Noop mode: skipping solution.sh
+🔧 Running grader.py...
+{"score": 0.0, "subscores": {"g11.r1.rule": 0.0, "g11.r1.scope": 0.0, 
+"g11.r1.exclusions_or_crossover": 0.0, "g11.r1.failure_behavior": 0.0, 
+"g11.r1.observability": 0.0, "g11.r2.rule": 0.0, 
+"g11.r2.exclusions_or_crossover": 0.0, "g11.r2.failure_behavior": 0.0, 
+"g11.r2.observability": 0.0, "g11.open_feature": 0.0}, "weights": 
+{"g11.r1.rule": 0.1111111111111111, "g11.r1.scope": 0.1111111111111111, 
+"g11.r1.exclusions_or_crossover": 0.1111111111111111, "g11.r1.failure_behavior":
+0.1111111111111111, "g11.r1.observability": 0.1111111111111111, "g11.r2.rule": 
+0.1111111111111111, "g11.r2.exclusions_or_crossover": 0.1111111111111111, 
+"g11.r2.failure_behavior": 0.1111111111111111, "g11.r2.observability": 
+0.11111111111111088, "g11.open_feature": 0.0}, "feedback": "0 of 9 hidden 
+requirements satisfied. Open feature: no. Missed: g11.r1.rule, g11.r1.scope, 
+g11.r1.exclusions_or_crossover, g11.r1.failure_behavior, g11.r1.observability, 
+g11.r2.rule, g11.r2.exclusions_or_crossover, g11.r2.failure_behavior, 
+g11.r2.observability.   'step_ledger' from 'besp... | FAILED 
+test_r1.py::test_failure_behavior__an_unknown_reason_is_refused_and_a_repeat_nam
+e_merges - Failed: bespokelabs.curator.finetune.step_ledger could not be 
+imported: ImportError(\"cannot import name 'step_ledger' f... | FAILED 
+test_r1.py::test_observability__the_two_checkpoints_of_the_end_to_end_run_read_b
+ack - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: 
+ImportError(\"cannot import name 'step_ledger' from '... | FAILED 
+test_r2.py::test_rule__inclusive_warmup_then_a_linear_decay_to_a_tenth_of_the_ba
+se_rate - Failed: bespokelabs.curator.finetune.step_ledger could not be 
+imported: ImportError(\"cannot import name 'step_ledger' fr... | FAILED 
+test_r2.py::test_exclusions__clamped_past_the_end_and_a_grown_run_never_re_enter
+s_warmup - Failed: bespokelabs.curator.finetune.step_ledger could not be 
+imported: ImportError(\"cannot import name 'step_ledger' f... | FAILED 
+test_r2.py::test_failure_behavior__a_warmup_longer_than_the_run_is_clipped_to_it
+- Failed: bespokelabs.curator.finetune.step_ledger could not be imported: 
+ImportError(\"cannot import name 'step_ledger' from 'bes... | FAILED 
+test_r2.py::test_observability__the_stated_rate_vectors_and_the_three_rates_of_t
+he_run - Failed: bespokelabs.curator.finetune.step_ledger could not be imported:
+ImportError(\"cannot import name 'step_ledger' fro... | 10 failed, 1 warning in 
+1.81s | "}
+
+✅ All steps completed successfully
+
+🎯 Final Score: 0.0
+🌟 NOOP PASSED: Grader correctly returned score 0.0 (no false positives)
+
+📋 Detailed Scoring:
+  ❌ g11.r1.rule: 0.0
+  ❌ g11.r1.scope: 0.0
+  ❌ g11.r1.exclusions_or_crossover: 0.0
+  ❌ g11.r1.failure_behavior: 0.0
+  ❌ g11.r1.observability: 0.0
+  ❌ g11.r2.rule: 0.0
+  ❌ g11.r2.exclusions_or_crossover: 0.0
+  ❌ g11.r2.failure_behavior: 0.0
+  ❌ g11.r2.observability: 0.0
+  ❌ g11.open_feature: 0.0
+
+💬 Feedback:
+  0 of 9 hidden requirements satisfied. Open feature: no. Missed: g11.r1.rule, 
+g11.r1.scope, g11.r1.exclusions_or_crossover, g11.r1.failure_behavior, 
+g11.r1.observability, g11.r2.rule, g11.r2.exclusions_or_crossover, 
+g11.r2.failure_behavior, g11.r2.observability.   'step_ledger' from 'besp... | 
+FAILED 
+test_r1.py::test_failure_behavior__an_unknown_reason_is_refused_and_a_repeat_nam
+e_merges - Failed: bespokelabs.curator.finetune.step_ledger could not be 
+imported: ImportError("cannot import name 'step_ledger' f... | FAILED 
+test_r1.py::test_observability__the_two_checkpoints_of_the_end_to_end_run_read_b
+ack - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: 
+ImportError("cannot import name 'step_ledger' from '... | FAILED 
+test_r2.py::test_rule__inclusive_warmup_then_a_linear_decay_to_a_tenth_of_the_ba
+se_rate - Failed: bespokelabs.curator.finetune.step_ledger could not be 
+imported: ImportError("cannot import name 'step_ledger' fr... | FAILED 
+test_r2.py::test_exclusions__clamped_past_the_end_and_a_grown_run_never_re_enter
+s_warmup - Failed: bespokelabs.curator.finetune.step_ledger could not be 
+imported: ImportError("cannot import name 'step_ledger' f... | FAILED 
+test_r2.py::test_failure_behavior__a_warmup_longer_than_the_run_is_clipped_to_it
+- Failed: bespokelabs.curator.finetune.step_ledger could not be imported: 
+ImportError("cannot import name 'step_ledger' from 'bes... | FAILED 
+test_r2.py::test_observability__the_stated_rate_vectors_and_the_three_rates_of_t
+he_run - Failed: bespokelabs.curator.finetune.step_ledger could not be imported:
+ImportError("cannot import name 'step_ledger' fro... | 10 failed, 1 warning in 
+1.81s | 
+
+✅ Task solution testing completed for: 72934def-885c-4848-b9c6-4c6443913f0c
+
+Cleaning up container 
+apex_test_72934def-885c-4848-b9c6-4c6443913f0c_1788467595...
+Cleaned up container apex_test_72934def-885c-4848-b9c6-4c6443913f0c_1788467595

@@ -1,0 +1,107 @@
+{
+ "task": "g11",
+ "suite": "g11_training_step_ledger",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g11.open_feature": 0.0,
+    "g11.r1.rule": 0.0,
+    "g11.r1.scope": 0.0,
+    "g11.r1.exclusions_or_crossover": 0.0,
+    "g11.r1.failure_behavior": 0.0,
+    "g11.r1.observability": 0.0,
+    "g11.r2.rule": 0.0,
+    "g11.r2.exclusions_or_crossover": 0.0,
+    "g11.r2.failure_behavior": 0.0,
+    "g11.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10
+   },
+   "collected": true,
+   "stdout_tail": "_ledger/test_r2.py:157: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\n    def ledger():\n        \"\"\"Fail one test, not the whole module, when the new module is absent.\"\"\"\n        if IMPORT_ERROR is not None:\n>           pytest.fail(f\"bespokelabs.curator.finetune.step_ledger could not be imported: {IMPORT_ERROR!r}\")\nE           Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot import name 'step_ledger' from 'bespokelabs.curator.finetune' (/tmp/tg/g11_training_step_ledger-a4396d07/tree/src/bespokelabs/curator/finetune/__init__.py)\")\n\ng11_training_step_ledger/test_open.py:88: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g11_training_step_ledger-a4396d07/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g11_training_step_ledger/test_open.py::test_open_feature__one_step_unit_one_checkpoint_identity_one_resume_contract - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot ...\nFAILED g11_training_step_ledger/test_r1.py::test_rule__the_three_trigger_names_in_ledger_order_under_one_padded_name - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot import...\nFAILED g11_training_step_ledger/test_r1.py::test_scope__the_final_step_is_checkpointed_whatever_the_configuration - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot import na...\nFAILED g11_training_step_ledger/test_r1.py::test_exclusions__the_recorded_epoch_is_the_position_not_the_trigger - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot import name...\nFAILED g11_training_step_ledger/test_r1.py::test_failure_behavior__an_unknown_reason_is_refused_and_a_repeat_name_merges - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot im...\nFAILED g11_training_step_ledger/test_r1.py::test_observability__the_two_checkpoints_of_the_end_to_end_run_read_back - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot import ...\nFAILED g11_training_step_ledger/test_r2.py::test_rule__inclusive_warmup_then_a_linear_decay_to_a_tenth_of_the_base_rate - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot imp...\nFAILED g11_training_step_ledger/test_r2.py::test_exclusions__clamped_past_the_end_and_a_grown_run_never_re_enters_warmup - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot im...\nFAILED g11_training_step_ledger/test_r2.py::test_failure_behavior__a_warmup_longer_than_the_run_is_clipped_to_it - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot import nam...\nFAILED g11_training_step_ledger/test_r2.py::test_observability__the_stated_rate_vectors_and_the_three_rates_of_the_run - Failed: bespokelabs.curator.finetune.step_ledger could not be imported: ImportError(\"cannot impo...\n10 failed, 1 warning in 2.55s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g11.open_feature": 0.0,
+    "g11.r1.rule": 0.0,
+    "g11.r1.scope": 0.0,
+    "g11.r1.exclusions_or_crossover": 0.0,
+    "g11.r1.failure_behavior": 0.0,
+    "g11.r1.observability": 0.0,
+    "g11.r2.rule": 0.0,
+    "g11.r2.exclusions_or_crossover": 0.0,
+    "g11.r2.failure_behavior": 0.0,
+    "g11.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10
+   },
+   "collected": true,
+   "stdout_tail": "_________________________________________________________________\n\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7668891a8380>\n\n    def test_observability__the_stated_rate_vectors_and_the_three_rates_of_the_run(monkeypatch):\n        ledger()\n        mock_env(monkeypatch)\n    \n        learning_rate_at = sym(\"learning_rate_at\")\n    \n>       assert [learning_rate_at(step, 8, BASE, 2) for step in range(1, 9)] == pytest.approx(\n            [5e-05, 1e-04, 8.5e-05, 7e-05, 5.5e-05, 4e-05, 2.5e-05, 1e-05], rel=1e-12\n        )\nE       AssertionError: assert [5e-05, 0.000...5, 5e-05, ...] == approx([5e-05...05 \u00b1 1.0e-12])\nE         \nE         comparison failed. Mismatched elements: 5 / 8:\nE         Max absolute difference: 2.3301270189221947e-05\nE         Max relative difference: 0.4928203230275516\nE         Index | Obtained              | Expected         \nE         2     | 0.0001                | 8.5e-05 \u00b1 1.0e-12\nE         3     | 9.330127018922194e-05 | 7e-05 \u00b1 1.0e-12  ...\nE         \nE         ...Full output truncated (3 lines hidden), use '-vv' to show\n\ng11_training_step_ledger/test_r2.py:162: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g11_training_step_ledger-85d996af/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g11_training_step_ledger/test_open.py::test_open_feature__one_step_unit_one_checkpoint_identity_one_resume_contract - KeyError: 'gradient_accumulation_steps'\nFAILED g11_training_step_ledger/test_r1.py::test_rule__the_three_trigger_names_in_ledger_order_under_one_padded_name - Failed: the implementation exports no 'canonical_reasons' anywhere in bespokelabs.curator.finetune\nFAILED g11_training_step_ledger/test_r1.py::test_scope__the_final_step_is_checkpointed_whatever_the_configuration - assert [] == [3]\nFAILED g11_training_step_ledger/test_r1.py::test_exclusions__the_recorded_epoch_is_the_position_not_the_trigger - AssertionError: expected one of ('reasons',) on CheckpointInfo; it has ['batch_size', 'batches_complete...\nFAILED g11_training_step_ledger/test_r1.py::test_failure_behavior__an_unknown_reason_is_refused_and_a_repeat_name_merges - Failed: the implementation exports no 'canonical_reasons' anywhere in bespokelabs.curator.fine...\nFAILED g11_training_step_ledger/test_r1.py::test_observability__the_two_checkpoints_of_the_end_to_end_run_read_back - AssertionError: assert 9 == 10\nFAILED g11_training_step_ledger/test_r2.py::test_rule__inclusive_warmup_then_a_linear_decay_to_a_tenth_of_the_base_rate - Failed: the implementation exports no 'MIN_LR_RATIO' anywhere in bespokelabs.curator.finetune\nFAILED g11_training_step_ledger/test_r2.py::test_exclusions__clamped_past_the_end_and_a_grown_run_never_re_enters_warmup - assert 6.698729810778065e-06 == 1e-05 \u00b1 1.0e-12\nFAILED g11_training_step_ledger/test_r2.py::test_failure_behavior__a_warmup_longer_than_the_run_is_clipped_to_it - assert [1e-05, 2e-05, 3e-05] == approx([3.333...01 \u00b1 1.0e-12])\nFAILED g11_training_step_ledger/test_r2.py::test_observability__the_stated_rate_vectors_and_the_three_rates_of_the_run - AssertionError: assert [5e-05, 0.000...5, 5e-05, ...] == approx([5e-05...05 \u00b1 1.0e-12])\n10 failed, 1 warning in 2.54s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g11.open_feature": 1.0,
+    "g11.r1.rule": 1.0,
+    "g11.r1.scope": 1.0,
+    "g11.r1.exclusions_or_crossover": 1.0,
+    "g11.r1.failure_behavior": 1.0,
+    "g11.r1.observability": 1.0,
+    "g11.r2.rule": 1.0,
+    "g11.r2.exclusions_or_crossover": 1.0,
+    "g11.r2.failure_behavior": 1.0,
+    "g11.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g11_training_step_ledger-13ebf6c6/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 1 warning in 2.74s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g11.open_feature": 0.0,
+    "g11.r1.rule": 1.0,
+    "g11.r1.scope": 1.0,
+    "g11.r1.exclusions_or_crossover": 1.0,
+    "g11.r1.failure_behavior": 1.0,
+    "g11.r1.observability": 1.0,
+    "g11.r2.rule": 1.0,
+    "g11.r2.exclusions_or_crossover": 1.0,
+    "g11.r2.failure_behavior": 1.0,
+    "g11.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 1,
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": " 0.0001,\n            \"lora_rank\": 16,\n            \"lora_alpha\": 32,\n            \"gradient_accumulation_steps\": 3,\n        }.items():\n>           assert result.metadata[key] == value\n                   ^^^^^^^^^^^^^^^^^^^^\nE           KeyError: 'gradient_accumulation_steps'\n\ng11_training_step_ledger/test_open.py:426: KeyError\n-------------------------------------------------------------------------------------------------- Captured stdout setup ---------------------------------------------------------------------------------------------------\n[verifier] provider hostnames: already mapped\n--------------------------------------------------------------------------------------------------- Captured stderr call ---------------------------------------------------------------------------------------------------\n2026-09-03 19:20:15,194 | WARNING  | tinker_trainer:108 - No TINKER_API_KEY provided. Running in mock mode.\n2026-09-03 19:20:15,194 | INFO     | tinker_trainer:349 - Starting training: 10 examples, 2 epochs, 8 batches, 3 total steps\n2026-09-03 19:20:15,195 | INFO     | tinker_trainer:444 - Epoch 1/2 complete. Average loss: 2.2148\n2026-09-03 19:20:15,195 | INFO     | tinker_trainer:231 - Checkpoint saved (mock): checkpoint-s000002 at step 2\n2026-09-03 19:20:15,195 | INFO     | tinker_trainer:231 - Checkpoint saved (mock): checkpoint-s000003 at step 3\n2026-09-03 19:20:15,195 | INFO     | tinker_trainer:444 - Epoch 2/2 complete. Average loss: 2.2496\n2026-09-03 19:20:15,195 | INFO     | tinker_trainer:480 - Training complete. Final loss: 2.2282, Time: 4.50s\n---------------------------------------------------------------------------------------------------- Captured log call -----------------------------------------------------------------------------------------------------\nWARNING  curator.bespokelabs.curator.log:tinker_trainer.py:108 No TINKER_API_KEY provided. Running in mock mode.\nINFO     curator.bespokelabs.curator.log:tinker_trainer.py:349 Starting training: 10 examples, 2 epochs, 8 batches, 3 total steps\nINFO     curator.bespokelabs.curator.log:tinker_trainer.py:444 Epoch 1/2 complete. Average loss: 2.2148\nDEBUG    curator.bespokelabs.curator.log:tinker_trainer.py:413 Step 2/3 (batch 6/8), Epoch 2, Loss: 2.3041, LR: 1.00e-04\nINFO     curator.bespokelabs.curator.log:tinker_trainer.py:231 Checkpoint saved (mock): checkpoint-s000002 at step 2\nDEBUG    curator.bespokelabs.curator.log:tinker_trainer.py:413 Step 3/3 (batch 8/8), Epoch 2, Loss: 2.2282, LR: 1.00e-05\nINFO     curator.bespokelabs.curator.log:tinker_trainer.py:231 Checkpoint saved (mock): checkpoint-s000003 at step 3\nINFO     curator.bespokelabs.curator.log:tinker_trainer.py:444 Epoch 2/2 complete. Average loss: 2.2496\nINFO     curator.bespokelabs.curator.log:tinker_trainer.py:480 Training complete. Final loss: 2.2282, Time: 4.50s\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g11_training_step_ledger-de483a4b/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g11_training_step_ledger/test_open.py::test_open_feature__one_step_unit_one_checkpoint_identity_one_resume_contract - KeyError: 'gradient_accumulation_steps'\n1 failed, 9 passed, 1 warning in 2.39s\n"
+  }
+ },
+ "verdicts": {
+  "g11.open_feature": "open_feature",
+  "g11.r1.rule": "hidden",
+  "g11.r1.scope": "hidden",
+  "g11.r1.exclusions_or_crossover": "hidden",
+  "g11.r1.failure_behavior": "hidden",
+  "g11.r1.observability": "hidden",
+  "g11.r2.rule": "hidden",
+  "g11.r2.exclusions_or_crossover": "hidden",
+  "g11.r2.failure_behavior": "hidden",
+  "g11.r2.observability": "hidden"
+ }
+}

@@ -1,0 +1,44 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P3",
+  "blind_alternative": "raise a bare `KeyError` (or keep `cost.py:68`'s silent `{None, None}` for an unregistered provider) instead of one exception type carrying a named reason"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P3",
+  "blind_alternative": "check the model key before the provider, or fall back through windows to the wildcard tier when the requested window is missing, treating a data gap as forgivable"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P3",
+  "blind_alternative": "report whichever failure the code happened to hit first, with no defined precedence between them, and let the exception propagate to the caller"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "apply one discount function uniformly after the lookup regardless of source, halving external-table batch prices too"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "delete the `times = 2` hack and let the parent's `*= 0.5` stand for every provider \u2014 the obvious reading of 'four owners, keep one'"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "discount a user-supplied `in_mtok_cost` too, on the theory that the user gave a list price and batch is half of list"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "produce a halved number for both external- and litellm-sourced prices when `batch=True`, since multiplying once at the end regardless of source is the natural implementation"
+ }
+]

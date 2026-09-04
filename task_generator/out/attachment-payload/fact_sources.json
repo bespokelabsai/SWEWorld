@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P4",
+  "blind_alternative": "leaves sizing entirely to the existing per-provider `file_upload_limit_check` implementations and adds no shared ceiling, no `size_mb` field and no sizing exception type"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "no aggregate ceiling at all \u2014 per-attachment limits only \u2014 or, if one is added, an incremental check that raises at the crossing attachment and reports the partial sum"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P4",
+  "blind_alternative": "no `size_mb` field exists on the block at all, so a url block is indistinguishable from an unmeasured base64 one; or remote URLs are rejected outright as unmeasurable"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P12",
+  "blind_alternative": "no count limit whatsoever \u2014 a prompt of forty tiny images is under every megabyte ceiling and is sent"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P9",
+  "blind_alternative": "prices a document block at the image rate `_OPENAI_TOKENS_PER_IMAGE[\"low\"]` (85), or at the anthropic 2048 already in the tree"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P15",
+  "blind_alternative": "no fingerprint field at all; the block is the six ticket fields and nothing downstream asks for an id"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P14",
+  "blind_alternative": "uses the basename exactly as `os.path.basename` returns it, uncapped"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P15",
+  "blind_alternative": "with no fingerprint concept, url blocks carry nothing; the nearest wrong choice once added is hashing the decoded bytes and leaving url blocks `None`"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P11",
+  "blind_alternative": "passes `data.detail` straight through to the rendered block, so `\"HIGH\"` and `\"ultra\"` reach the provider verbatim"
+ }
+]

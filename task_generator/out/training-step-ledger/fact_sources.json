@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P7",
+  "blind_alternative": "no reasons field at all, or a free-form string set sorted alphabetically to ('epoch','final','interval'), plus the existing self-describing names f\"{prefix}_step_{step}\" / f\"{prefix}_epoch_{epoch}\" with an unpadded step"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P7",
+  "blind_alternative": "writes checkpoints only when checkpoint_every_n_steps or checkpoint_every_epoch asks for them, so a default-config run finishes with zero checkpoints, exactly as today"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P6",
+  "blind_alternative": "records the `for epoch in range(...)` loop variable at the moment the trigger fired (what :367 and :386 do), so the epoch-1 checkpoint records epoch 1"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P7",
+  "blind_alternative": "accepts any reason string it is handed and appends unconditionally, as save_checkpoint does today, leaving two records under one name"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P7",
+  "blind_alternative": "checkpoints named checkpoint_step_2 / checkpoint_epoch_1 with no reasons attribute, three records rather than two, and epoch 1 on the first"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P4",
+  "blind_alternative": "linear decay to zero (the mainstream 'linear schedule with warmup') or the flat post-warmup rate the code returns today, with the exclusive step < warmup_steps comparison from :548"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P4",
+  "blind_alternative": "lets the decay run past total_steps to zero or negative, since nothing clamps it once progress exceeds 1"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P4",
+  "blind_alternative": "divides by the raw warmup_steps, so a 3-step run with warmup_steps=10 tops out at 0.3 * base_lr and never reaches the base rate"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P4",
+  "blind_alternative": "the decay-to-zero series [5e-05, 1e-04, 8.33e-05, ..., 0.0] or a constant 1e-04 after step 2"
+ }
+]

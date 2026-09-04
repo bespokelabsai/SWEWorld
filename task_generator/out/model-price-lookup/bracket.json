@@ -1,0 +1,117 @@
+{
+ "task": "g6",
+ "suite": "g6_model_price_lookup",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g6.open_feature": 0.0,
+    "g6.r1.rule": 0.0,
+    "g6.r1.exclusions_or_crossover": 0.0,
+    "g6.r1.observability": 0.0,
+    "g6.r2.rule": 0.0,
+    "g6.r2.scope": 0.0,
+    "g6.r2.exclusions_or_crossover": 0.0,
+    "g6.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 8
+   },
+   "collected": true,
+   "stdout_tail": "                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ng6_model_price_lookup/test_r2.py:256: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nnames = ('resolve_model_price',)\n\n    def require_cost(*names):\n        \"\"\"The named symbols out of `bespokelabs.curator.cost`, or a clear failure.\n    \n        Imported off the module rather than `from ... import`, so that a missing symbol is\n        one legible failure in the test that needed it instead of a collection error that\n        takes the whole file down with it.\n        \"\"\"\n        if cost_mod is None:\n            pytest.fail(\"bespokelabs.curator.cost does not import\")\n        missing = [n for n in names if not hasattr(cost_mod, n)]\n        if missing:\n>           pytest.fail(f\"bespokelabs.curator.cost has no {', '.join(missing)}; it exports {surface(cost_mod)}\")\nE           Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROCESSOR', 'RATE_LIMIT_HEADER', 'cost_processor_factory', 'defaultdict', 'external_model_cost', 'litellm']\n\ng6_model_price_lookup/test_open.py:53: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g6_model_price_lookup-43d16207/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings - Failed: bespokelabs.curator.cost has no ModelPrice, UnpricedModelError...\nFAILED g6_model_price_lookup/test_r1.py::test_rule__a_failure_always_raises_one_of_three_named_reasons_instead_of_a_none_price - Failed: bespokelabs.curator.cost has no resolve_model_price, UnpricedModelError; it expo...\nFAILED g6_model_price_lookup/test_r1.py::test_exclusions__the_earlier_check_wins_and_neither_a_none_price_nor_a_wildcard_fallback_is_offered - Failed: bespokelabs.curator.cost has no resolve_model_price, UnpricedModel...\nFAILED g6_model_price_lookup/test_r1.py::test_observability__the_three_reasons_read_back_and_every_caller_above_the_lookup_degrades - Failed: bespokelabs.curator.cost has no resolve_model_price, UnpricedModelError; it...\nFAILED g6_model_price_lookup/test_r2.py::test_rule__the_discount_is_applied_once_by_batch_multiplier_and_by_resolve_model_price - Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROCESSO...\nFAILED g6_model_price_lookup/test_r2.py::test_scope__only_list_priced_sources_are_discounted_and_the_external_tables_are_left_alone - Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROC...\nFAILED g6_model_price_lookup/test_r2.py::test_exclusions__a_user_supplied_price_is_taken_as_given_and_exemption_follows_the_class_and_the_source - Failed: bespokelabs.curator.cost has no resolve_model_price; it export...\nFAILED g6_model_price_lookup/test_r2.py::test_observability__the_stated_multiplier_table_and_the_two_price_ratios_hold_exactly - Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROCESSOR...\n8 failed, 1 warning in 8.55s\n"
+  },
+  "clues": {
+   "rewards": {
+    "g6.open_feature": 1.0,
+    "g6.r1.rule": 1.0,
+    "g6.r1.exclusions_or_crossover": 1.0,
+    "g6.r1.observability": 1.0,
+    "g6.r2.rule": 1.0,
+    "g6.r2.scope": 1.0,
+    "g6.r2.exclusions_or_crossover": 1.0,
+    "g6.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 8
+   },
+   "collected": true,
+   "stdout_tail": "........                                                                                                                                                                                                             [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g6_model_price_lookup-c66a2e7c/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n8 passed, 6 warnings in 8.08s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g6.open_feature": 1.0,
+    "g6.r1.rule": 0.0,
+    "g6.r1.exclusions_or_crossover": 0.0,
+    "g6.r1.observability": 0.0,
+    "g6.r2.rule": 0.0,
+    "g6.r2.scope": 0.0,
+    "g6.r2.exclusions_or_crossover": 0.0,
+    "g6.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 7,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "here is none.\"\"\"\n        method = getattr(processor, \"batch_multiplier\", None)\n        if not callable(method):\n>           pytest.fail(f\"{type(processor).__name__} has no callable batch_multiplier(); the batch discount has no single owner\")\nE           Failed: _LitellmCostProcessor has no callable batch_multiplier(); the batch discount has no single owner\n\ng6_model_price_lookup/test_r2.py:61: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g6_model_price_lookup-fcc1eedb/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g6_model_price_lookup/test_r1.py::test_rule__a_failure_always_raises_one_of_three_named_reasons_instead_of_a_none_price - AssertionError: assert {'missing_pri...own_provider'} == {'unknown_mod...known_window'}\nFAILED g6_model_price_lookup/test_r1.py::test_exclusions__the_earlier_check_wins_and_neither_a_none_price_nor_a_wildcard_fallback_is_offered - AssertionError: g6-null-priced: 'missing_price'\nFAILED g6_model_price_lookup/test_r1.py::test_observability__the_three_reasons_read_back_and_every_caller_above_the_lookup_degrades - AssertionError: assert ['unknown_pro...etion_window'] == ['unknown_pro...known_wind...\nFAILED g6_model_price_lookup/test_r2.py::test_rule__the_discount_is_applied_once_by_batch_multiplier_and_by_resolve_model_price - Failed: _LitellmCostProcessor has no callable batch_multiplier(); the batch discount ha...\nFAILED g6_model_price_lookup/test_r2.py::test_scope__only_list_priced_sources_are_discounted_and_the_external_tables_are_left_alone - Failed: _LitellmCostProcessor has no callable batch_multiplier(); the batch discoun...\nFAILED g6_model_price_lookup/test_r2.py::test_exclusions__a_user_supplied_price_is_taken_as_given_and_exemption_follows_the_class_and_the_source - Failed: _LitellmCostProcessor has no callable batch_multiplier(); the ...\nFAILED g6_model_price_lookup/test_r2.py::test_observability__the_stated_multiplier_table_and_the_two_price_ratios_hold_exactly - Failed: _LitellmCostProcessor has no callable batch_multiplier(); the batch discount has...\n7 failed, 1 passed, 6 warnings in 7.30s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g6.open_feature": 1.0,
+    "g6.r1.rule": 1.0,
+    "g6.r1.exclusions_or_crossover": 1.0,
+    "g6.r1.observability": 1.0,
+    "g6.r2.rule": 1.0,
+    "g6.r2.scope": 1.0,
+    "g6.r2.exclusions_or_crossover": 1.0,
+    "g6.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 8
+   },
+   "collected": true,
+   "stdout_tail": "........                                                                                                                                                                                                             [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g6_model_price_lookup-0a5cc72e/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n8 passed, 6 warnings in 8.04s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g6.open_feature": 1.0,
+    "g6.r1.rule": 1.0,
+    "g6.r1.exclusions_or_crossover": 1.0,
+    "g6.r1.observability": 1.0,
+    "g6.r2.rule": 1.0,
+    "g6.r2.scope": 1.0,
+    "g6.r2.exclusions_or_crossover": 1.0,
+    "g6.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 8
+   },
+   "collected": true,
+   "stdout_tail": "........                                                                                                                                                                                                             [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g6_model_price_lookup-79b6f061/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\ng6_model_price_lookup/test_open.py::test_open_feature__one_resolve_model_price_backs_the_price_the_error_the_registration_and_the_strings\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n8 passed, 6 warnings in 8.26s\n"
+  }
+ },
+ "verdicts": {
+  "g6.open_feature": "open_feature",
+  "g6.r1.rule": "hidden",
+  "g6.r1.exclusions_or_crossover": "hidden",
+  "g6.r1.observability": "hidden",
+  "g6.r2.rule": "hidden",
+  "g6.r2.scope": "hidden",
+  "g6.r2.exclusions_or_crossover": "hidden",
+  "g6.r2.observability": "hidden"
+ }
+}

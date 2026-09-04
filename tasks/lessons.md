@@ -438,3 +438,388 @@ over the real artifact and read every hit before wiring it to an exit code.
 **Rule for myself:** a new detector's first run is a measurement, not a result. Read
 every finding. Ship it as a gate only if the false-positive rate is near zero;
 otherwise ship it as a report and gate the part that is precise.
+
+## The bracket runs where the assumption is true
+
+g3's suite read `/opt/world-state/input/curator/...` to prove the agent had added
+exactly one field to `OnlineStatusTracker`. That is SWEWorld's pristine checkout.
+It exists in the `devbox` the bracket runs in, so the bracket scored oracle 10 of
+10 and every fact `hidden`. It exists in no `apex_arena` image, so hosted
+validation came back 0.8889 on a bare `FileNotFoundError` — after a push and a
+six-minute Cloud Batch round trip.
+
+The bracket could not have caught it. It is not a weak check; it runs inside the
+container that makes the path true. Two environments, and only one of them was
+ever exercised before spending.
+
+`prompts/write_tests.md` was the cause, not the symptom: it listed `BASELINE`
+among the things a test may import, so the suite did exactly as instructed. The
+prompt now offers `harness.baseline_text()` instead, which tries `BASELINE`,
+falls back to the vendored tarball at `/tests/curator-src.tar.gz` (root-owned
+0700, so a baseline the grader can read and the agent cannot), and returns `None`
+rather than raising.
+
+But a prompt is advice, so `horizon.emit()` gained `unhosted_paths()`: it refuses
+to emit an arm whose `test_*.py` name a path outside `/workdir`, `/tests`, `/tmp`
+and ordinary Linux, or import `BASELINE` at all. `harness.py` is exempt — it is
+the one place allowed to know where a baseline lives, and it guards what it
+knows. Written against the regression in both shapes it takes: the import (g3)
+and a hardcoded literal (`t3_shared_limiter`, `t4_deepseek_empty`, which define
+their own `BASELINE` and so are not reached by the harness fallback at all).
+
+Its first run flagged `/dev/null` in `test_open.py` — the false positive the
+lesson above predicts — which is why the allow-list names ordinary Linux
+explicitly rather than only the three hosted roots.
+
+**Rule for myself:** when a suite is authored in one environment and graded in
+another, list what differs between them BEFORE the first push, and gate on it.
+A green check is only evidence about the environment it ran in, and the cost of
+learning that hosted is a round trip that reports a path problem as a score.
+
+## A metric that is reported but not gated is where a bad suite hides (2026-09-02)
+
+`bracket.ships()` gates on the hidden facts. `score.py` sets
+`reward = hidden_mean`, and `hidden_mean` explicitly excludes `open_feature`. So
+`open_feature` is computed, printed in every table, quoted in every write-up as
+"the load-bearing part of that zero" — and enforced by nothing. g4's suite graded
+`RunDirectoryCheck.previous_version`, which `whole.md` specifies in full, the
+ticket names only inside a constructor signature, and the hidden requirements never
+mention. No arm stated it. The bracket still read `Ships: yes`.
+
+Nothing was wrong with the score. What was at risk was the only thing that makes
+the score mean anything: a blind 0.00 with `open_feature` 0 cannot be told apart
+from an agent that built nothing.
+
+It is the g3 defect one level up. g3: the suite graded what the *hidden
+requirement* failed to state, and the spec arm capped at 0.44. g4: the suite graded
+what the *ticket* failed to state, and both the naive and spec trees failed it.
+`split` compresses a specification into a ticket, and compression loses precisely
+the small enumerated values — four status strings, four return codes — that a test
+then asserts one at a time.
+
+**Rules for myself:**
+- When a number is reported everywhere and gated nowhere, read it by hand at every
+  stage that produces it. Ask of each printed metric: what refuses if this is
+  wrong? If the answer is nothing, I am the gate.
+- The healthy naive tree is `failed: 8, passed: 1` — passing `open_feature` and
+  nothing else. `failed: 9` is not "even better", it is a suite that no blind agent
+  can reach.
+- Two independently built trees failing on the *same assertion string* is one
+  defect. Read the assertion before spending anything on another sample.
+- Repair the artifact the defect is in, not the stage upstream of it. Amending the
+  ticket cost $3.93 of rebuilds; re-running `split` would have re-rolled a measured
+  8-of-8. Snapshot the cut, then assert `hidden_requirements` is byte-identical
+  before and after, so the repair provably cannot soften a hidden verdict.
+
+## `failed` in a running evaluation's status table is not a failure (2026-09-02)
+
+g4's first hosted evaluation showed all 20 rollouts as `failed` with no score,
+about ten minutes in. It read as total collapse and I cancelled on that reading.
+It was not collapse. `horizon evaluations status --json` says what the table
+cannot:
+
+    error_message : "Cancelled by user"
+    rollouts      : {'total': 0, 'successful': 0, 'passed': 0, 'errored': 0}
+
+`errored: 0` with `total: 0` means **nothing had errored and nothing had
+finished** — every run was still in flight, and the table renders an unfinished
+run as `failed`. The runs were healthy: 64 to 237 messages each, and Horizon's own
+rollout insight for run 10 read "running successfully through multiple
+conversation turns (turns 83-88), with code execution completing without errors".
+The cancel is what failed them, and cancelling carries no refund: $17.03 over 906
+requests, gone, for a measurement that no longer exists.
+
+The hosted validations had already passed on both arms — oracle 1, noop 0 — so
+there was positive evidence the image and suite were fine, and I discarded it in
+favour of a status column.
+
+**Rules for myself:**
+- Read `rollouts.errored` and `rollouts.total`, never the per-run status column,
+  to decide whether a running evaluation is in trouble. The column has no state
+  for "in progress" that differs from failure.
+- A cancel is destructive and unrefunded. Before cancelling anything that is
+  spending, spend one command establishing that it is actually broken.
+- Sanity-check the clock against a task that worked: g3's rollouts finished in
+  ~8 minutes, g4's ticket is 3829 characters across 11 parts, so 13 minutes with
+  agents at turn 88 is a long task in progress, not a hung one.
+- "Everything is failing" from a person is a report of what a screen said. Verify
+  the screen before acting on it, especially when the action is irreversible.
+
+## `test_open` sets a floor under the ticket, and that floor can eat the hidden half (2026-09-03)
+
+g5 (`response-ledger`) bracketed at `naive: {'failed': 1, 'passed': 8}` — the
+inverse of the healthy shape. Seven of eight facts came back `coincidence`.
+
+`split` had exited 1 and said so precisely: 0 of 8 facts rested on an invented
+anchor, and it named five facts whose identifiers the ticket printed. I overrode
+it on the reasoning that both hidden requirements rested on *policies the code is
+silent about* — duplicate folding by status precedence, and `EMPTY` completing
+while `UNPARSEABLE` retries — which the leak audit cannot see. That reasoning was
+right about the audit's blind spot and wrong about the outcome, and the $10 of
+`naive` + `spec` builds is what it cost to find out.
+
+The cause was upstream of the cut. `test_open` graded the whole predicate table of
+`classify_record`, `LedgerIntegrityError`'s two attributes, `ledger_line`'s
+normalisation rules and `read_resume_state`'s `completed_row_indices`. Since
+`ships()` now requires `open_feature` to pass on `naive`, the ticket is *obliged*
+to state everything `test_open` grades. That obligation set a floor, the floor
+covered most of the specification, and the two hidden requirements were left
+holding a residue that the ticket's own API listing entails. No re-cut could have
+fixed it: whatever `split` hid, `test_open` still graded openly.
+
+The area made this easy to walk into. g1–g4 each had a behavioural core — how big
+a batch is, what a cap keeps, what a retry costs, what makes two runs the same —
+where the API can be named openly and the behaviour still hidden. g5's core is
+mostly definitional: the feature IS a named surface, and once the surface is
+named the policies follow from it.
+
+**Rules for myself:**
+- `split`'s exit code and `leak.audit` are cheap; `naive` is $5. When the audit
+  says 0 of N anchored AND names identifiers the ticket printed, treat that as the
+  verdict unless I can point to a fact whose content is a *chosen value* or an
+  *invented specific* — not a policy that hangs off a name the ticket must print.
+  "It rests on a policy" is only a defence when the policy is separable from the
+  API, and here it was not.
+- Read `test_open.py` before building `naive`. It is free, and it says what the
+  ticket is obliged to contain. If `test_open` grades a fact's substance, that
+  fact cannot be hidden, whatever `split` did with it.
+- Prefer an area with a behavioural core over a definitional one. Ask of a
+  candidate brief: could the ticket name every symbol this feature needs and still
+  leave the behaviour unguessable? If naming the surface settles the behaviour,
+  the area will bracket badly however well the pipeline runs.
+
+## A failing split gate has a third answer: re-cut it by hand (2026-09-03)
+
+g6 (`model-price-lookup`) split to **0 of 8 anchored** — g5's exact number, on an
+area chosen specifically to avoid g5's failure. The reflex was the one g5's lesson
+installed: 0-of-N is the verdict, stop. That reflex would have been wrong here, and
+so would overriding it.
+
+Reading the cut is free, and it showed the cut was bad rather than the area. The
+model had hidden P2 and P5's *policies* — "external wins, no fallback", "the
+discount is only for litellm-sourced prices" — and left every invented name in the
+open ticket: `REASONS = {"unknown_provider", "unknown_model", "unknown_window"}`,
+`output_price_inferred`, the `None`/`""` → `"*"` window normalisation. So a blind
+engineer was handed the vocabulary for free and asked to guess the policy, which is
+the inverse of the arrangement that works.
+
+Re-cutting onto the invented names — P3's three reason spellings, P5's
+`batch_multiplier` — took it to **8 of 8**, and cost **$0**: `build --role oracle`
+implements all of `whole.md`, so which parts are hidden is a property of the cut
+alone. Two clauses came out of the ticket; nothing was rebuilt.
+
+**Rules for myself:**
+- `leak.audit` is lexical (`tg/leak.py:99` — backticked identifiers, no model call).
+  It measures whether a fact quotes a name the ticket withheld, NOT whether the
+  ticket entails the fact. A 0-of-N reading is a fact about the *cut*, and the cut
+  is the cheapest thing in the pipeline to change.
+- Before accepting or overriding a failing split, read `ticket.md` and
+  `fact_sources.json` and ask which of the two failed: the area (no invented names
+  exist anywhere in `whole.md` — g5) or the cut (they exist but the ticket printed
+  them — g6). Only the first is a reason to stop.
+- Re-cutting is free because the oracle is cut-independent. `steps.split` only
+  re-cuts twice and both cuts are one prompt, so when it converges on a bad shape,
+  hand-editing `task.json` + regenerating through `steps.render_hidden` and
+  re-running `leak.audit` is the cheap fix — not another paid stage.
+- Check the new anchors are in `fixtures/oracle.patch` before moving on. A fact
+  resting on a name the oracle never implements is unscoreable, which the bracket
+  reports as `broken` after the builds are paid for.
+- The `test_open` read has a repair, not just a verdict. g6's graded the hidden
+  vocabulary by constructing `UnpricedModelError(reason="unknown_model")` and
+  requiring it to be accepted — a naive build spelling it `model_not_found` fails
+  `open_feature`, and `ships()` refuses that outright. Drawing the reason from
+  `UnpricedModelError.REASONS` grades the message format the ticket states and
+  nothing it doesn't. Then re-run the suite on the persistent `.trees/<slug>/oracle`
+  via `bracket.measure(task, roles=['oracle'])` — free, no LLM, and it proves the
+  edit did not break the tree the suite is written against.
+
+## A pass that writes once loses everything it paid for (2026-09-03)
+
+`repair` died four calls in and `reknit` fourteen exchanges in, both to the same
+ten-minute harness timeout, on the same afternoon. $1.64 of model time for
+nothing — and the failure left no trace, because `plant.json` was untouched both
+times and read exactly as it had before the money was spent.
+
+The cause was mine and it was an inconsistency, not bad luck: 11 of g4's 18 stages
+run longer than ten minutes, and the ones that survived were the ones I happened
+to launch with a three- or four-hour timeout. Same stages, same durations; the
+only variable was the number I typed.
+
+Two fixes, because either alone is not enough:
+
+- **Launch long paid stages with `setsid nohup … & disown`.** Own session, no
+  controlling terminal, outside the harness lifecycle entirely. This does not
+  depend on remembering a magic number, which the timeout approach does.
+- **Checkpoint the ledger.** Every pass that edits a finished plant mutates
+  `ledger` in place and writes ONCE through `finish()`, so the ledger *is* the
+  state and a checkpoint is just the ledger. `clues.resume(task, stamp)` reads
+  `.{stamp}.partial.json` if a previous pass was interrupted, `checkpoint()`
+  writes it after each item, and `finish()` deletes it once the real artifact is
+  on disk. A kill now costs one call instead of forty.
+
+**Rules for myself:**
+- Before launching anything that spends per item, ask what is on disk if it dies
+  halfway. If the answer is "nothing", fix that first — it is cheaper than the
+  first interruption.
+- A harness timeout is a property of the harness, not of the work. Detach rather
+  than tune the number.
+- An interrupted pass that leaves the artifact unchanged is worse than one that
+  crashes loudly: nothing downstream can tell the difference between "not run"
+  and "ran and lost".
+
+## The horizon CLI's push path has three undocumented edges (2026-09-03)
+
+Pushing g6's two arms cost four failed or wasted commands before anything uploaded,
+all of them avoidable.
+
+- **`horizon tasks push` prompts for the task name even when `MINI_BATCH_ID` is set.**
+  It reads the batch from the environment and then blocks on the name, so a
+  non-interactive shell gets `Error uploading task: EOF when reading a line` and exits
+  **0**. Pipe it: `printf 'g6-model-price-lookup\n\n\n' | horizon tasks push <dir>`.
+  The README's recipe shows only the bare command.
+- **`horizon tasks list` is broken** — `Error fetching tasks: 0` — and **nothing lists
+  mini-batches**; `horizon docs` says to read the id off the web UI's My Work tab. So a
+  batch name like "nidhi-test" cannot be resolved to an id from this box at all. The
+  `.horizon/metadata.json` files under each pushed arm are the only on-box record.
+  Grep them before guessing: `b52ead5c` is nidhi-test (apex blind/spec/clues arms),
+  `fde8a4a1` is sweworld (the harbor world arms). `horizon projects list` gives project
+  names and ids but a project id is NOT a mini-batch id.
+- **`validate --mode hosted` is asynchronous.** It triggers a build, prints a Build ID
+  and returns 0 immediately — it does not wait and it does not report a score. The
+  result only arrives through `horizon tasks validate-logs -a <agent>`, which says
+  `Validation status: running` until it does not. Trigger all four (oracle and noop on
+  each arm) and then poll, rather than serialising them.
+
+**Rule for myself:** the push is free but not instant, and a command that exits 0 here
+has told you nothing about whether it worked. Read the artifact — `.horizon/metadata.json`
+after a push, `validate-logs` after a validate — never the exit code.
+
+## An exhausted budget looks exactly like a broken task (2026-09-03)
+
+g6's first hosted evaluation errored 6/6 in four minutes. Two more controls errored
+1/1 each. Every transcript was byte-identical — one `[user]` section, zero assistant
+turns — and `horizon evaluations cost` said `$0.00 over 0 requests`.
+
+The cause was `horizon whoami --json` -> `budget: 0.0` against `total_spend: 1040.18`.
+Nothing in the evaluation API says so: `submit` accepts the job, `status` returns
+`error_message: None` and `rollout_error_insights: {}`, and the only signal is
+`steps: [{provision: pending}, {evaluate: failed}]`.
+
+What made it slow to find is that everything task-shaped looked healthy, and correctly
+so: hosted validation returned oracle 1.00 / noop 0.00 on both arms **because
+validation runs `solution.sh` and the noop deterministically and spends no model
+budget**. A task can validate perfectly and still not be runnable.
+
+I burned two wrong hypotheses first. `--machine-type e2-custom-8-16384` was mine — the
+one thing I had changed from g4's working config — and a control with the flag omitted
+failed identically. Then I read a 46-byte `workdir.tar.gz` in the artifacts as proof
+`/workdir` was empty, which it is not: a snapshot of an agent that never ran is empty
+whatever `/workdir` held.
+
+**Rules for myself:**
+- Rollouts erroring with **zero spend and zero requests** is an account-level problem
+  until proven otherwise. Run `horizon whoami --json` FIRST — before controls, before
+  reading artifacts. It is one free command and it would have ended this in a minute.
+- Zero assistant turns is categorically different from a low score. g4's cipher-omni
+  runs produced 33-254 sections and scored 0; that was a model wall. Zero sections is
+  never a model wall — the model was never called.
+- Hosted validation passing says the image builds and the suite grades. It says nothing
+  about whether an agent can run, because it spends no model budget.
+- `horizon whoami --json` prints the account API key in plaintext. Never paste that
+  output anywhere, and do not echo it into a transcript.
+
+## The ticket is graded text, so format it at the cut, not afterwards (2026-09-03)
+
+g6's ticket shipped as a single 3271-character sentence carrying sixty backticked
+names — unreadable, and `prompts/split.md` was the cause: it said `description` is
+"One paragraph".
+
+Reformatting it by hand was safe only because of one mechanical invariant: **zero
+backticked spans dropped**. `leak.audit` reads anchors from backticked spans and
+`test_open` grades what the ticket STATES, so a rewrite that loses one clause makes a
+fact no blind build can reach — the `ships()` failure that costs two paid builds to
+discover. The reformat preserved all 60 spans, kept the leak audit at 7 of 7, and
+re-bracketed identically.
+
+**The choice, and why.** Three ways to make this automatic:
+- A post-hoc LLM reformat pass. Rejected: a paid call per task AND a new way to break
+  a task, because a model rewriting graded text can silently drop a clause.
+- A deterministic formatter. Rejected: sectioning a run-on English sentence needs to
+  understand it.
+- Ask for the shape at the cut. Chosen — the ticket is authored there anyway, so
+  structure costs nothing and no transformation step exists to lose anything.
+
+Prompting alone is not enough (lesson 5: prompts are advice, gates are enforcement —
+`split.md` already asked for things it did not get). So `steps.unstructured()` folds
+into the **re-cut loop `split` already runs for `leak.audit`**: same retry, same
+feedback channel, no new stage and no extra call unless the first cut ignores it.
+
+**Rules for myself:**
+- Before touching ticket text, snapshot it and diff the set of backticked spans. Zero
+  dropped is the invariant; prose case and verb form are free to change. Case-sensitive
+  word diffing just reports `add` -> `Add` and buries the real signal.
+- A checker earns its place by discriminating on real data. `unstructured()` passes
+  reformatted g6 and fails g1-g5, which is what says it fires on the actual defect
+  rather than on noise.
+- Re-run `bracket` after any ticket edit, even a cosmetic one. It is free and it is the
+  only thing that proves the task did not move.
+
+---
+
+## A name check is not a grading defect until the bracket says so
+
+**What I got wrong.** g6's four `r2` facts all die on one line —
+`getattr(processor, "batch_multiplier", None)`, `pytest.fail` if absent — and a
+world-arm run that had the discount policy exactly right scored 0 on all four for
+writing `_LITELLM_BATCH_MULTIPLIER = 0.5` as a module constant. I called that a
+grading defect and rerouted `scope`, `exclusions` and `observability` onto the ratio
+`cost()` shows.
+
+`cli bracket` refused it: `naive` — the blind, ticket-only build — then **passed**
+`r2.scope` and `r2.observability`, so both read `coincidence` and the task stopped
+shipping. `naive.patch` already writes `_BATCH_DISCOUNT = 0.5`, discounts litellm and
+leaves the external tables alone. The ticket implies the whole policy. The only hidden
+thing in `r2` is the *ownership* — one named method, nothing multiplying downstream —
+so the name check IS the requirement, and the correct verdict on that run was 0.
+
+**The rule.** Before removing an assertion because a run "clearly had it right", ask
+what `naive` scores without it. A fact is hidden only relative to a blind build, and
+the free gate answers that in about a minute. The run I was defending had produced
+*the same shape as the blind build* after reading and quoting the wiki page that names
+the method — which makes it a measurement, not a miss.
+
+**The general form:** when a run fails on a name it demonstrably read, the question is
+not "is the name check unfair" but "does anything survive if I drop it". Run the
+bracket first and let it answer. It cost a minute here and would have cost a paid
+world arm measuring nothing.
+
+## A herring nobody registered is invisible to every gate
+
+g6's `r1` requires three reason strings. `place()` had nowhere to put one remark, so
+`clue_document.md` invented a page to carry it, and around the remark it wrote a
+five-row table of error codes for a plausible neighbouring helper — two real names and
+three invented on the spot. Eight of eleven scored rollouts shipped those five.
+
+Every existing check reads the **remark**: `carried`, `giveaways`, `spread_problems`,
+`not_fragmented`, `unreversed`. This was the **filler around** it, so nothing looked.
+`prove` and the hosted `clues` arm cannot see it either — both build from
+`render_remarks()`, the digest, which never contains a page body. I confirmed that by
+diffing the clues-arm instruction before and after the fix: byte-identical.
+
+So the corpus could contradict the answer key with nothing in the free gate set able
+to notice. `inject.rival_vocabulary()` is now the check that reads what was written
+rather than what was planted, and it blocks. Its three narrowing conditions are the
+lesson: backticked spans only (a rival is something somebody quoted, which is also
+what separates it from the neighbouring helper's own parameters); two or more graded
+names in one artifact (spread pushes them apart, so two together means that artifact
+is enumerating the vocabulary); and same shape as the names it sits beside (a rival to
+three snake_case strings is another snake_case string, not a CamelCase exception).
+
+**Rules for myself:**
+- A wrong decision in the corpus is fine — that is a herring. An *unregistered* one is
+  a bug, because `reverse` only retracts what `plan()` knows is a herring.
+- When a plant stage invents prose to host a remark, the prose is corpus too. Check
+  what it minted, not just whether the remark landed.
+- A checker earns its place by discriminating on real data: this one fires on the
+  pre-fix page naming exactly the three strings, and is clean on all four plants on
+  disk.

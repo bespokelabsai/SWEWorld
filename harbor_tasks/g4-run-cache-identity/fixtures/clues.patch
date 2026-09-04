@@ -1,0 +1,1045 @@
+diff --git a/src/bespokelabs/curator/agent/agent.py b/src/bespokelabs/curator/agent/agent.py
+index 150970e..5611527 100644
+--- a/src/bespokelabs/curator/agent/agent.py
++++ b/src/bespokelabs/curator/agent/agent.py
+@@ -1,5 +1,6 @@
+ import os
+ import typing as t
++import uuid
+ from datetime import datetime
+ 
+ from xxhash import xxh64
+@@ -190,9 +191,10 @@ class MultiTurnAgents:
+                 os.path.expanduser(_CURATOR_DEFAULT_CACHE_DIR),
+             )
+         disable_cache = os.getenv("CURATOR_DISABLE_CACHE", "").lower() in ["true", "1"]
+-        fingerprint = self.seeder._hash_fingerprint(disable_cache=disable_cache)
++        run_id = (os.environ.get("CURATOR_RUN_ID") or uuid.uuid4().hex) if disable_cache else None
++        fingerprint = self.seeder._run_identity(cache_enabled=not disable_cache, run_id=run_id).digest
+         fingerprint += xxh64(self.seed_message).hexdigest()
+-        fingerprint += self.partner._hash_fingerprint(disable_cache=disable_cache)
++        fingerprint += self.partner._run_identity(cache_enabled=not disable_cache, run_id=run_id).digest
+         working_dir = os.path.join(working_dir, fingerprint)
+         os.makedirs(working_dir, exist_ok=True)
+         logger.info(f"Running multi turn simulation, find results in {working_dir}")
+diff --git a/src/bespokelabs/curator/db.py b/src/bespokelabs/curator/db.py
+index fd23c28..d431725 100644
+--- a/src/bespokelabs/curator/db.py
++++ b/src/bespokelabs/curator/db.py
+@@ -2,6 +2,30 @@
+ 
+ import os
+ import sqlite3
++import typing as t
++
++#: The schema of the runs table, as (column name, column definition) pairs. This is the
++#: single source of truth: the table is created from it and missing columns are migrated
++#: forward from it, so a cache written by an older Curator keeps working.
++RUNS_COLUMNS: t.Tuple[t.Tuple[str, str], ...] = (
++    ("run_hash", "TEXT PRIMARY KEY"),
++    ("session_id", "TEXT"),
++    ("dataset_hash", "TEXT"),
++    ("prompt_func", "TEXT"),
++    ("parse_func", "TEXT"),
++    ("model_name", "TEXT"),
++    ("response_format", "TEXT"),
++    ("batch_mode", "BOOLEAN"),
++    ("identity_version", "INTEGER"),
++    ("created_time", "TEXT"),
++    ("last_edited_time", "TEXT"),
++    ("is_hosted_viewer_synced", "BOOLEAN"),
++    # Cost management columns
++    ("total_cost_milli_dollars", "TEXT"),
++    ("total_requests", "TEXT"),
++    ("total_prompt_tokens", "TEXT"),
++    ("total_completion_tokens", "TEXT"),
++)
+ 
+ 
+ class MetadataDB:
+@@ -28,34 +52,26 @@ class MetadataDB:
+             schema_info = cursor.fetchall()
+         return schema_info
+ 
+-    def validate_schema(self):
+-        """Validate that the current database schema matches the expected schema.
++    def validate_schema(self) -> t.Tuple[str, ...]:
++        """Validate the current database schema, migrating missing columns forward.
++
++        Columns this version of Curator expects but the database does not have yet are
++        added with `ALTER TABLE`, so an existing cache is not thrown away when the schema
++        grows. Columns the database has but this version does not know about are still
++        fatal, since they mean the cache was written by something else.
++
++        Returns:
++            tuple: Names of the columns that were added, in schema order.
+ 
+         Raises:
+             RuntimeError: If there is a mismatch between the current schema and expected schema,
+                         with instructions to clear the cache.
+         """
+-        expected_columns = [
+-            "run_hash",
+-            "session_id",
+-            "dataset_hash",
+-            "prompt_func",
+-            "model_name",
+-            "response_format",
+-            "batch_mode",
+-            "created_time",
+-            "last_edited_time",
+-            "is_hosted_viewer_synced",
+-            # Cost management columns
+-            "total_cost_milli_dollars",
+-            "total_requests",
+-            "total_prompt_tokens",
+-            "total_completion_tokens",
+-        ]
++        expected_columns = [name for name, _ in RUNS_COLUMNS]
+         current_info = self._get_current_schema()
+         current_columns = [col[1] for col in current_info]  # col[1] = column name
+ 
+-        if set(current_columns) != set(expected_columns):
++        if set(current_columns) - set(expected_columns):
+             msg = (
+                 "Detected a mismatch between the local DB schema and the expected schema. "
+                 "Please clear your cache with `rm -rf ~/.cache/curator` or "
+@@ -63,7 +79,21 @@ class MetadataDB:
+             )
+             raise RuntimeError(msg)
+ 
+-    def store_metadata(self, metadata: dict):
++        if not current_columns:
++            # The runs table does not exist yet, so there is nothing to migrate.
++            return ()
++
++        missing_columns = tuple((name, definition) for name, definition in RUNS_COLUMNS if name not in set(current_columns))
++        if missing_columns:
++            with sqlite3.connect(self.db_path) as conn:
++                cursor = conn.cursor()
++                for name, definition in missing_columns:
++                    cursor.execute(f"ALTER TABLE runs ADD COLUMN {name} {definition}")
++                conn.commit()
++
++        return tuple(name for name, _ in missing_columns)
++
++    def store_metadata(self, metadata: dict) -> str:
+         """Store metadata about a Bella run in the database.
+ 
+         Args:
+@@ -71,35 +101,26 @@ class MetadataDB:
+                 - timestamp: ISO format timestamp
+                 - dataset_hash: Unique hash of input dataset
+                 - prompt_func: Source code of prompt function
++                - parse_func: Source code of parse function
+                 - model_name: Name of model used
+                 - response_format: JSON schema of response format
+                 - run_hash: Unique hash identifying the run
+                 - batch_mode: Boolean indicating batch mode or online mode (True = batch, False = online)
++                - identity_version: Version of the run identity scheme the run hash comes from
++
++        Returns:
++            str: "inserted" if the run was stored for the first time, "updated" otherwise.
+         """
+         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+         with sqlite3.connect(self.db_path) as conn:
+             cursor = conn.cursor()
+-            # IMPORTANT: If you modify the CREATE TABLE schema below,
+-            # you must update the expected_columns list in validate_schema()
+-            # to match the new schema. Otherwise, schema validation will fail.
++            # The table is created from RUNS_COLUMNS, and validate_schema() migrates a
++            # table created by an older version of Curator up to it.
++            columns_sql = ",\n                    ".join(f"{name} {definition}" for name, definition in RUNS_COLUMNS)
+             cursor.execute(
+-                """
++                f"""
+                 CREATE TABLE IF NOT EXISTS runs (
+-                    run_hash TEXT PRIMARY KEY,
+-                    session_id TEXT,
+-                    dataset_hash TEXT,
+-                    prompt_func TEXT,
+-                    model_name TEXT,
+-                    response_format TEXT,
+-                    batch_mode BOOLEAN,
+-                    created_time TEXT,
+-                    last_edited_time TEXT,
+-                    is_hosted_viewer_synced BOOLEAN,
+-
+-                    total_cost_milli_dollars TEXT,
+-                    total_requests TEXT,
+-                    total_prompt_tokens TEXT,
+-                    total_completion_tokens TEXT
++                    {columns_sql}
+                 )
+                 """
+             )
+@@ -113,39 +134,52 @@ class MetadataDB:
+             existing_run = cursor.fetchone()
+ 
+             if existing_run:
+-                # Update last_edited_time for existing entry
++                # Update last_edited_time for existing entry, keeping the session it was
++                # stored with unless we have been handed a new one.
++                updates = ["last_edited_time = ?", "parse_func = ?", "identity_version = ?"]
++                values = [metadata["timestamp"], metadata.get("parse_func"), metadata.get("identity_version")]
++                if metadata.get("session_id") is not None:
++                    updates.append("session_id = ?")
++                    values.append(metadata["session_id"])
+                 cursor.execute(
+-                    """
++                    f"""
+                     UPDATE runs
+-                    SET last_edited_time = ?
++                    SET {", ".join(updates)}
+                     WHERE run_hash = ?
+                     """,
+-                    (metadata["timestamp"], metadata["run_hash"]),
++                    (*values, metadata["run_hash"]),
+                 )
++                status = "updated"
+             else:
+                 # Insert new entry
+                 cursor.execute(
+                     """
+                     INSERT INTO runs (
+-                        run_hash, session_id, dataset_hash, prompt_func, model_name,
+-                        response_format, batch_mode, created_time, last_edited_time, is_hosted_viewer_synced
+-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
++                        run_hash, session_id, dataset_hash, prompt_func, parse_func, model_name,
++                        response_format, batch_mode, identity_version, created_time, last_edited_time,
++                        is_hosted_viewer_synced
++                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     """,
+                     (
+                         metadata["run_hash"],
+-                        metadata["session_id"],
++                        metadata.get("session_id"),
+                         metadata["dataset_hash"],
+                         metadata["prompt_func"],
++                        metadata.get("parse_func"),
+                         metadata["model_name"],
+                         metadata["response_format"],
+                         metadata["batch_mode"],
++                        metadata.get("identity_version"),
+                         metadata["timestamp"],
+                         metadata["timestamp"],  # last_edited_time same as created_time initially
+-                        metadata["is_hosted_viewer_synced"],
++                        metadata.get("is_hosted_viewer_synced"),
+                     ),
+                 )
++                status = "inserted"
+             conn.commit()
+ 
++        return status
++
+     def get_existing_session_id(self, run_hash: str):
+         """Get existing session id from previous run."""
+         return self._get_metadata(run_hash, "session_id")
+diff --git a/src/bespokelabs/curator/llm/llm.py b/src/bespokelabs/curator/llm/llm.py
+index 26fe117..d27a0ca 100644
+--- a/src/bespokelabs/curator/llm/llm.py
++++ b/src/bespokelabs/curator/llm/llm.py
+@@ -2,8 +2,9 @@
+ 
+ import inspect
+ import os
++import uuid
++from dataclasses import asdict
+ from datetime import datetime
+-from io import BytesIO
+ from pathlib import Path
+ from typing import Any, Dict, Iterable, Optional, Type, TypeVar, Union
+ 
+@@ -19,6 +20,13 @@ from bespokelabs.curator.log import add_file_handler, logger
+ from bespokelabs.curator.request_processor._factory import _RequestProcessorFactory
+ from bespokelabs.curator.request_processor.config import BackendParamsType
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.run_identity import (
++    RunIdentity,
++    RunIdentityError,
++    _get_function_hash,
++    compute_run_identity,
++    reconcile_run_directory,
++)
+ from bespokelabs.curator.types.curator_response import CuratorResponse
+ 
+ T = TypeVar("T")
+@@ -131,6 +139,10 @@ class LLM:
+         )
+         self.batch_mode = batch
+ 
++        # The request processor trims its params in place, so keep our own copy of what
++        # came in: it is the one the run identity is built from.
++        self._backend_params: Dict[str, Any] = dict(backend_params or {})
++
+         self._request_processor = _RequestProcessorFactory.create(
+             params=backend_params,
+             model_name=model_name,
+@@ -141,32 +153,28 @@ class LLM:
+             return_completions_object=self.return_completions_object,
+         )
+ 
+-    def _hash_fingerprint(self, dataset_hash: str = "", disable_cache: bool = False):
+-        if disable_cache:
+-            fingerprint = xxh64(os.urandom(8)).hexdigest()
+-        else:
+-            # Get the source code of the prompt and parse methods
+-            prompt_func_hash = _get_function_hash(self.prompt_formatter.prompt_func)
+-
+-            fingerprint_str = "_".join(
+-                [
+-                    str(dataset_hash),
+-                    str(prompt_func_hash),
+-                    str(self.prompt_formatter.model_name),
+-                    str(self.prompt_formatter.response_format.model_json_schema() if self.prompt_formatter.response_format else "text"),
+-                    str(self.batch_mode),
+-                ]
+-            )
++    @property
++    def backend(self) -> str:
++        """The resolved backend name, whether it was given explicitly or determined for us."""
++        return self._request_processor.backend
+ 
+-            if self.prompt_formatter.generation_params:
+-                generation_params_str = str(sorted(self.prompt_formatter.generation_params.items()))
+-                fingerprint_str += f"_{generation_params_str}"
++    @property
++    def backend_params(self) -> Dict[str, Any]:
++        """The backend params this LLM was created with, as a copy that is safe to mutate."""
++        return dict(self._backend_params)
+ 
+-            fingerprint = xxh64(fingerprint_str.encode("utf-8")).hexdigest()
+-            logger.debug(f"Curator Cache Fingerprint String: {fingerprint_str}")
+-            logger.debug(f"Curator Cache Fingerprint: {fingerprint}")
++    def _run_identity(self, dataset_hash: str = "", *, cache_enabled: bool = True, run_id: Optional[str] = None) -> RunIdentity:
++        """Compute the identity of a run of this LLM.
+ 
+-        return fingerprint
++        Args:
++            dataset_hash: Hash of the input dataset
++            cache_enabled: Whether the run is cached
++            run_id: Label identifying an uncached run, required when the cache is disabled
++
++        Returns:
++            RunIdentity: The identity of the run, whose run hash names the run cache directory
++        """
++        return compute_run_identity(self, dataset_hash, cache_enabled=cache_enabled, run_id=run_id)
+ 
+     def _get_cached_response(self, cache_dir: str, dataset: Dataset) -> Optional[CuratorResponse]:
+         """Check if a cached response exists and return it if valid.
+@@ -177,9 +185,14 @@ class LLM:
+ 
+         Returns:
+             Optional[CuratorResponse]: Cached response if it exists and is valid, None otherwise
++
++        Raises:
++            RunIdentityError: If the cached response belongs to a different run
+         """
+         try:
+             return CuratorResponse.load(cache_dir, dataset)
++        except RunIdentityError:
++            raise
+         except Exception as e:
+             logger.warning(f"Failed to load curator cached response: {e}")
+             return None
+@@ -191,6 +204,8 @@ class LLM:
+         batch_cancel: bool = False,
+         batch_cancel_auto_confirm: bool = False,
+         cache_dir: Optional[Union[str, Path]] = None,
++        *,
++        run_id: Optional[str] = None,
+     ) -> CuratorResponse:
+         """Apply structured completions in parallel to a dataset using specified model and prompts.
+ 
+@@ -200,9 +215,15 @@ class LLM:
+             batch_cancel (bool): Whether to cancel the batch if it is running
+             batch_cancel_auto_confirm (bool): Whether we should automatically run batch cancellation without explicit user confirmation (for testing)
+             cache_dir: Directory to cache results
++            run_id (Optional[str]): Label identifying this run when the cache is disabled. Defaults to the CURATOR_RUN_ID
++                environment variable, or a fresh id. Passing one for a cached run is an error, since a cached run is
++                identified by its inputs alone.
+ 
+         Returns:
+             CuratorResponse: A response object containing the dataset, failed requests, and various statistics
++
++        Raises:
++            RunIdentityError: If the run identity is inconsistent, or the run cache directory belongs to another run
+         """
+         # We convert from iterable to Dataset because Dataset has random access via row_idx
+         if dataset:
+@@ -219,10 +240,13 @@ class LLM:
+             curator_cache_dir = working_dir
+ 
+         disable_cache = os.getenv("CURATOR_DISABLE_CACHE", "").lower() in ["true", "1"]
+-        fingerprint = self._hash_fingerprint(dataset_hash, disable_cache)
++        if disable_cache:
++            # Without the cache there is no input of ours to key the run on, so it is labelled instead.
++            run_id = run_id or os.environ.get("CURATOR_RUN_ID") or uuid.uuid4().hex
++        identity = self._run_identity(dataset_hash, cache_enabled=not disable_cache, run_id=run_id)
+ 
+-        run_cache_dir = os.path.join(curator_cache_dir, fingerprint)
+-        os.makedirs(run_cache_dir, exist_ok=True)
++        run_cache_dir = os.path.join(curator_cache_dir, identity.run_hash)
++        reconcile_run_directory(run_cache_dir, identity, now=datetime.now().isoformat())
+         add_file_handler(run_cache_dir)
+ 
+         if batch_cancel and self.batch_mode:
+@@ -257,8 +281,9 @@ class LLM:
+             "parse_func": parse_func_source,
+             "model_name": self.prompt_formatter.model_name,
+             "response_format": (str(self.prompt_formatter.response_format.model_json_schema()) if self.prompt_formatter.response_format else "text"),
+-            "run_hash": fingerprint,
++            "run_hash": identity.run_hash,
+             "batch_mode": self.batch_mode,
++            "identity_version": identity.identity_version,
+         }
+ 
+         existing_session_id = metadata_db.get_existing_session_id(metadata_dict["run_hash"])
+@@ -310,6 +335,7 @@ class LLM:
+                 else None,
+                 model_name=self.prompt_formatter.model_name,
+                 metadata=metadata_dict,
++                run_identity=asdict(identity),
+             )
+             response.update_tracker_stats(tracker)
+         else:
+@@ -326,6 +352,7 @@ class LLM:
+                     else None,
+                     model_name=self.prompt_formatter.model_name,
+                     metadata=metadata_dict,
++                    run_identity=asdict(identity),
+                 )
+ 
+         # Save the response if cache directory is specified
+@@ -334,40 +361,6 @@ class LLM:
+         return response
+ 
+ 
+-def _get_function_hash(func) -> str:
+-    # setting recursion limit to avoid random recursion limit error
+-    # todo: understand why this is happening and fix it
+-    import sys
+-
+-    sys.setrecursionlimit(10000)
+-
+-    """Get a hash of a function's source code."""
+-    if func is None:
+-        return xxh64("").hexdigest()
+-
+-    # Remove parameter annotations to avoid dill complaining about pickling
+-    # pydantic BaseModel: https://github.com/bespokelabsai/curator/issues/229.
+-    # For class/instance methods, get the underlying function
+-    if hasattr(func, "__func__"):
+-        func = func.__func__
+-
+-    # Clear annotations if they exist
+-    if hasattr(func, "__annotations__"):
+-        func.__annotations__ = {}
+-
+-    file = BytesIO()
+-
+-    from datasets.utils._dill import Pickler
+-
+-    try:
+-        Pickler(file, recurse=True).dump(func)
+-    except TypeError:
+-        logger.debug("Failed to recursive pickle function, trying non-recursive")
+-        Pickler(file, recurse=False).dump(func)
+-
+-    return xxh64(file.getvalue()).hexdigest()
+-
+-
+ def _get_function_source(func) -> str:
+     """Get the source code of a function.
+ 
+diff --git a/src/bespokelabs/curator/request_processor/base_request_processor.py b/src/bespokelabs/curator/request_processor/base_request_processor.py
+index c3828af..47723db 100644
+--- a/src/bespokelabs/curator/request_processor/base_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/base_request_processor.py
+@@ -121,6 +121,7 @@ class BaseRequestProcessor(ABC):
+         Raises:
+             ValueError: If model doesn't support structured output but it's requested
+         """
++        self._is_cached_dataset = False
+         self.prompt_formatter = prompt_formatter
+         self.working_dir = working_dir
+         self.total_requests = len(dataset) if dataset is not None else 1
+diff --git a/src/bespokelabs/curator/run_identity.py b/src/bespokelabs/curator/run_identity.py
+new file mode 100644
+index 0000000..5358ff8
+--- /dev/null
++++ b/src/bespokelabs/curator/run_identity.py
+@@ -0,0 +1,471 @@
++"""Versioned run identity for the Curator cache.
++
++A run identity is the explicit, versioned description of everything that makes a
++run distinct: the model, the prompt and parse functions, the dataset and the
++handful of backend parameters that genuinely fork the outputs. The identity is
++hashed into a ``run_hash``, which is the name of the run's cache directory, and
++is written next to the cached artifacts as ``run_identity.json`` so a later run
++can prove that the directory it found belongs to it.
++"""
++
++import json
++import os
++from dataclasses import dataclass
++from io import BytesIO
++from typing import Any, Dict, Optional, Tuple
++
++from xxhash import xxh64
++
++from bespokelabs.curator.log import logger
++
++RUN_IDENTITY_VERSION: int = 3
++RUN_IDENTITY_FILENAME: str = "run_identity.json"
++
++#: The component keys of a run identity, in the order they are written. This is
++#: the single source of truth: everything that builds or compares components
++#: reads it from here.
++IDENTITY_COMPONENT_KEYS: Tuple[str, ...] = (
++    "backend",
++    "backend_params",
++    "batch_mode",
++    "dataset_hash",
++    "generation_params",
++    "model_name",
++    "parse_func_hash",
++    "prompt_func_hash",
++    "response_format",
++    "return_completions_object",
++    "run_id",
++    "system_prompt",
++)
++
++#: The backend params that fork the cache directory. Everything else a backend
++#: takes (retries, timeouts, credentials, ...) is a knob, not an identity.
++IDENTITY_BACKEND_PARAM_KEYS: frozenset[str] = frozenset(
++    {
++        "azure_deployment",
++        "base_url",
++        "batch_size",
++        "completion_window",
++    }
++)
++
++_RUN_HASH_PREFIX = f"v{RUN_IDENTITY_VERSION}-"
++_NOCACHE_RUN_HASH_PREFIX = f"v{RUN_IDENTITY_VERSION}-nocache-"
++
++
++class RunIdentityError(RuntimeError):
++    """Base class for every run identity failure."""
++
++
++class RunIdentityMismatch(RunIdentityError):  # noqa: N818
++    """Raised when a run cache directory belongs to a different run.
++
++    Attributes:
++        path: Path of the run identity stamp that disagrees.
++        expected_run_hash: Run hash of the identity we computed for this run.
++        found_run_hash: Run hash recorded in the stamp on disk.
++        mismatched_components: Component keys that differ, alphabetically sorted.
++    """
++
++    def __init__(self, path: str, expected_run_hash: str, found_run_hash: str, mismatched_components: Tuple[str, ...]):
++        """Initialize the mismatch.
++
++        Args:
++            path: Path of the run identity stamp that disagrees.
++            expected_run_hash: Run hash of the identity we computed for this run.
++            found_run_hash: Run hash recorded in the stamp on disk.
++            mismatched_components: Component keys that differ, alphabetically sorted.
++        """
++        self.path = path
++        self.expected_run_hash = expected_run_hash
++        self.found_run_hash = found_run_hash
++        self.mismatched_components = mismatched_components
++        super().__init__(
++            f"Run identity mismatch at {path}: expected run hash {expected_run_hash}, found {found_run_hash}. "
++            f"Mismatched components: {', '.join(mismatched_components) if mismatched_components else 'none'}."
++        )
++
++
++class CachedResponseMismatch(RunIdentityError):  # noqa: N818
++    """Raised when a cached response does not describe the dataset it is loaded with.
++
++    Attributes:
++        cache_dir: Directory the cached response was loaded from.
++        field: Name of the dataset field that differs.
++        expected: Value of the field for the dataset we were handed.
++        found: Value of the field recorded in the cached response.
++    """
++
++    def __init__(self, cache_dir: str, field: str, expected: Any, found: Any):
++        """Initialize the mismatch.
++
++        Args:
++            cache_dir: Directory the cached response was loaded from.
++            field: Name of the dataset field that differs.
++            expected: Value of the field for the dataset we were handed.
++            found: Value of the field recorded in the cached response.
++        """
++        self.cache_dir = cache_dir
++        self.field = field
++        self.expected = expected
++        self.found = found
++        super().__init__(f"Cached response in {cache_dir} does not match the dataset: {field} is {found!r}, expected {expected!r}.")
++
++
++@dataclass(frozen=True)
++class RunIdentity:
++    """The identity of a single run.
++
++    Attributes:
++        run_hash: Name of the run's cache directory.
++        digest: Hash of the identity components.
++        identity_version: Version of the identity scheme that produced the digest.
++        cache_enabled: Whether the run is cached.
++        components: The identity components, keyed by IDENTITY_COMPONENT_KEYS.
++    """
++
++    run_hash: str
++    digest: str
++    identity_version: int
++    cache_enabled: bool
++    components: Dict[str, Any]
++
++
++@dataclass(frozen=True)
++class RunStamp:
++    """The run identity as it is recorded in a run cache directory.
++
++    Attributes:
++        identity_version: Version of the identity scheme that produced the digest.
++        run_hash: Name of the run's cache directory.
++        digest: Hash of the identity components.
++        components: The identity components, keyed by IDENTITY_COMPONENT_KEYS.
++        created_at: When the directory was first stamped.
++        updated_at: When the directory was last used.
++    """
++
++    identity_version: int
++    run_hash: str
++    digest: str
++    components: Dict[str, Any]
++    created_at: str
++    updated_at: str
++
++    def to_dict(self) -> Dict[str, Any]:
++        """Convert the stamp to its on-disk dictionary form.
++
++        Returns:
++            Dict[str, Any]: The stamp fields, ready to be serialised.
++        """
++        return {
++            "identity_version": self.identity_version,
++            "run_hash": self.run_hash,
++            "digest": self.digest,
++            "components": self.components,
++            "created_at": self.created_at,
++            "updated_at": self.updated_at,
++        }
++
++    @classmethod
++    def from_dict(cls, data: Dict[str, Any]) -> "RunStamp":
++        """Create a stamp from its on-disk dictionary form.
++
++        Args:
++            data: Dictionary containing every stamp field.
++
++        Returns:
++            RunStamp: The stamp described by the dictionary.
++
++        Raises:
++            KeyError: If a stamp field is missing.
++        """
++        return cls(
++            identity_version=data["identity_version"],
++            run_hash=data["run_hash"],
++            digest=data["digest"],
++            components=data["components"],
++            created_at=data["created_at"],
++            updated_at=data["updated_at"],
++        )
++
++
++@dataclass(frozen=True)
++class RunDirectoryCheck:
++    """The outcome of reconciling a run cache directory with a run identity.
++
++    Attributes:
++        status: One of "created", "adopted", "upgraded" or "matched".
++        stamp: The stamp now recorded in the directory.
++        previous_version: Identity version found in the directory, if any.
++    """
++
++    status: str
++    stamp: RunStamp
++    previous_version: Optional[int]
++
++
++def _get_function_hash(func) -> str:
++    # setting recursion limit to avoid random recursion limit error
++    # todo: understand why this is happening and fix it
++    import sys
++
++    sys.setrecursionlimit(10000)
++
++    """Get a hash of a function's source code."""
++    if func is None:
++        return xxh64("").hexdigest()
++
++    # Remove parameter annotations to avoid dill complaining about pickling
++    # pydantic BaseModel: https://github.com/bespokelabsai/curator/issues/229.
++    # For class/instance methods, get the underlying function
++    if hasattr(func, "__func__"):
++        func = func.__func__
++
++    # Clear annotations if they exist
++    if hasattr(func, "__annotations__"):
++        func.__annotations__ = {}
++
++    file = BytesIO()
++
++    from datasets.utils._dill import Pickler
++
++    try:
++        Pickler(file, recurse=True).dump(func)
++    except TypeError:
++        logger.debug("Failed to recursive pickle function, trying non-recursive")
++        Pickler(file, recurse=False).dump(func)
++
++    return xxh64(file.getvalue()).hexdigest()
++
++
++def _canonicalize(components: Dict[str, Any]) -> str:
++    """Serialise identity components canonically for hashing.
++
++    Args:
++        components: The identity components.
++
++    Returns:
++        str: A key-sorted, version-tagged, whitespace-free JSON string.
++    """
++    return json.dumps(
++        {"identity_version": RUN_IDENTITY_VERSION, "components": components},
++        sort_keys=True,
++        separators=(",", ":"),
++        default=str,
++    )
++
++
++def _identity_backend_params(backend_params: Optional[Dict[str, Any]]) -> Dict[str, Any]:
++    """Keep only the backend params that fork the cache directory.
++
++    Args:
++        backend_params: The backend params the LLM was constructed with.
++
++    Returns:
++        Dict[str, Any]: The subset of params that are part of the run identity.
++            Params that were never set stay absent.
++    """
++    return {key: value for key, value in dict(backend_params or {}).items() if key in IDENTITY_BACKEND_PARAM_KEYS}
++
++
++def _response_format_component(response_format) -> str:
++    """Describe a response format for the identity.
++
++    Args:
++        response_format: A Pydantic model, or None when the run is unstructured.
++
++    Returns:
++        str: The JSON schema of the response format, canonically serialised,
++            or "text" when there is no response format at all.
++    """
++    if response_format is None:
++        return "text"
++    return json.dumps(response_format.model_json_schema(), sort_keys=True, separators=(",", ":"))
++
++
++def compute_run_identity(llm, dataset_hash: str, *, cache_enabled: bool = True, run_id: Optional[str] = None) -> RunIdentity:
++    """Compute the run identity of an LLM run.
++
++    Args:
++        llm: The LLM the run belongs to. Only its public surface is used, so any
++            object exposing the same attributes works.
++        dataset_hash: Hash of the input dataset, used exactly as it is handed in.
++        cache_enabled: Whether the run is cached. A cached run is identified by
++            its inputs alone; an uncached one is identified by run_id as well.
++        run_id: Label identifying an uncached run. Required when the cache is
++            disabled, and refused otherwise.
++
++    Returns:
++        RunIdentity: The identity of the run.
++
++    Raises:
++        RunIdentityError: If run_id is given for a cached run, or missing for an
++            uncached one.
++    """
++    if cache_enabled:
++        if run_id is not None:
++            raise RunIdentityError(
++                f"run_id={run_id!r} was given for a cached run. A cached run is identified by its inputs, "
++                "so a run id would not be used. Set CURATOR_DISABLE_CACHE to run with a run id."
++            )
++    elif not run_id:
++        raise RunIdentityError("run_id is required when the cache is disabled, since there is no cacheable input to identify the run by.")
++
++    components = {
++        "backend": llm.backend,
++        "backend_params": _identity_backend_params(llm.backend_params),
++        "batch_mode": llm.batch_mode,
++        "dataset_hash": dataset_hash,
++        "generation_params": dict(llm.prompt_formatter.generation_params or {}),
++        "model_name": llm.prompt_formatter.model_name,
++        "parse_func_hash": _get_function_hash(llm.prompt_formatter.parse_func),
++        "prompt_func_hash": _get_function_hash(llm.prompt_formatter.prompt_func),
++        "response_format": _response_format_component(llm.prompt_formatter.response_format),
++        "return_completions_object": llm.return_completions_object,
++        "run_id": None if cache_enabled else run_id,
++        "system_prompt": llm.prompt_formatter.system_prompt,
++    }
++    components = {key: components[key] for key in IDENTITY_COMPONENT_KEYS}
++
++    serialized = _canonicalize(components)
++    digest = xxh64(serialized.encode("utf-8")).hexdigest()
++    run_hash = f"{_RUN_HASH_PREFIX}{digest}" if cache_enabled else f"{_NOCACHE_RUN_HASH_PREFIX}{digest}"
++
++    logger.debug(f"Curator run identity components: {serialized}")
++    logger.debug(f"Curator run hash: {run_hash}")
++
++    return RunIdentity(
++        run_hash=run_hash,
++        digest=digest,
++        identity_version=RUN_IDENTITY_VERSION,
++        cache_enabled=cache_enabled,
++        components=components,
++    )
++
++
++def _stamp_path(run_cache_dir) -> str:
++    """Get the path of the run identity stamp of a run cache directory."""
++    return os.path.join(str(run_cache_dir), RUN_IDENTITY_FILENAME)
++
++
++def write_run_stamp(run_cache_dir, identity: RunIdentity, *, now: str, created_at: Optional[str] = None) -> RunStamp:
++    """Write the run identity stamp of a run cache directory.
++
++    Args:
++        run_cache_dir: The run cache directory, which is created if missing.
++        identity: The identity to record.
++        now: Timestamp to record as the last use of the directory.
++        created_at: Timestamp the directory was first stamped, when it is
++            already known. Defaults to now.
++
++    Returns:
++        RunStamp: The stamp that was written.
++    """
++    stamp = RunStamp(
++        identity_version=identity.identity_version,
++        run_hash=identity.run_hash,
++        digest=identity.digest,
++        components=identity.components,
++        created_at=created_at if created_at is not None else now,
++        updated_at=now,
++    )
++
++    os.makedirs(str(run_cache_dir), exist_ok=True)
++    with open(_stamp_path(run_cache_dir), "w") as f:
++        f.write(json.dumps(stamp.to_dict(), indent=2, sort_keys=True) + "\n")
++
++    return stamp
++
++
++def read_run_stamp(run_cache_dir) -> Optional[RunStamp]:
++    """Read the run identity stamp of a run cache directory.
++
++    Args:
++        run_cache_dir: The run cache directory to read from.
++
++    Returns:
++        Optional[RunStamp]: The recorded stamp, or None if the directory has no
++            stamp or the stamp cannot be read.
++    """
++    path = _stamp_path(run_cache_dir)
++    if not os.path.exists(path):
++        return None
++
++    try:
++        with open(path, "r") as f:
++            data = json.load(f)
++        return RunStamp.from_dict(data)
++    except (OSError, ValueError, TypeError, KeyError) as e:
++        logger.warning(f"Failed to read run identity stamp {path}: {e}")
++        return None
++
++
++def _mismatched_components(expected: Dict[str, Any], found: Dict[str, Any]) -> Tuple[str, ...]:
++    """Get the component keys two identity component blocks disagree on.
++
++    Args:
++        expected: Components of the identity we computed for this run.
++        found: Components recorded in the stamp on disk.
++
++    Returns:
++        Tuple[str, ...]: The differing keys, alphabetically sorted.
++    """
++    keys = set(expected) | set(found) | set(IDENTITY_COMPONENT_KEYS)
++    return tuple(sorted(key for key in keys if expected.get(key) != found.get(key)))
++
++
++def reconcile_run_directory(run_cache_dir, identity: RunIdentity, *, now: str) -> RunDirectoryCheck:
++    """Reconcile a run cache directory with the identity of the run about to use it.
++
++    A missing or empty directory is created and stamped, a directory left behind
++    by an older Curator is adopted or upgraded in place, and a directory that
++    already belongs to this run has its stamp refreshed. Nothing is ever deleted:
++    a directory belonging to another run is reported instead.
++
++    Args:
++        run_cache_dir: The run cache directory.
++        identity: The identity of the run about to use the directory.
++        now: Timestamp to record as the last use of the directory.
++
++    Returns:
++        RunDirectoryCheck: What was done and the stamp now on disk.
++
++    Raises:
++        RunIdentityMismatch: If the directory is stamped for a different run, or
++            by a newer version of the identity scheme.
++    """
++    run_cache_dir = str(run_cache_dir)
++
++    if not os.path.isdir(run_cache_dir) or not os.listdir(run_cache_dir):
++        stamp = write_run_stamp(run_cache_dir, identity, now=now)
++        return RunDirectoryCheck(status="created", stamp=stamp, previous_version=None)
++
++    found = read_run_stamp(run_cache_dir)
++    if found is None:
++        logger.debug(f"Adopting unstamped run cache directory {run_cache_dir} for run hash {identity.run_hash}")
++        stamp = write_run_stamp(run_cache_dir, identity, now=now)
++        return RunDirectoryCheck(status="adopted", stamp=stamp, previous_version=None)
++
++    if found.identity_version > RUN_IDENTITY_VERSION:
++        raise RunIdentityMismatch(
++            path=_stamp_path(run_cache_dir),
++            expected_run_hash=identity.run_hash,
++            found_run_hash=found.run_hash,
++            mismatched_components=("identity_version",),
++        )
++
++    if found.identity_version < RUN_IDENTITY_VERSION:
++        stamp = write_run_stamp(run_cache_dir, identity, now=now, created_at=found.created_at)
++        return RunDirectoryCheck(status="upgraded", stamp=stamp, previous_version=found.identity_version)
++
++    if found.run_hash != identity.run_hash or found.digest != identity.digest or found.components != identity.components:
++        raise RunIdentityMismatch(
++            path=_stamp_path(run_cache_dir),
++            expected_run_hash=identity.run_hash,
++            found_run_hash=found.run_hash,
++            mismatched_components=_mismatched_components(identity.components, found.components),
++        )
++
++    stamp = write_run_stamp(run_cache_dir, identity, now=now, created_at=found.created_at)
++    return RunDirectoryCheck(status="matched", stamp=stamp, previous_version=found.identity_version)
+diff --git a/src/bespokelabs/curator/types/curator_response.py b/src/bespokelabs/curator/types/curator_response.py
+index 2d219ae..fd65a52 100644
+--- a/src/bespokelabs/curator/types/curator_response.py
++++ b/src/bespokelabs/curator/types/curator_response.py
+@@ -9,6 +9,7 @@ from datasets import Dataset
+ from pydantic import BaseModel
+ 
+ from bespokelabs.curator.log import logger
++from bespokelabs.curator.run_identity import CachedResponseMismatch
+ from bespokelabs.curator.status_tracker.offline_status_tracker import OfflineStatusTracker
+ 
+ 
+@@ -144,6 +145,9 @@ class CuratorResponse:
+     # Additional metadata
+     metadata: Dict[str, Any] = field(default_factory=dict)
+ 
++    # Identity of the run that produced this response
++    run_identity: Optional[Dict[str, Any]] = None
++
+     def __post_init__(self):
+         """Post-initialization hook."""
+         if self.metadata is None:
+@@ -292,6 +296,7 @@ class CuratorResponse:
+                 "max_concurrent_requests": self.performance_stats.max_concurrent_requests,
+             },
+             "metadata": self.metadata,
++            "run_identity": self.run_identity,
+         }
+ 
+     def save(self, cache_dir: Union[str, Path]) -> None:
+@@ -311,19 +316,26 @@ class CuratorResponse:
+             json.dump(self.to_dict(), f, indent=2)
+ 
+     @classmethod
+-    def load(cls, cache_dir: Union[str, Path], dataset: Dataset) -> "CuratorResponse":
++    def load(cls, cache_dir: Union[str, Path], dataset: Dataset, *, verify: bool = True) -> "CuratorResponse":
+         """Load a response from a cache directory.
+ 
+         This class method creates a new CuratorResponse instance from saved
+         data in the cache directory. It requires a dataset to be provided
+-        as the dataset itself is not cached.
++        as the dataset itself is not cached, and by default checks that the
++        dataset it is handed is the one the response was saved for.
+ 
+         Args:
+             cache_dir (Union[str, Path]): Directory containing the cached response data.
+             dataset (Dataset): The dataset to use for the response.
++            verify (bool): Whether to check the cached dataset description against
++                the given dataset. Responses saved before the description was
++                recorded are loaded without a check.
+ 
+         Returns:
+             CuratorResponse: A new CuratorResponse instance loaded from cache.
++
++        Raises:
++            CachedResponseMismatch: If the cached response was saved for a different dataset.
+         """
+         cache_dir = Path(cache_dir)
+ 
+@@ -331,6 +343,9 @@ class CuratorResponse:
+         with open(cache_dir / "response.json", "r") as f:
+             data = json.load(f)
+ 
++        if verify and "dataset" in data:
++            cls._verify_dataset(cache_dir, dataset, data["dataset"])
++
+         # Create response object
+         response = cls(
+             dataset=dataset,
+@@ -343,10 +358,32 @@ class CuratorResponse:
+             request_stats=RequestStats(**data["request_stats"]),
+             performance_stats=PerformanceStats(**data["performance_stats"]),
+             metadata=data["metadata"],
++            run_identity=data.get("run_identity"),
+         )
+ 
+         return response
+ 
++    @staticmethod
++    def _verify_dataset(cache_dir: Union[str, Path], dataset: Dataset, recorded: Dict[str, Any]) -> None:
++        """Check a dataset against the description recorded in a cached response.
++
++        Args:
++            cache_dir (Union[str, Path]): Directory the cached response was loaded from.
++            dataset (Dataset): The dataset the response is being loaded with.
++            recorded (Dict[str, Any]): The dataset description recorded in the cached response.
++
++        Raises:
++            CachedResponseMismatch: On the first field that differs.
++        """
++        expected = {
++            "fingerprint": dataset._fingerprint,
++            "size": len(dataset),
++            "columns": list(dataset.column_names),
++        }
++        for field_name, value in expected.items():
++            if field_name in recorded and recorded[field_name] != value:
++                raise CachedResponseMismatch(cache_dir=str(cache_dir), field=field_name, expected=value, found=recorded[field_name])
++
+     def append(self, other: "CuratorResponse"):
+         """Appends another CuratorResponse to this one.
+ 

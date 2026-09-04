@@ -1,0 +1,226 @@
+[
+ {
+  "label": "author",
+  "cost_usd": 3.7021,
+  "turns": 36,
+  "seconds": 692.9,
+  "session": "206548c4-f225-4722-a016-c3a5c19db112"
+ },
+ {
+  "label": "build-oracle",
+  "cost_usd": 3.5707,
+  "turns": 38,
+  "seconds": 521.6,
+  "session": "f13100af-8c42-4627-8250-57e9c00ff31a"
+ },
+ {
+  "label": "split",
+  "cost_usd": 0.8425,
+  "turns": 2,
+  "seconds": 231.2,
+  "session": "f6d2df7f-f077-4245-b4f5-491d72c5367e"
+ },
+ {
+  "label": "split",
+  "cost_usd": 1.2324,
+  "turns": 3,
+  "seconds": 302.9,
+  "session": "b6adef0e-8813-4fa4-9572-2fb1581cada7"
+ },
+ {
+  "label": "fleet-judge-split-split",
+  "cost_usd": 0.398,
+  "turns": 10,
+  "seconds": 65.9,
+  "session": "52a51727-71f8-4982-b58c-580f406884a7"
+ },
+ {
+  "label": "tests",
+  "cost_usd": 6.7553,
+  "turns": 56,
+  "seconds": 967.5,
+  "session": "ca7bb54f-044c-47e4-a9eb-b20eaf16034a"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 2.8635,
+  "turns": 41,
+  "seconds": 429.0,
+  "session": "bd9adf00-dad0-4629-92fd-33ef74a3e566"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 3.3027,
+  "turns": 43,
+  "seconds": 511.7,
+  "session": "ab498d33-31d0-4cea-9ea9-bb02467fbebf"
+ },
+ {
+  "label": "fleet-judge-bracket-bracket",
+  "cost_usd": 0.6441,
+  "turns": 12,
+  "seconds": 97.0,
+  "session": "9f0418ae-b144-47f5-934d-12365a572f9e"
+ },
+ {
+  "label": "fleet-amend-g11",
+  "cost_usd": 1.7191,
+  "turns": 26,
+  "seconds": 232.4,
+  "session": "1fbc2a51-161b-4306-b6cb-35acec87966a"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 2.5263,
+  "turns": 29,
+  "seconds": 401.4,
+  "session": "2143d5f8-71e0-4ab8-86a7-4c6fc0a973ee"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 2.9715,
+  "turns": 36,
+  "seconds": 444.7,
+  "session": "1b1aebd8-9db6-48c4-a348-e523ef16a6c9"
+ },
+ {
+  "label": "audit-r1-rule",
+  "cost_usd": 0.6053,
+  "turns": 4,
+  "seconds": 183.5,
+  "session": "8e8a9933-1787-48b9-b0b0-3408a9b70dab"
+ },
+ {
+  "label": "audit-r1-scope",
+  "cost_usd": 0.7086,
+  "turns": 4,
+  "seconds": 235.8,
+  "session": "03f9039b-9944-400b-a76e-eb5d61f830a3"
+ },
+ {
+  "label": "audit-r1-exclusions_or_crossover",
+  "cost_usd": 0.58,
+  "turns": 4,
+  "seconds": 167.4,
+  "session": "55770960-5564-472c-9be8-8026a8f9b9ec"
+ },
+ {
+  "label": "audit-r1-failure_behavior",
+  "cost_usd": 0.6695,
+  "turns": 6,
+  "seconds": 208.8,
+  "session": "5bda36d0-b149-4f35-b96b-883ae53b05df"
+ },
+ {
+  "label": "audit-r1-observability",
+  "cost_usd": 0.5549,
+  "turns": 4,
+  "seconds": 174.2,
+  "session": "34e5c20e-d233-4347-8cb8-289518844eb8"
+ },
+ {
+  "label": "audit-r2-rule",
+  "cost_usd": 0.7531,
+  "turns": 7,
+  "seconds": 249.2,
+  "session": "77b6dfe7-c390-42e7-bba6-f9d1eb26a86e"
+ },
+ {
+  "label": "audit-r2-exclusions_or_crossover",
+  "cost_usd": 0.607,
+  "turns": 4,
+  "seconds": 174.0,
+  "session": "1fbff2fb-c2c8-4af6-8a0c-63cd368b861a"
+ },
+ {
+  "label": "audit-r2-failure_behavior",
+  "cost_usd": 0.4869,
+  "turns": 4,
+  "seconds": 146.9,
+  "session": "d3acd43f-0ed7-4f6c-b059-963127184266"
+ },
+ {
+  "label": "audit-r2-observability",
+  "cost_usd": 0.868,
+  "turns": 4,
+  "seconds": 304.2,
+  "session": "034b1df9-446b-4e11-bd03-0e81e2a3edfb"
+ },
+ {
+  "label": "fleet-judge-audit-audit",
+  "cost_usd": 0.4924,
+  "turns": 6,
+  "seconds": 35.0,
+  "session": "2af1dd16-6c05-4f0a-986a-8a30b36a9b5d"
+ },
+ {
+  "label": "trim-g11.r1.rule",
+  "cost_usd": 0.2594,
+  "turns": 4,
+  "seconds": 55.6,
+  "session": "fba65d7a-3db1-4150-a184-f9ae36c1f996"
+ },
+ {
+  "label": "trim-g11.r1.scope",
+  "cost_usd": 0.1129,
+  "turns": 3,
+  "seconds": 32.3,
+  "session": "618ea89b-df9f-4255-93ca-2d8822c0caef"
+ },
+ {
+  "label": "trim-g11.r1.exclusions_or_crossover",
+  "cost_usd": 0.0753,
+  "turns": 2,
+  "seconds": 24.9,
+  "session": "516bb105-36da-4979-ad1c-a170fbb37d1e"
+ },
+ {
+  "label": "trim-g11.r1.failure_behavior",
+  "cost_usd": 0.1572,
+  "turns": 3,
+  "seconds": 46.2,
+  "session": "fee432a3-a918-4d17-b01b-e0c5913eb7cd"
+ },
+ {
+  "label": "trim-g11.r1.observability",
+  "cost_usd": 0.1757,
+  "turns": 3,
+  "seconds": 46.2,
+  "session": "1398556d-af54-4cc0-8dfe-482c8a1a0eef"
+ },
+ {
+  "label": "trim-g11.r2.rule",
+  "cost_usd": 0.1901,
+  "turns": 4,
+  "seconds": 50.0,
+  "session": "a3628b0f-e276-4d24-8b7f-93c2ef5226c9"
+ },
+ {
+  "label": "trim-g11.r2.exclusions_or_crossover",
+  "cost_usd": 0.082,
+  "turns": 2,
+  "seconds": 26.0,
+  "session": "590d752c-7b69-4401-978c-42d44362a625"
+ },
+ {
+  "label": "trim-g11.r2.failure_behavior",
+  "cost_usd": 0.1358,
+  "turns": 4,
+  "seconds": 37.4,
+  "session": "d60f7fe1-c9e0-43cc-9fd3-4d9baaa4d946"
+ },
+ {
+  "label": "trim-g11.r2.observability",
+  "cost_usd": 0.1291,
+  "turns": 3,
+  "seconds": 35.2,
+  "session": "6f100423-70f7-44d6-9f3f-58a3a160c2ac"
+ },
+ {
+  "label": "fleet-judge-verdict-crash",
+  "cost_usd": 1.0131,
+  "turns": 22,
+  "seconds": 144.3,
+  "session": "3140347f-504a-4108-92c3-f3ff5e2c6e73"
+ }
+]

@@ -1,0 +1,32 @@
+From: dario@world.local
+To: emil@world.local, nikolai@world.local, gideon@world.local,
+ dermot@world.local, tomas@world.local, tobias@world.local
+Subject: Re: Weekly update: week of Apr 14
+Date: Mon, 21 Apr 2025 15:07:00 +0000
+Message-ID: <178853189194.489558.7056189051679576896@world.local>
+In-Reply-To: <178853189193.489558.2743599046029086356@world.local>
+References: <178853189193.489558.2743599046029086356@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Emil, that is exactly the shape. The reason being present is what tells you t=
+he empty cost fields are deliberate, and I agree entirely that the wording sh=
+ould come from a short fixed set rather than being composed at whatever call =
+site happened to notice the gap. I will keep it to the handful we know about =
+and we can add to it when a real case turns up that none of them cover.
+
+Nikolai, on the summing question, I went and read it after your mail. The agg=
+regation skips a tracker that has no cost numbers on it rather than treating =
+them as zero, so the totals come out as a sum over the models we actually pri=
+ced, which is the honest answer. To be honest that is the part I was least su=
+re of before I checked.
+
+So the settled position on WS-054 is this: two empty cost fields, one populat=
+ed price_unavailable_reason, and output that says plainly what it does not kn=
+ow instead of quoting a figure nobody can defend. In any case it is the best =
+we can do until the registry catches up with the providers, and I would rathe=
+r be visibly missing a number than confidently wrong about one.
+
+Best,
+Dario

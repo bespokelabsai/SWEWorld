@@ -73,7 +73,7 @@ def cmd_author(args) -> int:
 
 
 def cmd_split(args) -> int:
-    task = steps.split(args.slug, budget=args.budget)
+    task = steps.split(args.slug, budget=args.budget, model=args.model)
     print(f"{task.title}\n")
     # Report the two Catalog A patterns that are checkable without spending
     # anything, right where the cut is made. This predicted nine of the ten
@@ -87,8 +87,11 @@ def cmd_split(args) -> int:
         print("The ticket prints identifiers these facts require:")
         for row in leaks:
             print(f"  {row['key']}: {', '.join(row['leaked_by_ticket'])}")
+    shape = steps.unstructured(task)
+    if shape:
+        print(f"\n{shape}")
     print(f"\nnext: cli.py tests {args.slug}")
-    return 0 if all(r["has_anchor"] for r in rows) else 1
+    return 0 if all(r["has_anchor"] for r in rows) and not shape else 1
 
 
 def cmd_build(args) -> int:
@@ -415,10 +418,15 @@ def cmd_inject(args) -> int:
         return 0
     print(f"\n{out['rows']} chat message(s) -> {out['target']}")
     for key, mark in (("problems", "!"), ("absent", "!"), ("timing", "!"),
+                      ("rivals", "!"),
                       ("crowding", "~"), ("unsearchable", "~")):
-        for row in out[key]:
+        for row in out.get(key) or []:
             print(f"  {mark} {row}")
-    bad = out["problems"] + out["absent"] + out["timing"]
+    # `rivals` blocks. A remark nobody said and a rival vocabulary nobody retracted
+    # cost the same thing -- a world arm that scores zero on a world holding the
+    # answer -- and the second one is invisible to every other check here because
+    # they all read the remark rather than what was written around it.
+    bad = out["problems"] + out["absent"] + out["timing"] + (out.get("rivals") or [])
     print(f"\n{len(bad)} blocking, {len(out['crowding'])} to read by eye")
     return 1 if bad else 0
 
@@ -488,6 +496,10 @@ def main(argv: list[str] | None = None) -> int:
 
     split = add("split", cmd_split)
     split.add_argument("--budget", type=float, default=6.0)
+    split.add_argument("--model", default="opus",
+                       help="model that makes the cut. `opus` cannot currently be "
+                            "used with --json-schema (safeguard error "
+                            "`[reasoning_extraction]`); `sonnet` can")
 
     build = add("build", cmd_build)
     build.add_argument("--role", required=True)

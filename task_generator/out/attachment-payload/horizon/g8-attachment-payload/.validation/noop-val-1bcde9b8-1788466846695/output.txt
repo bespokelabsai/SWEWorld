@@ -1,0 +1,133 @@
+Warning: 'horizon test-solution' is deprecated. Use 'horizon tasks validate -m 
+local' instead.
+
+inotify limits configured (max_user_watches=524288, max_user_instances=1024)
+
+No-Op Validation for Task: 1bcde9b8-6393-44e3-a96a-d2e031832927
+Task directory: /tmp/workdir/tasks/1bcde9b8-6393-44e3-a96a-d2e031832927
+Skipping solution.sh -- running setup.sh and grader only
+
+📦 Step 1: Building task container...
+Building task-specific Docker image for 1bcde9b8-6393-44e3-a96a-d2e031832927...
+Specimen Docker image built successfully!
+Task container ready: apex_arena:1bcde9b8-6393-44e3-a96a-d2e031832927
+🚀 Step 2: Starting container for all steps...
+⏳ Waiting for MCP server to be ready (up to 10 minutes)...
+You can check logs with: docker logs -f 
+apex_test_1bcde9b8-6393-44e3-a96a-d2e031832927_1788467039
+✅ MCP server ready at http://localhost:18001/mcp (attempt 2)
+
+============================================================
+Entrypoint Logs (MCP Server Ready)
+Log file: 
+/tmp/apex-arena-logs/apex_test_1bcde9b8-6393-44e3-a96a-d2e031832927_1788467039-e
+ntrypoint.log
+============================================================
+/usr/local/lib/python3.12/dist-packages/pydantic_settings/sources/utils.py:47: 
+IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition:
+its annotation contains an unresolved forward reference, so settings sources may
+fail to correctly resolve its value. Call `model_rebuild()` on the model where 
+the field is defined, once all the referenced types are defined.
+  warnings.warn(
+INFO:     Started server process [7]
+INFO:     Waiting for application startup.
+[09/03/26 20:24:02] INFO     StreamableHTTP       streamable_http_manager.py:110
+                             session manager                                    
+                             started                                            
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+[09/03/26 20:24:06] INFO     Created new          streamable_http_manager.py:233
+                             transport with                                     
+                             session ID:                                        
+                             3c14635611eb4c37a76c                               
+                             e6afc0cc43c4                                       
+INFO:     172.17.0.1:57930 - "GET /mcp HTTP/1.1" 406 Not Acceptable
+============================================================
+
+Running with 5400s default timeout, 5400s for solution.sh...
+🔧 Copying task to /tmp...
+Noop mode: skipping solution.sh
+🔧 Running grader.py...
+{"score": 0.0, "subscores": {"g8.r1.rule": 0.0, "g8.r1.scope": 0.0, 
+"g8.r1.exclusions_or_crossover": 0.0, "g8.r1.failure_behavior": 0.0, 
+"g8.r1.observability": 0.0, "g8.r2.rule": 0.0, "g8.r2.scope": 0.0, 
+"g8.r2.exclusions_or_crossover": 0.0, "g8.r2.failure_behavior": 0.0, 
+"g8.open_feature": 0.0}, "weights": {"g8.r1.rule": 0.1111111111111111, 
+"g8.r1.scope": 0.1111111111111111, "g8.r1.exclusions_or_crossover": 
+0.1111111111111111, "g8.r1.failure_behavior": 0.1111111111111111, 
+"g8.r1.observability": 0.1111111111111111, "g8.r2.rule": 0.1111111111111111, 
+"g8.r2.scope": 0.1111111111111111, "g8.r2.exclusions_or_crossover": 
+0.1111111111111111, "g8.r2.failure_behavior": 0.11111111111111088, 
+"g8.open_feature": 0.0}, "feedback": "0 of 9 hidden requirements satisfied. Open
+feature: no. Missed: g8.r1.rule, g8.r1.scope, g8.r1.exclusions_or_crossover, 
+g8.r1.failure_behavior, g8.r1.observability, g8.r2.rule, g8.r2.scope, 
+g8.r2.exclusions_or_crossover, g8.r2.failure_behavior.   _never_counted - 
+Failed: none of ('AttachmentTooLarge',) is exported by curator's 
+attachment/prompt/processor modules (attachment module import: Imp... | FAILED 
+test_r1.py::test_failure_behavior__a_thirteenth_attachment_is_refused_before_any
+thing_is_read - Failed: none of ('TooManyAttachments',) is exported by curator's
+attachment/prompt/processor modules (attachment m... | FAILED 
+test_r1.py::test_observability__a_document_block_costs_fourteen_hundred_tokens -
+KeyError: 'image_url' | FAILED 
+test_r2.py::test_rule__every_block_carries_a_short_sha256_fingerprint_of_its_pay
+load - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); 
+the canonical attachment layer is the whole ticket. | FAILED 
+test_r2.py::test_scope__the_filename_is_capped_at_sixty_four_with_its_extension_
+kept - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); 
+the canonical attachment layer is the whole ticket. | FAILED 
+test_r2.py::test_exclusions__a_url_block_is_fingerprinted_over_its_url_text - 
+Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the 
+canonical attachment layer is the whole ticket. | FAILED 
+test_r2.py::test_failure_behavior__an_unsupported_detail_is_downgraded_to_auto_w
+ith_one_warning - Failed: BaseOnlineRequestProcessor has no 
+_canonical_attachment_block(); the canonical attachment layer is the w... | 10 
+failed, 3 warnings in 25.57s | "}
+
+✅ All steps completed successfully
+
+🎯 Final Score: 0.0
+🌟 NOOP PASSED: Grader correctly returned score 0.0 (no false positives)
+
+📋 Detailed Scoring:
+  ❌ g8.r1.rule: 0.0
+  ❌ g8.r1.scope: 0.0
+  ❌ g8.r1.exclusions_or_crossover: 0.0
+  ❌ g8.r1.failure_behavior: 0.0
+  ❌ g8.r1.observability: 0.0
+  ❌ g8.r2.rule: 0.0
+  ❌ g8.r2.scope: 0.0
+  ❌ g8.r2.exclusions_or_crossover: 0.0
+  ❌ g8.r2.failure_behavior: 0.0
+  ❌ g8.open_feature: 0.0
+
+💬 Feedback:
+  0 of 9 hidden requirements satisfied. Open feature: no. Missed: g8.r1.rule, 
+g8.r1.scope, g8.r1.exclusions_or_crossover, g8.r1.failure_behavior, 
+g8.r1.observability, g8.r2.rule, g8.r2.scope, g8.r2.exclusions_or_crossover, 
+g8.r2.failure_behavior.   _never_counted - Failed: none of 
+('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor 
+modules (attachment module import: Imp... | FAILED 
+test_r1.py::test_failure_behavior__a_thirteenth_attachment_is_refused_before_any
+thing_is_read - Failed: none of ('TooManyAttachments',) is exported by curator's
+attachment/prompt/processor modules (attachment m... | FAILED 
+test_r1.py::test_observability__a_document_block_costs_fourteen_hundred_tokens -
+KeyError: 'image_url' | FAILED 
+test_r2.py::test_rule__every_block_carries_a_short_sha256_fingerprint_of_its_pay
+load - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); 
+the canonical attachment layer is the whole ticket. | FAILED 
+test_r2.py::test_scope__the_filename_is_capped_at_sixty_four_with_its_extension_
+kept - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); 
+the canonical attachment layer is the whole ticket. | FAILED 
+test_r2.py::test_exclusions__a_url_block_is_fingerprinted_over_its_url_text - 
+Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the 
+canonical attachment layer is the whole ticket. | FAILED 
+test_r2.py::test_failure_behavior__an_unsupported_detail_is_downgraded_to_auto_w
+ith_one_warning - Failed: BaseOnlineRequestProcessor has no 
+_canonical_attachment_block(); the canonical attachment layer is the w... | 10 
+failed, 3 warnings in 25.57s | 
+
+✅ Task solution testing completed for: 1bcde9b8-6393-44e3-a96a-d2e031832927
+
+Cleaning up container 
+apex_test_1bcde9b8-6393-44e3-a96a-d2e031832927_1788467039...
+Cleaned up container apex_test_1bcde9b8-6393-44e3-a96a-d2e031832927_1788467039

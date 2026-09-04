@@ -1,0 +1,102 @@
+{
+ "task": "g10",
+ "suite": "g10_token_capacity_budget",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g10.open_feature": 0.0,
+    "g10.r1.rule": 0.0,
+    "g10.r1.scope": 0.0,
+    "g10.r1.exclusions_or_crossover": 0.0,
+    "g10.r1.observability": 0.0,
+    "g10.r2.rule": 0.0,
+    "g10.r2.scope": 0.0,
+    "g10.r2.exclusions_or_crossover": 0.0,
+    "g10.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9
+   },
+   "collected": true,
+   "stdout_tail": "cker(**kw):\n        \"\"\"An `OnlineStatusTracker` on an injected clock, with a model that is priced.\"\"\"\n        kw.setdefault(\"model\", \"gpt-4o-mini\")\n        kw.setdefault(\"capacity_clock\", Clock(1000.0))\n>       return OnlineStatusTracker(**kw)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock'\n\ng10_token_capacity_budget/test_open.py:135: TypeError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g10_token_capacity_budget-b6d6e8de/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g10_token_capacity_budget/test_open.py::test_open_feature__one_capacity_budget_decodes_limits_and_reserves_all_or_nothing - Failed: bespokelabs.curator.status_tracker.capacity_budget did not import: ImportError...\nFAILED g10_token_capacity_budget/test_r1.py::test_rule__an_over_settled_axis_stops_at_a_quarter_of_the_limit_in_debt - Failed: bespokelabs.curator.status_tracker.capacity_budget did not import: ImportError(\"cannot imp...\nFAILED g10_token_capacity_budget/test_r1.py::test_scope__the_floor_follows_the_normalised_limit_of_each_axis - Failed: bespokelabs.curator.status_tracker.capacity_budget did not import: ImportError(\"cannot import name...\nFAILED g10_token_capacity_budget/test_r1.py::test_exclusions__capping_at_the_limit_and_staying_above_the_floor_do_not_count - TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock'\nFAILED g10_token_capacity_budget/test_r1.py::test_observability__the_clamp_counter_counts_calls_not_axes - Failed: bespokelabs.curator.status_tracker.capacity_budget did not import: ImportError(\"cannot import name 'ca...\nFAILED g10_token_capacity_budget/test_r2.py::test_rule__a_refund_returns_the_whole_estimate_and_one_request_slot - TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock'\nFAILED g10_token_capacity_budget/test_r2.py::test_scope__both_failure_exits_refund_while_the_success_exit_settles - TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock'\nFAILED g10_token_capacity_budget/test_r2.py::test_exclusions__the_failure_refund_ignores_the_usage_the_response_reported - TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock'\nFAILED g10_token_capacity_budget/test_r2.py::test_observability__settlements_and_refunds_are_counted_apart_even_when_unlimited - TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_c...\n9 failed, 3 warnings in 5.73s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g10.open_feature": 1.0,
+    "g10.r1.rule": 0.0,
+    "g10.r1.scope": 0.0,
+    "g10.r1.exclusions_or_crossover": 0.0,
+    "g10.r1.observability": 0.0,
+    "g10.r2.rule": 0.0,
+    "g10.r2.scope": 0.0,
+    "g10.r2.exclusions_or_crossover": 0.0,
+    "g10.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 8,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": " no estimate on the sync\n        path. Every one is trivially true of a checkout nobody touched, so a test\n        that only checks the negative scores full marks for an agent who wrote\n        nothing. Three of t4's exclusion tests did exactly that on the pristine\n        tree.\n        \"\"\"\n        if not is_present:\n>           pytest.fail(\n                f\"{what} is not implemented, so the constraint that goes with it \"\n                \"cannot be credited: an untouched checkout satisfies it by doing \"\n                \"nothing.\")\nE           Failed: a tracker refund operation distinct from the settlement is not implemented, so the constraint that goes with it cannot be credited: an untouched checkout satisfies it by doing nothing.\n\nharness.py:83: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g10_token_capacity_budget-8af23f27/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g10_token_capacity_budget/test_r1.py::test_rule__an_over_settled_axis_stops_at_a_quarter_of_the_limit_in_debt - Failed: no constant named 'CAPACITY_DEBT_FLOOR_FRACTION' on the capacity budget module\nFAILED g10_token_capacity_budget/test_r1.py::test_scope__the_floor_follows_the_normalised_limit_of_each_axis - Failed: a capacity debt floor fraction is not implemented, so the constraint that goes with it cannot be c...\nFAILED g10_token_capacity_budget/test_r1.py::test_exclusions__capping_at_the_limit_and_staying_above_the_floor_do_not_count - Failed: a capacity debt floor with a clamp counter is not implemented, so the constraint th...\nFAILED g10_token_capacity_budget/test_r1.py::test_observability__the_clamp_counter_counts_calls_not_axes - AssertionError: expected one of ('num_capacity_debt_clamps', 'num_debt_clamps', 'num_capacity_clamps') on Onli...\nFAILED g10_token_capacity_budget/test_r2.py::test_rule__a_refund_returns_the_whole_estimate_and_one_request_slot - Failed: OnlineStatusTracker has no refund operation; a release is still a single settlement, so a fail...\nFAILED g10_token_capacity_budget/test_r2.py::test_scope__both_failure_exits_refund_while_the_success_exit_settles - AssertionError: assert 59.0 == 60.0\nFAILED g10_token_capacity_budget/test_r2.py::test_exclusions__the_failure_refund_ignores_the_usage_the_response_reported - AssertionError: assert 8300.0 == 10000.0\nFAILED g10_token_capacity_budget/test_r2.py::test_observability__settlements_and_refunds_are_counted_apart_even_when_unlimited - Failed: a tracker refund operation distinct from the settlement is not implemented, so t...\n8 failed, 1 passed, 3 warnings in 6.26s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g10.open_feature": 1.0,
+    "g10.r1.rule": 1.0,
+    "g10.r1.scope": 1.0,
+    "g10.r1.exclusions_or_crossover": 1.0,
+    "g10.r1.observability": 1.0,
+    "g10.r2.rule": 1.0,
+    "g10.r2.scope": 1.0,
+    "g10.r2.exclusions_or_crossover": 1.0,
+    "g10.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g10_token_capacity_budget-03bcc58f/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 3 warnings in 5.44s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g10.open_feature": 1.0,
+    "g10.r1.rule": 1.0,
+    "g10.r1.scope": 1.0,
+    "g10.r1.exclusions_or_crossover": 1.0,
+    "g10.r1.observability": 1.0,
+    "g10.r2.rule": 1.0,
+    "g10.r2.scope": 1.0,
+    "g10.r2.exclusions_or_crossover": 1.0,
+    "g10.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g10_token_capacity_budget-5624b3f7/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 3 warnings in 5.30s\n"
+  }
+ },
+ "verdicts": {
+  "g10.open_feature": "open_feature",
+  "g10.r1.rule": "hidden",
+  "g10.r1.scope": "hidden",
+  "g10.r1.exclusions_or_crossover": "hidden",
+  "g10.r1.observability": "hidden",
+  "g10.r2.rule": "hidden",
+  "g10.r2.scope": "hidden",
+  "g10.r2.exclusions_or_crossover": "hidden",
+  "g10.r2.observability": "hidden"
+ }
+}

@@ -1,0 +1,104 @@
+{
+ "slug": "token-capacity-budget",
+ "facts": {
+  "g10.r1.rule": {
+   "was_words": 93,
+   "now_words": 59,
+   "assertions": 3,
+   "dropped": [
+    "\"when a settlement discovers an under-estimate\" \u2014 the why behind going negative. No assertion reads it, and \"settling\" survives inside the worked case anyway.",
+    "\"and `math.ceil(-limit * 0.25)` (an `int`) for each `seperate` axis\" \u2014 all three assertions read the combined axis (`available_token_capacity`, values `200.0` and `-250.0`); nothing checks a separate axis or its int rounding.",
+    "\", and it is applied at the end of `consume_capacity` and of both release operations\" \u2014 placement restated in prose. The worked case already pins the settlement path, and the `200.0` result never reaches a floor, so no assertion turns on the consume-side or second-release application.",
+    "\"(not `-700.0`, not `0.0`)\" \u2014 the same rule said again by negation; the `-250.0` literal already carries it."
+   ],
+   "kept_because": "The whole worked case reads like padding but stays verbatim. `max_tokens_per_minute=1_000` with `consume_capacity(_TokenUsage(input=700, output=100))` is the only thing that makes assertion #2's `200.0` derivable, and the exact `used=`/`blocked=` literals plus `-250.0` are what assertion #3 turns on. `CAPACITY_DEBT_FLOOR_FRACTION: float = 0.25` and its export are held by assertion #1; `-limit * 0.25` as a `float` for `combined` is held by the float-valued results in #2 and #3.",
+   "was": "Token capacity may go negative when a settlement discovers an under-estimate, but each axis is floored at `-CAPACITY_DEBT_FLOOR_FRACTION * limit` with `CAPACITY_DEBT_FLOOR_FRACTION: float = 0.25` exported from the capacity-budget module. The floor is `-limit * 0.25` as a `float` for the `combined` axis and `math.ceil(-limit * 0.25)` (an `int`) for each `seperate` axis, and it is applied at the end of `consume_capacity` and of both release operations. Worked case: a tracker with `max_tokens_per_minute=1_000`, after `consume_capacity(_TokenUsage(input=700, output=100))` and then settling `used=_TokenUsage(input=1000, output=500)` against `blocked=_TokenUsage(input=700, output=100)`, ends at `available_token_capacity == -250.0` (not `-700.0`, not `0.0`).",
+   "now": "Token capacity may go negative, but each axis is floored at `-CAPACITY_DEBT_FLOOR_FRACTION * limit` with `CAPACITY_DEBT_FLOOR_FRACTION: float = 0.25` exported from the capacity-budget module. The floor is `-limit * 0.25` as a `float` for the `combined` axis. Worked case: a tracker with `max_tokens_per_minute=1_000`, after `consume_capacity(_TokenUsage(input=700, output=100))` and then settling `used=_TokenUsage(input=1000, output=500)` against `blocked=_TokenUsage(input=700, output=100)`, ends at `available_token_capacity == -250.0`."
+  },
+  "g10.r1.scope": {
+   "was_words": 73,
+   "now_words": 50,
+   "assertions": 9,
+   "dropped": [
+    "The opening mechanism clause: 'The floor is computed from the tracker's *effective* per-minute limit after `__post_init__` normalisation, so' \u2014 it says why the floor lands where it does. No assertion checks the derivation: #1 checks `max_tokens_per_minute == 100_000` and #3 checks the literal `-25000.0`, and both still appear verbatim in the surviving text.",
+    "The trailing reason clause: 'because it is only decremented after a successful `has_capacity`' \u2014 why the request bucket has no floor. #8 and #9 assert only `available_request_capacity == 59.0`; the rule ('is never floored') survives, its justification does not."
+   ],
+   "kept_because": "Both worked examples stayed \u2014 they are not one rule restated. The `max_tokens_per_minute=0` example is the only source of `100_000` (#1) and `-25000.0` (#3); the `_TokenUsage(input=1_000, output=500)` example is the only source of `(-250, -125, -375)` (#5) and carries the misspelled mode name `seperate`, which an implementer needs verbatim to build the `sep` tracker read by #4, #5 and #9. The `None`-axis sentence reads like a footnote but is the sole basis for #6 and #7.",
+   "was": "The floor is computed from the tracker's *effective* per-minute limit after `__post_init__` normalisation, so a tracker constructed with `max_tokens_per_minute=0` (defaulted to 100_000) floors at `-25000.0`, and under `seperate` each axis floors against its own limit: with `_TokenUsage(input=1_000, output=500)` an over-settled tracker lands on `_TokenUsage(input=-250, output=-125, total=-375)`. An axis whose limit and capacity are `None` has no floor and stays `None`. `available_request_capacity` is never floored because it is only decremented after a successful `has_capacity`.",
+   "now": "A tracker constructed with `max_tokens_per_minute=0` (defaulted to 100_000) floors at `-25000.0`, and under `seperate` each axis floors against its own limit: with `_TokenUsage(input=1_000, output=500)` an over-settled tracker lands on `_TokenUsage(input=-250, output=-125, total=-375)`. An axis whose limit and capacity are `None` has no floor and stays `None`. `available_request_capacity` is never floored."
+  },
+  "g10.r1.exclusions_or_crossover": {
+   "was_words": 62,
+   "now_words": 52,
+   "assertions": 7,
+   "dropped": [
+    "The upper cap is not a clamp for counting purposes: \u2014 an abstract restatement of the concrete rule that follows the colon. The surviving clause already says refill-at-limit and release-at-limit leave the clamp counter untouched, which is what assertions #3 and #5 grade; no assertion reads the general phrasing."
+   ],
+   "kept_because": "'and a release capping an axis at its limit' reads like a second example of the refill rule, but assertion #5 (clamp_count(released) == 0) grades release as a path separate from refill's #3, so it stays. 'Only the lower debt floor counts' sits close to the deleted preamble, but it is the only introduction of 'the floor' that the settlement clause refers back to, and assertion #7 turns on that floor rule. The parenthetical `available_token_capacity == 100.0` on a 1_000-token tracker is the one worked example whose literal an assertion reads (#6).",
+   "was": "The upper cap is not a clamp for counting purposes: the refill in `update_capacity` capping an axis at its limit, and a release capping an axis at its limit, leave the clamp counter untouched. Only the lower debt floor counts \u2014 a settlement whose result stays above the floor (e.g. `available_token_capacity == 100.0` on a 1_000-token tracker) leaves the counter at `0`.",
+   "now": "The refill in `update_capacity` capping an axis at its limit, and a release capping an axis at its limit, leave the clamp counter untouched. Only the lower debt floor counts \u2014 a settlement whose result stays above the floor (e.g. `available_token_capacity == 100.0` on a 1_000-token tracker) leaves the counter at `0`."
+  },
+  "g10.r1.observability": {
+   "was_words": 43,
+   "now_words": 19,
+   "assertions": 4,
+   "dropped": [
+    "\"one increment per call, not per axis\" \u2014 a restatement of the preceding clause \"increments by exactly one per call that clamped at least one axis\" in different words for emphasis; the surviving clause already fixes the per-call granularity that makes assertion #3 yield 1.",
+    "\"so the `seperate` case above yields `num_capacity_debt_clamps == 1`\" \u2014 a \"so\" clause carrying a worked example that demonstrates the already-stated rule; no assertion turns on a literal here, it just re-reads the counter the rule defines.",
+    "\"even though both axes hit their floors\" \u2014 the justification for that example, explaining why the count is 1 rather than 2. A reason is never asserted."
+   ],
+   "kept_because": "`num_capacity_debt_clamps: int = 0` is kept verbatim, including the `= 0` default, because assertions #1 and #2 both check `clamp_count(sep) == 0` before anything clamps \u2014 the starting value is graded, not decoration. \\\"exactly one per call that clamped at least one axis\\\" reads like it could collapse to \\\"increments per clamping call\\\", but assertion #3 (`== 1`) is only distinguishable from a per-axis counter by the words \\\"exactly one per call\\\" and \\\"at least one axis\\\", and assertion #4 (`== 2`) needs the increment to be repeatable across calls.",
+   "was": "A tracker field `num_capacity_debt_clamps: int = 0` increments by exactly one per call that clamped at least one axis \u2014 one increment per call, not per axis, so the `seperate` case above yields `num_capacity_debt_clamps == 1` even though both axes hit their floors.",
+   "now": "A tracker field `num_capacity_debt_clamps: int = 0` increments by exactly one per call that clamped at least one axis."
+  },
+  "g10.r2.rule": {
+   "was_words": 76,
+   "now_words": 53,
+   "assertions": 10,
+   "dropped": [
+    "Opening framing sentence: \"Releasing a reservation is two distinct tracker operations, not one.\" - a restatement of the fact that two separately specified methods follow; nothing asserts the count or the distinctness.",
+    "The label \"is a *settlement*\" on free_capacity - a name for the behavior, not the behavior; only the clause after the colon is graded (#6, #7).",
+    "\"A second method\" and the label \"is a *refund*\" on refund_capacity - ordering commentary plus another behavior label; no assertion turns on either.",
+    "\"failure release is\" and the connective \"which\" in the last sentence - this states the occasion on which the processor calls the method; the assertions call it directly and only check that it delegates (#8-#10)."
+   ],
+   "kept_because": "\"is left exactly as `consume_capacity` left it\" reads like prose but is the only thing forcing #7 (settled.available_request_capacity == 59.0, NOT 60.0). The two caps - \"(capped above at the limit)\" and \"capped above at `max_requests_per_minute`\" - look like caveats but are exactly what #3/#5 (10000.0) and #2/#4 (60.0) grade. The full parameter list in `_refund_capacity(self, status_tracker, blocked_capacity)` and the exact delegated call `status_tracker.refund_capacity(blocked_capacity)` are held by #8-#10, so neither can be shortened to a description.",
+   "was": "Releasing a reservation is two distinct tracker operations, not one. `free_capacity(used, blocked)` is a *settlement*: the token axes gain `blocked - used` and `available_request_capacity` is left exactly as `consume_capacity` left it. A second method `refund_capacity(blocked: _TokenUsage) -> None` is a *refund*: the token axes gain the whole `blocked` estimate back (capped above at the limit) and `available_request_capacity` gains exactly `1.0`, capped above at `max_requests_per_minute`. The processor's failure release is `_refund_capacity(self, status_tracker, blocked_capacity)`, which delegates to `status_tracker.refund_capacity(blocked_capacity)`.",
+   "now": "`free_capacity(used, blocked)`: the token axes gain `blocked - used` and `available_request_capacity` is left exactly as `consume_capacity` left it. `refund_capacity(blocked: _TokenUsage) -> None`: the token axes gain the whole `blocked` estimate back (capped above at the limit) and `available_request_capacity` gains exactly `1.0`, capped above at `max_requests_per_minute`. The processor's `_refund_capacity(self, status_tracker, blocked_capacity)` delegates to `status_tracker.refund_capacity(blocked_capacity)`."
+  },
+  "g10.r2.scope": {
+   "was_words": 81,
+   "now_words": 66,
+   "assertions": 8,
+   "dropped": [
+    "\"immediately before its `return`\" \u2014 statement-placement detail inside the branch. No assertion reads where in the branch the refund sits, only the end-state capacities 60.0 / 10000.0 that both failure paths finish at.",
+    "\"The success `else` path keeps the settlement at its current position.\" \u2014 a restatement of success behaviour the worked example already pins numerically. Assertions #7 and #8 turn on the literals `59.0` and `9200.0`, which the surviving example still states together with the reservation `_TokenUsage(input=700, output=300)` and reported usage `_TokenUsage(input=700, output=100)` they follow from."
+   ],
+   "kept_because": "The em-dash enumeration \"both the requeued case (`attempts_left > 0`) and the exhausted case (`attempts_left == 0`)\" reads as elaboration on \"every terminal path\", but it had to stay: #4 reads `attempts_left` by name and value, and #2/#3 (exhausted) versus #5/#6 (requeued) grade the two failure branches separately, so \"either failure path\" in the example needs both branches named to be unambiguous. The limits `max_requests_per_minute=60` / `max_tokens_per_minute=10_000` and the reservation also look like scene-setting, but they are what makes #1's `(59.0, 9000.0)` reachable.",
+   "was": "Every terminal path through the `except Exception` branch of `handle_single_request_with_retries` calls the refund immediately before its `return` \u2014 both the requeued case (`attempts_left > 0`) and the exhausted case (`attempts_left == 0`). The success `else` path keeps the settlement at its current position. On a tracker with `max_requests_per_minute=60`, `max_tokens_per_minute=10_000` and a reservation of `_TokenUsage(input=700, output=300)`, either failure path ends at `available_request_capacity == 60.0` and `available_token_capacity == 10000.0`, while the success path with reported usage `_TokenUsage(input=700, output=100)` ends at `59.0` / `9200.0`.",
+   "now": "Every terminal path through the `except Exception` branch of `handle_single_request_with_retries` calls the refund \u2014 both the requeued case (`attempts_left > 0`) and the exhausted case (`attempts_left == 0`). On a tracker with `max_requests_per_minute=60`, `max_tokens_per_minute=10_000` and a reservation of `_TokenUsage(input=700, output=300)`, either failure path ends at `available_request_capacity == 60.0` and `available_token_capacity == 10000.0`, while the success path with reported usage `_TokenUsage(input=700, output=100)` ends at `59.0` / `9200.0`."
+  },
+  "g10.r2.exclusions_or_crossover": {
+   "was_words": 43,
+   "now_words": 32,
+   "assertions": 4,
+   "dropped": [
+    "\"even when the failed response carried one\" \u2014 a restatement of \"ignores `generic_response.token_usage`\". No assertion reads whether the failed response carried a usage; #3 and #4 only check that the estimate comes back whole (10000.0, 60.0).",
+    "\", not the reported spend\" \u2014 the same rule a third time for emphasis. The example already ends with \"returns the estimate\", and nothing checks the negative form."
+   ],
+   "kept_because": "\"(in `config.invalid_finish_reasons`)\" reads like a gloss but is the mechanism that makes `finish_reason=\\\"length\\\"` a failure at all \u2014 assertions #3 and #4 fire only on the failure path, so an implementer who does not treat invalid finish reasons as failures never refunds and lands on 8300.0/59.0 instead of 10000.0/60.0. The `_TokenUsage(input=900, output=800)` clause also had to stay: it is the single worked example, and its 900+800 is the 1700 that assertion #3's comment contrasts against. `_TokenUsage(input=900, output=100)` is read directly by assertion #1 as (900, 100, 1000).",
+   "was": "The failure refund uses the full blocked estimate and ignores `generic_response.token_usage` even when the failed response carried one \u2014 e.g. a response with `finish_reason=\"length\"` (in `config.invalid_finish_reasons`) reporting `_TokenUsage(input=900, output=800)` against a blocked estimate of `_TokenUsage(input=900, output=100)` returns the estimate, not the reported spend.",
+   "now": "The failure refund uses the full blocked estimate and ignores `generic_response.token_usage` \u2014 e.g. a response with `finish_reason=\"length\"` (in `config.invalid_finish_reasons`) reporting `_TokenUsage(input=900, output=800)` against a blocked estimate of `_TokenUsage(input=900, output=100)` returns the estimate."
+  },
+  "g10.r2.observability": {
+   "was_words": 62,
+   "now_words": 45,
+   "assertions": 7,
+   "dropped": [
+    "The worked example restating the increment rule in different words: \"\u2014 a failed attempt gives `num_capacity_refunds == 1`, `num_capacity_settlements == 0`, and a successful one the reverse\". The clause before it \u2014 \"each incremented by exactly one by its own operation and by neither the other's\" \u2014 already pins assertion #3 (1, 0) and assertion #4 (0, 1); the example only says the same rule twice more, once per direction."
+   ],
+   "kept_because": "\"and the operation is a no-op on every axis\" reads like colour on the `None` case, but assertions #6 and #7 read `unlimited.available_token_capacity is None` and `unlimited.available_request_capacity is None` after both operations have run, so that clause is what stops an implementer mutating one of the two axes. `int = 0` on both names stays for assertions #1 and #2, which read the counters at (0, 0).",
+   "was": "Two tracker counters, `num_capacity_settlements: int = 0` and `num_capacity_refunds: int = 0`, each incremented by exactly one by its own operation and by neither the other's \u2014 a failed attempt gives `num_capacity_refunds == 1`, `num_capacity_settlements == 0`, and a successful one the reverse. Both counters still increment when the affected capacity is `None` and the operation is a no-op on every axis.",
+   "now": "Two tracker counters, `num_capacity_settlements: int = 0` and `num_capacity_refunds: int = 0`, each incremented by exactly one by its own operation and by neither the other's. Both counters still increment when the affected capacity is `None` and the operation is a no-op on every axis."
+  }
+ }
+}

@@ -1,0 +1,102 @@
+{
+ "task": "g5",
+ "suite": "g5_response_ledger",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g5.open_feature": 0.0,
+    "g5.r1.rule": 0.0,
+    "g5.r1.scope": 0.0,
+    "g5.r1.exclusions_or_crossover": 0.0,
+    "g5.r1.observability": 0.0,
+    "g5.r2.rule": 0.0,
+    "g5.r2.scope": 0.0,
+    "g5.r2.exclusions_or_crossover": 0.0,
+    "g5.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9
+   },
+   "collected": true,
+   "stdout_tail": " f\"{what} is not implemented, so the constraint that goes with it \"\n                \"cannot be credited: an untouched checkout satisfies it by doing \"\n                \"nothing.\")\nE           Failed: the ledger's read-only resume state (read_resume_state / ResumeState) is not implemented, so the constraint that goes with it cannot be credited: an untouched checkout satisfies it by doing nothing.\n\nharness.py:83: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g5_response_ledger-78f2478d/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g5_response_ledger/test_open.py::test_open_feature__the_ledger_module_classifies_serialises_and_folds_a_working_directory - Failed: no ledger symbol 'LedgerStatus' is importable from any of ('bespokelabs.curato...\nFAILED g5_response_ledger/test_r1.py::test_rule__the_best_status_wins_each_row_whether_it_was_written_first_or_last - Failed: no ledger symbol 'LedgerStatus' is importable from any of ('bespokelabs.curator.request_pro...\nFAILED g5_response_ledger/test_r1.py::test_scope__duplicate_lines_are_folded_across_response_files_not_within_one - Failed: no ledger symbol 'ResponseLedger' is importable from any of ('bespokelabs.curator.request_pro...\nFAILED g5_response_ledger/test_r1.py::test_exclusions__a_failed_retry_written_after_a_success_does_not_shadow_it - Failed: no ledger symbol 'LedgerStatus' is importable from any of ('bespokelabs.curator.request_proces...\nFAILED g5_response_ledger/test_r1.py::test_observability__status_beats_recency_and_equal_statuses_break_the_tie_by_position - Failed: no ledger symbol 'LedgerStatus' is importable from any of ('bespokelabs.curator.req...\nFAILED g5_response_ledger/test_r2.py::test_rule__resuming_leaves_the_response_file_byte_identical_and_names_its_two_sets - Failed: the ledger's read-only resume state (read_resume_state / ResumeState) is not implement...\nFAILED g5_response_ledger/test_r2.py::test_scope__the_resume_view_covers_only_the_file_it_is_given_and_folds_its_duplicates - Failed: the ledger's read-only resume state (read_resume_state / ResumeState) is not implem...\nFAILED g5_response_ledger/test_r2.py::test_exclusions__an_empty_parse_is_completed_while_an_unparseable_body_is_retryable - Failed: the ledger's read-only resume state (read_resume_state / ResumeState) is not implemen...\nFAILED g5_response_ledger/test_r2.py::test_observability__one_record_of_each_status_splits_two_and_two_and_the_file_is_unchanged - Failed: the ledger's read-only resume state (read_resume_state / ResumeState) is not i...\n9 failed, 3 warnings in 5.82s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g5.open_feature": 1.0,
+    "g5.r1.rule": 1.0,
+    "g5.r1.scope": 1.0,
+    "g5.r1.exclusions_or_crossover": 1.0,
+    "g5.r1.observability": 0.0,
+    "g5.r2.rule": 1.0,
+    "g5.r2.scope": 1.0,
+    "g5.r2.exclusions_or_crossover": 1.0,
+    "g5.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 1,
+    "passed": 8
+   },
+   "collected": true,
+   "stdout_tail": "....F....                                                                                                                                                                                                            [100%]\n========================================================================================================= FAILURES =========================================================================================================\n__________________________________________________________________ test_observability__status_beats_recency_and_equal_statuses_break_the_tie_by_position ___________________________________________________________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-360/test_observability__status_bea0')\n\n    def test_observability__status_beats_recency_and_equal_statuses_break_the_tie_by_position(tmp_path):\n        \"\"\"idx 7 written FAILED then SUCCEEDED; idx 5 written SUCCEEDED twice.\"\"\"\n        LedgerStatus = sym(\"LedgerStatus\")\n        ResponseLedger = sym(\"ResponseLedger\")\n    \n        working_dir = fresh_dir(tmp_path)\n        write_requests(working_dir, 0, [5, 7])\n        write_responses(\n            working_dir,\n            0,\n            [\n                failed(7, [\"Timeout(x3)\"]),\n                succeeded(7, [{\"answer\": \"late\"}]),\n                succeeded(5, [{\"answer\": \"first\"}]),\n                succeeded(5, [{\"answer\": \"second\"}]),\n            ],\n        )\n    \n        ledger = ResponseLedger.load(working_dir)\n        records = ledger.winning_records()\n        assert row_indices(records) == [5, 7]\n>       assert [read_field(r, \"parsed_response_message\")[0][\"answer\"] for r in records] == [\"first\", \"late\"]\nE       AssertionError: assert ['second', 'late'] == ['first', 'late']\nE         \nE         At index 0 diff: 'second' != 'first'\nE         Use -v to get more diff\n\ng5_response_ledger/test_r1.py:150: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g5_response_ledger-7722f107/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g5_response_ledger/test_r1.py::test_observability__status_beats_recency_and_equal_statuses_break_the_tie_by_position - AssertionError: assert ['second', 'late'] == ['first', 'late']\n1 failed, 8 passed, 3 warnings in 5.02s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g5.open_feature": 1.0,
+    "g5.r1.rule": 1.0,
+    "g5.r1.scope": 1.0,
+    "g5.r1.exclusions_or_crossover": 1.0,
+    "g5.r1.observability": 1.0,
+    "g5.r2.rule": 1.0,
+    "g5.r2.scope": 1.0,
+    "g5.r2.exclusions_or_crossover": 1.0,
+    "g5.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g5_response_ledger-6252e07f/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 3 warnings in 5.12s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g5.open_feature": 1.0,
+    "g5.r1.rule": 1.0,
+    "g5.r1.scope": 1.0,
+    "g5.r1.exclusions_or_crossover": 1.0,
+    "g5.r1.observability": 1.0,
+    "g5.r2.rule": 1.0,
+    "g5.r2.scope": 1.0,
+    "g5.r2.exclusions_or_crossover": 1.0,
+    "g5.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g5_response_ledger-6bccf080/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n../../../../opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 3 warnings in 4.96s\n"
+  }
+ },
+ "verdicts": {
+  "g5.open_feature": "open_feature",
+  "g5.r1.rule": "coincidence",
+  "g5.r1.scope": "coincidence",
+  "g5.r1.exclusions_or_crossover": "coincidence",
+  "g5.r1.observability": "hidden",
+  "g5.r2.rule": "coincidence",
+  "g5.r2.scope": "coincidence",
+  "g5.r2.exclusions_or_crossover": "coincidence",
+  "g5.r2.observability": "coincidence"
+ }
+}

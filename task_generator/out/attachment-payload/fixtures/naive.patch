@@ -1,0 +1,420 @@
+diff --git a/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
+index c5e4c90..201c084 100644
+--- a/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
+@@ -13,6 +13,7 @@ from bespokelabs.curator.cost import cost_processor_factory
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.online.base_online_request_processor import APIRequest, BaseOnlineRequestProcessor
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
++from bespokelabs.curator.types.attachment import AttachmentBlock
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse, _TokenUsage
+ 
+@@ -30,6 +31,13 @@ _MULTIMODAL_SUPPORTED_PREFIXES = (
+ _ANTHROPIC_ALLOWED_IMAGE_SIZE_MB = 20  # MB
+ 
+ 
++def _render_anthropic_block(block: AttachmentBlock) -> dict:
++    """Render an attachment block into an Anthropic content block."""
++    if block.source == "url":
++        return {"type": block.kind, "source": {"type": "url", "url": block.payload}}
++    return {"type": block.kind, "source": {"type": "base64", "media_type": block.mime_type, "data": block.payload}}
++
++
+ class AnthropicOnlineRequestProcessor(BaseOnlineRequestProcessor):
+     """Anthropic-specific implementation of the OnlineRequestProcessor.
+ 
+@@ -108,24 +116,9 @@ class AnthropicOnlineRequestProcessor(BaseOnlineRequestProcessor):
+ 
+         return response.headers
+ 
+-    def _format_multimodal(self, data, mime_type="image/png"):
+-        """Format multimodal prompt data for API request."""
+-        mime_type = mime_type or "image/png"
+-        if data.url and not data.is_local:
+-            return {"type": "image", "source": {"type": "url", "url": data.url}}
+-        else:
+-            base64_content = data.serialize()
+-            self.file_upload_limit_check(base64_content)
+-
+-            content = {
+-                "type": "image",
+-                "source": {
+-                    "type": "base64",
+-                    "media_type": mime_type,
+-                    "data": base64_content,
+-                },
+-            }
+-            return content
++    def _render_attachment_block(self, block: AttachmentBlock) -> dict:
++        """Render an attachment block into an Anthropic content block."""
++        return _render_anthropic_block(block)
+ 
+     def get_header_based_rate_limits(self) -> tuple[int, _TokenUsage]:
+         """Get rate limits from Anthropic API headers.
+diff --git a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+index 085c2ec..b2a32fa 100644
+--- a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+@@ -24,14 +24,32 @@ from bespokelabs.curator.request_processor.base_request_processor import BaseReq
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
++from bespokelabs.curator.types.attachment import (
++    _FALLBACK_ATTACHMENT_FILENAME,
++    AttachmentBlock,
++    EmptyAttachment,
++    MissingLocalAttachment,
++    UnknownAttachmentMimeType,
++)
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+-from bespokelabs.curator.types.prompt import _MultiModalPrompt
++from bespokelabs.curator.types.prompt import BaseType, _MultiModalPrompt
+ from bespokelabs.curator.types.token_usage import _TokenUsage
+ 
+ _MAX_OUTPUT_MVA_WINDOW = 50
+ 
+ 
++def _render_openai_block(block: AttachmentBlock) -> dict:
++    """Render an attachment block into an OpenAI style content block."""
++    if block.kind == "image":
++        url = block.payload if block.source == "url" else f"data:{block.mime_type};base64,{block.payload}"
++        return {"type": "image_url", "image_url": {"url": url, "detail": block.detail}}
++
++    if block.source == "url":
++        return {"type": "file", "file": {"filename": block.filename, "file_url": block.payload}}
++    return {"type": "file", "file": {"filename": block.filename, "file_data": f"data:{block.mime_type};base64,{block.payload}"}}
++
++
+ @dataclass
+ class APIRequest:
+     """Stores an API request's inputs, outputs, and other metadata.
+@@ -131,36 +149,60 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+         """Check if the image size is within the allowed limit."""
+         pass
+ 
+-    def _format_multimodal(self, data, mime_type="image/png"):
+-        """Format multimodal prompt data for API request."""
+-        mime_type = mime_type or "image/png"
+-        if data.url and not data.is_local:
+-            return {"type": "image_url", "image_url": {"url": data.url}}
++    def _canonical_attachment_block(self, data: BaseType) -> AttachmentBlock:
++        """Convert an image or a file into a provider-independent attachment block.
++
++        Args:
++            data (BaseType): The attachment to describe.
++
++        Returns:
++            AttachmentBlock: The provider-independent description of the attachment.
++
++        Raises:
++            MissingLocalAttachment: If a non remote url does not point at an existing file.
++            UnknownAttachmentMimeType: If the MIME type of the attachment is unknown.
++            EmptyAttachment: If the attachment serializes to an empty payload.
++        """
++        if data.url and not data.is_remote and not data.is_local:
++            raise MissingLocalAttachment(data.url)
++
++        mime_type = data.mime_type
++        if mime_type is None:
++            raise UnknownAttachmentMimeType(url=data.url, attachment_type=data.type)
++
++        kind = "image" if mime_type.startswith("image/") else "document"
++        filename = os.path.basename(data.url.split("?", 1)[0]) or _FALLBACK_ATTACHMENT_FILENAME
++
++        if data.is_remote:
++            source, payload = "url", data.url
+         else:
+-            base64_content = data.serialize()
+-            self.file_upload_limit_check(base64_content)
+-
+-            content = {
+-                "type": "image_url",
+-                "image_url": {
+-                    "url": f"data:{mime_type};base64,{base64_content}",
+-                },
+-            }
+-            if "image" in mime_type:
+-                content["image_url"].update({"detail": data.detail})
+-            return content
+-
+-    def _handle_multi_modal_prompt(self, message):
+-        content = []
+-        texts = message.texts
+-
+-        for text in texts:
+-            content.append({"type": "text", "text": text})
+-        for image in message.images:
+-            content.append(self._format_multimodal(image, mime_type=image.mime_type))
+-        for file in message.files:
+-            content.append(self._format_multimodal(file, mime_type=file.mime_type))
++            source, payload = "base64", data.serialize()
++            if not payload:
++                raise EmptyAttachment(url=data.url, filename=filename)
++
++        return AttachmentBlock(
++            kind=kind,
++            source=source,
++            mime_type=mime_type,
++            payload=payload,
++            filename=filename,
++            detail=getattr(data, "detail", "auto") if kind == "image" else None,
++        )
++
++    def _render_attachment_block(self, block: AttachmentBlock) -> dict:
++        """Render an attachment block into a provider specific content block."""
++        return _render_openai_block(block)
++
++    def _format_multimodal(self, data, mime_type=None) -> dict:
++        """Format multimodal prompt data for API request.
++
++        The `mime_type` argument is ignored, the attachment carries its own MIME type.
++        """
++        return self._render_attachment_block(self._canonical_attachment_block(data))
+ 
++    def _handle_multi_modal_prompt(self, message: _MultiModalPrompt) -> list[dict]:
++        content = [self._format_multimodal(attachment) for attachment in message.attachments()]
++        content.extend({"type": "text", "text": text} for text in message.texts)
+         return content
+ 
+     @property
+diff --git a/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
+index 276755b..e1a072f 100644
+--- a/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
+@@ -10,8 +10,10 @@ from litellm import supports_response_schema
+ from bespokelabs.curator.file_utilities import get_base64_size
+ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+-from bespokelabs.curator.request_processor.online.base_online_request_processor import APIRequest, BaseOnlineRequestProcessor
++from bespokelabs.curator.request_processor.online.anthropic_online_request_processor import _render_anthropic_block
++from bespokelabs.curator.request_processor.online.base_online_request_processor import APIRequest, BaseOnlineRequestProcessor, _render_openai_block
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
++from bespokelabs.curator.types.attachment import AttachmentBlock
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+ from bespokelabs.curator.types.token_usage import _TokenUsage
+@@ -161,25 +163,11 @@ class LiteLLMOnlineRequestProcessor(BaseOnlineRequestProcessor):
+         model_name = (model or self.config.model).split("/", 1)[-1]
+         return model_name.startswith("claude-")
+ 
+-    def _format_multimodal(self, data, mime_type="image/png"):
+-        mime_type = mime_type or "image/png"
+-        if not self._uses_anthropic_multimodal_format():
+-            return super()._format_multimodal(data, mime_type=mime_type)
+-
+-        block_type = "image" if "image" in mime_type else "document"
+-        if data.url and not data.is_local:
+-            return {"type": block_type, "source": {"type": "url", "url": data.url}}
+-
+-        base64_content = data.serialize()
+-        self.file_upload_limit_check(base64_content)
+-        return {
+-            "type": block_type,
+-            "source": {
+-                "type": "base64",
+-                "media_type": mime_type,
+-                "data": base64_content,
+-            },
+-        }
++    def _render_attachment_block(self, block: AttachmentBlock) -> dict:
++        """Render an attachment block into a provider specific content block."""
++        if self._uses_anthropic_multimodal_format():
++            return _render_anthropic_block(block)
++        return _render_openai_block(block)
+ 
+     @staticmethod
+     def _has_anthropic_pdf_document(messages: list[dict]) -> bool:
+diff --git a/src/bespokelabs/curator/request_processor/openai_request_mixin.py b/src/bespokelabs/curator/request_processor/openai_request_mixin.py
+index 23cf81e..f389259 100644
+--- a/src/bespokelabs/curator/request_processor/openai_request_mixin.py
++++ b/src/bespokelabs/curator/request_processor/openai_request_mixin.py
+@@ -4,24 +4,27 @@ from bespokelabs.curator.types.generic_request import GenericRequest
+ 
+ # TODO: Add logic for high res detailed images
+ _OPENAI_TOKENS_PER_IMAGE = {"low": 85}
++# TODO: Documents are priced with the same rough estimate as low res images.
++_OPENAI_TOKENS_PER_ATTACHMENT = _OPENAI_TOKENS_PER_IMAGE["low"]
+ 
+ 
+ def calculate_input_tokens(message, token_encoding) -> int:
+     """Calculate the number of tokens in the input message."""
+     if isinstance(message, str):
+         return len(token_encoding.encode(str(message), disallowed_special=()))
+-    else:
+-        tokens = 0
+-        for msg in message:
+-            if msg["type"] == "text":
+-                msg = msg["text"]
+-                tokens += len(token_encoding.encode(str(msg), disallowed_special=()))
+-            else:
+-                msg = msg["image_url"]
+-                # Note: Currently estimating low res image tokens. Need to add logic for high res images
+-                tokens += _OPENAI_TOKENS_PER_IMAGE["low"]
+-
+-        return tokens
++
++    tokens = 0
++    for block in message:
++        block_type = block.get("type")
++        if block_type == "text":
++            tokens += len(token_encoding.encode(str(block.get("text", "")), disallowed_special=()))
++        elif block_type in ("image_url", "image"):
++            # Note: Currently estimating low res image tokens. Need to add logic for high res images
++            tokens += _OPENAI_TOKENS_PER_IMAGE["low"]
++        elif block_type in ("file", "document"):
++            tokens += _OPENAI_TOKENS_PER_ATTACHMENT
++
++    return tokens
+ 
+ 
+ class OpenAIRequestMixin:
+diff --git a/src/bespokelabs/curator/types/attachment.py b/src/bespokelabs/curator/types/attachment.py
+new file mode 100644
+index 0000000..b6b0374
+--- /dev/null
++++ b/src/bespokelabs/curator/types/attachment.py
+@@ -0,0 +1,59 @@
++# Description: Provider-independent description of a multimodal attachment.
++import typing as t
++
++from pydantic import BaseModel, ConfigDict
++
++_FALLBACK_ATTACHMENT_FILENAME: str = "attachment.bin"
++
++
++class AttachmentBlock(BaseModel):
++    """A provider-independent description of a single attachment."""
++
++    model_config = ConfigDict(frozen=True)
++
++    kind: t.Literal["image", "document"]
++    source: t.Literal["url", "base64"]
++    mime_type: str
++    payload: str
++    filename: str
++    detail: str | None = None
++
++
++class AttachmentError(ValueError):
++    """Base class for every attachment rejection."""
++
++
++class UnknownAttachmentMimeType(AttachmentError):  # noqa: N818
++    """Raised when the MIME type of an attachment cannot be determined."""
++
++    def __init__(self, url: str, attachment_type: str):
++        """Initialize the error with the attachment url and type."""
++        self.url = url
++        self.attachment_type = attachment_type
++        super().__init__(f"Cannot determine MIME type for {attachment_type} attachment: {url!r}")
++
++
++class MissingLocalAttachment(AttachmentError):  # noqa: N818
++    """Raised when a non remote attachment url does not point at an existing file."""
++
++    def __init__(self, url: str):
++        """Initialize the error with the attachment url."""
++        self.url = url
++        super().__init__(f"Attachment path is neither an http(s) URL nor an existing file: {url!r}")
++
++
++class EmptyAttachment(AttachmentError):  # noqa: N818
++    """Raised when an attachment serializes to an empty payload."""
++
++    def __init__(self, url: str, filename: str):
++        """Initialize the error with the attachment url and filename."""
++        self.url = url
++        self.filename = filename
++        super().__init__(f"Attachment {filename} has an empty payload: {url!r}")
++
++
++def normalize_mime_type(value: str | None) -> str | None:
++    """Normalize a MIME type to lowercase without any `;`-parameters."""
++    if not value:
++        return None
++    return value.split(";", 1)[0].strip().lower() or None
+diff --git a/src/bespokelabs/curator/types/prompt.py b/src/bespokelabs/curator/types/prompt.py
+index c3a4f3e..addaab7 100644
+--- a/src/bespokelabs/curator/types/prompt.py
++++ b/src/bespokelabs/curator/types/prompt.py
+@@ -9,6 +9,7 @@ from PIL import Image as PIL_Image
+ from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
+ 
+ from bespokelabs.curator.log import logger
++from bespokelabs.curator.types.attachment import normalize_mime_type
+ 
+ 
+ class BaseType(BaseModel):
+@@ -34,6 +35,19 @@ class BaseType(BaseModel):
+             return self._is_local_uri(self.url)
+         return False
+ 
++    @property
++    def is_remote(self):
++        """Check if the attachment is an http(s) URL."""
++        return self.url.lower().startswith(("http://", "https://"))
++
++    @staticmethod
++    def _guess_mime_type(url: str) -> str | None:
++        """Guess the MIME type of a url, ignoring its query and fragment."""
++        mime_type, _ = mimetypes.guess_type(url.split("?", 1)[0].split("#", 1)[0])
++        if not mime_type:
++            logger.warning(f"Failed to guess MIME type for {url}.")
++        return normalize_mime_type(mime_type)
++
+ 
+ def _pil_image_to_bytes(image: PIL_Image.Image) -> bytes:
+     buffer = BytesIO()
+@@ -86,26 +100,30 @@ class Image(BaseType):
+ 
+     def model_post_init(self, __context):
+         """Run after initialization."""
+-        if self.mime_type is None and self.url:
+-            mime_type, _ = mimetypes.guess_type(self.url)
+-            if not mime_type:
+-                logger.warning(f"Failed to guess MIME type for {self.url}.")
+-            self.mime_type = mime_type.lower() if mime_type else "image/png"
++        if self.mime_type is not None:
++            self.mime_type = normalize_mime_type(self.mime_type)
++        elif self.url:
++            self.mime_type = self._guess_mime_type(self.url)
++        else:
++            # `_pil_image_to_bytes` always saves inline content as PNG.
++            self.mime_type = "image/png"
+ 
+ 
+ class File(BaseType):
+     """A class to represent a file for multimodal prompts."""
+ 
++    # `validate_default` lets `set_mime_type` guess the MIME type when none is supplied.
++    mime_type: str | None = Field(None, description="The MIME type of the file.", validate_default=True)
++
+     type: t.ClassVar[str] = "file"
+ 
+     @field_validator("mime_type", mode="before")
+     @classmethod
+     def set_mime_type(cls, value, values):
+         """Set MIME type if not provided."""
+-        if value is None and "url" in values.data:
+-            mime_type, _ = mimetypes.guess_type(values.data["url"])
+-            return mime_type.lower() if mime_type else None
+-        return value
++        if value is None and values.data.get("url"):
++            return cls._guess_mime_type(values.data["url"])
++        return normalize_mime_type(value)
+ 
+     def serialize(self) -> str:
+         """Convert file to base64."""
+@@ -121,6 +139,10 @@ class _MultiModalPrompt(BaseType):
+     images: t.List[Image] = Field(default_factory=list, description="The images of the prompt.")
+     files: t.List[File] = Field(default_factory=list, description="The files of the prompt.")
+ 
++    def attachments(self) -> t.List[BaseType]:
++        """Return the prompt attachments, images first and then files."""
++        return self.images + self.files
++
+     @classmethod
+     def load(cls, messages):
+         prompt = {"texts": [], "images": [], "files": []}

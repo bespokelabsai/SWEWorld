@@ -1,0 +1,14 @@
+# Hidden requirements — g6 (model-price-lookup)
+
+## r1
+- **rule** — When the price table has no real output price for a resolved (model, completion_window) — the key/map is absent or its value is null — set the output price equal to the input price for that same window and set output_price_inferred=True on the result; when a real output price was found (even if numerically equal to the input price), output_price_inferred must be False.
+- **scope** — Applies per (model, completion_window) at every resolution, on both the litellm-sourced path and the external-provider-table path; the substitute output price must come from the same window that was actually requested, not a default/'*' tier.
+- **exclusions_or_crossover** — A missing output price is never treated as an unpriced-model failure: resolve_model_price must not raise UnpricedModelError, return 0.0, or return None for the output price just because the table lacks one.
+- **observability** — resolve_model_price(model, ...).output_price_inferred is True and output_cost_per_million equals input_cost_per_million exactly when the source table has no output entry for that model+window (inference.net entries); it is False with a genuinely different value when the table does provide one (e.g. klusterai DeepSeek-R1: input 3.0 vs output 5.0).
+
+## r2
+- **rule** — The batch discount used by a cost processor's cost() must be applied through exactly one hook, batch_multiplier(), and resolve_model_price(batch=True) must only discount prices whose source is litellm — never prices read from an external provider's table.
+- **scope** — The discount applies to _LitellmCostProcessor and provider processors that price directly from litellm's table (e.g. an Azure-style processor); it does not apply to cost processors whose provider table already encodes batch-tier pricing (e.g. klusterai, inference.net), whose batch_multiplier() must return 1.0 regardless of the batch flag.
+- **exclusions_or_crossover** — A run configured with an explicit user-supplied input/output cost override is never discounted for batch even when batch=True, since that price is taken as a final, already-decided list price rather than something litellm priced.
+- **observability** — For equivalent kwargs, a klusterai/inference.net cost processor's cost() returns the same number whether constructed with batch=True or batch=False, and resolve_model_price(model, provider='klusterai', completion_window=w, batch=True).input_cost_per_million equals the batch=False figure for the same window rather than being halved.
+- *earlier, reversed*: the team once applied the 0.5 batch discount uniformly in the shared processor, then patched _KlusterAICostProcessor to multiply by 2 to cancel it out for klusterai/inference.net (since those tables are already batch-tier priced), leaving the cancellation as an unexplained special case instead of a stated exemption

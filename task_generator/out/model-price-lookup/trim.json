@@ -1,0 +1,88 @@
+{
+ "slug": "model-price-lookup",
+ "facts": {
+  "g6.r1.rule": {
+   "was_words": 47,
+   "now_words": 28,
+   "assertions": 5,
+   "dropped": [
+    "\"decided in that fixed order\" \u2014 no assertion pins which reason a given lookup produces; #1 compares set(UnpricedModelError.REASONS), which is order-insensitive, and #5 only checks membership in REASON_STRINGS.",
+    "\"\u2014 the provider is checked first, then the model key, then the completion window\" \u2014 the spelled-out restatement of that same ordering, ungraded for the same reason; nothing reads a precedence between the three failure cases."
+   ],
+   "kept_because": "\"never returns a `ModelPrice` carrying a `None` price\" reads redundant beside the raise-on-failure clause, but #2 asserts each price field is isinstance(value, (int, float)) and not isinstance(value, bool) \u2014 that clause is the only thing left in the text requiring a real number to come back, so it stays. \"the three strings\" also stays: #1 is a set equality, so the count is graded.",
+   "was": "`resolve_model_price` never returns a `ModelPrice` carrying a `None` price: every failure raises `UnpricedModelError`, and the `reason` it carries is exactly one of the three strings `unknown_provider`, `unknown_model`, `unknown_window`, decided in that fixed order \u2014 the provider is checked first, then the model key, then the completion window.",
+   "now": "`resolve_model_price` never returns a `ModelPrice` carrying a `None` price: every failure raises `UnpricedModelError`, and the `reason` it carries is exactly one of the three strings `unknown_provider`, `unknown_model`, `unknown_window`."
+  },
+  "g6.r1.exclusions_or_crossover": {
+   "was_words": 90,
+   "now_words": 68,
+   "assertions": 9,
+   "dropped": [
+    "\"The reasons never compete: when more than one applies the earlier check wins, so\" - the abstract statement of the precedence rule, whose two concrete clauses follow it verbatim and are what #1-#4 actually grade.",
+    "\"rather than a success with a `None` price\" - a restatement; \"is `unknown_model`\" already fixes the raised reason that #5 and #6 check."
+   ],
+   "kept_because": "\"rather than a fallback to the wildcard tier\" reads like a contrast clause but is the only text forbidding wildcard fallback for an absent window; without it an implementer could return the wildcard price and fail #8/#9, and #7 (wildcard == 0.045) shows the wildcard tier is separately priced and reachable. \"even when the model is also absent and the window is also unrecognised\" survives because #1 exercises all three faults at once. `litellm.model_cost` and the exact reason strings `unknown_provider`/`unknown_model`/`unknown_window` are read by #2, #4, #6, #9.",
+   "was": "The reasons never compete: when more than one applies the earlier check wins, so an unregistered provider is `unknown_provider` even when the model is also absent and the window is also unrecognised, and a missing model key is `unknown_model` even when the window is also unrecognised. A model present in `litellm.model_cost` but carrying a missing or `None` input price is `unknown_model` rather than a success with a `None` price, and a window that is absent from a model's price map is `unknown_window` rather than a fallback to the wildcard tier.",
+   "now": "An unregistered provider is `unknown_provider` even when the model is also absent and the window is also unrecognised, and a missing model key is `unknown_model` even when the window is also unrecognised. A model present in `litellm.model_cost` but carrying a missing or `None` input price is `unknown_model`, and a window that is absent from a model's price map is `unknown_window` rather than a fallback to the wildcard tier."
+  },
+  "g6.r1.observability": {
+   "was_words": 70,
+   "now_words": 59,
+   "assertions": 7,
+   "dropped": [
+    "'so the exception never reaches a caller above the lookup' \u2014 the consequence/rationale clause. No assertion checks that the error fails to propagate above the lookup; #3, #4 and #7 check the degraded values themselves (0.0 and (None, None)), which the surviving clause already states."
+   ],
+   "kept_because": "The three 'raises with reason == ...' clauses read like one rule said three times, but assertion #2 grades their exact ordering [\"unknown_provider\", \"unknown_model\", \"unknown_window\"], so all three stay verbatim and in order. The call literals stay because they are the only statement of which condition yields which reason (unregistered provider vs. registered provider with an unknown model vs. a listed model with an unlisted window). 'and a recorded reason' reads thin, but assertions #5 and #6 read price_unavailable_reason == \"unknown_model\" off the tracker, so the recording requirement cannot go. 'catch UnpricedModelError' stays as the named exception assertion #1 raises on.",
+   "was": "`resolve_model_price(\"no-such-model\", provider=\"not-a-provider\", completion_window=\"96h\")` raises with `reason == \"unknown_provider\"`; the same call with a registered provider raises with `reason == \"unknown_model\"`; a model that provider does list, asked for an unlisted window, raises with `reason == \"unknown_window\"`. Every `cost()` method and both trackers catch `UnpricedModelError` and degrade \u2014 `cost()` to `0.0`, a tracker to `None` prices and a recorded reason \u2014 so the exception never reaches a caller above the lookup.",
+   "now": "`resolve_model_price(\"no-such-model\", provider=\"not-a-provider\", completion_window=\"96h\")` raises with `reason == \"unknown_provider\"`; the same call with a registered provider raises with `reason == \"unknown_model\"`; a model that provider does list, asked for an unlisted window, raises with `reason == \"unknown_window\"`. Every `cost()` method and both trackers catch `UnpricedModelError` and degrade \u2014 `cost()` to `0.0`, a tracker to `None` prices and a recorded reason."
+  },
+  "g6.r2.rule": {
+   "was_words": 56,
+   "now_words": 38,
+   "assertions": 5,
+   "dropped": [
+    "\"appears in exactly one place in the pricing path and\" \u2014 a restatement of the one-owner rule that the surviving \"no `cost()` override multiplies or divides its result by anything\" already states; #4 establishes the single owner by substituting the multiplier, not by counting places in the path.",
+    "\"and only when the price came from `litellm.model_cost`\" \u2014 no assertion checks where the price was sourced from; #5 only compares `discounted` to `listed * factor`, so the negative case (a price from any other source going undiscounted) is never exercised."
+   ],
+   "kept_because": "\"no `cost()` override multiplies or divides its result by anything\" reads like emphasis on the clause before it, but it is the only surviving statement of what #4 checks: with `batch_multiplier()` patched to 3.0, `after == before / factor_before * 3.0`, i.e. nothing else scales the result on the way out. #1 pins `cost == completion_cost * batch_multiplier()` but not the absence of other factors, so cutting this clause would leave #4 ungrounded.",
+   "was": "The batch discount factor appears in exactly one place in the pricing path and is applied by exactly one method, `batch_multiplier()`, on the cost processors; no `cost()` override multiplies or divides its result by anything. `resolve_model_price(..., batch=True)` applies that same fixed factor to the per-million numbers it returns, and only when the price came from `litellm.model_cost`.",
+   "now": "The batch discount factor is applied by exactly one method, `batch_multiplier()`, on the cost processors; no `cost()` override multiplies or divides its result by anything. `resolve_model_price(..., batch=True)` applies that same fixed factor to the per-million numbers it returns."
+  },
+  "g6.r2.scope": {
+   "was_words": 72,
+   "now_words": 56,
+   "assertions": 8,
+   "dropped": [
+    "\"because the per-window numbers in the external rate table are already those providers' batch tiers\" \u2014 the reason klusterai and inference.net are exempt. No assertion reads the rate table's provenance; #4 only checks that 1.0 comes back for both batch values.",
+    "\"Symmetrically\" \u2014 a rhetorical link announcing that the resolve_model_price sentence parallels the batch_multiplier one. Nothing is asserted about the parallel; #5\u2013#8 read only the source strings and the field arithmetic."
+   ],
+   "kept_because": "\"only where the pricing data is a list price\" reads like a preamble to the exceptions that follow it, but it is the only statement that a list-priced processor gets the factor rather than 1.0 \u2014 assertion #3 (`multiplier(azure_cls(config=config, batch=True)) == factor`) has no other source for that. \"discount factor\" likewise carries #1 (`0.0 < factor < 1.0`). \"exactly as the table lists it\" carries #6, which compares every field of the batched external price against the listed one; \"leaves\" on its own would not pin field-level equality.",
+   "was": "`batch_multiplier()` returns the discount factor only where the pricing data is a list price: it returns `1.0` when the processor is not in batch mode, and `1.0` on the klusterai and inference.net processors in every mode, because the per-window numbers in the external rate table are already those providers' batch tiers. Symmetrically `resolve_model_price` discounts a `source == \"litellm\"` price and leaves a `source == \"external\"` price exactly as the table lists it.",
+   "now": "`batch_multiplier()` returns the discount factor only where the pricing data is a list price: it returns `1.0` when the processor is not in batch mode, and `1.0` on the klusterai and inference.net processors in every mode. `resolve_model_price` discounts a `source == \"litellm\"` price and leaves a `source == \"external\"` price exactly as the table lists it."
+  },
+  "g6.r2.exclusions_or_crossover": {
+   "was_words": 66,
+   "now_words": 46,
+   "assertions": 6,
+   "dropped": [
+    "\"taken as given and\" \u2014 restatement of the rule that follows it; \"is never discounted\" already carries the whole claim, and no assertion can tell the two phrasings apart.",
+    "\", never by matching the provider string against a hardcoded list at the point of use\" \u2014 a prohibition on implementation style. Every assertion reads a returned multiplier, a cost, or a field value; none inspects how the exemption is resolved, so no test can distinguish a hardcoded provider list from a class-level flag."
+   ],
+   "kept_because": "\"even in batch mode on a processor that would otherwise discount\" reads like emphasis on the first clause, but it is what pins #3 and #4 together: `exempt(config=config, batch=True)` must give `1.0` while `discounting(config=config, batch=True)` must give `factor`, so the exemption has to survive batch mode on a processor whose sibling still discounts. \"by which source answered the lookup\" stays as the only mention of a source, which #5 reads via `read_field(listed, \"source\")`.",
+   "was": "A user-supplied per-million price is taken as given and is never discounted: `batch_multiplier()` returns `1.0` whenever the config carries an explicit input cost, even in batch mode on a processor that would otherwise discount. Which processors are exempt is decided by a class-level flag and by which source answered the lookup, never by matching the provider string against a hardcoded list at the point of use.",
+   "now": "A user-supplied per-million price is never discounted: `batch_multiplier()` returns `1.0` whenever the config carries an explicit input cost, even in batch mode on a processor that would otherwise discount. Which processors are exempt is decided by a class-level flag and by which source answered the lookup."
+  },
+  "g6.r2.observability": {
+   "was_words": 71,
+   "now_words": 52,
+   "assertions": 11,
+   "dropped": [
+    "'; a klusterai `cost()` in batch mode therefore returns the same number as out of it' \u2014 a 'therefore' consequence, not a rule of its own. #7 (in_batch == out_of_batch == pytest.approx(raw)) still follows: cost scales by the multiplier, and the surviving text pins klusterai's multiplier at `1.0` in batch mode.",
+    "'With a litellm-priced model,' \u2014 scene-setting preamble. Assertions #1-#6 build processors from `config` alone and never vary the pricing source, and the surviving final clause still says 'a litellm-sourced model's' at the one place the halving is graded (#9-#11)."
+   ],
+   "kept_because": "'the discount factor' reads vague but cannot be cut: deleting it breaks the sentence, and it is the only carrier of the 0.5 that #1 and #3 check \u2014 the value is anchored by the surviving 'is exactly half its `batch=False` value'. 'and `1.0` out of it' looks like a mirror of the batch clause but is separately graded by #2 and #4. The whole `resolve_model_price(...)` call signature stays verbatim because #8 grades that path independently of the multiplier, and identifiers are never paraphrased.",
+   "was": "With a litellm-priced model, `batch_multiplier()` is the discount factor on the base and Azure processors in batch mode and `1.0` out of it, and `1.0` on the klusterai and inference.net processors even in batch mode; a klusterai `cost()` in batch mode therefore returns the same number as out of it. `resolve_model_price(model, provider=\"klusterai\", completion_window=\"*\", batch=True).input_cost_per_million` equals the `batch=False` value exactly, while a litellm-sourced model's `batch=True` value is exactly half its `batch=False` value.",
+   "now": "`batch_multiplier()` is the discount factor on the base and Azure processors in batch mode and `1.0` out of it, and `1.0` on the klusterai and inference.net processors even in batch mode. `resolve_model_price(model, provider=\"klusterai\", completion_window=\"*\", batch=True).input_cost_per_million` equals the `batch=False` value exactly, while a litellm-sourced model's `batch=True` value is exactly half its `batch=False` value."
+  }
+ }
+}

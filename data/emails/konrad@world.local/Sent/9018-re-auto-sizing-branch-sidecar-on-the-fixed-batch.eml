@@ -1,0 +1,16 @@
+From: konrad@world.local
+To:
+ gideon@world.local, nikolai@world.local, emil@world.local, dario@world.local
+Subject: Re: auto-sizing branch: sidecar on the fixed batch_size path too?
+Date: Tue, 15 Apr 2025 14:16:00 +0000
+Message-ID: <178822443477.2088454.12709915845839985600@world.local>
+In-Reply-To: <178822443475.2088454.2372384230054378718@world.local>
+References: <178822443475.2088454.2372384230054378718@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+the config is not always next to the outputs by then, we get handed the reque=
+st dir on its own in some cases. so no, not reliably
+
+anyway simplest is you keep it to the auto branch and I dont have to guess

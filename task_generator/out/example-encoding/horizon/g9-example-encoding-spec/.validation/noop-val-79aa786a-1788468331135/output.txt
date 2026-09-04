@@ -1,0 +1,131 @@
+Warning: 'horizon test-solution' is deprecated. Use 'horizon tasks validate -m 
+local' instead.
+
+inotify limits configured (max_user_watches=524288, max_user_instances=1024)
+
+No-Op Validation for Task: 79aa786a-ea26-4f1d-95ae-ad388bfae49c
+Task directory: /tmp/workdir/tasks/79aa786a-ea26-4f1d-95ae-ad388bfae49c
+Skipping solution.sh -- running setup.sh and grader only
+
+📦 Step 1: Building task container...
+Building task-specific Docker image for 79aa786a-ea26-4f1d-95ae-ad388bfae49c...
+Specimen Docker image built successfully!
+Task container ready: apex_arena:79aa786a-ea26-4f1d-95ae-ad388bfae49c
+🚀 Step 2: Starting container for all steps...
+⏳ Waiting for MCP server to be ready (up to 10 minutes)...
+You can check logs with: docker logs -f 
+apex_test_79aa786a-ea26-4f1d-95ae-ad388bfae49c_1788468502
+✅ MCP server ready at http://localhost:18001/mcp (attempt 2)
+
+============================================================
+Entrypoint Logs (MCP Server Ready)
+Log file: 
+/tmp/apex-arena-logs/apex_test_79aa786a-ea26-4f1d-95ae-ad388bfae49c_1788468502-e
+ntrypoint.log
+============================================================
+/usr/local/lib/python3.12/dist-packages/pydantic_settings/sources/utils.py:47: 
+IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition:
+its annotation contains an unresolved forward reference, so settings sources may
+fail to correctly resolve its value. Call `model_rebuild()` on the model where 
+the field is defined, once all the referenced types are defined.
+  warnings.warn(
+INFO:     Started server process [7]
+INFO:     Waiting for application startup.
+[09/03/26 20:48:24] INFO     StreamableHTTP       streamable_http_manager.py:110
+                             session manager                                    
+                             started                                            
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+[09/03/26 20:48:28] INFO     Created new          streamable_http_manager.py:233
+                             transport with                                     
+                             session ID:                                        
+                             4aaf23922f1d433e8ff0                               
+                             b77c630c5d37                                       
+INFO:     172.17.0.1:59942 - "GET /mcp HTTP/1.1" 406 Not Acceptable
+============================================================
+
+Running with 5400s default timeout, 5400s for solution.sh...
+🔧 Copying task to /tmp...
+Noop mode: skipping solution.sh
+🔧 Running grader.py...
+{"score": 0.0, "subscores": {"g9.r1.rule": 0.0, "g9.r1.scope": 0.0, 
+"g9.r1.exclusions_or_crossover": 0.0, "g9.r1.failure_behavior": 0.0, 
+"g9.r2.rule": 0.0, "g9.r2.scope": 0.0, "g9.r2.failure_behavior": 0.0, 
+"g9.open_feature": 0.0}, "weights": {"g9.r1.rule": 0.14285714285714285, 
+"g9.r1.scope": 0.14285714285714285, "g9.r1.exclusions_or_crossover": 
+0.14285714285714285, "g9.r1.failure_behavior": 0.14285714285714285, 
+"g9.r2.rule": 0.14285714285714285, "g9.r2.scope": 0.14285714285714285, 
+"g9.r2.failure_behavior": 0.14285714285714285, "g9.open_feature": 0.0}, 
+"feedback": "0 of 7 hidden requirements satisfied. Open feature: no. Missed: 
+g9.r1.rule, g9.r1.scope, g9.r1.exclusions_or_crossover, g9.r1.failure_behavior, 
+g9.r2.rule, g9.r2.scope, g9.r2.failure_behavior.    | FAILED 
+test_r1.py::test_rule__an_assistant_turn_the_window_cuts_in_half_is_not_supervis
+ed_at_all - assert 90 == 39 | FAILED 
+test_r1.py::test_scope__the_tokenizer_free_branch_supervises_assistant_spans_fro
+m_character_offsets - AssertionError: expected one of ('encoding',) on dict; it 
+has ['num_messages', 'original_text'] | FAILED 
+test_r1.py::test_exclusions__fireworks_drops_over_budget_lines_by_utf8_bytes_and
+_truncates_nothing - Failed: the encoding policy exposes no 
+'FIREWORKS_BYTES_PER_TOKEN'; bespokelabs.curator.finetune has ['AdamPa... | 
+FAILED 
+test_r1.py::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_
+tokens_is_refused - Failed: the encoding policy exposes no 
+'ExampleTooLongError'; bespokelabs.curator.finetune has ['AdamParams', ... | 
+FAILED 
+test_r2.py::test_rule__both_batch_entry_points_publish_a_frozen_encoding_report 
+- Failed: the encoding policy exposes no 'EncodingReport'; 
+bespokelabs.curator.finetune has ['AdamParams', 'BaseTrainer', 'ChatMes... | 
+FAILED test_r2.py::test_scope__only_the_batch_entry_points_write_the_report - 
+AttributeError: 'DataFormatter' object has no attribute 'last_report' | FAILED 
+test_r2.py::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch
+_and_write_no_report - Failed: the encoding policy exposes no 
+'InvalidRoleSequenceError'; bespokelabs.curator.finetune has ['AdamP... | 8 
+failed, 1 warning in 1.28s | "}
+
+✅ All steps completed successfully
+
+🎯 Final Score: 0.0
+🌟 NOOP PASSED: Grader correctly returned score 0.0 (no false positives)
+
+📋 Detailed Scoring:
+  ❌ g9.r1.rule: 0.0
+  ❌ g9.r1.scope: 0.0
+  ❌ g9.r1.exclusions_or_crossover: 0.0
+  ❌ g9.r1.failure_behavior: 0.0
+  ❌ g9.r2.rule: 0.0
+  ❌ g9.r2.scope: 0.0
+  ❌ g9.r2.failure_behavior: 0.0
+  ❌ g9.open_feature: 0.0
+
+💬 Feedback:
+  0 of 7 hidden requirements satisfied. Open feature: no. Missed: g9.r1.rule, 
+g9.r1.scope, g9.r1.exclusions_or_crossover, g9.r1.failure_behavior, g9.r2.rule, 
+g9.r2.scope, g9.r2.failure_behavior.    | FAILED 
+test_r1.py::test_rule__an_assistant_turn_the_window_cuts_in_half_is_not_supervis
+ed_at_all - assert 90 == 39 | FAILED 
+test_r1.py::test_scope__the_tokenizer_free_branch_supervises_assistant_spans_fro
+m_character_offsets - AssertionError: expected one of ('encoding',) on dict; it 
+has ['num_messages', 'original_text'] | FAILED 
+test_r1.py::test_exclusions__fireworks_drops_over_budget_lines_by_utf8_bytes_and
+_truncates_nothing - Failed: the encoding policy exposes no 
+'FIREWORKS_BYTES_PER_TOKEN'; bespokelabs.curator.finetune has ['AdamPa... | 
+FAILED 
+test_r1.py::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_
+tokens_is_refused - Failed: the encoding policy exposes no 
+'ExampleTooLongError'; bespokelabs.curator.finetune has ['AdamParams', ... | 
+FAILED 
+test_r2.py::test_rule__both_batch_entry_points_publish_a_frozen_encoding_report 
+- Failed: the encoding policy exposes no 'EncodingReport'; 
+bespokelabs.curator.finetune has ['AdamParams', 'BaseTrainer', 'ChatMes... | 
+FAILED test_r2.py::test_scope__only_the_batch_entry_points_write_the_report - 
+AttributeError: 'DataFormatter' object has no attribute 'last_report' | FAILED 
+test_r2.py::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch
+_and_write_no_report - Failed: the encoding policy exposes no 
+'InvalidRoleSequenceError'; bespokelabs.curator.finetune has ['AdamP... | 8 
+failed, 1 warning in 1.28s | 
+
+✅ Task solution testing completed for: 79aa786a-ea26-4f1d-95ae-ad388bfae49c
+
+Cleaning up container 
+apex_test_79aa786a-ea26-4f1d-95ae-ad388bfae49c_1788468502...
+Cleaned up container apex_test_79aa786a-ea26-4f1d-95ae-ad388bfae49c_1788468502

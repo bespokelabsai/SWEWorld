@@ -1,0 +1,7 @@
+# Advisory lock files. Content-free; the lock is the inode.
+locks/
+# A run's step logs are large and reproducible. `state.json` is neither -- it is
+# the record of what the fleet decided and why, which is the same reason
+# harbor_tasks/_loop/state.json is committed.
+runs/*/*/*.log
+__pycache__/

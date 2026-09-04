@@ -1,0 +1,25 @@
+From: nikolai@world.local
+To: emil@world.local, dario@world.local, gideon@world.local,
+ dermot@world.local, tomas@world.local, tobias@world.local
+Subject: Re: Weekly update: week of Apr 14
+Date: Mon, 21 Apr 2025 13:44:00 +0000
+Message-ID: <178853189193.489558.14025174915940691710@world.local>
+In-Reply-To: <178853189192.489558.14127803092391273904@world.local>
+References: <178853189192.489558.14127803092391273904@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Empty rather than zero is right, and I would have argued for it if you had no=
+t. A zero in a cost column is indistinguishable from a genuinely free call, a=
+nd we have a couple of those.
+
+One blunt question: does anything downstream sum these fields today without c=
+hecking for empty first? If the aggregation path assumes a number is always t=
+here, then leaving input_cost_per_million and output_cost_per_million empty m=
+oves the problem rather than solving it, and I would want that checked before=
+ we call it settled. Off the top of my head the summary path is the only plac=
+e that touches both fields.
+
+On price_unavailable_reason, that seems solid enough to me. One field, one st=
+ring, and the reader gets told what happened.

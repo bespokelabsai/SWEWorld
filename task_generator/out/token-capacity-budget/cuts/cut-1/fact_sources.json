@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P6",
+  "blind_alternative": "writes only `free_capacity(used, blocked)` and, if it adds a refund at all, expresses it as a settlement with zero usage that leaves `available_request_capacity` untouched \u2014 the surrounding code increments the request bucket nowhere except the timed refill \u2014 and adds no `num_capacity_refunds` / `num_capacity_settlements` counters"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P8",
+  "blind_alternative": "releases the except path symmetrically with the success path, `_free_capacity(status_tracker, used_tokens, blocked_capacity)` using the reported usage the block already computes at lines 528-530 and zero otherwise"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P8",
+  "blind_alternative": "releases only on the permanently-failed exit and skips the requeue exit, reasoning that the retry will reserve again and releasing twice would double-count"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P6",
+  "blind_alternative": "leaves `available_request_capacity == 59.0` and `available_token_capacity == 9000.0` after a failed attempt, with no refund/settlement counters to read at all"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "clamps at `0.0` (the textbook bucket, capacity is a physical quantity), or leaves debt unbounded as today's `free_capacity` docstring blesses, or bounds it at `-limit`"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "applies a `max(0.0, \u2026)` guard uniformly inside every capacity write including the refill, or nowhere at all"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "floors the request axis with the same rule, and/or snaps every negative result to the floor value so a small debt is indistinguishable from a clamped one"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "computes `-None * 0.25` and raises `TypeError`, or coerces an unlimited axis to `0` and then clamps it"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "exposes no clamp counter; after the over-settlement reports `-700.0` (unbounded) or `0.0` (clamped at zero) instead of `-250.0`"
+ }
+]

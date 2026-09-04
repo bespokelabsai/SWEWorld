@@ -1,0 +1,15 @@
+From: emil@world.local
+To: konrad@world.local, gideon@world.local, nikolai@world.local,
+ dario@world.local
+Subject: auto-sizing branch: sidecar on the fixed batch_size path too?
+Date: Tue, 15 Apr 2025 14:03:00 +0000
+Message-ID: <178822443475.2088454.2372384230054378718@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ok before i start on the auto-sizing branch, question about the sidecar. plan=
+ is to drop a tiny file next to the requests with the plan_id in it so a resu=
+med run can find its way back to the plan it came from. do i write that on bo=
+th paths or only when we're auto sizing? writing it unconditionally is less b=
+ranching honestly

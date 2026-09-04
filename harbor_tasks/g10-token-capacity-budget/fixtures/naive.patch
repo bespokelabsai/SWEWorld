@@ -1,0 +1,795 @@
+diff --git a/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
+index c5e4c90..1001303 100644
+--- a/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py
+@@ -12,6 +12,7 @@ from litellm.litellm_core_utils.core_helpers import map_finish_reason
+ from bespokelabs.curator.cost import cost_processor_factory
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.online.base_online_request_processor import APIRequest, BaseOnlineRequestProcessor
++from bespokelabs.curator.status_tracker.capacity_budget import read_rate_limit_headers
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse, _TokenUsage
+@@ -127,28 +128,24 @@ class AnthropicOnlineRequestProcessor(BaseOnlineRequestProcessor):
+             }
+             return content
+ 
+-    def get_header_based_rate_limits(self) -> tuple[int, _TokenUsage]:
++    def get_header_based_rate_limits(self) -> tuple[int | None, _TokenUsage | int | None]:
+         """Get rate limits from Anthropic API headers.
+ 
+         Returns:
+-            tuple[int, _TokenUsage]: Contains 'max_requests_per_minute' and 'max_tokens_per_minute'
+-                with separate input and output token limits
++            tuple[int | None, _TokenUsage | int | None]: Contains 'max_requests_per_minute' and
++                'max_tokens_per_minute', each None when the headers did not reveal a limit.
+ 
+         Note:
+             - Makes a dummy request to get actual rate limits from headers
++            - Missing limits are left to the status tracker to default
+         """
+         if not self.api_key:
+             raise ValueError("Missing Anthropic API Key - Please set ANTHROPIC_API_KEY in your environment vars")
+ 
+-        # Default to these values when header-based limits can't be determined
+-        # Based on Anthropic's documented default rate limits
+-        # These defaults are true for tier 4 Claude 3.7
+         # More information: https://docs.anthropic.com/en/api/rate-limits#rate-limits
+-        headers = self.test_call()
+-        rpm = headers.get("anthropic-ratelimit-requests-limit", 4000)
+-        input_tpm = headers.get("anthropic-ratelimit-output-tokens-limit", 80000)
+-        output_tpm = headers.get("anthropic-ratelimit-input-tokens-limit", 400000)
+-        return int(rpm), _TokenUsage(input=int(input_tpm), output=int(output_tpm))
++        reading = read_rate_limit_headers(self.test_call())
++        self.apply_rate_limit_reading(reading)
++        return reading.max_requests_per_minute, reading.max_tokens_per_minute
+ 
+     def estimate_output_tokens(self) -> int:
+         """Estimate number of tokens in the response.
+diff --git a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+index 085c2ec..c01136f 100644
+--- a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+@@ -23,6 +23,7 @@ from bespokelabs.curator.request_processor import _DEFAULT_COST_MAP
+ from bespokelabs.curator.request_processor.base_request_processor import BaseRequestProcessor
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.status_tracker.capacity_budget import RateLimitReading
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+@@ -218,6 +219,26 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+             )
+             return self.default_max_tokens_per_minute
+ 
++    def apply_rate_limit_reading(self, reading: RateLimitReading) -> None:
++        """Apply rate limits decoded from provider headers.
++
++        The default token limits are re-read for the strategy the reading implies, since
++        a provider may only reveal after the first call that it tracks input and output
++        tokens separately.
++
++        Args:
++            reading: The rate limits decoded from the provider's response headers
++        """
++        self.header_based_max_requests_per_minute = reading.max_requests_per_minute
++        self.header_based_max_tokens_per_minute = reading.max_tokens_per_minute
++        self.token_limit_strategy = reading.token_limit_strategy
++
++        default_tokens_per_minute = _DEFAULT_COST_MAP["online"]["default"]["ratelimit"]["max_tokens_per_minute"][self.token_limit_strategy.value]
++        if self.token_limit_strategy == TokenLimitStrategy.seperate:
++            self.default_max_tokens_per_minute = _TokenUsage(**default_tokens_per_minute)
++        else:
++            self.default_max_tokens_per_minute = default_tokens_per_minute
++
+     @abstractmethod
+     def estimate_total_tokens(self, messages: list) -> _TokenUsage:
+         """Estimate total tokens for a request.
+@@ -309,9 +330,6 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+             await asyncio.sleep(remaining_seconds_to_pause)
+             status_tracker.last_update_time = time.time()
+ 
+-    def free_capacity(self, tracker, tokens):
+-        """Free blocked capacity."""
+-
+     def aiohttp_connector(self, tcp_limit: int) -> aiohttp.ClientSession:
+         """Create an aiohttp connector with rate limiting."""
+         connector = aiohttp.TCPConnector(limit=10 * tcp_limit)
+@@ -375,20 +393,13 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+                         prompt_formatter=self.prompt_formatter,
+                     )
+ 
+-                    if status_tracker.max_tokens_per_minute is not None:
+-                        token_estimate = self.estimate_total_tokens(request.generic_request.messages)
+-                    else:
+-                        token_estimate = _TokenUsage()  # Empty
+-
+-                    # Wait for capacity if needed
+-                    while not status_tracker.has_capacity(token_estimate):
++                    # Reserve capacity, waiting for it if needed
++                    while (token_estimate := self._reserve_capacity(status_tracker, request.generic_request.messages)) is None:
+                         await asyncio.sleep(0.1)
+ 
+                     # Wait for rate limits cool down if needed
+                     await self.cool_down_if_rate_limit_error(status_tracker)
+ 
+-                    # Consume capacity before making request
+-                    status_tracker.consume_capacity(token_estimate)
+                     task = asyncio.create_task(
+                         self.handle_single_request_with_retries(
+                             request=request,
+@@ -416,11 +427,6 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+ 
+                 if not queue_of_requests_to_retry.empty():
+                     retry_request = await queue_of_requests_to_retry.get()
+-                    if status_tracker.max_tokens_per_minute is not None:
+-                        token_estimate = self.estimate_total_tokens(retry_request.generic_request.messages)
+-                    else:
+-                        token_estimate = _TokenUsage()  # Empty
+-
+                     attempt_number = self.config.max_retries - retry_request.attempts_left
+                     logger.debug(
+                         f"Retrying request {retry_request.task_id} "
+@@ -428,16 +434,13 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+                         f"Previous errors: {retry_request.result}"
+                     )
+ 
+-                    # Wait for capacity if needed
+-                    while not status_tracker.has_capacity(token_estimate):
++                    # Reserve capacity, waiting for it if needed
++                    while (token_estimate := self._reserve_capacity(status_tracker, retry_request.generic_request.messages)) is None:
+                         await asyncio.sleep(0.1)
+ 
+                     # Wait for rate limits cool down if needed
+                     await self.cool_down_if_rate_limit_error(status_tracker)
+ 
+-                    # Consume capacity before making request
+-                    status_tracker.consume_capacity(token_estimate)
+-
+                     task = asyncio.create_task(
+                         self.handle_single_request_with_retries(
+                             request=retry_request,
+@@ -467,9 +470,29 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+         if status_tracker.num_tasks_failed > 0:
+             logger.warning(f"{status_tracker.num_tasks_failed} / {status_tracker.num_tasks_started} requests failed. Errors logged to {response_file}.")
+ 
+-    def _free_capacity(self, status_tracker: OnlineStatusTracker, used_capacity: "_TokenUsage", blocked_capacity: "_TokenUsage"):
+-        if status_tracker.max_tokens_per_minute is not None:
+-            status_tracker.free_capacity(used_capacity, blocked_capacity)
++    def _reserve_capacity(self, status_tracker: OnlineStatusTracker, messages: list) -> _TokenUsage | None:
++        """Estimate a request's capacity and reserve it if the tracker has room.
++
++        Args:
++            status_tracker: Tracker holding the per-minute capacity budget
++            messages: Messages of the request to reserve capacity for
++
++        Returns:
++            The reserved token estimate, or None when there is no capacity right now,
++            in which case nothing was consumed.
++
++        Raises:
++            CapacityExceedsLimitError: If the request can never fit within the limits
++        """
++        token_estimate = self.estimate_total_tokens(messages)
++        if not status_tracker.has_capacity(token_estimate):
++            return None
++        status_tracker.consume_capacity(token_estimate)
++        return token_estimate
++
++    def _free_capacity(self, status_tracker: OnlineStatusTracker, used_capacity: "_TokenUsage", blocked_capacity: "_TokenUsage") -> None:
++        """Release the capacity reserved for a request, settling it against actual usage."""
++        status_tracker.free_capacity(used_capacity, blocked_capacity)
+ 
+     async def handle_single_request_with_retries(
+         self,
+@@ -531,8 +554,12 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+                 used_tokens: _TokenUsage = _TokenUsage(input=generic_response.token_usage.input, output=generic_response.token_usage.output)
+                 status_tracker.update_cost_projection(used_tokens)
+             else:
++                used_tokens = _TokenUsage(input=0, output=0)
+                 status_tracker.update_cost_projection(None)
+ 
++            # Free the capacity blocked before request, whether the request is retried or not.
++            self._free_capacity(status_tracker, used_tokens, blocked_capacity)
++
+             if request.attempts_left > 0:
+                 request.attempts_left -= 1
+                 logger.warning(
+diff --git a/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
+index 276755b..ca00b00 100644
+--- a/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py
+@@ -11,6 +11,7 @@ from bespokelabs.curator.file_utilities import get_base64_size
+ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.online.base_online_request_processor import APIRequest, BaseOnlineRequestProcessor
++from bespokelabs.curator.status_tracker.capacity_budget import read_rate_limit_headers
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+@@ -296,12 +297,13 @@ class LiteLLMOnlineRequestProcessor(BaseOnlineRequestProcessor):
+         logger.info(f"Test call headers: {headers}")
+         return headers
+ 
+-    def get_header_based_rate_limits(self) -> tuple[int, _TokenUsage | int]:
++    def get_header_based_rate_limits(self) -> tuple[int | None, _TokenUsage | int | None]:
+         """Retrieve rate limits from the LLM provider via LiteLLM.
+ 
+         Returns:
+-            tuple[int, _TokenUsage | int]: Contains 'max_requests_per_minute' and
+-                                           'max_tokens_per_minute' info.
++            tuple[int | None, _TokenUsage | int | None]: Contains 'max_requests_per_minute' and
++                                                        'max_tokens_per_minute' info, each None
++                                                        when the headers did not reveal a limit.
+ 
+         Note:
+             - Makes a test request to get rate limit information from response headers.
+@@ -309,22 +311,9 @@ class LiteLLMOnlineRequestProcessor(BaseOnlineRequestProcessor):
+         """
+         logger.info(f"Getting rate limits for model: {self.config.model}")
+ 
+-        headers = self.test_call()
+-        provider = self.config.model.split("/")[0]
+-        output_token_key = f"llm_provider-{provider}-ratelimit-output-tokens-remaining"
+-        rpm = int(headers.get("x-ratelimit-limit-requests", 0))
+-        if output_token_key in headers:
+-            self.token_limit_strategy = TokenLimitStrategy.seperate
+-            output_tpm = int(headers.get(output_token_key, 0))
+-
+-            input_token_key = f"llm_provider-{provider}-ratelimit-input-tokens-remaining"
+-            input_tpm = int(headers.get(input_token_key, 0))
+-            tpm = _TokenUsage(input=input_tpm, output=output_tpm)
+-
+-        else:
+-            tpm = int(headers.get("x-ratelimit-limit-tokens", 0))
+-
+-        return rpm, tpm
++        reading = read_rate_limit_headers(self.test_call())
++        self.apply_rate_limit_reading(reading)
++        return reading.max_requests_per_minute, reading.max_tokens_per_minute
+ 
+     def create_api_specific_request_online(self, generic_request: GenericRequest) -> dict:
+         """Convert a generic request into a LiteLLM-compatible format.
+diff --git a/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py
+index e46f417..6e64ece 100644
+--- a/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py
+@@ -17,6 +17,7 @@ from bespokelabs.curator.request_processor import openai_request_mixin
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.online.base_online_request_processor import APIRequest, BaseOnlineRequestProcessor
+ from bespokelabs.curator.request_processor.openai_request_mixin import OpenAIRequestMixin
++from bespokelabs.curator.status_tracker.capacity_budget import read_rate_limit_headers
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse, _TokenUsage
+@@ -123,11 +124,12 @@ class OpenAIOnlineRequestProcessor(BaseOnlineRequestProcessor, OpenAIRequestMixi
+         else:
+             return super().aiohttp_connector(tcp_limit)
+ 
+-    def get_header_based_rate_limits(self) -> tuple[int, int]:
++    def get_header_based_rate_limits(self) -> tuple[int | None, int | None]:
+         """Get rate limits from OpenAI API headers.
+ 
+         Returns:
+-            tuple[int, int]: Contains 'max_requests_per_minute' and 'max_tokens_per_minute'
++            tuple[int | None, int | None]: Contains 'max_requests_per_minute' and 'max_tokens_per_minute',
++                each None when the headers did not reveal a limit
+ 
+         Note:
+             - Makes a dummy request to get actual rate limits
+@@ -155,10 +157,9 @@ class OpenAIOnlineRequestProcessor(BaseOnlineRequestProcessor, OpenAIRequestMixi
+                     tpm = tpm * 60
+                 return int(rpm), int(tpm)
+ 
+-        rpm = int(response.headers.get("x-ratelimit-limit-requests", 0))
+-        tpm = int(response.headers.get("x-ratelimit-limit-tokens", 0))
+-
+-        return rpm, tpm
++        reading = read_rate_limit_headers(response.headers)
++        self.apply_rate_limit_reading(reading)
++        return reading.max_requests_per_minute, reading.max_tokens_per_minute
+ 
+     def estimate_output_tokens(self) -> int:
+         """Estimate number of tokens in the response.
+diff --git a/src/bespokelabs/curator/status_tracker/capacity_budget.py b/src/bespokelabs/curator/status_tracker/capacity_budget.py
+new file mode 100644
+index 0000000..f8b83bd
+--- /dev/null
++++ b/src/bespokelabs/curator/status_tracker/capacity_budget.py
+@@ -0,0 +1,156 @@
++"""Capacity budget primitives shared by the online request path.
++
++This module owns two things:
++
++- decoding the rate limit headers returned by the providers into a
++  :class:`RateLimitReading`, and
++- the constants used as per-minute limits when a provider tells us nothing.
++
++The per-minute buckets themselves live on
++:class:`~bespokelabs.curator.status_tracker.online_status_tracker.OnlineStatusTracker`.
++"""
++
++import math
++import re
++import typing as t
++from dataclasses import dataclass
++from enum import Enum
++
++from bespokelabs.curator.types.token_usage import _TokenUsage
++
++# Per-minute limits used when nobody (config, headers) told us a limit.
++DEFAULT_MAX_REQUESTS_PER_MINUTE = 200
++DEFAULT_MAX_TOKENS_PER_MINUTE_COMBINED = 100_000
++DEFAULT_MAX_INPUT_TOKENS_PER_MINUTE = 100_000
++DEFAULT_MAX_OUTPUT_TOKENS_PER_MINUTE = 40_000
++
++# Where an effective limit came from.
++LIMIT_ORIGIN_CONFIGURED = "configured"
++LIMIT_ORIGIN_DEFAULTED = "defaulted"
++LIMIT_ORIGIN_UNLIMITED = "unlimited"
++
++# Header names we consult, in the order they are consulted.
++REQUEST_LIMIT_HEADERS = ("x-ratelimit-limit-requests", "anthropic-ratelimit-requests-limit")
++INPUT_TOKEN_LIMIT_HEADERS = ("x-ratelimit-limit-input-tokens", "anthropic-ratelimit-input-tokens-limit")
++OUTPUT_TOKEN_LIMIT_HEADERS = ("x-ratelimit-limit-output-tokens", "anthropic-ratelimit-output-tokens-limit")
++TOTAL_TOKEN_LIMIT_HEADERS = ("x-ratelimit-limit-tokens", "anthropic-ratelimit-tokens-limit")
++
++_LIMIT_VALUE_PATTERN = re.compile(r"^(\d+(?:\.\d+)?)([kKmM]?)$")
++_LIMIT_VALUE_MULTIPLIERS = {"": 1, "k": 1_000, "K": 1_000, "m": 1_000_000, "M": 1_000_000}
++
++
++class TokenLimitStrategy(str, Enum):
++    """Token limit Strategy enum."""
++
++    combined = "combined"
++    seperate = "seperate"
++    default = "combined"
++
++
++class CapacityExceedsLimitError(ValueError):
++    """Raised when a request can never fit within a per-minute limit.
++
++    Attributes:
++        axis: The capacity axis that is too small ("total", "input" or "output").
++        requested: The amount of capacity the request needs.
++        limit: The per-minute limit for that axis.
++    """
++
++    def __init__(self, axis: str, requested: int, limit: float):
++        """Initialize the CapacityExceedsLimitError."""
++        super().__init__(f"request needs {requested} {axis} capacity but the per-minute limit is {int(limit)}")
++        self.axis = axis
++        self.requested = requested
++        self.limit = limit
++
++
++@dataclass(frozen=True)
++class RateLimitReading:
++    """Rate limits decoded from a provider's response headers.
++
++    Attributes:
++        max_requests_per_minute: Requests per minute, or None when no header was usable.
++        max_tokens_per_minute: Tokens per minute, or None when no header was usable.
++        token_limit_strategy: The strategy implied by the headers that were present.
++        source_headers: The exact header names the reading was built from.
++    """
++
++    max_requests_per_minute: int | None
++    max_tokens_per_minute: int | _TokenUsage | None
++    token_limit_strategy: TokenLimitStrategy
++    source_headers: tuple[str, ...]
++
++
++def parse_limit_value(raw: object) -> int | None:
++    """Decode a single rate limit header value.
++
++    Accepts plain integers and strings such as "40000", "1.5k" or "2M". A malformed
++    value is treated as an absent one, never as an error.
++
++    Args:
++        raw: The raw header value.
++
++    Returns:
++        A positive int, or None when the value is missing, non-positive or malformed.
++    """
++    if isinstance(raw, bool):
++        return None
++    if isinstance(raw, int):
++        return raw if raw > 0 else None
++    if not isinstance(raw, str):
++        return None
++
++    match = _LIMIT_VALUE_PATTERN.match(raw.strip())
++    if match is None:
++        return None
++
++    value = math.floor(float(match.group(1)) * _LIMIT_VALUE_MULTIPLIERS[match.group(2)])
++    return value if value > 0 else None
++
++
++def _first_usable(headers: t.Mapping[str, object], names: t.Sequence[str]) -> tuple[str | None, int | None]:
++    """Return the first header name in `names` that is present and parseable."""
++    for name in names:
++        value = parse_limit_value(headers.get(name))
++        if value is not None:
++            return name, value
++    return None, None
++
++
++def read_rate_limit_headers(headers: t.Mapping[str, object]) -> RateLimitReading:
++    """Decode provider rate limit headers.
++
++    Only the documented `*-limit-*` headers are consulted; remaining/reset headers are
++    ignored, and no numeric fallback is substituted here. Separate input and output
++    limits win over a total token limit when both are present.
++
++    Args:
++        headers: Response headers, matched case-insensitively.
++
++    Returns:
++        The decoded RateLimitReading.
++    """
++    lowered = {str(name).lower(): value for name, value in headers.items()}
++
++    request_header, max_requests_per_minute = _first_usable(lowered, REQUEST_LIMIT_HEADERS)
++    input_header, input_tokens = _first_usable(lowered, INPUT_TOKEN_LIMIT_HEADERS)
++    output_header, output_tokens = _first_usable(lowered, OUTPUT_TOKEN_LIMIT_HEADERS)
++
++    source_headers = [] if request_header is None else [request_header]
++
++    if input_tokens is not None and output_tokens is not None:
++        token_limit_strategy = TokenLimitStrategy.seperate
++        max_tokens_per_minute = _TokenUsage(input=input_tokens, output=output_tokens)
++        source_headers.extend([input_header, output_header])
++    else:
++        token_limit_strategy = TokenLimitStrategy.combined
++        total_header, max_tokens_per_minute = _first_usable(lowered, TOTAL_TOKEN_LIMIT_HEADERS)
++        if total_header is not None:
++            source_headers.append(total_header)
++
++    return RateLimitReading(
++        max_requests_per_minute=max_requests_per_minute,
++        max_tokens_per_minute=max_tokens_per_minute,
++        token_limit_strategy=token_limit_strategy,
++        source_headers=tuple(source_headers),
++    )
+diff --git a/src/bespokelabs/curator/status_tracker/online_status_tracker.py b/src/bespokelabs/curator/status_tracker/online_status_tracker.py
+index 7603945..38e3645 100644
+--- a/src/bespokelabs/curator/status_tracker/online_status_tracker.py
++++ b/src/bespokelabs/curator/status_tracker/online_status_tracker.py
+@@ -1,7 +1,7 @@
++import math
+ import time
+ import typing as t
+ from dataclasses import asdict, dataclass, field
+-from enum import Enum
+ from typing import Optional
+ 
+ import tqdm
+@@ -18,6 +18,17 @@ from bespokelabs.curator.client import Client
+ from bespokelabs.curator.constants import PUBLIC_CURATOR_VIEWER_HOME_URL
+ from bespokelabs.curator.cost import external_model_cost
+ from bespokelabs.curator.log import USE_RICH_DISPLAY, logger
++from bespokelabs.curator.status_tracker.capacity_budget import (
++    DEFAULT_MAX_INPUT_TOKENS_PER_MINUTE,
++    DEFAULT_MAX_OUTPUT_TOKENS_PER_MINUTE,
++    DEFAULT_MAX_REQUESTS_PER_MINUTE,
++    DEFAULT_MAX_TOKENS_PER_MINUTE_COMBINED,
++    LIMIT_ORIGIN_CONFIGURED,
++    LIMIT_ORIGIN_DEFAULTED,
++    LIMIT_ORIGIN_UNLIMITED,
++    CapacityExceedsLimitError,
++    TokenLimitStrategy,
++)
+ from bespokelabs.curator.status_tracker.tqdm_constants.colors import COST, DIM, END, ERROR, HEADER, METRIC, MODEL, SUCCESS, WARNING
+ from bespokelabs.curator.telemetry.client import TelemetryEvent, telemetry_client
+ from bespokelabs.curator.types.generic_response import _TokenUsage
+@@ -34,14 +45,6 @@ _SUCCESS_WEIGHT_FACTOR = 5
+ _STATUS_UPDATE_INTERVAL = 5
+ 
+ 
+-class TokenLimitStrategy(str, Enum):
+-    """Token limit Strategy enum."""
+-
+-    combined = "combined"
+-    seperate = "seperate"
+-    default = "combined"
+-
+-
+ @dataclass
+ class OnlineStatusTracker:
+     """Tracks the status of all requests."""
+@@ -55,13 +58,13 @@ class OnlineStatusTracker:
+     num_other_errors: int = 0
+     num_rate_limit_errors: int = 0
+     num_parsed_responses: int = 0
+-    available_request_capacity: float = 1.0
+-    available_token_capacity: float | _TokenUsage = 0
++    available_request_capacity: float | None = 1.0
++    available_token_capacity: float | _TokenUsage | None = 0
+     last_update_time: float = field(default_factory=time.time)
+-    max_requests_per_minute: int = 0
+-    max_tokens_per_minute: int | _TokenUsage = 0
++    max_requests_per_minute: int | None = 0
++    max_tokens_per_minute: int | _TokenUsage | None = 0
+     max_concurrent_requests: int | None = None
+-    max_tokens_per_minute: int = 0
++    capacity_clock: t.Callable[[], float] = field(default=time.time, repr=False, compare=False)
+     pbar: Optional[tqdm.tqdm] = field(default=None, repr=False, compare=False)
+     response_cost: float = 0
+     time_of_last_rate_limit_error: float = field(default=0.0)
+@@ -93,15 +96,15 @@ class OnlineStatusTracker:
+     estimated_cost_average: float = 0.0
+     num_estimates: int = 0
+ 
++    # Where the effective per-minute limits came from
++    token_limit_origin: str = field(default=LIMIT_ORIGIN_CONFIGURED, init=False)
++    request_limit_origin: str = field(default=LIMIT_ORIGIN_CONFIGURED, init=False)
++
+     def __post_init__(self):
+         """Post init."""
+-        if self.token_limit_strategy == TokenLimitStrategy.combined:
+-            self.available_token_capacity = t.cast(float, self.available_token_capacity)
+-        else:
+-            self.available_token_capacity = t.cast(_TokenUsage, self.available_token_capacity)
+-            self.available_token_capacity = _TokenUsage()
+-            if not self.max_tokens_per_minute:
+-                self.max_tokens_per_minute = _TokenUsage()
++        self.last_update_time = self.capacity_clock()
++        self._normalize_request_limit()
++        self._normalize_token_limit()
+ 
+         # Initialize cost strings
+         if self.model in model_cost:
+@@ -461,6 +464,7 @@ class OnlineStatusTracker:
+         metadata = asdict(self)
+         metadata.pop("viewer_client", None)
+         metadata.pop("pbar", None)
++        metadata.pop("capacity_clock", None)
+         # Restore pbar if needed
+         self.pbar = temp_pbar
+ 
+@@ -591,42 +595,119 @@ class OnlineStatusTracker:
+         ]
+         logger.info("\n".join(stats))
+ 
++    def _normalize_request_limit(self) -> None:
++        """Resolve the effective request limit and seed its bucket."""
++        if self.max_requests_per_minute is None:
++            self.request_limit_origin = LIMIT_ORIGIN_UNLIMITED
++            self.available_request_capacity = None
++            return
++
++        if not self.max_requests_per_minute:
++            self.max_requests_per_minute = DEFAULT_MAX_REQUESTS_PER_MINUTE
++            self.request_limit_origin = LIMIT_ORIGIN_DEFAULTED
++        else:
++            self.request_limit_origin = LIMIT_ORIGIN_CONFIGURED
++        self.available_request_capacity = float(self.max_requests_per_minute)
++
++    def _normalize_token_limit(self) -> None:
++        """Resolve the effective token limit(s) and seed their bucket(s).
++
++        A limit of None means unlimited, a limit of 0 means nobody told us one and is
++        replaced by the matching default.
++        """
++        if self.token_limit_strategy == TokenLimitStrategy.combined:
++            limit = self.max_tokens_per_minute
++            if isinstance(limit, _TokenUsage):
++                limit = limit.total
++
++            if limit is None:
++                self.max_tokens_per_minute = None
++                self.available_token_capacity = None
++                self.token_limit_origin = LIMIT_ORIGIN_UNLIMITED
++                return
++
++            if not limit:
++                limit = DEFAULT_MAX_TOKENS_PER_MINUTE_COMBINED
++                self.token_limit_origin = LIMIT_ORIGIN_DEFAULTED
++            else:
++                self.token_limit_origin = LIMIT_ORIGIN_CONFIGURED
++            self.max_tokens_per_minute = limit
++            self.available_token_capacity = float(limit)
++            return
++
++        limit = self.max_tokens_per_minute
++        if limit is None:
++            limit = _TokenUsage(input=None, output=None)
++        elif not isinstance(limit, _TokenUsage):
++            limit = _TokenUsage(input=limit, output=limit)
++
++        input_limit, output_limit = limit.input, limit.output
++        defaulted = False
++        if input_limit is not None and not input_limit:
++            input_limit = DEFAULT_MAX_INPUT_TOKENS_PER_MINUTE
++            defaulted = True
++        if output_limit is not None and not output_limit:
++            output_limit = DEFAULT_MAX_OUTPUT_TOKENS_PER_MINUTE
++            defaulted = True
++
++        if input_limit is None and output_limit is None:
++            self.token_limit_origin = LIMIT_ORIGIN_UNLIMITED
++        elif defaulted:
++            self.token_limit_origin = LIMIT_ORIGIN_DEFAULTED
++        else:
++            self.token_limit_origin = LIMIT_ORIGIN_CONFIGURED
++
++        self.max_tokens_per_minute = _TokenUsage(input=input_limit, output=output_limit)
++        self.available_token_capacity = _TokenUsage(input=input_limit, output=output_limit)
++
+     def update_capacity(self):
+         """Update available capacity based on time elapsed."""
+-        current_time = time.time()
++        current_time = self.capacity_clock()
+         seconds_since_update = current_time - self.last_update_time
+-        if self.max_requests_per_minute is not None:
++        # A clock that went backwards must not drain the buckets.
++        seconds_since_update = max(0.0, seconds_since_update)
++
++        if self.available_request_capacity is not None:
++            self.max_requests_per_minute = t.cast(int, self.max_requests_per_minute)
+             self.available_request_capacity = min(
+                 self.available_request_capacity + self.max_requests_per_minute * seconds_since_update / 60.0,
+                 self.max_requests_per_minute,
+             )
+ 
+         if self.token_limit_strategy == TokenLimitStrategy.combined:
+-            if self.max_tokens_per_minute is not None:
+-                self.available_token_capacity = t.cast(int, self.available_token_capacity)
++            if self.available_token_capacity is not None:
++                self.available_token_capacity = t.cast(float, self.available_token_capacity)
+                 self.max_tokens_per_minute = t.cast(int, self.max_tokens_per_minute)
+                 self.available_token_capacity = min(
+                     self.available_token_capacity + self.max_tokens_per_minute * seconds_since_update / 60.0,
+                     self.max_tokens_per_minute,
+                 )
+         else:
+-            self.available_token_capacity = t.cast(_TokenUsage, self.available_token_capacity)
+-            self.max_tokens_per_minute = t.cast(_TokenUsage, self.max_tokens_per_minute)
+-            if self.max_tokens_per_minute.input is not None:
+-                self.available_token_capacity.input = min(
+-                    self.available_token_capacity.input + self.max_tokens_per_minute.input * seconds_since_update / 60.0,
+-                    self.max_tokens_per_minute.input,
+-                )
+-            if self.max_tokens_per_minute.output is not None:
+-                self.available_token_capacity.output = min(
+-                    self.available_token_capacity.output + self.max_tokens_per_minute.output * seconds_since_update / 60.0,
+-                    self.max_tokens_per_minute.output,
+-                )
++            available = t.cast(_TokenUsage, self.available_token_capacity)
++            limit = t.cast(_TokenUsage, self.max_tokens_per_minute)
++            input_capacity, output_capacity = available.input, available.output
++            if limit.input is not None:
++                input_capacity = min(input_capacity + math.floor(limit.input * seconds_since_update / 60.0), limit.input)
++            if limit.output is not None:
++                output_capacity = min(output_capacity + math.floor(limit.output * seconds_since_update / 60.0), limit.output)
++            self.available_token_capacity = _TokenUsage(input=input_capacity, output=output_capacity)
+ 
+         self.last_update_time = current_time
+ 
+     def has_capacity(self, token_estimate: _TokenUsage) -> bool:
+-        """Check if there's enough capacity for a request."""
++        """Check if there's enough capacity for a request.
++
++        Args:
++            token_estimate: The token capacity the request needs.
++
++        Returns:
++            True if the request can be admitted right now.
++
++        Raises:
++            CapacityExceedsLimitError: If the request could never fit within a
++                per-minute limit, no matter how long we wait.
++        """
++        self._check_estimate_against_limits(token_estimate)
+         self.update_capacity()
+         if self.token_limit_strategy == TokenLimitStrategy.combined:
+             has_capacity = self._check_combined_capacity(token_estimate)
+@@ -642,56 +723,72 @@ class OnlineStatusTracker:
+         #     )
+         return has_capacity
+ 
+-    def _check_combined_capacity(self, token_estimate: _TokenUsage):
+-        self.available_token_capacity = t.cast(int, self.available_token_capacity)
+-        if self.max_requests_per_minute is None and self.max_tokens_per_minute is None:
+-            return True
++    def _check_estimate_against_limits(self, token_estimate: _TokenUsage) -> None:
++        """Raise if the estimate can never fit within the per-minute token limits."""
++        if self.token_limit_strategy == TokenLimitStrategy.combined:
++            limit = t.cast(int, self.max_tokens_per_minute)
++            axes = (("total", token_estimate.total, limit),)
++        else:
++            limit = t.cast(_TokenUsage, self.max_tokens_per_minute)
++            axes = (("input", token_estimate.input, limit.input), ("output", token_estimate.output, limit.output))
+ 
+-        token_estimate = token_estimate.total
+-        has_capacity = self.available_request_capacity >= 1 and self.available_token_capacity >= token_estimate
+-        return has_capacity
++        for axis, requested, axis_limit in axes:
++            if axis_limit is None or requested is None:
++                continue
++            if requested > axis_limit:
++                raise CapacityExceedsLimitError(axis, requested, axis_limit)
+ 
+-    def _check_seperate_capacity(self, token_estimate: _TokenUsage):
+-        self.available_token_capacity = t.cast(_TokenUsage, self.available_token_capacity)
+-        if self.max_tokens_per_minute.total is None and self.max_requests_per_minute is None:
+-            return True
++    def _has_request_capacity(self) -> bool:
++        return self.available_request_capacity is None or self.available_request_capacity >= 1
+ 
+-        has_capacity = (
+-            self.available_request_capacity >= 1
+-            and self.available_token_capacity.input >= token_estimate.input
+-            and self.available_token_capacity.output >= token_estimate.output
+-        )
+-        return has_capacity
++    def _check_combined_capacity(self, token_estimate: _TokenUsage):
++        if not self._has_request_capacity():
++            return False
++        if self.available_token_capacity is None:
++            return True
++        self.available_token_capacity = t.cast(float, self.available_token_capacity)
++        return self.available_token_capacity >= (token_estimate.total or 0)
+ 
+-    def consume_capacity(self, token_estimate: _TokenUsage):
++    def _check_seperate_capacity(self, token_estimate: _TokenUsage):
++        if not self._has_request_capacity():
++            return False
++        available = t.cast(_TokenUsage, self.available_token_capacity)
++        if available.input is not None and available.input < (token_estimate.input or 0):
++            return False
++        if available.output is not None and available.output < (token_estimate.output or 0):
++            return False
++        return True
++
++    def consume_capacity(self, token_estimate: _TokenUsage) -> None:
+         """Consume capacity for a request."""
+-        if self.max_requests_per_minute is not None:
++        if self.available_request_capacity is not None:
+             self.available_request_capacity -= 1
++
+         if self.token_limit_strategy == TokenLimitStrategy.combined:
+-            if self.max_tokens_per_minute is not None:
++            if self.available_token_capacity is not None:
+                 self.available_token_capacity = t.cast(float, self.available_token_capacity)
+-                self.available_token_capacity -= token_estimate.total
++                self.available_token_capacity -= token_estimate.total or 0
+         else:
+-            self.available_token_capacity = t.cast(_TokenUsage, self.available_token_capacity)
+-
+-            if self.max_tokens_per_minute is not None:
+-                self.available_token_capacity.input -= token_estimate.input
+-                self.available_token_capacity.output -= token_estimate.output
++            self._shift_seperate_capacity(-(token_estimate.input or 0), -(token_estimate.output or 0))
+ 
+-    def free_capacity(self, used: _TokenUsage, blocked: _TokenUsage):
++    def free_capacity(self, used: _TokenUsage, blocked: _TokenUsage) -> None:
+         """Free extra consumed capacity.
+ 
+         Note: This can be a negative number
+         incase of under estimation of consumed capacity.
+         """
+         if self.token_limit_strategy == TokenLimitStrategy.seperate:
+-            input_free = blocked.input - used.input
+-            output_free = blocked.output - used.output
+-            self.available_token_capacity.input += input_free
+-            self.available_token_capacity.output += output_free
+-        else:
+-            free = blocked.total - used.total
+-            self.available_token_capacity += free
++            self._shift_seperate_capacity((blocked.input or 0) - (used.input or 0), (blocked.output or 0) - (used.output or 0))
++        elif self.available_token_capacity is not None:
++            self.available_token_capacity = t.cast(float, self.available_token_capacity)
++            self.available_token_capacity += (blocked.total or 0) - (used.total or 0)
++
++    def _shift_seperate_capacity(self, input_delta: int, output_delta: int) -> None:
++        """Rebind the separate token buckets, leaving unlimited axes untouched."""
++        available = t.cast(_TokenUsage, self.available_token_capacity)
++        input_capacity = None if available.input is None else available.input + input_delta
++        output_capacity = None if available.output is None else available.output + output_delta
++        self.available_token_capacity = _TokenUsage(input=input_capacity, output=output_capacity)
+ 
+     def __del__(self):
+         """Ensure live display is stopped on deletion."""

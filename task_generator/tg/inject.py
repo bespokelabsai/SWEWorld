@@ -177,7 +177,7 @@ def page_body(inv: dict, clue: dict) -> str:
     for section in sections:
         if not isinstance(section, dict):
             continue
-        heading = (section.get("heading") or "").strip()
+        heading = heading_of(section)
         body = (section.get("body") or "").strip()
         if heading:
             parts.append(f"## {heading}")
@@ -187,6 +187,20 @@ def page_body(inv: dict, clue: dict) -> str:
         return "\n\n".join(parts)
     return (inv.get("body") or inv.get("summary")
             or clue.get("settles") or clue["text"])
+
+
+def heading_of(section: dict) -> str:
+    """A section's heading with any hashes it brought of its own stripped.
+
+    The doc pass is asked for "a title and three to six short sections" and
+    usually returns a bare phrase, but not always: g6's Jun-23 sync came back with
+    the heading `## Status`, which every call site below then prefixed again. It
+    rendered as `## ## Status` at the foot of a real meeting page, so the one
+    remark naming `batch_multiplier()` in an indexed page BODY -- the strongest
+    wiki carrier there is -- read as an orphaned fragment rather than as part of
+    the notes.
+    """
+    return (section.get("heading") or "").strip().lstrip("#").strip()
 
 
 def write_doc_edit(target: pathlib.Path, clue: dict) -> list[str]:
@@ -218,15 +232,15 @@ def write_doc_edit(target: pathlib.Path, clue: dict) -> list[str]:
     sections = [s for s in (inv.get("sections") or []) if isinstance(s, dict)]
     if sections:
         block = "\n\n".join(
-            (f"## {(s.get('heading') or '').strip()}\n\n{(s.get('body') or '').strip()}"
-             if s.get("heading") else (s.get("body") or "").strip())
+            (f"## {heading_of(s)}\n\n{(s.get('body') or '').strip()}"
+             if heading_of(s) else (s.get("body") or "").strip())
             for s in sections if (s.get("heading") or s.get("body")))
     else:
         # No invented section: the remark itself, under a heading taken from the
         # carrier. A page edit is prose, so the exchange's turns are joined
         # rather than laid out as a transcript -- a page that reads like chat is
         # a tell, and `too_wordy` would be right to call it one.
-        heading = (clue["carrier"].get("anchor") or "").strip() or "Notes"
+        heading = heading_of({"heading": clue["carrier"].get("anchor")}) or "Notes"
         body = "\n\n".join(flat(what_said(m)) for m in turns(clue)
                            if flat(what_said(m)))
         block = f"## {heading}\n\n{body}"
@@ -469,6 +483,145 @@ def unsearchable(ledger: dict, task) -> list[str]:
             for name, where in sorted(seen.items()) if where == {"wiki-comment"}]
 
 
+SPAN = re.compile(r"`([A-Za-z_][A-Za-z0-9_]*)`")
+
+
+def _shape(name: str) -> str:
+    """snake, CAPS or Camel. A rival only counts against a name of its own shape."""
+    if name.isupper():
+        return "CAPS"
+    if "_" in name and name.islower():
+        return "snake"
+    return "Camel" if name[:1].isupper() else "word"
+
+
+def rival_vocabulary(plant_dir, task) -> list[str]:
+    """Identifiers the plant invented that compete with the ones it is grading.
+
+    g6 is why this exists. Its `r1` requires `UnpricedModelError.REASONS` to be
+    exactly `unknown_provider`, `unknown_model`, `unknown_window`. One remark needed
+    a home, `place()` had nowhere to put it, and `clue_document.md` invented a page
+    to carry it -- correctly, and with the remark intact. Around the remark the doc
+    pass wrote the realism it is asked for: a five-row table of error codes for a
+    plausible neighbouring helper, two of them the real names and three of them --
+    `invalid_context_window`, `context_window_out_of_range`, `missing_price_entry`
+    -- invented on the spot.
+
+    Nothing asked for those three, no remark carried them, and no gate looked at
+    them, because every existing check reads the REMARK and this was the filler.
+    The page was also the single most findable artifact in the world for that task.
+    Eight of eleven scored world-arm rollouts shipped that exact five-string set,
+    and every hidden fact scored 0 on every run in a world that contained the
+    answer. It cost a fourteen-rollout evaluation that measured nothing.
+
+    A herring is allowed to be wrong -- that is the point of one -- but a herring is
+    registered, dated before what overturns it, and retracted out loud by `reverse`.
+    This was a herring nobody declared, so `unreversed()` had nothing to report and
+    the corpus's newest word on the question stayed the wrong one.
+
+    Three conditions, each narrowing the last, because a gate that cries wolf gets
+    turned off:
+
+    - **Backticked spans only**, as in `leak.py`: what a grader can require is what
+      somebody quoted. It is also what separates a rival from the neighbouring
+      helper's own signature -- g6's page names `get_model_price(provider,
+      model_key, context_window)` in a fenced block and never in backticks, and
+      those three are not rivals, they are that function's parameters.
+    - **Two or more graded names in one artifact.** Spread pushes graded names
+      apart, so two in one place means that artifact is enumerating the
+      requirement's vocabulary rather than mentioning one in passing.
+    - **Same shape as the names it sits beside.** A rival to three lowercase
+      snake_case reason strings is another lowercase snake_case string. A CamelCase
+      exception in the same paragraph is a neighbouring API, not a rival member of
+      the set.
+    """
+    from . import surface as surf
+    need = surf.required(task)
+    if not need:
+        return []
+    graded = {rid: set(n.all_names) | set(n.all_values) for rid, n in need.items()}
+    every = {name for names in graded.values() for name in names}
+
+    # The three ways a name is in the corpus legitimately: the ticket prints it,
+    # curator already contains it, or it is one of the graded names itself.
+    known = set(surf._tokens(task.description or "")) | set(surf._curator_tokens()) | every
+
+    out = []
+    for label, text in _plant_artifacts(plant_dir):
+        quoted = set(SPAN.findall(text))
+        for rid, names in sorted(graded.items()):
+            # Graded names as they were QUOTED, and only the ones shaped like an
+            # identifier -- `required_names` also picks up sentence-openers like
+            # `Every` and bare words like `config`, and counting those as two hits
+            # fires this on any artifact at all.
+            hits = sorted(n for n in names & quoted if _shape(n) != "word")
+            if len(hits) < 2:
+                continue
+            shapes = {_shape(h) for h in hits}
+            rival = sorted(q for q in quoted - known
+                           if _shape(q) in shapes and len(q) > 3)
+            if not rival:
+                continue
+            out.append(
+                f"{label} quotes {', '.join('`' + r + '`' for r in rival[:4])}"
+                f"{' and more' if len(rival) > 4 else ''} beside {len(hits)} of "
+                f"{rid}'s graded names ({', '.join('`' + h + '`' for h in hits[:3])})"
+                f" — same shape, same list, so a reader takes it for the whole set."
+                f" Drop them, or register them as a herring so `reverse` retracts them.")
+    return out
+
+
+def _plant_artifacts(plant_dir) -> list[tuple[str, str]]:
+    """What the plant WROTE, one entry per thing a reader opens in one sitting.
+
+    The delta rather than the corpus: the world's own 9,592 messages are full of
+    identifiers that are nobody's business here, and flagging them would bury the
+    one line that matters. Chat is grouped by channel and day because that is the
+    unit a reader scrolls, not the single message.
+    """
+    import collections as _c
+    plant = pathlib.Path(plant_dir) if plant_dir else None
+    if not plant or not plant.is_dir():
+        return []
+    out: list[tuple[str, str]] = []
+
+    for path in sorted((plant / "docs").rglob("*.md")) if (plant / "docs").is_dir() else []:
+        out.append((f"docs/{path.relative_to(plant / 'docs')}",
+                    path.read_text(encoding="utf-8", errors="replace")))
+
+    comments = plant / "comments.jsonl"
+    if comments.is_file():
+        by_doc: dict[str, list[str]] = _c.defaultdict(list)
+        for line in comments.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                row = json.loads(line)
+                by_doc[row.get("doc", "?")].append(row.get("text") or "")
+        out += [(f"the comments on docs/{doc}", "\n".join(texts))
+                for doc, texts in sorted(by_doc.items())]
+
+    chat = plant / "messages.jsonl"
+    if chat.is_file():
+        by_day: dict[tuple, list[str]] = _c.defaultdict(list)
+        for line in chat.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                row = json.loads(line)
+                by_day[(row.get("channel", "?"),
+                        (row.get("created_at") or "")[:10])].append(row.get("text") or "")
+        out += [(f"#{channel} on {day}", "\n".join(texts))
+                for (channel, day), texts in sorted(by_day.items())]
+
+    for path in sorted((plant / "emails").rglob("*.eml")) if (plant / "emails").is_dir() else []:
+        if "/Sent/" not in str(path):
+            continue                       # one copy per message, the sender's
+        note_ = email.message_from_bytes(path.read_bytes())
+        raw = note_.get_payload(decode=True)
+        subject = " ".join(str(email.header.make_header(
+            email.header.decode_header(note_.get("Subject", "")))).split())
+        out.append((f"mail \u201c{subject}\u201d",
+                    raw.decode("utf-8", "replace") if raw else ""))
+    return out
+
+
 def crowding(rows: list[dict], corpus: Corpus, ledger: dict) -> list[str]:
     """Invented threads that land on top of a conversation already in the room.
 
@@ -570,7 +723,10 @@ def inject(slug: str, *, run: str | None = None, out: str | None = None,
               "absent": [] if dry_run else absent(target, ledger),
               "crowding": [] if dry_run else crowding(rows, corpus, ledger),
               "timing": [] if dry_run else timing(corpus, ledger),
-              "unsearchable": [] if dry_run else unsearchable(ledger, task)}
+              "unsearchable": [] if dry_run else unsearchable(ledger, task),
+              "rivals": [] if dry_run else rival_vocabulary(
+                  (plant_dir or {}).get("dir") if isinstance(plant_dir, dict)
+                  else task.dir / "clues" / "plant-data", task)}
     if not dry_run:
         (task.dir / "clues" / "injected.md").write_text(render(task, ledger, report))
     return report
@@ -663,10 +819,11 @@ def render(task, ledger: dict, report: dict) -> str:
     for label, key in (("Could not be written", "problems"),
                        ("Not found on read-back", "absent"),
                        ("Could not have happened then", "timing"),
+                       ("A rival vocabulary nobody retracted", "rivals"),
                        ("Landed on a busy day — read these", "crowding"),
                        ("Findable only by reading, not by searching",
                         "unsearchable")):
-        rows = report[key]
+        rows = report.get(key) or []
         lines += ["", f"## {label}" + ("" if rows else " — none"), ""]
         lines += [f"- {row}" for row in rows]
     return "\n".join(lines) + "\n"
@@ -736,6 +893,34 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
                          note_.get("From", ""))[1].split("@")[0],
                      to=note_.get("To", ""))
 
+    # Page BODIES, and the reason this branch exists: a remark can land as a
+    # section appended to a page (`doc_edit`) or as one of an invented page's own
+    # sections, and neither is a chat line, a comment or a mail. Without this,
+    # `located()` refused every plant holding one -- g6, whose single `doc_edit`
+    # sat in the corpus, verbatim, while the key would not write at all.
+    #
+    # Frontmatter for the who and the when, not the plant: `slot_of` only offers a
+    # `doc_edit` where the remark's holder IS the page's author, so the page's own
+    # byline is the right one, and it is what a reader of the world actually sees.
+    for path in sorted((root / "docs").rglob("*.md")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        body = flat(text)
+        pending = [cid for cid, opener in want.items()
+                   if cid not in found and opener and opener in body]
+        if not pending:
+            continue
+        meta = {}
+        if text.startswith("---"):
+            head = text.split("---", 2)
+            for line in (head[1] if len(head) > 2 else "").splitlines():
+                key, sep, value = line.partition(":")
+                if sep:
+                    meta[key.strip()] = value.strip().strip('"')
+        for cid in pending:
+            note(cid, surface="wiki page",
+                 where=f"docs/{path.relative_to(root / 'docs')}",
+                 when=meta.get("created_at", ""), who=meta.get("author", "?"))
+
     # A row of `?` in the answer key is worse than no answer key: it reads as a
     # rendering quirk rather than as "this renderer no longer understands the
     # plant". Refuse instead.
@@ -750,6 +935,8 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
 
 HOW = {
     "chat": "Mattermost search, or the channel on that date",
+    "wiki page": "BookStack search finds this one — it is in the page body, "
+                 "not a comment",
     "wiki comment": "open the page — `/api/pages/{id}` returns its `comments`; "
                     "BookStack search does not index them",
     "mail": "Roundcube, or IMAP on :143 as worldadmin@world.local",
@@ -777,8 +964,12 @@ def spread_summary(rows: list, spot: dict) -> list[str]:
     bodies" for three remarks that are page COMMENTS -- the distinction the
     BookStack note below turns on.
 
-    `spread_problems()` is the gate this reports on: every requirement needs at
-    least 2 sources, 3 weeks and 2 channels, so no single sitting recovers one.
+    `clues.spread()` is what this reports on: every requirement wants at least 2
+    sources, 3 weeks and 2 rooms, so no single sitting recovers one. It is
+    ADVISORY here -- `cli.py` prints it with `~` and never sets `bad`. Phase 3's
+    `spread_problems()` is the gate of that name; this package has no equivalent,
+    and a key that said otherwise was promising a reader enforcement that does not
+    exist.
     """
     from collections import Counter
     kinds = Counter((c.get("kind") or "clue") for _, c in rows)
@@ -790,14 +981,16 @@ def spread_summary(rows: list, spot: dict) -> list[str]:
     channels = len(per_surface.get("chat", {}))
 
     label = {"chat": "chat (Mattermost)", "wiki comment": "wiki (BookStack)",
+             "wiki page": "wiki page body (BookStack)",
              "mail": "mail (Roundcube/IMAP)"}
     out = ["---", "", "## Where the remarks are spread", "",
            f"{len(rows)} remarks in total — {kinds['clue']} clues, "
            f"{kinds['herring']} herrings and {kinds['reversal']} reversals — "
            f"across {len(per_surface)} surfaces and {channels} chat channels. "
-           "`spread_problems()` is the gate that forces this: every requirement "
-           "needs at least 2 sources, 3 weeks and 2 channels, so no single "
-           "sitting recovers one.", "",
+           "`clues.spread()` reports on this — at least 2 sources, 3 weeks and 2 "
+           "rooms per requirement, so no single sitting recovers one. It is "
+           "advisory, not enforced: read the numbers rather than trusting that "
+           "something refused a plant without them.", "",
            "| surface | remarks | where they sit |", "|---|---|---|"]
     for surface, where in sorted(per_surface.items(),
                                  key=lambda kv: -sum(kv[1].values())):
@@ -806,6 +999,12 @@ def spread_summary(rows: list, spot: dict) -> list[str]:
             sits = ", ".join(f"`{w}` {n}" for w, n in where.most_common())
         elif surface == "mail":
             sits = f"{total} separate thread{'s' if total != 1 else ''}"
+        elif surface == "wiki page":
+            # Not "page comments". The two wiki surfaces are worth different
+            # amounts to a reader -- a body is indexed and a comment is not -- so
+            # a key that calls a body a comment misstates the one thing this table
+            # is for.
+            sits = ", ".join(f"`{w}`" for w, _ in where.most_common())
         else:
             sits = f"{total} page comment{'s' if total != 1 else ''}"
         out.append(f"| {label.get(surface, surface)} | **{total}** | {sits} |")
@@ -817,6 +1016,12 @@ def spread_summary(rows: list, spot: dict) -> list[str]:
                 "lives only in one returns nothing. `/api/pages/{id}` returns them "
                 "alongside the body — an agent that searches instead of enumerating "
                 f"never sees these {sum(per_surface['wiki comment'].values())}."]
+        if per_surface.get("wiki page"):
+            n_body = sum(per_surface["wiki page"].values())
+            out += ["", f"> A page **body**, by contrast, IS indexed — the {n_body} "
+                    f"above {'answers' if n_body == 1 else 'answer'} a BookStack "
+                    f"search, and {'is' if n_body == 1 else 'are'} the wiki carrier "
+                    "an agent can find rather than stumble onto."]
     return out + [""]
 
 def answer_key(task, ledger: dict, root: pathlib.Path) -> str:

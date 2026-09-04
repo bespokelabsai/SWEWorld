@@ -1,0 +1,45 @@
+{
+ "task_id": "g6",
+ "suite": "g6_model_price_lookup",
+ "variant": "clues",
+ "control": true,
+ "hidden_requirements": [
+  {
+   "requirement": {
+    "rule": "`resolve_model_price` never returns a `ModelPrice` carrying a `None` price: every failure raises `UnpricedModelError`, and the `reason` it carries is exactly one of the three strings `unknown_provider`, `unknown_model`, `unknown_window`.",
+    "exclusions_or_crossover": "An unregistered provider is `unknown_provider` even when the model is also absent and the window is also unrecognised, and a missing model key is `unknown_model` even when the window is also unrecognised. A model present in `litellm.model_cost` but carrying a missing or `None` input price is `unknown_model`, and a window that is absent from a model's price map is `unknown_window` rather than a fallback to the wildcard tier.",
+    "observability": "`resolve_model_price(\"no-such-model\", provider=\"not-a-provider\", completion_window=\"96h\")` raises with `reason == \"unknown_provider\"`; the same call with a registered provider raises with `reason == \"unknown_model\"`; a model that provider does list, asked for an unlisted window, raises with `reason == \"unknown_window\"`. Every `cost()` method and both trackers catch `UnpricedModelError` and degrade \u2014 `cost()` to `0.0`, a tracker to `None` prices and a recorded reason."
+   },
+   "hidden_requirement_types": [
+    "invented_name",
+    "policy_with_no_local_evidence",
+    "deliberate_departure"
+   ],
+   "fragmentation_sources": [
+    "Slack thread in #curator-pricing where an unregistered provider silently produced a null price and nobody could tell it from a genuinely free model",
+    "PR review comment arguing that one function with two failure styles \u2014 a sentinel for one case and a raise for another \u2014 is the thing to fix, not preserve",
+    "postmortem note on a run that reported a zero cost for hours because a mistyped completion window was swallowed as a missing price"
+   ],
+   "earlier_reversed_version": null
+  },
+  {
+   "requirement": {
+    "rule": "The batch discount factor is applied by exactly one method, `batch_multiplier()`, on the cost processors; no `cost()` override multiplies or divides its result by anything. `resolve_model_price(..., batch=True)` applies that same fixed factor to the per-million numbers it returns.",
+    "scope": "`batch_multiplier()` returns the discount factor only where the pricing data is a list price: it returns `1.0` when the processor is not in batch mode, and `1.0` on the klusterai and inference.net processors in every mode. `resolve_model_price` discounts a `source == \"litellm\"` price and leaves a `source == \"external\"` price exactly as the table lists it.",
+    "exclusions_or_crossover": "A user-supplied per-million price is never discounted: `batch_multiplier()` returns `1.0` whenever the config carries an explicit input cost, even in batch mode on a processor that would otherwise discount. Which processors are exempt is decided by a class-level flag and by which source answered the lookup.",
+    "observability": "`batch_multiplier()` is the discount factor on the base and Azure processors in batch mode and `1.0` out of it, and `1.0` on the klusterai and inference.net processors even in batch mode. `resolve_model_price(model, provider=\"klusterai\", completion_window=\"*\", batch=True).input_cost_per_million` equals the `batch=False` value exactly, while a litellm-sourced model's `batch=True` value is exactly half its `batch=False` value."
+   },
+   "hidden_requirement_types": [
+    "invented_name",
+    "policy_with_no_local_evidence",
+    "deliberate_departure"
+   ],
+   "fragmentation_sources": [
+    "email chain about a klusterai batch job billing at the same rate as an online job, asking whether the discount was ever meant to apply there",
+    "wiki note observing that the external rate tables already list separate numbers per completion window and calling that 'already the batch price'",
+    "code review comment on the old `times = 2` workaround asking why a provider would need to cancel out a discount it never wanted applied"
+   ],
+   "earlier_reversed_version": "the team once applied the fixed batch discount uniformly to every source inside the base cost processor, then had klusterai/inference.net multiply their own result by 2 to cancel it back out because their tables were already batch-tier prices; that compensating multiply was later dropped in favour of one method that simply declines to discount those two providers"
+  }
+ ]
+}

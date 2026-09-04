@@ -1,0 +1,374 @@
+diff --git a/src/bespokelabs/curator/finetune/__init__.py b/src/bespokelabs/curator/finetune/__init__.py
+index 7e8ba01..7867d01 100644
+--- a/src/bespokelabs/curator/finetune/__init__.py
++++ b/src/bespokelabs/curator/finetune/__init__.py
+@@ -50,6 +50,13 @@ Custom data formatting:
+ 
+ from bespokelabs.curator.finetune.config import AdamParams, FireworksTrainerConfig, LoRAConfig, TinkerTrainerConfig
+ from bespokelabs.curator.finetune.data_formatter import DataFormatter
++from bespokelabs.curator.finetune.encoding import (
++    ALLOWED_ROLES,
++    EncodingError,
++    InvalidRoleSequenceError,
++    TokenizerCapabilityError,
++    validate_role_sequence,
++)
+ from bespokelabs.curator.finetune.fireworks_data_formatter import FireworksDataFormatter
+ from bespokelabs.curator.finetune.status_tracker import FinetuneStatusTracker
+ from bespokelabs.curator.finetune.trainer import BaseTrainer, FireworksTrainer, TinkerTrainer
+@@ -83,4 +90,10 @@ __all__ = [
+     "DataFormatter",
+     "FireworksDataFormatter",
+     "FinetuneStatusTracker",
++    # Encoding policy
++    "EncodingError",
++    "InvalidRoleSequenceError",
++    "TokenizerCapabilityError",
++    "ALLOWED_ROLES",
++    "validate_role_sequence",
+ ]
+diff --git a/src/bespokelabs/curator/finetune/data_formatter.py b/src/bespokelabs/curator/finetune/data_formatter.py
+index 53809a8..7826aad 100644
+--- a/src/bespokelabs/curator/finetune/data_formatter.py
++++ b/src/bespokelabs/curator/finetune/data_formatter.py
+@@ -1,7 +1,8 @@
+ """Data formatter for converting datasets to Tinker Datum format."""
+ 
+-from typing import Any, Dict, List, Optional
++from typing import Any, Dict, List, Optional, Tuple
+ 
++from bespokelabs.curator.finetune.encoding import TokenizerCapabilityError, validate_role_sequence
+ from bespokelabs.curator.finetune.types import ChatMessage, TrainingExample
+ 
+ try:
+@@ -15,7 +16,7 @@ except ImportError:
+ class DataFormatter:
+     """Converts curator datasets to Tinker Datum format."""
+ 
+-    def __init__(self, max_seq_length: int = 2048, train_on_assistant_only: bool = True):
++    def __init__(self, max_seq_length: int = 2048, train_on_assistant_only: bool = True) -> None:
+         """Initialize the data formatter.
+ 
+         Args:
+@@ -57,53 +58,50 @@ class DataFormatter:
+                     return TrainingExample(messages=messages)
+         raise ValueError(f"Cannot format row: expected 'messages' key with list of chat messages, got {row.keys()}")
+ 
+-    def _compute_weights(self, messages: List[ChatMessage], tokens: List[int], tokenizer: Any) -> List[float]:
+-        """Compute loss weights for tokens based on which ones are assistant responses.
++    def _supervised_spans(self, messages: List[ChatMessage], tokenizer: Optional[Any]) -> List[Tuple[int, int]]:
++        """Locate the assistant turns in the untruncated token sequence.
++
++        Boundaries are found by re-tokenizing conversation prefixes: the text up to
++        (and including) the generation prompt gives an assistant turn's start index,
++        the text including the assistant message itself gives its end index.
+ 
+         Args:
+             messages: List of chat messages
+-            tokens: Tokenized input
+-            tokenizer: Tokenizer to use for finding boundaries
++            tokenizer: Tokenizer to use for finding boundaries, or None when the
++                caller has no real tokenizer and no spans can be located
+ 
+         Returns:
+-            List of weights (1.0 for assistant tokens, 0.0 for others)
++            The half-open ``[start, end)`` token index ranges of the assistant
++            turns, in message order
+         """
+-        if not self.train_on_assistant_only:
+-            return [1.0] * len(tokens)
++        if tokenizer is None:
++            return []
+ 
+         message_dicts = [{"role": msg.role, "content": msg.content} for msg in messages]
+-        weights = [0.0] * len(tokens)
+-
+-        try:
+-            cumulative_messages = []
+-
+-            for msg in message_dicts:
+-                cumulative_messages.append(msg)
+-
+-                if msg["role"] == "assistant":
+-                    # Tokenize up to before this assistant message
+-                    pre_assistant = cumulative_messages[:-1]
+-                    if pre_assistant:
+-                        pre_text = tokenizer.apply_chat_template(pre_assistant, tokenize=False, add_generation_prompt=True)
+-                        pre_tokens = tokenizer.encode(pre_text, add_special_tokens=False)
+-                        start_idx = len(pre_tokens)
+-                    else:
+-                        start_idx = 0
+-
+-                    # Tokenize including this assistant message
+-                    curr_text = tokenizer.apply_chat_template(cumulative_messages, tokenize=False, add_generation_prompt=False)
+-                    curr_tokens = tokenizer.encode(curr_text, add_special_tokens=False)
+-                    end_idx = len(curr_tokens)
+-
+-                    # Set weights for assistant tokens
+-                    for i in range(start_idx, min(end_idx, len(weights))):
+-                        weights[i] = 1.0
+-
+-        except Exception:
+-            # If boundary detection fails, fall back to training on all tokens
+-            weights = [1.0] * len(tokens)
++        spans: List[Tuple[int, int]] = []
++        cumulative_messages: List[Dict[str, str]] = []
++
++        for msg in message_dicts:
++            cumulative_messages.append(msg)
++
++            if msg["role"] == "assistant":
++                # Tokenize up to before this assistant message
++                pre_assistant = cumulative_messages[:-1]
++                if pre_assistant:
++                    pre_text = tokenizer.apply_chat_template(pre_assistant, tokenize=False, add_generation_prompt=True)
++                    pre_tokens = tokenizer.encode(pre_text, add_special_tokens=False)
++                    start_idx = len(pre_tokens)
++                else:
++                    start_idx = 0
++
++                # Tokenize including this assistant message
++                curr_text = tokenizer.apply_chat_template(cumulative_messages, tokenize=False, add_generation_prompt=False)
++                curr_tokens = tokenizer.encode(curr_text, add_special_tokens=False)
++                end_idx = len(curr_tokens)
++
++                spans.append((start_idx, end_idx))
+ 
+-        return weights
++        return spans
+ 
+     def to_tinker_datum(self, example: TrainingExample, tokenizer: Optional[Any] = None) -> Any:
+         """Convert a TrainingExample to Tinker Datum format.
+@@ -115,26 +113,42 @@ class DataFormatter:
+         Returns:
+             Tinker Datum object or dictionary in Tinker Datum format
+         """
++        validate_role_sequence(example.messages)
++
+         message_dicts = [{"role": msg.role, "content": msg.content} for msg in example.messages]
+ 
+         if tokenizer is not None:
++            if not callable(getattr(tokenizer, "apply_chat_template", None)):
++                raise TokenizerCapabilityError(missing_method="apply_chat_template")
+             # Use the tokenizer's chat template
+             chat_text = tokenizer.apply_chat_template(message_dicts, tokenize=False, add_generation_prompt=False)
+-            tokens = tokenizer.encode(chat_text, max_length=self.max_seq_length, truncation=True)
+-
+-            weights = self._compute_weights(example.messages, tokens, tokenizer)
++            tokens = tokenizer.encode(chat_text, add_special_tokens=False)
+         else:
+             chat_text = ""
+             for msg in example.messages:
+                 chat_text += f"<|{msg.role}|>\n{msg.content}\n"
+-            mock_token_count = min(len(chat_text) // 4, self.max_seq_length)
+-            tokens = list(range(mock_token_count))
++            tokens = list(range(len(chat_text) // 4))
++
++        if self.train_on_assistant_only and tokenizer is not None:
++            weights = [0.0] * len(tokens)
++            for start_idx, end_idx in self._supervised_spans(example.messages, tokenizer):
++                for i in range(start_idx, min(end_idx, len(weights))):
++                    weights[i] = 1.0
++        else:
++            # Either every token is supervised, or the mock tokens carry no message
++            # boundaries to supervise selectively.
+             weights = [1.0] * len(tokens)
+ 
++        # Keep the end of the conversation: the oldest context is what gets dropped.
++        token_count = len(tokens)
++        window_start = max(0, token_count - self.max_seq_length)
++        windowed_tokens = tokens[window_start:]
++        windowed_weights = weights[window_start:]
++
+         # Causal-LM shift: input=tokens[:-1], target=tokens[1:], weights aligned to targets
+-        input_tokens = tokens[:-1]
+-        target_tokens = tokens[1:]
+-        shifted_weights = weights[1:]
++        input_tokens = windowed_tokens[:-1]
++        target_tokens = windowed_tokens[1:]
++        shifted_weights = windowed_weights[1:]
+ 
+         if TINKER_AVAILABLE and tokenizer is not None:
+             model_input = tinker.ModelInput(chunks=[tinker.EncodedTextChunk(tokens=input_tokens)])
+@@ -154,8 +168,15 @@ class DataFormatter:
+                 "weights": shifted_weights,
+             },
+             "metadata": {
+-                "original_text": chat_text if tokenizer is None else "",
++                "original_text": chat_text,
+                 "num_messages": len(example.messages),
++                "encoding": {
++                    "tokenizer": tokenizer is not None,
++                    "token_count": token_count,
++                    "window_start": window_start,
++                    "windowed": window_start > 0,
++                    "supervised_tokens": sum(1 for weight in windowed_weights if weight == 1.0),
++                },
+             },
+         }
+ 
+diff --git a/src/bespokelabs/curator/finetune/encoding.py b/src/bespokelabs/curator/finetune/encoding.py
+new file mode 100644
+index 0000000..002684d
+--- /dev/null
++++ b/src/bespokelabs/curator/finetune/encoding.py
+@@ -0,0 +1,94 @@
++"""Encoding policy for chat training examples.
++
++Both the tinker formatter (:class:`~bespokelabs.curator.finetune.data_formatter.DataFormatter`)
++and the Fireworks formatter
++(:class:`~bespokelabs.curator.finetune.fireworks_data_formatter.FireworksDataFormatter`)
++encode the same thing: a chat conversation with an optional leading system message
++followed by alternating user/assistant turns. This module holds the single
++definition of what such a conversation is allowed to look like, plus the typed
++errors raised when an example or a tokenizer does not meet it.
++"""
++
++from typing import Any, List, Mapping, Sequence
++
++ALLOWED_ROLES: frozenset = frozenset({"system", "user", "assistant"})
++
++
++class EncodingError(ValueError):
++    """Base class for every error raised by the encoding policy."""
++
++
++class InvalidRoleSequenceError(EncodingError):
++    """Raised when a conversation's roles do not follow the encoding policy."""
++
++    def __init__(self, *, role_sequence: List[str], position: int, reason: str) -> None:
++        """Initialize the error.
++
++        Args:
++            role_sequence: The roles of the conversation, in message order.
++            position: Index of the message that violates the policy.
++            reason: Machine-readable reason, one of ``"empty"``, ``"unknown_role"``,
++                ``"misplaced_system"``, ``"non_alternating"`` or ``"unterminated"``.
++        """
++        self.role_sequence = role_sequence
++        self.position = position
++        self.reason = reason
++        super().__init__(f"invalid role sequence at position {position} ({reason}): {role_sequence}")
++
++
++class TokenizerCapabilityError(EncodingError):
++    """Raised when a tokenizer lacks a method the encoding policy requires."""
++
++    def __init__(self, *, missing_method: str) -> None:
++        """Initialize the error.
++
++        Args:
++            missing_method: Name of the method the tokenizer does not provide.
++        """
++        self.missing_method = missing_method
++        super().__init__(f"tokenizer is missing required method {missing_method!r}")
++
++
++def _role_of(message: Any) -> Any:
++    """Extract the role from a ChatMessage-like object or a message dict."""
++    if isinstance(message, Mapping):
++        return message.get("role")
++    return getattr(message, "role", None)
++
++
++def validate_role_sequence(messages: Sequence[Any]) -> None:
++    """Validate the role sequence of a chat training example.
++
++    The conversation must be non-empty, use only :data:`ALLOWED_ROLES`, carry at
++    most one system message (at index 0), alternate ``user``/``assistant`` after
++    that optional system message, and end on an assistant turn.
++
++    Args:
++        messages: Chat messages, either ``ChatMessage``-like objects with a
++            ``role`` attribute or dicts with a ``"role"`` key.
++
++    Raises:
++        InvalidRoleSequenceError: If the roles violate the policy. The first
++            violation, in the order documented above, is the one reported.
++    """
++    roles = [_role_of(message) for message in messages]
++
++    if not roles:
++        raise InvalidRoleSequenceError(role_sequence=roles, position=0, reason="empty")
++
++    for index, role in enumerate(roles):
++        if role not in ALLOWED_ROLES:
++            raise InvalidRoleSequenceError(role_sequence=roles, position=index, reason="unknown_role")
++
++    for index, role in enumerate(roles):
++        if role == "system" and index != 0:
++            raise InvalidRoleSequenceError(role_sequence=roles, position=index, reason="misplaced_system")
++
++    start = 1 if roles[0] == "system" else 0
++    for offset, role in enumerate(roles[start:]):
++        expected = "user" if offset % 2 == 0 else "assistant"
++        if role != expected:
++            raise InvalidRoleSequenceError(role_sequence=roles, position=start + offset, reason="non_alternating")
++
++    if roles[-1] != "assistant":
++        raise InvalidRoleSequenceError(role_sequence=roles, position=len(roles) - 1, reason="unterminated")
+diff --git a/src/bespokelabs/curator/finetune/fireworks_data_formatter.py b/src/bespokelabs/curator/finetune/fireworks_data_formatter.py
+index 61bf52c..94bcdf5 100644
+--- a/src/bespokelabs/curator/finetune/fireworks_data_formatter.py
++++ b/src/bespokelabs/curator/finetune/fireworks_data_formatter.py
+@@ -8,15 +8,33 @@ JSONL serialization that the Fireworks Dataset upload requires.
+ """
+ 
+ import json
+-from typing import Any, Dict, List
++from typing import TYPE_CHECKING, Any, Dict, List
+ 
+ from bespokelabs.curator.finetune.data_formatter import DataFormatter
++from bespokelabs.curator.finetune.encoding import validate_role_sequence
+ from bespokelabs.curator.finetune.types import TrainingExample
+ 
++if TYPE_CHECKING:
++    from bespokelabs.curator.finetune.config import FireworksTrainerConfig
++
+ 
+ class FireworksDataFormatter(DataFormatter):
+     """Converts curator datasets to the Fireworks chat JSONL format."""
+ 
++    @classmethod
++    def from_config(cls, config: "FireworksTrainerConfig") -> "FireworksDataFormatter":
++        """Build a formatter that encodes examples the way the SFT job will read them.
++
++        Args:
++            config: The Fireworks trainer configuration.
++
++        Returns:
++            A formatter whose sequence length matches ``config.max_context_length``,
++            falling back to the default when the config leaves it unset.
++        """
++        max_seq_length = config.max_context_length if config.max_context_length is not None else 2048
++        return cls(max_seq_length=max_seq_length, train_on_assistant_only=True)
++
+     def example_to_dict(self, example: TrainingExample) -> Dict[str, Any]:
+         """Convert a TrainingExample into a Fireworks chat-format dict.
+ 
+@@ -36,7 +54,12 @@ class FireworksDataFormatter(DataFormatter):
+ 
+         Returns:
+             A list of JSON strings, one per training example.
++
++        Raises:
++            InvalidRoleSequenceError: If any example violates the encoding policy.
+         """
++        for example in examples:
++            validate_role_sequence(example.messages)
+         return [json.dumps(self.example_to_dict(example), ensure_ascii=False) for example in examples]
+ 
+     def write_jsonl(self, examples: List[TrainingExample], path: str) -> str:
+diff --git a/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py b/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py
+index 15b8ab8..22ad7d3 100644
+--- a/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py
++++ b/src/bespokelabs/curator/finetune/trainer/fireworks_trainer.py
+@@ -123,7 +123,7 @@ class FireworksTrainer(BaseTrainer):
+             config: FireworksTrainerConfig with training parameters.
+         """
+         self.config = config
+-        self.data_formatter = FireworksDataFormatter()
++        self.data_formatter = FireworksDataFormatter.from_config(config)
+         self._output_model: Optional[str] = None
+         self._job_name: Optional[str] = None
+         self._job_url: Optional[str] = None

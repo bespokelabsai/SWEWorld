@@ -1,0 +1,15 @@
+From: emil@world.local
+To:
+ nikolai@world.local, dario@world.local, konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 13:47:00 +0000
+Message-ID: <178822443474.2088454.11106534650348386225@world.local>
+In-Reply-To: <178822443473.2088454.7829025129444435726@world.local>
+References: <178822443473.2088454.7829025129444435726@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yup sounds right. honestly max_batches_per_plan is the one id have forgotten =
+to include and its the one that explains most of the truncations that look wr=
+ong at first glance

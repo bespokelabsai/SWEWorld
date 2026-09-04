@@ -1,0 +1,20 @@
+# Bracket — g7 (agent-turn-ledger)
+
+- `pristine`: {'failed': 9} rc=1
+- `naive`: {'failed': 8, 'passed': 1} rc=1
+- `oracle`: {'passed': 9} rc=0
+- `spec`: {'passed': 9} rc=0
+
+| fact | `pristine` | `naive` | `oracle` | `spec` | verdict |
+|---|---|---|---|---|---|
+| `g7.open_feature` | fail | pass | pass | pass | open_feature |
+| `g7.r1.rule` | fail | fail | pass | pass | hidden |
+| `g7.r1.scope` | fail | fail | pass | pass | hidden |
+| `g7.r1.failure_behavior` | fail | fail | pass | pass | hidden |
+| `g7.r1.observability` | fail | fail | pass | pass | hidden |
+| `g7.r2.rule` | fail | fail | pass | pass | hidden |
+| `g7.r2.scope` | fail | fail | pass | pass | hidden |
+| `g7.r2.failure_behavior` | fail | fail | pass | pass | hidden |
+| `g7.r2.observability` | fail | fail | pass | pass | hidden |
+
+**Ships:** yes

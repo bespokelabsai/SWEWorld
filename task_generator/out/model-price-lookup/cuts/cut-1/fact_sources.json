@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P4",
+  "blind_alternative": "keep cost.py:77's current behavior of returning the input price as the output price with no flag at all"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "mirror the output price from the '*' tier rather than the specific window that was requested"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P4",
+  "blind_alternative": "treat a missing output price as unknown and raise UnpricedModelError or return 0.0/None instead of inferring one"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P4",
+  "blind_alternative": "expose no queryable flag at all, so callers can't distinguish an inferred price from a real one that happens to equal the input price"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P5",
+  "blind_alternative": "keep the discount as a display-only concern applied in set_model_cost/tracker code, leaving cost() to report litellm's undiscounted number"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "delete the compensating multiplier and let the parent's 0.5 discount apply uniformly to every cost processor including klusterai and inference.net"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "discount everything uniformly, including a user-supplied in_mtok_cost/out_mtok_cost, on the theory that batch is half of any list price"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "halve external-sourced prices too when batch=True, so resolve_model_price for a klusterai model under batch=True returns half its listed per-million price"
+ }
+]

@@ -233,11 +233,51 @@ def leak_feedback(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def split(slug: str, *, budget: float = 6.0, attempts: int = 2) -> Task:
+# The ticket is the artefact a person reads most often and the one the generator
+# wrote worst: `prompts/split.md` said "One paragraph", and g6's came back as a
+# single 3271-character sentence carrying sixty backticked names. It cannot simply
+# be reformatted afterwards — `test_open` grades what the ticket STATES, so a
+# rewriting pass that drops one clause makes a fact no blind build can reach. Ask
+# for the shape at the cut instead, and re-cut when it does not arrive, which is
+# the enforcement `leak.audit` already gets from the same loop.
+MAX_TICKET_PARAGRAPH = 600
+
+
+def unstructured(task: Task) -> str:
+    """The ticket as one wall of text, phrased as feedback. Empty when it reads fine."""
+    text = task.description or ""
+    marked = [line for line in text.splitlines()
+              if line.lstrip().startswith(("#", "-", "*"))]
+    longest = max((len(p.strip()) for p in re.split(r"\n\s*\n", text)), default=0)
+    problems = []
+    if len(marked) < 3:
+        problems.append(f"it has {len(marked)} heading or bullet line(s)")
+    if longest > MAX_TICKET_PARAGRAPH:
+        problems.append(f"its longest paragraph runs {longest} characters")
+    if not problems:
+        return ""
+    return ("The visible ticket has to be readable and it is not: "
+            + " and ".join(problems) + ". Rewrite `description` as structured "
+            "markdown — one line for the goal, then a `### ` section per thing to "
+            "add or change, with the specifics as bullets. Change nothing inside "
+            "backticks and drop nothing: every name and signature already there "
+            "must survive verbatim, because the grader may require any of them.")
+
+
+def split(slug: str, *, budget: float = 6.0, attempts: int = 2,
+          model: str = "opus") -> Task:
     """Cut the specification, and re-cut once if the ticket gave the answers away.
 
     `attempts` is 2 because the second cut is told exactly what the first one
     leaked. A third has never been needed, and each one is a paid call.
+
+    `model` is here because `--json-schema` and opus stopped being usable
+    together: every such call comes back "Opus 5's safeguards flagged this
+    message ... `[reasoning_extraction]`", six times out of six, at every effort
+    level, and on a one-line prompt with no content of its own. Opus without the
+    schema works and sonnet with it works, so the cut can still be made -- but
+    which model made it is a fact about the task, and g1-g4 were all cut on opus.
+    Record it whenever it is not the default.
     """
     task = load(slug)
     whole = task.dir / "whole.md"
@@ -245,23 +285,30 @@ def split(slug: str, *, budget: float = 6.0, attempts: int = 2) -> Task:
         raise SystemExit(f"no {whole}; run `tg author {slug}` first")
     feedback = bracket_feedback(task)
     for attempt in range(1, attempts + 1):
-        task = _cut(task, whole, feedback, budget, attempt)
+        task = _cut(task, whole, feedback, budget, attempt, model)
         from . import leak
         rows = leak.audit(task)
-        if all(r["has_anchor"] for r in rows) or attempt == attempts:
+        weak = [r for r in rows if not r["has_anchor"]]
+        shape = unstructured(task)
+        if (not weak and not shape) or attempt == attempts:
             return task
         extra = leak_feedback(rows)
-        print(f"  re-cutting: {sum(1 for r in rows if not r['has_anchor'])} of "
-              f"{len(rows)} facts rested on a name the ticket printed")
+        if shape:
+            extra = f"{extra}\n{shape}" if extra else shape
+        if weak:
+            print(f"  re-cutting: {len(weak)} of {len(rows)} facts rested on a "
+                  f"name the ticket printed")
+        if shape:
+            print("  re-cutting: the ticket is a wall of text")
         feedback = (extra + "\n" + feedback) if feedback else extra
     return task
 
 
 def _cut(task: Task, whole: pathlib.Path, feedback: str, budget: float,
-         attempt: int) -> Task:
+         attempt: int, model: str = "opus") -> Task:
     text = prompt("split.md", whole=whole.read_text(), feedback=feedback)
     result = agent.run(text, repo=REPO, label=f"split-{attempt}" if attempt > 1
-                       else "split", cwd=task.dir, tools="",
+                       else "split", cwd=task.dir, tools="", model=model,
                        schema=schemas.SPLIT, budget_usd=budget, log_dir=_log(task))
     _record(task, "split", text, result)
 

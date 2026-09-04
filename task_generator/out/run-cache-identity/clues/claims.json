@@ -1,0 +1,954 @@
+{
+ "slug": "run-cache-identity",
+ "task": "g4",
+ "digest": "dd13491f94bf4510",
+ "verdicts": {
+  "g4.r1.exclusions_or_crossover#1": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "Two remarks enumerate exactly base_url, azure_deployment, batch_size, completion_window as the contents of the named constant IDENTITY_BACKEND_PARAM_KEYS.",
+   "clues": [
+    "g4.r1.l-param-keys",
+    "g4.r1.rev1",
+    "g4.r1.rev2"
+   ],
+   "source": "assert set(allowed) == {\"azure_deployment\", \"base_url\", \"batch_size\", \"completion_window\"}, f\"the allowlist is {sorted(allowed)}\""
+  },
+  "g4.r1.exclusions_or_crossover#2": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "\"i'd keep it at exactly those four, the rest are just knobs\" and \"only the four in IDENTITY_BACKEND_PARAM_KEYS\" state the cardinality outright.",
+   "clues": [
+    "g4.r1.l-param-keys",
+    "g4.r1.rev2"
+   ],
+   "source": "assert len(allowed) == 4"
+  },
+  "g4.r1.exclusions_or_crossover#3": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "rev2 says max_retries, request_timeout and api_key \"never reach the digest\", and the list is declared closed, so every non-allowlisted key is excluded by the stated rule rather than by inference.",
+   "clues": [
+    "g4.r1.rev2",
+    "g4.r1.l-key-on-disk",
+    "g4.r1.l-param-keys"
+   ],
+   "source": "assert key not in carried, f\"{key} reached the identity components as {carried!r}\""
+  },
+  "g4.r1.exclusions_or_crossover#4": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "\"only the four ... fork the cache dir\" plus konrad's verdict that \"retry counts have no business buying a new cache directory\" decide the unchanged-hash behaviour aloud.",
+   "clues": [
+    "g4.r1.rev2",
+    "g4.r1.l-retries-fork",
+    "g4.r1.rev1"
+   ],
+   "source": "assert run_hash_of(identity_for(stub)) == baseline, f\"changing {key} must not fork the cache directory\""
+  },
+  "g4.r1.exclusions_or_crossover#5": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "rev2 commits the four keys to the digest and the surviving shape from the whole-dict remarks (\"same line shape as generation_params\", handed out as a copy) makes the component a dict carrying those keys' values, though this one rests on two remarks read together.",
+   "clues": [
+    "g4.r1.rev2",
+    "g4.r1.backend-params-whole-dict-dario",
+    "g4.r1.l-params-copy"
+   ],
+   "source": "assert carried.get(key) == value, f\"{key} is identity and must be carried, got {carried!r}\""
+  },
+  "g4.r1.exclusions_or_crossover#6": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "gideon reports completion_window reusing the directory and rules \"that one really does need to fork\", matching rev2's statement that the four fork the cache dir.",
+   "clues": [
+    "g4.r1.l-window-reuse",
+    "g4.r1.rev2"
+   ],
+   "source": "assert run_hash_of(identity_for(stub)) != baseline, f\"changing {key} must give a different run\""
+  },
+  "g4.r1.exclusions_or_crossover#7": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "The closed allowlist plus the named backend_params component means a dict with extra knobs mixed in reduces to the same filtered dict as the plain one.",
+   "clues": [
+    "g4.r1.rev2",
+    "g4.r1.l-param-keys",
+    "g4.r1.backend-params-whole-dict-konrad"
+   ],
+   "source": "assert components_of(identity_for(noisy))[\"backend_params\"] == plain"
+  },
+  "g4.r1.exclusions_or_crossover#8": {
+   "key": "g4.r1.exclusions_or_crossover",
+   "verdict": "stated",
+   "why": "That non-identity keys never reach the digest is said directly, so extra knobs leave the run hash at baseline.",
+   "clues": [
+    "g4.r1.rev2",
+    "g4.r1.rev1",
+    "g4.r1.l-param-keys"
+   ],
+   "source": "assert run_hash_of(identity_for(noisy)) == baseline"
+  },
+  "g4.r1.observability#1": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Konrad says the component names must live in one exported tuple read from both places and Dario names that tuple IDENTITY_COMPONENT_KEYS and says it is kept alphabetical, which is exactly sorted(components) == the tuple.",
+   "clues": [
+    "g4.r1.l-keys-onelist",
+    "g4.r1.l-keys-order"
+   ],
+   "source": "assert tuple(sorted(components)) == tuple(sym(\"IDENTITY_COMPONENT_KEYS\"))"
+  },
+  "g4.r1.observability#2": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Gideon drops the number outright \u2014 the tuple has 12 entries \u2014 and the tuple is the component-name list, so the component count is told to the reader.",
+   "clues": [
+    "g4.r1.l-keys-count",
+    "g4.r1.l-keys-onelist"
+   ],
+   "source": "assert len(components) == 12"
+  },
+  "g4.r1.observability#3": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Three remarks say the backend_params contribution is exactly the four keys of IDENTITY_BACKEND_PARAM_KEYS with base_url among them, and Nils fixes the shape as a dict, so a stub whose only listed key is base_url yields that one-entry dict.",
+   "clues": [
+    "g4.r1.rev1",
+    "g4.r1.rev2",
+    "g4.r1.l-param-keys",
+    "g4.r1.l-params-none"
+   ],
+   "source": "assert components[\"backend_params\"] == {\"base_url\": \"https://x/v1\"}"
+  },
+  "g4.r1.observability#4": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Emil says api_key does not belong in the identity and Konrad says api_key never reaches the digest, so the key must not appear among the serialised components.",
+   "clues": [
+    "g4.r1.l-key-on-disk",
+    "g4.r1.rev2",
+    "g4.r1.rev1"
+   ],
+   "source": "assert \"sk-secret\" not in serialised, f\"the api key is written down in the components: {serialised}\""
+  },
+  "g4.r1.observability#5": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Emil grepped the stamp file and found api_key in cleartext and says it does not belong on disk; Dario names the file run_identity.json and calls the cleartext key a reason for the change.",
+   "clues": [
+    "g4.r1.l-key-on-disk",
+    "g4.r1.rev1"
+   ],
+   "source": "assert \"sk-secret\" not in stamp_text, \"the stamp file is cleartext on disk, so the api key must never be a component\""
+  },
+  "g4.r1.observability#6": {
+   "key": "g4.r1.observability",
+   "verdict": "implied",
+   "why": "Nobody says what the stamp file contains after the fix; the reader has to compose Emil's grep (the file holds backend params) with the retained-keys list to conclude base_url is still written there, and could reasonably write only the hash and metadata.",
+   "clues": [
+    "g4.r1.l-key-on-disk",
+    "g4.r1.rev1",
+    "g4.r1.l-param-keys"
+   ],
+   "source": "assert \"https://x/v1\" in stamp_text"
+  },
+  "g4.r1.observability#7": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Konrad states max_retries, request_timeout and api_key never reach the digest and Dario says key rotations and max_retries tweaks must stop minting fresh cache dirs \u2014 i.e. the same run.",
+   "clues": [
+    "g4.r1.rev1",
+    "g4.r1.rev2",
+    "g4.r1.l-retries-fork",
+    "g4.r1.l-key-on-disk"
+   ],
+   "source": "assert run_hash_of(identity_for(rotated, \"d0\")) == run_hash_of(identity), \"rotating the key or the retry budget is the same run\""
+  },
+  "g4.r1.observability#8": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Each of the four forks is decided out loud: parse_func_hash sits next to prompt_func_hash, the rewritten system_prompt should have been a fresh cache dir, toggling return_completions_object should miss, and backend is keyed off the processor's resolved choice.",
+   "clues": [
+    "g4.r1.l-parse-func",
+    "g4.r1.l-system-prompt",
+    "g4.r1.l-completions-object",
+    "g4.r1.l-backend-resolved",
+    "g4.r1.l-keys-order"
+   ],
+   "source": "assert run_hash_of(identity_for(changed, \"d0\")) != run_hash_of(identity), f\"{changed} must be a different run\""
+  },
+  "g4.r1.observability#9": {
+   "key": "g4.r1.observability",
+   "verdict": "stated",
+   "why": "Konrad reports the exact two calls, LLM(model_name=\"gpt-4o-mini\") and the same with backend=\"openai\", and states naming the default backend explicitly cannot change run identity.",
+   "clues": [
+    "g4.r1.l-backend-default"
+   ],
+   "source": "assert run_hash_of(identity_for(auto, \"d0\")) == run_hash_of(identity_for(declared, \"d0\"))"
+  },
+  "g4.r1.rule#1": {
+   "key": "g4.r1.rule",
+   "verdict": "implied",
+   "why": "The tuple's name, its count and its alphabetical ordering are said out loud and most member names surface somewhere in passing, but nobody ever lists the twelve together and `run_id` and `dataset_hash` are never mentioned by anyone, so the exact tuple has to be assembled \u2014 and partly invented \u2014 by the reader.",
+   "clues": [
+    "g4.r1.l-keys-order",
+    "g4.r1.l-keys-onelist",
+    "g4.r1.l-keys-count",
+    "g4.r1.l-parse-func",
+    "g4.r1.l-system-prompt",
+    "g4.r1.l-completions-object",
+    "g4.r1.l-schema-order"
+   ],
+   "source": "assert tuple(keys) == TWELVE, f\"IDENTITY_COMPONENT_KEYS is {tuple(keys)!r}\""
+  },
+  "g4.r1.rule#2": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Gideon says the tuple has 12 entries and konrad/dario name IDENTITY_COMPONENT_KEYS as the one exported tuple, so the count attaches to the right name.",
+   "clues": [
+    "g4.r1.l-keys-count",
+    "g4.r1.l-keys-onelist",
+    "g4.r1.l-keys-order"
+   ],
+   "source": "assert len(keys) == 12"
+  },
+  "g4.r1.rule#3": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Dario says outright that IDENTITY_COMPONENT_KEYS is kept alphabetical, and flags batch_mode sitting above backend as the violation to fix.",
+   "clues": [
+    "g4.r1.l-keys-order"
+   ],
+   "source": "assert list(keys) == sorted(keys), \"the twelve keys are declared in alphabetical order\""
+  },
+  "g4.r1.rule#4": {
+   "key": "g4.r1.rule",
+   "verdict": "implied",
+   "why": "That the computed components dict has exactly the same twelve keys as the exported tuple follows from 'export one tuple and read it from both', but the twelve keys themselves are never enumerated and two of them are never named at all.",
+   "clues": [
+    "g4.r1.l-keys-count",
+    "g4.r1.l-keys-onelist",
+    "g4.r1.l-keys-order"
+   ],
+   "source": "assert tuple(sorted(components)) == TWELVE, f\"the identity was computed from {sorted(components)}\""
+  },
+  "g4.r1.rule#5": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Nikolai names `prompt_func_hash` as an existing component produced by a helper over the prompt function, which is exactly what this assertion checks.",
+   "clues": [
+    "g4.r1.l-parse-func"
+   ],
+   "source": "assert named[\"prompt_func_hash\"] == function_hash(prompt_one)"
+  },
+  "g4.r1.rule#6": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Nikolai says `parse_func_hash` belongs right next to `prompt_func_hash` using the same helper, naming both the key and its computation.",
+   "clues": [
+    "g4.r1.l-parse-func"
+   ],
+   "source": "assert named[\"parse_func_hash\"] == function_hash(parse_two)"
+  },
+  "g4.r1.rule#7": {
+   "key": "g4.r1.rule",
+   "verdict": "implied",
+   "why": "Nobody says the two hashes must differ; the reader has to conclude from 'same helper, two different functions' that the parse hash is not accidentally the prompt hash.",
+   "clues": [
+    "g4.r1.l-parse-func"
+   ],
+   "source": "assert named[\"parse_func_hash\"] != named[\"prompt_func_hash\"]"
+  },
+  "g4.r1.rule#8": {
+   "key": "g4.r1.rule",
+   "verdict": "implied",
+   "why": "No remark discusses a missing parse_func at all, so passing None straight through the helper rather than guarding with a conditional is the reader's own call.",
+   "clues": [
+    "g4.r1.l-parse-func"
+   ],
+   "source": "assert components_of(identity_for(make_stub(parse_func=None)))[\"parse_func_hash\"] == function_hash(None)"
+  },
+  "g4.r1.rule#9": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Dario prescribes `dict(... or {})` so the missing case and the empty case hash to one thing, which is precisely this assertion.",
+   "clues": [
+    "g4.r1.l-genparams-fix",
+    "g4.r1.l-genparams-empty"
+   ],
+   "source": "assert components_of(identity_for(make_stub(generation_params=empty)))[\"generation_params\"] == {}"
+  },
+  "g4.r1.rule#10": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "generation_params is spoken of throughout as a digest component, and dario's `dict(... or {})` fixes that it is carried as the dict itself.",
+   "clues": [
+    "g4.r1.l-genparams-fix",
+    "g4.r1.backend-params-whole-dict-konrad",
+    "g4.r1.l-genparams-empty"
+   ],
+   "source": "assert components_of(identity_for(make_stub(generation_params={\"temperature\": 0.7})))[\"generation_params\"] == {\"temperature\": 0.7}"
+  },
+  "g4.r1.rule#11": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Konrad says that when there's no format at all we put the string \"text\" in.",
+   "clues": [
+    "g4.r1.l-schema-dump"
+   ],
+   "source": "# response_format is the compact, key-sorted schema, or the literal \"text\".\n    assert components_of(identity_for(make_stub(response_format=None)))[\"response_format\"] == \"text\""
+  },
+  "g4.r1.rule#12": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Konrad gives sort_keys and separators=(\",\", \":\") verbatim, and nils identifies the thing being dumped as the pydantic model's response_format schema going into the identity.",
+   "clues": [
+    "g4.r1.l-schema-dump",
+    "g4.r1.l-schema-order"
+   ],
+   "source": "assert structured == json.dumps(Answer.model_json_schema(), sort_keys=True, separators=(\",\", \":\"))"
+  },
+  "g4.r1.rule#13": {
+   "key": "g4.r1.rule",
+   "verdict": "implied",
+   "why": "Dermot establishes that system_prompt must fork the cache dir but says nothing about representation, leaving the reader to decide that an absent prompt is carried as None rather than normalised to \"\" or hashed.",
+   "clues": [
+    "g4.r1.l-system-prompt"
+   ],
+   "source": "# system_prompt and return_completions_object are carried as themselves.\n    assert components_of(identity_for(make_stub(system_prompt=None)))[\"system_prompt\"] is None"
+  },
+  "g4.r1.rule#14": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Dermot names system_prompt and says rewriting its wording should have produced a fresh cache dir, i.e. the prompt text itself is in the identity under that key.",
+   "clues": [
+    "g4.r1.l-system-prompt"
+   ],
+   "source": "assert components_of(identity_for(make_stub(system_prompt=\"be terse\")))[\"system_prompt\"] == \"be terse\""
+  },
+  "g4.r1.rule#15": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Emil names return_completions_object and says turning it on should miss the cache, putting the flag in the components under that key.",
+   "clues": [
+    "g4.r1.l-completions-object"
+   ],
+   "source": "assert components_of(identity_for(make_stub(return_completions_object=True)))[\"return_completions_object\"] is True"
+  },
+  "g4.r1.rule#16": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "The same remark makes the flag a component carried as itself; the False side is the same decision with no alternative representation in play.",
+   "clues": [
+    "g4.r1.l-completions-object"
+   ],
+   "source": "assert components_of(identity_for(make_stub(return_completions_object=False)))[\"return_completions_object\"] is False"
+  },
+  "g4.r1.rule#17": {
+   "key": "g4.r1.rule",
+   "verdict": "implied",
+   "why": "model_name appears only as a constructor argument in konrad's backend complaint; nobody says it is a component key of the digest, so its membership is inferred from the surrounding story rather than told.",
+   "clues": [
+    "g4.r1.l-backend-default"
+   ],
+   "source": "# ... and the two things the old fingerprint already had are still here.\n    assert components_of(identity_for(make_stub(model_name=\"gpt-4o-mini\")))[\"model_name\"] == \"gpt-4o-mini\""
+  },
+  "g4.r1.rule#18": {
+   "key": "g4.r1.rule",
+   "verdict": "stated",
+   "why": "Dario names batch_mode as one of the entries sitting in IDENTITY_COMPONENT_KEYS.",
+   "clues": [
+    "g4.r1.l-keys-order",
+    "g4.r1.l-window-reuse"
+   ],
+   "source": "assert components_of(identity_for(make_stub(batch_mode=True)))[\"batch_mode\"] is True"
+  },
+  "g4.r1.rule#19": {
+   "key": "g4.r1.rule",
+   "verdict": "absent",
+   "why": "No remark in the corpus mentions dataset_hash, a dataset fingerprint, or anything the reader could map onto this key or its passed-in value.",
+   "clues": [],
+   "source": "assert components_of(identity_for(make_stub(), dataset_hash=\"9f1c8e2b7d4a6053\"))[\"dataset_hash\"] == \"9f1c8e2b7d4a6053\""
+  },
+  "g4.r1.scope#1": {
+   "key": "g4.r1.scope",
+   "verdict": "implied",
+   "why": "dermot says the identity should read the backend off the request processor instead of the caller's None, but nobody says the LLM object itself carries a `backend` attribute reporting the resolved name \u2014 a reader can satisfy dermot by reaching into `_request_processor.backend` inside the identity function and leaving `llm.backend` as the declared None.",
+   "clues": [
+    "g4.r1.l-backend-resolved",
+    "g4.r1.l-backend-default"
+   ],
+   "source": "assert auto.backend == \"openai\", f\"LLM.backend must be the resolved backend, got {auto.backend!r}\""
+  },
+  "g4.r1.scope#2": {
+   "key": "g4.r1.scope",
+   "verdict": "implied",
+   "why": "konrad names `backend=\"openai\"` only as a constructor keyword; no remark says the LLM exposes a `backend` attribute at all, so the reader has to supply the existence of the accessor being read here.",
+   "clues": [
+    "g4.r1.l-backend-default",
+    "g4.r1.l-backend-resolved"
+   ],
+   "source": "assert declared.backend == \"openai\""
+  },
+  "g4.r1.scope#3": {
+   "key": "g4.r1.scope",
+   "verdict": "stated",
+   "why": "dermot says the backend we key on must be read off the request processor after it picks one rather than the caller's None, and konrad says the implicit call must land in the same cache dir as the one naming the default backend explicitly as \"openai\".",
+   "clues": [
+    "g4.r1.l-backend-resolved",
+    "g4.r1.l-backend-default",
+    "g4.r1.l-keys-order"
+   ],
+   "source": "assert components_of(identity_for(auto, \"d0\"))[\"backend\"] == \"openai\", \"the auto-detect path must not hash a declared backend of None\""
+  },
+  "g4.r1.scope#4": {
+   "key": "g4.r1.scope",
+   "verdict": "stated",
+   "why": "konrad's complaint is literally about the run declared with backend=\"openai\", and he rules that it must hash the same as the implicit one, so \"openai\" is the backend component for the declared LLM.",
+   "clues": [
+    "g4.r1.l-backend-default",
+    "g4.r1.l-backend-resolved"
+   ],
+   "source": "assert components_of(identity_for(declared, \"d0\"))[\"backend\"] == \"openai\""
+  },
+  "g4.r1.scope#5": {
+   "key": "g4.r1.scope",
+   "verdict": "implied",
+   "why": "the only remark on where the value comes from points at the request processor, so nobody says the identity code reads the object's own `.backend` \u2014 the reader must decide on their own to resolve inside the LLM property and have the digest read that attribute.",
+   "clues": [
+    "g4.r1.l-backend-resolved"
+   ],
+   "source": "# The value is read off the object's own `backend`, whatever it says.\n    assert components_of(identity_for(make_stub(backend=\"litellm\")))[\"backend\"] == \"litellm\""
+  },
+  "g4.r1.scope#6": {
+   "key": "g4.r1.scope",
+   "verdict": "stated",
+   "why": "nils says backend_params comes back None unless you pass it and that the property should just return {}.",
+   "clues": [
+    "g4.r1.l-params-none"
+   ],
+   "source": "# backend_params is a copy of what __init__ was handed, {} when it was None.\n    assert auto.backend_params == {}, f\"backend_params must be {{}} when none were given, got {auto.backend_params!r}\""
+  },
+  "g4.r1.scope#7": {
+   "key": "g4.r1.scope",
+   "verdict": "stated",
+   "why": "nils' \"comes back None unless you pass it\" states the round-trip for the passed case, and dario's copy rule keeps the handed-out dict equal to the one given.",
+   "clues": [
+    "g4.r1.l-params-none",
+    "g4.r1.l-params-copy"
+   ],
+   "source": "assert configured.backend_params == given"
+  },
+  "g4.r1.scope#8": {
+   "key": "g4.r1.scope",
+   "verdict": "stated",
+   "why": "dario says the processor edits backend_params in place mid-run so whatever is handed out must be a copy of it.",
+   "clues": [
+    "g4.r1.l-params-copy"
+   ],
+   "source": "assert configured.backend_params == given, \"backend_params hands out a copy, not the dict the LLM is using\""
+  },
+  "g4.r2.failure_behavior#1": {
+   "key": "g4.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "Konrad says cache-off with no id \"should have stoped at the door with an error\", which is the decision to raise made out loud.",
+   "clues": [
+    "g4.r2.l10",
+    "g4.r2.l9"
+   ],
+   "source": "with pytest.raises(error):"
+  },
+  "g4.r2.failure_behavior#2": {
+   "key": "g4.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "Gideon reports the run_id arriving as \"\" with cache off and Konrad answers that exact incident by saying it should have errored at the door.",
+   "clues": [
+    "g4.r2.l9",
+    "g4.r2.l10"
+   ],
+   "source": "with pytest.raises(error):"
+  },
+  "g4.r2.failure_behavior#3": {
+   "key": "g4.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "Dermot describes a run id passed on a normal cached run being ignored and says plainly \"it should refuse.\"",
+   "clues": [
+    "g4.r2.l11"
+   ],
+   "source": "with pytest.raises(error):"
+  },
+  "g4.r2.failure_behavior#4": {
+   "key": "g4.r2.failure_behavior",
+   "verdict": "implied",
+   "why": "The corpus names only three refusal scenarios, so a fourth parametrized case \u2014 most likely an empty-string id on the cached path \u2014 rests on the reader deciding that \"someone passed a run id\" also covers \"\", which nobody says.",
+   "clues": [
+    "g4.r2.l11",
+    "g4.r2.l10"
+   ],
+   "source": "with pytest.raises(error):"
+  },
+  "g4.r2.failure_behavior#5": {
+   "key": "g4.r2.failure_behavior",
+   "verdict": "implied",
+   "why": "A fifth case exceeds anything described; the reader must extrapolate the refusal rule to a combination no remark reports as a symptom or settles in review.",
+   "clues": [
+    "g4.r2.l11",
+    "g4.r2.l10",
+    "g4.r2.l12"
+   ],
+   "source": "with pytest.raises(error):"
+  },
+  "g4.r2.failure_behavior#6": {
+   "key": "g4.r2.failure_behavior",
+   "verdict": "stated",
+   "why": "Nikolai says the refusal currently fires after the run dir is already made and that he is sweeping up empty stamped dirs, which is the requirement that a refused call leave no directory.",
+   "clues": [
+    "g4.r2.l12"
+   ],
+   "source": "assert run_dirs(cache) == [], f\"a refused run must not leave a directory behind, found {run_dirs(cache)}\""
+  },
+  "g4.r2.failure_behavior#7": {
+   "key": "g4.r2.failure_behavior",
+   "verdict": "implied",
+   "why": "The reader must supply that the ordering fix in l12 \u2014 which never names a path \u2014 also governs the cached-run refusal, since l11's complaint there is dir reuse rather than dir creation.",
+   "clues": [
+    "g4.r2.l12",
+    "g4.r2.l11"
+   ],
+   "source": "assert cached not in run_dirs(cache)"
+  },
+  "g4.r2.observability#1": {
+   "key": "g4.r2.observability",
+   "verdict": "stated",
+   "why": "konrad's rev2 says outright that in the disable_cache path \"run_hash is v3-nocache- plus a digest of the callers run_id\", and rev1 names the `cache_enabled is False` / keyword-only `run_id` signature that the call uses.",
+   "clues": [
+    "g4.r2.rev2",
+    "g4.r2.rev1",
+    "g4.r2.l13"
+   ],
+   "source": "assert run_hash.startswith(\"v3-nocache-\"), f\"a cache-disabled run hash is greppable, got {run_hash!r}\""
+  },
+  "g4.r2.observability#2": {
+   "key": "g4.r2.observability",
+   "verdict": "implied",
+   "why": "No remark gives a length or a digest width; the reader has to notice gideon's incidental viewer string v3-nocache-9f2b1c0ad4e5f678, count it to 27, and decide that 16 hex characters is the rule rather than one sample.",
+   "clues": [
+    "g4.r2.l13",
+    "g4.r2.rev2"
+   ],
+   "source": "assert len(run_hash) == 27, f\"{run_hash!r} is {len(run_hash)} characters\""
+  },
+  "g4.r2.observability#3": {
+   "key": "g4.r2.observability",
+   "verdict": "stated",
+   "why": "dermot's l2 states the rule (\"the same label twice has to give the same hash\") and dario's l14 reports running it twice with the same id and getting clean-diffing stamps.",
+   "clues": [
+    "g4.r2.l2",
+    "g4.r2.l14",
+    "g4.r2.rev1"
+   ],
+   "source": "assert run_hash == run_hash_of(identity_for(stub, \"d0\", cache_enabled=False, run_id=\"local-run-7\"))"
+  },
+  "g4.r2.observability#4": {
+   "key": "g4.r2.observability",
+   "verdict": "stated",
+   "why": "dario's l14 says changing one character of the id gave a different dir \"which is what we want\", and rev2 makes run_hash a digest of that run_id.",
+   "clues": [
+    "g4.r2.l14",
+    "g4.r2.rev2"
+   ],
+   "source": "assert run_hash != run_hash_of(identity_for(stub, \"d0\", cache_enabled=False, run_id=\"other\"))"
+  },
+  "g4.r2.observability#5": {
+   "key": "g4.r2.observability",
+   "verdict": "stated",
+   "why": "dario's l8 decides out loud that it should stay null for a cache hit, emil's l7 reports the field being null for cached runs, and rev1 names it as the run_id component stored only when cache_enabled is False.",
+   "clues": [
+    "g4.r2.l8",
+    "g4.r2.l7",
+    "g4.r2.rev1"
+   ],
+   "source": "assert components_of(identity_for(stub, \"d0\"))[\"run_id\"] is None"
+  },
+  "g4.r2.observability#6": {
+   "key": "g4.r2.observability",
+   "verdict": "stated",
+   "why": "rev2 scopes the v3-nocache- prefix to the disable_cache path and gideon's l13 shows those dirs sitting \"beside the plain v3- dirs\", so the cached form is named as a distinct, unprefixed one.",
+   "clues": [
+    "g4.r2.rev2",
+    "g4.r2.l13"
+   ],
+   "source": "assert not run_hash_of(identity_for(stub, \"d0\")).startswith(\"v3-nocache-\")"
+  },
+  "g4.r2.observability#7": {
+   "key": "g4.r2.observability",
+   "verdict": "stated",
+   "why": "emil's l15 says he grepped run_identity.py for random and uuid and found nothing, and that either one appearing costs reproducibility; rev1 records the uuid4 being dropped from that very branch.",
+   "clues": [
+    "g4.r2.l15",
+    "g4.r2.rev1",
+    "g4.r2.rev2"
+   ],
+   "source": "assert alias.name.split(\".\")[0] not in banned, f\"{module.__name__} imports {alias.name}\""
+  },
+  "g4.r2.observability#8": {
+   "key": "g4.r2.observability",
+   "verdict": "stated",
+   "why": "Same decision as the plain-import case \u2014 l15 bans random and uuid from run_identity.py by name regardless of import form, with rev1 removing the uuid4 that was there.",
+   "clues": [
+    "g4.r2.l15",
+    "g4.r2.rev1"
+   ],
+   "source": "assert (node.module or \"\").split(\".\")[0] not in banned, f\"{module.__name__} imports from {node.module}\""
+  },
+  "g4.r2.observability#9": {
+   "key": "g4.r2.observability",
+   "verdict": "implied",
+   "why": "Nobody mentions urandom or os entropy at all; the reader must generalize l15's \"random and uuid\" ban into a rule against every nondeterministic source.",
+   "clues": [
+    "g4.r2.l15",
+    "g4.r2.rev2"
+   ],
+   "source": "assert node.attr != \"urandom\", f\"{module.__name__} reads os.urandom\""
+  },
+  "g4.r2.observability#10": {
+   "key": "g4.r2.observability",
+   "verdict": "implied",
+   "why": "As with the attribute form, the bare name urandom is never named in the corpus and only follows if the reader extends emil's grep for random/uuid to entropy in general.",
+   "clues": [
+    "g4.r2.l15",
+    "g4.r2.rev2"
+   ],
+   "source": "assert node.id != \"urandom\", f\"{module.__name__} reads urandom\""
+  },
+  "g4.r2.rule#1": {
+   "key": "g4.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 says outright that compute_run_identity's disable_cache branch now takes a run_id, and l4 pins the spelling as `run_id` in the signature.",
+   "clues": [
+    "g4.r2.rev1",
+    "g4.r2.l4"
+   ],
+   "source": "assert \"run_id\" in params, f\"compute_run_identity takes {list(params)}\""
+  },
+  "g4.r2.rule#2": {
+   "key": "g4.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 says \"keyword-only run_id now\" about compute_run_identity.",
+   "clues": [
+    "g4.r2.rev1"
+   ],
+   "source": "assert params[\"run_id\"].kind is inspect.Parameter.KEYWORD_ONLY"
+  },
+  "g4.r2.rule#3": {
+   "key": "g4.r2.rule",
+   "verdict": "implied",
+   "why": "Nobody names a default; the reader has to conclude from \"with no id and cache off that should have stopped at the door\" that the parameter is omittable, and then pick None themselves over a required arg or an empty-string default (l9 even shows an empty string arriving).",
+   "clues": [
+    "g4.r2.l10",
+    "g4.r2.l9",
+    "g4.r2.l11"
+   ],
+   "source": "assert params[\"run_id\"].default is None"
+  },
+  "g4.r2.rule#4": {
+   "key": "g4.r2.rule",
+   "verdict": "implied",
+   "why": "l6 has llm.py minting the id itself and passing it down, l3 says the input must come from outside and l12 says the refusal must surface out of __call__ \u2014 together they point at the LLM layer accepting a caller's id, but no remark says __call__ or the component builder takes a run_id parameter.",
+   "clues": [
+    "g4.r2.l6",
+    "g4.r2.l12",
+    "g4.r2.l3",
+    "g4.r2.l4"
+   ],
+   "source": "assert \"run_id\" in taken, f\"{name} takes {list(taken)}, so no caller can hand it a run id\""
+  },
+  "g4.r2.rule#5": {
+   "key": "g4.r2.rule",
+   "verdict": "implied",
+   "why": "The \"keyword-only\" wording in rev1 is about compute_run_identity only; nothing describes the LLM-side parameter's kind, so a reader plumbing it through **kwargs would fail this and never be told otherwise.",
+   "clues": [
+    "g4.r2.rev1",
+    "g4.r2.l6",
+    "g4.r2.l4"
+   ],
+   "source": "assert taken[\"run_id\"].kind in (inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)"
+  },
+  "g4.r2.rule#6": {
+   "key": "g4.r2.rule",
+   "verdict": "implied",
+   "why": "Same gap as #3, one layer up: the error-on-missing-id complaints suggest the argument can be omitted, but no remark attaches None to the LLM-side parameter.",
+   "clues": [
+    "g4.r2.l10",
+    "g4.r2.l3",
+    "g4.r2.rev1"
+   ],
+   "source": "assert taken[\"run_id\"].default is None"
+  },
+  "g4.r2.rule#7": {
+   "key": "g4.r2.rule",
+   "verdict": "not_required",
+   "why": "This re-reads the flag the test itself passed in, a fixture precondition; rev1 does name the field cache_enabled anyway.",
+   "clues": [
+    "g4.r2.rev1"
+   ],
+   "source": "assert read_field(identity, \"cache_enabled\") is False"
+  },
+  "g4.r2.rule#8": {
+   "key": "g4.r2.rule",
+   "verdict": "stated",
+   "why": "rev1 says the id is \"stored as the run_id component when cache_enabled is False\" \u2014 the component name and the fact that the caller's value goes in it are both said out loud.",
+   "clues": [
+    "g4.r2.rev1",
+    "g4.r2.rev2"
+   ],
+   "source": "assert components_of(identity)[\"run_id\"] == \"local-run-7\", \"the supplied id is what a cache-disabled run is identified by\""
+  },
+  "g4.r2.rule#9": {
+   "key": "g4.r2.rule",
+   "verdict": "stated",
+   "why": "l2 says the same label twice has to give the same hash and l14 reports running it twice with the same id and getting clean-diffing stamps.",
+   "clues": [
+    "g4.r2.l14",
+    "g4.r2.l2",
+    "g4.r2.rev2",
+    "g4.r2.l15"
+   ],
+   "source": "# Replaying the id is deterministic: same id, same directory.\n    assert run_hash_of(identity_for(stub, \"d0\", cache_enabled=False, run_id=\"local-run-7\")) == run_hash_of(identity)"
+  },
+  "g4.r2.rule#10": {
+   "key": "g4.r2.rule",
+   "verdict": "stated",
+   "why": "The whole complaint (l1, rev2) is about two separate launches of the same sweep landing in two dirs, and rev2/l14 settle that the nocache hash is a digest of the caller's run_id, so a fresh object with the same id lands in the same dir.",
+   "clues": [
+    "g4.r2.l1",
+    "g4.r2.rev2",
+    "g4.r2.l14",
+    "g4.r2.l15"
+   ],
+   "source": "assert run_hash_of(identity_for(make_stub(), \"d0\", cache_enabled=False, run_id=\"local-run-7\")) == run_hash_of(identity)"
+  },
+  "g4.r2.rule#11": {
+   "key": "g4.r2.rule",
+   "verdict": "stated",
+   "why": "l14: changed one character of the id and got a different dir, \"which is what we want\".",
+   "clues": [
+    "g4.r2.l14"
+   ],
+   "source": "# A different id is a different run ...\n    assert run_hash_of(identity_for(stub, \"d0\", cache_enabled=False, run_id=\"local-run-8\")) != run_hash_of(identity)"
+  },
+  "g4.r2.rule#12": {
+   "key": "g4.r2.rule",
+   "verdict": "implied",
+   "why": "The reader must infer from \"stored as the run_id component\" plus l8's \"everything else in the components block\" that the whole block is hashed \u2014 while rev2's flat \"v3-nocache- plus a digest of the callers run_id\" and l3's \"nothing stable on our side worth hashing\" push them toward a hash of the id alone, which fails this.",
+   "clues": [
+    "g4.r2.rev1",
+    "g4.r2.l8",
+    "g4.r2.rev2",
+    "g4.r2.l3"
+   ],
+   "source": "# ... and so is the same id over different inputs.\n    assert run_hash_of(identity_for(stub, \"other\", cache_enabled=False, run_id=\"local-run-7\")) != run_hash_of(identity)"
+  },
+  "g4.r2.scope#1": {
+   "key": "g4.r2.scope",
+   "verdict": "not_required",
+   "why": "The `with pytest.raises(_Stop)` is the suite's own abort sentinel used to run the pipeline up to the identity/dir step; the corpus owes nothing to test scaffolding.",
+   "clues": [
+    "g4.r2.l8"
+   ],
+   "source": "# A cached run carries no run id at all.\n    with pytest.raises(_Stop):"
+  },
+  "g4.r2.scope#2": {
+   "key": "g4.r2.scope",
+   "verdict": "not_required",
+   "why": "That a single cached invocation produces exactly one run directory is baseline behaviour and the fixture's own setup for the next assertion.",
+   "clues": [
+    "g4.r2.l8"
+   ],
+   "source": "assert len(cached) == 1, f\"one cached run made {cached}\""
+  },
+  "g4.r2.scope#3": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "Dario says outright it \"should stay null for a cache hit\" and names the components block, with Emil corroborating the field is null for cached runs.",
+   "clues": [
+    "g4.r2.l8",
+    "g4.r2.l7"
+   ],
+   "source": "assert stamped_run_id(cache, cached[0]) is None, \"a cached run has no ephemeral id in its components\""
+  },
+  "g4.r2.scope#4": {
+   "key": "g4.r2.scope",
+   "verdict": "not_required",
+   "why": "Harness plumbing: the _Stop sentinel is how the test stops the run after the directory is made.",
+   "clues": [
+    "g4.r2.l5"
+   ],
+   "source": "with pytest.raises(_Stop):"
+  },
+  "g4.r2.scope#5": {
+   "key": "g4.r2.scope",
+   "verdict": "not_required",
+   "why": "Harness plumbing: the second _Stop-wrapped invocation exists only to produce a repeat run for the directory count.",
+   "clues": [
+    "g4.r2.l5"
+   ],
+   "source": "with pytest.raises(_Stop):"
+  },
+  "g4.r2.scope#6": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "Konrad exports CURATOR_RUN_ID specifically so the directory can be found again, Dermot says the same label twice must give the same hash, and Dario confirms same id twice gives one dir.",
+   "clues": [
+    "g4.r2.l5",
+    "g4.r2.l2",
+    "g4.r2.l14"
+   ],
+   "source": "assert len(named) == 1, f\"two runs of CURATOR_RUN_ID=ci-job-42 must share one directory, made {named}\""
+  },
+  "g4.r2.scope#7": {
+   "key": "g4.r2.scope",
+   "verdict": "implied",
+   "why": "Nobody says the value of CURATOR_RUN_ID itself is what gets stored as the run_id component \u2014 the reader must chain l6's \"nobody exports anything, so we mint\" with rev1's \"stored as the run_id component\".",
+   "clues": [
+    "g4.r2.l5",
+    "g4.r2.l6",
+    "g4.r2.rev1"
+   ],
+   "source": "assert stamped_run_id(cache, named[0]) == \"ci-job-42\", \"the environment's id is what the run is identified by\""
+  },
+  "g4.r2.scope#8": {
+   "key": "g4.r2.scope",
+   "verdict": "not_required",
+   "why": "The _Stop wrapper is the suite's mechanism for executing one call, not a behavioural claim.",
+   "clues": [
+    "g4.r2.rev1"
+   ],
+   "source": "with pytest.raises(_Stop):"
+  },
+  "g4.r2.scope#9": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "Dario announces a keyword-only `run_id`, Nikolai fixes the spelling of `run_id` in the signature, and Nils says it is passed down as an argument from llm.py.",
+   "clues": [
+    "g4.r2.rev1",
+    "g4.r2.l4",
+    "g4.r2.l6"
+   ],
+   "source": "assert len(given) == 1, f\"llm(..., run_id='explicit-7') made {given}\""
+  },
+  "g4.r2.scope#10": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "Dario states the caller's run_id is \"stored as the run_id component when cache_enabled is False\", which is exactly what the stamped value is asserted to be.",
+   "clues": [
+    "g4.r2.rev1"
+   ],
+   "source": "assert stamped_run_id(cache, given[0]) == \"explicit-7\""
+  },
+  "g4.r2.scope#11": {
+   "key": "g4.r2.scope",
+   "verdict": "not_required",
+   "why": "Test-local sentinel used to abort the first unidentified run; no corpus claim is at stake.",
+   "clues": [
+    "g4.r2.l6"
+   ],
+   "source": "with pytest.raises(_Stop):"
+  },
+  "g4.r2.scope#12": {
+   "key": "g4.r2.scope",
+   "verdict": "not_required",
+   "why": "Same sentinel abort for the second unidentified run, purely fixture mechanics.",
+   "clues": [
+    "g4.r2.l6"
+   ],
+   "source": "with pytest.raises(_Stop):"
+  },
+  "g4.r2.scope#13": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "Nils says a fresh uuid4 hex is minted per local run, and rev2/l14 say the dir is a digest of the caller's run_id so differing ids give differing dirs \u2014 with l9 treating jobs piling into one dir as the bug.",
+   "clues": [
+    "g4.r2.l6",
+    "g4.r2.rev2",
+    "g4.r2.l14",
+    "g4.r2.l9"
+   ],
+   "source": "assert len(minted) == 2, f\"two unidentified runs must not share a directory, got {minted}\""
+  },
+  "g4.r2.scope#14": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "\"we mint a fresh uuid4 hex\" per run is a decision made out loud that two unidentified runs get different ids.",
+   "clues": [
+    "g4.r2.l6"
+   ],
+   "source": "assert len(set(ids)) == 2, f\"both runs were minted the same id: {ids}\""
+  },
+  "g4.r2.scope#15": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "Gideon reports the empty-string id as the defect and Konrad says that state must never quietly proceed, while l6 says a real uuid4 hex is minted instead.",
+   "clues": [
+    "g4.r2.l9",
+    "g4.r2.l10",
+    "g4.r2.l6"
+   ],
+   "source": "assert value not in (None, \"\", \"ci-job-42\", \"explicit-7\"), f\"minted run id {value!r}\""
+  },
+  "g4.r2.scope#16": {
+   "key": "g4.r2.scope",
+   "verdict": "stated",
+   "why": "Nils names the exact format \u2014 \"a fresh uuid4 hex\" \u2014 which is the 32 lowercase hex characters the assertion checks.",
+   "clues": [
+    "g4.r2.l6"
+   ],
+   "source": "assert len(value) == 32 and all(c in \"0123456789abcdef\" for c in value), f\"minted run id {value!r} is not a uuid4 hex\""
+  }
+ },
+ "counts": {
+  "stated": 58,
+  "implied": 22,
+  "absent": 1,
+  "not_required": 8
+ },
+ "short": [
+  "g4.r1.rule",
+  "g4.r2.rule",
+  "g4.r1.scope",
+  "g4.r2.failure_behavior",
+  "g4.r2.observability",
+  "g4.r1.observability",
+  "g4.r2.scope"
+ ],
+ "applied": {
+  "rewritten": [
+   "g4.r1.l-keys-order (g4.r1.rule)",
+   "g4.r1.l-parse-func (g4.r1.rule)",
+   "g4.r1.l-system-prompt (g4.r1.rule)",
+   "g4.r1.l-backend-default (g4.r1.rule)",
+   "g4.r2.rev1 (g4.r2.rule)",
+   "g4.r2.l6 (g4.r2.rule)",
+   "g4.r2.l4 (g4.r2.rule)",
+   "g4.r2.l3 (g4.r2.rule)",
+   "g4.r2.rev2 (g4.r2.rule)",
+   "g4.r1.l-backend-resolved (g4.r1.scope)",
+   "g4.r2.l10 (g4.r2.failure_behavior)",
+   "g4.r2.l12 (g4.r2.failure_behavior)",
+   "g4.r2.l13 (g4.r2.observability)",
+   "g4.r2.l15 (g4.r2.observability)",
+   "g4.r1.rev1 (g4.r1.observability)",
+   "g4.r2.l5 (g4.r2.scope)"
+  ],
+  "added": [
+   "g4.r1.say22 (g4.r1.rule) -> #cookbooks",
+   "g4.r1.say23 (g4.r1.rule) -> #general",
+   "g4.r1.say24 (g4.r1.scope) -> #releases",
+   "g4.r2.say19 (g4.r2.failure_behavior) -> #releases"
+  ],
+  "unfixed": [
+   "g4.r1.l-keys-onelist: rewrite lost the identifier 'IDENTITY_COMPONENT_KEYS'"
+  ]
+ }
+}

@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P4",
+  "blind_alternative": "leaves sizing entirely to the existing per-provider `file_upload_limit_check` hooks, or applies one 20 MB ceiling to every kind, since 20 is the number both existing provider constants already agree on"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P4",
+  "blind_alternative": "calls the provider hook first and lets the more specific provider limit speak before any shared check, or measures/fetches remote URLs so they get a ceiling too"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "no aggregate ceiling at all (per-attachment only), or an aggregate checked incrementally that raises at the third attachment reporting 54.0 MB with at most 3 hook calls"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P4",
+  "blind_alternative": "raises a bare `ValueError` with a formatted message and no `.kind`/`.size_mb`/`.limit_mb` attributes, matching every other rejection in this area of the repo"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P5",
+  "blind_alternative": "returns a 4-element content list with no exception, or raises with `exc.size_mb == 54.0` and `len(stub.calls) <= 3`"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P3",
+  "blind_alternative": "substitutes `application/octet-stream` (or `image/png`, as the current base formatter does) and sends the block anyway, or raises a bare `ValueError` with no `.url`/`.attachment_type`"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P10",
+  "blind_alternative": "widens remote to any `scheme://` via `urlparse(url).scheme != \"\"`, rendering `s3://bucket/report.pdf` as a `file_url` block"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P10",
+  "blind_alternative": "copies the current `if data.url and not data.is_local` branch and ships a mistyped path to the provider as a URL, or raises `FileNotFoundError`, or checks MIME first so an extension-less missing path reports the unknown MIME"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P3",
+  "blind_alternative": "validates at construction time with a pydantic `model_validator`, so `File(url=\"https://example.com/download\")` itself raises, or skips the attachment with a warning and returns an empty content list"
+ }
+]

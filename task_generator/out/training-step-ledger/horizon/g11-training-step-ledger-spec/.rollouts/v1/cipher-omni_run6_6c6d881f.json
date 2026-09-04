@@ -1,0 +1,13 @@
+{
+  "id": "6c6d881f-6a22-4660-9e87-faa5f41f9d2a",
+  "evaluation_id": "111999e2-f17c-4e34-a2a0-9b75e49e4519",
+  "run_number": 6,
+  "model": "cipher-omni",
+  "agent_type": "typhoon",
+  "score": 1,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g11.r1.rule\": 1.0,\n    \"g11.r1.scope\": 1.0,\n    \"g11.r1.exclusions_or_crossover\": 1.0,\n    \"g11.r1.failure_behavior\": 1.0,\n    \"g11.r1.observability\": 1.0,\n    \"g11.r2.rule\": 1.0,\n    \"g11.r2.exclusions_or_crossover\": 1.0,\n    \"g11.r2.failure_behavior\": 1.0,\n    \"g11.r2.observability\": 1.0,\n    \"g11.open_feature\": 0.0\n  },\n  \"weights\": {\n    \"g11.r1.rule\": 0.1111111111111111,\n    \"g11.r1.scope\": 0.1111111111111111,\n    \"g11.r1.exclusions_or_crossover\": 0.1111111111111111,\n    \"g11.r1.failure_behavior\": 0.1111111111111111,\n    \"g11.r1.observability\": 0.1111111111111111,\n    \"g11.r2.rule\": 0.1111111111111111,\n    \"g11.r2.exclusions_or_crossover\": 0.1111111111111111,\n    \"g11.r2.failure_behavior\": 0.1111111111111111,\n    \"g11.r2.observability\": 0.11111111111111088,\n    \"g11.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"9 of 9 hidden requirements satisfied. Open feature: no. Nothing missed.\"\n  },\n  \"score\": 1.0\n}",
+  "created_at": "2026-09-03T20:43:48.609Z",
+  "completed_at": "2026-09-03T20:54:12.550Z"
+}

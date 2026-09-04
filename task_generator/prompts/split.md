@@ -23,9 +23,13 @@ in the hidden set.
 JSON matching the schema you have been given. Field by field:
 
 - `title` — short noun phrase.
-- `description` — **the visible ticket**. One paragraph. It states the API the
-  OPEN feature needs — exact names and signatures for those, because the grader is
-  allowed to require them — and nothing more. It must NOT hint at which
+- `description` — **the visible ticket**, written as structured markdown: one line
+  stating the goal, then a `### ` section per thing to add or change, with the
+  specifics as bullets. A person reads this more often than anything else the
+  generator writes, and it used to come back as a single unbroken sentence
+  thousands of characters long carrying sixty backticked names. It states the API
+  the OPEN feature needs — exact names and signatures for those, because the
+  grader is allowed to require them — and nothing more. It must NOT hint at which
   alternative any hidden part chose, and see the naming rule below, which is the
   one that has actually gone wrong.
 - `hidden_requirements` — exactly **two** requirements. Each has a `requirement`

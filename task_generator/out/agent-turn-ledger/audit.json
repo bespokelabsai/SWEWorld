@@ -1,0 +1,682 @@
+[
+ {
+  "key": "g7.r1.rule",
+  "req": 1,
+  "field": "rule",
+  "verdict": "retest",
+  "divergent_action": "The informed agent writes, in turn_ledger.py: `TURN_LEDGER_FILENAME: str = \"turn_ledger.json\"`, `TURN_LEDGER_VERSION: int = 2`, a `TurnLedger.sidecar_state()` returning exactly `{\"version\": TURN_LEDGER_VERSION, \"responses\": ..., \"turns\": ..., \"last_author\": ..., \"next_speaker\": ..., \"interleave_faults\": ..., \"completed\": ..., \"completion_reason\": ...}`, and `write_sidecar(working_dir, ledger)` doing `handle.write(json.dumps(ledger.sidecar_state(), indent=2, sort_keys=True) + \"\\n\")`; and in processor.run(), a `write_sidecar(working_dir, self.ledger)` call on the line after the seed's `append_response()` and again on the line after each response's `append_response()`. The blind agent writes no second file at all: the open ticket's `load_ledger` \"loads the ledger for a working directory and never writes to disk\" and derives every field from `responses_0.jsonl`, so a ticket-only agent produces a module with `RESPONSES_FILENAME` and no checkpoint whatsoever \u2014 `sym(\"TURN_LEDGER_FILENAME\")` fails on the test's first line.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Nothing in the repo writes a JSON checkpoint beside responses_0.jsonl. The ticket's reuse list names `AgentResponse`, `GenericRequest`, `append_response()`, `ArrowWriter`/`Dataset.from_file` \u2014 the only files in play are the JSONL log and the dataset. `read_sidecar`/`write_sidecar`/`verify_sidecar` have no existing counterpart to inherit."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The fact is overwhelmingly positive-action: create a file, with a named constant, a named version, eight named keys, and a write after every append. The one prohibition \u2014 'never batched to the end of the run' \u2014 is the only inaction-shaped clause, and it is precisely the clause the test fails to measure (see finding 1), not one that inaction satisfies."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "A 'checkpoint sidecar next to the log' is a common pattern, but no published convention supplies `TURN_LEDGER_VERSION = 2` (a new format starts at 1), the term 'sidecar' in `read_sidecar`/`write_sidecar`/`verify_sidecar`/`sidecar_state`, or exactly these eight keys with `interleave_faults` among them. Priors get you the idea, never the symbol table `sym()` looks up."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "Near miss worth flagging: the open ticket already publishes `LEDGER_STATUSES: tuple[str, ...] = (\"created\", \"adopted\", \"verified\")` and a `status` field with `status: str = \"verified\"` on `build_ledger`, which is the one thread a sharp blind agent could pull \u2014 'verified against what?' But the ticket's constant list and function list read as closed and contain no filename, no version, no sidecar function; and it explicitly says `load_ledger` 'never writes to disk', which argues against a checkpoint. Inferring 'some checkpoint exists' still yields none of the names asserted."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is the opposite design: 'resume state is derived from the log instead of a step parity', and the sibling `scope` confirms 'The log is the authority in every direction' and that only two of the eight recorded keys are ever compared. The ledger is fully computable from `read_log` + `build_ledger` with no second file; the checkpoint contributes zero information to resume. It is strictly addable, hence not entailed."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The most natural implementation of the ticket is `load_ledger = read_log(...) then build_ledger(...)`, returning `status` from the parameter. Writing a redundant JSON file whose only effect is to convert some resumes into hard `TurnLedgerDesyncError` failures is not normal engineering instinct \u2014 it is a deliberate corruption-detection choice."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Everything `rule` describes is reached by `asyncio.run(processor.run(str(tmp_path)))` in an empty tmp_path with a fake that raises on call 3; the file is then on disk and readable. No unreachable combination."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": true,
+    "why": "`rule` guarantees the checkpoint is rewritten 'after **every** appended response', which guarantees sidecar == log \u2014 exactly the precondition sibling `failure_behavior` needs to be FALSE to reach arm (c). The desync state is therefore unreachable through the system's own operation and only exists because the test performs file surgery (`put_sidecar(tmp_path, full_state(responses=1))`, and `(done/\"responses_0.jsonl\").write_text(\"\".join(lines[:3]))`). Worse, the one way the implementation itself can produce a desync is a crash in the window between `append_response()` and `write_sidecar()`, which leaves recorded_responses < log_responses and makes the next resume a hard error \u2014 i.e. the rule's own cadence manufactures the failure it then treats as fatal."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The file's existence and its exact bytes are directly observable (`os.path.exists(path)`, `read_sidecar(str(tmp_path))`), so violation is visible. Caveat: the sub-clause 'never batched to the end of the run' genuinely has no consequence here \u2014 a `try/finally` single write produces the identical end state on the abort path the test uses."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The test docstring asserts the division 'observability is the only one that spells the file out literally', yet `test_rule` reads the same file and asserts all eight key/value pairs (`state[\"responses\"] == 2`, `state[\"next_speaker\"] == PARTNER`, `state[\"completion_reason\"] == \"open\"`, ...). That is observability's channel with the byte count removed. `rule`'s genuinely own observable is only the symbol table plus `os.path.exists`."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "You cannot fail `rule` without failing `observability`: any implementation producing the exact 186-byte text and the exact `read_sidecar(str(done))` dict necessarily has the filename, version 2, the eight keys and their values. What remains uniquely `rule`'s is naming \u2014 the two constant names, `sidecar_state()` being a method, `write_sidecar` returning an absolute path, `verify_sidecar` existing as a symbol. r1 is one artifact measured four times, not four measurements."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "'after **every** appended response' and 'never batched to the end of the run' use absolute words, but both are bounded by a finite run of `max_length` responses that the test drives to completion or abort. No infinite horizon, no timeout standing in for 'never'."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "tmp_path, a fake `call_single_request`, `asyncio.run`, and reading a file. Single process, no restart, no signals, no network. The harness plainly builds this."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": true,
+    "why": "The graded question is *when* the write happens ('never batched to the end'), and `Conversation(raise_on=(3,))` is what defines when 'the end' arrives \u2014 the fake authors the only condition that could separate per-append writing from a single deferred write, and it separates them so weakly that a `finally` write is indistinguishable. In `test_observability` the same fake also supplies `is_completed=stops`, deciding when the conversation ends and hence when the last write occurs."
+   }
+  ],
+  "the_assertion": "`assert os.path.exists(path), \"no checkpoint was written before the run failed\"` \u2014 gated by the three symbol lookups above it (`assert sym(\"TURN_LEDGER_FILENAME\") == \"turn_ledger.json\"`, `assert sym(\"TURN_LEDGER_VERSION\") == 2`, `sym(\"read_sidecar\"/\"write_sidecar\"/\"verify_sidecar\")`), which is where a blind agent actually dies. Passing depends on more than this requirement: the test cannot reach it unless the open ticket's seed-as-turn write, `next_speaker` alternation, the `while ledger.responses < max_length` loop and the append-nothing-on-failure path are all already correct, since `assert authors(tmp_path) == [SEEDER, PARTNER, SEEDER]` precedes it. Those are open-feature dependencies rather than another hidden fact's, but they mean a `rule` failure does not localise to r1.",
+  "blind_pass": null,
+  "correct_fail": "A ticket-plus-clue agent that takes the sibling's own definition literally \u2014 \"`load_ledger` is `read_log` + `build_ledger` + `verify_sidecar`\" \u2014 and uses that single public entry point to refresh the mid-run ledger:\n\n```python\nasync def run(self, working_dir: str):\n    ledger = self.load_cache(working_dir)          # read_log + build_ledger + verify_sidecar\n    self.status_tracker.adopt_ledger(cached_responses=ledger.responses)\n    if not ledger.entries:\n        await self.append_response(self._seed_record(), working_dir)\n        ledger = self.load_cache(working_dir)      # <-- desyncs against the stale file\n        write_sidecar(working_dir, ledger)\n    ...\n    while ledger.responses < self.max_length:\n        ...\n        await self.append_response(response, working_dir)\n        ledger = self.load_cache(working_dir)      # <-- one append stale again\n        write_sidecar(working_dir, ledger)\n```\n\nThis is a legitimate reading: r1 never says the mid-run rebuild must use `build_ledger` directly rather than `load_ledger`, and never fixes the order of rebuild-vs-write. It raises `TurnLedgerDesyncError` against a log it wrote itself one line earlier, so `test_rule` fails at `with pytest.raises(Boom)` with a desync instead. The same agent writing `write_sidecar(...)` *before* the rebuild passes \u2014 an ordering the requirement leaves unstated.",
+  "recommendation": "Keep the fact \u2014 it discriminates, and I could not construct a blind implementation that passes \u2014 but fix the test, which currently measures the artifact and not the cadence it names.\n\n1. Actually measure \"after every appended response, never batched to the end.\" Have the fake capture the checkpoint at the top of each `call_single_request` and assert the sequence, so a single deferred write cannot pass:\n   `assert conversation.sidecars == [{\"responses\": 0, \"turns\": 1, \"last_author\": SEEDER, ...}, {\"responses\": 1, \"turns\": 2, \"last_author\": PARTNER, ...}, {\"responses\": 2, \"turns\": 3, \"last_author\": SEEDER, ...}]`\n   As written, an implementation that writes the sidecar once inside `try: ... finally: write_sidecar(working_dir, self.ledger)` around the whole loop passes every assertion in `test_rule`. This needs `Conversation` in test_open.py to expose an observer hook (it already knows `working_dir`); that is the only harness change required.\n\n2. Close the ordering hole that fails a correct agent: add to the rule \"the checkpoint is written before the ledger is next re-derived, so a mid-run `load_ledger` never verifies against a stale file\" \u2014 or state that the mid-run rebuild uses `build_ledger`, not `load_ledger`. Without one of these, the `load_ledger`-based implementation quoted in correct_fail is rejected for an ordering the spec does not state.\n\n3. De-duplicate `rule` against `observability`. Drop the eight value assertions (`state[\"responses\"] == 2` ... `state[\"completion_reason\"] == \"open\"`) from `test_rule` and leave the literal file spelling to `observability`; keep `rule` on the symbol table (`TURN_LEDGER_FILENAME`, `TURN_LEDGER_VERSION`, `sidecar_state()`, `write_sidecar`'s absolute return, `verify_sidecar`) plus the new cadence sequence. That makes the two fields separately failable instead of mutually implied.\n\n4. Optional, for `failure_behavior` rather than `rule`: note in the requirement that a desync is reachable in production only through the append/write crash window, so the sibling's arm (c) is exercised solely by test file surgery."
+ },
+ {
+  "key": "g7.r1.scope",
+  "req": 1,
+  "field": "scope",
+  "verdict": "narrow",
+  "divergent_action": "Two lines, only one of which is scope's own. (1) Scope-unique: stamping the provenance on the fresh run's first ledger and keeping it \u2014 `self.ledger = build_ledger(read_log(working_dir), seeder_name=..., partner_name=..., max_responses=self.max_length, is_completed=..., status=\"created\")` (or `dataclasses.replace(ledger, status=\"created\")`) executed on the ledger built right after `append_response(build_seed_record(...))` and *not* re-derived afterwards. Nothing else in r1 or r2 mentions `\"created\"` at all. (2) Not scope's own: `if recorded.get(\"responses\") != ledger.responses or recorded.get(\"last_author\") != ledger.last_author: raise TurnLedgerDesyncError(...)` instead of `if recorded != ledger.sidecar_state(): ...` \u2014 that two-key comparison is already spelled out in r1.failure_behavior arms (b)/(c), so an agent who saw only failure_behavior writes it.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "No checkpoint file exists in curator today; the pre-existing `load_cache` reads `responses_0.jsonl` only. (I could not open the tree to quote it \u2014 file tools are disabled \u2014 but the ticket treats `turn_ledger.json` as new via `TURN_LEDGER_FILENAME` in r1.rule.) The read-only-ness of a loader is covered under inaction/obvious below rather than here."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Most of the fact is a prohibition: \"load_ledger ... writes nothing\" and \"no log line is ever truncated, ignored, re-ordered or rewritten to agree with the checkpoint\". The test grades those by `assert sorted(os.listdir(str(tmp_path))) == listing`, `assert open(path, \"rb\").read() == recorded`, `assert open(before, \"rb\").read() == log_bytes`, `assert authors(tmp_path) == [SEEDER, PARTNER, SEEDER]`. No engineer, informed or blind, writes a loader that rewrites the log to match a JSON file; every one of those four passes by nobody doing anything."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "\"The log is the authority in every direction\" is the standard WAL/checkpoint convention (SQLite WAL, Kafka offsets, any journal + snapshot design): the append-only log is truth, the snapshot is an advisory index rebuilt from it. Any model that is told to put a checkpoint beside a log defaults to this without being told."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The headline clause is verbatim in the visible ticket: `load_ledger(working_dir, *, ...)` \u2014 \"loads the ledger for a working directory and never writes to disk\". The ticket also supplies `LEDGER_STATUSES: tuple[str, ...] = (\"created\", \"adopted\", \"verified\")` and `build_ledger(..., status: str = \"verified\")`. The test's first assertion, `assert set(statuses) == {\"created\", \"adopted\", \"verified\"}`, and its writes-nothing assertion are both pure ticket text."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "\"None of its six lies reach the ledger\" cannot fail for anyone who built the open feature plus r1.rule: `build_ledger(records, ...)` receives only records, the ticket defines turns/next_speaker/interleave_faults/completed/completion_reason as log-derived, and r1.rule's `verify_sidecar(working_dir, ledger) -> TurnLedger` takes an already-built frozen ledger, so the only field it can possibly alter is `status`. `assert read_field(ledger, \"turns\") == 3` and its four neighbours are unfailable."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The obvious shape of `load_ledger` given r1.rule alone \u2014 `records = read_log(d); ledger = build_ledger(records, ...); return verify_sidecar(d, ledger)` \u2014 satisfies every assertion in this test except `read_field(processor.ledger, \"status\") == \"created\"`. An agent who saw r1.rule and r1.failure_behavior and never saw r1.scope passes ~14 of the 15 assertions."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Every state the fact names is constructed directly by the test: `write_log(tmp_path, THREE_LINES)` plus `put_sidecar(tmp_path, full_state(...))`."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "r1.rule's \"run() rewrites it immediately after the seed line and again after every appended response\" and scope's \"load_ledger writes nothing\" are consistent \u2014 different call sites. No sibling needs load_ledger to write."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": true,
+    "why": "Partly. For the truncate/re-order/rewrite clause there is no differentiating outcome: a correct and an incorrect implementation both leave `responses_0.jsonl` byte-identical, because neither contains code that would rewrite it. `assert open(before, \"rb\").read() == log_bytes` cannot distinguish the two."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The two status observables scope leans on are failure_behavior's. Scope asserts `read_field(adopted, \"status\") == \"adopted\"` for a log with no checkpoint; failure_behavior's test asserts the same thing on the same fixture \u2014 `# (a) absent...` / `assert read_field(load(tmp_path), \"status\") == \"adopted\"`. Likewise `\"verified\"` for an agreeing file is arm (b). A broken arm (a) fails both facts; that double-counts failure_behavior."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "Decompose the fact: \"writes nothing\" = ticket text; \"'adopted' or 'verified' after a load\" = failure_behavior arms (a)/(b); \"only two of the eight recorded keys are compared\" = failure_behavior's \"both 'responses' and 'last_author' equal the log-derived values\"; \"the log is the authority\" = entailed by build_ledger's signature. The only residue is \"'created' for a ledger built for a fresh run's first write\" \u2014 one clause, one assertion."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": true,
+    "why": "\"The log is the authority in every direction: no log line is ever truncated, ignored, re-ordered or rewritten\" \u2014 universal quantification over all directions and all time, checked at exactly one finite instant on a 3-line log."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, `tmp_path`, hand-written JSON, a fake `call_single_request`. `asyncio.run(processor.run(str(tmp_path)))` is all the harness needs."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`put_sidecar` authors the input the fact is about *reacting to*, which is the legitimate use. `Conversation(raise_on=(1,))` only chooses the moment of observation for the `\"created\"` check, not the trigger."
+   }
+  ],
+  "the_assertion": "`assert read_field(adopted, \"status\") == \"adopted\"` \u2014 the first status assertion, and the one every blind implementation dies on (a blind `load_ledger` returns `build_ledger`'s ticket-given default `\"verified\"`). Yes, it depends on other requirements: it is r1.failure_behavior arm (a) \u2014 \"The file is absent ... \u2192 status = 'adopted'\" \u2014 asserted byte-for-byte in that fact's own test on the same fixture, and it presupposes r1.rule's existence of `turn_ledger.json`. The only assertion that depends on r1.scope alone is `assert read_field(processor.ledger, \"status\") == \"created\"`.",
+  "blind_pass": null,
+  "correct_fail": "```python\n# processor.run(), a reading that takes \"the log is the authority in every\n# direction\" and \"load_ledger is read_log + build_ledger + verify_sidecar\"\n# literally: after every write to the log, the ledger is re-derived from the log.\nasync def run(self, working_dir: str):\n    ledger = self.load_cache(working_dir)\n    self.status_tracker.adopt_ledger(cached_responses=ledger.responses)\n    if not ledger.entries:\n        seed = build_seed_record(\n            seeder_name=self.seeder.name, seed_message=self.seed_message,\n            model_name=self.seeder.model_name, now=self.now_fn(),\n        )\n        await self.append_response(seed, working_dir)\n        write_sidecar(working_dir, build_ledger(  # the fresh run's first write\n            read_log(working_dir), seeder_name=..., partner_name=...,\n            max_responses=self.max_length, is_completed=..., status=\"created\",\n        ))\n        ledger = self.load_cache(working_dir)   # the log is the authority\n        self.ledger = ledger                    # -> status == \"verified\"\n    ...\n```\nThe fact says only that `\"created\"` is the status of \"a ledger built for a fresh run's first write\" \u2014 which this does \u2014 and that `\"adopted\"` or `\"verified\"` follow \"after a load\", which is exactly what the reload produces. Nothing in r1.scope, r1.rule or the ticket says the `\"created\"` stamp must survive onto `self.ledger`, or that a status is assigned once and never re-derived; the ticket only says \"the processor keeps the last ledger it built on `self.ledger`\", and under this reading the last one built is the reloaded, verified one. The test rejects it at `assert read_field(processor.ledger, \"status\") == \"created\"`. (The same implementation also fails r1.observability's `assert read_field(second.ledger, \"status\") == \"adopted\"`, since after the resumed run's append-and-rewrite the reload verifies \u2014 so the overshoot is systemic, not a one-line fluke.)",
+  "recommendation": "Narrow the fact to the one thing it uniquely owns \u2014 status provenance \u2014 and fix the two defects.\n\n1. Delete from r1.scope everything already owned elsewhere: \"writes nothing\" (verbatim in the visible ticket), \"only two of the eight recorded keys are compared on load\" (that is r1.failure_behavior's arms (b)/(c)), and \"no log line is ever truncated, ignored, re-ordered or rewritten\" (unfalsifiable by inaction; entailed by `build_ledger(records, ...)` + `verify_sidecar(working_dir, ledger) -> TurnLedger`).\n\n2. Restate it as: \"A ledger carries where it came from, stamped once and never re-derived: `\\\"created\\\"` on the ledger the processor builds for a fresh run's first sidecar write, `\\\"adopted\\\"` or `\\\"verified\\\"` on one produced by a load; `self.ledger` keeps that stamp for the life of the run even though the sidecar is rewritten after every append.\" The added clause \"stamped once and never re-derived\" is what closes the overshoot in section 6 \u2014 without it, a reload-after-every-append implementation is a legitimate reading that both this test and r1.observability reject.\n\n3. In the test, remove `assert read_field(adopted, \"status\") == \"adopted\"` for the no-checkpoint case \u2014 it is byte-identical to r1.failure_behavior's arm-(a) assertion on the same fixture, and it is what a blind agent dies on, which means scope currently borrows its discrimination from r1.rule/failure_behavior. Replace the decisive assertions with the two that only scope determines: (a) `processor.ledger.status == \"created\"` on the fresh run, and (b) that the stamp survives an append \u2014 run two turns and assert `processor.ledger.status == \"created\"` still, and on a resume-with-agreeing-checkpoint assert it stays `\"verified\"` after a further appended response rather than flipping.\n\n4. Keep the six-lie checkpoint case (`full_state(turns=99, next_speaker=\"nobody\", ...)` \u2192 still `\"verified\"`), but move it to r1.failure_behavior, whose arm (b)/(c) text is what it actually grades; that test today only ever writes self-consistent or one-key-off states, so it cannot catch a `recorded != ledger.sidecar_state()` full-dict comparer.\n\n5. Unrelated but blocking: verify that `test_open.py` \u2014 which the grading test imports `SIDECAR` from \u2014 is not visible to the agent. If it is, `turn_ledger.json` is named in open material and all of r1 is a coincidence fact, not just this one. I could not check; file tools are disabled in this session."
+ },
+ {
+  "key": "g7.r1.failure_behavior",
+  "req": 1,
+  "field": "failure_behavior",
+  "verdict": "retest",
+  "divergent_action": "In `verify_sidecar`, the third arm \u2014 raising instead of self-healing: `if recorded.get(\"version\") != TURN_LEDGER_VERSION: return dataclasses.replace(ledger, status=\"adopted\")` followed by `if recorded[\"responses\"] != ledger.responses or recorded[\"last_author\"] != ledger.last_author: raise TurnLedgerDesyncError(path, ledger.responses, recorded[\"responses\"], ledger.last_author, recorded[\"last_author\"])`, with that call reached from `load_ledger` (hence from `run()`) before the first `call_single_request`. An agent who never saw the clue writes no sidecar at all; an agent who saw the clue but read only its \"the log is the authority in every direction\" half writes `return dataclasses.replace(ledger, status=\"adopted\")` on mismatch and rewrites the file from the log \u2014 a stale checkpoint is silently repaired and the run continues. The `or` on `last_author` (not just `responses`) and the abort-before-append placement are the concrete divergences.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Nothing in the described repo writes a checkpoint beside `responses_0.jsonl`; the ticket itself calls turn_ledger.py a \"New module\" and the sidecar filename/version/exception appear nowhere in the open text. A blind agent has no `TurnLedgerDesyncError` symbol at all, so `desync = sym(\"TurnLedgerDesyncError\")` fails on the test's first line."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "Arm (a)'s \"no error raised\" clause is inaction-satisfied, but the graded observable is not: the test asserts `read_field(load(tmp_path), \"status\") == \"adopted\"`, which requires actively constructing a ledger carrying that status. Doing nothing yields no status field and fails."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "Scoped to arm (a)'s version branch: \"its `\"version\"` is not `TURN_LEDGER_VERSION` -> `status = \"adopted\"`, no error raised\" is the standard schema-migration convention (unknown version => treat as absent, rewrite). Any competent agent told there is a `TURN_LEDGER_VERSION: int = 2` (given in the sibling `rule`, same clue bundle) writes that branch from priors. `put_sidecar(tmp_path, {\"version\": 1, ...})` -> \"adopted\" therefore discriminates almost nothing beyond `rule`."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The open ticket already ships `LEDGER_STATUSES: tuple[str, ...] = (\"created\", \"adopted\", \"verified\")`, `build_ledger(..., status: str = \"verified\")`, and `load_ledger(...) -- loads the ledger for a working directory and never writes to disk`. Three status words that only make sense against something on disk, plus a gratuitous promise not to write to disk, telegraph that loading verifies against a persisted record. It does not give away the filename, version 2, the exception, or the message \u2014 so it is a discovery hint, not a pass \u2014 but it is why `test_scope`'s \"created\"/\"adopted\"/\"verified\" checks carry little weight."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open ticket's ledger is derivable from `read_log` alone: `responses == len(entries) - 1`, `next_speaker` from `last_author`. A fully correct implementation of the visible feature needs no checkpoint whatsoever, and certainly no abort-on-disagreement."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Scoped to arm (a)'s absent/unreadable branches, and only once the sibling `rule` is known: the obvious `read_sidecar(working_dir) -> t.Optional[dict]` is `try: return json.load(open(path)) except (OSError, json.JSONDecodeError): return None`, and the obvious caller does `if recorded is None: return replace(ledger, status=\"adopted\")`. That makes `write handle.write(\"{not json at all\")` -> \"adopted\" free. Two of arm (a)'s three triggers cost the agent no extra thought; only arm (c) is a real decision."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The desync state cannot arise from correct operation (r1.rule: the file is rewritten \"after EVERY appended response\"), but it is exactly the out-of-band corruption case, and the harness builds it directly: `(done / \"responses_0.jsonl\").write_text(\"\".join(lines[:3]))` and `put_sidecar(tmp_path, full_state(responses=1))`. Reachable and single-process."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "r1.rule's after-every-append rewrite guarantees the checkpoint agrees, which would make arm (c) dead \u2014 but the test does not rely on the implementation producing the mismatch; it hand-writes the file. No sibling precondition has to be false for this test to run."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Arm (c) has a sharp consequence: `assert conversation.calls == []` and `len(log_lines(tmp_path)) == 3` versus a self-healing implementation that appends a fourth line. Worth noting only that arm (b)'s \"verified\" is a pure label \u2014 nothing in the system reads `status` \u2014 so the (a)/(b) distinction is graded solely as a field value, not as behaviour."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "Two ways. (i) Arm (a) asserts \"the file is rewritten from the log on the next append\" \u2014 this test never checks that; its only observable is r1.rule's `test_rule__a_versioned_checkpoint_rewritten_after_every_appended_response`. (ii) The five DesyncError attributes are re-asserted verbatim by observability: `caught.value.log_responses == 2`, `.recorded_responses == 3`, `.log_last_author == SEEDER`, `.recorded_last_author == PARTNER`, plus `stale.calls == []` and `len(log_lines(done)) == 3` \u2014 the same abort-before-append observable this fact claims as its own."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "Cross-tabulating: absent->adopted is in `test_scope` (`adopted = load(tmp_path)`) and in observability (`sidecar.unlink()`); `{\"version\": 1, \"responses\": 2, \"last_author\": SEEDER}`->adopted is duplicated word-for-word as observability's last block; agreeing->verified is in `test_scope`; the five attributes and the zero-calls/3-lines abort are in observability. The only implementations that fail this test but pass its siblings are ones that (a) treat unreadable JSON as fatal, (b) compare `responses` only and not `last_author`, or (c) word the message differently. Most of this fact is one bit \u2014 \"did you build the sidecar?\" \u2014 reported a second time."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Every clause is a finite, single-call observation: \"raise ... before any request is issued and before anything is appended\", checked as `conversation.calls == []` immediately after `pytest.raises`."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "tmp_path, a hand-written JSON file, and a second in-process `processor` standing in for a restart. All state that matters is on disk, so the in-process proxy is honest."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger is the file the test writes (`put_sidecar(tmp_path, full_state(last_author=PARTNER))`) and the truncated log; `Conversation` only supplies replies and the `Boom`. The fake owns the reaction surface, not the disagreement being detected."
+   }
+  ],
+  "the_assertion": "`assert str(error) == (f\"{error.path} records 1 response(s) last authored by {SEEDER!r}, \" f\"the log holds 2 last authored by {SEEDER!r}\")` \u2014 the only assertion in this test that no sibling test also makes (with the near-unique `put_sidecar(tmp_path, full_state(last_author=PARTNER))` block that proves the comparison is an OR over both keys). Passing it depends on more than this requirement: the whole open-ticket module must import and work (`load_ledger`, `read_log`, `build_ledger`, `TurnLedger.status`), the shared `write_log`/`read_field`/`SIDECAR` harness must agree with the agent's filename, and \u2014 critically \u2014 it grades reproduction of an arbitrary English sentence, including the `\"response(s)\"` pluralization and the `!r` quoting, which is content that lives in the clue corpus rather than in the agent's engineering judgment.",
+  "blind_pass": null,
+  "correct_fail": "A clue-following agent that gets every graded behaviour right and still fails, on prose alone:\n\n```python\nclass TurnLedgerDesyncError(TurnLedgerError):\n    def __init__(self, path, log_responses, recorded_responses, log_last_author, recorded_last_author):\n        self.path = path\n        self.log_responses = log_responses\n        self.recorded_responses = recorded_responses\n        self.log_last_author = log_last_author\n        self.recorded_last_author = recorded_last_author\n        super().__init__(\n            f\"{path}: checkpoint records {recorded_responses} responses \"\n            f\"last authored by {recorded_last_author!r}, but the log holds \"\n            f\"{log_responses} last authored by {log_last_author!r}\"\n        )\n```\n\nRight class, right base, right five attribute names, right values, raised from `verify_sidecar` on the load path before any append. It fails `assert str(error) == ...` on a colon, the missing `\"(s)\"`, and the word \"but\". A second legitimate variant that fails the same assertion builds the message lazily in `__str__` from the attributes with the counts leading (`f\"log holds {log_responses} ... {path} records {recorded_responses}\"`) \u2014 a natural choice given the requirement's own emphasis that \"the log is the authority\".",
+  "recommendation": "Retest, with three concrete edits. (1) Replace the byte-exact prose check with a structural one unless you can point at a clue that quotes the f-string verbatim \u2014 I could not check the corpus (Bash disabled in this session), so verify it; if the literal message is not in the discoverable context, this assertion is a condition-3 false negative waiting to happen. Substitute: `msg = str(error); assert error.path in msg and \"1\" in msg and \"2\" in msg and repr(SEEDER) in msg` plus `assert isinstance(error, base)`. If the clue does quote it verbatim, keep the assertion and record that in the fact so the grader is defensible. (2) Delete the clause \"and the file is rewritten from the log on the next append\" from arm (a) of the fact text \u2014 it is graded only by r1.rule's after-every-append test, not here. (3) De-duplicate against observability: move the `{\"version\": 1, ...} -> \"adopted\"` block and the `stale.calls == []` / `len(log_lines(done)) == 3` abort-before-append block out of `test_observability` (leave it the byte counts, the literal file text, and the five attribute values, which is what its docstring already claims), and let this test own the three arms outright \u2014 including the currently-unique `last_author`-only mismatch, which is the assertion that actually proves the comparison is an OR over both compared keys. After those edits the fact measures something no sibling measures and stops grading English."
+ },
+ {
+  "key": "g7.r1.observability",
+  "req": 1,
+  "field": "observability",
+  "verdict": "narrow",
+  "divergent_action": "Inside `run()`, immediately after `await self.append_response(seed_record, working_dir)` and before the first `call_single_request`, a call to `write_sidecar(working_dir, ledger)` whose body is `handle.write(json.dumps(ledger.sidecar_state(), indent=2, sort_keys=True) + \"\\n\")` \u2014 i.e. an eager, byte-exact rewrite of `turn_ledger.json` at seed time. Caveat that decides this audit: the *file* is r1.rule's divergent action (the informed agent writes a sidecar at all, the blind one writes none); the increment this field adds over rule is only the spelling `sort_keys=True` plus the trailing `\"\\n\"`, and that spelling is handed to the agent verbatim by rule's own sentence \"serialized as `json.dumps(ledger.sidecar_state(), indent=2, sort_keys=True) + \"\\n\"`\". So the divergent action for `observability` alone is not separable from rule's.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Nothing in the stock repo writes `turn_ledger.json`; the visible ticket's `load_cache`/`load_ledger` produce a TurnLedger from `responses_0.jsonl` only and `load_ledger` is specified to 'never write to disk'. No existing path produces a 186-byte checkpoint."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "Every clause here demands an affirmative artifact \u2014 a file that 'already exists at that moment', 186 bytes, with specific content. Inaction produces `assert path.exists(), \"the seed line was not checkpointed before the first request\"` failing."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "The filename, the eight keys and version 2 are invented for this task. Worth noting for the narrowing though: `indent=2, sort_keys=True` + trailing newline is a widespread convention, so once an agent has decided to write a JSON checkpoint at all, the exact 186 bytes are close to a coin-flip-free default \u2014 the byte count adds little discrimination beyond 'a sidecar exists'."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "Partially, and precisely on this fact's last two clauses. The open ticket already contains `LEDGER_STATUSES: tuple[str, ...] = (\"created\", \"adopted\", \"verified\")` and `build_ledger(..., status: str = \"verified\")`, and says `load_ledger` 'loads the ledger for a working directory and never writes to disk'. A blind agent choosing `\"adopted\"` for a ledger loaded off disk is an unremarkable guess, so `read_field(load(older), \"status\") == \"adopted\"` and `read_field(second.ledger, \"status\") == \"adopted\"` carry no hidden-requirement signal of their own."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The visible ticket derives resume state from the log alone; a fully correct implementation of the open feature writes no second file. The checkpoint is genuinely extra \u2014 that is r1's strength, and it belongs to `rule`."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The blind-obvious implementation writes `responses_0.jsonl` and nothing else, so `path.stat().st_size == 186` fails on `os.path.exists`. (Conditioned on r1.rule, however, the obvious implementation of rule's stated formula does produce 186 automatically \u2014 see catalog_b `no_independent_content`.)"
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Every state is reachable in-process: `Conversation(raise_on=(1,))` in a fresh dir gives the seed-only checkpoint, a 3-reply run with a `STOP` sentinel gives the completed one, and truncating `responses_0.jsonl` by hand gives the stale one."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No direct contradiction with this fact. Adjacent tension worth flagging to the author: `scope` demands `processor.ledger.status == \"created\"` for a fresh run, while `failure_behavior` arm (a) says an absent file yields `\"adopted\"` \u2014 for an empty working dir both apply at once, so the implementer must special-case the empty log. `observability` asserts no status in its fresh-run block, so it escapes."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Both outcomes differ observably: with the stale checkpoint the run raises and appends nothing (`stale.calls == []`, log stays 3 lines); without it the run resumes and appends a 4th line. Real, opposite end states."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "Two of this fact's three blocks are `failure_behavior`'s channel. Its desync block asserts `caught.value.log_responses == 2`, `.recorded_responses == 3`, `.log_last_author`, `.recorded_last_author`, `stale.calls == []`, `len(log_lines(done)) == 3` \u2014 `failure_behavior`'s test asserts the same five attributes and the same `conversation.calls == []` / `len(log_lines(tmp_path)) == 3`. Its final block, `put_sidecar(older, {\"version\": 1, \"responses\": 2, \"last_author\": SEEDER}); assert read_field(load(older), \"status\") == \"adopted\"`, is character-for-character `failure_behavior` arm (a). The docstring's claim that '`failure_behavior` never reads a byte count, and `observability` is the only one that spells the file out literally' is true only of the first block."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "After removing what rule/scope/failure_behavior already assert, the residue is the literals 186 and 189 \u2014 and both are a mechanical evaluation of the formula `rule` itself states: 'serialized as `json.dumps(ledger.sidecar_state(), indent=2, sort_keys=True) + \"\\n\"`'. `rule`'s test already asserts all eight keys and all eight mid-run values on the same `raise_on` fixture; this fact re-asserts them with a ruler. There is no implementation that satisfies `rule` and fails the 186-byte check, and none that fails `rule` and passes it."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "The unbounded phrasing ('never batched to the end of the run') sits in `rule`. This fact is anchored to finite moments: 'already exists at that moment', 'After a completed 4-line run'."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, `tmp_path`, `asyncio.run`, a fake `call_single_request`. No restart, no second interpreter, no network."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`Conversation(raise_on=(1,))` decides when the run stops, but the graded thing is when *the implementation* writes the file relative to the first request. The fake is a probe that freezes the clock, not the author of the answer."
+   }
+  ],
+  "the_assertion": "`assert path.read_text() == (\"{\\n\" '  \\\"completed\\\": false,\\n' '  \\\"completion_reason\\\": \\\"open\\\",\\n' '  \\\"interleave_faults\\\": 0,\\n' '  \\\"last_author\\\": \\\"client\\\",\\n' '  \\\"next_speaker\\\": \\\"advisor\\\",\\n' '  \\\"responses\\\": 0,\\n' '  \\\"turns\\\": 1,\\n' '  \\\"version\\\": 2\\n' \"}\\n\")` (with `assert path.stat().st_size == 186` as its redundant restatement). Yes, it depends on things other than this fact: on r1.rule's serialization formula and eight-key `sidecar_state()`, on r1.rule's \"rewrite immediately after the seed line\", on the open ticket's \"the seed is written before the first request is built\", and on the harness fixture's agent names \u2014 `\"client\"`/`\"advisor\"` are what make the total 186 rather than any other number.",
+  "blind_pass": null,
+  "correct_fail": "A ticket+clue-informed implementation that treats \"the log is the authority\" and \"the processor keeps the last ledger it built\" literally, rebuilding after each append:\n\n```python\nasync def _append(self, working_dir, response):\n    await self.append_response(response, working_dir)          # reused verbatim\n    write_sidecar(working_dir, self.ledger)                    # rule: after EVERY append\n    # the log is the authority in every direction -- re-derive, never patch in place\n    self.ledger = load_ledger(\n        working_dir,\n        seeder_name=self.seeder.name,\n        partner_name=self.partner.name,\n        max_responses=self.max_length,\n        is_completed=self.seeder.is_completed,\n    )\n    self.conversation_history = self.ledger.messages()\n    return self.ledger\n```\n\nThis satisfies rule (a rewrite after every append), scope (load_ledger writes nothing; the log outranks the file) and failure_behavior (verify_sidecar's three arms) \u2014 but the checkpoint it just wrote now agrees with the log, so the re-derived ledger carries `status == \"verified\"`. The test's `assert read_field(second.ledger, \"status\") == \"adopted\"` rejects it. Nothing in r1 says `status` is sticky for the lifetime of a `run()`; \"adopted\" is stated as what the *load* yields, and this implementation's last load is post-append.",
+  "recommendation": "Narrow the fact and the test to the one thing only it can see \u2014 the literal bytes \u2014 and delete the parts that re-measure siblings. Concretely:\n\n1. Cut from the fact text and from `test_observability__...` the truncated-log desync block (`caught.value.log_responses == 2` \u2026 `len(log_lines(done)) == 3`): it re-asserts `failure_behavior` arm (c)'s five attributes and its \"nothing asked, nothing appended\" on a second fixture.\n2. Cut the final block entirely \u2014 `put_sidecar(older, {\"version\": 1, \"responses\": 2, \"last_author\": SEEDER})` \u2026 `== \"adopted\"` is verbatim `failure_behavior` arm (a), same helper, same `THREE_LINES` log.\n3. Replace `assert read_field(second.ledger, \"status\") == \"adopted\"` with status-free evidence of the same resume \u2014 keep `assert resumed.calls == [(PARTNER, 2)]` and `assert len(log_lines(done)) == 4` \u2014 or, if the author wants the status asserted, first fix r1's text to say whether `status` is fixed at load time or re-derived after each append. As written it rejects the re-derive reading (see correct_fail).\n4. Give the fact content the siblings genuinely lack, in place of the deleted blocks: (a) assert the end-of-run file's exact 10-line text rather than only `st_size == 189` plus a `read_sidecar` dict \u2014 `rule` already covers dict equality, so the literal end-of-run spelling is new; and (b) assert the rewrite truncates rather than appends, e.g. after the 4-line run `open(sidecar).read().count(\"\\\"version\\\"\") == 1` and `path.stat().st_size == 189` \u2014 an implementation opening with mode `\"a\"` is the one realistic wrong-but-plausible variant that only a byte-level check catches.\n\nWith 1\u20134 the fact stops double-counting `failure_behavior` and stops overshooting on `status`, but it still measures a formula `rule` spells out. If the author wants a fact that discriminates on its own, this field is the weakest of r1's four and folding it into `rule` (one byte-exact assertion inside `rule`'s test) costs almost nothing."
+ },
+ {
+  "key": "g7.r2.rule",
+  "req": 2,
+  "field": "rule",
+  "verdict": "narrow",
+  "divergent_action": "Writing the exact literal on the constant: `COMPLETION_SENTINEL: str = \"<<END_OF_CONVERSATION>>\"` in `turn_ledger.py` \u2014 the double-angle-bracket delimiters plus that exact uppercase phrase \u2014 instead of an invented token (`\"TERMINATE\"`, `\"<END_OF_CONVERSATION>\"`, `\"[[DONE]]\"`, `\"<<END>>\"`, `\"CONVERSATION_COMPLETE\"`, `\"<|end_of_conversation|>\"`). Nothing else in this fact diverges: the body `return isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)` is what an agent writes from the ticket alone, because the ticket names the constant and orders `is_completed` to be implemented \"in terms of COMPLETION_SENTINEL\".",
+  "the_assertion": "`assert sym(\"COMPLETION_SENTINEL\") == SENTINEL` \u2014 the other three lines in `test_rule__...` (`is_completed(f\"all set {SENTINEL}\") is True`, `is_completed(SENTINEL) is True`, `is_completed(\"all set\") is False`) all pass for any implementation that has the right literal, including wrong readings like `SENTINEL in response`, so they decide nothing. Dependency: it also requires the open feature's module `turn_ledger.py` to exist and import cleanly (that is where the ticket places the constant), so an agent who botched requirement A fails this line for a reason unrelated to r2. Beyond that coupling it is decided by this requirement alone.",
+  "blind_pass": "\"\"\"agent/turn_ledger.py \u2014 ticket only, no clue seen.\n\nThe ticket says the constant exists and that `Agent.is_completed` must be\n\"a real default implementation in terms of COMPLETION_SENTINEL\", so I pick a\ntoken an LLM will not emit by accident and match it as a suffix.\n\"\"\"\nCOMPLETION_SENTINEL: str = \"<<END_OF_CONVERSATION>>\"\n\n# agent/agent.py\ndef is_completed(self, response: t.Any) -> bool:\n    \"\"\"True when the agent signalled the end of the conversation.\"\"\"\n    return isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)\n\n# This is a plausible blind draw, not a contrived one. The module docstring is\n# \"The durable record of a multi-turn agent conversation.\", the sibling reason\n# is \"agent_signal\", and `<<SHOUTING_SNAKE>>` is the house style for prompt\n# sentinels; \"END_OF_CONVERSATION\" is close to the highest-prior phrase for it.\n# The rstrip().endswith() body is AutoGen's documented default termination check\n# with the token swapped, so it costs the blind agent nothing.",
+  "correct_fail": null,
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket states `Agent.is_completed(self, response)` \"currently returns False unconditionally, which makes the processor's stop-condition path dead code\", so nothing in the checkout matches the token. CAVEAT: Bash and all file/search tools were disabled this session, so I could not grep the repo, docs, examples or the world corpus for `<<END_OF_CONVERSATION>>`. If that literal appears anywhere outside the clue, this pattern flips to true and the fact is dead."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The rule is a positive obligation \u2014 define a constant to an exact value and return True on a suffix match. Doing nothing yields the current `return False`, which fails `assert agent.is_completed(f\"all set {SENTINEL}\") is True` and `sym(\"COMPLETION_SENTINEL\")` (NameError/AttributeError)."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "Two layers. (a) The matching idiom is a published convention: AutoGen's documented default is `is_termination_msg=lambda x: x.get(\"content\",\"\").rstrip().endswith(\"TERMINATE\")` \u2014 the rule's `response.rstrip().endswith(COMPLETION_SENTINEL)` is that line verbatim with the token swapped, so models reproduce it from priors. (b) The token itself is drawn from a small, high-prior set: `<<UPPER_SNAKE>>` is the standard prompt-sentinel style and END_OF_CONVERSATION is close to the most obvious phrase for a module docstringed \"The durable record of a multi-turn agent conversation.\" This is the crux: one blind sample cannot bound a several-percent exact-match rate."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "For the behavioural half, fully. The ticket lists `COMPLETION_SENTINEL: str` as a module constant, lists `COMPLETION_REASONS = (\"open\", \"budget\", \"agent_signal\")`, and says \"Give it a real default implementation in terms of COMPLETION_SENTINEL.\" A word meaning *sentinel* plus \"in terms of\" leaves only \"compare the reply against it\". The ticket withholds only the literal string."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "Again the behavioural half only. Ledger semantics fix `completion_reason == \"agent_signal\"` off `is_completed` on the last entry's content, and the ticket forbids the current dead `return False`; given any constant named COMPLETION_SENTINEL there is no second sane design for the base method. The literal value is not entailed by anything in A."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "`isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)` is the one-liner normal engineering instinct produces \u2014 it simultaneously satisfies rule's body, scope's whitespace/suffix/case discipline and failure_behavior's non-str guard, with no intent. Only the string is a real choice."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The state is a plain function call on a stock object: `an_agent()` builds `Agent(name=\"client\", model_name=\"gpt-4o-mini\", backend=\"litellm\", system_prompt=...)` offline and calls `is_completed` directly. Reachable and cheap."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling needs the suffix match to be absent. `failure_behavior` needs a non-`str` input to return False, which is orthogonal to the literal; `observability` needs the match to fire, which the rule guarantees rather than blocks."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Violating it changes an observable end state: `observability` shows the run stopping after the third reply with 4 log lines, `num_responses == 3` and `completion_reason == \"agent_signal\"`; a wrong token runs to the `max_length = 6` budget instead. The consequence is real (though it is the sibling's observable, not rule's)."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "Rule owns `assert sym(\"COMPLETION_SENTINEL\") == SENTINEL`, which no sibling asserts. Worth recording that the dependency runs the other way: all three siblings open with `require_feature(agent.is_completed(f\"all set {SENTINEL}\") is True, ...)`, i.e. they gate on rule's literal. That threatens the siblings' independence, not rule's. Rule does lean on requirement A insofar as `sym` must import `turn_ledger`."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "`rule` as written = literal + scope + failure_behavior. Its clause `response.rstrip().endswith(...)` is precisely scope's \"suffix-only, and insensitive to trailing whitespace\", and its clause `isinstance(response, str)` is precisely failure_behavior's \"A non-`str` response_message ... returns False rather than raising\". Strip the two restatements and the unique residue is a single token value."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"returns True iff ...\" is a total function over a finite set of inputs the test enumerates; there is no \"always\"/\"never\"/\"eventually\" clause and no waiting."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, no network \u2014 the test note is explicit: `backend=\"litellm\"` only so that construction stays offline, since the openai backend probes the provider inside its constructor. tmp_path is accepted but unused by the rule test."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "Rule's test uses no fake at all. And in the sibling that does run a conversation the real trigger is injected, not authored: `Conversation(replies=[...], is_completed=probe.is_completed)` passes the agent's own method, so the fake supplies only the reply text (the reaction), not the match decision."
+   }
+  ],
+  "recommendation": "Narrow the fact, then re-run blind with instrumentation.\n\n1. Rewrite `r2.rule` to its unique residue only: \"`COMPLETION_SENTINEL` is exactly the string `\\\"<<END_OF_CONVERSATION>>\\\"`.\" Delete the `isinstance(response, str) and response.rstrip().endswith(...)` clause from the rule field \u2014 `scope` already owns suffix-only/case-sensitive/whitespace-blind, `failure_behavior` already owns the non-`str` guard, and that clause is handed over by the ticket's own \"a real default implementation in terms of COMPLETION_SENTINEL\" plus AutoGen's published `rstrip().endswith()` idiom. As written the fact takes credit for behaviour it does not gate.\n\n2. No change needed to `test_rule__the_sentinel_is_the_end_of_conversation_token` \u2014 `assert sym(\\\"COMPLETION_SENTINEL\\\") == SENTINEL` is already the only line that decides it, and the three behavioural asserts are harmless (they pass under any reading that has the literal). Keep them as smoke.\n\n3. Fix the real risk, which the narrowing exposes: discrimination now rests entirely on guessing one token from a small high-prior set. Re-run the blind condition at least 5 times and log the *value* each run assigns to `COMPLETION_SENTINEL`, not just pass/fail. If any run lands on `<<END_OF_CONVERSATION>>`, re-plant the token in the world corpus and in the tests as something no prior emits (e.g. `<<END_OF_CONVERSATION::v2>>` or a project-flavoured spelling) \u2014 the clue can name any string at zero cost, so there is no reason to bet the fact on the most guessable one.\n\n4. Close the check I could not run (Bash/file tools disabled this session): grep the repo, docs, examples and the whole world corpus for `<<END_OF_CONVERSATION>>` and confirm the clue is its only occurrence. If it appears in any ticket-visible or ambient-context file, cut the fact instead of narrowing it."
+ },
+ {
+  "key": "g7.r2.scope",
+  "req": 2,
+  "field": "scope",
+  "verdict": "cut",
+  "divergent_action": "Inserting `.rstrip()` before the suffix test, and choosing a suffix test at all: `return isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)` instead of either `response.endswith(COMPLETION_SENTINEL)` (no strip) or `COMPLETION_SENTINEL in response` (containment). That is a nameable difference, so this is not a pure coincidence fact \u2014 but it is not a *reliable* one: the two variants that fail are no more likely, blind, than the variant that passes, and the case-sensitivity and \"all set\" clauses of the fact contribute no divergence whatsoever.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The ticket states `Agent.is_completed(self, response: t.Any) -> bool` \"currently returns `False` unconditionally\". An untouched checkout returns False for `f\"all set {SENTINEL}\"` and trips the require_feature gate, so nothing is inherited for free from the existing code."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Two of the fact's three clauses are Python defaults you must take deliberate extra action to violate. `str.endswith` is case-sensitive, so `assert agent.is_completed(\"all set <<end_of_conversation>>\") is False` passes unless the agent went out of its way to write `.lower()` or `re.IGNORECASE`. Likewise `endswith` is anchored, so \"suffix-only\" is satisfied by simply not reaching for `in`. The fact's wording \u2014 \"case-sensitive and suffix-only\" \u2014 is a description of doing nothing special."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "\"Strip the model's output before matching a terminator\" is a well-worn idiom, not a hidden fact: provider replies routinely carry trailing `\\n`, and `.strip().endswith(marker)` is the standard shape. The whitespace-tolerance clause \u2014 the only clause with real content \u2014 is exactly the piece prior habit supplies."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The ticket says: \"Give it a real default implementation in terms of `COMPLETION_SENTINEL`\", and the constant is named a *sentinel* for *completion*. A sentinel that marks the end of a reply implies a terminal/suffix check; that hands over the \"suffix-only\" clause (and with it the `\"<<END_OF_CONVERSATION>> but wait\" is False` assertion) before any clue is read. It does not hand over `rstrip()`."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature only demands \"a real default implementation\"; `COMPLETION_SENTINEL in response` would satisfy the ticket end to end (the processor's stop path would still stop). So the matching discipline is not strictly entailed."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "This is the headline finding. The single most natural expression for \"a sentinel that terminates a reply\" is `isinstance(response, str) and response.strip().endswith(COMPLETION_SENTINEL)`, and it satisfies all five scope assertions. `.strip()` and the specified `.rstrip()` are indistinguishable under `endswith` \u2014 leading whitespace cannot change a suffix \u2014 so the test cannot tell the clue-reader from the engineer who stripped out of habit."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Every probe is a direct call on a stock `Agent(name=\"client\", backend=\"litellm\", system_prompt=...)`; nothing about the state is unreachable."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The siblings are consistent. `failure_behavior`'s non-str guard (`isinstance(response, str) and ...`) is a strict prefix of the same expression and does not make scope's string cases unreachable, nor vice versa."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Matching discipline changes when a conversation stops, and `observability` demonstrates that consequence end to end. Note though that the scope test itself never runs a conversation \u2014 the test docstring concedes \"neither runs a conversation; `observability` is the only one that does\" \u2014 so the consequence is graded elsewhere."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "Every scope assertion sits behind `require_feature(agent.is_completed(f\"all set {SENTINEL}\") is True, \"Agent.is_completed's default sentinel match\")`, which is verbatim r2.rule's assertion and turns on the *value* of `COMPLETION_SENTINEL` \u2014 rule's content, not scope's. The probes are also built from the test file's own `SENTINEL = \"<<END_OF_CONVERSATION>>\"` literal rather than from the agent's constant. So an agent with perfect rstrip/endswith discipline that guessed `\"TERMINATE\"` or `\"<<DONE>>\"` is graded on rule's token. I could not open harness.py to confirm whether require_feature skips or fails; if it fails, the bracket's \"blind fails r2.scope\" result is very likely measuring the token guess and not the matching discipline. Additionally `assert agent.is_completed(\"all set\") is False` is lifted verbatim from test_rule."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "r2.rule already publishes the exact expression: \"returns `True` iff `response` is a `str` whose right-stripped form ends with it (`isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)`)\". Case-sensitivity, suffix anchoring and trailing-whitespace tolerance are all just properties of that one expression restated as prose. An agent holding rule has no scope decision left to make; scope is rule's docstring."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "All five probes are single synchronous calls with exact `is True` / `is False` results. No temporal quantifier."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "`an_agent()` constructs offline with `backend=\"litellm\"` precisely so no provider is probed; the harness builds this trivially."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The scope test uses no fake at all \u2014 no `Conversation`, no stub `call_single_request`. The trigger strings are literals in the test body."
+   }
+  ],
+  "the_assertion": "`assert agent.is_completed(f\"all set {SENTINEL}  \\n\") is True` \u2014 the only assertion whose outcome is not already handed over by Python's `endswith` defaults, by the word \"sentinel\" in the ticket, or by a line copied out of `test_rule`. (`assert agent.is_completed(f\"{SENTINEL} but wait\") is False` is the secondary one, catching containment.) Yes, it depends on more than this requirement: it is gated on `require_feature(agent.is_completed(f\"all set {SENTINEL}\") is True, ...)` and built from the test's hardcoded `SENTINEL` literal, so it cannot be reached at all unless the agent got r2.rule's exact token string right.",
+  "blind_pass": "```python\n# src/bespokelabs/curator/agent/agent.py  \u2014 ticket only, no clues\ndef is_completed(self, response: t.Any) -> bool:\n    \"\"\"True once the agent has signalled the end of the conversation.\"\"\"\n    if not isinstance(response, str):\n        return False\n    return response.strip().endswith(COMPLETION_SENTINEL)\n```\nWritten by an engineer who read only \"Give it a real default implementation in terms of `COMPLETION_SENTINEL`\": a *sentinel* for *completion* marks the end of a reply, so `endswith`; and provider replies carry trailing newlines, so `.strip()` first. This passes all five scope assertions. `.strip()` and the specified `.rstrip()` are behaviourally identical under `endswith`. The remaining barrier is guessing `COMPLETION_SENTINEL = \"<<END_OF_CONVERSATION>>\"` to clear the require_feature gate \u2014 but that is r2.rule's content, not this fact's, which is precisely the confound.",
+  "correct_fail": "I could not write a convincing one; the test does not overshoot. The nearest candidate is an agent reading \"insensitive to trailing whitespace\" against the fact's own examples (`\"all set <<END_OF_CONVERSATION>>  \\n\"`, spaces and newline only) and writing `response.rstrip(\" \\n\").endswith(COMPLETION_SENTINEL)`, which the test rejects via its extra `assert agent.is_completed(f\"all set {SENTINEL}\\t\") is True`. I regard that as strained rather than legitimate \u2014 bare `.rstrip()` is the obvious idiom and the fact says \"whitespace\", not \"spaces and newlines\" \u2014 so I am not counting it as a real overshoot. The flaw here is on the discrimination side, not the fairness side.",
+  "recommendation": "Cut r2.scope as a separately graded fact and fold its two live assertions into `test_rule`, which is where they belong: r2.rule already specifies the exact expression `isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)`, so `is_completed(f\"all set {SENTINEL}  \\n\") is True` and `is_completed(f\"{SENTINEL} but wait\") is False` are just rule's test written properly. Drop `is_completed(\"all set <<end_of_conversation>>\") is False` (satisfied by inaction \u2014 `endswith` is case-sensitive) and `is_completed(\"all set\") is False` (already asserted verbatim in `test_rule`).\n\nIf you keep the fact instead of cutting it, the minimum repair is to decouple it from its sibling: build the probes from the agent's own constant, `s = sym(\"COMPLETION_SENTINEL\")`, and gate on `require_feature(agent.is_completed(f\"all set {s}\") is True, ...)` rather than on the hardcoded `SENTINEL` literal, so scope grades matching discipline independently of whether the agent guessed the token. Also confirm whether `require_feature` skips or fails \u2014 if it fails, re-run the blind bracket after the repair, because the current \"blind fails\" signal is probably the token guess. Be aware that the repair fixes the confound but not the coincidence: `.strip().endswith(COMPLETION_SENTINEL)` still passes blind, which is why my verdict is cut rather than retest."
+ },
+ {
+  "key": "g7.r2.failure_behavior",
+  "req": 2,
+  "field": "failure_behavior",
+  "verdict": "cut",
+  "divergent_action": "None that belongs to this fact. The only code an informed agent writes that a blind one does not is `COMPLETION_SENTINEL: str = \"<<END_OF_CONVERSATION>>\"` \u2014 and that is r2.rule's content, which this test re-runs as a `require_feature` gate. The residue this fact owns is the type guard, i.e. the `isinstance(response, str) and` prefix (or `str(response)`, or `try/except AttributeError`) in `return isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)`. That guard is written by an agent who read nothing but the ticket's own signature `is_completed(self, response: t.Any) -> bool`, so it is not a divergent action; it is the default response to an `Any`-typed parameter.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": true,
+    "why": "The ticket states the starting point openly: \"Agent.is_completed(self, response: t.Any) -> bool currently returns False unconditionally\". So the checkout as shipped already satisfies every literal assertion of this fact \u2014 `is_completed({\"text\": SENTINEL}) is False`, `is_completed(None) is False`, no AttributeError, no TypeError. The test's own comment admits it: \"An untouched Agent returns False for everything, so this constraint only means something once the sentinel match exists at all.\" The fact is inherited for free by not touching the path; only failing a *different* fact (r2.rule) can make it fail."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The fact is phrased as a prohibition \u2014 \"with no `AttributeError` or `TypeError` escaping\". Not raising requires no deliberate work; it is the state of the method today and the state of every implementation that spells the match with `isinstance(...)` or `str(...)`. Deliberate extra work is required to *violate* it (dropping the guard on an `Any`-annotated parameter)."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "\"Guard an `Any`-typed parameter with `isinstance` before calling a str method\" is ordinary defensive-Python instinct, not a hidden convention. It is also the local house idiom the ticket itself publishes for the same value: TurnEntry's `content` is \"`response_message` coerced with `str()` when it is not already a `str`\". An agent mirroring the surrounding code reaches the same behaviour from priors."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The ticket prints the exact signature \u2014 `Agent.is_completed(self, response: t.Any) -> bool` \u2014 which announces both halves of this fact: non-`str` inputs are in-domain (`t.Any`) and the answer is a `bool`, never an exception (`-> bool`). Everything this fact adds beyond the ticket is the sentinel string, which is r2.rule."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "Not strictly entailed: `return response.rstrip().endswith(COMPLETION_SENTINEL)` implements the open feature and raises AttributeError on `None`. So a passing-rule/passing-scope implementation that fails this fact does exist. This is the one pattern that does not apply \u2014 but it is a narrow escape, since that unguarded spelling is the less natural of the two against `t.Any`."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "Both of the two most natural spellings pass all four assertions. `isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)` passes by construction. `str(response).rstrip().endswith(COMPLETION_SENTINEL)` also passes: `str(None)` is `'None'`, `str({\"text\": \"<<END_OF_CONVERSATION>>\"})` ends with `'}`, `str([SENTINEL])` ends with `']`, `str(42)` is `'42'` \u2014 four Falses and no exception. The test cannot distinguish \"read the clue\" from \"wrote normal code\"; it can only distinguish \"knew the sentinel string\"."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": true,
+    "why": "In the product, `is_completed` is reached only through `build_ledger`, which per the ticket checks \"the **last** entry's author's `is_completed` ... for its content\" \u2014 and `TurnEntry.content` is `response_message` \"coerced with `str()` when it is not already a `str`\". A dict or `None` therefore cannot reach `is_completed` on any live path; the ledger has already coerced it. The test reaches the state only by constructing a bare `Agent` and calling the method directly."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling's precondition is broken by this fact. r2.observability's run passes a plain `str` reply and is unaffected by the guard."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": true,
+    "why": "Because of the coercion above, an implementation that raises `AttributeError` on a dict and one that returns `False` produce identical end-to-end behaviour in every scenario the task describes \u2014 including r2.observability's 3-call run and r1's sidecar runs. There is no differentiating outcome anywhere except a direct unit call on the method. Violating this fact costs the system nothing."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The only channel that makes these assertions non-trivial is `require_feature(agent.is_completed(f\"all set {SENTINEL}\") is True, \"Agent.is_completed's default sentinel match\")` \u2014 verbatim the assertion of r2.rule (`test_rule__the_sentinel_is_the_end_of_conversation_token`) and the same gate r2.scope and r2.observability use. This fact is graded through r2.rule's observable; blind failure here is r2.rule failing, not this fact failing."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "Subtract r2.rule and nothing measurable is left: r2.rule already spells the implementation in full \u2014 \"`isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)`\". The `isinstance` guard that this fact is about is a clause of the sibling's own stated rule. There is no way to fail this fact without either failing r2.rule (gate) or having deliberately dropped a clause r2.rule already dictates."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "All four assertions are finite, synchronous, single-call. No \"always\"/\"never\"/\"forever\" phrasing that a test cannot bound."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "`Agent(name=..., backend=\"litellm\", ...)` constructs offline, as the test's docstring explains; no network, no second process."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "No fake is involved in this fact's test \u2014 the four inputs are literals passed straight to the method. (r2.observability's `Conversation` fake does author the trigger for *that* fact, but that is a separate finding.)"
+   }
+  ],
+  "the_assertion": "`assert agent.is_completed({\\\"text\\\": SENTINEL}) is False` (with `assert agent.is_completed(None) is False` as its twin). Passing or failing it depends on much more than this requirement: it is preceded by `require_feature(agent.is_completed(f\\\"all set {SENTINEL}\\\") is True, ...)`, so the test cannot even be entered unless r2.rule's hidden sentinel string is already correct \u2014 and once it is, the assertion is satisfied by the guard clause that r2.rule's own stated implementation (`isinstance(response, str) and ...`) already contains. It is also satisfied by the untouched checkout, whose `is_completed` returns `False` unconditionally.",
+  "blind_pass": "def is_completed(self, response: t.Any) -> bool:\\n    \\\"\\\"\\\"True when the agent's reply ends with the completion sentinel.\\\"\\\"\\\"\\n    return str(response).rstrip().endswith(COMPLETION_SENTINEL)\\n\\n# and the even more common spelling:\\ndef is_completed(self, response: t.Any) -> bool:\\n    return isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)\\n\\n# Written by an engineer who saw only the ticket line \\\"Give it a real default\\n# implementation in terms of COMPLETION_SENTINEL\\\", the signature `response: t.Any`,\\n# and the ticket's own coercion idiom for TurnEntry.content. Neither author ever\\n# considered a structured-output dict. Both pass all four assertions:\\n#   str(None) -> 'None'; str({'text': S}) -> \\\"{'text': '<<END_OF_CONVERSATION>>'}\\\";\\n#   str([S]) -> \\\"['<<END_OF_CONVERSATION>>']\\\"; str(42) -> '42'  -> four Falses, no raise.\\n# Conditional on knowing the sentinel (r2.rule's content, supplied by r2.rule's clue),\\n# this fact adds zero discriminating power. The bracket's blind sample failed the\\n# require_feature gate, not this fact.",
+  "correct_fail": "def is_completed(self, response: t.Any) -> bool:\\n    \\\"\\\"\\\"True when the reply ends with the sentinel; structured replies are unwrapped.\\\"\\\"\\\"\\n    if isinstance(response, dict):\\n        response = response.get(\\\"text\\\") or response.get(\\\"content\\\") or \\\"\\\"\\n    return isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)\\n\\n# This satisfies the fact as *stated in prose* -- \\\"returns False rather than raising ...\\n# with no AttributeError or TypeError escaping\\\": nothing escapes, ever. It is a\\n# legitimate reading of \\\"the structured-output `dict`\\\": the fact singles out a dict\\n# carrying the sentinel under a \\\"text\\\" key, which reads as an invitation to look inside\\n# rather than to ignore it -- and a partner agent that genuinely signalled completion\\n# through structured output arguably *should* stop the conversation. The test rejects it\\n# on `assert agent.is_completed({\\\"text\\\": SENTINEL}) is False`. An agent working from a\\n# clue rather than from this fact's exact wording lands here easily.",
+  "recommendation": "Cut `r2.failure_behavior`. It fails four Catalog A patterns and four Catalog B patterns, and the test's own comment concedes the problem (\"An untouched Agent returns False for everything, so this constraint only means something once the sentinel match exists at all\"). The untouched checkout passes it; the obvious implementation passes it; violating it changes no observable in any run the task describes, because the ticket already mandates that `TurnEntry.content` is `str()`-coerced before `is_completed` ever sees it. Its apparent discrimination in the free bracket is r2.rule's discrimination, re-measured through r2.rule's own `require_feature` gate. Keep `test_failure_behavior__...` in the file as a regression guard if you like, but stop scoring it as a distinct hidden fact.\n\nIf you want r2 to keep a failure-behavior fact, it must be made consequential rather than narrowed \u2014 retest it end to end on a path that actually carries a non-`str`. Concretely: change the ledger so the stop check runs on the raw `response_message` (before the `str()` coercion into `TurnEntry.content`), then grade a run, not a unit call: `Conversation(replies=[\"a\", \"b\", {\"text\": f\"done {SENTINEL}\"}, \"d\"], ...)` with `max_length=6` must reach 4 calls without raising, `ledger.completion_reason == \"open\"` after the dict turn, the dict turn still logged and counted, and `str(row[\"content\"])` in the dataset. That version has a divergent action (the guard is load-bearing), an in-product consequence, and an observable that is not r2.rule's gate. Also drop the `[SENTINEL]` and `42` assertions \u2014 they are not in the fact and buy nothing.\n\nOne check I could not run: every file tool was disabled this session, so I could not grep the checkout for the literal `<<END_OF_CONVERSATION>>`. Before shipping any of r2, confirm the string appears nowhere in the repo (examples, default system prompts, docs, tests, README) \u2014 if it does, a blind agent greps it, the `require_feature` gate opens, and by the analysis above every fact in r2 collapses at once, not just this one."
+ },
+ {
+  "key": "g7.r2.observability",
+  "req": 2,
+  "field": "observability",
+  "verdict": "cut",
+  "divergent_action": "None. I cannot name any code an agent who saw r2.observability writes that an agent who saw only (a) the open ticket and (b) sibling r2.rule does not. The only clue-dependent expression anywhere in this test's pass/fail path is `COMPLETION_SENTINEL = \"<<END_OF_CONVERSATION>>\"` plus the `isinstance(response, str) and response.rstrip().endswith(COMPLETION_SENTINEL)` body \u2014 and both belong to r2.rule, which asserts them directly. The \"append it / count it / put it in the dataset / stop after it\" behaviour is written by the open ticket's own text, not by this clue. By the rubric's diagnostic (\"If you can't name a specific divergent action, it's a coincidence fact\"), this fact is a coincidence riding on r2.rule's discrimination.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The stock checkout cannot pass: the ticket states `Agent.is_completed(self, response)` \"currently returns `False` unconditionally, which makes the processor's stop-condition path dead code in every stock use\", and `turn_ledger.py` does not exist. Nothing is inherited for free from the existing code. (Note: Bash/file tools were disabled, so this rests on the ticket's own description of the pre-state, not on my reading of the repo.)"
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The fact's whole framing is a prohibition: the message is \"a real turn, not a discarded control signal\". Discarding it requires deliberate extra code \u2014 an explicit branch that detects the sentinel and swallows the record before `append_response()`. No engineer writes that swallow-branch unprompted. Doing nothing satisfies the rule, so it never tests restraint."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "Not for this field \u2014 \"a sentinel-bearing message should still be logged\" is not a published convention. Flagged for the sibling instead: `\"<<END_OF_CONVERSATION>>\"` is a strong prior (double-angle sentinels like `<<SYS>>`/`<<EOT>>` are the prevailing LLM convention, and `END_OF_CONVERSATION` is the most literal name in a module docstringed \"The durable record of a multi-turn agent conversation\"). That risk lives in r2.rule and should be re-sampled there."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "Every assertion is quoted spec. `completion_reason == \"agent_signal\"` <- \"`completion_reason` is `\"agent_signal\"` when the **last** entry's author's `is_completed` returns true for its content\". `ledger.responses == 3` <- \"`responses == len(entries) - 1`\". `len(log_lines) == 4` <- \"leaves `max_length + 1` log lines\" + the seed-is-a-durable-turn section. 4 dataset rows with `content`/`role` <- \"`create_dataset_file(working_dir)` writes one row per log line with exactly four fields\". `len(calls) == 3` <- \"`run()` short-circuits on `ledger.completed`\". `num_responses == 3` <- the `update_turn`/`adopt_ledger` spec. Nothing is left for the clue to add."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": true,
+    "why": "Decisive. The ticket defines `completion_reason` as a function of the LAST LOG ENTRY's content, and the ledger is built from the log (`load_ledger` is `read_log` + `build_ledger`). An implementation that discards the sentinel message therefore has no last entry to compute `\"agent_signal\"` from \u2014 it is architecturally impossible to satisfy the open ticket while violating this fact. This is the rubric's \"once the agent builds the visible feature correctly, the hidden requirement is the *only* way to do it\"."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The natural loop \u2014 `while ledger.responses < self.max_length:` / call the agent / `append_response(...)` / rebuild ledger / `if ledger.completed: break` \u2014 appends, counts, stops, and writes the dataset from the log, with no intent to satisfy anything. The test cannot distinguish \"read the clue\" from \"wrote normal code\"."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": true,
+    "why": "The failure this fact excludes cannot be constructed. To have a \"discarded control signal\" you would need `completion_reason == \"agent_signal\"` with the message absent from the log \u2014 but the ticket derives completion from `entries[-1].content` and derives `entries` from the log. Never-happening and being-correctly-excluded are indistinguishable here, which is exactly the rubric's failure mode."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling's failure branch is made unreachable by this fact. r2.failure_behavior (dict/None -> False) and r2.scope (case-sensitivity, suffix-only) are exercised by direct unit calls to `agent.is_completed` and never run a conversation, so this fact's end-to-end run cannot interfere with their preconditions."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The behaviour does have a distinct end state in principle \u2014 4 log lines and a stopped conversation versus 6 calls and a still-open ledger. The problem is not that the consequence is invisible; it is that the consequence is fully determined by the open ticket."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "Two ways. (1) The clue-bearing channel is `require_feature(probe.is_completed(f\"all set {SENTINEL}\") is True, \"Agent.is_completed's default sentinel match\")` \u2014 verbatim r2.rule's assertion, re-run as a gate; all hidden-requirement signal enters through it. (2) The end-state channel is already r1.observability's: that fact independently asserts \"After a completed 4-line run\" with `\"completion_reason\": \"agent_signal\"`, `\"responses\": 3`, `\"turns\": 4`. Grading r2 through those observables double-counts r1 and the open ticket."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "The test cannot fail while r2.rule passes, except by failing the open ticket. A wrong sentinel trips the `require_feature` gate (that is rule's discrimination). A right sentinel plus a competent ticket implementation passes every remaining assertion, because every remaining assertion is quoted from the ticket. There is no way to fail this fact without failing the neighbour or failing the visible ask \u2014 it adds no information."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Everything is finite and exact: `max_length = 6`, `len(conversation.calls) == 3`, `len(log_lines(tmp_path)) == 4`, `len(rows) == 4`. No \"always\"/\"never\"/\"eventually\" phrasing, no timeout standing in for a universal claim."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, `tmp_path`, `asyncio.run`, a fake `call_single_request`, and `backend=\"litellm\"` chosen precisely \"so that construction stays offline\". No restart, no second process, no network. The harness builds this fine."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "Borderline but I come down on no. `Conversation(replies=[..., \"Then index funds. <<END_OF_CONVERSATION>>\"], is_completed=probe.is_completed)` scripts *when* the sentinel text appears, but the decision to stop is made by the agent's real `is_completed` and the processor's `ledger.completed` short-circuit \u2014 the reaction, which is legitimate to fake the input for. Worth noting though: the fake is handed `probe.is_completed`, the very predicate r2.rule defines, so the test is partly wired to its own answer."
+   }
+  ],
+  "the_assertion": "`assert len(conversation.calls) == 3, conversation.calls` \u2014 the only assertion expressing anything beyond bookkeeping (\"the conversation stops after it\"). It depends on much besides this requirement: (1) on sibling r2.rule, since a wrong `COMPLETION_SENTINEL` trips `require_feature(...)` before this line is ever reached; (2) on the open ticket's \"`run()` short-circuits on `ledger.completed`\" and \"The loop condition is `while ledger.responses < self.max_length`\"; (3) on the fake, which supplies exactly three scripted replies. Strictly, the assertion that carries all the hidden-requirement signal is the gate itself, `require_feature(probe.is_completed(f\"all set {SENTINEL}\") is True, ...)`, which is r2.rule's assertion verbatim.",
+  "blind_pass": "Ticket-only, no clue seen. The engineer reads \"Constants: ... `COMPLETION_SENTINEL: str`\" and \"Give it a real default implementation in terms of `COMPLETION_SENTINEL`\", picks the most literal name for the concept in a module about conversations, and writes the one-line matcher any engineer writes:\n\n```python\n# src/bespokelabs/curator/agent/turn_ledger.py\nCOMPLETION_SENTINEL: str = \"<<END_OF_CONVERSATION>>\"\n\n# src/bespokelabs/curator/agent/agent.py\ndef is_completed(self, response: t.Any) -> bool:\n    \"\"\"True when the reply ends with the completion sentinel.\"\"\"\n    if not isinstance(response, str):\n        return False\n    return response.rstrip().endswith(COMPLETION_SENTINEL)\n\n# src/bespokelabs/curator/agent/processor.py, inside run()\nledger = self.load_cache(working_dir)\nself.status_tracker.adopt_ledger(cached_responses=ledger.responses)\nif not ledger.entries:\n    self.append_response(build_seed_record(\n        seeder_name=self.seeder.name, seed_message=self.seed_message,\n        model_name=self.seeder.model_name, now=self.now_fn()), working_dir)\n    ledger = self.load_cache(working_dir)\nwhile ledger.responses < self.max_length:\n    if ledger.completed:\n        break\n    agent = self._agent_for(ledger.next_speaker)\n    response = await self.call_single_request(\n        APIRequest(task_id=ledger.responses, ...), ...)\n    self.append_response(response, working_dir)\n    ledger = self.load_cache(working_dir)\n    self.conversation_history = ledger.messages()\n    self.status_tracker.update_turn(agent, response_success=True, ...)\n```\n\nThis passes `test_observability__...` in full \u2014 3 calls, 4 log lines, `num_responses == 3`, `responses == 3`, `\"agent_signal\"`, 4 rows, last row `content`/`role` correct \u2014 with the only gamble being the sentinel string, which is r2.rule's gamble and a strong blind attractor (`<<SYS>>`/`<<EOT>>` convention + the most literal phrase). The bracket's single blind sample landing on a different sentinel is thin evidence that this is unreachable blind.",
+  "correct_fail": "A literal reading of the ticket's own two sentences \u2014 \"The loop condition is `while ledger.responses < self.max_length`\" and \"`run()` calls `status_tracker.adopt_ledger(...)` exactly once, immediately after the ledger is loaded and **before** the `ledger.completed` short-circuit\" \u2014 yields a load-time-only short-circuit:\n\n```python\nledger = self.load_cache(working_dir)\nself.status_tracker.adopt_ledger(cached_responses=ledger.responses)\nif ledger.completed:                     # the short-circuit the ticket sites here\n    return self.create_dataset_file(working_dir)\nwhile ledger.responses < self.max_length:   # the loop condition, verbatim\n    ...\n```\n\nWith `max_length = 6` this makes six calls against a three-reply fake and dies at `assert len(conversation.calls) == 3`. The ticket never says the `completed` check is re-evaluated inside the loop; it spells out the loop condition explicitly and separately, and places the only named short-circuit at load time. I judge this a misreading rather than a correct alternative \u2014 but it is textually defensible, and note what it means: this test's realistic failure mode is open-ticket loop plumbing, not the hidden sentinel. That is the wrong axis for a hidden-requirement test even when the rejection is arguably fair.",
+  "recommendation": "Cut `observability` as a scored field on r2. It fires four Catalog A patterns (ticket_gives_it_away, entailed_by_the_open_feature, obvious_implementation_does_it, prohibition_satisfied_by_inaction) and four Catalog B patterns (state_is_unreachable, observable_belongs_to_another_fact, no_independent_content), and I could name no divergent action for it. Its `hidden` bracket result is real but wholly inherited from r2.rule via the `require_feature` gate.\n\nConcretely:\n1. Move the body of `test_observability__the_message_that_ends_the_talk_is_still_a_turn` into `test_rule__the_sentinel_is_the_end_of_conversation_token` as a corroborating end-to-end. It does usefully prove the sentinel wires through a live run; it just is not a separate fact. Drop the `require_feature` gate there, since rule's own assertions already establish the precondition.\n2. Relocate the `len(log_lines) == 4`, `ledger.responses == 3`, `num_responses == 3` and 4-row dataset assertions to the open-ticket suite, where failing them correctly reads as \"failed the visible ask.\"\n3. Do not try to narrow r2 to a fourth field. I attempted to construct one and could not: the ticket settles the entire completion path (`completion_reason` from the last entry, `responses == len(entries) - 1`, one dataset row per log line), so any remaining candidate is either restatement or a prohibition satisfied by inaction.\n4. Separately, re-sample the blind condition against r2.rule alone with several agents. `\"<<END_OF_CONVERSATION>>\"` is a strong prior and one blind sample is not enough to call that string hidden.\n5. Also worth fixing regardless of this verdict: the ticket should state that `ledger.completed` is re-checked each iteration, not only after load. As written it invites the six-call implementation quoted in `correct_fail`."
+ }
+]

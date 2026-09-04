@@ -1,0 +1,20 @@
+{
+  "id": "83fe1c69-bf84-4154-96c0-810fca6f74fb",
+  "evaluation_id": "9eb67aaa-6390-40bc-b715-26cd93eb7b21",
+  "run_number": 1,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": null,
+  "success": false,
+  "task_version": 1,
+  "grade_result": {
+    "original": "{\n  \"subscores\": {\n    \"g6.r1.rule\": 0.0,\n    \"g6.r1.exclusions_or_crossover\": 0.0,\n    \"g6.r1.observability\": 0.0,\n    \"g6.r2.rule\": 0.0,\n    \"g6.r2.scope\": 0.0,\n    \"g6.r2.exclusions_or_crossover\": 0.0,\n    \"g6.r2.observability\": 0.0,\n    \"g6.open_feature\": 0.0\n  },\n  \"weights\": {\n    \"g6.r1.rule\": 0.14285714285714285,\n    \"g6.r1.exclusions_or_crossover\": 0.14285714285714285,\n    \"g6.r1.observability\": 0.14285714285714285,\n    \"g6.r2.rule\": 0.14285714285714285,\n    \"g6.r2.scope\": 0.14285714285714285,\n    \"g6.r2.exclusions_or_crossover\": 0.14285714285714285,\n    \"g6.r2.observability\": 0.14285714285714285,\n    \"g6.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"0 of 7 hidden requirements satisfied. Open feature: no. Missed: g6.r1.rule, g6.r1.exclusions_or_crossover, g6.r1.observability, g6.r2.rule, g6.r2.scope, g6.r2.exclusions_or_crossover, g6.r2.observability.  [pytest rc=1 nodes=8] ports ['COST_PROCESSOR',... | FAILED test_r1.py::test_exclusions__the_earlier_check_wins_and_neither_a_none_price_nor_a_wildcard_fallback_is_offered - Failed: bespokelabs.curator.cost has no resolve_model_price, UnpricedModelError; it exports ['CO... | FAILED test_r1.py::test_observability__the_three_reasons_read_back_and_every_caller_above_the_lookup_degrades - Failed: bespokelabs.curator.cost has no resolve_model_price, UnpricedModelError; it exports ['COST_PROCES... | FAILED test_r2.py::test_rule__the_discount_is_applied_once_by_batch_multiplier_and_by_resolve_model_price - Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROCESSOR', 'RATE_LIMIT_HEADER... | FAILED test_r2.py::test_scope__only_list_priced_sources_are_discounted_and_the_external_tables_are_left_alone - Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROCESSOR', 'RATE_LIMIT_HE... | FAILED test_r2.py::test_exclusions__a_user_supplied_price_is_taken_as_given_and_exemption_follows_the_class_and_the_source - Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROCESSOR', '... | FAILED test_r2.py::test_observability__the_stated_multiplier_table_and_the_two_price_ratios_hold_exactly - Failed: bespokelabs.curator.cost has no resolve_model_price; it exports ['COST_PROCESSOR', 'RATE_LIMIT_HEADER'... | 8 failed, 1 warning in 24.88s | \"\n  },\n  \"score\": 0.0\n}",
+    "metadata": {
+      "is_error": "true",
+      "error_type": "no_valid_attempt"
+    },
+    "run_error": "Aborted after 10 consecutive proxy errors; last was HTTP 403: HTTP 403 error."
+  },
+  "created_at": "2026-09-03T04:40:03.179Z",
+  "completed_at": "2026-09-03T04:41:15.922Z"
+}

@@ -1,0 +1,44 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P3",
+  "blind_alternative": "supervises the surviving tail with weights on [max(s, window_start), e), copying the file's existing min()/clamping idiom, giving supervised_tokens == 17"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "leaves the tokenizer=None branch as it is today \u2014 count capped at max_seq_length and weights [1.0] * len(tokens) \u2014 giving supervised_tokens == 9 and eight 1.0 weights"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P8",
+  "blind_alternative": "applies no length policy on the Fireworks path at all (or measures len(chat_text) // 4 characters), keeping every serialized line"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P2",
+  "blind_alternative": "adds no floor and no ExampleTooLongError \u2014 windows and returns the datum whenever any supervised token survives"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P7",
+  "blind_alternative": "returns the formatted list with no report at all, or returns a (data, report) tuple / a differently named attribute such as self.report"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P7",
+  "blind_alternative": "updates the same counters from to_tinker_datum on every single-example call, so the attribute reflects the last datum rather than the last batch"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P7",
+  "blind_alternative": "catches every EncodingError in format_batch and drops those rows too (or lets the over-long refusal abort the batch as well), and writes the report incrementally so an aborted pass leaves partial counts"
+ }
+]

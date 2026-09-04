@@ -46,7 +46,7 @@ import pathlib
 import re
 import shutil
 
-from . import agent, clue_schemas as cs, surface
+from . import agent, clue_schemas as cs, steps, surface
 from .corpus import Corpus, week_of
 from .model import FACT_FIELDS, REPO, Task, declared_facts, load
 
@@ -98,20 +98,52 @@ def tokens(text: str) -> set[str]:
 # prompts
 # ---------------------------------------------------------------------------
 def prompt(name: str, **values: str) -> str:
-    text = (PROMPTS / name).read_text()
-    for key, value in values.items():
-        text = text.replace("{{" + key + "}}", value)
-    left = [line for line in text.splitlines() if "{{" in line and "}}" in line]
-    if left:
-        raise SystemExit(f"{name}: unfilled placeholders: {left[:3]}")
-    return text
+    """`steps.prompt`, not a second copy of it.
+
+    This used to substitute first and then flag any line holding both `{{` and
+    `}}`, which is a property of the substituted CONTENT rather than of the
+    template. `steps.prompt` had the same bug, fixed there and not here, and
+    `settle` duly died on a real assertion out of a real suite:
+
+        clue_claims.md: unfilled placeholders: ['assert auto.backend_params ==
+        {}, f"backend_params must be {{}} when none were given, ..."']
+
+    `{{}}` is an f-string writing a literal `{}` -- ordinary test code, mistaken
+    for a template hole after $46 of plant had already been paid for. Reading the
+    placeholders out of the TEMPLATE before anything is substituted is the fix,
+    and importing it is what stops it being fixed once more somewhere else.
+    """
+    return steps.prompt(name, **values)
 
 
-def describe_voice(voice: dict) -> str:
-    keep = ("name", "cadence", "formality", "capitalization", "punctuation",
-            "vocabulary", "typo_tendency", "register", "signature_words",
-            "hedge_words", "affirm_words", "question_style")
-    return "\n".join(f"- **{k}**: {voice[k]}" for k in keep if voice.get(k))
+# What a voice is made of, and which parts of it belong to a LETTER rather than to
+# the person. Mail is the one register where the typing habits genuinely drop away:
+# somebody whose chat capitalization is `always lowercase` still capitalises in a
+# mail to a colleague. A page comment does NOT get this treatment — people leave
+# comments in their own voice, casual and lowercase included, and flattening that
+# reads more artificial than the informality ever did.
+VOICE_FIELDS = ("name", "cadence", "formality", "capitalization", "punctuation",
+                "vocabulary", "typo_tendency", "register", "signature_words",
+                "hedge_words", "affirm_words", "question_style")
+LETTER_DROPS_VOICE = ("cadence", "capitalization", "punctuation", "typo_tendency")
+
+
+def describe_voice(voice: dict, *, written: bool = False) -> str:
+    """This person's voice. `written` is for MAIL, and drops the typing habits.
+
+    Vocabulary, stance and hedges are the person and survive any medium. Casing,
+    burst cadence and punctuation habits are how they type in a chat box, and in a
+    letter they are simply not in play. Only mail sets this: a wiki comment is
+    somebody talking in their own voice under a page, lowercase and all, and
+    scrubbing that produced comments blander than the corpus around them.
+    """
+    keep = [k for k in VOICE_FIELDS if not (written and k in LETTER_DROPS_VOICE)]
+    lines = [f"- **{k}**: {voice[k]}" for k in keep if voice.get(k)]
+    if written:
+        lines.append("- **how they write here**: carefully — capitalised, "
+                     "punctuated, complete sentences. The vocabulary and stance "
+                     "above are theirs; the typing habits are not in play.")
+    return "\n".join(lines)
 
 
 def roster_lines(corpus: Corpus, people: list[str],
@@ -707,6 +739,15 @@ def plan(slug: str, *, sources: tuple[str, ...] = cs.SOURCES, run: str | None = 
         # the page's filename falling back to the CLUE ID when the conversation
         # writer returned no title. Fixing it in `place_one` alone is what made
         # `replace --mismatched` a step anybody had to run.
+        # Spread BEFORE placing, not only when somebody runs `replace`. `rebalance`
+        # existed and was reachable from the re-placement path alone, so the first
+        # plant kept whatever source the tree picked per leaf -- and the tree picks
+        # chat unless told otherwise. g1 came out 44 slack / 2 notion / 4 email and
+        # g4 came out 48 slack / 0 / 0: a company whose every decision happens in
+        # one channel, which is the least realistic thing here and the easiest tell
+        # to read. Per requirement rather than over the whole plant, so BOTH
+        # requirements are spread rather than one paying for the other.
+        rebalance(tree["leaves"], reach)
         for leaf in tree["leaves"]:
             leaf = place_one(task, corpus, leaf, clue_window, used, per_channel,
                              budget, per_page)
@@ -833,6 +874,36 @@ def snapshot(task: Task, label: str) -> pathlib.Path | None:
     return into
 
 
+def _partial(task: Task, stamp: str) -> pathlib.Path:
+    return task.dir / "clues" / f".{stamp}.partial.json"
+
+
+def resume(task: Task, stamp: str) -> dict:
+    """The plant, or where an interrupted pass of this kind got to.
+
+    Every pass that edits a finished plant mutates `ledger` in place and writes
+    ONCE, at the end, through `finish()`. So a pass killed before that loses every
+    call it has paid for. On one afternoon `repair` died four calls in and `reknit`
+    fourteen exchanges in, both to a ten-minute harness timeout, $1.64 of model
+    time for nothing and `plant.json` untouched on both occasions -- which also
+    means the failure is invisible afterwards, because the artifact still reads
+    exactly as it did before the money was spent.
+
+    Because the ledger IS the state, a checkpoint is just the ledger and resuming
+    is just reading it back.
+    """
+    part = _partial(task, stamp)
+    if part.is_file():
+        print(f"  resuming from {part.name} — an earlier pass was interrupted")
+        return json.loads(part.read_text())
+    return json.loads((task.dir / "clues" / "plant.json").read_text())
+
+
+def checkpoint(task: Task, ledger: dict, stamp: str) -> None:
+    """Record where the pass has got to, so a kill costs one call, not all of them."""
+    _partial(task, stamp).write_text(json.dumps(ledger, indent=1) + "\n")
+
+
 def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     """Recompute every derived field over the whole plant, stamp it, write the files.
 
@@ -918,6 +989,8 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     ledger[stamp] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     out = task.dir / "clues"
     (out / "plant.json").write_text(json.dumps(ledger, indent=1) + "\n")
+    # The pass completed; its resume point is now misleading rather than useful.
+    _partial(task, stamp).unlink(missing_ok=True)
     (out / "README.md").write_text(render_readme(task, corpus, ledger))
     (out / "tree.md").write_text(render_tree(ledger))
     return ledger
@@ -1244,7 +1317,7 @@ def repair(slug: str, failures: dict[str, str], *, run: str | None = None,
     task = load(slug)
     corpus = Corpus(pathlib.Path(run) if run else None)
     plant = task.dir / "clues" / "plant.json"
-    ledger = json.loads(plant.read_text())
+    ledger = resume(task, "repaired_at")
     entry = ledger["tasks"][0]
     reach = corpus.reachable(tuple(ledger["windows"]["clues"]))
     people = [p for p in corpus.people() if p in corpus.cast and p in reach]
@@ -1295,6 +1368,7 @@ def repair(slug: str, failures: dict[str, str], *, run: str | None = None,
             clue["verbatim"] = sorted(set((clue.get("verbatim") or []) + (row.get("verbatim") or [])))
             clue["repair_note"] = row.get("why", "")
             changed["rewritten"].append(f"{clue['clue_id']} ({key})")
+            checkpoint(task, ledger, "repaired_at")
 
         extra = data.get("addition")
         if extra and (extra.get("text") or "").strip() and extra.get("holder") in people:
@@ -1421,7 +1495,13 @@ def write_invented(task: Task, corpus: Corpus, leaf: dict, invent: dict,
 # the first plant came out 29 slack / 4 notion / 3 email BY DEFAULT -- the tree
 # picks a source per leaf and picks chat unless told otherwise -- and a company
 # whose every decision happens in one channel is the least realistic thing here.
-MIX = (("slack", 0.55), ("notion", 0.25), ("email", 0.20))
+# Chat stays the plurality because that is where engineering argument really
+# happens, but not by the margin it used to: at 0.55/0.25/0.20 the plants still
+# read as a chat corpus with a few documents attached, and a reader who learns
+# that the interesting remarks live in Mattermost has most of the plant for free.
+# Reachability still overrides this — an unreachable source is not a place anyone
+# can be quoted — so these are targets, not guarantees.
+MIX = (("slack", 0.40), ("notion", 0.30), ("email", 0.30))
 MAX_INVENTED_PER_CHANNEL = 5
 MAX_COMMENTS_PER_PAGE = 2
 
@@ -1435,7 +1515,12 @@ def rebalance(rows: list[dict], reach: dict[str, dict[str, int]]) -> None:
     placed at all.
     """
     quota = {source: max(1, round(share * len(rows))) for source, share in MIX}
-    for row in sorted(rows, key=lambda r: r["clue_id"]):
+    # Two callers, two row shapes: `replace` passes placed clues, which carry
+    # `clue_id`; `plan` passes tree leaves, which carry `id` and are not given a
+    # `clue_id` until placement. The sort is only here to make the assignment
+    # deterministic, so either identifier will do — reading one of them
+    # unconditionally cost a $45 run its first tree call.
+    for row in sorted(rows, key=lambda r: r.get("clue_id") or r.get("id") or ""):
         can = [s for s, _ in MIX if (reach.get(row["holder"]) or {}).get(s)]
         if not can:
             continue
@@ -1675,7 +1760,7 @@ def replace(slug: str, *, run: str | None = None, budget: float = 3.0,
     task = load(slug)
     corpus = Corpus(pathlib.Path(run) if run else None)
     plant = task.dir / "clues" / "plant.json"
-    ledger = json.loads(plant.read_text())
+    ledger = resume(task, "replaced_at")
     entry = ledger["tasks"][0]
     clue_window = tuple(ledger["windows"]["clues"])
     herring_window = tuple(ledger["windows"]["herrings"])
@@ -1741,7 +1826,7 @@ def reverse(slug: str, *, run: str | None = None, budget: float = 3.0,
     task = load(slug)
     corpus = Corpus(pathlib.Path(run) if run else None)
     plant = task.dir / "clues" / "plant.json"
-    ledger = json.loads(plant.read_text())
+    ledger = resume(task, "reversed_at")
     entry = ledger["tasks"][0]
     clue_window = tuple(ledger["windows"]["clues"])
     reach = corpus.reachable(clue_window)
@@ -1934,16 +2019,29 @@ def thread_problems(clue: dict, people: set[str] | None = None) -> list[str]:
                 out.append(f"{who(msg)} leaves the decision open "
                            f"({hit.group(0)!r}) — not built yet is right, "
                            "not decided means there is nothing to recover")
-    if len(msgs) < 3:
+    # Fragmenting is a CHAT rule, and only a chat rule. A page comment is one
+    # person writing a whole thought down and somebody replying; a mail is a letter
+    # and an answer. Two turns is the shape `clue_doc_thread.md` and
+    # `clue_mail_thread.md` ASK for, and holding them to the chat minimum reported
+    # seven correctly-shaped document exchanges as broken and had `reknit` rewrite
+    # them for nothing — 36 exchanges written for 31 remarks.
+    kind = str((clue.get("invented") or {}).get("kind")
+               or (clue.get("carrier") or {}).get("kind") or "")
+    chat = not (kind.startswith("mail") or kind.startswith("doc"))
+    floor = 3 if chat else 2
+    if len(msgs) < floor:
         out.append(f"{len(msgs)} message(s) — a remark alone in a room is not a "
                    "conversation somebody had")
     # The inverse of the old guard, and the point of the rewrite. A turn holding
-    # the whole remark is somebody reading out a requirement.
-    whole = re.sub(r"\s+", " ", clue.get("text") or "").strip()
-    for m in msgs:
-        if whole and whole in re.sub(r"\s+", " ", said(m)):
-            out.append(f"{who(m)} says the whole remark "
-                       "in one turn — nothing is left for the rest of the exchange")
+    # the whole remark is somebody reading out a requirement -- in a chat room.
+    # In a comment or a letter it is just somebody making their point, which is
+    # what people do there, so this does not apply outside chat.
+    if chat:
+        whole = re.sub(r"\s+", " ", clue.get("text") or "").strip()
+        for m in msgs:
+            if whole and whole in re.sub(r"\s+", " ", said(m)):
+                out.append(f"{who(m)} says the whole remark "
+                           "in one turn — nothing is left for the rest of the exchange")
     for name in identifiers_missing(clue):
         out.append(f"nobody types `{name}`")
     for m in msgs:
@@ -2443,7 +2541,7 @@ def double_booked(entry: dict, corpus: Corpus, window: int = 0) -> list[str]:
                 for other, room in real.get((speaker, date), ()):
                     if room != here and abs(other - when) <= window:
                         out.append(
-                            f"{clue['clue_id']}: {who} speaks in #{here} at "
+                            f"{clue['clue_id']}: {speaker} speaks in #{here} at "
                             f"{msg.get('minute')} on {date}, but the corpus has them "
                             f"in #{room} {abs(other - when)} minute(s) away")
                         break
@@ -2521,8 +2619,16 @@ def used_closers(entry: dict, exclude: str, limit: int = 14) -> str:
 
 
 def stage_thread(task: Task, corpus: Corpus, clue: dict, entry: dict,
-                 budget: float) -> dict:
-    """Write the exchange in which this decision got taken."""
+                 budget: float, defect: list[str] | None = None) -> dict:
+    """Write the exchange in which this decision got taken.
+
+    `defect` is what `thread_problems()` said about the last attempt. Reknit used
+    to retry by calling this again with identical arguments and printing the
+    finding, so the second attempt was a re-roll: the same prompt, a different
+    sample, and no reason for it to come out better. `stage_tree` has fed its own
+    gate's finding back since the names re-ask was written; this is the same move
+    one function over, on the stage that costs nine dollars rather than one.
+    """
     kind = str((clue.get("invented") or {}).get("kind")
                or clue["carrier"].get("kind") or "")
     mail, doc = kind.startswith("mail"), kind.startswith("doc")
@@ -2551,8 +2657,25 @@ def stage_thread(task: Task, corpus: Corpus, clue: dict, entry: dict,
                 "saw it agreed months ago — do not skip it, and do not narrate it as "
                 "bookkeeping.")
 
-    text = prompt("clue_thread.md", text=clue["text"], holder=clue["holder"],
-                  channel=channel, date=date, reversal=reversal,
+    # One prompt per register. `clue_thread.md` says "Write the conversation",
+    # "two speakers minimum", "do not put that in one message" -- correct for a
+    # chat room and wrong everywhere else. Run over a mail carrier it turned a
+    # letter into chat turns; run over a page comment it produced g1's `r2.l9`,
+    # a wiki comment that opens "Look, the working dir today holds more than
+    # those two:". Placement already writes each kind in its own voice
+    # (`clue_conversation.md` / `clue_mail.md` / `clue_document.md`); reknit was
+    # the one stage that flattened them all back to chat.
+    register = ("clue_mail_thread.md" if mail else
+                "clue_doc_thread.md" if doc else "clue_thread.md")
+    told = ""
+    if defect:
+        told = ("## What your last attempt at this exchange got wrong\n\n"
+                + "\n".join(f"- {d}" for d in defect)
+                + "\n\nWrite it again, fixing exactly those and keeping whatever "
+                  "else worked. Every rule above still holds — a fix that breaks "
+                  "one of them is not a fix.")
+    text = prompt(register, text=clue["text"], holder=clue["holder"],
+                  channel=channel, date=date, reversal=reversal, defect=told,
                   verbatim=("**These names must be typed literally, somewhere in the "
                             "exchange:** " + ", ".join(f"`{v}`" for v in clue["verbatim"])
                             if clue.get("verbatim") else ""),
@@ -2568,12 +2691,14 @@ def stage_thread(task: Task, corpus: Corpus, clue: dict, entry: dict,
                          + ", ".join(f"`{x}`" for x in clue["forbidden_terms"])
                          if clue.get("forbidden_terms") else ""),
                   avoid=used_closers(entry, clue["clue_id"]),
-                  voices="\n\n".join(f"**{p}**\n{describe_voice(corpus.voice(p))}"
-                                     for p in people[:4]))
-    result = agent.run(text, repo=REPO, label=f"clue-thread-{clue['clue_id']}",
+                  voices="\n\n".join(
+                      f"**{p}**\n{describe_voice(corpus.voice(p), written=mail)}"
+                      for p in people[:4]))
+    tag = "mail" if mail else "doc" if doc else "thread"
+    result = agent.run(text, repo=REPO, label=f"clue-{tag}-{clue['clue_id']}",
                        cwd=task.dir, tools="", schema=cs.THREAD, budget_usd=budget,
                        log_dir=task.dir / "logs")
-    _record(task, f"clue-thread-{clue['clue_id']}", text, result)
+    _record(task, f"clue-{tag}-{clue['clue_id']}", text, result)
     msgs = (result.data or {}).get("messages") or []
     if not msgs:
         return clue.get("invented") or {}
@@ -2631,7 +2756,7 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
     task = load(slug)
     corpus = Corpus(pathlib.Path(run) if run else None)
     plant = task.dir / "clues" / "plant.json"
-    ledger = json.loads(plant.read_text())
+    ledger = resume(task, "reknit_at")
     entry = ledger["tasks"][0]
     # Everyone this company has ever employed, so an invented speaker is
     # caught before it is written into the world rather than after.
@@ -2668,6 +2793,15 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
     print(f"  {len(todo)} exchange(s) to write\n")
     failed = []
     for clue in todo:
+        # What the last attempt got wrong, handed to the next one. Empty on the
+        # first pass; `thread_problems()`' own rows after that.
+        told: list[str] = []
+        # Attempt 1's exchange, kept so a worse attempt 2 can be discarded rather
+        # than shipped. `stage_tree` guards its re-ask the same way: "a second
+        # attempt that fixes the names and loses something else cannot make
+        # things worse" -- and a directed retry makes that more likely, not less,
+        # because it is now aiming at one finding instead of resampling.
+        best: tuple[int, dict, list[str]] | None = None
         for attempt in (1, 2):
             # One bad call must not cost the rest of the pass. A single
             # `reasoning_extraction` error took this loop down 36 exchanges into
@@ -2684,7 +2818,8 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
                 # became comments on wiki pages that existed nowhere: "unknown
                 # document 'engineering/capping-code-executor-output.md'", from a
                 # writer that had produced that page an hour earlier.
-                written = stage_thread(task, corpus, clue, entry, budget)
+                written = stage_thread(task, corpus, clue, entry, budget,
+                                       defect=told)
                 clue["invented"] = {**(clue.get("invented") or {}), **written}
                 clue["uncarried"] = check_carriage(task, clue, budget)
             except Exception as err:                      # noqa: BLE001
@@ -2696,14 +2831,26 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
                       f"{type(err).__name__}")
                 continue
             left = thread_problems(clue)
+            if best is None or len(left) < best[0]:
+                best = (len(left), dict(clue["invented"]), list(clue["uncarried"] or []))
             if not left or attempt == 2:
                 break
+            told = left
             print(f"  ..  {clue['clue_id']:14} retrying — {left[0][:70]}")
+        # Attempt 2 was told what was wrong, so it usually wins; when it does not,
+        # the exchange that was closest to right is the one that ships.
+        if best is not None:
+            clue["invented"] = best[1]
+            clue["uncarried"] = best[2]
         left = thread_problems(clue)
         print(f"  {'ok ' if not left else 'FAIL'} {clue['clue_id']:14} "
               f"{clue['holder']:8} {len(turns_of(clue))} turns")
         for problem in left:
             print(f"       ! {problem}")
+        # One exchange is ~30s of model time and this pass runs 45 of them, so it
+        # outlives most things that can interrupt it. `finish()` is the only other
+        # write.
+        checkpoint(task, ledger, "reknit_at")
 
     adrift = unknit(entry, cast)
     print(f"\n{len(todo) - len(failed)} of {len(todo)} written, "
@@ -2794,7 +2941,7 @@ def reorder(slug: str, *, run: str | None = None, budget: float = 3.0) -> dict:
     task = load(slug)
     corpus = Corpus(pathlib.Path(run) if run else None)
     plant = task.dir / "clues" / "plant.json"
-    ledger = json.loads(plant.read_text())
+    ledger = resume(task, "reordered_at")
     entry = ledger["tasks"][0]
     violations = out_of_order(entry)
     if not violations:

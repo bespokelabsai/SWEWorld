@@ -1,0 +1,84 @@
+# Fine-tuning step ledger: one step unit, one checkpoint identity, one resume contract
+
+Give fine-tuning a single, honest step ledger: one definition of a training step, one checkpoint identity, and a resume contract that refuses a reshaped run.
+
+Today `TinkerTrainer` counts `total_steps` in batches while it only takes an optimizer step every `gradient_accumulation_steps` batches (`tinker_trainer.py:271-272` vs `:334-338`), its learning-rate helper ignores `total_steps` (`:536-551`), its trailing accumulation window is flushed only under a `TINKER_AVAILABLE` guard (`:395-409`), resume rebuilds a position from `(resume_epoch - 1) * steps_per_epoch` with no record of the shape it was taken in (`:304-316`), and both the mock loop and `fireworks_trainer.py:435-446` reach for the global RNG, `time.sleep` and `time.time`. Fix all of it behind one new leaf module.
+
+### New module `src/bespokelabs/curator/finetune/step_ledger.py`
+
+- Exports the constants `STEP_UNIT_OPTIMIZER = "optimizer_step"`, `STEP_UNIT_PACKED = "packed_epoch_step"`, `DATASET_SIGNATURE_PREFIX = "ds1"`.
+- Exports the exception family: `StepLedgerError`, which subclasses **`ValueError`**, and `ResumePlanMismatch(StepLedgerError)` carrying `checkpoint_name: str`, `mismatched_fields: Tuple[str, ...]`, `expected: dict`, `found: dict`.
+- Exports the **frozen dataclasses** `StepPlan` and `ResumePlan` — not pydantic models, not `NamedTuple`s, not dicts.
+- `StepPlan` fields, in this order: `step_unit`, `num_examples`, `batch_size`, `epochs`, `gradient_accumulation_steps`, `batches_per_epoch`, `total_batches`, `total_steps`, `trailing_window_batches`, `dataset_signature`.
+- `ResumePlan` fields, in this order: `checkpoint_name`, `start_batch_ordinal`, `start_epoch`, `start_batch_in_epoch`, `completed_steps`, `remaining_batches`.
+- The module is a leaf: it must import neither `time` nor `datetime` nor `random`, and any import of `finetune.types` or `finetune.config` must sit under `if TYPE_CHECKING:` so `TrainingResult.step_plan: Optional[StepPlan]` creates no cycle. `xxhash.xxh64` (already a direct dependency) is the only digest. No new dependency.
+
+### The step unit: `plan_steps`
+
+- `plan_steps(num_examples, *, batch_size, epochs, gradient_accumulation_steps=1, dataset_signature="") -> StepPlan`.
+- The unit of `total_steps`, `warmup_steps`, `log_every_n_steps` and `checkpoint_every_n_steps` becomes the **optimizer step**, not the batch.
+- `batches_per_epoch = ceil(num_examples / batch_size)`; `total_batches = batches_per_epoch * epochs`; `total_steps = ceil(total_batches / gradient_accumulation_steps)` — the accumulation window is counted over the **whole run** and is **not** reset at an epoch boundary, so a window may span one.
+- `trailing_window_batches = total_batches - (total_steps - 1) * gradient_accumulation_steps`; a short final window still counts as one whole optimizer step.
+- Methods (1-based batch ordinals in): `step_of_batch(b)`, `is_step_boundary(b)`, `epoch_of_batch(b)`, `batch_slice(b) -> (start, end)` into the example list, `logging_steps(log_every_n_steps)` (steps divisible by `n`), and `loss_history_steps(log_every_n_steps)` — the ascending, deduplicated union of the logging steps and, for each epoch, the step that closes the window containing that epoch's last batch.
+- Raises `StepLedgerError` when `num_examples == 0`, and when any of `batch_size`, `epochs`, `gradient_accumulation_steps` is `< 1`.
+- `plan_steps_for_config(config: "TinkerTrainerConfig", examples) -> StepPlan` builds the plan from config fields and the examples.
+- `plan_packed_steps(num_examples, *, epochs, dataset_signature="") -> StepPlan` is the Fireworks unit — one packed step per epoch: `step_unit=STEP_UNIT_PACKED`, `batch_size=num_examples`, `gradient_accumulation_steps=1`, `batches_per_epoch=1`, `total_batches=total_steps=epochs`, `trailing_window_batches=1`; `StepLedgerError` on `num_examples == 0`.
+
+### `dataset_signature`
+
+- `dataset_signature(examples: Sequence[Mapping[str, Any]]) -> str` returns `f"ds1-{len(examples)}-{xxh64(payload).hexdigest()}"` where `payload = json.dumps(list(examples), sort_keys=True, separators=(",", ":"), default=str, ensure_ascii=True).encode("utf-8")`.
+- It is a function of the content of every example in order: reordering or editing one character changes it; dict key order does not.
+
+### Learning rate
+
+- `learning_rate_at(step, total_steps, base_lr, warmup_steps) -> float` lives in the ledger and, unlike the code today, actually depends on `total_steps`.
+- `TinkerTrainer._get_learning_rate(step, total_steps)` keeps its signature and delegates, passing `config.adam_params.learning_rate` and `config.warmup_steps`.
+- `warmup_steps` now counts optimizer steps.
+
+### `types.py` — appended, defaulted fields
+
+- `CheckpointInfo` gains, appended in this order: `batch_size: int = 0`, `gradient_accumulation_steps: int = 0`, `batches_completed: int = 0`, `dataset_signature: str = ""`. `batches_completed` is the number of batches completed at that moment, counted globally across epochs.
+- `TrainingStats` gains `current_batch: int = 0` (1-based ordinal just finished) and `total_batches: int = 0`; `current_step` now means completed optimizer steps and `total_steps` optimizer steps.
+- `TrainingResult` gains `total_batches: int = 0` and `step_plan: Optional[StepPlan] = None`.
+- Every existing construction site must keep working unchanged.
+
+### `config.py`
+
+- `TinkerTrainerConfig.seed` and `FireworksTrainerConfig.seed`, both `Field(default=0, ge=0)`.
+
+### `TinkerTrainer.train`
+
+- Build the plan first, then walk batches by their global 1-based ordinal `b`, calling `_training_step(..., should_optim_step=plan.is_step_boundary(b))`.
+- The final batch of the run is a boundary, so the short trailing window is stepped **inside** the loop; delete the post-loop flush at `:395-409` with its `TINKER_AVAILABLE` guard and swallowing `except Exception`, so the flush happens in mock mode too.
+- Push exactly one `TrainingStats` per batch, **after** that batch's optional optimizer step, with `current_batch = b`, `current_step` = optimizer steps completed so far (flat inside a window), `total_steps = plan.total_steps`, `total_batches = plan.total_batches`, `current_epoch = plan.epoch_of_batch(b)`, and the learning rate of the step that batch belongs to. Construct `FinetuneStatusTracker` with `total_steps=plan.total_steps`.
+- `loss_history` gets exactly one entry per step in `plan.loss_history_steps(config.log_every_n_steps)`, ascending; each entry is the arithmetic mean of the per-batch losses in that step's accumulation window. `final_loss` is `loss_history[-1]`.
+- `metadata` gains exactly two keys: `"gradient_accumulation_steps"`, valued `config.gradient_accumulation_steps`, and `"dataset_signature"`, valued `plan.dataset_signature`. The keys already there — `base_model`, `batch_size`, `learning_rate`, `lora_rank`, `lora_alpha` — keep their names and values.
+
+### Checkpoints
+
+- `save_checkpoint(self, name, step, epoch, loss, *, batch_size=0, gradient_accumulation_steps=0, batches_completed=0, dataset_signature="") -> Optional[CheckpointInfo]` records the shape the checkpoint was taken in and returns the record it stored.
+- Checkpoints are written only at optimizer-step boundaries; `checkpoint_every_n_steps` and `checkpoint_every_epoch` keep their names and now speak in optimizer steps.
+- A checkpoint's `name` is derived deterministically from `config.checkpoint_name_prefix` and the step, replacing the two shapes at `:363` and `:383`.
+
+### Resume
+
+- `load_checkpoint(checkpoint: CheckpointInfo) -> bool` stores the whole `CheckpointInfo` on `self._resume_from`, replacing `_resume_from_step`/`_resume_from_epoch`; `train()` clears it at the start, so a second `train()` starts from zero.
+- `plan_resume(plan: StepPlan, checkpoint: "CheckpointInfo") -> ResumePlan` validates in a fixed order and raises `ResumePlanMismatch` out of `train()` — never a warning, never a silent restart:
+  1. **shape** — `batch_size`, `dataset_signature`, `gradient_accumulation_steps` against the plan; every differing name goes into `mismatched_fields`, **sorted alphabetically** (a pre-ledger checkpoint fails all three);
+  2. **exhaustion** — `checkpoint.batches_completed >= plan.total_batches` ⇒ `mismatched_fields == ("epochs",)`;
+  3. **consistency** — `checkpoint.step != plan.step_of_batch(checkpoint.batches_completed)` ⇒ `mismatched_fields == ("step",)`.
+- Otherwise the run restarts at the batch **after** the checkpoint: `start_batch_ordinal = checkpoint.batches_completed` (0-based), `start_epoch = batches_completed // batches_per_epoch + 1`, `start_batch_in_epoch = batches_completed % batches_per_epoch`, `completed_steps = checkpoint.step`, `remaining_batches = total_batches - batches_completed`.
+- Raising `epochs` alone is a legal resume: the plan grows and the schedule continues from `completed_steps + 1`.
+
+### Determinism
+
+- Both trainers take keyword-only `clock: Optional[Callable[[], float]] = None` and `rng: Optional[random.Random] = None`; `self._clock = clock if clock is not None else time.time`, `self._rng = rng if rng is not None else random.Random(config.seed)`.
+- The mock branch of `_training_step` draws exactly one `self._rng.random()` per batch, in batch order, and computes `2.5 - draw * 0.5`. Delete `time.sleep(0.01)` at `:488` and at `fireworks_trainer.py:439`.
+- `TinkerTrainer.train` calls `self._clock()` exactly twice on a run that saves no weights: once before the loop, once for `total_time`. Under `save_weights_on_complete=True` it calls it a **third** time, after `total_time`, for the auto-name at `:420` — `self.save_weights(f"{config.base_model}_lora_{int(self._clock())}")` — a fresh reading, never the value `total_time` was computed from. `get_sampling_client`'s `int(time.time())` at `:596` is on the real-SDK path and stays.
+- No module-level `random` or `time.time` call may remain on any mock path.
+
+### Fireworks
+
+- `FireworksTrainer.train` (`:289`) and `_mock_train` (`:444`) build `plan_packed_steps` and set `total_steps=plan.total_steps`, `total_batches`, `step_plan=plan` instead of `total_steps=0`; both metadata dicts gain exactly one key, `"step_unit"`, valued `"packed_epoch_step"`.
+
+`data_formatter.py`, `status_tracker.py`, `base_trainer.py` and `fireworks_data_formatter.py` do not change. Python `^3.10`; `tinker` is not installed in the test environment, so every trainer runs its mock branch.

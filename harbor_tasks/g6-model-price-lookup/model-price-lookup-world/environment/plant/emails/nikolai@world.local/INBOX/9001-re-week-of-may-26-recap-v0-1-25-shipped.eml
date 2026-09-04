@@ -1,0 +1,44 @@
+From: konrad@world.local
+To: dario@world.local, emil@world.local, nikolai@world.local,
+ nolan@world.local, gideon@world.local
+Subject: Re: Week of May 26 recap: v0.1.25 shipped
+Date: Mon, 02 Jun 2025 11:14:00 +0000
+Message-ID: <178853189186.489558.17227568157252790262@world.local>
+In-Reply-To: <178771259923.2429685.8918976446565480852@world.local>
+References: <178771259923.2429685.8918976446565480852@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: the reason argument on PR 681
+
+Dermot,
+
+I spent part of this morning wiring the unpriced-model path into my branch, a=
+nd I ran into something on PR 681 that I would like to have written down some=
+where, because otherwise it stays inside the review and the next person loses=
+ the same ten minutes I did.
+
+At the point where we raise for a model that has no entry in the price table,=
+ I passed reason=3D'no_pricing_data' to the constructor. That looked to me li=
+ke the obvious string for the situation, and I did not think about it any fur=
+ther. The constructor threw ValueError straight back at me. It does not simpl=
+y record whatever string you hand it. It checks the argument against Unpriced=
+ModelError.REASONS first, and that constant is a closed list of three strings=
+ and nothing else. My string was not one of the three, so the error I was try=
+ing to raise never got as far as being raised, and what the caller saw was a =
+ValueError from inside the error class itself, which is confusing the first t=
+ime.
+
+Look, I am not arguing against the check. Presumably the intention is that th=
+e reason is a fixed vocabulary and not free text, and if that is the intentio=
+n then rejecting anything outside the three is exactly right. What I want to =
+know is whether the three are meant to stay as they are, or whether adding a =
+fourth is a normal thing to do when a new case turns up. I could not quote al=
+l three back to you off the top of my head, but they are enumerated in the cl=
+ass and it is a short list.
+
+Anyway, if the answer is that the list is closed on purpose, I will use one o=
+f the existing three and stop trying to invent my own.
+
+Konrad

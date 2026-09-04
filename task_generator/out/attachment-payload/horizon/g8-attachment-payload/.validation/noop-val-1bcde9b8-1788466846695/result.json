@@ -1,0 +1,9 @@
+{
+  "build_id": "noop-val-1bcde9b8-1788466846695",
+  "type": "noop",
+  "status": "passed",
+  "score": 0,
+  "passed": true,
+  "feedback": "0 of 9 hidden requirements satisfied. Open feature: no. Missed: g8.r1.rule, \ng8.r1.scope, g8.r1.exclusions_or_crossover, g8.r1.failure_behavior, \ng8.r1.observability, g8.r2.rule, g8.r2.scope, g8.r2.exclusions_or_crossover, \ng8.r2.failure_behavior.   _never_counted - Failed: none of \n('AttachmentTooLarge',) is exported by curator's attachment/prompt/processor \nmodules (attachment module import: Imp... | FAILED \ntest_r1.py::test_failure_behavior__a_thirteenth_attachment_is_refused_before_any\nthing_is_read - Failed: none of ('TooManyAttachments',) is exported by curator's\nattachment/prompt/processor modules (attachment m... | FAILED \ntest_r1.py::test_observability__a_document_block_costs_fourteen_hundred_tokens -\nKeyError: 'image_url' | FAILED \ntest_r2.py::test_rule__every_block_carries_a_short_sha256_fingerprint_of_its_pay\nload - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); \nthe canonical attachment layer is the whole ticket. | FAILED \ntest_r2.py::test_scope__the_filename_is_capped_at_sixty_four_with_its_extension_\nkept - Failed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); \nthe canonical attachment layer is the whole ticket. | FAILED \ntest_r2.py::test_exclusions__a_url_block_is_fingerprinted_over_its_url_text - \nFailed: BaseOnlineRequestProcessor has no _canonical_attachment_block(); the \ncanonical attachment layer is the whole ticket. | FAILED \ntest_r2.py::test_failure_behavior__an_unsupported_detail_is_downgraded_to_auto_w\nith_one_warning - Failed: BaseOnlineRequestProcessor has no \n_canonical_attachment_block(); the canonical attachment layer is the w... | 10 \nfailed, 3 warnings in 25.57s |",
+  "updated_at": "2026-09-03T20:24:55.067Z"
+}

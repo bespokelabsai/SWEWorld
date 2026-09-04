@@ -153,5 +153,7 @@ continue them.
 - Same register as the rest of that channel: lowercase, half-finished sentences, the
   occasional typo. Nobody writes well in chat.
 
+{{defect}}
+
 Return the messages in order with the author and the minute, plus — for each distinct
 piece of the material above — which message carries it.

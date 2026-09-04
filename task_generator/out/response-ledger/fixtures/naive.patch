@@ -1,0 +1,1058 @@
+diff --git a/src/bespokelabs/curator/llm/llm.py b/src/bespokelabs/curator/llm/llm.py
+index 26fe117..c468fa6 100644
+--- a/src/bespokelabs/curator/llm/llm.py
++++ b/src/bespokelabs/curator/llm/llm.py
+@@ -19,6 +19,7 @@ from bespokelabs.curator.log import add_file_handler, logger
+ from bespokelabs.curator.request_processor._factory import _RequestProcessorFactory
+ from bespokelabs.curator.request_processor.config import BackendParamsType
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.request_processor.response_ledger import ResponseLedger
+ from bespokelabs.curator.types.curator_response import CuratorResponse
+ 
+ T = TypeVar("T")
+@@ -311,7 +312,8 @@ class LLM:
+                 model_name=self.prompt_formatter.model_name,
+                 metadata=metadata_dict,
+             )
+-            response.update_tracker_stats(tracker)
++            tally = ResponseLedger.load(run_cache_dir).tally()
++            response.update_tracker_stats(tracker, tally)
+         else:
+             # Create minimal response object if no tracker
+             response = self._get_cached_response(run_cache_dir, dataset)
+diff --git a/src/bespokelabs/curator/request_processor/base_request_processor.py b/src/bespokelabs/curator/request_processor/base_request_processor.py
+index c3828af..e80b85c 100644
+--- a/src/bespokelabs/curator/request_processor/base_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/base_request_processor.py
+@@ -6,24 +6,22 @@ import glob
+ import json
+ import os
+ import resource
+-import typing as t
+ from abc import ABC, abstractmethod
+ from math import ceil
+ from typing import TYPE_CHECKING, List, Optional
+ 
+ import aiofiles
+ import pyarrow
+-from datasets import Dataset
+ from pydantic import BaseModel, ValidationError
+ 
+ from bespokelabs.curator.constants import _CACHE_MSG, _INTERNAL_PROMPT_KEY
+ from bespokelabs.curator.cost import cost_processor_factory
+-from bespokelabs.curator.file_utilities import count_lines
+ from bespokelabs.curator.hf_card_template import HUGGINGFACE_CARD_TEMPLATE
+ from bespokelabs.curator.llm.prompt_formatter import PromptFormatter
+ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.config import BatchRequestProcessorConfig, RequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.request_processor.response_ledger import LedgerStatus, ResponseLedger, ResumeState, classify_record, read_resume_state
+ from bespokelabs.curator.types.generic_response import GenericResponse
+ 
+ if TYPE_CHECKING:
+@@ -387,7 +385,7 @@ class BaseRequestProcessor(ABC):
+     def _process_response(self, data: GenericResponse) -> List | None:
+         try:
+             data.response_message = self.prompt_formatter.response_to_response_format(data.response_message)
+-        except (json.JSONDecodeError, ValidationError):
++        except (json.JSONDecodeError, TypeError, ValidationError):
+             logger.warning("Skipping response due to error parsing response message into response format")
+             return
+ 
+@@ -423,7 +421,7 @@ class BaseRequestProcessor(ABC):
+         self,
+         parse_func_hash: str,
+     ) -> "Dataset":
+-        """Creates dataset from response files.
++        """Creates dataset from the durable response ledger.
+ 
+         Args:
+             parse_func_hash: Hash identifying the dataset version
+@@ -438,60 +436,51 @@ class BaseRequestProcessor(ABC):
+         if len(responses_files) == 0:
+             raise ValueError(f"No responses files found in {self.working_dir}")
+ 
++        ledger = ResponseLedger.load(self.working_dir)
++        tally = ledger.tally()
++
+         error_help = (
+             "Please check your `parse_func` is returning a valid row (dict) "
+             "or list of rows (list of dicts) and re-run. "
+             "Dataset will be regenerated from cached LLM responses."
+         )
+ 
+-        # Process all response files
+-        total_responses_count = 0
+-        failed_responses_count = 0
+-        error_sample = []
+         dataset_file = os.path.join(self.working_dir, f"{parse_func_hash}.arrow")
+         from datasets.arrow_writer import ArrowWriter
+ 
++        n_dataset_rows = 0
+         with ArrowWriter(path=dataset_file) as writer:
+-            for responses_file in responses_files:
+-                with open(responses_file, "r") as f_in:
+-                    for generic_response_string in f_in:
+-                        total_responses_count += 1
+-                        response = GenericResponse.model_validate_json(generic_response_string)
+-
+-                        if response.response_errors is not None:
+-                            failed_responses_count += 1
+-                            if len(error_sample) < 10:
+-                                error_sample.append(str(response.response_errors))
+-                            continue
+-
+-                        # TODO: Find a way to not process responses that have already been processed
+-                        # We cannot just check if parsed_response_message is not None because it could be from cached previous run
+-                        # response.
+-                        response.parsed_response_message = self._process_response(response)
+-                        if response.parsed_response_message is None:
+-                            failed_responses_count += 1
+-                            continue
+-
+-                        for row in response.parsed_response_message:
+-                            if isinstance(row, BaseModel):
+-                                row = row.model_dump()
+-
+-                            if not isinstance(row, dict):
+-                                os.remove(dataset_file)
+-                                raise ValueError(
+-                                    f"Got invalid row {row} of type {type(row)} from `parse_func`. This should be type <class 'dict'>. {error_help}"
+-                                )
+-                            if not row:
+-                                os.remove(dataset_file)
+-                                raise ValueError(f"Got empty row {row} from `parse_func`. {error_help}")
+-                            # Add the original row index to the row so that we can sort by it later.
+-                            row["__original_row_idx"] = response.generic_request.original_row_idx
+-                            writer.write(row)
+-
+-            logger.info(f"Read {total_responses_count} responses.")
+-            error_sample_str = "\n".join(error_sample)
+-            error_sample_msg = f"Sample of the first {len(error_sample)} errors encountered: \n {error_sample_str}"
+-            if failed_responses_count == total_responses_count:
++            for response in ledger.winning_records():
++                if classify_record(response) is LedgerStatus.FAILED:
++                    continue
++
++                # TODO: Find a way to not process responses that have already been processed
++                # We cannot just check if parsed_response_message is not None because it could be from cached previous run
++                # response.
++                response.parsed_response_message = self._process_response(response)
++                if response.parsed_response_message is None:
++                    continue
++
++                for row in response.parsed_response_message:
++                    if isinstance(row, BaseModel):
++                        row = row.model_dump()
++
++                    if not isinstance(row, dict):
++                        os.remove(dataset_file)
++                        raise ValueError(f"Got invalid row {row} of type {type(row)} from `parse_func`. This should be type <class 'dict'>. {error_help}")
++                    if not row:
++                        os.remove(dataset_file)
++                        raise ValueError(f"Got empty row {row} from `parse_func`. {error_help}")
++                    # Add the original row index to the row so that we can sort by it later.
++                    row["__original_row_idx"] = response.generic_request.original_row_idx
++                    writer.write(row)
++                    n_dataset_rows += 1
++
++            logger.info(f"Read {tally.n_recorded} responses.")
++            error_sample_str = "\n".join(tally.error_sample)
++            error_sample_msg = f"Sample of the first {len(tally.error_sample)} errors encountered: \n {error_sample_str}"
++            # `parse_func` runs again here, so it can turn a recorded success into no rows at all.
++            if tally.n_succeeded == 0 or n_dataset_rows == 0:
+                 writer.write({"error": "All requests failed"})
+                 writer.finalize()
+                 os.remove(dataset_file)
+@@ -500,53 +489,24 @@ class BaseRequestProcessor(ABC):
+                 logger.info("Finalizing writer")
+                 writer.finalize()
+ 
+-            if failed_responses_count > 0:
+-                logger.warning(f"{failed_responses_count} requests failed.")
++            if tally.n_failed > 0:
++                logger.warning(f"{tally.n_failed} requests failed.")
+                 if self.config.require_all_responses:
+                     os.remove(dataset_file)
+                     raise ValueError(f"Some requests failed and require_all_responses is True. {error_sample_msg}")
+-            # Create a file with all failed requests
++
++            # Create a file with all requests that did not reach a successful response
+             logger.info("Creating a file with all failed requests")
+             failed_requests_file = os.path.join(self.working_dir, "failed_requests.jsonl")
+-
+-            # Read the arrow dataset file to get all successful request indices
+-            successful_indices = set()
+-            try:
+-                dataset = Dataset.from_file(dataset_file)
+-                # Extract all the original row indices that were successfully processed
+-                successful_indices = set(dataset["__original_row_idx"])
+-            except Exception as e:
+-                logger.warning(f"Error reading dataset file to extract successful indices: {e}")
+-
+-            # Get all request files
+-            request_files = glob.glob(os.path.join(self.working_dir, "requests_*.jsonl"))
+-
+-            # Write all requests that don't have corresponding entries in the dataset
+             with open(failed_requests_file, "w") as failed_file:
+-                for request_file in request_files:
+-                    with open(request_file, "r") as f:
+-                        for line in f:
+-                            try:
+-                                request_data = json.loads(line.strip())
+-                                original_idx = request_data.get("original_row_idx")
+-                                if original_idx is not None and original_idx not in successful_indices:
+-                                    failed_file.write(line)
+-                            except json.JSONDecodeError:
+-                                continue
++                for row_idx in ledger.unresolved_row_indices():
++                    failed_file.write(ledger.request_line(row_idx))
+ 
+             logger.info(f"Created file with failed requests at {failed_requests_file}")
+ 
+             # number of responses matches number of requests
+-            request_files = glob.glob(os.path.join(self.working_dir, "requests_*.jsonl"))
+-            n_requests = 0
+-            for request_file in request_files:
+-                n_requests += count_lines(request_file)
+-
+-            if n_requests != total_responses_count:
+-                logger.warning(
+-                    f"{n_requests - total_responses_count} requests do not have responses. "
+-                    f"n_requests is {n_requests} and n_responses is {total_responses_count}"
+-                )
++            if tally.n_missing > 0:
++                logger.warning(f"{tally.n_missing} requests do not have responses. n_requests is {tally.n_requests} and n_responses is {tally.n_recorded}")
+                 if self.config.require_all_responses:
+                     os.remove(dataset_file)
+                     raise ValueError("Some requests do not have responses and require_all_responses is True.")
+@@ -580,75 +540,20 @@ class BaseRequestProcessor(ABC):
+         )
+         card.push_to_hub(repo_id)
+ 
+-    def _get_validated_response(self, line: str) -> tuple[GenericResponse | None, bool]:
+-        """Check if a response is valid or has errors.
+-
+-        Args:
+-            line: The line to process into a GenericResponse.
++    def validate_existing_response_file(self, response_file: str) -> ResumeState:
++        """Parse an existing response file to identify which requests still need to be issued.
+ 
+-        Returns:
+-            response: The response if it is valid, None otherwise.
+-            is_valid: True if the response is valid, False otherwise.
+-        """
+-        response = None
+-        try:
+-            response = GenericResponse.model_validate_json(line)
+-            row_id = response.generic_request.original_row_idx
+-            if response.response_errors:
+-                logger.debug(f"Request {row_id} previously failed due to errors: {response.response_errors}, removing from output and will retry")
+-                return None, False
+-            if response.response_message is None:
+-                logger.debug(f"Request {row_id} previously failed due to no response. Removing from output and will retry.")
+-                return None, False
+-        except (json.JSONDecodeError, ValidationError):
+-            logger.warning(f"Skipping response due to error parsing line: {line}")
+-            return None, False
+-
+-        return response, True
+-
+-    def validate_existing_response_file(self, response_file: str) -> t.Union[set[int], int]:
+-        """Parse an existing response file to identify completed requests and removes failed requests.
++        Failed responses are kept in the ledger, they are simply not counted as completed
++        so that they are requested again.
+ 
+         Args:
+             response_file: Path to the response file to parse
+ 
+         Returns:
+-            set[int]: Set of completed request IDs that were already successfully processed
+-            int: Number of completed parsed responses
++            ResumeState: The completed row indices, the row indices to retry and the
++                number of parsed responses already recorded.
+         """
+-        if not os.path.exists(response_file):
+-            return set(), 0
+-
+-        completed_request_ids = set()
+-        failed_request_ids = set()
+-        completed_parsed_responses = 0
+-        parsing_error_responses = 0
+-        logger.info(f"Resuming progress by reading existing file: {response_file}")
+-        logger.debug(f"Removing all failed requests from {response_file} so they can be retried")
+-        temp_filepath = response_file + ".temp"
+-
+-        with open(response_file, "r") as input_file, open(temp_filepath, "w") as output_file:
+-            for line in input_file:
+-                response, is_valid = self._get_validated_response(line)
+-                if not response:
+-                    parsing_error_responses += 1
+-                    continue
+-                row_id = response.generic_request.original_row_idx
+-                if response.parsed_response_message:
+-                    completed_parsed_responses += len(response.parsed_response_message)
+-                if is_valid:
+-                    completed_request_ids.add(row_id)
+-                    output_file.write(line)
+-                else:
+-                    failed_request_ids.add(row_id)
+-
+-        logger.info(
+-            f"Found {len(completed_request_ids)} successful requests and {len(failed_request_ids)} "
+-            f"previously failed requests and {parsing_error_responses} parsing errors in {response_file}"
+-        )
+-        os.replace(temp_filepath, response_file)
+-
+-        return completed_request_ids, completed_parsed_responses
++        return read_resume_state(response_file)
+ 
+     def read_metadata_file(self, request_file: str) -> int:
+         """Read the number of jobs from the metadata file.
+diff --git a/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py b/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
+index e3ccf10..1994727 100644
+--- a/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py
+@@ -13,6 +13,7 @@ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.base_request_processor import BaseRequestProcessor
+ from bespokelabs.curator.request_processor.config import BatchRequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.request_processor.response_ledger import LedgerStatus, ResponseLedger, classify_record, ledger_line
+ from bespokelabs.curator.status_tracker.batch_status_tracker import BatchStatusTracker
+ from bespokelabs.curator.types.generic_batch import GenericBatch, GenericBatchRequestCounts, GenericBatchStatus
+ from bespokelabs.curator.types.generic_request import GenericRequest
+@@ -603,21 +604,22 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+             )
+             return
+ 
+-        processed_responses = self._process_response(generic_response)
++        raw_response_message = generic_response.response_message
++        # A permanently failed response has nothing to parse, but is still recorded.
++        processed_responses = None if classify_record(generic_response) is LedgerStatus.FAILED else self._process_response(generic_response)
+         generic_response.parsed_response_message = processed_responses
++        generic_response.response_message = raw_response_message
+         if processed_responses is None:
+             failed_processed_responses.append(request_idx)
+-            return
+ 
+-        # Write response to file
+-        response_dump = generic_response.model_dump(mode="json")
+-        r = json.dumps(response_dump, default=str)
+-        await f.write(r + "\n")
++        # Record every terminal response in the ledger, successful or not
++        r = ledger_line(generic_response)
++        await f.write(r)
+ 
+         # Stream response immediately with correct index
+         idx = self.tracker.num_parsed_responses
+-        self.tracker.num_parsed_responses = idx + len(processed_responses)
+-        streaming_tasks.append(self.viewer_client.stream_response(r, idx))
++        self.tracker.num_parsed_responses = idx + len(processed_responses or [])
++        streaming_tasks.append(self.viewer_client.stream_response(r.rstrip("\n"), idx))
+ 
+         # Process streaming tasks in chunks to manage memory
+         if len(streaming_tasks) >= _STREAM_CHUNK_SIZE:
+@@ -659,8 +661,9 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+         # check existing response files for resuming
+         for batch in self.tracker.downloaded_batches.values():
+             response_file = batch.request_file.replace("requests_", "responses_")
+-            completed_request_ids, completed_parsed_responses = self.validate_existing_response_file(response_file)
+-            self.tracker.num_parsed_responses += completed_parsed_responses
++            resume_state = self.validate_existing_response_file(response_file)
++            completed_request_ids = resume_state.completed_row_indices
++            self.tracker.num_parsed_responses += resume_state.n_dataset_rows
+             n_total_batch_requests = self.read_metadata_file(batch.request_file).get("num_jobs")
+             if len(completed_request_ids) < n_total_batch_requests:
+                 tasks.append(self.submit_batch_from_request_file(batch.request_file, completed_request_ids))
+@@ -735,7 +738,7 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+             batch: The batch object to resubmit.
+         """
+         response_file = batch.request_file.replace("requests_", "responses_")
+-        completed_request_ids, _ = self.validate_existing_response_file(response_file)
++        completed_request_ids = self.validate_existing_response_file(response_file).completed_row_indices
+         await self.submit_batch_from_request_file(batch.request_file, completed_request_ids, attempts_left=batch.attempts_left)
+         self.tracker.mark_as_resubmitted(batch)
+ 
+@@ -793,16 +796,9 @@ class BaseBatchRequestProcessor(BaseRequestProcessor):
+ 
+     def _update_final_stats(self):
+         """Update final stats with the number of failed requests."""
+-        import glob
+-
+-        response_files = glob.glob(os.path.join(self.working_dir, "responses_*.jsonl"))
+-        sucessful_responses = 0
+-        for response_file in response_files:
+-            with open(response_file, "r") as f:
+-                # count the number of lines in the file
+-                sucessful_responses += sum(1 for _ in f)
+-        self.tracker.n_final_failed_requests = self.tracker.n_total_requests - sucessful_responses
+-        self.tracker.n_final_success_requests = sucessful_responses
++        tally = ResponseLedger.load(self.working_dir).tally()
++        self.tracker.n_final_failed_requests = self.tracker.n_total_requests - tally.n_succeeded
++        self.tracker.n_final_success_requests = tally.n_succeeded
+ 
+     async def cancel_batches(self, working_dir, dataset, prompt_formatter, auto_confirm=False):
+         """Cancel all currently submitted batches.
+diff --git a/src/bespokelabs/curator/request_processor/offline/base_offline_request_processor.py b/src/bespokelabs/curator/request_processor/offline/base_offline_request_processor.py
+index 150cf72..37b0d51 100644
+--- a/src/bespokelabs/curator/request_processor/offline/base_offline_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/offline/base_offline_request_processor.py
+@@ -1,5 +1,4 @@
+ import datetime
+-import json
+ import typing as t
+ from abc import ABC
+ from dataclasses import dataclass, field
+@@ -9,6 +8,7 @@ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.base_request_processor import BaseRequestProcessor
+ from bespokelabs.curator.request_processor.config import OfflineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.request_processor.response_ledger import ledger_line
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+ 
+@@ -147,8 +147,9 @@ class BaseOfflineRequestProcessor(BaseRequestProcessor, ABC):
+             - Logs progress and completion status
+         """
+         # Track completed requests for resume functionality
+-        completed_request_ids, completed_parsed_responses = self.validate_existing_response_file(save_filepath)
+-        self.tracker.num_parsed_responses = completed_parsed_responses
++        resume_state = self.validate_existing_response_file(save_filepath)
++        completed_request_ids = resume_state.completed_row_indices
++        self.tracker.num_parsed_responses = resume_state.n_dataset_rows
+ 
+         if not hasattr(self, "model_class"):
+             self.load_offline_model()  # Load the offline model if it hasn't been loaded yet
+@@ -178,15 +179,17 @@ class BaseOfflineRequestProcessor(BaseRequestProcessor, ABC):
+         # Save responses
+         with open(save_filepath, "a") as f:
+             for response in responses:
++                raw_response_message = response.response_message
+                 processed_response = self._process_response(response)
+                 response.parsed_response_message = processed_response
+-                json_string = json.dumps(response.model_dump(mode="json"), default=str)
+-                f.write(json_string + "\n")
++                response.response_message = raw_response_message
++                json_string = ledger_line(response)
++                f.write(json_string)
+ 
+                 # Stream responses to viewer client
+                 idx = self.tracker.num_parsed_responses
+                 self.tracker.num_parsed_responses = idx + len(responses)
+-                run_in_event_loop(self.viewer_client.stream_response(json_string, idx))
++                run_in_event_loop(self.viewer_client.stream_response(json_string.rstrip("\n"), idx))
+ 
+         # Log final status
+         logger.info(f"Processing complete. Results saved to {save_filepath}")
+diff --git a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+index 085c2ec..7832882 100644
+--- a/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
++++ b/src/bespokelabs/curator/request_processor/online/base_online_request_processor.py
+@@ -6,8 +6,6 @@ handling rate limiting, retries, and concurrent processing.
+ 
+ import asyncio
+ import datetime
+-import json
+-import os
+ import time
+ import typing as t
+ from abc import ABC, abstractmethod
+@@ -23,6 +21,7 @@ from bespokelabs.curator.request_processor import _DEFAULT_COST_MAP
+ from bespokelabs.curator.request_processor.base_request_processor import BaseRequestProcessor
+ from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
+ from bespokelabs.curator.request_processor.event_loop import run_in_event_loop
++from bespokelabs.curator.request_processor.response_ledger import LedgerStatus, classify_record, ledger_line
+ from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker, TokenLimitStrategy
+ from bespokelabs.curator.types.generic_request import GenericRequest
+ from bespokelabs.curator.types.generic_response import GenericResponse
+@@ -338,11 +337,12 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+             self._semaphore = asyncio.Semaphore(t.cast(int, self.max_concurrent_requests))
+ 
+         # Resume if a response file exists
+-        completed_request_ids, completed_parsed_responses = self.validate_existing_response_file(response_file)
++        resume_state = self.validate_existing_response_file(response_file)
++        completed_request_ids = resume_state.completed_row_indices
+ 
+         # Count total requests
+         status_tracker.num_tasks_already_completed = len(completed_request_ids)
+-        status_tracker.num_parsed_responses = completed_parsed_responses
++        status_tracker.num_parsed_responses = resume_state.n_dataset_rows
+         status_tracker.start_tracker(self._tracker_console)
+ 
+         # Use higher connector limit for better throughput
+@@ -612,7 +612,10 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+         pass
+ 
+     async def append_generic_response(self, status_tracker: OnlineStatusTracker, data: GenericResponse, filename: str) -> None:
+-        """Append a response to a jsonl file with async file operations.
++        """Append a response to the ledger with async file operations.
++
++        Every terminal response is recorded, whether it succeeded, parsed into no rows,
++        could not be parsed or failed permanently.
+ 
+         Args:
+             status_tracker: Tracker containing request status
+@@ -620,17 +623,14 @@ class BaseOnlineRequestProcessor(BaseRequestProcessor, ABC):
+             filename: File to append to
+         """
+         raw_response = data.response_message
+-        responses = self._process_response(data)
+-        if not responses:
+-            return
++        # A permanently failed response has nothing to parse, but is still recorded.
++        responses = None if classify_record(data) is LedgerStatus.FAILED else self._process_response(data)
+         data.parsed_response_message = responses
+         data.response_message = raw_response
+-        data_dump = data.model_dump()
+-        json_string = json.dumps(data_dump, default=str)
++        json_string = ledger_line(data)
+         async with aiofiles.open(filename, "a") as f:
+-            await f.write(json_string + "\n")
++            await f.write(json_string)
+         logger.debug(f"Successfully appended response to {filename}")
+-        filename = os.path.basename(filename).split(".")[0]
+         idx = status_tracker.num_parsed_responses
+-        status_tracker.num_parsed_responses = idx + len(responses)
+-        await self.viewer_client.stream_response(json_string, idx)
++        status_tracker.num_parsed_responses = idx + len(responses or [])
++        await self.viewer_client.stream_response(json_string.rstrip("\n"), idx)
+diff --git a/src/bespokelabs/curator/request_processor/response_ledger.py b/src/bespokelabs/curator/request_processor/response_ledger.py
+new file mode 100644
+index 0000000..b05c401
+--- /dev/null
++++ b/src/bespokelabs/curator/request_processor/response_ledger.py
+@@ -0,0 +1,473 @@
++"""Durable, file-backed ledger of the responses produced by a run.
++
++A run's working directory holds one ``requests_N.jsonl`` / ``metadata_N.json`` /
++``responses_N.jsonl`` triple per request file. The request files declare which
++dataset rows must be answered, and the response files are an append-only log of
++every terminal outcome for those rows: successes, parses that produced no rows,
++parses that failed, and permanent request failures.
++
++Because the log is append-only, a row may appear several times (a failure from an
++interrupted run followed by a success from a resumed one). This module folds those
++lines down to a single winning record per row, and exposes the resulting counts as
++a single authoritative tally that callers use instead of their own counters.
++"""
++
++import enum
++import glob
++import json
++import os
++from dataclasses import dataclass
++from typing import Dict, List, Optional
++
++from pydantic import BaseModel, ValidationError
++
++from bespokelabs.curator.log import logger
++from bespokelabs.curator.types.generic_response import GenericResponse
++
++LEDGER_SCHEMA_VERSION: int = 1
++ERROR_SAMPLE_LIMIT: int = 10
++
++_REQUEST_FILE_PATTERN = "requests_*.jsonl"
++_RESPONSE_FILE_PATTERN = "responses_*.jsonl"
++
++
++class LedgerStatus(str, enum.Enum):
++    """Terminal status of a single durable record.
++
++    Attributes:
++        SUCCEEDED: The request was answered and the parse produced at least one row.
++        EMPTY: The request was answered and the parse deliberately produced no rows.
++        UNPARSEABLE: The request was answered but the response could not be parsed.
++        FAILED: The request itself failed permanently.
++    """
++
++    SUCCEEDED = "succeeded"
++    EMPTY = "empty"
++    UNPARSEABLE = "unparseable"
++    FAILED = "failed"
++
++
++#: Statuses that are terminal successes, i.e. the row never needs to be reissued.
++_RESOLVED_STATUSES = frozenset({LedgerStatus.SUCCEEDED, LedgerStatus.EMPTY})
++
++#: How good each status is. When a row has several records, the best one wins.
++_STATUS_RANK = {
++    LedgerStatus.FAILED: 0,
++    LedgerStatus.UNPARSEABLE: 1,
++    LedgerStatus.EMPTY: 2,
++    LedgerStatus.SUCCEEDED: 3,
++}
++
++_UNPARSEABLE_ERROR = "Response message could not be parsed into rows"
++
++
++def classify_record(response: GenericResponse) -> LedgerStatus:
++    """Classify a durable record into its terminal status.
++
++    Args:
++        response: The record to classify.
++
++    Returns:
++        LedgerStatus: The terminal status of the record.
++    """
++    if response.response_errors or response.response_message is None:
++        return LedgerStatus.FAILED
++    if response.parsed_response_message is None:
++        return LedgerStatus.UNPARSEABLE
++    if len(response.parsed_response_message) == 0:
++        return LedgerStatus.EMPTY
++    return LedgerStatus.SUCCEEDED
++
++
++def _normalize_parsed_rows(rows: Optional[list]) -> Optional[list]:
++    """Normalize the rows returned by a `parse_func` into JSON serializable dicts.
++
++    Args:
++        rows: The parsed rows to normalize, or None if the response was not parsed.
++
++    Returns:
++        Optional[list]: The normalized rows, or None if there were none.
++
++    Raises:
++        ValueError: If a row is neither a dict nor a pydantic model.
++    """
++    if rows is None:
++        return None
++
++    normalized = []
++    for row in rows:
++        if isinstance(row, BaseModel):
++            normalized.append(row.model_dump(mode="json"))
++        elif isinstance(row, dict):
++            normalized.append(row)
++        else:
++            raise ValueError(f"Got invalid row {row} of type {type(row)} from `parse_func`. This should be type <class 'dict'>.")
++    return normalized
++
++
++def ledger_line(response: GenericResponse) -> str:
++    """Serialize a response into a single canonical ledger line.
++
++    The raw provider `response_message` is written as-is so that the record can be
++    re-parsed later with a different `parse_func`, while the rows in
++    `parsed_response_message` are normalized to plain JSON objects.
++
++    Args:
++        response: The response to serialize.
++
++    Returns:
++        str: The record as one line of JSON, terminated by a single newline.
++
++    Raises:
++        ValueError: If a parsed row is neither a dict nor a pydantic model.
++    """
++    parsed_response_message = _normalize_parsed_rows(response.parsed_response_message)
++    response_message = response.response_message
++    if isinstance(response_message, BaseModel):
++        response_message = response_message.model_dump(mode="json")
++
++    record = response.model_dump(mode="json", exclude={"response_message", "parsed_response_message"})
++    record["response_message"] = response_message
++    record["parsed_response_message"] = parsed_response_message
++    return json.dumps(record, default=str) + "\n"
++
++
++def parse_ledger_line(line: str) -> Optional[GenericResponse]:
++    """Parse a single ledger line back into a response.
++
++    Args:
++        line: The line to parse.
++
++    Returns:
++        Optional[GenericResponse]: The record, or None if the line is blank or invalid.
++    """
++    if not line or not line.strip():
++        return None
++    try:
++        return GenericResponse.model_validate_json(line)
++    except (json.JSONDecodeError, ValidationError, ValueError):
++        logger.warning(f"Skipping response due to error parsing line: {line}")
++        return None
++
++
++class LedgerIntegrityError(ValueError):
++    """Raised when the ledger contradicts the requests that declare the run.
++
++    Attributes:
++        row_idx: The dataset row index of the offending record.
++        source_file: The response file the offending record was read from.
++    """
++
++    def __init__(self, row_idx: int, source_file: str, message: Optional[str] = None):
++        """Initialize the error.
++
++        Args:
++            row_idx: The dataset row index of the offending record.
++            source_file: The response file the offending record was read from.
++            message: Optional message overriding the default one.
++        """
++        self.row_idx = row_idx
++        self.source_file = source_file
++        super().__init__(message or f"Response for row {row_idx} in {source_file} is not declared by any request file.")
++
++
++@dataclass(frozen=True)
++class LedgerTally:
++    """Authoritative counts derived from a loaded ledger.
++
++    Attributes:
++        n_requests: Number of requests declared by the request files.
++        n_declared_requests: Number of requests the metadata files say were written.
++        n_recorded: Number of rows that have a durable record.
++        n_succeeded: Number of rows whose record is a terminal success.
++        n_failed: Number of rows whose record failed or could not be parsed.
++        n_missing: Number of declared rows without any durable record.
++        n_duplicate_lines: Number of response lines superseded by another record.
++        n_malformed_lines: Number of response lines that could not be parsed.
++        n_dataset_rows: Number of dataset rows held by the succeeded records.
++        error_sample: Sample of the first errors encountered.
++        schema_version: Schema version of the ledger the tally was read from.
++    """
++
++    n_requests: int
++    n_declared_requests: int
++    n_recorded: int
++    n_succeeded: int
++    n_failed: int
++    n_missing: int
++    n_duplicate_lines: int
++    n_malformed_lines: int
++    n_dataset_rows: int
++    error_sample: tuple[str, ...]
++    schema_version: int
++
++
++@dataclass(frozen=True)
++class ResumeState:
++    """View of an existing response file used to resume a run.
++
++    Attributes:
++        completed_row_indices: Rows that are terminally successful and must be skipped.
++        retryable_row_indices: Rows that have a record but must be reissued.
++        n_dataset_rows: Number of dataset rows held by the completed records.
++    """
++
++    completed_row_indices: frozenset[int]
++    retryable_row_indices: frozenset[int]
++    n_dataset_rows: int
++
++
++def _fold(records: Dict[int, GenericResponse], response: GenericResponse) -> bool:
++    """Fold a record into the winning records, keeping the best one.
++
++    Args:
++        records: Mapping of row index to the winning record so far, updated in place.
++        response: The record to fold in.
++
++    Returns:
++        bool: True if the record was a duplicate of an already recorded row.
++    """
++    row_idx = response.generic_request.original_row_idx
++    current = records.get(row_idx)
++    if current is None:
++        records[row_idx] = response
++        return False
++
++    # Later lines win ties, so that a retry supersedes the attempt it repeats.
++    if _STATUS_RANK[classify_record(response)] >= _STATUS_RANK[classify_record(current)]:
++        records[row_idx] = response
++    return True
++
++
++def read_resume_state(response_file: str) -> ResumeState:
++    """Read an existing response file to find out what still needs to be requested.
++
++    Args:
++        response_file: Path to the response file to read.
++
++    Returns:
++        ResumeState: The rows to skip, the rows to reissue and the rows already parsed.
++    """
++    if not os.path.exists(response_file):
++        return ResumeState(completed_row_indices=frozenset(), retryable_row_indices=frozenset(), n_dataset_rows=0)
++
++    logger.info(f"Resuming progress by reading existing file: {response_file}")
++    records: Dict[int, GenericResponse] = {}
++    malformed_lines = 0
++    with open(response_file, "r") as f:
++        for line in f:
++            if not line.strip():
++                continue
++            response = parse_ledger_line(line)
++            if response is None:
++                malformed_lines += 1
++                continue
++            _fold(records, response)
++
++    completed = set()
++    retryable = set()
++    n_dataset_rows = 0
++    for row_idx, response in records.items():
++        if classify_record(response) in _RESOLVED_STATUSES:
++            completed.add(row_idx)
++            n_dataset_rows += len(response.parsed_response_message or [])
++        else:
++            retryable.add(row_idx)
++
++    logger.info(
++        f"Found {len(completed)} successful requests and {len(retryable)} "
++        f"previously failed requests and {malformed_lines} parsing errors in {response_file}"
++    )
++    return ResumeState(completed_row_indices=frozenset(completed), retryable_row_indices=frozenset(retryable), n_dataset_rows=n_dataset_rows)
++
++
++class ResponseLedger:
++    """Durable ledger over all request and response files of a single run.
++
++    Attributes:
++        working_dir: Directory holding the request, metadata and response files.
++    """
++
++    def __init__(
++        self,
++        working_dir: str,
++        request_lines: Dict[int, str],
++        n_declared_requests: int,
++        records: Dict[int, GenericResponse],
++        n_duplicate_lines: int,
++        n_malformed_lines: int,
++    ):
++        """Initialize the ledger. Use `ResponseLedger.load` instead.
++
++        Args:
++            working_dir: Directory holding the request, metadata and response files.
++            request_lines: Mapping of declared row index to its raw request line.
++            n_declared_requests: Number of requests the metadata files declare.
++            records: Mapping of row index to its winning record.
++            n_duplicate_lines: Number of response lines superseded by another record.
++            n_malformed_lines: Number of response lines that could not be parsed.
++        """
++        self.working_dir = working_dir
++        self._request_lines = request_lines
++        self._n_declared_requests = n_declared_requests
++        self._records = records
++        self._n_duplicate_lines = n_duplicate_lines
++        self._n_malformed_lines = n_malformed_lines
++
++    @classmethod
++    def load(cls, working_dir: str) -> "ResponseLedger":
++        """Load the ledger of a run from its working directory.
++
++        Args:
++            working_dir: Directory holding the request, metadata and response files.
++
++        Returns:
++            ResponseLedger: The loaded ledger.
++
++        Raises:
++            LedgerIntegrityError: If a record refers to a row no request file declares.
++        """
++        request_lines, n_declared_requests = cls._read_request_files(working_dir)
++
++        records: Dict[int, GenericResponse] = {}
++        n_duplicate_lines = 0
++        n_malformed_lines = 0
++        for response_file in sorted(glob.glob(os.path.join(working_dir, _RESPONSE_FILE_PATTERN))):
++            with open(response_file, "r") as f:
++                for line in f:
++                    if not line.strip():
++                        continue
++                    response = parse_ledger_line(line)
++                    if response is None:
++                        n_malformed_lines += 1
++                        continue
++                    row_idx = response.generic_request.original_row_idx
++                    if row_idx not in request_lines:
++                        raise LedgerIntegrityError(row_idx, response_file)
++                    if _fold(records, response):
++                        n_duplicate_lines += 1
++
++        return cls(
++            working_dir=working_dir,
++            request_lines=request_lines,
++            n_declared_requests=n_declared_requests,
++            records=records,
++            n_duplicate_lines=n_duplicate_lines,
++            n_malformed_lines=n_malformed_lines,
++        )
++
++    @staticmethod
++    def _read_request_files(working_dir: str) -> tuple[Dict[int, str], int]:
++        """Read the request files and their metadata files.
++
++        Args:
++            working_dir: Directory holding the request and metadata files.
++
++        Returns:
++            tuple[Dict[int, str], int]: The raw request line of every declared row,
++                and the number of requests the metadata files declare.
++        """
++        request_lines: Dict[int, str] = {}
++        n_declared_requests = 0
++        for request_file in sorted(glob.glob(os.path.join(working_dir, _REQUEST_FILE_PATTERN))):
++            with open(request_file, "r") as f:
++                for line in f:
++                    if not line.strip():
++                        continue
++                    try:
++                        request = json.loads(line)
++                    except json.JSONDecodeError:
++                        logger.warning(f"Skipping request due to error parsing line in {request_file}: {line}")
++                        continue
++                    row_idx = request.get("original_row_idx")
++                    if row_idx is None:
++                        continue
++                    request_lines[row_idx] = line.rstrip("\n")
++
++            metadata_file = os.path.join(working_dir, os.path.basename(request_file).replace("requests_", "metadata_").replace(".jsonl", ".json"))
++            if not os.path.exists(metadata_file):
++                logger.warning(f"Ledger missing metadata file {metadata_file} for request file {request_file}")
++                continue
++            try:
++                with open(metadata_file, "r") as f:
++                    n_declared_requests += int(json.load(f)["num_jobs"])
++            except (json.JSONDecodeError, KeyError, TypeError, ValueError):
++                logger.warning(f"Ledger could not read the number of jobs from metadata file {metadata_file}")
++
++        return request_lines, n_declared_requests
++
++    def tally(self) -> LedgerTally:
++        """Count the durable state of the run.
++
++        Returns:
++            LedgerTally: The counts derived from the winning records.
++        """
++        n_succeeded = 0
++        n_failed = 0
++        n_dataset_rows = 0
++        error_sample: List[str] = []
++        for _, response in sorted(self._records.items()):
++            status = classify_record(response)
++            if status in _RESOLVED_STATUSES:
++                n_succeeded += 1
++                n_dataset_rows += len(response.parsed_response_message or [])
++                continue
++            n_failed += 1
++            if len(error_sample) < ERROR_SAMPLE_LIMIT:
++                error_sample.append(str(response.response_errors) if response.response_errors else _UNPARSEABLE_ERROR)
++
++        return LedgerTally(
++            n_requests=len(self._request_lines),
++            n_declared_requests=self._n_declared_requests,
++            n_recorded=len(self._records),
++            n_succeeded=n_succeeded,
++            n_failed=n_failed,
++            n_missing=len(self.missing_row_indices()),
++            n_duplicate_lines=self._n_duplicate_lines,
++            n_malformed_lines=self._n_malformed_lines,
++            n_dataset_rows=n_dataset_rows,
++            error_sample=tuple(error_sample),
++            schema_version=LEDGER_SCHEMA_VERSION,
++        )
++
++    def winning_records(self) -> List[GenericResponse]:
++        """Return the winning record of every recorded row.
++
++        Returns:
++            List[GenericResponse]: The records, in ascending row index order.
++        """
++        return [response for _, response in sorted(self._records.items())]
++
++    def missing_row_indices(self) -> List[int]:
++        """Return the declared rows that have no durable record at all.
++
++        Returns:
++            List[int]: The row indices, in ascending order.
++        """
++        return sorted(row_idx for row_idx in self._request_lines if row_idx not in self._records)
++
++    def unresolved_row_indices(self) -> List[int]:
++        """Return the declared rows that did not reach a terminal success.
++
++        These are the rows that are missing a record entirely plus the rows whose
++        record failed or could not be parsed.
++
++        Returns:
++            List[int]: The row indices, in ascending order.
++        """
++        unresolved = [row_idx for row_idx, response in self._records.items() if classify_record(response) not in _RESOLVED_STATUSES]
++        return sorted(unresolved + self.missing_row_indices())
++
++    def request_line(self, row_idx: int) -> str:
++        """Return the raw request line that declared a row.
++
++        Args:
++            row_idx: The dataset row index to look up.
++
++        Returns:
++            str: The request as one line of JSON, terminated by a single newline.
++
++        Raises:
++            KeyError: If no request file declares the row.
++        """
++        return self._request_lines[row_idx] + "\n"
+diff --git a/src/bespokelabs/curator/types/curator_response.py b/src/bespokelabs/curator/types/curator_response.py
+index 2d219ae..3a5072a 100644
+--- a/src/bespokelabs/curator/types/curator_response.py
++++ b/src/bespokelabs/curator/types/curator_response.py
+@@ -9,6 +9,7 @@ from datasets import Dataset
+ from pydantic import BaseModel
+ 
+ from bespokelabs.curator.log import logger
++from bespokelabs.curator.request_processor.response_ledger import LedgerTally
+ from bespokelabs.curator.status_tracker.offline_status_tracker import OfflineStatusTracker
+ 
+ 
+@@ -165,7 +166,7 @@ class CuratorResponse:
+         warnings.warn("Warning: Huggingface response from the curator LLM api is deprecated, please check out the `CuratorResponse`", stacklevel=2)
+         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+ 
+-    def update_tracker_stats(self, tracker) -> None:
++    def update_tracker_stats(self, tracker, tally: Optional[LedgerTally] = None) -> None:
+         """Update the response with statistics from a tracker.
+ 
+         This method updates various statistics in the response object based on
+@@ -175,6 +176,8 @@ class CuratorResponse:
+         Args:
+             tracker: The tracker object containing statistics about the processing run.
+                     Can be either an OfflineStatusTracker or None.
++            tally (Optional[LedgerTally]): Counts read back from the durable response
++                    ledger, used as the source of truth for the request statistics.
+         """
+         if isinstance(tracker, OfflineStatusTracker) or tracker is None:
+             logger.warning("Tracker is offline or None, skipping stats update")
+@@ -201,17 +204,26 @@ class CuratorResponse:
+ 
+         # Update request statistics
+         if self.batch_mode:
++            in_progress = 0
++            cached = 0
++        else:
++            in_progress = tracker.num_tasks_in_progress
++            cached = tracker.num_tasks_already_completed
++
++        if tally is not None:
++            # The ledger is durable and survives resumed runs, so it is the source of
++            # truth for how many requests were made and how many of them succeeded.
++            total = tally.n_requests
++            succeeded = tally.n_succeeded
++            failed = tally.n_failed + tally.n_missing
++        elif self.batch_mode:
+             total = tracker.n_total_requests
+             succeeded = tracker.n_final_success_requests
+             failed = tracker.n_final_failed_requests
+-            in_progress = 0
+-            cached = 0
+         else:
+             total = tracker.total_requests
+             succeeded = tracker.num_tasks_succeeded
+             failed = tracker.num_tasks_failed
+-            in_progress = tracker.num_tasks_in_progress
+-            cached = tracker.num_tasks_already_completed
+ 
+         self.request_stats = RequestStats(total=total, succeeded=succeeded, failed=failed, in_progress=in_progress, cached=cached)
+ 

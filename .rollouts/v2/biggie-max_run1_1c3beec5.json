@@ -1,0 +1,13 @@
+{
+  "id": "1c3beec5-ebff-4740-9051-cf98c59dc9a5",
+  "evaluation_id": "b7c852e0-daed-4d29-b33f-1f1dda4a9115",
+  "run_number": 1,
+  "model": "biggie-max",
+  "agent_type": "typhoon",
+  "score": null,
+  "success": false,
+  "task_version": 2,
+  "grade_result": null,
+  "created_at": "2026-09-03T20:52:59.857Z",
+  "completed_at": null
+}

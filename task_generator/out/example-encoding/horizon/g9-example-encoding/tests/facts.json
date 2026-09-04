@@ -1,0 +1,14 @@
+{
+ "task_id": "g9",
+ "arm": "blind",
+ "fact_keys": [
+  "g9.r1.rule",
+  "g9.r1.scope",
+  "g9.r1.exclusions_or_crossover",
+  "g9.r1.failure_behavior",
+  "g9.r2.rule",
+  "g9.r2.scope",
+  "g9.r2.failure_behavior"
+ ],
+ "open_key": "g9.open_feature"
+}

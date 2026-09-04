@@ -1,0 +1,14 @@
+From: gideon@world.local
+To:
+ nikolai@world.local, dermot@world.local, emil@world.local, dario@world.local
+Subject: Re: mail: resumed batch run double-submitted ~400 requests
+Date: Thu, 17 Apr 2025 15:14:00 +0000
+Message-ID: <178822443480.2088454.1315606912528642373@world.local>
+In-Reply-To: <178822443479.2088454.17579200674193164150@world.local>
+References: <178822443479.2088454.17579200674193164150@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+wait so with dataset None it still goes down the same function? tbh I assumed=
+ it bails out early and does nothing. um that changes my whole plan then

@@ -1,0 +1,13 @@
+{
+  "id": "99cfbfbd-9d91-4a47-8d1a-678914856e97",
+  "evaluation_id": "27b9e751-6649-4eb9-ba22-ff008209f18c",
+  "run_number": 2,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": 0,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g9.r1.rule\": 0.0,\n    \"g9.r1.scope\": 0.0,\n    \"g9.r1.exclusions_or_crossover\": 0.0,\n    \"g9.r1.failure_behavior\": 0.0,\n    \"g9.r2.rule\": 0.0,\n    \"g9.r2.scope\": 0.0,\n    \"g9.r2.failure_behavior\": 0.0,\n    \"g9.open_feature\": 0.0\n  },\n  \"weights\": {\n    \"g9.r1.rule\": 0.14285714285714285,\n    \"g9.r1.scope\": 0.14285714285714285,\n    \"g9.r1.exclusions_or_crossover\": 0.14285714285714285,\n    \"g9.r1.failure_behavior\": 0.14285714285714285,\n    \"g9.r2.rule\": 0.14285714285714285,\n    \"g9.r2.scope\": 0.14285714285714285,\n    \"g9.r2.failure_behavior\": 0.14285714285714285,\n    \"g9.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"0 of 7 hidden requirements satisfied. Open feature: no. Missed: g9.r1.rule, g9.r1.scope, g9.r1.exclusions_or_crossover, g9.r1.failure_behavior, g9.r2.rule, g9.r2.scope, g9.r2.failure_behavior.  [pytest rc=1 nodes=8]  | FAILED test_r1.py::test_rule__an_assistant_turn_the_window_cuts_in_half_is_not_supervised_at_all - assert 90 == 39 | FAILED test_r1.py::test_scope__the_tokenizer_free_branch_supervises_assistant_spans_from_character_offsets - AssertionError: expected one of ('encoding',) on dict; it has ['num_messages', 'original_text'] | FAILED test_r1.py::test_exclusions__fireworks_drops_over_budget_lines_by_utf8_bytes_and_truncates_nothing - Failed: the encoding policy exposes no 'FIREWORKS_BYTES_PER_TOKEN'; bespokelabs.curator.finetune has ['AdamPa... | FAILED test_r1.py::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_tokens_is_refused - Failed: the encoding policy exposes no 'ExampleTooLongError'; bespokelabs.curator.finetune has ['AdamParams', ... | FAILED test_r2.py::test_rule__both_batch_entry_points_publish_a_frozen_encoding_report - Failed: the encoding policy exposes no 'EncodingReport'; bespokelabs.curator.finetune has ['AdamParams', 'BaseTrainer', 'ChatMes... | FAILED test_r2.py::test_scope__only_the_batch_entry_points_write_the_report - AttributeError: 'DataFormatter' object has no attribute 'last_report' | FAILED test_r2.py::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report - Failed: the encoding policy exposes no 'InvalidRoleSequenceError'; bespokelabs.curator.finetune has ['AdamP... | 8 failed, 1 warning in 3.07s | \"\n  },\n  \"score\": 0.0\n}",
+  "created_at": "2026-09-03T19:38:01.375Z",
+  "completed_at": "2026-09-03T19:45:29.925Z"
+}
