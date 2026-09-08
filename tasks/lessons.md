@@ -823,3 +823,165 @@ three snake_case strings is another snake_case string, not a CamelCase exception
 - A checker earns its place by discriminating on real data: this one fires on the
   pre-fix page naming exactly the three strings, and is clean on all four plants on
   disk.
+
+## Agent type follows the task FORMAT, not the model (2026-09-05)
+
+Submitting the g2 world-hosted arm with `--agent-type meteor` failed the evaluation
+in three minutes: `status: failed`, `rollouts.total: 0`, no spend, and
+`steps: [{provision: pending}, {evaluate: failed}]`.
+
+`meteor` comes from the g1/g4 notes, and it is correct — for the **apex-format**
+blind/spec/clues arms those notes were about. The `-world*` arms in `harbor_tasks/`
+are `"format": "harbor"` (it says so in `.horizon/metadata.json`), and harbor
+accepts a different roster: claude-code, terminus-2, codex, gemini-cli, openhands,
+mini-swe-agent, goose, aider. Their rollouts have always run on **`typhoon`**.
+
+What made it slow to see is that the failure is byte-identical to the exhausted-budget
+signature in the lesson above — zero rollouts, zero requests, provision pending — so
+the documented first move (`horizon whoami --json`) returns a healthy $400 and
+tells you nothing.
+
+**Rules for myself:**
+- Read `agent_type` out of the previous version's rollout JSON before submitting.
+  `.rollouts/v<N>/*.json` carries it, and it is one `python3 -c` away.
+- `rollout_error_insights` is generated text, but it named this exactly ("the harbor
+  format only supports specific agents") while `error_message` said only "exit code
+  1". Read the insight first; verify it against the rollouts, don't dismiss it.
+- Zero-rollout failures have at least two causes now. Check the task format and the
+  budget together, not budget alone.
+
+## The model gate counts rollouts per TASK ID, not per task (2026-09-07)
+
+`evaluations submit --model lumen` on g9's `example-encoding-world-hosted` returned
+
+    403 Forbidden: This task is gated to cipher-omni (GLM 5.2) or cheaper:
+    run 10+ cipher-omni rollouts below a 0.4 pass rate to unlock pricier models.
+
+The same submit on g8's `attachment-payload-world-hosted`, sent in the same command
+seconds earlier, was accepted — and a two-task submit is refused wholesale if either
+half is gated, so the first attempt looked like both were blocked.
+
+The difference is not the task, the arm or the version. `tasks.rollouts(<id>)`
+returns a `stats` list keyed by model:
+
+    g8 attachment-payload-world-hosted   cipher-omni, 10 rollouts, pass_rate 0.0
+    g9 example-encoding-world-hosted     no rollouts at all
+    g9 example-encoding-world-LOCATED-hosted   cipher-omni, 10 + 8 more
+
+g9 *had* run 12 hosted rollouts — on its located twin, which is a different task id.
+Nothing about a sibling arm, an earlier version, or the same requirement under
+another name counts toward the gate. A brand-new arm starts at zero every time,
+so the ~$16-36 gating run is a per-arm cost, not a per-task one.
+
+**Rules for myself:**
+- Before pricing a hosted run, read the gate itself:
+  `GET /api/v1/evaluations/config?task_id=<id>` returns `gate.unlocked` along with
+  `graded_count`, `pass_rate`, `threshold` and `min_rollouts`. That is the server's
+  own verdict, free, and it beats inferring one from `tasks.rollouts(<id>).stats` --
+  stats count `total_rollouts` per (model, agent_type), and only GRADED ones on the
+  right agent count, so g1 (12 cipher-omni on cascade) and g3 (21 on typhoon, 11
+  errored) both read ambiguous there and unambiguous here. Note the SDK parses this
+  field as `gate`, not `model_gate`; `EvalConfig.model_gate` is always None.
+- Submit gated and ungated tasks separately. One comma-separated submit with a
+  gated member spends nothing and grades nothing, and the 403 names no task id.
+- Budget the gate as part of standing up an arm. Two new arms is two gating runs.
+
+## A remark that names an invariant without naming the mechanism is read as "raise" (2026-09-08)
+
+g11's located arm lost `r1.rule` in 3 of 4 completed opus-5 rollouts and lost nothing
+else. All three implemented `canonical_reasons` to raise `StepLedgerError` on a
+repeated label, where the suite asserts it collapses one. All three had quoted the
+same corpus line into their own notes:
+
+    2025-03-24 14:16 konrad: that goes too, a label shows up once in a record or the
+    record is not accepted
+
+The answer key says the function deduplicates. The corpus said refuse. That half was
+already repaired -- the line now reads "not by refusing the write though - the record
+just carries the label once, a second mention folds into the first" -- but the repair
+landed at 20:03 on 2026-09-07, two hours AFTER the rollouts, and reading the failure
+without checking that timestamp would have re-fixed a fixed bug. **Compare the
+rollout's `created_at` against the mtime of what it is failing on before diagnosing.**
+
+The residual defect is the one worth remembering. Even repaired, the folding was
+attached to *the record*, while the graded call is `canonical_reasons`, and the one
+thread that enumerates what that function does and does not raise on (2025-04-09
+`#code-review`) never mentioned duplicates -- next to `anything not in
+CHECKPOINT_REASONS raises`, "the record carries it once" reads as one more thing the
+writer enforces by refusing. An invariant stated as a property ("no repeats within a
+record") does not tell a reader which function upholds it, and in a module that
+already raises, the default guess is that it raises. **State the mechanism in the room
+where the function is described, not only the invariant in the room where the symptom
+was found.**
+
+## Rewriting corpus text silently breaks the plant, and a cache hides it (2026-09-08)
+
+Rewriting g1's four planted mail threads to read like mail cost nothing at the time
+and broke `build_located_arm.py` for two commits without a single error appearing.
+
+`inject.located()` finds a remark by substring-searching the corpus for **the
+plant's own words** (`must_appear(c)[0]`), and it raises rather than degrading. Edit
+a body for how it READS and the plant becomes a record of something nobody says any
+more:
+
+    clues.hedged-v1  FAIL: cannot locate 4 of 50 remark(s) in data:
+                     g1.r1.l10, g1.r1.l12, g1.r1.l14, g1.r2.l6
+
+Exactly the four mail carriers. It went unnoticed because `locate()` falls back
+through every `clues.*` snapshot and, failing those, the arm still built off
+`harbor_tasks/.located-corpora/sweworld_0.4.4/` — a cache still holding the old
+bodies. **The artifact looked healthy while the tool that makes it did not work.**
+`cli.py resync` is the repair, and it calls `located()` itself afterwards so a
+resync that fixed nothing says so now rather than three commands later.
+
+- **Any corpus edit needs the plant resynced in the same change.** Corpus and plant
+  are coupled by substring search, not by id.
+- **Clear the cache before you believe a rebuild.** A generator that passes on a
+  stale cache proves nothing about the corpus you just changed.
+
+Two more things the same change turned up:
+
+**Build the located map from the IMAGE, never from `data/`.** `data/` has four chat
+and wiki exchanges a message shorter than `sweworld:0.4.x` does, so a map rebuilt
+from it turns four `an exchange of 7 messages` into `6` and sends a reader looking
+for a turn that is there. The mail rows are identical either way, which is what makes
+this easy to miss.
+
+**A body rewrite is safe everywhere else, and that is worth knowing so you do not
+regenerate half the repo.** The `-clues` and `-spec` instructions render
+`clue["text"]` and the requirement fields, never message bodies. No grader reads mail
+at all — the suites only read `/opt/world-state/input/curator`. Message counts,
+subjects and timestamps are untouched, so the located map's own numbers do not move.
+
+## `horizon artifacts environment push` builds from the repo root (2026-09-08)
+
+Publishing a world image failed with
+
+    failed to compute cache key: "/task-entrypoint.sh": not found
+
+which reads as a missing file and is a wrong build context. The CLI builds from
+`git archive HEAD` — a clean checkout of the repo ROOT — with `--dockerfile` overlaid
+on top, so a task's own `environment/Dockerfile` cannot resolve its `COPY setup.sh`.
+
+Nothing task-specific belongs in the published image anyway: it is the company, and
+every hosted arm does `FROM <it, by digest>` and adds its own setup, entrypoint and
+`plant/`. `harbor_tasks/_env/world-registry.Dockerfile` is what gets published and it
+copies nothing from the context. The push prints `image_reference`; that digest goes
+into the pinning arm's `FROM` by hand.
+
+Also: it stages an uncompressed OCI tar **and** its gzip under `/tmp`, on the same
+filesystem. A ~7GB world took the box from 9.7GB free to 4.7GB before recovering.
+Check free space before starting, not after it fails.
+
+## An absent fact is not a missing fact (2026-09-08)
+
+Every answer key says "Each is graded as five independent facts, 0.1 each". For g2
+that is simply false: `g2.r2` declares no `failure_behavior`, its grader has four
+tests rather than five, and the task is scored on **nine** facts at one ninth each —
+which is why 8/9 shows up as 0.889 in the results and not as some rounding artifact.
+`score.py` says so at the top: keys come from `tasks.json`, because "inventing keys
+for absent facts would quietly divide every mean by the wrong number."
+
+Five of the ten requirements across g2/g3/g4/g6 have no `failure_behavior`, and
+g6.r1 has only three of the five. **Read the suite's test count, not the key's
+boilerplate, before reasoning about what a score means.**
