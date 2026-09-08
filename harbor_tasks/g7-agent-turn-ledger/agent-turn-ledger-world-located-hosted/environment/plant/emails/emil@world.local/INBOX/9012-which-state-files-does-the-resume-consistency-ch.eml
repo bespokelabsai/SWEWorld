@@ -8,35 +8,33 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: what resume raises when the ledger and the log disagree
-
 Dermot, Dario,
 
-We never wrote down what comes out of the resume path when the sidecar and th=
-e log have drifted, and I hit it for real this morning, so here it is while i=
-t is fresh.
+We never wrote down what comes out of the resume path when the sidecar and =
+the log have drifted, and I hit it for real this morning, so here it is whi=
+le it is fresh.
 
-On resume we call verify_sidecar before we hand the run back to the driver. I=
-t reads /work/agent/turn_ledger.json, counts the responses it claims and who =
-authored the last one, then does the same against the log and compares. When =
-those two disagree it raises TurnLedgerDesyncError. That is the type callers =
-should be catching on the resume path; nothing else is thrown from that compa=
-rison.
+On resume we call verify_sidecar before we hand the run back to the driver.=
+ It reads /work/agent/turn_ledger.json, counts the responses it claims and =
+who authored the last one, then does the same against the log and compares.=
+ When those two disagree it raises TurnLedgerDesyncError. That is the type =
+callers should be catching on the resume path; nothing else is thrown from =
+that comparison.
 
-The case I hit was the ordinary one: a run that died between the log append a=
-nd the ledger write, so the ledger was one response behind. str(exc) came bac=
-k as "/work/agent/turn_ledger.json records 1 response(s) last authored by 'cl=
-ient', the log holds 2 last authored by 'client'". That is the whole message,=
- path first, ledger side first, log side second, and I would rather we treat =
-it as the wording rather than paraphrase it in three places.
+The case I hit was the ordinary one: a run that died between the log append=
+ and the ledger write, so the ledger was one response behind. str(exc) came=
+ back as "/work/agent/turn_ledger.json records 1 response(s) last authored =
+by 'client', the log holds 2 last authored by 'client'". That is the whole =
+message, path first, ledger side first, log side second, and I would rather=
+ we treat it as the wording rather than paraphrase it in three places.
 
-The message is not the only thing on the exception. It also carries .log_resp=
-onses and .log_last_author, so anything that wants to branch on the log side =
-can read the numbers off the object instead of parsing the sentence back apar=
-t. In my case those were 2 and 'client' respectively, which is what you would=
- expect given the string.
+The message is not the only thing on the exception. It also carries .log_re=
+sponses and .log_last_author, so anything that wants to branch on the log s=
+ide can read the numbers off the object instead of parsing the sentence bac=
+k apart. In my case those were 2 and 'client' respectively, which is what y=
+ou would expect given the string.
 
-I would say that is solid enough to write into the resume notes as is. Shout =
-if either of you reads the ordering differently.
+I would say that is solid enough to write into the resume notes as is. Shou=
+t if either of you reads the ordering differently.
 
 Nikolai

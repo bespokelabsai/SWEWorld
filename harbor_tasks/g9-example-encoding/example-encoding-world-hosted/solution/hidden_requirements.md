@@ -1,13 +1,14 @@
 # g9 — One encoding policy for chat examples
 
-**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
+**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries; `located` gets the same world as `world` plus a map of where each remark sits, but never a quote, never which requirement a conversation serves, and never which are herrings.
 
-| arm | what it is handed |
-|---|---|
-| `blind` | the ticket |
-| `spec` | the ticket + both hidden requirements |
-| `clues` | the ticket + all 55 remarks, quoted |
-| `world` | the ticket, against `sweworld:0.4.4` where the 55 remarks live in chat, the wiki and mail |
+| arm | what it is handed | measured |
+|---|---|---|
+| `blind` | the ticket | — |
+| `spec` | the ticket + both hidden requirements | — |
+| `clues` | the ticket + all 55 remarks, quoted | **1.00** |
+| `world` | the ticket, against `sweworld:0.4.4` where the 55 remarks live in chat, the wiki and mail | — |
+| `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left | **1.00** |
 
 Scores are per run and live with the run, not here.
 
@@ -15,29 +16,218 @@ Scores are per run and live with the run, not here.
 
 ## The hidden requirements — stated nowhere
 
-Each is graded as five independent facts, 0.1 each. `open_feature` carries weight 0.0: building the feature scores nothing, only recovering what nobody wrote down does.
+Two requirements, `g9.r1` and `g9.r2`. Neither is written down anywhere an agent
+can read: they have to be reassembled from remarks scattered across the world.
 
-### `g9.r1`
+**Seven facts, not ten.** `g9.r1` declares four — no `observability`; `g9.r2`
+declares three — no `exclusions_or_crossover` and no `observability`. `score.py`
+takes its keys from `tasks.json` rather than from a fixed list of five, precisely
+so an absent fact is not invented and does not divide the mean by the wrong
+number, so each of the seven is worth one seventh. `open_feature` (did the agent
+build the feature at all?) carries weight **0.0**: building the feature scores
+nothing, only recovering what nobody wrote down does.
 
-- **`rule`** — An assistant span (s, e) contributes weight 1.0 to token indices [s, e) only when s >= window_start. A span that begins before the window boundary is zeroed in full. Observable: DataFormatter(max_seq_length=40) with a one-token-per-character tokenizer over messages [user 'u'*30, assistant 'a'*10, user 'v'*5, assistant 'b'*8] (token_count 91, window_start 51, spans (48, 59) and (82, 91)) gives metadata['encoding']['supervised_tokens'] == 9, sum(loss_fn_inputs['weights']) == 9.0, and [i for i, w in enumerate(weights) if w == 1.0] == [30, 31, 32, 33, 34, 35, 36, 37, 38].
+Note that the exact values are not gathered under an `observability` fact here —
+neither requirement declares one. They sit inside the fact they belong to, marked
+**Observable** below, and they are graded as part of it.
 
-- **`scope`** — The tokenizer=None branch obeys the same policy instead of its current shortcut: the text stays f'<|{msg.role}|>\n{msg.content}\n' per message and the count stays len(chat_text) // 4, but tokens = list(range(len(chat_text) // 4)) goes through the same windowing, and it honours train_on_assistant_only. Spans come from character offsets: for assistant message i, span = (len_before // 4, len_after // 4) where len_before is the length of the text built from messages[:i] and len_after that of messages[:i+1]. train_on_assistant_only=False still yields all-1.0 weights on both paths. Observable: DataFormatter(max_seq_length=1024), no tokenizer, [user 'Hello', assistant 'Hi there!'] -> token_count 9, window_start 0, span (3, 9), metadata['encoding']['supervised_tokens'] == 6, returned weights == [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], metadata['encoding']['tokenizer'] is False.
+The facts, and the question each one answers:
 
-- **`exclusions_or_crossover`** — The Fireworks jsonl path never windows or truncates anything: to_jsonl_lines drops any serialized line whose UTF-8 byte length exceeds self.max_seq_length * FIREWORKS_BYTES_PER_TOKEN, where FIREWORKS_BYTES_PER_TOKEN is 3 (strict >, not >=). FIREWORKS_BYTES_PER_TOKEN is one of the encoding policy's public names: it is defined in finetune/encoding.py and re-exported from the finetune package, so `from bespokelabs.curator.finetune import FIREWORKS_BYTES_PER_TOKEN` resolves. The measurement is len(line.encode('utf-8')) on the json.dumps(..., ensure_ascii=False) output. Observable: FireworksDataFormatter(max_seq_length=30) with [user 'qqq', assistant 'ok'] (90-byte line, budget 90) and [user 'qqqqqq', assistant 'ok'] (93 bytes) → len(to_jsonl_lines([a, b])) == 1; and with max_seq_length=33 (budget 99) [user 'héllo wörld', assistant 'ok'] serializes to 100 bytes and is dropped, so to_jsonl_lines([x]) == [].
+| fact | the question it answers |
+|---|---|
+| `rule` | what exactly has to exist |
+| `scope` | where it applies, and where it must not |
+| `exclusions_or_crossover` | what has to stay untouched |
+| `failure_behavior` | what happens when it goes wrong |
+| `observability` | the exact values a test can read back |
 
-- **`failure_behavior`** — A new exception ExampleTooLongError(EncodingError). to_tinker_datum raises it when the example was windowed (window_start > 0) AND s_last - window_start < 16, where s_last is the start index of the FINAL assistant span. __init__(self, *, token_count: int, max_seq_length: int, retained_prompt_tokens: int, num_messages: int), all four set as attributes, with retained_prompt_tokens = max(0, s_last - window_start); str(e) == f'example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16'. format_batch skips a refused example and returns the others. Observable: max_seq_length=40 over [user 'u'*10, assistant 'a'*100] raises with token_count == 129, max_seq_length == 40, retained_prompt_tokens == 0, num_messages == 2, isinstance(e, ValueError); the near-miss pair [user 'u'*30, assistant 'a'*10, user 'v'*5, assistant 'b'*8] returns a datum at max_seq_length=40 and raises with retained_prompt_tokens == 8 at max_seq_length=17.
+---
 
-> *The decision the team made first and later reversed:* The team first shipped the floor as 'refuse any example that had to be windowed at all', then reversed it to the 16-retained-prompt-token floor after too many legitimate long conversations were being dropped.
+### `g9.r1` — a span that starts before the window is zeroed in full
 
-### `g9.r2`
+**In one sentence:** loss weight is granted to an assistant span only if the span
+*begins* inside the window — a span straddling the boundary earns nothing at all,
+not a partial credit — and the no-tokenizer path follows the same policy instead
+of its shortcut.
 
-- **`rule`** — encoding.py defines a frozen dataclass EncodingReport with exactly the fields kept: int = 0, dropped: int = 0, windowed: int = 0, dropped_indices: Tuple[int, ...] = (), supervised_tokens: int = 0 (that spelling, that order, those defaults), exported from finetune/__init__.py. Both format_batch and FireworksDataFormatter.to_jsonl_lines reassign self.last_report while still returning a plain list. dropped_indices is the ascending tuple of INPUT positions that were dropped; windowed counts only kept examples whose window_start > 0; supervised_tokens sums the supervised token counts of kept examples only, and is 0 on the Fireworks path along with windowed. Observable: FireworksDataFormatter(max_seq_length=30).to_jsonl_lines([a, b]) leaves last_report == EncodingReport(kept=1, dropped=1, windowed=0, dropped_indices=(1,), supervised_tokens=0) by dataclass equality.
+#### `rule` — all-or-nothing at the boundary
 
-- **`scope`** — to_tinker_datum never touches self.last_report — neither on success nor when it raises — and a freshly constructed DataFormatter(max_seq_length=40) has last_report == EncodingReport(kept=0, dropped=0, windowed=0, dropped_indices=(), supervised_tokens=0).
+An assistant span `(s, e)` contributes weight `1.0` to token indices `[s, e)`
+**only when `s >= window_start`**. A span that begins before the window boundary
+is **zeroed in full**.
 
-- **`failure_behavior`** — format_batch absorbs only the over-long refusal. InvalidRoleSequenceError and TokenizerCapabilityError propagate out of format_batch and abort the pass — they are neither caught nor counted as drops — and self.last_report still holds the value it had before the aborted call.
+**Observable.** `DataFormatter(max_seq_length=40)` with a one-token-per-character
+tokenizer over `[user 'u'*30, assistant 'a'*10, user 'v'*5, assistant 'b'*8]`
+(`token_count` 91, `window_start` 51, spans `(48, 59)` and `(82, 91)`):
 
-> *The decision the team made first and later reversed:* format_batch first returned a (data, report) tuple; that was reversed when it broke the direct forwarding at tinker_trainer.py:250, and the report moved onto the formatter instance.
+```python
+metadata['encoding']['supervised_tokens'] == 9
+sum(loss_fn_inputs['weights']) == 9.0
+[i for i, w in enumerate(weights) if w == 1.0] == [30, 31, 32, 33, 34, 35, 36, 37, 38]
+```
+
+#### `scope` — the `tokenizer=None` branch obeys the same policy
+
+Its current shortcut goes. What stays:
+
+- the text is still `f'<|{msg.role}|>\n{msg.content}\n'` per message
+- the count is still `len(chat_text) // 4`
+
+What changes: `tokens = list(range(len(chat_text) // 4))` goes through the **same
+windowing**, and it honours `train_on_assistant_only`.
+
+Spans come from character offsets — for assistant message `i`,
+`span = (len_before // 4, len_after // 4)`, where `len_before` is the length of the
+text built from `messages[:i]` and `len_after` that of `messages[:i+1]`.
+
+`train_on_assistant_only=False` still yields all-`1.0` weights on **both** paths.
+
+**Observable.** `DataFormatter(max_seq_length=1024)`, no tokenizer,
+`[user 'Hello', assistant 'Hi there!']` → `token_count` 9, `window_start` 0, span
+`(3, 9)`:
+
+```python
+metadata['encoding']['supervised_tokens'] == 6
+weights == [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+metadata['encoding']['tokenizer'] is False
+```
+
+#### `exclusions_or_crossover` — the Fireworks path never windows
+
+`to_jsonl_lines` windows and truncates **nothing**. It drops any serialized line
+whose UTF-8 byte length exceeds `self.max_seq_length * FIREWORKS_BYTES_PER_TOKEN`,
+where `FIREWORKS_BYTES_PER_TOKEN` is `3` — **strict `>`, not `>=`**.
+
+`FIREWORKS_BYTES_PER_TOKEN` is one of the encoding policy's public names: defined
+in `finetune/encoding.py` and re-exported from the `finetune` package, so
+`from bespokelabs.curator.finetune import FIREWORKS_BYTES_PER_TOKEN` resolves.
+
+The measurement is `len(line.encode('utf-8'))` on the
+`json.dumps(..., ensure_ascii=False)` output.
+
+**Observable.**
+
+| formatter | example | bytes | budget | outcome |
+|---|---|---|---|---|
+| `FireworksDataFormatter(max_seq_length=30)` | `[user 'qqq', assistant 'ok']` | 90 | 90 | kept |
+| same | `[user 'qqqqqq', assistant 'ok']` | 93 | 90 | dropped |
+| `max_seq_length=33` | `[user 'héllo wörld', assistant 'ok']` | 100 | 99 | dropped |
+
+so `len(to_jsonl_lines([a, b])) == 1` and `to_jsonl_lines([x]) == []`.
+
+#### `failure_behavior` — the retained-prompt floor
+
+A new exception `ExampleTooLongError(EncodingError)`. `to_tinker_datum` raises it
+when the example was windowed (`window_start > 0`) **AND**
+`s_last - window_start < 16`, where `s_last` is the start index of the **final**
+assistant span.
+
+```python
+__init__(self, *, token_count: int, max_seq_length: int,
+         retained_prompt_tokens: int, num_messages: int)
+```
+
+All four are set as attributes, with
+`retained_prompt_tokens = max(0, s_last - window_start)`, and:
+
+```python
+str(e) == f'example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16'
+```
+
+`format_batch` **skips** a refused example and returns the others.
+
+**Observable.**
+
+| input | at | result |
+|---|---|---|
+| `[user 'u'*10, assistant 'a'*100]` | `max_seq_length=40` | raises: `token_count == 129`, `max_seq_length == 40`, `retained_prompt_tokens == 0`, `num_messages == 2`, `isinstance(e, ValueError)` |
+| `[user 'u'*30, assistant 'a'*10, user 'v'*5, assistant 'b'*8]` | `max_seq_length=40` | returns a datum |
+| the same near-miss pair | `max_seq_length=17` | raises with `retained_prompt_tokens == 8` |
+
+#### `observability` — not declared
+
+This requirement has no separate `observability` fact; its exact values are graded
+inside the facts above.
+
+> **The herring** — what the team decided first and later reversed: the team first
+> shipped the floor as "refuse any example that had to be windowed at all", then
+> reversed it to the 16-retained-prompt-token floor after too many legitimate long
+> conversations were being dropped.
+
+---
+
+### `g9.r2` — one report on the formatter, reassigned, never returned
+
+**In one sentence:** the batch result is still a plain list, and what happened to
+it is recorded on `self.last_report` — which the single-example path never touches,
+and which an abort leaves exactly as it was.
+
+#### `rule` — what has to exist
+
+`encoding.py` defines a **frozen** dataclass `EncodingReport` with exactly these
+fields, in this order, with these defaults and that spelling:
+
+```python
+kept: int = 0
+dropped: int = 0
+windowed: int = 0
+dropped_indices: Tuple[int, ...] = ()
+supervised_tokens: int = 0
+```
+
+exported from `finetune/__init__.py`.
+
+Both `format_batch` and `FireworksDataFormatter.to_jsonl_lines` **reassign
+`self.last_report`** while still returning a plain list.
+
+| field | what it counts |
+|---|---|
+| `dropped_indices` | the **ascending** tuple of INPUT positions that were dropped |
+| `windowed` | only kept examples whose `window_start > 0` |
+| `supervised_tokens` | the supervised token counts of **kept examples only** |
+
+`supervised_tokens` and `windowed` are both `0` on the Fireworks path.
+
+**Observable.** `FireworksDataFormatter(max_seq_length=30).to_jsonl_lines([a, b])`
+leaves, by dataclass equality:
+
+```python
+last_report == EncodingReport(kept=1, dropped=1, windowed=0,
+                              dropped_indices=(1,), supervised_tokens=0)
+```
+
+#### `scope` — the single-example path never writes it
+
+`to_tinker_datum` never touches `self.last_report` — neither on success nor when it
+raises. And a freshly constructed `DataFormatter(max_seq_length=40)` has:
+
+```python
+last_report == EncodingReport(kept=0, dropped=0, windowed=0,
+                              dropped_indices=(), supervised_tokens=0)
+```
+
+#### `exclusions_or_crossover` — not declared
+
+This requirement has no `exclusions_or_crossover` fact. Nothing to implement, and
+nothing scored here.
+
+#### `failure_behavior` — only the over-long refusal is absorbed
+
+`format_batch` absorbs **only** `ExampleTooLongError`.
+
+`InvalidRoleSequenceError` and `TokenizerCapabilityError` propagate out of
+`format_batch` and abort the pass — they are neither caught nor counted as drops —
+and `self.last_report` still holds the value it had **before** the aborted call.
+
+#### `observability` — not declared
+
+This requirement has no separate `observability` fact; its exact values are graded
+inside the facts above.
+
+> **The herring** — what the team decided first and later reversed: `format_batch`
+> first returned a `(data, report)` tuple; that was reversed when it broke the
+> direct forwarding at `tinker_trainer.py:250`, and the report moved onto the
+> formatter instance.
 
 ---
 
@@ -166,90 +356,6 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 
 ---
 
-## The ticket — stated openly
-
-**One encoding policy for chat examples**
-
-Give `finetune` a single typed encoding policy for chat training examples, shared by the tinker formatter and the Fireworks formatter.
-
-### New module `src/bespokelabs/curator/finetune/encoding.py`
-
-- `ALLOWED_ROLES: frozenset = frozenset({"system", "user", "assistant"})`.
-- `class EncodingError(ValueError)` — base class for every error raised by the encoding policy.
-- `class InvalidRoleSequenceError(EncodingError)` with `__init__(self, *, role_sequence: List[str], position: int, reason: str) -> None`; attributes `role_sequence`, `position`, `reason`, all set before `super().__init__()`; `str(e) == f"invalid role sequence at position {position} ({reason}): {role_sequence}"`.
-- `class TokenizerCapabilityError(EncodingError)` with `__init__(self, *, missing_method: str) -> None`; attribute `missing_method`; `str(e) == f"tokenizer is missing required method {missing_method!r}"`.
-- `def validate_role_sequence(messages: Sequence[Any]) -> None` — accepts a sequence of `ChatMessage`-like objects (`.role`) or of dicts (`"role"` key); returns `None` on success.
-- Python 3.10 (`^3.10`, checkout is 3.10.12): use `Optional[...]` / `Tuple[...]` from `typing`, not `X | Y`. Stdlib + existing deps only; `tinker` is not installed and must not be required. Pure and deterministic.
-
-### `validate_role_sequence` rules
-
-Checked in this order; the first violation raises and nothing later is reported.
-
-- empty sequence → `reason="empty"`, `position=0`.
-- a role not in `ALLOWED_ROLES` → `reason="unknown_role"`, `position` = index of the first such message.
-- a `"system"` message at any index other than `0` → `reason="misplaced_system"`, `position` = index of that message.
-- after the optional leading system message the roles must alternate `user, assistant, user, assistant, ...` → `reason="non_alternating"`, `position` = index of the first message whose role is not the expected one.
-- the last message must be `"assistant"` → `reason="unterminated"`, `position = len(messages) - 1`.
-
-Examples: `[]` → `("empty", 0)`; `[user, tool, assistant]` → `("unknown_role", 1)`; `[user, system, assistant]` → `("misplaced_system", 1)`; `[system, user, user, assistant]` → `("non_alternating", 2)`; `[system, user, assistant, user]` → `("unterminated", 3)`.
-
-### `DataFormatter` (`data_formatter.py`)
-
-- `__init__(self, max_seq_length: int = 2048, train_on_assistant_only: bool = True) -> None` keeps `self.max_seq_length` and `self.train_on_assistant_only`.
-- Replace `_compute_weights` with `_supervised_spans(self, messages: List[ChatMessage], tokenizer: Optional[Any]) -> List[Tuple[int, int]]`: the half-open `[start, end)` token indices of every assistant turn, in message order, over the **untruncated** token sequence.
-- `to_tinker_datum(self, example: TrainingExample, tokenizer: Optional[Any] = None) -> Any` calls `validate_role_sequence(example.messages)` first thing.
-- When `tokenizer is not None`, `to_tinker_datum` requires `callable(getattr(tokenizer, "apply_chat_template", None))` and otherwise raises `TokenizerCapabilityError(missing_method="apply_chat_template")` — regardless of `train_on_assistant_only`.
-- Delete the `try/except Exception: weights = [1.0] * len(tokens)` fallback at `data_formatter.py:102-104`. If `apply_chat_template` or `encode` raises while spans are computed, that exception propagates unchanged; there is no all-ones fallback on the tokenizer path.
-- With a tokenizer: encode the chat text with exactly one call, `tokenizer.encode(chat_text, add_special_tokens=False)` — no `max_length`, no `truncation` — then window in the formatter: `window_start = max(0, len(tokens) - self.max_seq_length)`, `windowed_tokens = tokens[window_start:]`. Weights are built over the untruncated sequence and sliced with the identical `[window_start:]`, so the end of the conversation survives and the oldest context is what is lost.
-- `train_on_assistant_only=False` means weights are all `1.0`.
-- Reuse unchanged: `format_chat_messages`, `format_example`, the prefix-tokenization boundary trick (`apply_chat_template(pre, add_generation_prompt=True)` for the start index, `apply_chat_template(cumulative, add_generation_prompt=False)` for the end index), the causal shift and the `tinker.Datum` construction (`data_formatter.py:134-148`, out of scope).
-- `format_batch(self, examples: List[TrainingExample], tokenizer: Optional[Any] = None) -> List[Any]` processes examples in input order; its return type stays a list.
-
-### Dict envelope returned by `to_tinker_datum`
-
-`tinker.Datum` is returned when `TINKER_AVAILABLE` and `tokenizer is not None`; otherwise (the only shape reachable in this checkout) exactly:
-
-```python
-{
-    "model_input":  List[int],                    # windowed_tokens[:-1]
-    "loss_fn_inputs": {
-        "target_tokens": List[int],               # windowed_tokens[1:]
-        "weights":       List[float],             # windowed_weights[1:], 0.0/1.0
-    },
-    "metadata": {
-        "original_text": str,
-        "num_messages":  int,
-        "encoding": {
-            "tokenizer":         bool,
-            "token_count":       int,
-            "window_start":      int,
-            "windowed":          bool,
-            "supervised_tokens": int,
-        },
-    },
-}
-```
-
-- `metadata["original_text"]` is the chat text on **both** branches — `apply_chat_template` output with a tokenizer, the `<|role|>` text without one. This fixes `data_formatter.py:157`, which stores `""` exactly when a real tokenizer produced real text.
-- `metadata["encoding"]` has exactly those five keys: `tokenizer` is `tokenizer is not None`; `token_count` is the length of the **untruncated** token sequence; `window_start` is `max(0, token_count - max_seq_length)`; `windowed` is `window_start > 0`; `supervised_tokens` is the count of `1.0` in the pre-shift weights.
-- `set(metadata) == {"original_text", "num_messages", "encoding"}`. The `tinker.Datum` branch is untouched.
-
-### Fireworks (`fireworks_data_formatter.py`, `trainer/fireworks_trainer.py`)
-
-- New classmethod `FireworksDataFormatter.from_config(cls, config: "FireworksTrainerConfig") -> "FireworksDataFormatter"`: `max_seq_length` is `config.max_context_length` when it is not `None`, else `2048`; `train_on_assistant_only=True`. A `max_context_length` larger than the default wins.
-- `fireworks_trainer.py:126` becomes `self.data_formatter = FireworksDataFormatter.from_config(config)`. Today `config.max_context_length` (`config.py:129`) reaches only the SFT job kwargs (`fireworks_trainer.py:331`), never the file that is uploaded.
-- `to_jsonl_lines(self, examples: List[TrainingExample]) -> List[str]` validates every example's role sequence first, propagating `InvalidRoleSequenceError`. `example_to_dict` and `write_jsonl` are unchanged; `write_jsonl` writes exactly the lines `to_jsonl_lines` returns.
-
-### Exports (`finetune/__init__.py`)
-
-Add to the imports and `__all__`: `"EncodingError"`, `"InvalidRoleSequenceError"`, `"TokenizerCapabilityError"`, `"ALLOWED_ROLES"`, `"validate_role_sequence"`, plus any other public name the policy introduces.
-
-### Tests
-
-`tests/finetune/test_data_formatter.py` — additions only. Every existing test in that file must still pass unchanged (the mock path keeps the `<|role|>\n` template and the `len // 4` token count, so `test_max_seq_length` and `test_to_tinker_datum_with_system_message` still hold).
-
-
----
 
 ## Where every remark is
 
@@ -808,8 +914,7 @@ As it appears, spread across the exchange:
 #### `g9.r2.l19`
 
 - **mail** · “Re: Weekly update: week of Apr 7” · **dermot** · 2025-04-14 11:41
-- to emil@world.local, dario@world.local, gideon@world.local,
- nikolai@world.local, tomas@world.local
+- to emil@world.local, dario@world.local, gideon@world.local, nikolai@world.local, tomas@world.local
 - carries `g9.r2.failure_behavior`
 - must be typed literally: `self.last_report`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -818,13 +923,63 @@ What the remark has to leave a reader with:
 
 > One review note on 632: when the batch aborted halfway, self.last_report had already been half updated — it should still read whatever the last good run left.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-11:41  dermot    Subject: one note on 632, the report attribute after an aborted batch  Konrad,  I went through 632 properly late last night, and there is only one note I would hold the merge for. Everything else in it I am happy with, so please read this as a single review note rather than a list.  The issue is in encode_batch. As the loop walks the examples it updates the counters on self.last_report in place: kept incremented for each example that survives, the index appended to dropped_indices when one does not, supervised_tokens accumulated as it goes. That is fine as long as the batch runs to completion, because by the time the method returns the attribute describes exactly the run that just finished. The problem is the abort path. When something raises partway through the loop, and the tokenizer raising on a pathological example is the case I actually hit, the exception propagates out of encode_batch and the attribute is left half updated. It then describes neither the run that just died nor the run before it. It is a tally of the first n examples of a batch that never completed, which is the one thing it should never be, because nothing in the object tells the caller that is what they are looking at.  What I want out of it is easy to state: when a batch aborts halfway, self.last_report should still read whatever the last good run left. If a caller encoded a batch successfully at ten past, then tried another one that blew up at half past, the attribute should still be the ten past numbers, untouched. Mechanically that means accumulating into locals and constructing the EncodingReport at the end, then assigning it to the attribute once, on the success path after the loop has finished. If the loop raises, no write ever happens and the previous value survives by construction rather than by us remembering to put it back.  If I had to guess this was never a decision so much as the counters having grown outward from a local variable that was already there, so I am not asking you to defend it. That said, I do think it has to be fixed before this goes in, because a half written report is the sort of thing that gets read into a dashboard and believed.  Regards, Dermot
-12:20  konrad    Dermot,  Right, I see it, and I agree it is a bug and not a preference. I had been thinking of the attribute as a running counter and you are describing it as a record of one completed run, and yours is the reading that matches what the name promises. Building the EncodingReport at the end and assigning once is straightforward here, since all five fields are already local except dropped_indices, which I can collect in a list and freeze into the tuple at the same point.  One question before I push anything. What is it supposed to read when nothing good has ever run? A formatter that was constructed and then had its very first batch abort halfway has no last good run behind it, so "whatever the last good run left" does not obviously say anything about that case. Presumably I should leave whatever is there alone, but I am not entirely sure what you expect a caller to find, and I would rather write the test to your answer than to my guess.  Konrad
-14:05  dermot    Konrad,  On the never-ran case: leave it exactly alone, and there is nothing to invent, because the constructor has already put something there. DataFormatter(max_seq_length=40) seeds the attribute with EncodingReport(kept=0, dropped=0, windowed=0, dropped_indices=(), supervised_tokens=0) before any batch is encoded, so a freshly constructed formatter holds a zeroed report, not None. That is deliberate and I would not change it as part of 632 — callers can read the field and unpack the fields without a null check from the moment they have an object.  So the rule you are implementing is narrower than the sentence I wrote, and it is worth being precise about it since you are writing the test. It is a rule about the abort path only: on an abort, do not write. Whatever the attribute held going into the failed batch is what it holds coming out. For a formatter that had a good run behind it, that is the last good run's report. For one that has never completed a batch, that is the zeroed report the constructor left, which is the correct answer for the same reason — nothing has been counted, so nothing is reported. I am not making a general claim about the initial value beyond that; the constructor decides the initial value, and the abort path simply does not get a vote.  While you are in there, the second write is in encode_batch's early return for the empty input case, and that one should assign a complete report too rather than touching fields. Otherwise it is the same shape of bug waiting for the next person.  Dermot
-15:12  konrad    Dermot,  That is clear, thank you. Pushed to the branch on 632. The counters are local now, the report is constructed once after the loop and assigned in a single statement, and the empty input path assigns a full zeroed report instead of poking at fields.  The test encodes a batch that succeeds, keeps a copy of the report, then encodes a second batch where the third example makes the tokenizer raise, catches the exception and asserts the attribute is still equal to the copy — kept, dropped, windowed, dropped_indices and supervised_tokens, all five, since the old code would have moved three of them. I did not add a separate case for the freshly constructed formatter because there is already one asserting the zeroed report at construction, and between the two of them the behaviour you described is covered.  One thing I noticed on the way through: the old in place update was the reason the retry helper looked correct in the log, because it read the attribute after the failure and reported the partial count as progress. That is gone now too.  Konrad
+From: dermot@world.local
+Sent: 11:41
+
+Konrad,
+
+I went through 632 properly late last night, and there is only one note I would hold the merge for. Everything else in it I am happy with, so please read this as a single review note rather than a list.
+
+The issue is in encode_batch. As the loop walks the examples it updates the counters on self.last_report in place: kept incremented for each example that survives, the index appended to dropped_indices when one does not, supervised_tokens accumulated as it goes. That is fine as long as the batch runs to completion, because by the time the method returns the attribute describes exactly the run that just finished. The problem is the abort path. When something raises partway through the loop, and the tokenizer raising on a pathological example is the case I actually hit, the exception propagates out of encode_batch and the attribute is left half updated. It then describes neither the run that just died nor the run before it. It is a tally of the first n examples of a batch that never completed, which is the one thing it should never be, because nothing in the object tells the caller that is what they are looking at.
+
+What I want out of it is easy to state: when a batch aborts halfway, self.last_report should still read whatever the last good run left. If a caller encoded a batch successfully at ten past, then tried another one that blew up at half past, the attribute should still be the ten past numbers, untouched. Mechanically that means accumulating into locals and constructing the EncodingReport at the end, then assigning it to the attribute once, on the success path after the loop has finished. If the loop raises, no write ever happens and the previous value survives by construction rather than by us remembering to put it back.
+
+If I had to guess this was never a decision so much as the counters having grown outward from a local variable that was already there, so I am not asking you to defend it. That said, I do think it has to be fixed before this goes in, because a half written report is the sort of thing that gets read into a dashboard and believed.
+
+Regards,
+Dermot
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 12:20
+
+Dermot,
+
+Right, I see it, and I agree it is a bug and not a preference. I had been thinking of the attribute as a running counter and you are describing it as a record of one completed run, and yours is the reading that matches what the name promises. Building the EncodingReport at the end and assigning once is straightforward here, since all five fields are already local except dropped_indices, which I can collect in a list and freeze into the tuple at the same point.
+
+One question before I push anything. What is it supposed to read when nothing good has ever run? A formatter that was constructed and then had its very first batch abort halfway has no last good run behind it, so "whatever the last good run left" does not obviously say anything about that case. Presumably I should leave whatever is there alone, but I am not entirely sure what you expect a caller to find, and I would rather write the test to your answer than to my guess.
+
+Konrad
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 14:05
+
+On the never-ran case: leave it exactly alone, and there is nothing to invent, because the constructor has already put something there. DataFormatter(max_seq_length=40) seeds the attribute with EncodingReport(kept=0, dropped=0, windowed=0, dropped_indices=(), supervised_tokens=0) before any batch is encoded, so a freshly constructed formatter holds a zeroed report, not None. That is deliberate and I would not change it as part of 632 — callers can read the field and unpack the fields without a null check from the moment they have an object.
+
+So the rule you are implementing is narrower than the sentence I wrote, and it is worth being precise about it since you are writing the test. It is a rule about the abort path only: on an abort, do not write. Whatever the attribute held going into the failed batch is what it holds coming out. For a formatter that had a good run behind it, that is the last good run's report. For one that has never completed a batch, that is the zeroed report the constructor left, which is the correct answer for the same reason — nothing has been counted, so nothing is reported. I am not making a general claim about the initial value beyond that; the constructor decides the initial value, and the abort path simply does not get a vote.
+
+While you are in there, the second write is in encode_batch's early return for the empty input case, and that one should assign a complete report too rather than touching fields. Otherwise it is the same shape of bug waiting for the next person.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 15:12
+
+That is clear, thank you. Pushed to the branch on 632. The counters are local now, the report is constructed once after the loop and assigned in a single statement, and the empty input path assigns a full zeroed report instead of poking at fields.
+
+The test encodes a batch that succeeds, keeps a copy of the report, then encodes a second batch where the third example makes the tokenizer raise, catches the exception and asserts the attribute is still equal to the copy — kept, dropped, windowed, dropped_indices and supervised_tokens, all five, since the old code would have moved three of them. I did not add a separate case for the freshly constructed formatter because there is already one asserting the zeroed report at construction, and between the two of them the behaviour you described is covered.
+
+One thing I noticed on the way through: the old in place update was the reason the retry helper looked correct in the log, because it read the attribute after the failure and reported the partial count as progress. That is gone now too.
+
+Konrad
 ```
 
 #### `g9.r1.rev2` · **reversal**
@@ -864,13 +1019,56 @@ What the remark has to leave a reader with:
 
 > one more correction while we're on token counts: supervised_tokens in the release notes is inflated, it counted the long examples we dropped from the batch. it shouldn't.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:14  emil      Doing what I hoped was a last pass over the dataset card this morning before we push the reasoning set out, and the numbers are not reconciling for me. The card says 41,880 rows and I can only account for 40,214 in what the batch actually returned, which is roughly the gap I would expect if the card was written against the pre-trim manifest rather than the submitted one.  not entirely sure whether the card was assembled before or after we pulled the long examples, that's really the question. Dermot I believe you put the original counts together — do you remember which manifest you were reading off?  I would rather we be intentional here and fix it now than publish something we quietly correct in a week.
-11:38  dermot    yeah, you have it right. the counts in the card came off the pre-trim manifest, i pulled them the evening before we decided to drop anything over the context limit and then never went back and regenerated them once the trim landed. 40,214 is the number that should be in there.  the per-domain breakdown underneath it has the same problem, since it was derived from the same file — math and code both come down, the rest are close enough that the rounding hides it, but i would regenerate the whole table rather than patch two rows.  one more correction while we're on token counts: supervised_tokens in the release notes was inflated, it counted the long examples we threw out of the batch. that said, none of this changes the license or provenance sections, so the rest of the card can stand as written.  i can regenerate both tables from the submitted manifest this afternoon if nobody has started already.
-12:06  gideon    ah ok that explains it. I was looking at the same gap last week when I was writing the eval harness config and I assumed I had a filter wrong on my side, so I just moved on lol.  Nobody has started on the tables afaik, so go ahead. Do you want me to re-run the dedup stats against the submitted manifest too while you are in there, or those were computed after the trim already?
-13:41  dario     mhm, this tracks with what I saw in the batch logs — the submitted request count was always the lower one, I just never lined it up against the card.  in any case I'll hold the publish until the regenerated tables are in. no rush on my account, tomorrow morning is fine.
+From: emil@world.local
+Sent: 09:14
+
+Doing what I hoped was a last pass over the dataset card this morning before we push the reasoning set out, and the numbers are not reconciling for me. The card says 41,880 rows and I can only account for 40,214 in what the batch actually returned, which is roughly the gap I would expect if the card was written against the pre-trim manifest rather than the submitted one.
+
+not entirely sure whether the card was assembled before or after we pulled the long examples, that's really the question. Dermot I believe you put the original counts together — do you remember which manifest you were reading off?
+
+I would rather we be intentional here and fix it now than publish something we quietly correct in a week.
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 11:38
+
+Emil,
+
+You have it right. The counts in the card came off the pre-trim manifest — i pulled them the evening before we decided to drop anything over the context limit, and then never went back and regenerated them once the trim landed. 40,214 is the number that should be in there.
+
+The per-domain breakdown underneath it has the same problem, since it was derived from the same file. Math and code both come down; the rest are close enough that the rounding hides it, but i would regenerate the whole table rather than patch two rows.
+
+One more correction while we're on token counts: supervised_tokens in the release notes was inflated, it counted the long examples we threw out of the batch. That said, none of this changes the license or provenance sections, so the rest of the card can stand as written.
+
+I can regenerate both tables from the submitted manifest this afternoon if nobody has started already.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 12:06
+
+Ah ok, that explains it. I was looking at the same gap last week when I was writing the eval harness config and I assumed I had a filter wrong on my side, so I just moved on lol.
+
+Nobody has started on the tables afaik, so go ahead. Do you want me to re-run the dedup stats against the submitted manifest too while you are in there, or were those computed after the trim already?
+
+Gideon
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 13:41
+
+Mhm, this tracks with what I saw in the batch logs — the submitted request count was always the lower one, I just never lined it up against the card.
+
+In any case i'll hold the publish until the regenerated tables are in. No rush on my account, tomorrow morning is fine.
+
+Dario
 ```
 
 #### `g9.r2.l4`
@@ -918,8 +1116,7 @@ As it appears, spread across the exchange:
 #### `g9.r1.say25`
 
 - **mail** · “user question: does a local run without the tokenizer extra still report encoding stats” · **dario** · 2025-04-24 13:42
-- to gideon@world.local, emil@world.local, dermot@world.local,
- konrad@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to gideon@world.local, emil@world.local, dermot@world.local, konrad@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g9.r1.scope`
 - must be typed literally: `window_start`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -928,12 +1125,47 @@ What the remark has to leave a reader with:
 
 > honestly the fallback emits the same encoding block as the tokenizer path, window_start and all, and it comes back 0 on any run where we never had to trim
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:42  dario     Subject: the zero window_start on the fallback runs  Dermot, Emil,  Some context first, since neither of you was on the thread where this came up and it will read as nonsense otherwise. When the tokenizer is not available on a run — nothing loadable on the box, or we are pointed at a model we cannot open — the counting quietly drops to a character-length estimate instead of failing the run outright. That much I think everyone knows. The part that has been confusing people is what that fallback writes out afterwards, because it is not a reduced or partial record. It emits the same encoding block the real tokenizer path emits, the same keys in the same order, window_start and all, for the straightforward reason that it is the same code doing the writing at the tail of both branches.  The consequence is what I actually want on the record. window_start comes back 0 on any run where we never had to trim, and that is true whichever counter produced the numbers. It is not a placeholder and it is not the fallback declining to fill the field in. It is a measured zero: the window opened at the start of the sequence because nothing needed to be dropped. So reading a 0 there and concluding the estimate path must have been in play is backwards — you get exactly the same 0 out of a clean tokenizer run over a corpus that fits comfortably.  To be honest, keeping the shape identical across the two branches is the best we can do given how much downstream code indexes into that block, so I am not proposing we change the writer. I would only like us to stop treating that zero as evidence of anything.  Dario
-14:31  dermot    Dario,  Let me restate this to be sure I have the shape of it, because I have been reasoning from the opposite assumption for about a week.  Your position as I read it: both branches terminate in the same writer, so the encoding block is structurally identical between them, and window_start is a real measurement rather than a default, landing on 0 whenever no trimming occurred. Fine, that follows. If I had to guess where it leaves us, though, the block is then identical either way and tells you nothing at all about which counter produced the count, so a record from a run with no tokenizer is simply indistinguishable from a record where the tokenizer ran and the input happened to fit inside the window. Is that the position you are taking, or is there something still in the block that separates the two cases?  I ask because I spent a late night last week reconciling counts across two runs on the assumption that each record announced its own provenance somewhere, and if it does not, I would rather know now than rediscover it.
-15:14  dario     Dermot,  Your restatement of the window is right and the guess you appended to it is not, and the two are worth pulling apart, because it is the second half that would cost you another night.  Structurally identical, yes — same fields, same order, same code writing them, and window_start carries the same meaning in both branches. But the block is not silent about where the number came from. It carries metadata['encoding']['tokenizer'], and that boolean is False precisely on the runs where we fell back to the character estimate, and True where a real tokenizer produced the count. So the record does say which counter ran. That single key is what separates the two cases, and it is sitting in every record you already have, including the ones from the runs you were reconciling.  What the block genuinely cannot tell you is anything about trimming, and that is where I think the confusion started. A 0 in window_start is a 0 in either branch whenever nothing was dropped, so it discriminates nothing on its own. One field there is a measurement and the other is a declaration; the zero is the measurement, and the declaration is the one you want when the question is which path ran. In any case, nothing needs to change in the writer for that to hold.  Dario
+From: dario@world.local
+Sent: 13:42
+
+Dermot, Emil,
+
+Some context first, since neither of you was on the thread where this came up and it will read as nonsense otherwise. When the tokenizer is not available on a run — nothing loadable on the box, or we are pointed at a model we cannot open — the counting quietly drops to a character-length estimate instead of failing the run outright. That much I think everyone knows. The part that has been confusing people is what that fallback writes out afterwards, because it is not a reduced or partial record. It emits the same encoding block the real tokenizer path emits, the same keys in the same order, window_start and all, for the straightforward reason that it is the same code doing the writing at the tail of both branches.
+
+The consequence is what I actually want on the record. window_start comes back 0 on any run where we never had to trim, and that is true whichever counter produced the numbers. It is not a placeholder and it is not the fallback declining to fill the field in. It is a measured zero: the window opened at the start of the sequence because nothing needed to be dropped. So reading a 0 there and concluding the estimate path must have been in play is backwards — you get exactly the same 0 out of a clean tokenizer run over a corpus that fits comfortably.
+
+To be honest, keeping the shape identical across the two branches is the best we can do given how much downstream code indexes into that block, so I am not proposing we change the writer. I would only like us to stop treating that zero as evidence of anything.
+
+Dario
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 14:31
+
+Dario,
+
+Let me restate this to be sure I have the shape of it, because I have been reasoning from the opposite assumption for about a week.
+
+Your position as I read it: both branches terminate in the same writer, so the encoding block is structurally identical between them, and window_start is a real measurement rather than a default, landing on 0 whenever no trimming occurred. Fine, that follows. If I had to guess where it leaves us, though, the block is then identical either way and tells you nothing at all about which counter produced the count, so a record from a run with no tokenizer is simply indistinguishable from a record where the tokenizer ran and the input happened to fit inside the window. Is that the position you are taking, or is there something still in the block that separates the two cases?
+
+I ask because I spent a late night last week reconciling counts across two runs on the assumption that each record announced its own provenance somewhere, and if it does not, I would rather know now than rediscover it.
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 15:14
+
+Your restatement of the window is right and the guess you appended to it is not, and the two are worth pulling apart, because it is the second half that would cost you another night.
+
+Structurally identical, yes — same fields, same order, same code writing them, and window_start carries the same meaning in both branches. But the block is not silent about where the number came from. It carries metadata['encoding']['tokenizer'], and that boolean is False precisely on the runs where we fell back to the character estimate, and True where a real tokenizer produced the count. So the record does say which counter ran. That single key is what separates the two cases, and it is sitting in every record you already have, including the ones from the runs you were reconciling.
+
+What the block genuinely cannot tell you is anything about trimming, and that is where I think the confusion started. A 0 in window_start is a 0 in either branch whenever nothing was dropped, so it discriminates nothing on its own. One field there is a measurement and the other is a declaration; the zero is the measurement, and the declaration is the one you want when the question is which path ran. In any case, nothing needs to change in the writer for that to hold.
+
+Dario
 ```
 
 #### `g9.r1.rev1` · **reversal**
@@ -1012,8 +1244,7 @@ As it appears, spread across the exchange:
 #### `g9.r1.l-scope-1`
 
 - **mail** · “PR 653: formatter still takes tokenizer=None” · **dermot** · 2025-05-06 13:12
-- to konrad@world.local, emil@world.local, dario@world.local,
- gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to konrad@world.local, emil@world.local, dario@world.local, gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g9.r1.scope`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
 
@@ -1021,13 +1252,60 @@ What the remark has to leave a reader with:
 
 > right, but look — the formatter tests all pass with no tokenizer, becuase that path just hands back all ones, so none of them would notice a masking bug.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:12  dermot    Subject: assistant-only loss appearing on user turns in the 05-04 run  Konrad, Dario,  The supervised run from Sunday night was configured with train_on_assistant_only set to true, and the loss curve does not have the shape any of the earlier assistant-only runs had. It comes down too smoothly and it starts far too low. I pulled a batch straight off the loader this morning and dumped the loss mask alongside the decoded text, and the mask is all ones from the first position to the last: system preamble, user turns, everything. Nothing is being excluded.  The reason I did not start looking in the formatter is that the formatter suite is green and has been green for weeks, and it does contain cases that assert on the mask for multi-turn conversations, including at least one that I wrote myself. So my working assumption was that the flag is being dropped somewhere between the config object and the formatter constructor, or else the collator is rebuilding the mask from scratch after the fact and throwing away what the formatter handed it. If I had to guess I would say the collator, since it is the newer code, but I am not entirely sure and I have not read it closely yet.  Before I spend a late night in the collator, does either of you have a concrete reason to think the formatter itself could be at fault here? I would like to rule it out properly rather than on the strength of a passing test suite.  Dermot
-13:58  konrad    Dermot,  Right, but look — the formatter is exactly where I would look, and the passing suite is not evidence of anything on this point. The mask construction has two branches. When the formatter is built with a tokenizer, we ask it for the token span of each rendered segment, and we zero out everything that does not fall inside a span belonging to an assistant turn. When the formatter is built without one, we do not have spans, so that branch simply returns a vector of 1.0 with the length of the rendered text and returns it. It never reads train_on_assistant_only. The flag is not dropped on the way in; on that path it is not consulted at all.  The formatter tests all construct the formatter with no tokenizer, because that is what makes them fast and independent of which model we are pointed at. So every one of those mask assertions is running against the branch that hands back all ones, and every one of them passes, and none of them would notice a masking bug even if the assistant-only logic were deleted entirely. Your own case included, presumably. I checked the fixture this morning and there is no tokenizer anywhere in it.  What I would like us to agree is that the no-tokenizer branch has to honour the flag rather than ignore it, and that we do not do this by writing a second masking implementation inside that branch. We already know where each segment begins and ends in the rendered string, because we accumulate the length of the prefix as we build it, so we can produce the assistant spans in character units and pass them to the same masking function the tokenized path calls. That includes the trimming step that clips a long example down to the maximum length, so that a conversation which gets cut is masked the same way whichever branch produced it. One code path, one place where the flag is read.  Off the top of my head that is a small change, but it will make several of those green tests turn red, which is the point of it.  Konrad
-14:26  dario     That tracks, and it explains the shape of the curve better than the collator theory does, because a mask of all ones is exactly a run that is training on everything and therefore converging on the easy tokens too.  On the question of how to fix it: I had been assuming the choice was either to leave the no-tokenizer branch as its own small per-segment implementation and make it correct on its own terms, or to fold it onto the tokenized path. Having read your description I think folding is the only version that survives contact with us six months from now. Two implementations of the same masking rule is two things to keep in agreement, and honestly the truncation behaviour is where they would drift first — the tokenized path trims after it has spans, and anything written separately would end up trimming before, and then the two would disagree only on long conversations, which is the case nobody inspects by hand. So derive the spans from the prefix lengths, hand them to the existing function, let the trimming happen in the one place it already happens.  The other half of this, which I think matters as much as the fix, is that the fixture cannot stay the only caller. In any case a suite that is structurally incapable of failing on the thing it claims to test is worse than no suite, because it bought us weeks of confidence we had not earned. At minimum the assistant-only cases need to run in both configurations, with a real tokenizer and without, and assert the same mask out of both.  Dario
-14:41  konrad    Mhm, agreed on both, and the point about truncation being where two implementations would drift is a better argument than the one I gave.  Anyway, the thing I would like written into the commit message is that the all-ones branch was never a decision anyone made. Nobody sat down and decided that a formatter without a tokenizer should train on the user turns. It is the shape the fixture happened to take when the flag did not exist yet, and the suite has been quietly agreeing with it ever since.
+From: dermot@world.local
+Sent: 13:12
+
+Konrad, Dario,
+
+The supervised run from Sunday night was configured with train_on_assistant_only set to true, and the loss curve does not have the shape any of the earlier assistant-only runs had. It comes down too smoothly and it starts far too low. I pulled a batch straight off the loader this morning and dumped the loss mask alongside the decoded text, and the mask is all ones from the first position to the last: system preamble, user turns, everything. Nothing is being excluded.
+
+The reason I did not start looking in the formatter is that the formatter suite is green and has been green for weeks, and it does contain cases that assert on the mask for multi-turn conversations, including at least one that I wrote myself. So my working assumption was that the flag is being dropped somewhere between the config object and the formatter constructor, or else the collator is rebuilding the mask from scratch after the fact and throwing away what the formatter handed it. If I had to guess I would say the collator, since it is the newer code, but I am not entirely sure and I have not read it closely yet.
+
+Before I spend a late night in the collator, does either of you have a concrete reason to think the formatter itself could be at fault here? I would like to rule it out properly rather than on the strength of a passing test suite.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 13:58
+
+Dermot,
+
+Right, but look — the formatter is exactly where I would look, and the passing suite is not evidence of anything on this point. The mask construction has two branches. When the formatter is built with a tokenizer, we ask it for the token span of each rendered segment, and we zero out everything that does not fall inside a span belonging to an assistant turn. When the formatter is built without one, we do not have spans, so that branch simply returns a vector of 1.0 with the length of the rendered text and returns it. It never reads train_on_assistant_only. The flag is not dropped on the way in; on that path it is not consulted at all.
+
+The formatter tests all construct the formatter with no tokenizer, because that is what makes them fast and independent of which model we are pointed at. So every one of those mask assertions is running against the branch that hands back all ones, and every one of them passes, and none of them would notice a masking bug even if the assistant-only logic were deleted entirely. Your own case included, presumably. I checked the fixture this morning and there is no tokenizer anywhere in it.
+
+What I would like us to agree is that the no-tokenizer branch has to honour the flag rather than ignore it, and that we do not do this by writing a second masking implementation inside that branch. We already know where each segment begins and ends in the rendered string, because we accumulate the length of the prefix as we build it, so we can produce the assistant spans in character units and pass them to the same masking function the tokenized path calls. That includes the trimming step that clips a long example down to the maximum length, so that a conversation which gets cut is masked the same way whichever branch produced it. One code path, one place where the flag is read.
+
+Off the top of my head that is a small change, but it will make several of those green tests turn red, which is the point of it.
+
+Konrad
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 14:26
+
+That tracks, and it explains the shape of the curve better than the collator theory does, because a mask of all ones is exactly a run that is training on everything and therefore converging on the easy tokens too.
+
+On the question of how to fix it: I had been assuming the choice was either to leave the no-tokenizer branch as its own small per-segment implementation and make it correct on its own terms, or to fold it onto the tokenized path. Having read your description I think folding is the only version that survives contact with us six months from now. Two implementations of the same masking rule is two things to keep in agreement, and honestly the truncation behaviour is where they would drift first — the tokenized path trims after it has spans, and anything written separately would end up trimming before, and then the two would disagree only on long conversations, which is the case nobody inspects by hand. So derive the spans from the prefix lengths, hand them to the existing function, let the trimming happen in the one place it already happens.
+
+The other half of this, which I think matters as much as the fix, is that the fixture cannot stay the only caller. In any case a suite that is structurally incapable of failing on the thing it claims to test is worse than no suite, because it bought us weeks of confidence we had not earned. At minimum the assistant-only cases need to run in both configurations, with a real tokenizer and without, and assert the same mask out of both.
+
+Dario
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 14:41
+
+Mhm, agreed on both, and the point about truncation being where two implementations would drift is a better argument than the one I gave.
+
+Anyway, the thing I would like written into the commit message is that the all-ones branch was never a decision anyone made. Nobody sat down and decided that a formatter without a tokenizer should train on the user turns. It is the shape the fixture happened to take when the flag did not exist yet, and the suite has been quietly agreeing with it ever since.
 ```
 
 #### `g9.r1.say23`
@@ -1042,20 +1320,60 @@ What the remark has to leave a reader with:
 
 > look, on your Hello / Hi there! pair the weights come back one shorter than the tokens - eight of them, [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:04  nikolai   konrad any chance you can finish off 653 today  its been sitting since last week and i'd say its solid enough now the tokenization path is in there too so it should be a short pass  emil looping you in only because if this lands before the next cut the cookbook samples change under you again
-11:26  konrad    Right, I went through it properly this morning rather than skimming. Most of it is fine — the client itself I have no objection to, and the config handling reads much cleaner than the previous version.  Two things. First, the error path when the upload fails silently swallows the response body, so presumably you get a bare exception with no context. Small, but worth fixing before it lands. Second, and this is the one I want you to confirm: look, on your Hello / Hi there! pair the weights come back one shorter than the tokens - eight of them, [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]. I am not entirely sure if that is intentional (shifted for the next-token prediction, maybe?) or if something is dropping off the end. Off the top of my head I could not tell from the code alone.  If it is intended I will approve today. Anyway the rest is fine from my side.  — Konrad
-13:47  nikolai   yep the error path one is fair i'll push that in a minute  the other one i gotta think through that one, i mean i wrote the pair as a quick sanity check and never counted them side by side so i can't tell you off the top of my head whether thats deliberate or not  give me till tomorrow morning before you approve
-15:12  emil      Fine by me either way, I'm not blocking on this — but if the answer turns out to be that something is dropping, honestly I'd rather it get sorted before the samples get regenerated. We rewrote those once already for the response object and I don't want to be doing it a third time in a fortnight.  So, restating so I have it right: nothing lands until Nikolai confirms tomorrow, and if it does land I pick up the cookbook side after. Yup? We need to be intentional here about the ordering, that's all.
+From: nikolai@world.local
+Sent: 09:04
+
+Konrad,
+
+Any chance you can finish off 653 today? It's been sitting since last week and I'd say its solid enough now, the tokenization path is in there too, so it should be a short pass.
+
+Emil, looping you in only because if this lands before the next cut the cookbook samples change under you again.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 11:26
+
+Right, I went through it properly this morning rather than skimming. Most of it is fine — the client itself I have no objection to, and the config handling reads much cleaner than the previous version.
+
+Two things. First, the error path when the upload fails silently swallows the response body, so presumably you get a bare exception with no context. Small, but worth fixing before it lands. Second, and this is the one I want you to confirm: look, on your Hello / Hi there! pair the weights come back one shorter than the tokens - eight of them, [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]. I am not entirely sure if that is intentional (shifted for the next-token prediction, maybe?) or if something is dropping off the end. Off the top of my head I could not tell from the code alone.
+
+If it is intended I will approve today. Anyway the rest is fine from my side.
+
+— Konrad
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:47
+
+Yep, the error path one is fair, i'll push that in a minute.
+
+The other one I gotta think through. I mean I wrote the pair as a quick sanity check and never counted them side by side, so i can't tell you off the top of my head whether thats deliberate or not.
+
+Give me till tomorrow morning before you approve.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 15:12
+
+Fine by me either way, I'm not blocking on this — but if the answer turns out to be that something is dropping, honestly I'd rather it get sorted before the samples get regenerated. We rewrote those once already for the response object and I don't want to be doing it a third time in a fortnight.
+
+So, restating so I have it right: nothing lands until Nikolai confirms tomorrow, and if it does land I pick up the cookbook side after. Yup? We need to be intentional here about the ordering, that's all.
 ```
 
 #### `g9.r1.l-rule-2`
 
 - **mail** · “PR 653 — ran a curated set through the encode path” · **dario** · 2025-05-07 11:04
-- to nikolai@world.local, dermot@world.local, emil@world.local,
- konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+- to nikolai@world.local, dermot@world.local, emil@world.local, konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
 - carries `g9.r1.rule`
 - must be typed literally: `supervised_tokens`, `token_count`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -1064,13 +1382,67 @@ What the remark has to leave a reader with:
 
 > honestly i pulled one row out and its encoding carries token_count 52 for everything, supervised_tokens 40 — and twelve of that forty are the tail of an answer we chopped the front off.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-11:04  dario     Subject: what our encoded rows are actually counting  Nikolai, Dermot,  Before 653 goes any further I spent the first part of this morning in the encoding path rather than the client surface, because the coverage figure we quote in the eval summary has looked too steady to me for several weeks now. Honestly, rather than trust the aggregate I pulled one row out of the encoded set and read the fields on it by hand, and what came back does not support the reading we have been giving that figure.  The row carries token_count 52. So does the row after it, and the one after that — 52 is what every row carries, which tells me the field is being written from the padded length and not from anything the tokenizer actually produced for that example. Against that constant, supervised_tokens on the row is 40. That is where the 40 out of 52 we have been reporting comes from, and since both halves of it are fixed by construction, the number has never measured the thing we describe it as measuring. It is arithmetic on the padding.  The worse half of this is the 40 itself. Twelve of those forty positions are the tail of an answer whose front we chopped off — the example ran long, the head of the answer went, and the remainder stayed in the sequence and stayed marked as supervised. So we are training on the back half of an answer with no beginning attached to it, and counting those twelve positions as legitimate supervision while we do it.  As I see it there are two ways to go: either we correct token_count to report the real tokenized length and leave the mask alone for the moment, or we treat the two as a single change and stop marking a chopped answer as supervised at all. I lean to the second, but I would rather not settle it by myself. In any case, I do not think 653 should land while the summary still describes 40 over 52 as coverage.  Best, Dario
-11:33  nikolai   Dario,  On the 52: that is the pad length, and I would say it has been since the encoder was written. Nobody put a real length in that field, so nothing was ever going to vary. Blunt question, because it decides how much of the set is affected — did you find a single row anywhere where token_count is not 52, or is it 52 across the whole file?  The twelve is the part that bothers me more than the constant. A constant that lies in the summary is embarrassing. Supervising a fragment that begins mid-sentence is a training signal we did not intend to give and cannot see in any metric we currently print, since supervised_tokens counts those twelve exactly like the other twenty-eight.  Your second option, for my part. Splitting them means we ship a corrected count that still sits on top of a mask we know is wrong, and then the number looks trustworthy while the data underneath it is not. That is worse than the current state, which at least nobody believes.  Nikolai
-12:40  dermot    Nikolai, Dario,  I came to this after the fact and had to read the encoder to follow it, so let me restate what I take the finding to be and you can correct me. The length field is populated after padding, hence 52 everywhere; the supervision mask is applied to the answer span before truncation is applied to the sequence; truncation then removes the head of the answer but the mask that was computed over the full span survives on whatever remains. If I had to guess, that ordering is also why the ratio has been suspiciously flat in every report since we moved to the fixed-length encoder.  That said, I would put one refinement on the remedy. A truncated answer is not merely an unsupervised example — it is an example we should be able to detect and count, otherwise we will lose the signal about how often our sequences are too short for the material. If we drop those twelve positions from supervision and say nothing else, supervised_tokens quietly falls and we will have no way to tell a genuinely short answer from one we mutilated. I would like a per-row marker for the truncated case so that the loss of supervision is visible as such.  On the wider question, I agree with Nikolai that the two changes belong together.  Dermot
-13:15  dario     Dermot, Nikolai,  Your restatement is right, and the refinement is a genuine improvement on what I proposed, so let me write down what we have settled and treat it as settled.  On Nikolai's question first: it is 52 on every row I looked at, and I looked at rather more than the one after I sent that mail. There is no partial exposure here to scope — the field is uniform across the file, so the correction touches everything and the historical numbers in the summaries are all of them the same fiction.  So: token_count is written from the tokenizer output for the actual example, not from the padded length. An answer whose head was removed by truncation is not supervised — the remaining positions come out of the mask rather than being counted as the twelve currently are — and the row carries a marker saying that is why, so that a shrinking supervised_tokens can be read as truncation rather than as short answers. The eval summary stops quoting a ratio at all until it is quoting one built on real lengths.  I will not pretend this recovers the runs we have already reported on; those were measuring padding against a mask that included mutilated spans, and no correction applied downstream makes them mean anything. Re-encoding and re-running is the best we can do there, and I would rather we say so plainly in the summary than quietly publish a new number next to the old ones as though they were comparable.  Dario
+From: dario@world.local
+Sent: 11:04
+
+Nikolai, Dermot,
+
+Before 653 goes any further I spent the first part of this morning in the encoding path rather than the client surface, because the coverage figure we quote in the eval summary has looked too steady to me for several weeks now. Honestly, rather than trust the aggregate I pulled one row out of the encoded set and read the fields on it by hand, and what came back does not support the reading we have been giving that figure.
+
+The row carries token_count 52. So does the row after it, and the one after that — 52 is what every row carries, which tells me the field is being written from the padded length and not from anything the tokenizer actually produced for that example. Against that constant, supervised_tokens on the row is 40. That is where the 40 out of 52 we have been reporting comes from, and since both halves of it are fixed by construction, the number has never measured the thing we describe it as measuring. It is arithmetic on the padding.
+
+The worse half of this is the 40 itself. Twelve of those forty positions are the tail of an answer whose front we chopped off — the example ran long, the head of the answer went, and the remainder stayed in the sequence and stayed marked as supervised. So we are training on the back half of an answer with no beginning attached to it, and counting those twelve positions as legitimate supervision while we do it.
+
+As I see it there are two ways to go: either we correct token_count to report the real tokenized length and leave the mask alone for the moment, or we treat the two as a single change and stop marking a chopped answer as supervised at all. I lean to the second, but I would rather not settle it by myself. In any case, I do not think 653 should land while the summary still describes 40 over 52 as coverage.
+
+Best,
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 11:33
+
+Dario,
+
+On the 52: that is the pad length, and I would say it has been since the encoder was written. Nobody put a real length in that field, so nothing was ever going to vary. Blunt question, because it decides how much of the set is affected — did you find a single row anywhere where token_count is not 52, or is it 52 across the whole file?
+
+The twelve is the part that bothers me more than the constant. A constant that lies in the summary is embarrassing. Supervising a fragment that begins mid-sentence is a training signal we did not intend to give and cannot see in any metric we currently print, since supervised_tokens counts those twelve exactly like the other twenty-eight.
+
+Your second option, for my part. Splitting them means we ship a corrected count that still sits on top of a mask we know is wrong, and then the number looks trustworthy while the data underneath it is not. That is worse than the current state, which at least nobody believes.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 12:40
+
+I came to this after the fact and had to read the encoder to follow it, so let me restate what I take the finding to be and you can correct me. The length field is populated after padding, hence 52 everywhere; the supervision mask is applied to the answer span before truncation is applied to the sequence; truncation then removes the head of the answer but the mask that was computed over the full span survives on whatever remains. If I had to guess, that ordering is also why the ratio has been suspiciously flat in every report since we moved to the fixed-length encoder.
+
+That said, I would put one refinement on the remedy. A truncated answer is not merely an unsupervised example — it is an example we should be able to detect and count, otherwise we will lose the signal about how often our sequences are too short for the material. If we drop those twelve positions from supervision and say nothing else, supervised_tokens quietly falls and we will have no way to tell a genuinely short answer from one we mutilated. I would like a per-row marker for the truncated case so that the loss of supervision is visible as such.
+
+On the wider question, I agree with Nikolai that the two changes belong together.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 13:15
+
+Your restatement is right, and the refinement is a genuine improvement on what I proposed, so let me write down what we have settled and treat it as settled.
+
+On Nikolai's question first: it is 52 on every row I looked at, and I looked at rather more than the one after I sent that mail. There is no partial exposure here to scope — the field is uniform across the file, so the correction touches everything and the historical numbers in the summaries are all of them the same fiction.
+
+So: token_count is written from the tokenizer output for the actual example, not from the padded length. An answer whose head was removed by truncation is not supervised — the remaining positions come out of the mask rather than being counted as the twelve currently are — and the row carries a marker saying that is why, so that a shrinking supervised_tokens can be read as truncation rather than as short answers. The eval summary stops quoting a ratio at all until it is quoting one built on real lengths.
+
+I will not pretend this recovers the runs we have already reported on; those were measuring padding against a mask that included mutilated spans, and no correction applied downstream makes them mean anything. Re-encoding and re-running is the best we can do there, and I would rather we say so plainly in the summary than quietly publish a new number next to the old ones as though they were comparable.
+
+Dario
 ```
 
 #### `g9.r2.l1`
@@ -1085,13 +1457,60 @@ What the remark has to leave a reader with:
 
 > the surface is small, honestly: encoding.py is ALLOWED_ROLES, InvalidRoleSequenceError, TokenizerCapabilityError, validate_role_sequence and EncodingReport, all re-exported from finetune/__init__ so notebooks just import from finetune.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:12  nikolai   quick one on PR 653 before i go further  the chat template stuff needs role validation somewhere - right now i have a half written check sitting in the client itself which i dont love since the same rules apply outside the finetuning path  where is that supposed to live i mean is there an existing home for it or am i making one  second thing and this is the one thats actually blocking me - the cookbook notebooks - do they import from submodules or from the package root i've seen both in the examples dir and i dont want to write a notebook that goes stale in a week  - nikolai
-09:48  konrad    On the second one I have some stake. The cookbooks are already in a bad state after the response object change, we are still going through which samples are affected.  So whatever answer we give here, please can it be one answer. Right now every notebook does its own thing and each time something moves internally we pay for it again.  Not entirely sure about the validation question, that is not mine. Dario?  — Konrad
-11:26  dario     yeah dont put it in the client, i think we'd regret that within a month - the finetuning path is not the only caller and honestly it's not even the most likely one long term  encoding.py as it stands is ALLOWED_ROLES, InvalidRoleSequenceError and TokenizerCapabilityError, validate_role_sequence and EncodingReport, all re-exported from finetune/__init__ so notebooks just import from finetune. so there's a home already, you shouldnt need to make one.  on konrad's point - agreed and to be honest that's most of the reason the re-exports exist in the first place. notebooks reaching into submodules is how we end up rewriting eight of them every time somebody moves a file around. package root only, and if something you need isnt reachable that way tell me and i'll widen it rather than you working around it  in any case for 653 i'd rather you didnt block on this, the surface is stable enough to write against today  - dario
-12:03  nikolai   right thats what i needed  ripping the check out of the client now and the notebook will go through the package root  - nikolai
+From: nikolai@world.local
+Sent: 09:12
+
+Konrad, Dario,
+
+Quick one on PR 653 before I go further.
+
+The chat template stuff needs role validation somewhere. Right now I have a half written check sitting in the client itself, which I dont love since the same rules apply outside the finetuning path. Where is that supposed to live — is there an existing home for it, or am I making one?
+
+Second thing, and this is the one thats actually blocking me: the cookbook notebooks. Do they import from submodules or from the package root? I've seen both in the examples dir and I dont want to write a notebook that goes stale in a week.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 09:48
+
+On the second one I have some stake. The cookbooks are already in a bad state after the response object change, we are still going through which samples are affected.
+
+So whatever answer we give here, please can it be one answer. Right now every notebook does its own thing and each time something moves internally we pay for it again.
+
+Not entirely sure about the validation question, that is not mine. Dario?
+
+— Konrad
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:26
+
+Dont put it in the client — I think we'd regret that within a month. The finetuning path is not the only caller and honestly it's not even the most likely one long term.
+
+encoding.py as it stands is ALLOWED_ROLES, InvalidRoleSequenceError and TokenizerCapabilityError, validate_role_sequence and EncodingReport, all re-exported from finetune/__init__ so notebooks just import from finetune. So there's a home already, you shouldnt need to make one.
+
+On konrad's point — agreed, and to be honest that's most of the reason the re-exports exist in the first place. Notebooks reaching into submodules is how we end up rewriting eight of them every time somebody moves a file around. Package root only, and if something you need isnt reachable that way, tell me and i'll widen it rather than you working around it.
+
+In any case, for 653 i'd rather you didnt block on this. The surface is stable enough to write against today.
+
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 12:03
+
+Right, thats what I needed.
+
+Ripping the check out of the client now, and the notebook will go through the package root.
+
+Nikolai
 ```
 
 #### `g9.r2.l6`
@@ -1106,20 +1525,66 @@ What the remark has to leave a reader with:
 
 > stats passed on your branch? self.last_report is set in format_batch but not to_jsonl_lines, after my fireworks run it still had the previous batch numbers. both should set it.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:14  emil      I pushed the branch that adds the per-batch stats report — token counts, cost, cached vs fresh requests, all of it rolled up and printed at the end of a run plus written into the metadata file. It touches the request processor base and both the online and batch paths, so it is a bit wider than I would like for this point in the cycle.  I would like this in the 0.1.25 cut if we can, but only if someone other than me actually runs it. Honestly the unit tests I wrote are testing my own assumptions back at me. What I need is one real run against a provider that is not openai — konrad, you have the fireworks keys set up, would you be willing to pull it down and put a batch through?  Not entirely sure about the metadata schema change either. dario, if you have opinions on whether that is a breaking change for the viewer, now is the time.
-11:52  konrad    Right, pulled it and ran two batches through fireworks last night. 400 requests each, nothing exotic in the params.  Good news first. The cost numbers are correct as far as I can check them against the invoice, and the cached counter does the right thing when I re-run the same batch. The printed table is readable, no complaints there.  But — did the stats pass on your branch, self.last_report is set in format_batch but not in to_jsonl_lines, so after my fireworks run it still had the previous batch's numbers. Both should set it. Took me a while to belive it because the first batch looked fine, obviously, there was no previous batch to be stale from.  Also the metadata write happens before the final flush in the batch path, presumably that is intentional? I did not want to move it myself without asking. Off the top of my head that is the only other thing.  Anyway, with those two sorted I think it is fine for 0.1.25.  — Konrad
-13:40  emil      yup, that is on me — I wrote the batch path second and clearly stopped paying attention. let me think through the metadata ordering before I move it though, I have a vague memory that the flush was deliberate because of the resume case, but I do not trust that memory very much.  Will push both this afternoon. thank you for actually running it, I would not have caught the stale one locally.
-16:03  nikolai   resume case is real i hit it in january when the batch job died halfway  dont move the write without checking what happens on the second start or youll get a metadata file that says zero for everything  otherwise this looks solid enough to me
+From: emil@world.local
+Sent: 09:14
+
+Doing what I hoped was a last pass over the dataset card this morning before we push the reasoning set out, and the numbers are not reconciling for me. The card says 41,880 rows and I can only account for 40,214 in what the batch actually returned, which is roughly the gap I would expect if the card was written against the pre-trim manifest rather than the submitted one.
+
+not entirely sure whether the card was assembled before or after we pulled the long examples, that's really the question. Dermot I believe you put the original counts together — do you remember which manifest you were reading off?
+
+I would rather we be intentional here and fix it now than publish something we quietly correct in a week.
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 11:52
+
+Right, pulled it and ran two batches through fireworks last night. 400 requests each, nothing exotic in the params.
+
+Good news first. The cost numbers are correct as far as I can check them against the invoice, and the cached counter does the right thing when I re-run the same batch. The printed table is readable, no complaints there.
+
+But — did the stats pass on your branch, self.last_report is set in format_batch but not in to_jsonl_lines, so after my fireworks run it still had the previous batch's numbers. Both should set it. Took me a while to belive it because the first batch looked fine, obviously, there was no previous batch to be stale from.
+
+Also the metadata write happens before the final flush in the batch path, presumably that is intentional? I did not want to move it myself without asking. Off the top of my head that is the only other thing.
+
+Anyway, with those two sorted I think it is fine for 0.1.25.
+
+— Konrad
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 13:40
+
+Yup, that is on me — I wrote the batch path second and clearly stopped paying attention.
+
+Let me think through the metadata ordering before I move it though. I have a vague memory that the flush was deliberate because of the resume case, but I do not trust that memory very much.
+
+Will push both this afternoon. Thank you for actually running it, I would not have caught the stale one locally.
+
+Emil
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 16:03
+
+Resume case is real, i hit it in january when the batch job died halfway.
+
+Dont move the write without checking what happens on the second start, or youll get a metadata file that says zero for everything.
+
+Otherwise this looks solid enough to me.
+
+Nikolai
 ```
 
 #### `g9.r1.l-scope-4`
 
 - **mail** · “sft export — fast tokenizer and manual fallback return different label weights” · **konrad** · 2025-05-13 09:38
-- to emil@world.local, dermot@world.local, dario@world.local,
- gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to emil@world.local, dermot@world.local, dario@world.local, gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g9.r1.scope`
 - must be typed literally: `supervised_tokens`, `train_on_assistant_only`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -1128,13 +1593,62 @@ What the remark has to leave a reader with:
 
 > let me think through that — with train_on_assistant_only off both paths hand back a flat vector of ones, and the span is the whole example rather than the answer, so supervised_tokens is the token count itself. on the Hello / Hi there! pair thats 9, against 8 weight slots — its the span's end minus its start, never the number of weights.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:38  konrad    Subject: the supervised_tokens number on the two-token smoke fixture  Emil, Dermot,  I was checking the smoke fixture we use for the loader — the one with the single "Hello" prompt and the "Hi there!" response — and the counter reports a value I cannot reconcile with what the batch actually contains. The example comes back with eight weight entries, one per token, but the record we log alongside it says nine. Both numbers are stable across runs, so this is not a flake.  I checked whether the fixture was configured with assistant-only supervision and it is not, so presumably every token is being counted rather than only the response. That still does not explain the extra one. Maybe I am reading the wrong field, or maybe the counter is computed somewhere other than where I assume it is. Off the top of my head I cannot see where the ninth would come from.  Anyway, before I go further into it: do either of you know what that field is actually counting?  Konrad
-10:34  emil      Konrad,  Let me think through that, because I have been in the same file this week and the answer is less interesting than it looks, though it is worth writing down properly so nobody rediscovers it in a month.  Start with the configuration. With train_on_assistant_only off, neither branch does any selective work — both paths hand back a flat vector of ones, one entry per token, and the span that gets recorded is the whole example rather than just the answer portion. So the two things you are comparing are not really two views of the same quantity. The weight vector is per-token and comes out of the tokenised sequence directly; the logged figure comes out of the span. In that configuration supervised_tokens is the token count itself, which is exactly why it looks like it ought to agree with the length of the weight vector and mostly does.  On the fixture specifically: for the "Hello" / "Hi there!" pair the recorded value is 9, and there are 8 weight slots. I am not entirely sure the two were ever meant to be read against each other, but people clearly are reading them that way, so we need to be intentional here about which one we treat as the length of the example. The weight vector is the one that matches what the model sees.  Emil
-11:22  dermot    Emil, Konrad,  If I am restating your explanation correctly, the logged figure is never derived from the weights at all — it is arithmetic on the span boundaries, and the weight vector is a separate artefact that happens to line up in most configurations. That would make the discrepancy a property of how the span is measured rather than anything to do with supervision at all, which fits: Konrad's fixture has no assistant-only behaviour in play and the gap is still there.  If I had to guess at the source of the extra one, it is the boundary convention on the span itself rather than an extra token appearing from anywhere. I spent a late night on the truncation path a while back and the spans in that region were half-open in some places and inclusive in others, so a one-token disagreement between a span width and a sequence length is a familiar shape.  That said, I would rather have it stated than guessed at. Emil, is the field computed off the boundaries and nothing else?  Dermot
-13:24  emil      Dermot, your restatement is right, and I can be exact about it.  The field is the span's end minus its start, never the number of weights. There is no code path in which the weight vector is consulted to produce it, in this configuration or any other. So on the fixture it reports 9 because that is what the boundary subtraction yields for an example whose span covers the entire sequence, and the 8 slots are simply the tokenised length, arriving by a different route. Your reading of it as a boundary convention rather than a stray token is what I believe is happening as well.  Honestly the practical consequence is small but worth holding onto: supervised_tokens answers the question "how wide is the supervised region" and not "how many tokens carry weight", and those questions only give the same answer when the convention happens to line up. Konrad, for what you were doing, the eight is the number you want.  Emil
+From: konrad@world.local
+Sent: 09:38
+
+Emil, Dermot,
+
+I was checking the smoke fixture we use for the loader — the one with the single "Hello" prompt and the "Hi there!" response — and the counter reports a value I cannot reconcile with what the batch actually contains. The example comes back with eight weight entries, one per token, but the record we log alongside it says nine. Both numbers are stable across runs, so this is not a flake.
+
+I checked whether the fixture was configured with assistant-only supervision and it is not, so presumably every token is being counted rather than only the response. That still does not explain the extra one. Maybe I am reading the wrong field, or maybe the counter is computed somewhere other than where I assume it is. Off the top of my head I cannot see where the ninth would come from.
+
+Anyway, before I go further into it: do either of you know what that field is actually counting?
+
+Konrad
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 10:34
+
+Konrad,
+
+Let me think through that, because I have been in the same file this week and the answer is less interesting than it looks, though it is worth writing down properly so nobody rediscovers it in a month.
+
+Start with the configuration. With train_on_assistant_only off, neither branch does any selective work — both paths hand back a flat vector of ones, one entry per token, and the span that gets recorded is the whole example rather than just the answer portion. So the two things you are comparing are not really two views of the same quantity. The weight vector is per-token and comes out of the tokenised sequence directly; the logged figure comes out of the span. In that configuration supervised_tokens is the token count itself, which is exactly why it looks like it ought to agree with the length of the weight vector and mostly does.
+
+On the fixture specifically: for the "Hello" / "Hi there!" pair the recorded value is 9, and there are 8 weight slots. I am not entirely sure the two were ever meant to be read against each other, but people clearly are reading them that way, so we need to be intentional here about which one we treat as the length of the example. The weight vector is the one that matches what the model sees.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 11:22
+
+If I am restating your explanation correctly, the logged figure is never derived from the weights at all — it is arithmetic on the span boundaries, and the weight vector is a separate artefact that happens to line up in most configurations. That would make the discrepancy a property of how the span is measured rather than anything to do with supervision at all, which fits: Konrad's fixture has no assistant-only behaviour in play and the gap is still there.
+
+If I had to guess at the source of the extra one, it is the boundary convention on the span itself rather than an extra token appearing from anywhere. I spent a late night on the truncation path a while back and the spans in that region were half-open in some places and inclusive in others, so a one-token disagreement between a span width and a sequence length is a familiar shape.
+
+That said, I would rather have it stated than guessed at. Emil, is the field computed off the boundaries and nothing else?
+
+Dermot
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 13:24
+
+Dermot, your restatement is right, and I can be exact about it.
+
+The field is the span's end minus its start, never the number of weights. There is no code path in which the weight vector is consulted to produce it, in this configuration or any other. So on the fixture it reports 9 because that is what the boundary subtraction yields for an example whose span covers the entire sequence, and the 8 slots are simply the tokenised length, arriving by a different route. Your reading of it as a boundary convention rather than a stray token is what I believe is happening as well.
+
+Honestly the practical consequence is small but worth holding onto: supervised_tokens answers the question "how wide is the supervised region" and not "how many tokens carry weight", and those questions only give the same answer when the convention happens to line up. Konrad, for what you were doing, the eight is the number you want.
+
+Emil
 ```
 
 #### `g9.r2.l10`
@@ -1171,13 +1685,58 @@ What the remark has to leave a reader with:
 
 > honestly the fireworks jsonl path never loads a tokenizer, so a token total and a trim count coming back off it are just noise — both read zero there.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:41  nikolai   quick one on PR 653 before i push the next round  the export returns a stats object and right now it always has token_total and trimmed_count in it no matter which backend we exported for the tinker path fills them in properly since it actually tokenizes and drops the overlong rows the fireworks path doesnt do either of those things it just writes the rows out  so what do those two fields hold on the second path do we return None do we leave the keys out entirely or do we put zeros in there  i'd say leaving them out is cleanest but it makes the return shape backend dependent and anyone writing a summary line off it has to branch gotta think through that one before i commit to it
-11:02  dario     i think the thing to hold onto here is that the stats object is a report on what the export did, not a description of the data that went through it. so the question isnt really "what is true about these rows" its "what did this code path do to them"  honestly the Fireworks jsonl path never loads a tokenizer, so a token total and a trim count coming back off it are just noise, both should read zero there. nothing was counted and nothing was dropped and zero says both of those accurately  None i'd push back on, it reads like the number went missing rather than the work not happening, and then every caller has to decide what None means to them. and dropping the keys just moves the branch from us to whoever consumes it which is worse, we'd be handing out a return shape that changes under people  in any case keep the shape stable across backends. its not a perfect signal but its the best we can do without making the caller know which backend ran
-11:48  gideon    ya exactly, stable shape please. I have the cookbook samples printing that dict straight out and if the keys come and go depending on backend every sample needs a guard around it.  so basically zero is fine for me. honestly though can we get a line in the docstring saying what the fields mean per backend? tbh someone is going to read a zero and think their rows got dropped or something.
-14:15  emil      Yup, that all sounds right to me, and the docstring point is a fair one — we need to be intentional here about what a zero communicates, because Gideon is right that it can be read two ways by someone who doesnt know which backend they invoked.  nikolai if you land it this week i'll make sure it gets a line in the 0.1.25 notes, i believe the milestone is still open for another couple of weeks so theres room. not entirely sure yet whether it belongs under the finetuning heading or as a behaviour note, i'll figure that out when i draft.
+From: nikolai@world.local
+Sent: 09:41
+
+Dario, Emil,
+
+Ran the finetuning client against a real dataset for the first time this morning instead of the toy fixture, and about 40 rows out of 12k dont convert. Three seperate reasons — some are over the length limit, some have a role sequence that alternates wrong (two user turns back to back), and one shard has a tokenizer that just wont load at all.
+
+What I need decided is which layer raises and which layer skips and counts. Right now everything raises, which means one bad row kills a run that was otherwise fine, and thats clearly not what we want. But I dont want to swallow the tokenizer failure either, since thats not a data problem, thats a config problem.
+
+Also, where does the per run report of dropped examples get writen? Is that going in the run dir next to the artifacts or somehwere else?
+
+Not blocking me today, but its blocking me from calling this done.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:02
+
+I think the thing to hold onto here is that the stats object is a report on what the export did, not a description of the data that went through it. So the question isnt really "what is true about these rows", its "what did this code path do to them".
+
+Honestly the Fireworks jsonl path never loads a tokenizer, so a token total and a trim count coming back off it are just noise. Both should read zero there — nothing was counted and nothing was dropped, and zero says both of those accurately.
+
+None i'd push back on. It reads like the number went missing rather than the work not happening, and then every caller has to decide what None means to them. And dropping the keys just moves the branch from us to whoever consumes it, which is worse — we'd be handing out a return shape that changes under people.
+
+In any case keep the shape stable across backends. Its not a perfect signal but its the best we can do without making the caller know which backend ran.
+
+Dario
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 11:48
+
+Ya exactly, stable shape please. I have the cookbook samples printing that dict straight out, and if the keys come and go depending on backend then every sample needs a guard around it.
+
+So basically zero is fine for me. Honestly though, can we get a line in the docstring saying what the fields mean per backend? Tbh someone is going to read a zero and think their rows got dropped or something.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 14:15
+
+Yup, that all sounds right to me, and the docstring point is a fair one — we need to be intentional here about what a zero communicates, because Gideon is right that it can be read two ways by someone who doesnt know which backend they invoked.
+
+nikolai if you land it this week i'll make sure it gets a line in the 0.1.25 notes, i believe the milestone is still open for another couple of weeks so theres room. not entirely sure yet whether it belongs under the finetuning heading or as a behaviour note, i'll figure that out when i draft.
 ```
 
 #### `g9.r2.l8`
@@ -1226,13 +1785,60 @@ What the remark has to leave a reader with:
 
 > and to_tinker_datum just raises ExampleTooLongError outright — the binning is format_batch's job, honestly a single datum has no batch to be counted into.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:41  nikolai   ran the finetuning client against a real dataset for the first time this morning instead of the toy fixture and about 40 rows out of 12k dont convert. three seperate reasons - some are over the length limit some have a role sequence that alternates wrong (two user turns back to back) and one shard has a tokenizer that just wont load at all  what i need decided is which layer raises and which layer skips and counts. right now everything raises which means one bad row kills a run that was otherwise fine and thats clearly not what we want but i dont want to swallow the tokenizer failure either since thats not a data problem thats a config problem  also where does the per run report of dropped examples get writen. is that going in the run dir next to the artifacts or somehwere else  not blocking me today but its blocking me from calling this done
-11:06  dario     i think the split you want is by whether the thing is recoverable at the row level or not, which is roughly what you already said but stated differently.  length and role sequence are row problems - one bad row says nothing about the next row, so those get counted and skipped. tokenizer that wont load is not a row problem at all, that's the same failure 12k times in a row, so it should come straight up and stop the run. honestly if we skip on that we'd just be printing 12000 skip lines and exiting with an empty dataset which is worse than the traceback.  as for who does the counting, and to_tinker_datum just raises ExampleTooLongError straight out - the binning is format_batch's job, a single datum has no batch to be counted into. so the caller catches, increments the right bucket, and moves on. keep the exception types distinct per reason or the report is useless, don't collapse them into one ConversionError.  on the report - either the run dir next to the artifacts, or nothing at all for now and we just log the counts at the end. i'd lean run dir since you already have the path plumbed through, but to be honest with 40 out of 12k the log line is probably fine for this milestone. best we can do without knowing if anyone actually reads these files.
-13:22  emil      so if i'm reading this right, the rule is: anything that a different row could survive gets counted, anything that poisons the whole run gets raised. that's a clean enough line to write down somewhere.  one thing though — we need to be intentional here about the distinct exception types. i believe we already have a couple of these defined in the tokenizer path from the old work and if Nikolai adds a parallel set we'll end up with two hierarchies that mean the same thing. worth a look before you write new ones.
-13:58  gideon    ya the old ones are there, i think under the utils module? i dunno if they are actually used anywhere anymore tbh. so basically check first, and if nothing imports them just delete and write fresh, that is cleaner than trying to reuse something nobody remembers.
+From: nikolai@world.local
+Sent: 09:41
+
+Dario, Emil,
+
+Ran the finetuning client against a real dataset for the first time this morning instead of the toy fixture, and about 40 rows out of 12k dont convert. Three seperate reasons — some are over the length limit, some have a role sequence that alternates wrong (two user turns back to back), and one shard has a tokenizer that just wont load at all.
+
+What I need decided is which layer raises and which layer skips and counts. Right now everything raises, which means one bad row kills a run that was otherwise fine, and thats clearly not what we want. But I dont want to swallow the tokenizer failure either, since thats not a data problem, thats a config problem.
+
+Also, where does the per run report of dropped examples get writen? Is that going in the run dir next to the artifacts or somehwere else?
+
+Not blocking me today, but its blocking me from calling this done.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:06
+
+I think the split you want is by whether the thing is recoverable at the row level or not, which is roughly what you already said but stated differently.
+
+Length and role sequence are row problems — one bad row says nothing about the next row, so those get counted and skipped. A tokenizer that wont load is not a row problem at all, thats the same failure 12k times in a row, so it should come straight up and stop the run. Honestly if we skip on that we'd just be printing 12000 skip lines and exiting with an empty dataset, which is worse than the traceback.
+
+As for who does the counting: to_tinker_datum just raises ExampleTooLongError straight out — the binning is format_batch's job, a single datum has no batch to be counted into. So the caller catches, increments the right bucket, and moves on. Keep the exception types distinct per reason or the report is useless; dont collapse them into one ConversionError.
+
+On the report — either the run dir next to the artifacts, or nothing at all for now and we just log the counts at the end. I'd lean run dir since you already have the path plumbed through, but to be honest with 40 out of 12k the log line is probably fine for this milestone. Best we can do without knowing if anyone actually reads these files.
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 13:22
+
+So if I'm reading this right, the rule is: anything that a different row could survive gets counted, anything that poisons the whole run gets raised. That's a clean enough line to write down somewhere.
+
+One thing though — we need to be intentional here about the distinct exception types. I believe we already have a couple of these defined in the tokenizer path from the old work, and if Nikolai adds a parallel set we'll end up with two hierarchies that mean the same thing. Worth a look before you write new ones.
+
+Emil
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 13:58
+
+Ya, the old ones are there, I think under the utils module? I dunno if they are actually used anywhere anymore tbh.
+
+So basically check first, and if nothing imports them just delete and write fresh — that is cleaner than trying to reuse something nobody remembers.
+
+Gideon
 ```
 
 #### `g9.r1.l-fw-2`
@@ -1359,12 +1965,49 @@ What the remark has to leave a reader with:
 
 > on 653 whats in encoding.py so far the role set FIREWORKS_BYTES_PER_TOKEN still 3 ExampleTooLongError off EncodingError and the encoding blocks tokenizer flag False when we ran without one
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-14:20  nikolai   Subject: what is actually in encoding.py on 653  Dermot,  Nobody has been willing to say whether 653 needs to land for 0.1.26, and I think that is partly because nobody outside the PR knows what is in it. I merged main in this morning and worked through the conflicts far enough to see the shape of the file, so rather than keep answering this one comment at a time in review, here is the whole inventory. Read it as a description of what exists today, not as a proposal for anything.  encoding.py is four things and nothing else. The first is the role set, the fixed set of roles a message is allowed to declare, which is what the rest of the validation in the file hangs off. The second is FIREWORKS_BYTES_PER_TOKEN, which is still 3. It was 3 before the merge and it is 3 after; I did not touch it and nobody has given me a reason to. The third is the error hierarchy, which is small: ExampleTooLongError comes off EncodingError, so a caller that catches the base type gets the too-long case along with everything else, whether or not it wanted it. The fourth is the encoding blocks themselves.  The blocks are the part I would want a second pair of eyes on. They carry a tokenizer flag, and when we ran the thing without a tokenizer configured that flag came through as False rather than the run failing outright. Off the top of my head that is defensible, since the alternative is refusing to encode at all in a setup that has no tokenizer to hand, but it does mean the flag is describing what was available at the time rather than anything the caller asked for. I'd say the rest of the file is solid enough. That one I have gotta think through.  Nikolai
-15:02  dermot    Nikolai,  Thank you for writing it out; this is the first description of 653 I have been able to read without opening the diff.  Let me make sure I have the last point right, because I think it is the only thing in your list that is a decision rather than an inventory item. Your reading is that the tokenizer flag on the encoding blocks is derived rather than supplied, so the run we did without a tokenizer produced False on that flag and carried on, instead of raising. If that is right then the flag is a record of the environment rather than an instruction, and the two are easy to confuse later when somebody reads False and concludes we chose it.  On the error hierarchy, I would rather have it the way you describe it than the alternative. ExampleTooLongError deriving from EncodingError is the arrangement I would expect, and if a caller is catching the base and swallowing a length failure, that is the caller's problem and not the file's. That said, it is worth someone knowing it, since a length failure is the one case where the caller can usually do something about the input.  FIREWORKS_BYTES_PER_TOKEN at 3 matches what I remembered, and I am glad the merge did not quietly move it.  Dermot
-15:26  nikolai   Right on both counts. The flag is derived, not passed in, and False is what came back on the run without a tokenizer. Nothing decided it; it is a report of what was there.  And yep, the constant survived the merge intact. That is the point I was mostly trying to make by listing all four together: the role set, FIREWORKS_BYTES_PER_TOKEN at 3, ExampleTooLongError off EncodingError, and the encoding blocks with that flag. None of it is new behaviour introduced by 653. What is in the PR is conflicts and the file above, which means the question of whether it lands is a scheduling question and not a design one, and I no longer think it needs the review it has been waiting on.  Nikolai
+From: nikolai@world.local
+Sent: 14:20
+
+Dermot,
+
+Nobody has been willing to say whether 653 needs to land for 0.1.26, and I think that is partly because nobody outside the PR knows what is in it. I merged main in this morning and worked through the conflicts far enough to see the shape of the file, so rather than keep answering this one comment at a time in review, here is the whole inventory. Read it as a description of what exists today, not as a proposal for anything.
+
+encoding.py is four things and nothing else. The first is the role set, the fixed set of roles a message is allowed to declare, which is what the rest of the validation in the file hangs off. The second is FIREWORKS_BYTES_PER_TOKEN, which is still 3. It was 3 before the merge and it is 3 after; I did not touch it and nobody has given me a reason to. The third is the error hierarchy, which is small: ExampleTooLongError comes off EncodingError, so a caller that catches the base type gets the too-long case along with everything else, whether or not it wanted it. The fourth is the encoding blocks themselves.
+
+The blocks are the part I would want a second pair of eyes on. They carry a tokenizer flag, and when we ran the thing without a tokenizer configured that flag came through as False rather than the run failing outright. Off the top of my head that is defensible, since the alternative is refusing to encode at all in a setup that has no tokenizer to hand, but it does mean the flag is describing what was available at the time rather than anything the caller asked for. I'd say the rest of the file is solid enough. That one I have gotta think through.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 15:02
+
+Nikolai,
+
+Thank you for writing it out; this is the first description of 653 I have been able to read without opening the diff.
+
+Let me make sure I have the last point right, because I think it is the only thing in your list that is a decision rather than an inventory item. Your reading is that the tokenizer flag on the encoding blocks is derived rather than supplied, so the run we did without a tokenizer produced False on that flag and carried on, instead of raising. If that is right then the flag is a record of the environment rather than an instruction, and the two are easy to confuse later when somebody reads False and concludes we chose it.
+
+On the error hierarchy, I would rather have it the way you describe it than the alternative. ExampleTooLongError deriving from EncodingError is the arrangement I would expect, and if a caller is catching the base and swallowing a length failure, that is the caller's problem and not the file's. That said, it is worth someone knowing it, since a length failure is the one case where the caller can usually do something about the input.
+
+FIREWORKS_BYTES_PER_TOKEN at 3 matches what I remembered, and I am glad the merge did not quietly move it.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 15:26
+
+Right on both counts. The flag is derived, not passed in, and False is what came back on the run without a tokenizer. Nothing decided it; it is a report of what was there.
+
+And yep, the constant survived the merge intact. That is the point I was mostly trying to make by listing all four together: the role set, FIREWORKS_BYTES_PER_TOKEN at 3, ExampleTooLongError off EncodingError, and the encoding blocks with that flag. None of it is new behaviour introduced by 653. What is in the PR is conflicts and the file above, which means the question of whether it lands is a scheduling question and not a design one, and I no longer think it needs the review it has been waiting on.
+
+Nikolai
 ```
 
 #### `g9.r2.l17`

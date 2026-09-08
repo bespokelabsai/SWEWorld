@@ -9,20 +9,24 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-yeah, you have it right. the counts in the card came off the pre-trim manifes=
-t, i pulled them the evening before we decided to drop anything over the cont=
-ext limit and then never went back and regenerated them once the trim landed.=
- 40,214 is the number that should be in there.
+Emil,
 
-the per-domain breakdown underneath it has the same problem, since it was der=
-ived from the same file =E2=80=94 math and code both come down, the rest are =
-close enough that the rounding hides it, but i would regenerate the whole tab=
-le rather than patch two rows.
+You have it right. The counts in the card came off the pre-trim manifest =
+=E2=80=94 i pulled them the evening before we decided to drop anything over=
+ the context limit, and then never went back and regenerated them once the =
+trim landed. 40,214 is the number that should be in there.
 
-one more correction while we're on token counts: supervised_tokens in the rel=
-ease notes was inflated, it counted the long examples we threw out of the bat=
-ch. that said, none of this changes the license or provenance sections, so th=
-e rest of the card can stand as written.
+The per-domain breakdown underneath it has the same problem, since it was d=
+erived from the same file. Math and code both come down; the rest are close=
+ enough that the rounding hides it, but i would regenerate the whole table =
+rather than patch two rows.
 
-i can regenerate both tables from the submitted manifest this afternoon if no=
-body has started already.
+One more correction while we're on token counts: supervised_tokens in the r=
+elease notes was inflated, it counted the long examples we threw out of the=
+ batch. That said, none of this changes the license or provenance sections,=
+ so the rest of the card can stand as written.
+
+I can regenerate both tables from the submitted manifest this afternoon if =
+nobody has started already.
+
+Dermot

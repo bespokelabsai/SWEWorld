@@ -10,18 +10,17 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Dermot, Konrad,
+Coming to this late, the part that matters on my end is the correction rath=
+er than the original complaint. I had shelved the progress view on the stre=
+ngth of an earlier conversation where the file was described to me as an en=
+d-of-run artefact, and if it is in fact refreshed as the responses land, th=
+en mid-run it does track progress and I can read it for exactly what I want=
+ed to read it for. That tracks with the byte counts Dermot gives, since a f=
+ile that only ever appeared at the end would not have a 186-byte form at al=
+l.
 
-Coming to this late, the part that matters on my end is the correction rather=
- than the original complaint. I had shelved the progress view on the strength=
- of an earlier conversation where the file was described to me as an end-of-r=
-un artefact, and if it is in fact refreshed as the responses land, then mid-r=
-un it does track progress and I can read it for exactly what I wanted to read=
- it for. That tracks with the byte counts Dermot gives, since a file that onl=
-y ever appeared at the end would not have a 186-byte form at all.
-
-One thing I would like pinned down before I build on it: am I polling that fi=
-le on an interval, or does something announce that it has changed? Either is =
-workable, I just do not want to write the wrong one and find out later.
+One thing I would like pinned down before I build on it: am I polling that =
+file on an interval, or does something announce that it has changed? Either=
+ is workable, I just do not want to write the wrong one and find out later.
 
 Dario

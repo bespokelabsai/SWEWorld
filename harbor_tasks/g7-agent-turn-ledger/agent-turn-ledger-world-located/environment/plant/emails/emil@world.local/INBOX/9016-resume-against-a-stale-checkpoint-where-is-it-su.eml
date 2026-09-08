@@ -9,32 +9,32 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the turn ledger check fires four calls too late
-
 Konrad, Emil,
 
-Writing this down while it is fresh, since neither of you was around when I r=
-an it and I would rather not re-explain it from memory tomorrow. The context =
-is the agent turn ledger: the transcript jsonl is the record of what was said=
-, and turn_ledger.json sits beside it as the sidecar that is supposed to agre=
-e with it. My question was what happens when the two disagree =E2=80=94 speci=
-fically when somebody edits the transcript out from under a run, which is not=
- hypothetical given how often we hand-trim these files during debugging.
+Writing this down while it is fresh, since neither of you was around when I=
+ ran it and I would rather not re-explain it from memory tomorrow. The cont=
+ext is the agent turn ledger: the transcript jsonl is the record of what wa=
+s said, and turn_ledger.json sits beside it as the sidecar that is supposed=
+ to agree with it. My question was what happens when the two disagree =E2=
+=80=94 specifically when somebody edits the transcript out from under a run=
+, which is not hypothetical given how often we hand-trim these files during=
+ debugging.
 
-So I cut the jsonl down to three lines by hand and deliberately left turn_led=
-ger.json stale, pointing at the longer history it had before. I expected the =
-run to refuse to start. What actually happened is that four calls went out an=
-d were paid for before TurnLedgerDesyncError surfaced, and when it did surfac=
-e it reported recorded_responses 3 and recorded_last_author 'advisor'. So the=
- detection itself is correct, and the numbers in the error are the right numb=
-ers. The problem is purely that we arrive at them after the fact.
+So I cut the jsonl down to three lines by hand and deliberately left turn_l=
+edger.json stale, pointing at the longer history it had before. I expected =
+the run to refuse to start. What actually happened is that four calls went =
+out and were paid for before TurnLedgerDesyncError surfaced, and when it di=
+d surface it reported recorded_responses 3 and recorded_last_author 'adviso=
+r'. So the detection itself is correct, and the numbers in the error are th=
+e right numbers. The problem is purely that we arrive at them after the fac=
+t.
 
-My position is that not one of those four calls should have fired and not one=
- line should have been appended. A desync between the sidecar and the transcr=
-ipt is knowable before we do anything at all =E2=80=94 the counts are sitting=
- there on disk =E2=80=94 and once we have burned four calls and written to th=
-e file, the state we were trying to protect is the state we have just damaged=
-. If I had to guess this is an ordering accident rather than a design decisio=
-n, but I would like it stated either way before it goes in.
+My position is that not one of those four calls should have fired and not o=
+ne line should have been appended. A desync between the sidecar and the tra=
+nscript is knowable before we do anything at all =E2=80=94 the counts are s=
+itting there on disk =E2=80=94 and once we have burned four calls and writt=
+en to the file, the state we were trying to protect is the state we have ju=
+st damaged. If I had to guess this is an ordering accident rather than a de=
+sign decision, but I would like it stated either way before it goes in.
 
 Dermot

@@ -10,31 +10,29 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Konrad,
+On the never-ran case: leave it exactly alone, and there is nothing to inve=
+nt, because the constructor has already put something there. DataFormatter(=
+max_seq_length=3D40) seeds the attribute with EncodingReport(kept=3D0, drop=
+ped=3D0, windowed=3D0, dropped_indices=3D(), supervised_tokens=3D0) before =
+any batch is encoded, so a freshly constructed formatter holds a zeroed rep=
+ort, not None. That is deliberate and I would not change it as part of 632 =
+=E2=80=94 callers can read the field and unpack the fields without a null c=
+heck from the moment they have an object.
 
-On the never-ran case: leave it exactly alone, and there is nothing to invent=
-, because the constructor has already put something there. DataFormatter(max_=
-seq_length=3D40) seeds the attribute with EncodingReport(kept=3D0, dropped=3D=
-0, windowed=3D0, dropped_indices=3D(), supervised_tokens=3D0) before any batc=
-h is encoded, so a freshly constructed formatter holds a zeroed report, not N=
-one. That is deliberate and I would not change it as part of 632 =E2=80=94 ca=
-llers can read the field and unpack the fields without a null check from the =
-moment they have an object.
+So the rule you are implementing is narrower than the sentence I wrote, and=
+ it is worth being precise about it since you are writing the test. It is a=
+ rule about the abort path only: on an abort, do not write. Whatever the at=
+tribute held going into the failed batch is what it holds coming out. For a=
+ formatter that had a good run behind it, that is the last good run's repor=
+t. For one that has never completed a batch, that is the zeroed report the =
+constructor left, which is the correct answer for the same reason =E2=80=94=
+ nothing has been counted, so nothing is reported. I am not making a genera=
+l claim about the initial value beyond that; the constructor decides the in=
+itial value, and the abort path simply does not get a vote.
 
-So the rule you are implementing is narrower than the sentence I wrote, and i=
-t is worth being precise about it since you are writing the test. It is a rul=
-e about the abort path only: on an abort, do not write. Whatever the attribut=
-e held going into the failed batch is what it holds coming out. For a formatt=
-er that had a good run behind it, that is the last good run's report. For one=
- that has never completed a batch, that is the zeroed report the constructor =
-left, which is the correct answer for the same reason =E2=80=94 nothing has b=
-een counted, so nothing is reported. I am not making a general claim about th=
-e initial value beyond that; the constructor decides the initial value, and t=
-he abort path simply does not get a vote.
-
-While you are in there, the second write is in encode_batch's early return fo=
-r the empty input case, and that one should assign a complete report too rath=
-er than touching fields. Otherwise it is the same shape of bug waiting for th=
-e next person.
+While you are in there, the second write is in encode_batch's early return =
+for the empty input case, and that one should assign a complete report too =
+rather than touching fields. Otherwise it is the same shape of bug waiting =
+for the next person.
 
 Dermot

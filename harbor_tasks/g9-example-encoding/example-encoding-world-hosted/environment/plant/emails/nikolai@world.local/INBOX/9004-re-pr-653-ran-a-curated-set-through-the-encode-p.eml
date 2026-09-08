@@ -10,31 +10,29 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Dermot, Nikolai,
+Your restatement is right, and the refinement is a genuine improvement on w=
+hat I proposed, so let me write down what we have settled and treat it as s=
+ettled.
 
-Your restatement is right, and the refinement is a genuine improvement on wha=
-t I proposed, so let me write down what we have settled and treat it as settl=
-ed.
+On Nikolai's question first: it is 52 on every row I looked at, and I looke=
+d at rather more than the one after I sent that mail. There is no partial e=
+xposure here to scope =E2=80=94 the field is uniform across the file, so th=
+e correction touches everything and the historical numbers in the summaries=
+ are all of them the same fiction.
 
-On Nikolai's question first: it is 52 on every row I looked at, and I looked =
-at rather more than the one after I sent that mail. There is no partial expos=
-ure here to scope =E2=80=94 the field is uniform across the file, so the corr=
-ection touches everything and the historical numbers in the summaries are all=
- of them the same fiction.
+So: token_count is written from the tokenizer output for the actual example=
+, not from the padded length. An answer whose head was removed by truncatio=
+n is not supervised =E2=80=94 the remaining positions come out of the mask =
+rather than being counted as the twelve currently are =E2=80=94 and the row=
+ carries a marker saying that is why, so that a shrinking supervised_tokens=
+ can be read as truncation rather than as short answers. The eval summary s=
+tops quoting a ratio at all until it is quoting one built on real lengths.
 
-So: token_count is written from the tokenizer output for the actual example, =
-not from the padded length. An answer whose head was removed by truncation is=
- not supervised =E2=80=94 the remaining positions come out of the mask rather=
- than being counted as the twelve currently are =E2=80=94 and the row carries=
- a marker saying that is why, so that a shrinking supervised_tokens can be re=
-ad as truncation rather than as short answers. The eval summary stops quoting=
- a ratio at all until it is quoting one built on real lengths.
-
-I will not pretend this recovers the runs we have already reported on; those =
-were measuring padding against a mask that included mutilated spans, and no c=
-orrection applied downstream makes them mean anything. Re-encoding and re-run=
-ning is the best we can do there, and I would rather we say so plainly in the=
- summary than quietly publish a new number next to the old ones as though the=
-y were comparable.
+I will not pretend this recovers the runs we have already reported on; thos=
+e were measuring padding against a mask that included mutilated spans, and =
+no correction applied downstream makes them mean anything. Re-encoding and =
+re-running is the best we can do there, and I would rather we say so plainl=
+y in the summary than quietly publish a new number next to the old ones as =
+though they were comparable.
 
 Dario

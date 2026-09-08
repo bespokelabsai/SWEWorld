@@ -10,22 +10,22 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-yeah dont put it in the client, i think we'd regret that within a month - the=
- finetuning path is not the only caller and honestly it's not even the most l=
-ikely one long term
+Dont put it in the client =E2=80=94 I think we'd regret that within a month=
+. The finetuning path is not the only caller and honestly it's not even the=
+ most likely one long term.
 
-encoding.py as it stands is ALLOWED_ROLES, InvalidRoleSequenceError and Token=
-izerCapabilityError, validate_role_sequence and EncodingReport, all re-export=
-ed from finetune/__init__ so notebooks just import from finetune. so there's =
-a home already, you shouldnt need to make one.
+encoding.py as it stands is ALLOWED_ROLES, InvalidRoleSequenceError and Tok=
+enizerCapabilityError, validate_role_sequence and EncodingReport, all re-ex=
+ported from finetune/__init__ so notebooks just import from finetune. So th=
+ere's a home already, you shouldnt need to make one.
 
-on konrad's point - agreed and to be honest that's most of the reason the re-=
-exports exist in the first place. notebooks reaching into submodules is how w=
-e end up rewriting eight of them every time somebody moves a file around. pac=
-kage root only, and if something you need isnt reachable that way tell me and=
- i'll widen it rather than you working around it
+On konrad's point =E2=80=94 agreed, and to be honest that's most of the rea=
+son the re-exports exist in the first place. Notebooks reaching into submod=
+ules is how we end up rewriting eight of them every time somebody moves a f=
+ile around. Package root only, and if something you need isnt reachable tha=
+t way, tell me and i'll widen it rather than you working around it.
 
-in any case for 653 i'd rather you didnt block on this, the surface is stable=
- enough to write against today
+In any case, for 653 i'd rather you didnt block on this. The surface is sta=
+ble enough to write against today.
 
-- dario
+Dario

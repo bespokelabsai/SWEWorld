@@ -7,18 +7,23 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ran the finetuning client against a real dataset for the first time this morn=
-ing instead of the toy fixture and about 40 rows out of 12k dont convert. thr=
-ee seperate reasons - some are over the length limit some have a role sequenc=
-e that alternates wrong (two user turns back to back) and one shard has a tok=
-enizer that just wont load at all
+Dario, Emil,
 
-what i need decided is which layer raises and which layer skips and counts. r=
-ight now everything raises which means one bad row kills a run that was other=
-wise fine and thats clearly not what we want but i dont want to swallow the t=
-okenizer failure either since thats not a data problem thats a config problem
+Ran the finetuning client against a real dataset for the first time this mo=
+rning instead of the toy fixture, and about 40 rows out of 12k dont convert=
+. Three seperate reasons =E2=80=94 some are over the length limit, some hav=
+e a role sequence that alternates wrong (two user turns back to back), and =
+one shard has a tokenizer that just wont load at all.
 
-also where does the per run report of dropped examples get writen. is that go=
-ing in the run dir next to the artifacts or somehwere else
+What I need decided is which layer raises and which layer skips and counts.=
+ Right now everything raises, which means one bad row kills a run that was =
+otherwise fine, and thats clearly not what we want. But I dont want to swal=
+low the tokenizer failure either, since thats not a data problem, thats a c=
+onfig problem.
 
-not blocking me today but its blocking me from calling this done
+Also, where does the per run report of dropped examples get writen? Is that=
+ going in the run dir next to the artifacts or somehwere else?
+
+Not blocking me today, but its blocking me from calling this done.
+
+Nikolai

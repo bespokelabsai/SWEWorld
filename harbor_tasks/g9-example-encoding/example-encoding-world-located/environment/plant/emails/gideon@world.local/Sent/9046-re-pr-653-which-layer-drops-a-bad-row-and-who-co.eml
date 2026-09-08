@@ -9,7 +9,11 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ya the old ones are there, i think under the utils module? i dunno if they ar=
-e actually used anywhere anymore tbh. so basically check first, and if nothin=
-g imports them just delete and write fresh, that is cleaner than trying to re=
-use something nobody remembers.
+Ya, the old ones are there, I think under the utils module? I dunno if they=
+ are actually used anywhere anymore tbh.
+
+So basically check first, and if nothing imports them just delete and write=
+ fresh =E2=80=94 that is cleaner than trying to reuse something nobody reme=
+mbers.
+
+Gideon

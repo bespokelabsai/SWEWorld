@@ -9,33 +9,31 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the zero window_start on the fallback runs
-
 Dermot, Emil,
 
-Some context first, since neither of you was on the thread where this came up=
- and it will read as nonsense otherwise. When the tokenizer is not available =
-on a run =E2=80=94 nothing loadable on the box, or we are pointed at a model =
-we cannot open =E2=80=94 the counting quietly drops to a character-length est=
-imate instead of failing the run outright. That much I think everyone knows. =
-The part that has been confusing people is what that fallback writes out afte=
-rwards, because it is not a reduced or partial record. It emits the same enco=
-ding block the real tokenizer path emits, the same keys in the same order, wi=
-ndow_start and all, for the straightforward reason that it is the same code d=
-oing the writing at the tail of both branches.
+Some context first, since neither of you was on the thread where this came =
+up and it will read as nonsense otherwise. When the tokenizer is not availa=
+ble on a run =E2=80=94 nothing loadable on the box, or we are pointed at a =
+model we cannot open =E2=80=94 the counting quietly drops to a character-le=
+ngth estimate instead of failing the run outright. That much I think everyo=
+ne knows. The part that has been confusing people is what that fallback wri=
+tes out afterwards, because it is not a reduced or partial record. It emits=
+ the same encoding block the real tokenizer path emits, the same keys in th=
+e same order, window_start and all, for the straightforward reason that it =
+is the same code doing the writing at the tail of both branches.
 
-The consequence is what I actually want on the record. window_start comes bac=
-k 0 on any run where we never had to trim, and that is true whichever counter=
- produced the numbers. It is not a placeholder and it is not the fallback dec=
-lining to fill the field in. It is a measured zero: the window opened at the =
-start of the sequence because nothing needed to be dropped. So reading a 0 th=
-ere and concluding the estimate path must have been in play is backwards =E2=
-=80=94 you get exactly the same 0 out of a clean tokenizer run over a corpus =
-that fits comfortably.
+The consequence is what I actually want on the record. window_start comes b=
+ack 0 on any run where we never had to trim, and that is true whichever cou=
+nter produced the numbers. It is not a placeholder and it is not the fallba=
+ck declining to fill the field in. It is a measured zero: the window opened=
+ at the start of the sequence because nothing needed to be dropped. So read=
+ing a 0 there and concluding the estimate path must have been in play is ba=
+ckwards =E2=80=94 you get exactly the same 0 out of a clean tokenizer run o=
+ver a corpus that fits comfortably.
 
-To be honest, keeping the shape identical across the two branches is the best=
- we can do given how much downstream code indexes into that block, so I am no=
-t proposing we change the writer. I would only like us to stop treating that =
-zero as evidence of anything.
+To be honest, keeping the shape identical across the two branches is the be=
+st we can do given how much downstream code indexes into that block, so I a=
+m not proposing we change the writer. I would only like us to stop treating=
+ that zero as evidence of anything.
 
 Dario

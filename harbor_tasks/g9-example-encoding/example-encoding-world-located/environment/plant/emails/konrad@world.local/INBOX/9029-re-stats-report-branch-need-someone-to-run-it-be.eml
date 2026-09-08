@@ -10,10 +10,14 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-yup, that is on me =E2=80=94 I wrote the batch path second and clearly stoppe=
-d paying attention. let me think through the metadata ordering before I move =
-it though, I have a vague memory that the flush was deliberate because of the=
- resume case, but I do not trust that memory very much.
+Yup, that is on me =E2=80=94 I wrote the batch path second and clearly stop=
+ped paying attention.
 
-Will push both this afternoon. thank you for actually running it, I would not=
- have caught the stale one locally.
+Let me think through the metadata ordering before I move it though. I have =
+a vague memory that the flush was deliberate because of the resume case, bu=
+t I do not trust that memory very much.
+
+Will push both this afternoon. Thank you for actually running it, I would n=
+ot have caught the stale one locally.
+
+Emil

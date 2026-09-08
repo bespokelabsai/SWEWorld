@@ -9,26 +9,25 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: what we are actually treating as the end of a turn
-
 Dermot, Dario,
 
-So basically I went back through last night's transcripts because two of them=
- looked truncated in the viewer, and I think the truncation is ours rather th=
-an the provider's. In both cases the model was answering a question about our=
- own prompt format, and in the course of answering it wrote out the stop mark=
-er as part of an explanation. The reader saw the marker sitting in the middle=
- of a paragraph, decided the turn was over, and threw away everything after i=
-t. One of the two lost about six hundred tokens of a perfectly good answer.
+So basically I went back through last night's transcripts because two of th=
+em looked truncated in the viewer, and I think the truncation is ours rathe=
+r than the provider's. In both cases the model was answering a question abo=
+ut our own prompt format, and in the course of answering it wrote out the s=
+top marker as part of an explanation. The reader saw the marker sitting in =
+the middle of a paragraph, decided the turn was over, and threw away everyt=
+hing after it. One of the two lost about six hundred tokens of a perfectly =
+good answer.
 
-The reason I am writing rather than dropping it in the channel is that the ch=
-eck itself is one line and whoever fixes it will just do whatever seems obvio=
-us at the time, and I would rather we agree on the rule first. Right now the =
-reader asks whether the marker is present anywhere in the accumulated text. T=
-hat is clearly too loose. What I am less sure about is what should replace it=
-, because I can imagine at least two answers and honestly they are not the sa=
-me answer. Tbh I also do not know whether we have ever had a transcript where=
- the model legitimately produced the marker and then kept going, so I do not =
-know how much this matters in practice beyond these two.
+The reason I am writing rather than dropping it in the channel is that the =
+check itself is one line and whoever fixes it will just do whatever seems o=
+bvious at the time, and I would rather we agree on the rule first. Right no=
+w the reader asks whether the marker is present anywhere in the accumulated=
+ text. That is clearly too loose. What I am less sure about is what should =
+replace it, because I can imagine at least two answers and honestly they ar=
+e not the same answer. Tbh I also do not know whether we have ever had a tr=
+anscript where the model legitimately produced the marker and then kept goi=
+ng, so I do not know how much this matters in practice beyond these two.
 
 Gideon

@@ -9,24 +9,27 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-i think the split you want is by whether the thing is recoverable at the row =
-level or not, which is roughly what you already said but stated differently.
+I think the split you want is by whether the thing is recoverable at the ro=
+w level or not, which is roughly what you already said but stated different=
+ly.
 
-length and role sequence are row problems - one bad row says nothing about th=
-e next row, so those get counted and skipped. tokenizer that wont load is not=
- a row problem at all, that's the same failure 12k times in a row, so it shou=
-ld come straight up and stop the run. honestly if we skip on that we'd just b=
-e printing 12000 skip lines and exiting with an empty dataset which is worse =
-than the traceback.
+Length and role sequence are row problems =E2=80=94 one bad row says nothin=
+g about the next row, so those get counted and skipped. A tokenizer that wo=
+nt load is not a row problem at all, thats the same failure 12k times in a =
+row, so it should come straight up and stop the run. Honestly if we skip on=
+ that we'd just be printing 12000 skip lines and exiting with an empty data=
+set, which is worse than the traceback.
 
-as for who does the counting, and to_tinker_datum just raises ExampleTooLongE=
-rror straight out - the binning is format_batch's job, a single datum has no =
-batch to be counted into. so the caller catches, increments the right bucket,=
- and moves on. keep the exception types distinct per reason or the report is =
-useless, don't collapse them into one ConversionError.
+As for who does the counting: to_tinker_datum just raises ExampleTooLongErr=
+or straight out =E2=80=94 the binning is format_batch's job, a single datum=
+ has no batch to be counted into. So the caller catches, increments the rig=
+ht bucket, and moves on. Keep the exception types distinct per reason or th=
+e report is useless; dont collapse them into one ConversionError.
 
-on the report - either the run dir next to the artifacts, or nothing at all f=
-or now and we just log the counts at the end. i'd lean run dir since you alre=
-ady have the path plumbed through, but to be honest with 40 out of 12k the lo=
-g line is probably fine for this milestone. best we can do without knowing if=
- anyone actually reads these files.
+On the report =E2=80=94 either the run dir next to the artifacts, or nothin=
+g at all for now and we just log the counts at the end. I'd lean run dir si=
+nce you already have the path plumbed through, but to be honest with 40 out=
+ of 12k the log line is probably fine for this milestone. Best we can do wi=
+thout knowing if anyone actually reads these files.
+
+Dario

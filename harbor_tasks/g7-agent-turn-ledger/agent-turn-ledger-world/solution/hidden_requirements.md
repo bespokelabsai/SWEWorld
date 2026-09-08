@@ -1,13 +1,14 @@
 # g7 — Durable turn ledger for multi-turn agent conversations
 
-**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
+**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries; `located` gets the same world as `world` plus a map of where each remark sits, but never a quote, never which requirement a conversation serves, and never which are herrings.
 
-| arm | what it is handed |
-|---|---|
-| `blind` | the ticket |
-| `spec` | the ticket + both hidden requirements |
-| `clues` | the ticket + all 51 remarks, quoted |
-| `world` | the ticket, against `sweworld:0.4.4` where the 51 remarks live in chat, the wiki and mail |
+| arm | what it is handed | measured |
+|---|---|---|
+| `blind` | the ticket | — |
+| `spec` | the ticket + both hidden requirements | — |
+| `clues` | the ticket + all 51 remarks, quoted | **1.00** |
+| `world` | the ticket, against `sweworld:0.4.4` where the 51 remarks live in chat, the wiki and mail | — |
+| `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left | **1.00** |
 
 Scores are per run and live with the run, not here.
 
@@ -15,31 +16,178 @@ Scores are per run and live with the run, not here.
 
 ## The hidden requirements — stated nowhere
 
-Each is graded as five independent facts, 0.1 each. `open_feature` carries weight 0.0: building the feature scores nothing, only recovering what nobody wrote down does.
+Two requirements, `g7.r1` and `g7.r2`. Neither is written down anywhere an agent
+can read: they have to be reassembled from remarks scattered across the world.
 
-### `g7.r1`
+**Eight facts, not ten.** Neither requirement declares an
+`exclusions_or_crossover`. `score.py` takes its keys from `tasks.json` rather than
+from a fixed list of five, precisely so an absent fact is not invented and does
+not divide the mean by the wrong number, so each of the eight is worth one eighth.
+`open_feature` (did the agent build the feature at all?) carries weight **0.0**:
+building the feature scores nothing, only recovering what nobody wrote down does.
 
-- **`rule`** — A JSON checkpoint sits in the same working directory: module constants `TURN_LEDGER_FILENAME: str = "turn_ledger.json"` and `TURN_LEDGER_VERSION: int = 2`, a `TurnLedger.sidecar_state() -> dict[str, t.Any]` returning exactly the eight keys `{"version": TURN_LEDGER_VERSION, "responses": int, "turns": int, "last_author": str | None, "next_speaker": str | None, "interleave_faults": int, "completed": bool, "completion_reason": str}`, and `write_sidecar(working_dir, ledger) -> str` (returns the absolute path). The file is serialized as `json.dumps(ledger.sidecar_state(), indent=2, sort_keys=True) + "\n"`, and `run()` rewrites it immediately after the seed line and again after **every** appended response.
+The facts, and the question each one answers:
 
-- **`scope`** — `load_ledger` is `read_log` + `build_ledger` + `verify_sidecar` and writes nothing; the `status` a ledger carries comes from that verification (`"created"` for a fresh run's first write, `"adopted"` or `"verified"` after a load). No log line is ever truncated, ignored, re-ordered or rewritten, and only two of the recorded keys are compared on load — `"responses"` and `"last_author"`.
+| fact | the question it answers |
+|---|---|
+| `rule` | what exactly has to exist |
+| `scope` | where it applies, and where it must not |
+| `exclusions_or_crossover` | what has to stay untouched |
+| `failure_behavior` | what happens when it goes wrong |
+| `observability` | the exact values a test can read back |
 
-- **`failure_behavior`** — `verify_sidecar` has exactly three arms. (a) The file is absent, or unreadable as JSON, or its `"version"` is not `TURN_LEDGER_VERSION` → `status = "adopted"`. (b) The version matches **and** both `"responses"` and `"last_author"` equal the log-derived values → `status = "verified"`. (c) The version matches and either value differs → raise `TurnLedgerDesyncError(path, log_responses, recorded_responses, log_last_author, recorded_last_author)`, a subclass of `TurnLedgerError`, storing all five as attributes of those names, with message `f"{path} records {recorded_responses} response(s) last authored by {recorded_last_author!r}, the log holds {log_responses} last authored by {log_last_author!r}"`. The raise happens before any request is issued and before anything is appended.
+---
 
-- **`observability`** — Fresh run in `tmp_path` with a fake `call_single_request` that raises on its first call: `tmp_path/"turn_ledger.json"` already exists, is exactly 186 bytes (trailing newline included), and reads `{"completed": false, "completion_reason": "open", "interleave_faults": 0, "last_author": "client", "next_speaker": "advisor", "responses": 0, "turns": 1, "version": 2}` in that sorted, 2-space-indented spelling. After a completed 4-line run the file is 189 bytes and `read_sidecar(str(tmp_path)) == {"version": 2, "responses": 3, "turns": 4, "last_author": "advisor", "next_speaker": None, "interleave_faults": 0, "completed": True, "completion_reason": "agent_signal"}`. Truncating that log to its first 3 lines and leaving the stale file makes a new processor's `run()` raise `TurnLedgerDesyncError` with `.path == str(tmp_path/"turn_ledger.json")`, `.log_responses == 2`, `.recorded_responses == 3`, `.log_last_author == "client"`, `.recorded_last_author == "advisor"`, zero calls to `call_single_request` and the log still 3 lines; deleting the file instead gives `ledger.status == "adopted"` and exactly one further call. A sidecar of `{"version": 1, "responses": 2, "last_author": "client"}` against that same 3-line log also gives `"adopted"`.
+### `g7.r1` — a checkpoint that describes the run, and the log that outranks it
 
-> *The decision the team made first and later reversed:* The first cut made the checkpoint authoritative — on disagreement the log was truncated back to the recorded response count, the usual resumable-writer pattern — and it was reversed after a run silently discarded real generated turns: the log now wins, a missing or old-version checkpoint is benign, and only a disagreeing current-version one aborts the run.
+**In one sentence:** every appended response rewrites a small JSON sidecar, and on
+resume the log is the truth — a missing or old-version sidecar is adopted quietly,
+but a current-version one that disagrees stops the run before a single request goes
+out.
 
-### `g7.r2`
+#### `rule` — what has to exist
 
-- **`rule`** — `COMPLETION_SENTINEL` is exactly the string `"<<END_OF_CONVERSATION>>"`, and the base `Agent.is_completed(response)` returns `True` iff `response.rstrip().endswith(COMPLETION_SENTINEL)`.
+Module constants and functions:
 
-- **`scope`** — Matching is case-sensitive and suffix-only, and insensitive to trailing whitespace.
+| name | value / signature |
+|---|---|
+| `TURN_LEDGER_FILENAME` | `"turn_ledger.json"` |
+| `TURN_LEDGER_VERSION` | `2` |
+| `TurnLedger.sidecar_state` | `() -> dict[str, t.Any]` |
+| `write_sidecar` | `(working_dir, ledger) -> str` — returns the **absolute** path |
 
-- **`failure_behavior`** — A non-`str` `response_message` returns `False` rather than raising.
+`sidecar_state()` returns exactly these eight keys:
 
-- **`observability`** — The message carrying the sentinel is a real turn: it is appended to `responses_0.jsonl`, counted in `responses`, and present in the dataset, and the conversation stops after it. End to end with `max_length = 6` and a fake whose third reply is `"Then index funds. <<END_OF_CONVERSATION>>"`: the fake is called exactly `3` times, the log holds `4` lines, `tracker.num_responses == 3`, `ledger.completion_reason == "agent_signal"`, and the dataset's last row's `content` is `"Then index funds. <<END_OF_CONVERSATION>>"`.
+```python
+{"version": TURN_LEDGER_VERSION, "responses": int, "turns": int,
+ "last_author": str | None, "next_speaker": str | None,
+ "interleave_faults": int, "completed": bool, "completion_reason": str}
+```
 
-> *The decision the team made first and later reversed:* An earlier build matched the token anywhere in the message and case-insensitively; that was reversed to a case-sensitive, suffix-only match after an agent quoted the token mid-sentence and ended the conversation a turn early.
+Serialised as `json.dumps(ledger.sidecar_state(), indent=2, sort_keys=True) + "\n"`,
+and `run()` rewrites it **immediately after the seed line and again after every
+appended response** — not once at the end.
+
+#### `scope` — what load does, and does not, touch
+
+- `load_ledger` is `read_log` + `build_ledger` + `verify_sidecar`, and **writes
+  nothing**.
+- The `status` a ledger carries comes from that verification: `"created"` for a
+  fresh run's first write, `"adopted"` or `"verified"` after a load.
+- No log line is ever truncated, ignored, re-ordered or rewritten.
+- Only **two** of the recorded keys are compared on load: `"responses"` and
+  `"last_author"`.
+
+#### `exclusions_or_crossover` — not declared
+
+This requirement has no `exclusions_or_crossover` fact. Nothing to implement, and
+nothing scored here.
+
+#### `failure_behavior` — `verify_sidecar` has exactly three arms
+
+| condition | status |
+|---|---|
+| file absent, or unreadable as JSON, or `"version"` != `TURN_LEDGER_VERSION` | `"adopted"` |
+| version matches **and** both `"responses"` and `"last_author"` equal the log-derived values | `"verified"` |
+| version matches and either value differs | **raise** |
+
+The raise is
+`TurnLedgerDesyncError(path, log_responses, recorded_responses, log_last_author, recorded_last_author)`
+— a subclass of `TurnLedgerError`, storing all five as attributes of those names,
+with the message:
+
+```
+f"{path} records {recorded_responses} response(s) last authored by {recorded_last_author!r}, the log holds {log_responses} last authored by {log_last_author!r}"
+```
+
+It happens **before any request is issued and before anything is appended**.
+
+#### `observability` — exact values
+
+Fresh run in `tmp_path`, fake `call_single_request` raising on its first call:
+
+- `tmp_path/"turn_ledger.json"` already exists, is exactly **186 bytes** (trailing
+  newline included), and reads, in that sorted 2-space-indented spelling:
+
+```json
+{"completed": false, "completion_reason": "open", "interleave_faults": 0, "last_author": "client", "next_speaker": "advisor", "responses": 0, "turns": 1, "version": 2}
+```
+
+After a completed 4-line run the file is **189 bytes** and:
+
+```python
+read_sidecar(str(tmp_path)) == {"version": 2, "responses": 3, "turns": 4,
+    "last_author": "advisor", "next_speaker": None, "interleave_faults": 0,
+    "completed": True, "completion_reason": "agent_signal"}
+```
+
+Then, against that same log truncated to its first 3 lines:
+
+| the sidecar left behind | result |
+|---|---|
+| the stale current-version one | `run()` raises `TurnLedgerDesyncError` with `.path == str(tmp_path/"turn_ledger.json")`, `.log_responses == 2`, `.recorded_responses == 3`, `.log_last_author == "client"`, `.recorded_last_author == "advisor"`; **zero** calls to `call_single_request`, log still 3 lines |
+| deleted | `ledger.status == "adopted"`, exactly one further call |
+| `{"version": 1, "responses": 2, "last_author": "client"}` | `"adopted"` |
+
+> **The herring** — what the team decided first and later reversed: the first cut
+> made the checkpoint authoritative — on disagreement the log was truncated back to
+> the recorded response count, the usual resumable-writer pattern. It was reversed
+> after a run silently discarded real generated turns. The log now wins, a missing
+> or old-version checkpoint is benign, and only a disagreeing current-version one
+> aborts the run.
+
+---
+
+### `g7.r2` — the sentinel ends the turn it arrives in, and it must be the suffix
+
+**In one sentence:** a conversation ends when a reply *ends with* the sentinel —
+case-sensitively, not anywhere in the text — and that reply is a real turn that
+gets logged, counted and kept.
+
+#### `rule` — what has to exist
+
+```python
+COMPLETION_SENTINEL = "<<END_OF_CONVERSATION>>"
+```
+
+and the base `Agent.is_completed(response)` returns `True` **iff**
+`response.rstrip().endswith(COMPLETION_SENTINEL)`.
+
+#### `scope` — how the match is made
+
+Matching is **case-sensitive** and **suffix-only**, and insensitive to trailing
+whitespace.
+
+#### `exclusions_or_crossover` — not declared
+
+This requirement has no `exclusions_or_crossover` fact. Nothing to implement, and
+nothing scored here.
+
+#### `failure_behavior` — a non-string reply
+
+A non-`str` `response_message` returns `False` rather than raising.
+
+#### `observability` — exact values
+
+The message carrying the sentinel **is a real turn**: appended to
+`responses_0.jsonl`, counted in `responses`, present in the dataset — and the
+conversation stops after it.
+
+End to end with `max_length = 6` and a fake whose third reply is
+`"Then index funds. <<END_OF_CONVERSATION>>"`:
+
+| check | value |
+|---|---|
+| calls to the fake | `3` |
+| lines in the log | `4` |
+| `tracker.num_responses` | `3` |
+| `ledger.completion_reason` | `"agent_signal"` |
+| the dataset's last row's `content` | `"Then index funds. <<END_OF_CONVERSATION>>"` |
+
+> **The herring** — what the team decided first and later reversed: an earlier
+> build matched the token **anywhere** in the message and case-insensitively; that
+> was reversed to a case-sensitive, suffix-only match after an agent quoted the
+> token mid-sentence and ended the conversation a turn early.
 
 ---
 
@@ -159,74 +307,6 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 
 ---
 
-## The ticket — stated openly
-
-**Durable turn ledger for multi-turn agent conversations**
-
-Make a multi-turn agent conversation a durable, resumable record: the seed becomes a real logged turn, resume state is derived from the log instead of a step parity, and the resumed run neither re-generates nor re-counts what it already has.
-
-### New module `src/bespokelabs/curator/agent/turn_ledger.py`
-
-- Module docstring: `"""The durable record of a multi-turn agent conversation."""`. It takes every timestamp as a parameter — it imports neither `time`, `random`, `uuid` nor `os.urandom`.
-- Constants: `RESPONSES_FILENAME: str = "responses_0.jsonl"`, `SEED_FINISH_REASON: str = "seed"`, `COMPLETION_SENTINEL: str`, `COMPLETION_REASONS: tuple[str, ...] = ("open", "budget", "agent_signal")`, `LEDGER_STATUSES: tuple[str, ...] = ("created", "adopted", "verified")`.
-- Exceptions: `TurnLedgerError(RuntimeError)` as the base for every turn-ledger failure, and `TurnLedgerCorruptError(TurnLedgerError)` with `__init__(self, path: str, line_number: int, reason: str)` storing `.path`, `.line_number` (1-based over physical lines) and `.reason`.
-- Two **frozen dataclasses** (`@dataclass(frozen=True)` — not pydantic models, not `NamedTuple`s, not dicts), field order exactly:
-  - `TurnEntry(turn, author, content, source)` — `turn` is the 0-based index into the log (the seed is `0`), `author` is the agent name the line was written under, `content` is `response_message` coerced with `str()` when it is not already a `str`, `source` is `"seed"` for turn 0 and `"response"` otherwise.
-  - `TurnLedger(entries, seeder_name, partner_name, max_responses, responses, turns, next_speaker, last_author, interleave_faults, completed, completion_reason, status)`, where `entries` is a `tuple[TurnEntry, ...]` and never a `list`.
-- `TurnLedger.messages() -> list[dict[str, str]]` returns `[{"role": entry.author, "content": entry.content}, ...]` in log order.
-- Functions:
-  - `build_seed_record(*, seeder_name: str, seed_message: str, model_name: str, now: datetime.datetime) -> AgentResponse`
-  - `read_log(working_dir: str) -> list[AgentResponse]`
-  - `build_ledger(records: t.Sequence[AgentResponse], *, seeder_name: str, partner_name: str, max_responses: int, is_completed: t.Callable[[str, t.Any], bool], status: str = "verified") -> TurnLedger`
-  - `load_ledger(working_dir: str, *, seeder_name: str, partner_name: str, max_responses: int, is_completed: t.Callable[[str, t.Any], bool]) -> TurnLedger` — loads the ledger for a working directory and never writes to disk.
-
-### Ledger semantics
-
-- `responses == len(entries) - 1`, never negative; `turns == len(entries)`.
-- `next_speaker` is the agent that did **not** write the last entry: `partner_name if last_author == seeder_name else seeder_name`. It is never computed from `len(entries) % 2`, from `responses % 2`, or from a step counter. An entry whose author is neither `seeder_name` nor `partner_name` counts as "not the seeder", so `next_speaker` becomes `seeder_name`.
-- A log in which the same author appears twice in a row is **legal**: it does not raise, does not truncate the log, and does not drop the duplicate. `interleave_faults` is the number of indices `i >= 1` with `entries[i].author == entries[i - 1].author`, and the next turn still goes to the complement of the last author.
-- `completion_reason` is `"agent_signal"` when the **last** entry's author's `is_completed` returns true for its content (checked on the last entry only, not on every entry); otherwise `"budget"` when `responses >= max_responses`; otherwise `"open"`. `"agent_signal"` wins when both hold. `completed` is `completion_reason != "open"`, and `next_speaker is None` exactly when `completed` is true.
-- An empty log gives `(completion_reason, responses, turns, last_author, next_speaker) == ("open", 0, 0, None, None)` with `completed is False`.
-- `read_log` skips lines that are empty or whitespace-only and raises `TurnLedgerCorruptError(path, line_number, reason)` for any other unparseable line, instead of letting pydantic's `ValidationError` out.
-
-### `MultiTurnAgenticProcessor` (`src/bespokelabs/curator/agent/processor.py`)
-
-- `__init__(self, seeder, partner, max_length, seed_message, now_fn: t.Callable[[], datetime.datetime] = datetime.datetime.now)`; keeps `self.now_fn` and `self.ledger: t.Optional[TurnLedger] = None`. `AgentStatusTracker(max_turns=self.max_length)` is unchanged.
-- `load_cache(self, working_dir: str) -> TurnLedger` returns a `TurnLedger` and does not touch the status tracker at all. The processor keeps the last ledger it built on `self.ledger`.
-- **The seed is a durable turn.** When `responses_0.jsonl` is absent or empty, `run()` writes exactly one line — `build_seed_record(...)` — through the existing `append_response()` *before* the first request is built, then enters the loop. That record has `name = seeder.name`, `response_message = seed_message`, `finish_reason = "seed"`, `response_cost = 0.0`, `token_usage = None`, `response_errors = None`, `raw_response = None`, `raw_request = None`, `parsed_response_message = None`, `created_at = finished_at = now_fn()`, and `generic_request = GenericRequest(model=seeder.model_name, messages=[{"role": "user", "content": seed_message}], original_row={"prompt": seed_message}, original_row_idx=0, response_format=None, generation_params={}, is_multimodal_prompt=False)`.
-- **`max_length` is a budget of generated responses, not of messages.** The seed is not one. The loop condition is `while ledger.responses < self.max_length`, so an un-stopped run makes exactly `max_length` calls to `call_single_request` and leaves `max_length + 1` log lines whether it ran once or resumed five times. `APIRequest(task_id=...)` is given `ledger.responses`, the 0-based response index.
-- **The ledger is re-derived after every appended response**, from the records the run has read or written so far — the list it already holds in memory, not by re-reading `responses_0.jsonl`. So `responses`, `turns`, `last_author`, `next_speaker` and `completed` all advance as the conversation goes, and the loop terminates. Two traps: a ledger built once before the loop and held has a `next_speaker` that never changes, so it asks the same agent forever; and `append_response()` writes through buffered `aiofiles`, so a ledger re-derived by reading the file back sees nothing until the buffer is flushed, with the same effect. Flush after each append so the log on disk stays current for a reader.
-- Each iteration asks the agent named by `ledger.next_speaker`; `_agent_for(name)` maps a name to `seeder`/`partner` and raises `KeyError` otherwise. `run()` short-circuits on `ledger.completed`, never on a message count reaching `max_length`.
-- `self.conversation_history` stays a `list[dict[str, str]]` keyed `"role"` (an agent *name*) and `"content"`, and equals `self.ledger.messages()` after every ledger update.
-- `run()` calls `status_tracker.adopt_ledger(cached_responses=ledger.responses)` exactly once, immediately after the ledger is loaded and **before** the `ledger.completed` short-circuit.
-- A failed turn appends nothing to the log, is recorded against the agent named by `ledger.next_speaker` (not by step parity), and the exception is still re-raised.
-- `_transform_conversation_history(target_agent)` maps every ledger message to `{"role": "assistant"}` when its author equals `target.name` and `{"role": "user"}` otherwise — uniformly, with **no special case for a one-message history**. It calls `target.prompt_formatter.create_generic_request({"prompt": <content of the last message>}, 0)`, splits that result into the system message and the rest, replaces the last mapped message with the rest, and inserts the system message at index 0 **only if there is one**; an agent built without `system_prompt=` must not raise. When the formatter produced more than one system message, the first is used and the others stay in place in the body.
-- `create_dataset_file(working_dir)` writes one row per log line with exactly four fields: `{"role": <the record's name>, "content": <str(response_message)>, "turn": <0-based line index>, "source": "seed" if index == 0 else "response"}`. `source` is decided by position, not by `finish_reason`. Row order is log order.
-
-### `AgentStatusTracker` (`src/bespokelabs/curator/status_tracker/agent_status_tracker.py`)
-
-- New fields `num_cached: int = 0` and `time_fn: t.Callable[[], float] = field(default=time.time, repr=False, compare=False)`; `start_time` and `last_update_time` come from `time_fn`.
-- `update_turn(agent, response_success=False, ...)` increments **only** `num_errors` — `current_turn` and `num_responses` are left alone — while still setting `current_agent` and still accumulating any token/cost arguments given.
-- New `adopt_ledger(self, *, cached_responses: int) -> None`: sets `current_turn = cached_responses`, `num_cached = cached_responses`, `num_responses = 0`, `num_errors = 0`, `total_cost = 0.0` and all three `total_tokens` counters to `0`; it does not touch `max_turns` and does not call `update_display`. So `num_responses`/`total_cost` describe *this process*, `num_cached` describes what was inherited, and `current_turn` describes the conversation.
-- `stop_tracker()` removes `"time_fn"` from the telemetry metadata dict alongside `"pbar"`.
-
-### `Agent` / `MultiTurnAgents` (`src/bespokelabs/curator/agent/agent.py`)
-
-- `Agent.is_completed(self, response: t.Any) -> bool` currently returns `False` unconditionally, which makes the processor's stop-condition path dead code in every stock use. Give it a real default implementation in terms of `COMPLETION_SENTINEL`.
-- `MultiTurnAgents.__init__(self, seeder, partner, max_length, seed_message, *, now_fn: t.Callable[[], datetime.datetime] = datetime.datetime.now)` accepts and forwards `now_fn`.
-
-### `MultiTurnResponse` (`src/bespokelabs/curator/agent/agent_response.py`)
-
-- `update_tracker_stats()` reports `RequestStats(total=tracker.max_turns, succeeded=tracker.num_responses, failed=tracker.num_errors, in_progress=0, cached=tracker.num_cached)`.
-
-### Reuse, scope and dependencies
-
-- Reuse `AgentResponse` and its `model_validate_json`/`model_dump` (the seed is written as an `AgentResponse`, no new record type), `GenericRequest`, `MultiTurnAgenticProcessor.append_response()` verbatim, `PromptFormatter.create_generic_request()` (read, never modified), `AgentTurn`, `_TokenUsage`, `ArrowWriter`/`Dataset.from_file` as already used, and `APIRequest` constructed exactly as today.
-- Nothing in `llm/`, `request_processor/`, `client.py`, `db.py` or the viewer changes. `Agent._hash_fingerprint` and the `xxh64(seed_message)` run identity are untouched.
-- Python `^3.10`; **no new dependency** — `pydantic`, `datasets`, `aiofiles`, `aiohttp` and stdlib `json`/`os`/`datetime`/`typing` are all already present. Tests use `pytest`, `pytest-asyncio`, `tmp_path`, `monkeypatch` and `types.SimpleNamespace`; no network, no real provider.
-
-
----
 
 ## Where every remark is
 
@@ -621,8 +701,7 @@ As it appears, spread across the exchange:
 #### `g7.r1.l9`
 
 - **mail** · “resume when the metadata json isn't on disk” · **konrad** · 2025-04-09 08:12
-- to dermot@world.local, emil@world.local, dario@world.local,
- gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to dermot@world.local, emil@world.local, dario@world.local, gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g7.r1.failure_behavior`
 - must be typed literally: `2`, `advisor`, `call_single_request`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -631,19 +710,57 @@ What the remark has to leave a reader with:
 
 > Look, deleted the json by hand to test resume and the rerun refused to start, jsonl sitting there intact. Missing file is benign - we adopt the log, then exactly one call_single_request(advisor, 2).
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-08:12  konrad    Subject: resume refuses to start when the metadata json is missing  Hello Dermot,  I spent part of yesterday evening on the resume path for the advisor run, and I would like to put what I found in front of you before I open anything, since you know that loader better than I do.  The test was crude, but I think it is the right one. I deleted the metadata json out of the run directory by hand. That is as close as I can get to a machine dying in the gap between the last response coming back and the checkpoint being written. Then I started the same run again. It refused to start at all — it looked at the directory, did not find the json, and stopped with an error before it made a single request. Meanwhile the responses jsonl was sitting there completely intact: three requests planned for that run, the first two written out, one line each, nothing truncated, nothing half-written.  My position is that the missing file is benign. The json is a convenience for us; the jsonl is the thing we actually append to as responses arrive, and it survived exactly the failure that the json did not. So a resume that finds no json should not stop. It should adopt the log — read the jsonl, treat the responses in it as done, and derive the remaining work from that. For the run I was testing, the remaining work is one request, and the correct behaviour is exactly one call_single_request(advisor, 2) and nothing else. Not a re-issue of the first two, and certainly not a fresh run from the top.  I am not entirely sure whether there was a reason for the hard failure that I am not seeing, so please tell me if you know of one. Otherwise I would like to change it this week.  Regards, Konrad
-13:24  dermot    Konrad,  If I am reading your mail correctly, you want the json demoted from a precondition to a hint: resume proceeds without it and rebuilds its picture from the jsonl instead. I agree with that, and I do not know of a reason for the hard failure beyond it being the easiest thing to write at the time.  The write ordering argues your side as well. The jsonl is appended and flushed per response; the json is only rewritten afterwards. So the json is by construction the file most likely to be absent or behind after a bad exit, and the log is by construction the one that is ahead. Refusing to start on the absence of the weaker of the two records is backwards. If I had to guess, that check dates from when the json was the only thing we kept, and nobody revisited it once the log went in.  That said, I want one hard failure kept. If the jsonl itself cannot be read, or the last line is torn, stop and say so rather than guess at it. Quietly deciding nothing was done and paying for the whole run a second time is the outcome I care about avoiding — I have watched a late night turn into precisely that with other tooling.  On your last paragraph, I want to be explicit, because that is the part which is easy to get wrong in the implementation: after adopting the log, the run must issue exactly one call, call_single_request(advisor, 2). If a second call turns up in the log for that test case, the adoption is not doing what we just agreed it does.
-14:10  konrad    Dermot,  Right, your reading is what I meant. The json becomes a hint and stops being a precondition.  On the torn line, I agree and I will keep that failure. It is a clean distinction: a file that is not there is benign and we resume, a file that is there and damaged means we stop and print something a person can act on. The two cases were collapsed into one error before, which is presumably how a harmless missing json ended up blocking a run that had two perfectly good responses on disk.  So, to write down what we have settled. A missing metadata json is not an error. The jsonl is the record. Resume adopts that log and issues only what the log does not already contain, which for the case I broke by hand is exactly one call_single_request(advisor, 2). A jsonl that cannot be parsed still stops the run, loudly.  Anyway, that is what I will implement, and the deleted-json case goes in as a test alongside it so that it cannot come back on us quietly.  Thank you for reading it through. Konrad
+From: konrad@world.local
+Sent: 08:12
+
+Hello Dermot,
+
+I spent part of yesterday evening on the resume path for the advisor run, and I would like to put what I found in front of you before I open anything, since you know that loader better than I do.
+
+The test was crude, but I think it is the right one. I deleted the metadata json out of the run directory by hand. That is as close as I can get to a machine dying in the gap between the last response coming back and the checkpoint being written. Then I started the same run again. It refused to start at all — it looked at the directory, did not find the json, and stopped with an error before it made a single request. Meanwhile the responses jsonl was sitting there completely intact: three requests planned for that run, the first two written out, one line each, nothing truncated, nothing half-written.
+
+My position is that the missing file is benign. The json is a convenience for us; the jsonl is the thing we actually append to as responses arrive, and it survived exactly the failure that the json did not. So a resume that finds no json should not stop. It should adopt the log — read the jsonl, treat the responses in it as done, and derive the remaining work from that. For the run I was testing, the remaining work is one request, and the correct behaviour is exactly one call_single_request(advisor, 2) and nothing else. Not a re-issue of the first two, and certainly not a fresh run from the top.
+
+I am not entirely sure whether there was a reason for the hard failure that I am not seeing, so please tell me if you know of one. Otherwise I would like to change it this week.
+
+Regards,
+Konrad
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 13:24
+
+Your restatement is right. Nothing in the branch is implicated — the stop check does not read anything my work touches, and the dict it choked on is what json mode produces for every response, so the branch under it is beside the point. Turn two is where it lands because that is the first pass where the check has a completed assistant message to inspect at all; turn one gets through on nothing having been produced yet.
+
+On your second point, I agree it is a separate argument, so I have kept it out of the note I left on the run: what is recorded there is the late night run, the json-mode agent against my branch, the AttributeError out of the stop check on a dict, and the death at turn two. I would rather the next person reading that log take it as a harness failure with a known cause than as evidence that the cancellation work broke the agent loop, which is the reading I was trying to head off by writing this at all.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 14:10
+
+Right, your reading is what I meant. The json becomes a hint and stops being a precondition.
+
+On the torn line, I agree and I will keep that failure. It is a clean distinction: a file that is not there is benign and we resume, a file that is there and damaged means we stop and print something a person can act on. The two cases were collapsed into one error before, which is presumably how a harmless missing json ended up blocking a run that had two perfectly good responses on disk.
+
+So, to write down what we have settled. A missing metadata json is not an error. The jsonl is the record. Resume adopts that log and issues only what the log does not already contain, which for the case I broke by hand is exactly one call_single_request(advisor, 2). A jsonl that cannot be parsed still stops the run, loudly.
+
+Anyway, that is what I will implement, and the deleted-json case goes in as a test alongside it so that it cannot come back on us quietly.
+
+Thank you for reading it through.
+Konrad
 ```
 
 #### `g7.r2.g7r2-l08`
 
 - **mail** · “stop condition in the turn loop — does it assume string content?” · **dermot** · 2025-04-09 08:12
-- to emil@world.local, dario@world.local, konrad@world.local,
- gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to emil@world.local, dario@world.local, konrad@world.local, gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g7.r2.failure_behavior`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
 
@@ -651,12 +768,47 @@ What the remark has to leave a reader with:
 
 > late night run — put the json-mode agent through my branch and the stop check threw AttributeError on a dict, killed the run at turn two.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-08:12  dermot    Subject: the stop check throwing on a dict in last night's json-mode run  Emil,  Writing this down before the morning fills up, since it happened after everyone had signed off and I don't want it to surface later as a mystery.  On a late night run I put the json-mode agent through my branch, mostly to see whether anything in the cancellation work upset the agent loop. It did not get far. The run died at turn two with an AttributeError, and the traceback lands squarely in the stop check: it takes the content of the last assistant message and reaches for a string method on it, and under json mode that content arrives as a dict, so the attribute is simply not there and the exception takes the whole run down with it rather than being caught anywhere on the way up.  I am not entirely sure yet whether the branch has anything to do with it. If I had to guess, it does not — the stop check never looks at anything my branch touches — but I only have the one run, so I would rather say that out loud than assume it. That said, the failure is clean and repeatable enough that I do not think it is worth anyone chasing it as a branch regression until someone has looked at the check itself.  Dermot
-11:05  emil      Dermot,  Let me think through that, because the sequencing matters for how we describe it to anyone else who trips over it.  If I am restating your point correctly, the branch is incidental: the stop check assumes the last assistant message content is a plain string, json mode hands it a dict instead, and the check falls over on the attribute access regardless of what code is underneath it. In which case any branch would have produced the same AttributeError at roughly the same point, and yours is just the one that happened to be under the agent when you ran it.  Honestly, the part I find more interesting than the exception is that it killed the run outright at turn two rather than being absorbed. I believe we need to be intentional here about whether a stop check failing should be fatal at all, but that is a separate argument and I do not want to bundle it into your report.  Emil
-13:24  dermot    Emil,  Your restatement is right. Nothing in the branch is implicated — the stop check does not read anything my work touches, and the dict it choked on is what json mode produces for every response, so the branch under it is beside the point. Turn two is where it lands because that is the first pass where the check has a completed assistant message to inspect at all; turn one gets through on nothing having been produced yet.  On your second point, I agree it is a separate argument, so I have kept it out of the note I left on the run: what is recorded there is the late night run, the json-mode agent against my branch, the AttributeError out of the stop check on a dict, and the death at turn two. I would rather the next person reading that log take it as a harness failure with a known cause than as evidence that the cancellation work broke the agent loop, which is the reading I was trying to head off by writing this at all.  Dermot
+From: dermot@world.local
+Sent: 08:12
+
+Emil,
+
+Writing this down before the morning fills up, since it happened after everyone had signed off and I don't want it to surface later as a mystery.
+
+On a late night run I put the json-mode agent through my branch, mostly to see whether anything in the cancellation work upset the agent loop. It did not get far. The run died at turn two with an AttributeError, and the traceback lands squarely in the stop check: it takes the content of the last assistant message and reaches for a string method on it, and under json mode that content arrives as a dict, so the attribute is simply not there and the exception takes the whole run down with it rather than being caught anywhere on the way up.
+
+I am not entirely sure yet whether the branch has anything to do with it. If I had to guess, it does not — the stop check never looks at anything my branch touches — but I only have the one run, so I would rather say that out loud than assume it. That said, the failure is clean and repeatable enough that I do not think it is worth anyone chasing it as a branch regression until someone has looked at the check itself.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 11:05
+
+Dermot,
+
+Let me think through that, because the sequencing matters for how we describe it to anyone else who trips over it.
+
+If I am restating your point correctly, the branch is incidental: the stop check assumes the last assistant message content is a plain string, json mode hands it a dict instead, and the check falls over on the attribute access regardless of what code is underneath it. In which case any branch would have produced the same AttributeError at roughly the same point, and yours is just the one that happened to be under the agent when you ran it.
+
+Honestly, the part I find more interesting than the exception is that it killed the run outright at turn two rather than being absorbed. I believe we need to be intentional here about whether a stop check failing should be fatal at all, but that is a separate argument and I do not want to bundle it into your report.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 13:24
+
+Your restatement is right. Nothing in the branch is implicated — the stop check does not read anything my work touches, and the dict it choked on is what json mode produces for every response, so the branch under it is beside the point. Turn two is where it lands because that is the first pass where the check has a completed assistant message to inspect at all; turn one gets through on nothing having been produced yet.
+
+On your second point, I agree it is a separate argument, so I have kept it out of the note I left on the run: what is recorded there is the late night run, the json-mode agent against my branch, the AttributeError out of the stop check on a dict, and the death at turn two. I would rather the next person reading that log take it as a harness failure with a known cause than as evidence that the cancellation work broke the agent loop, which is the reading I was trying to head off by writing this at all.
+
+Dermot
 ```
 
 #### `g7.r1.l4`
@@ -687,8 +839,7 @@ As it appears, spread across the exchange:
 #### `g7.r1.l16`
 
 - **mail** · “resume against a stale checkpoint — where is it supposed to refuse?” · **dermot** · 2025-04-09 13:20
-- to emil@world.local, dario@world.local, konrad@world.local,
- gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to emil@world.local, dario@world.local, konrad@world.local, gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g7.r1.observability`, `g7.r1.failure_behavior`
 - must be typed literally: `TurnLedgerDesyncError`, `advisor`, `recorded_last_author`, `recorded_responses`, `turn_ledger.json`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -697,19 +848,49 @@ What the remark has to leave a reader with:
 
 > cut the jsonl to three lines, left turn_ledger.json stale - four calls burned before TurnLedgerDesyncError surfaced with recorded_responses 3, recorded_last_author 'advisor'. not one call should have fired, no line appended.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:20  dermot    Subject: the turn ledger check fires four calls too late  Konrad, Emil,  Writing this down while it is fresh, since neither of you was around when I ran it and I would rather not re-explain it from memory tomorrow. The context is the agent turn ledger: the transcript jsonl is the record of what was said, and turn_ledger.json sits beside it as the sidecar that is supposed to agree with it. My question was what happens when the two disagree — specifically when somebody edits the transcript out from under a run, which is not hypothetical given how often we hand-trim these files during debugging.  So I cut the jsonl down to three lines by hand and deliberately left turn_ledger.json stale, pointing at the longer history it had before. I expected the run to refuse to start. What actually happened is that four calls went out and were paid for before TurnLedgerDesyncError surfaced, and when it did surface it reported recorded_responses 3 and recorded_last_author 'advisor'. So the detection itself is correct, and the numbers in the error are the right numbers. The problem is purely that we arrive at them after the fact.  My position is that not one of those four calls should have fired and not one line should have been appended. A desync between the sidecar and the transcript is knowable before we do anything at all — the counts are sitting there on disk — and once we have burned four calls and written to the file, the state we were trying to protect is the state we have just damaged. If I had to guess this is an ordering accident rather than a design decision, but I would like it stated either way before it goes in.  Dermot
-14:12  konrad    Dermot,  Thank you for writing it out, this is clearer than the channel would have been. I looked at the same path after reading your mail and I agree with your reading of where the check sits. Nothing in it needs the client, and nothing in it needs a response to have come back — recorded_responses and recorded_last_author are both read straight off turn_ledger.json, so presumably the comparison could happen before the first call as easily as after the fourth. I do not see a reason it was put where it is, other than it was written next to the code that already had both files open.  One plain question so I understand the damage properly. During those four calls, was anything appended to the jsonl, or did the four calls fire and then the error prevent the write? Off the top of my head those are quite different situations. If nothing was written then it is money wasted and no more than that. If lines were appended past the point you truncated to, then the file on disk is now a thing that never happened in any run, and that is much worse than the cost of the calls.
-14:52  dermot    Konrad,  On your question: lines were appended. That is the part I should have made explicit and did not. The four calls went out one after another and each one appended its line to the truncated jsonl before the check ever ran, so by the time TurnLedgerDesyncError came back with recorded_responses 3 and recorded_last_author 'advisor' the transcript had already grown four entries past the point I cut it to. The file is exactly the artifact you describe — a history that no run ever produced, stitched from my truncation and four responses that were generated against it. Recovering the original would have meant going back to the copy I kept, and on a real machine there would be no copy.  So I would put the rule as follows and I do not think it needs softening. The sidecar and the transcript are compared before the first call is issued, and on disagreement we raise with the same numbers we raise with now and stop there: zero calls, zero lines appended, turn_ledger.json and the jsonl both exactly as we found them. The error is already carrying everything a person needs to diagnose it, so this costs us nothing in reporting. That said, I want the test to assert the strong form rather than just that the error type appears — a stale sidecar against a three-line transcript, no call recorded on the client, and the jsonl byte-identical afterwards. I have made that change and the test reads that way now, so unless one of you sees something the ordering hides, this is what we are going with.  Dermot
+From: dermot@world.local
+Sent: 13:20
+
+Konrad, Emil,
+
+Writing this down while it is fresh, since neither of you was around when I ran it and I would rather not re-explain it from memory tomorrow. The context is the agent turn ledger: the transcript jsonl is the record of what was said, and turn_ledger.json sits beside it as the sidecar that is supposed to agree with it. My question was what happens when the two disagree — specifically when somebody edits the transcript out from under a run, which is not hypothetical given how often we hand-trim these files during debugging.
+
+So I cut the jsonl down to three lines by hand and deliberately left turn_ledger.json stale, pointing at the longer history it had before. I expected the run to refuse to start. What actually happened is that four calls went out and were paid for before TurnLedgerDesyncError surfaced, and when it did surface it reported recorded_responses 3 and recorded_last_author 'advisor'. So the detection itself is correct, and the numbers in the error are the right numbers. The problem is purely that we arrive at them after the fact.
+
+My position is that not one of those four calls should have fired and not one line should have been appended. A desync between the sidecar and the transcript is knowable before we do anything at all — the counts are sitting there on disk — and once we have burned four calls and written to the file, the state we were trying to protect is the state we have just damaged. If I had to guess this is an ordering accident rather than a design decision, but I would like it stated either way before it goes in.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 14:12
+
+Dermot,
+
+Thank you for writing it out, this is clearer than the channel would have been. I looked at the same path after reading your mail and I agree with your reading of where the check sits. Nothing in it needs the client, and nothing in it needs a response to have come back — recorded_responses and recorded_last_author are both read straight off turn_ledger.json, so presumably the comparison could happen before the first call as easily as after the fourth. I do not see a reason it was put where it is, other than it was written next to the code that already had both files open.
+
+One plain question so I understand the damage properly. During those four calls, was anything appended to the jsonl, or did the four calls fire and then the error prevent the write? Off the top of my head those are quite different situations. If nothing was written then it is money wasted and no more than that. If lines were appended past the point you truncated to, then the file on disk is now a thing that never happened in any run, and that is much worse than the cost of the calls.
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 14:52
+
+On your question: lines were appended. That is the part I should have made explicit and did not. The four calls went out one after another and each one appended its line to the truncated jsonl before the check ever ran, so by the time TurnLedgerDesyncError came back with recorded_responses 3 and recorded_last_author 'advisor' the transcript had already grown four entries past the point I cut it to. The file is exactly the artifact you describe — a history that no run ever produced, stitched from my truncation and four responses that were generated against it. Recovering the original would have meant going back to the copy I kept, and on a real machine there would be no copy.
+
+So I would put the rule as follows and I do not think it needs softening. The sidecar and the transcript are compared before the first call is issued, and on disagreement we raise with the same numbers we raise with now and stop there: zero calls, zero lines appended, turn_ledger.json and the jsonl both exactly as we found them. The error is already carrying everything a person needs to diagnose it, so this costs us nothing in reporting. That said, I want the test to assert the strong form rather than just that the error type appears — a stale sidecar against a three-line transcript, no call recorded on the client, and the jsonl byte-identical afterwards. I have made that change and the test reads that way now, so unless one of you sees something the ordering hides, this is what we are going with.
+
+Dermot
 ```
 
 #### `g7.r2.g7r2-l05`
 
 - **mail** · “stop sequences: what should count as a stop before I normalise across backends” · **gideon** · 2025-04-10 11:06
-- to dermot@world.local, emil@world.local, dario@world.local,
- konrad@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to dermot@world.local, emil@world.local, dario@world.local, konrad@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g7.r2.scope`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
 
@@ -717,12 +898,43 @@ What the remark has to leave a reader with:
 
 > for me it only counts as a stop when the marker is the tail end of what the model said. if it turns up mid-paragraph it is obviously still going.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-11:06  gideon    Subject: what we are actually treating as the end of a turn  Dermot, Dario,  So basically I went back through last night's transcripts because two of them looked truncated in the viewer, and I think the truncation is ours rather than the provider's. In both cases the model was answering a question about our own prompt format, and in the course of answering it wrote out the stop marker as part of an explanation. The reader saw the marker sitting in the middle of a paragraph, decided the turn was over, and threw away everything after it. One of the two lost about six hundred tokens of a perfectly good answer.  The reason I am writing rather than dropping it in the channel is that the check itself is one line and whoever fixes it will just do whatever seems obvious at the time, and I would rather we agree on the rule first. Right now the reader asks whether the marker is present anywhere in the accumulated text. That is clearly too loose. What I am less sure about is what should replace it, because I can imagine at least two answers and honestly they are not the same answer. Tbh I also do not know whether we have ever had a transcript where the model legitimately produced the marker and then kept going, so I do not know how much this matters in practice beyond these two.  Gideon
-12:40  dario     Gideon,  I had a look at the two you mean and I agree the loss is on our side. On the question you actually asked, I think it comes down to an either-or and it would help to have it stated plainly somewhere: are we saying that any occurrence of the marker closes the turn and the model simply must never emit it in prose, or are we saying that the position of the marker in the output is what makes it a stop at all?  Those lead to very different fixes. The first one is really a prompting problem and we would end up telling the model not to quote its own control tokens, which in my experience it will do anyway the moment somebody asks it to explain the format. The second one puts the burden on the reader, which is where I would rather have it, but it means we have to be precise about what position we mean, and precise in a way that survives a partial chunk arriving mid-stream. In any case Dermot has spent more time in that reader than either of us, so I would rather he set the rule than the two of us guess at it.  Dario
-13:31  dermot    Dario, Gideon,  Re the either-or: it is the second one, and I would like it written down in those terms rather than left to whoever touches the check next. For me it only counts as a stop when the marker is the tail end of what the model said. If the marker turns up mid-paragraph, the model is obviously still going, and the only correct thing for the reader to do is carry on accumulating and leave the marker in the text as ordinary content. The two transcripts Gideon found are exactly that case and nothing else needs to be said about them — the model was explaining our format, the marker had prose after it, so it was never a stop.  That said, I want to be careful about what "tail end" means while a stream is still open, because that is where I expect this to be got wrong. It means the tail end of the model's output, not the tail end of whatever chunk happens to have arrived. A marker landing at the end of one chunk with three more chunks behind it is mid-paragraph in every sense that matters to us; we simply have not seen the rest yet. So the position test only has an answer once the stream has closed, and until then the reader has nothing to decide. If I had to guess, that is the part that produced the original loose check in the first place — somebody wanted an answer per chunk and the only test that gives one per chunk is the one that ignores position entirely. I wrote a fair amount of that reader on a late night and I would not swear it was reasoned about any harder than that at the time.  Dermot
+From: gideon@world.local
+Sent: 11:06
+
+Dermot, Dario,
+
+So basically I went back through last night's transcripts because two of them looked truncated in the viewer, and I think the truncation is ours rather than the provider's. In both cases the model was answering a question about our own prompt format, and in the course of answering it wrote out the stop marker as part of an explanation. The reader saw the marker sitting in the middle of a paragraph, decided the turn was over, and threw away everything after it. One of the two lost about six hundred tokens of a perfectly good answer.
+
+The reason I am writing rather than dropping it in the channel is that the check itself is one line and whoever fixes it will just do whatever seems obvious at the time, and I would rather we agree on the rule first. Right now the reader asks whether the marker is present anywhere in the accumulated text. That is clearly too loose. What I am less sure about is what should replace it, because I can imagine at least two answers and honestly they are not the same answer. Tbh I also do not know whether we have ever had a transcript where the model legitimately produced the marker and then kept going, so I do not know how much this matters in practice beyond these two.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 12:40
+
+Gideon,
+
+I had a look at the two you mean and I agree the loss is on our side. On the question you actually asked, I think it comes down to an either-or and it would help to have it stated plainly somewhere: are we saying that any occurrence of the marker closes the turn and the model simply must never emit it in prose, or are we saying that the position of the marker in the output is what makes it a stop at all?
+
+Those lead to very different fixes. The first one is really a prompting problem and we would end up telling the model not to quote its own control tokens, which in my experience it will do anyway the moment somebody asks it to explain the format. The second one puts the burden on the reader, which is where I would rather have it, but it means we have to be precise about what position we mean, and precise in a way that survives a partial chunk arriving mid-stream. In any case Dermot has spent more time in that reader than either of us, so I would rather he set the rule than the two of us guess at it.
+
+Dario
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 13:31
+
+Re the either-or: it is the second one, and I would like it written down in those terms rather than left to whoever touches the check next. For me it only counts as a stop when the marker is the tail end of what the model said. If the marker turns up mid-paragraph, the model is obviously still going, and the only correct thing for the reader to do is carry on accumulating and leave the marker in the text as ordinary content. The two transcripts Gideon found are exactly that case and nothing else needs to be said about them — the model was explaining our format, the marker had prose after it, so it was never a stop.
+
+That said, I want to be careful about what "tail end" means while a stream is still open, because that is where I expect this to be got wrong. It means the tail end of the model's output, not the tail end of whatever chunk happens to have arrived. A marker landing at the end of one chunk with three more chunks behind it is mid-paragraph in every sense that matters to us; we simply have not seen the rest yet. So the position test only has an answer once the stream has closed, and until then the reader has nothing to decide. If I had to guess, that is the part that produced the original loose check in the first place — somebody wanted an answer per chunk and the only test that gives one per chunk is the one that ignores position entirely. I wrote a fair amount of that reader on a late night and I would not swear it was reasoned about any harder than that at the time.
+
+Dermot
 ```
 
 #### `g7.r1.fix28`
@@ -796,8 +1008,7 @@ As it appears, spread across the exchange:
 #### `g7.r1.l3`
 
 - **mail** · “what the run metadata says for a run that did not finish” · **konrad** · 2025-04-22 09:41
-- to dermot@world.local, emil@world.local, dario@world.local,
- gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to dermot@world.local, emil@world.local, dario@world.local, gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g7.r1.rule`
 - must be typed literally: `A`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -806,13 +1017,62 @@ What the remark has to leave a reader with:
 
 > A run I killed at response seven left the json still claiming one response, it only gets written when run() returns. so yes the file lies about the run.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:41  konrad    Subject: the turn ledger next to a run I killed at response seven  Dermot,  I am writing this instead of catching you in chat because you were in review for most of yesterday and this needs more than one line to explain properly.  Last night I started one of the long conversation runs against the staging worker, watched the transcript grow, and stopped the process by hand once the seventh response had come back. Afterwards I opened turn_ledger.json in the run directory, expecting it to tell me roughly how far the run had got. A run I killed at response seven left the json still claiming one response. The turn count was low in the same way, and the completion reason was still sitting at "open".  So I went looking for the writer, and as far as I can see it only gets written when run() returns. So yes, the file lies about the run. If I have that right, then whatever we build on top of the file is reading a record that has very little to do with the run sitting beside it, and the progress view Dario keeps asking for cannot be built on it at all.  Look, I am not entirely sure I have read the writer correctly, and off the top of my head I could not tell you when that part of the module last changed. Before I write this up as a known problem I would rather you checked it, since you have spent far more time in that file than I have.  Konrad
-13:05  dermot    Konrad,  Mhm, I read this at lunch and then went and grepped it properly, because your account did not match what I remembered from the late night I spent in that module in March.  Let me restate what you are saying so that we are arguing about the same thing: your reading is that turn_ledger.json is produced once, on the way out of run(), so that nothing exists on disk while the response loop is turning, and a killed run therefore leaves you a file describing some other run entirely. That is not what the code does now. The writer is called from run() in more than one place. The first call lands immediately after the seed line goes into the transcript, before a single request has left the process, so the file is already on disk with responses 0, turns 1, last_author "client" and completion_reason "open". That is 186 bytes, if you want the number, and I have it from a run I deliberately killed on its first call this morning, on a fresh directory where nothing could have been left behind by anything earlier. From there the same file is rewritten again after each response that comes back and is appended. A run that goes all the way through finishes at 189 bytes with the real counts in it. There is no single write on the return path, and there has not been one for a while.  Which leaves the question of what you actually looked at. If I had to guess, your checkout predates the change — the write used to sit on the return path and it moved into the loop when we added the seed line, and a build from before that would behave exactly as you describe, one stale number and no updates. That said, I would rather you confirmed it from git log on your side than have us both settle on my guess.  Dermot
-14:12  dario     Dermot, Konrad,  Coming to this late, the part that matters on my end is the correction rather than the original complaint. I had shelved the progress view on the strength of an earlier conversation where the file was described to me as an end-of-run artefact, and if it is in fact refreshed as the responses land, then mid-run it does track progress and I can read it for exactly what I wanted to read it for. That tracks with the byte counts Dermot gives, since a file that only ever appeared at the end would not have a 186-byte form at all.  One thing I would like pinned down before I build on it: am I polling that file on an interval, or does something announce that it has changed? Either is workable, I just do not want to write the wrong one and find out later.  Dario
-15:25  konrad    Dario, Dermot,  Dermot is right and I was wrong, and I want the correction stated plainly, because my first mail is the one that will turn up if anybody searches for this in six months. I checked git log as asked. My checkout is from the end of March and does not have the change in it, which is the whole of my mystery: the single stale number I saw was an old build behaving correctly for that old build, not the current writer misbehaving.  So, settled. turn_ledger.json is created before the first request goes out, carrying responses 0 and completion_reason "open", and it is rewritten again as each response is appended. Mid-run it is an honest account of how far the run has got, which is the opposite of what I claimed yesterday. Dario, to your question: polling is the answer, since nothing signals the rewrite, and presumably an interval of a few seconds is more than enough given how slowly the counts move.  The one narrow thing that survives from my original mail is this: the file does not tell you whether the run is still alive. A run that was killed at response seven leaves the counts at seven and the completion reason at "open", and a run that is genuinely still working also sits at "open". Reading the file alone, those two are the same file. That is the real limit, and it is a much smaller one than the one I described.  Konrad
+From: konrad@world.local
+Sent: 09:41
+
+Dermot,
+
+I am writing this instead of catching you in chat because you were in review for most of yesterday and this needs more than one line to explain properly.
+
+Last night I started one of the long conversation runs against the staging worker, watched the transcript grow, and stopped the process by hand once the seventh response had come back. Afterwards I opened turn_ledger.json in the run directory, expecting it to tell me roughly how far the run had got. A run I killed at response seven left the json still claiming one response. The turn count was low in the same way, and the completion reason was still sitting at "open".
+
+So I went looking for the writer, and as far as I can see it only gets written when run() returns. So yes, the file lies about the run. If I have that right, then whatever we build on top of the file is reading a record that has very little to do with the run sitting beside it, and the progress view Dario keeps asking for cannot be built on it at all.
+
+Look, I am not entirely sure I have read the writer correctly, and off the top of my head I could not tell you when that part of the module last changed. Before I write this up as a known problem I would rather you checked it, since you have spent far more time in that file than I have.
+
+Konrad
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 13:05
+
+Konrad,
+
+Mhm, I read this at lunch and then went and grepped it properly, because your account did not match what I remembered from the late night I spent in that module in March.
+
+Let me restate what you are saying so that we are arguing about the same thing: your reading is that turn_ledger.json is produced once, on the way out of run(), so that nothing exists on disk while the response loop is turning, and a killed run therefore leaves you a file describing some other run entirely. That is not what the code does now. The writer is called from run() in more than one place. The first call lands immediately after the seed line goes into the transcript, before a single request has left the process, so the file is already on disk with responses 0, turns 1, last_author "client" and completion_reason "open". That is 186 bytes, if you want the number, and I have it from a run I deliberately killed on its first call this morning, on a fresh directory where nothing could have been left behind by anything earlier. From there the same file is rewritten again after each response that comes back and is appended. A run that goes all the way through finishes at 189 bytes with the real counts in it. There is no single write on the return path, and there has not been one for a while.
+
+Which leaves the question of what you actually looked at. If I had to guess, your checkout predates the change — the write used to sit on the return path and it moved into the loop when we added the seed line, and a build from before that would behave exactly as you describe, one stale number and no updates. That said, I would rather you confirmed it from git log on your side than have us both settle on my guess.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 14:12
+
+Coming to this late, the part that matters on my end is the correction rather than the original complaint. I had shelved the progress view on the strength of an earlier conversation where the file was described to me as an end-of-run artefact, and if it is in fact refreshed as the responses land, then mid-run it does track progress and I can read it for exactly what I wanted to read it for. That tracks with the byte counts Dermot gives, since a file that only ever appeared at the end would not have a 186-byte form at all.
+
+One thing I would like pinned down before I build on it: am I polling that file on an interval, or does something announce that it has changed? Either is workable, I just do not want to write the wrong one and find out later.
+
+Dario
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 15:25
+
+Dermot is right and I was wrong, and I want the correction stated plainly, because my first mail is the one that will turn up if anybody searches for this in six months. I checked git log as asked. My checkout is from the end of March and does not have the change in it, which is the whole of my mystery: the single stale number I saw was an old build behaving correctly for that old build, not the current writer misbehaving.
+
+So, settled. turn_ledger.json is created before the first request goes out, carrying responses 0 and completion_reason "open", and it is rewritten again as each response is appended. Mid-run it is an honest account of how far the run has got, which is the opposite of what I claimed yesterday. Dario, to your question: polling is the answer, since nothing signals the rewrite, and presumably an interval of a few seconds is more than enough given how slowly the counts move.
+
+The one narrow thing that survives from my original mail is this: the file does not tell you whether the run is still alive. A run that was killed at response seven leaves the counts at seven and the completion reason at "open", and a run that is genuinely still working also sits at "open". Reading the file alone, those two are the same file. That is the real limit, and it is a much smaller one than the one I described.
+
+Konrad
 ```
 
 #### `g7.r1.rev1` · **reversal**
@@ -964,8 +1224,7 @@ As it appears, spread across the exchange:
 #### `g7.r1.l7`
 
 - **mail** · “resume dies at load after mid-project upgrade” · **dermot** · 2025-05-13 13:32
-- to emil@world.local, dario@world.local, konrad@world.local,
- gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+- to emil@world.local, dario@world.local, konrad@world.local, gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
 - carries `g7.r1.scope`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
 
@@ -973,13 +1232,60 @@ What the remark has to leave a reader with:
 
 > yup — the load threw for me too: checkpoint carried interleave_faults from an older build, though response count and last author matched the log exactly. comparing every key is too strict.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:32  dermot    Subject: the checkpoint load throwing on a strict key comparison  Emil,  Writing this rather than catching you in the room, since it needs the whole picture and I am out from mid-afternoon.  I picked up the run from Friday night this morning and the resume threw before it read a single response back. The mechanism, for anyone reading this later without the code in front of them: the reader loads the sidecar, walks the eight keys it finds there against what the writer would produce for the same log, and refuses the checkpoint if any one of them disagrees. In my case one of them disagreed. The error it prints does not name the field that failed, which is a defect of its own, so I lost a good part of the late night convincing myself the log had been truncated under me.  The file does not look bad otherwise. The log it sits beside is intact, the last entry is complete, and the counts I checked by hand line up with it. If I had to guess, the checkpoint is simply older than the writer in my current tree, and something in it has drifted that has no bearing on whether the checkpoint honestly describes the log next to it.  Have you seen this, or is it particular to my tree?  Dermot
-15:05  emil      Dermot,  Yup — the load threw for me too, on a checkpoint I had left over from a build a couple of weeks old, so it is not something about your tree.  Let me think through that, because the specifics are what decide the question. I dumped the sidecar side by side with what the writer emits today for that same log, and everything that describes the log agreed: the response count in the checkpoint matched the log exactly, and the last author recorded on the final entry matched it as well. Those two are what a resume actually leans on — they are what tells you the checkpoint belongs to this log and how far into it you are. The single divergence was interleave_faults. Both files carry the field, the writer still emits it, it is one of the eight; the checkpoint just had a nonzero figure sitting in it where the current writer puts a zero for the same log. Nothing in that number says anything about where the run stopped or which log it stopped in.  So my conclusion is that comparing every key is too strict. As written, a bookkeeping counter whose accounting changed underneath us can veto a checkpoint that is a faithful description of its log, and the operator gets an unnamed failure and an afternoon of doubting the log. I believe we need to be intentional here about what the comparison is for: it is a guard against loading a checkpoint that belongs to some other log, not an assertion that the file was written by the build we happen to be running now.  I am not entirely sure interleave_faults is the only field that can drift this way, and I would rather not find out one checkpoint at a time.  Emil
-15:47  konrad    Emil, Dermot,  Right, and on interleave_faults I can date the drift, because it was my change. When the fault injection was reworked at the end of March, the counter stopped being incremented on that path — the retries it used to count are accounted for elsewhere now, so for an ordinary run the writer records zero there. The key itself did not move. Both spellings of the file still have all eight fields and interleave_faults is still one of them; only the number in it changed meaning. Presumably that means every checkpoint written before that build carries the old figure and will fail the comparison forever, no matter how well it matches its log.  What do we do with those older files? I do not have a strong view, and off the top of my head there are two shapes to it, but I would rather the answer came from the person who has been staring at the dumps.
-16:20  emil      Konrad,  That is the confirmation I wanted, and it makes the case cleanly: a field can keep its place in the file and still stop meaning what it meant, and the loader has no way to tell that apart from a checkpoint pointing at the wrong log.  On your question, I would leave the older files exactly as they are. Rewriting a checkpoint so it can satisfy a check we are in the middle of relaxing is work we would throw away, and it would also destroy the one honest record of what that older build counted. The comparison instead looks at the fields that tie the checkpoint to its log — the response count and the author on the last entry — and those it must match exactly, since a disagreement there means the file describes something else and we should refuse it loudly. Everything else in the sidecar stays in the file and stays in the dump, because it is worth reading when a run goes wrong. It simply stops having a vote on whether the checkpoint loads.  Emil
+From: dermot@world.local
+Sent: 13:32
+
+Emil,
+
+Writing this rather than catching you in the room, since it needs the whole picture and I am out from mid-afternoon.
+
+I picked up the run from Friday night this morning and the resume threw before it read a single response back. The mechanism, for anyone reading this later without the code in front of them: the reader loads the sidecar, walks the eight keys it finds there against what the writer would produce for the same log, and refuses the checkpoint if any one of them disagrees. In my case one of them disagreed. The error it prints does not name the field that failed, which is a defect of its own, so I lost a good part of the late night convincing myself the log had been truncated under me.
+
+The file does not look bad otherwise. The log it sits beside is intact, the last entry is complete, and the counts I checked by hand line up with it. If I had to guess, the checkpoint is simply older than the writer in my current tree, and something in it has drifted that has no bearing on whether the checkpoint honestly describes the log next to it.
+
+Have you seen this, or is it particular to my tree?
+
+Dermot
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 15:05
+
+Dermot,
+
+Yup — the load threw for me too, on a checkpoint I had left over from a build a couple of weeks old, so it is not something about your tree.
+
+Let me think through that, because the specifics are what decide the question. I dumped the sidecar side by side with what the writer emits today for that same log, and everything that describes the log agreed: the response count in the checkpoint matched the log exactly, and the last author recorded on the final entry matched it as well. Those two are what a resume actually leans on — they are what tells you the checkpoint belongs to this log and how far into it you are. The single divergence was interleave_faults. Both files carry the field, the writer still emits it, it is one of the eight; the checkpoint just had a nonzero figure sitting in it where the current writer puts a zero for the same log. Nothing in that number says anything about where the run stopped or which log it stopped in.
+
+So my conclusion is that comparing every key is too strict. As written, a bookkeeping counter whose accounting changed underneath us can veto a checkpoint that is a faithful description of its log, and the operator gets an unnamed failure and an afternoon of doubting the log. I believe we need to be intentional here about what the comparison is for: it is a guard against loading a checkpoint that belongs to some other log, not an assertion that the file was written by the build we happen to be running now.
+
+I am not entirely sure interleave_faults is the only field that can drift this way, and I would rather not find out one checkpoint at a time.
+
+Emil
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 15:47
+
+Right, and on interleave_faults I can date the drift, because it was my change. When the fault injection was reworked at the end of March, the counter stopped being incremented on that path — the retries it used to count are accounted for elsewhere now, so for an ordinary run the writer records zero there. The key itself did not move. Both spellings of the file still have all eight fields and interleave_faults is still one of them; only the number in it changed meaning. Presumably that means every checkpoint written before that build carries the old figure and will fail the comparison forever, no matter how well it matches its log.
+
+What do we do with those older files? I do not have a strong view, and off the top of my head there are two shapes to it, but I would rather the answer came from the person who has been staring at the dumps.
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 16:20
+
+That is the confirmation I wanted, and it makes the case cleanly: a field can keep its place in the file and still stop meaning what it meant, and the loader has no way to tell that apart from a checkpoint pointing at the wrong log.
+
+On your question, I would leave the older files exactly as they are. Rewriting a checkpoint so it can satisfy a check we are in the middle of relaxing is work we would throw away, and it would also destroy the one honest record of what that older build counted. The comparison instead looks at the fields that tie the checkpoint to its log — the response count and the author on the last entry — and those it must match exactly, since a disagreement there means the file describes something else and we should refuse it loudly. Everything else in the sidecar stays in the file and stays in the dump, because it is worth reading when a run goes wrong. It simply stops having a vote on whether the checkpoint loads.
+
+Emil
 ```
 
 #### `g7.r1.l10`
@@ -1116,13 +1422,54 @@ What the remark has to leave a reader with:
 
 > honestly i think the prototype transcript stops one message short — whatever the partner said to close things off never made it into the arrow file at all.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:42  emil      Before anyone starts building against it — are we treating last week's prototype run as the reference transcript, or is that still provisional? I ask because two people have already pointed at that directory as the thing to diff against, and if it moves under them that is a bad week for everybody.  Let me think through that. My read is that the run itself is fine, and what's unsettled is only how we describe it in the ledger. Is that roughly where you landed too, or is there something in the output itself you're still unhappy with?
-11:58  dario     i went back over the output this morning specifically because i didn't want to bless it and then walk it back. it's mostly fine. the one thing i can't wave through: the prototype transcript stops one message short, whatever the partner said to close things off never made it into the arrow file at all.  so now i'm reconciling against the responses file, which does have the closing turn sitting there, and the counts disagree by exactly one on every conversation that ended early. honestly i think that's the whole story — the writer stops when the loop stops rather than when the exchange stops — but i'd rather confirm it than assume it. the other question is what the ledger is supposed to say in that case, whether it records the turn that was produced or the turn that was persisted, because right now it's doing neither consistently.  in any case i wouldn't freeze it today. give me until thursday and either it's a one line writer fix or we document the off-by-one and live with it, which is probably the best we can do if the arrow schema is what's forcing it.
-13:20  nikolai   yep that tracks with what i saw when i was poking at the same directory last week i just assumed i had miscounted  if the responses file has it then its the writer not the run right no need to redo anything expensive
-16:05  konrad    Right, thursday is fine. I will tell the two people who were already pointing at it to hold off until then, presumably that is easier than explaining it twice later.  Anyway — when you know which way it goes, put a line on the wiki page so it is not only in this thread.
+From: emil@world.local
+Sent: 09:42
+
+Before anyone starts building against it — are we treating last week's prototype run as the reference transcript, or is that still provisional? I ask because two people have already pointed at that directory as the thing to diff against, and if it moves under them that is a bad week for everybody.
+
+Let me think through that. My read is that the run itself is fine, and what's unsettled is only how we describe it in the ledger. Is that roughly where you landed too, or is there something in the output itself you're still unhappy with?
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:58
+
+Emil,
+
+I went back over the output this morning specifically because I didn't want to bless it and then walk it back. It's mostly fine.
+
+The one thing I can't wave through: the prototype transcript stops one message short. Whatever the partner said to close things off never made it into the arrow file at all.
+
+So now I'm reconciling against the responses file, which does have the closing turn sitting there, and the counts disagree by exactly one on every conversation that ended early. Honestly I think that's the whole story — the writer stops when the loop stops rather than when the exchange stops — but I'd rather confirm it than assume it.
+
+The other question is what the ledger is supposed to say in that case: whether it records the turn that was produced or the turn that was persisted, because right now it's doing neither consistently.
+
+In any case I wouldn't freeze it today. Give me until thursday and either it's a one line writer fix, or we document the off-by-one and live with it, which is probably the best we can do if the arrow schema is what's forcing it.
+
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:20
+
+Yep, that tracks with what i saw when i was poking at the same directory last week. I just assumed i had miscounted.
+
+If the responses file has it then its the writer, not the run, right? No need to redo anything expensive.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 16:05
+
+Right, thursday is fine. I will tell the two people who were already pointing at it to hold off until then, presumably that is easier than explaining it twice later.
+
+Anyway — when you know which way it goes, put a line on the wiki page so it is not only in this thread.
 ```
 
 #### `g7.r1.fix29`
@@ -1159,8 +1506,7 @@ As it appears, spread across the exchange:
 #### `g7.r1.l12`
 
 - **mail** · “which state files does the resume consistency check actually cover” · **nikolai** · 2025-06-11 14:05
-- to dermot@world.local, emil@world.local, dario@world.local,
- konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+- to dermot@world.local, emil@world.local, dario@world.local, konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
 - carries `g7.r1.failure_behavior`
 - must be typed literally: `.log_last_author`, `.log_responses`, `/work/agent/turn_ledger.json`, `/work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'`, `TurnLedgerDesyncError`, `client`, `last authored by`, `log holds`, `log_last_author`, `log_responses`, `records`, `records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'`, `response(s)`, `response(s) last authored by`, `the log holds`, `turn_ledger.json`, `verify_sidecar`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -1169,13 +1515,64 @@ What the remark has to leave a reader with:
 
 > TurnLedgerDesyncError out of verify_sidecar on resume, str(exc) came back as /work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client' — .log_responses and .log_last_author sit on it too.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-14:05  nikolai   Subject: what resume raises when the ledger and the log disagree  Dermot, Dario,  We never wrote down what comes out of the resume path when the sidecar and the log have drifted, and I hit it for real this morning, so here it is while it is fresh.  On resume we call verify_sidecar before we hand the run back to the driver. It reads /work/agent/turn_ledger.json, counts the responses it claims and who authored the last one, then does the same against the log and compares. When those two disagree it raises TurnLedgerDesyncError. That is the type callers should be catching on the resume path; nothing else is thrown from that comparison.  The case I hit was the ordinary one: a run that died between the log append and the ledger write, so the ledger was one response behind. str(exc) came back as "/work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'". That is the whole message, path first, ledger side first, log side second, and I would rather we treat it as the wording rather than paraphrase it in three places.  The message is not the only thing on the exception. It also carries .log_responses and .log_last_author, so anything that wants to branch on the log side can read the numbers off the object instead of parsing the sentence back apart. In my case those were 2 and 'client' respectively, which is what you would expect given the string.  I would say that is solid enough to write into the resume notes as is. Shout if either of you reads the ordering differently.  Nikolai
-15:10  dermot    Nikolai,  Thanks for putting the exact string in the mail rather than describing it. That is the part that always gets lost.  On the ordering, let me restate it to be sure I have it. The ledger is the first clause and the log is the second, so "records 1 response(s) last authored by 'client'" is what the file on disk believes, and "the log holds 2 last authored by 'client'" is the truth we reconstructed. If I had to guess from the counts alone I would have read it the other way round, because the larger number usually looks like the authority, but the path being printed first anchors it to the ledger and that settles it.  The attributes are the piece I want to be sure of. Since the ledger side is already legible in the message, am I right that .log_responses and .log_last_author are the log side only, and that there is deliberately no matching pair for the ledger side? I am not entirely sure whether that was a decision or just what the comparison happened to have in hand when it raised.  Dermot
-15:40  dario     Dermot, Nikolai,  That tracks with what I saw when I was chasing an interrupted run last week, though at the time I only had the message and not the object, so I parsed the sentence with a regex, which I am not proud of. Knowing that .log_responses and .log_last_author are sitting right there would have saved me an afternoon.  One thing I would add for whoever reads this cold: the two authors being identical is not a coincidence in this failure and it is worth understanding why. The desync shows up as the same author on both sides precisely because the missing write is the tail of the ledger, so the last entry that did land was written by the same participant as the one that did not. So 'client' appearing twice in that string is the normal shape of the common case, not a sign that something odd happened. Honestly, if I had seen two different authors there I would have assumed the ledger was corrupt rather than merely behind.  Dario
-16:15  nikolai   Dermot, on your question: yes, the log side only. That was deliberate. The ledger side is already in the string and, more to the point, anyone holding the exception can go read /work/agent/turn_ledger.json themselves, since the path is right there in the message. The log side is the part that took work to reconstruct, so that is the part we hand back. .log_responses is the count and .log_last_author is the name, and in the case I hit those were 2 and 'client'.  Dario, right, and your reading of the matching authors is the correct one. The comparison does not require them to match, it just reports both, and in the tail-truncation case they come out the same.  So the settled version is: TurnLedgerDesyncError out of verify_sidecar on resume, message reading "/work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'", with .log_responses and .log_last_author on the exception carrying the log side. That is what is in the tree now and I am not touching the wording again.  Nikolai
+From: nikolai@world.local
+Sent: 14:05
+
+Dermot, Dario,
+
+We never wrote down what comes out of the resume path when the sidecar and the log have drifted, and I hit it for real this morning, so here it is while it is fresh.
+
+On resume we call verify_sidecar before we hand the run back to the driver. It reads /work/agent/turn_ledger.json, counts the responses it claims and who authored the last one, then does the same against the log and compares. When those two disagree it raises TurnLedgerDesyncError. That is the type callers should be catching on the resume path; nothing else is thrown from that comparison.
+
+The case I hit was the ordinary one: a run that died between the log append and the ledger write, so the ledger was one response behind. str(exc) came back as "/work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'". That is the whole message, path first, ledger side first, log side second, and I would rather we treat it as the wording rather than paraphrase it in three places.
+
+The message is not the only thing on the exception. It also carries .log_responses and .log_last_author, so anything that wants to branch on the log side can read the numbers off the object instead of parsing the sentence back apart. In my case those were 2 and 'client' respectively, which is what you would expect given the string.
+
+I would say that is solid enough to write into the resume notes as is. Shout if either of you reads the ordering differently.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 15:10
+
+Nikolai,
+
+Thanks for putting the exact string in the mail rather than describing it. That is the part that always gets lost.
+
+On the ordering, let me restate it to be sure I have it. The ledger is the first clause and the log is the second, so "records 1 response(s) last authored by 'client'" is what the file on disk believes, and "the log holds 2 last authored by 'client'" is the truth we reconstructed. If I had to guess from the counts alone I would have read it the other way round, because the larger number usually looks like the authority, but the path being printed first anchors it to the ledger and that settles it.
+
+The attributes are the piece I want to be sure of. Since the ledger side is already legible in the message, am I right that .log_responses and .log_last_author are the log side only, and that there is deliberately no matching pair for the ledger side? I am not entirely sure whether that was a decision or just what the comparison happened to have in hand when it raised.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 15:40
+
+That tracks with what I saw when I was chasing an interrupted run last week, though at the time I only had the message and not the object, so I parsed the sentence with a regex, which I am not proud of. Knowing that .log_responses and .log_last_author are sitting right there would have saved me an afternoon.
+
+One thing I would add for whoever reads this cold: the two authors being identical is not a coincidence in this failure and it is worth understanding why. The desync shows up as the same author on both sides precisely because the missing write is the tail of the ledger, so the last entry that did land was written by the same participant as the one that did not. So 'client' appearing twice in that string is the normal shape of the common case, not a sign that something odd happened. Honestly, if I had seen two different authors there I would have assumed the ledger was corrupt rather than merely behind.
+
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 16:15
+
+Dermot, on your question: yes, the log side only. That was deliberate. The ledger side is already in the string and, more to the point, anyone holding the exception can go read /work/agent/turn_ledger.json themselves, since the path is right there in the message. The log side is the part that took work to reconstruct, so that is the part we hand back. .log_responses is the count and .log_last_author is the name, and in the case I hit those were 2 and 'client'.
+
+Dario, right, and your reading of the matching authors is the correct one. The comparison does not require them to match, it just reports both, and in the tail-truncation case they come out the same.
+
+So the settled version is: TurnLedgerDesyncError out of verify_sidecar on resume, message reading "/work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'", with .log_responses and .log_last_author on the exception carrying the log side. That is what is in the tree now and I am not touching the wording again.
+
+Nikolai
 ```
 
 #### `g7.r2.g7r2-l13`

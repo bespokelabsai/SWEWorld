@@ -10,9 +10,11 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-resume case is real i hit it in january when the batch job died halfway
+Resume case is real, i hit it in january when the batch job died halfway.
 
-dont move the write without checking what happens on the second start or youl=
-l get a metadata file that says zero for everything
+Dont move the write without checking what happens on the second start, or y=
+oull get a metadata file that says zero for everything.
 
-otherwise this looks solid enough to me
+Otherwise this looks solid enough to me.
+
+Nikolai

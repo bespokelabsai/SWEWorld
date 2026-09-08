@@ -8,30 +8,29 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the turn ledger next to a run I killed at response seven
-
 Dermot,
 
-I am writing this instead of catching you in chat because you were in review =
-for most of yesterday and this needs more than one line to explain properly.
+I am writing this instead of catching you in chat because you were in revie=
+w for most of yesterday and this needs more than one line to explain proper=
+ly.
 
-Last night I started one of the long conversation runs against the staging wo=
-rker, watched the transcript grow, and stopped the process by hand once the s=
-eventh response had come back. Afterwards I opened turn_ledger.json in the ru=
-n directory, expecting it to tell me roughly how far the run had got. A run I=
- killed at response seven left the json still claiming one response. The turn=
- count was low in the same way, and the completion reason was still sitting a=
-t "open".
+Last night I started one of the long conversation runs against the staging =
+worker, watched the transcript grow, and stopped the process by hand once t=
+he seventh response had come back. Afterwards I opened turn_ledger.json in =
+the run directory, expecting it to tell me roughly how far the run had got.=
+ A run I killed at response seven left the json still claiming one response=
+. The turn count was low in the same way, and the completion reason was sti=
+ll sitting at "open".
 
-So I went looking for the writer, and as far as I can see it only gets writte=
-n when run() returns. So yes, the file lies about the run. If I have that rig=
-ht, then whatever we build on top of the file is reading a record that has ve=
-ry little to do with the run sitting beside it, and the progress view Dario k=
-eeps asking for cannot be built on it at all.
+So I went looking for the writer, and as far as I can see it only gets writ=
+ten when run() returns. So yes, the file lies about the run. If I have that=
+ right, then whatever we build on top of the file is reading a record that =
+has very little to do with the run sitting beside it, and the progress view=
+ Dario keeps asking for cannot be built on it at all.
 
-Look, I am not entirely sure I have read the writer correctly, and off the to=
-p of my head I could not tell you when that part of the module last changed. =
-Before I write this up as a known problem I would rather you checked it, sinc=
-e you have spent far more time in that file than I have.
+Look, I am not entirely sure I have read the writer correctly, and off the =
+top of my head I could not tell you when that part of the module last chang=
+ed. Before I write this up as a known problem I would rather you checked it=
+, since you have spent far more time in that file than I have.
 
 Konrad

@@ -10,43 +10,41 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: one note on 632, the report attribute after an aborted batch
-
 Konrad,
 
-I went through 632 properly late last night, and there is only one note I wou=
-ld hold the merge for. Everything else in it I am happy with, so please read =
-this as a single review note rather than a list.
+I went through 632 properly late last night, and there is only one note I w=
+ould hold the merge for. Everything else in it I am happy with, so please r=
+ead this as a single review note rather than a list.
 
-The issue is in encode_batch. As the loop walks the examples it updates the c=
-ounters on self.last_report in place: kept incremented for each example that =
-survives, the index appended to dropped_indices when one does not, supervised=
-_tokens accumulated as it goes. That is fine as long as the batch runs to com=
-pletion, because by the time the method returns the attribute describes exact=
-ly the run that just finished. The problem is the abort path. When something =
-raises partway through the loop, and the tokenizer raising on a pathological =
-example is the case I actually hit, the exception propagates out of encode_ba=
-tch and the attribute is left half updated. It then describes neither the run=
- that just died nor the run before it. It is a tally of the first n examples =
-of a batch that never completed, which is the one thing it should never be, b=
-ecause nothing in the object tells the caller that is what they are looking a=
-t.
+The issue is in encode_batch. As the loop walks the examples it updates the=
+ counters on self.last_report in place: kept incremented for each example t=
+hat survives, the index appended to dropped_indices when one does not, supe=
+rvised_tokens accumulated as it goes. That is fine as long as the batch run=
+s to completion, because by the time the method returns the attribute descr=
+ibes exactly the run that just finished. The problem is the abort path. Whe=
+n something raises partway through the loop, and the tokenizer raising on a=
+ pathological example is the case I actually hit, the exception propagates =
+out of encode_batch and the attribute is left half updated. It then describ=
+es neither the run that just died nor the run before it. It is a tally of t=
+he first n examples of a batch that never completed, which is the one thing=
+ it should never be, because nothing in the object tells the caller that is=
+ what they are looking at.
 
-What I want out of it is easy to state: when a batch aborts halfway, self.las=
-t_report should still read whatever the last good run left. If a caller encod=
-ed a batch successfully at ten past, then tried another one that blew up at h=
-alf past, the attribute should still be the ten past numbers, untouched. Mech=
-anically that means accumulating into locals and constructing the EncodingRep=
-ort at the end, then assigning it to the attribute once, on the success path =
-after the loop has finished. If the loop raises, no write ever happens and th=
-e previous value survives by construction rather than by us remembering to pu=
-t it back.
+What I want out of it is easy to state: when a batch aborts halfway, self.l=
+ast_report should still read whatever the last good run left. If a caller e=
+ncoded a batch successfully at ten past, then tried another one that blew u=
+p at half past, the attribute should still be the ten past numbers, untouch=
+ed. Mechanically that means accumulating into locals and constructing the E=
+ncodingReport at the end, then assigning it to the attribute once, on the s=
+uccess path after the loop has finished. If the loop raises, no write ever =
+happens and the previous value survives by construction rather than by us r=
+emembering to put it back.
 
-If I had to guess this was never a decision so much as the counters having gr=
-own outward from a local variable that was already there, so I am not asking =
-you to defend it. That said, I do think it has to be fixed before this goes i=
-n, because a half written report is the sort of thing that gets read into a d=
-ashboard and believed.
+If I had to guess this was never a decision so much as the counters having =
+grown outward from a local variable that was already there, so I am not ask=
+ing you to defend it. That said, I do think it has to be fixed before this =
+goes in, because a half written report is the sort of thing that gets read =
+into a dashboard and believed.
 
 Regards,
 Dermot

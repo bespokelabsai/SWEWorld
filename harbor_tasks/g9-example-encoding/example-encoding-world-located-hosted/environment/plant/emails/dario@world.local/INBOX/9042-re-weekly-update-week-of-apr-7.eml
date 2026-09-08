@@ -10,25 +10,23 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Dermot,
+That is clear, thank you. Pushed to the branch on 632. The counters are loc=
+al now, the report is constructed once after the loop and assigned in a sin=
+gle statement, and the empty input path assigns a full zeroed report instea=
+d of poking at fields.
 
-That is clear, thank you. Pushed to the branch on 632. The counters are local=
- now, the report is constructed once after the loop and assigned in a single =
-statement, and the empty input path assigns a full zeroed report instead of p=
-oking at fields.
+The test encodes a batch that succeeds, keeps a copy of the report, then en=
+codes a second batch where the third example makes the tokenizer raise, cat=
+ches the exception and asserts the attribute is still equal to the copy =E2=
+=80=94 kept, dropped, windowed, dropped_indices and supervised_tokens, all =
+five, since the old code would have moved three of them. I did not add a se=
+parate case for the freshly constructed formatter because there is already =
+one asserting the zeroed report at construction, and between the two of the=
+m the behaviour you described is covered.
 
-The test encodes a batch that succeeds, keeps a copy of the report, then enco=
-des a second batch where the third example makes the tokenizer raise, catches=
- the exception and asserts the attribute is still equal to the copy =E2=80=94=
- kept, dropped, windowed, dropped_indices and supervised_tokens, all five, si=
-nce the old code would have moved three of them. I did not add a separate cas=
-e for the freshly constructed formatter because there is already one assertin=
-g the zeroed report at construction, and between the two of them the behaviou=
-r you described is covered.
-
-One thing I noticed on the way through: the old in place update was the reaso=
-n the retry helper looked correct in the log, because it read the attribute a=
-fter the failure and reported the partial count as progress. That is gone now=
- too.
+One thing I noticed on the way through: the old in place update was the rea=
+son the retry helper looked correct in the log, because it read the attribu=
+te after the failure and reported the partial count as progress. That is go=
+ne now too.
 
 Konrad

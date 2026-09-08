@@ -10,20 +10,28 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-i went back over the output this morning specifically because i didn't want t=
-o bless it and then walk it back. it's mostly fine. the one thing i can't wav=
-e through: the prototype transcript stops one message short, whatever the par=
-tner said to close things off never made it into the arrow file at all.
+Emil,
 
-so now i'm reconciling against the responses file, which does have the closin=
-g turn sitting there, and the counts disagree by exactly one on every convers=
-ation that ended early. honestly i think that's the whole story =E2=80=94 the=
- writer stops when the loop stops rather than when the exchange stops =E2=80=
-=94 but i'd rather confirm it than assume it. the other question is what the =
-ledger is supposed to say in that case, whether it records the turn that was =
-produced or the turn that was persisted, because right now it's doing neither=
- consistently.
+I went back over the output this morning specifically because I didn't want=
+ to bless it and then walk it back. It's mostly fine.
 
-in any case i wouldn't freeze it today. give me until thursday and either it'=
-s a one line writer fix or we document the off-by-one and live with it, which=
- is probably the best we can do if the arrow schema is what's forcing it.
+The one thing I can't wave through: the prototype transcript stops one mess=
+age short. Whatever the partner said to close things off never made it into=
+ the arrow file at all.
+
+So now I'm reconciling against the responses file, which does have the clos=
+ing turn sitting there, and the counts disagree by exactly one on every con=
+versation that ended early. Honestly I think that's the whole story =E2=80=
+=94 the writer stops when the loop stops rather than when the exchange stop=
+s =E2=80=94 but I'd rather confirm it than assume it.
+
+The other question is what the ledger is supposed to say in that case: whet=
+her it records the turn that was produced or the turn that was persisted, b=
+ecause right now it's doing neither consistently.
+
+In any case I wouldn't freeze it today. Give me until thursday and either i=
+t's a one line writer fix, or we document the off-by-one and live with it, =
+which is probably the best we can do if the arrow schema is what's forcing =
+it.
+
+Dario

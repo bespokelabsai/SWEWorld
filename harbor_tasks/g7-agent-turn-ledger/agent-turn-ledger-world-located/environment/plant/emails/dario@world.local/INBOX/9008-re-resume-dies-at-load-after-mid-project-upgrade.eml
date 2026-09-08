@@ -10,21 +10,20 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Konrad,
+That is the confirmation I wanted, and it makes the case cleanly: a field c=
+an keep its place in the file and still stop meaning what it meant, and the=
+ loader has no way to tell that apart from a checkpoint pointing at the wro=
+ng log.
 
-That is the confirmation I wanted, and it makes the case cleanly: a field can=
- keep its place in the file and still stop meaning what it meant, and the loa=
-der has no way to tell that apart from a checkpoint pointing at the wrong log.
-
-On your question, I would leave the older files exactly as they are. Rewritin=
-g a checkpoint so it can satisfy a check we are in the middle of relaxing is =
-work we would throw away, and it would also destroy the one honest record of =
-what that older build counted. The comparison instead looks at the fields tha=
-t tie the checkpoint to its log =E2=80=94 the response count and the author o=
-n the last entry =E2=80=94 and those it must match exactly, since a disagreem=
-ent there means the file describes something else and we should refuse it lou=
-dly. Everything else in the sidecar stays in the file and stays in the dump, =
-because it is worth reading when a run goes wrong. It simply stops having a v=
-ote on whether the checkpoint loads.
+On your question, I would leave the older files exactly as they are. Rewrit=
+ing a checkpoint so it can satisfy a check we are in the middle of relaxing=
+ is work we would throw away, and it would also destroy the one honest reco=
+rd of what that older build counted. The comparison instead looks at the fi=
+elds that tie the checkpoint to its log =E2=80=94 the response count and th=
+e author on the last entry =E2=80=94 and those it must match exactly, since=
+ a disagreement there means the file describes something else and we should=
+ refuse it loudly. Everything else in the sidecar stays in the file and sta=
+ys in the dump, because it is worth reading when a run goes wrong. It simpl=
+y stops having a vote on whether the checkpoint loads.
 
 Emil

@@ -8,30 +8,29 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: assistant-only loss appearing on user turns in the 05-04 run
-
 Konrad, Dario,
 
-The supervised run from Sunday night was configured with train_on_assistant_o=
-nly set to true, and the loss curve does not have the shape any of the earlie=
-r assistant-only runs had. It comes down too smoothly and it starts far too l=
-ow. I pulled a batch straight off the loader this morning and dumped the loss=
- mask alongside the decoded text, and the mask is all ones from the first pos=
-ition to the last: system preamble, user turns, everything. Nothing is being =
-excluded.
+The supervised run from Sunday night was configured with train_on_assistant=
+_only set to true, and the loss curve does not have the shape any of the ea=
+rlier assistant-only runs had. It comes down too smoothly and it starts far=
+ too low. I pulled a batch straight off the loader this morning and dumped =
+the loss mask alongside the decoded text, and the mask is all ones from the=
+ first position to the last: system preamble, user turns, everything. Nothi=
+ng is being excluded.
 
-The reason I did not start looking in the formatter is that the formatter sui=
-te is green and has been green for weeks, and it does contain cases that asse=
-rt on the mask for multi-turn conversations, including at least one that I wr=
-ote myself. So my working assumption was that the flag is being dropped somew=
-here between the config object and the formatter constructor, or else the col=
-lator is rebuilding the mask from scratch after the fact and throwing away wh=
-at the formatter handed it. If I had to guess I would say the collator, since=
- it is the newer code, but I am not entirely sure and I have not read it clos=
-ely yet.
+The reason I did not start looking in the formatter is that the formatter s=
+uite is green and has been green for weeks, and it does contain cases that =
+assert on the mask for multi-turn conversations, including at least one tha=
+t I wrote myself. So my working assumption was that the flag is being dropp=
+ed somewhere between the config object and the formatter constructor, or el=
+se the collator is rebuilding the mask from scratch after the fact and thro=
+wing away what the formatter handed it. If I had to guess I would say the c=
+ollator, since it is the newer code, but I am not entirely sure and I have =
+not read it closely yet.
 
-Before I spend a late night in the collator, does either of you have a concre=
-te reason to think the formatter itself could be at fault here? I would like =
-to rule it out properly rather than on the strength of a passing test suite.
+Before I spend a late night in the collator, does either of you have a conc=
+rete reason to think the formatter itself could be at fault here? I would l=
+ike to rule it out properly rather than on the strength of a passing test s=
+uite.
 
 Dermot

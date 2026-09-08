@@ -11,23 +11,22 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Emil, Konrad,
+If I am restating your explanation correctly, the logged figure is never de=
+rived from the weights at all =E2=80=94 it is arithmetic on the span bounda=
+ries, and the weight vector is a separate artefact that happens to line up =
+in most configurations. That would make the discrepancy a property of how t=
+he span is measured rather than anything to do with supervision at all, whi=
+ch fits: Konrad's fixture has no assistant-only behaviour in play and the g=
+ap is still there.
 
-If I am restating your explanation correctly, the logged figure is never deri=
-ved from the weights at all =E2=80=94 it is arithmetic on the span boundaries=
-, and the weight vector is a separate artefact that happens to line up in mos=
-t configurations. That would make the discrepancy a property of how the span =
-is measured rather than anything to do with supervision at all, which fits: K=
-onrad's fixture has no assistant-only behaviour in play and the gap is still =
-there.
+If I had to guess at the source of the extra one, it is the boundary conven=
+tion on the span itself rather than an extra token appearing from anywhere.=
+ I spent a late night on the truncation path a while back and the spans in =
+that region were half-open in some places and inclusive in others, so a one=
+-token disagreement between a span width and a sequence length is a familia=
+r shape.
 
-If I had to guess at the source of the extra one, it is the boundary conventi=
-on on the span itself rather than an extra token appearing from anywhere. I s=
-pent a late night on the truncation path a while back and the spans in that r=
-egion were half-open in some places and inclusive in others, so a one-token d=
-isagreement between a span width and a sequence length is a familiar shape.
-
-That said, I would rather have it stated than guessed at. Emil, is the field =
-computed off the boundaries and nothing else?
+That said, I would rather have it stated than guessed at. Emil, is the fiel=
+d computed off the boundaries and nothing else?
 
 Dermot

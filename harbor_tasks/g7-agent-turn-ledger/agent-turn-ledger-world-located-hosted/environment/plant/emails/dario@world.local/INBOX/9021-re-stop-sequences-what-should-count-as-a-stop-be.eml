@@ -11,29 +11,27 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Dario, Gideon,
+Re the either-or: it is the second one, and I would like it written down in=
+ those terms rather than left to whoever touches the check next. For me it =
+only counts as a stop when the marker is the tail end of what the model sai=
+d. If the marker turns up mid-paragraph, the model is obviously still going=
+, and the only correct thing for the reader to do is carry on accumulating =
+and leave the marker in the text as ordinary content. The two transcripts G=
+ideon found are exactly that case and nothing else needs to be said about t=
+hem =E2=80=94 the model was explaining our format, the marker had prose aft=
+er it, so it was never a stop.
 
-Re the either-or: it is the second one, and I would like it written down in t=
-hose terms rather than left to whoever touches the check next. For me it only=
- counts as a stop when the marker is the tail end of what the model said. If =
-the marker turns up mid-paragraph, the model is obviously still going, and th=
-e only correct thing for the reader to do is carry on accumulating and leave =
-the marker in the text as ordinary content. The two transcripts Gideon found =
-are exactly that case and nothing else needs to be said about them =E2=80=94 =
-the model was explaining our format, the marker had prose after it, so it was=
- never a stop.
-
-That said, I want to be careful about what "tail end" means while a stream is=
- still open, because that is where I expect this to be got wrong. It means th=
-e tail end of the model's output, not the tail end of whatever chunk happens =
-to have arrived. A marker landing at the end of one chunk with three more chu=
-nks behind it is mid-paragraph in every sense that matters to us; we simply h=
-ave not seen the rest yet. So the position test only has an answer once the s=
-tream has closed, and until then the reader has nothing to decide. If I had t=
-o guess, that is the part that produced the original loose check in the first=
- place =E2=80=94 somebody wanted an answer per chunk and the only test that g=
-ives one per chunk is the one that ignores position entirely. I wrote a fair =
-amount of that reader on a late night and I would not swear it was reasoned a=
-bout any harder than that at the time.
+That said, I want to be careful about what "tail end" means while a stream =
+is still open, because that is where I expect this to be got wrong. It mean=
+s the tail end of the model's output, not the tail end of whatever chunk ha=
+ppens to have arrived. A marker landing at the end of one chunk with three =
+more chunks behind it is mid-paragraph in every sense that matters to us; w=
+e simply have not seen the rest yet. So the position test only has an answe=
+r once the stream has closed, and until then the reader has nothing to deci=
+de. If I had to guess, that is the part that produced the original loose ch=
+eck in the first place =E2=80=94 somebody wanted an answer per chunk and th=
+e only test that gives one per chunk is the one that ignores position entir=
+ely. I wrote a fair amount of that reader on a late night and I would not s=
+wear it was reasoned about any harder than that at the time.
 
 Dermot

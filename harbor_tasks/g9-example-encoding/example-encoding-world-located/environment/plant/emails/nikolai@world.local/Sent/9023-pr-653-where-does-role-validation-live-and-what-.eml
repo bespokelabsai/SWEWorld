@@ -8,18 +8,18 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-quick one on PR 653 before i go further
+Konrad, Dario,
 
-the chat template stuff needs role validation somewhere - right now i have a =
-half written check sitting in the client itself which i dont love since the s=
-ame rules apply outside the finetuning path
+Quick one on PR 653 before I go further.
 
-where is that supposed to live i mean is there an existing home for it or am =
-i making one
+The chat template stuff needs role validation somewhere. Right now I have a=
+ half written check sitting in the client itself, which I dont love since t=
+he same rules apply outside the finetuning path. Where is that supposed to =
+live =E2=80=94 is there an existing home for it, or am I making one?
 
-second thing and this is the one thats actually blocking me - the cookbook no=
-tebooks - do they import from submodules or from the package root i've seen b=
-oth in the examples dir and i dont want to write a notebook that goes stale i=
-n a week
+Second thing, and this is the one thats actually blocking me: the cookbook =
+notebooks. Do they import from submodules or from the package root? I've se=
+en both in the examples dir and I dont want to write a notebook that goes s=
+tale in a week.
 
-- nikolai
+Nikolai

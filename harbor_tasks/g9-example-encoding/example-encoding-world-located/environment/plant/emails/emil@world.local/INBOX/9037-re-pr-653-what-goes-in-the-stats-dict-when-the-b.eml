@@ -10,10 +10,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ya exactly, stable shape please. I have the cookbook samples printing that di=
-ct straight out and if the keys come and go depending on backend every sample=
- needs a guard around it.
+Ya exactly, stable shape please. I have the cookbook samples printing that =
+dict straight out, and if the keys come and go depending on backend then ev=
+ery sample needs a guard around it.
 
-so basically zero is fine for me. honestly though can we get a line in the do=
-cstring saying what the fields mean per backend? tbh someone is going to read=
- a zero and think their rows got dropped or something.
+So basically zero is fine for me. Honestly though, can we get a line in the=
+ docstring saying what the fields mean per backend? Tbh someone is going to=
+ read a zero and think their rows got dropped or something.
+
+Gideon

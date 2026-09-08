@@ -10,20 +10,24 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-i think the thing to hold onto here is that the stats object is a report on w=
-hat the export did, not a description of the data that went through it. so th=
-e question isnt really "what is true about these rows" its "what did this cod=
-e path do to them"
+I think the thing to hold onto here is that the stats object is a report on=
+ what the export did, not a description of the data that went through it. S=
+o the question isnt really "what is true about these rows", its "what did t=
+his code path do to them".
 
-honestly the Fireworks jsonl path never loads a tokenizer, so a token total a=
-nd a trim count coming back off it are just noise, both should read zero ther=
-e. nothing was counted and nothing was dropped and zero says both of those ac=
-curately
+Honestly the Fireworks jsonl path never loads a tokenizer, so a token total=
+ and a trim count coming back off it are just noise. Both should read zero =
+there =E2=80=94 nothing was counted and nothing was dropped, and zero says =
+both of those accurately.
 
-None i'd push back on, it reads like the number went missing rather than the =
-work not happening, and then every caller has to decide what None means to th=
-em. and dropping the keys just moves the branch from us to whoever consumes i=
-t which is worse, we'd be handing out a return shape that changes under people
+None i'd push back on. It reads like the number went missing rather than th=
+e work not happening, and then every caller has to decide what None means t=
+o them. And dropping the keys just moves the branch from us to whoever cons=
+umes it, which is worse =E2=80=94 we'd be handing out a return shape that c=
+hanges under people.
 
-in any case keep the shape stable across backends. its not a perfect signal b=
-ut its the best we can do without making the caller know which backend ran
+In any case keep the shape stable across backends. Its not a perfect signal=
+ but its the best we can do without making the caller know which backend ra=
+n.
+
+Dario

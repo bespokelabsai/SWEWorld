@@ -11,27 +11,25 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Dermot,
+Your restatement of the window is right and the guess you appended to it is=
+ not, and the two are worth pulling apart, because it is the second half th=
+at would cost you another night.
 
-Your restatement of the window is right and the guess you appended to it is n=
-ot, and the two are worth pulling apart, because it is the second half that w=
-ould cost you another night.
+Structurally identical, yes =E2=80=94 same fields, same order, same code wr=
+iting them, and window_start carries the same meaning in both branches. But=
+ the block is not silent about where the number came from. It carries metad=
+ata['encoding']['tokenizer'], and that boolean is False precisely on the ru=
+ns where we fell back to the character estimate, and True where a real toke=
+nizer produced the count. So the record does say which counter ran. That si=
+ngle key is what separates the two cases, and it is sitting in every record=
+ you already have, including the ones from the runs you were reconciling.
 
-Structurally identical, yes =E2=80=94 same fields, same order, same code writ=
-ing them, and window_start carries the same meaning in both branches. But the=
- block is not silent about where the number came from. It carries metadata['e=
-ncoding']['tokenizer'], and that boolean is False precisely on the runs where=
- we fell back to the character estimate, and True where a real tokenizer prod=
-uced the count. So the record does say which counter ran. That single key is =
-what separates the two cases, and it is sitting in every record you already h=
-ave, including the ones from the runs you were reconciling.
-
-What the block genuinely cannot tell you is anything about trimming, and that=
- is where I think the confusion started. A 0 in window_start is a 0 in either=
- branch whenever nothing was dropped, so it discriminates nothing on its own.=
- One field there is a measurement and the other is a declaration; the zero is=
- the measurement, and the declaration is the one you want when the question i=
-s which path ran. In any case, nothing needs to change in the writer for that=
- to hold.
+What the block genuinely cannot tell you is anything about trimming, and th=
+at is where I think the confusion started. A 0 in window_start is a 0 in ei=
+ther branch whenever nothing was dropped, so it discriminates nothing on it=
+s own. One field there is a measurement and the other is a declaration; the=
+ zero is the measurement, and the declaration is the one you want when the =
+question is which path ran. In any case, nothing needs to change in the wri=
+ter for that to hold.
 
 Dario

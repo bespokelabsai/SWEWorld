@@ -9,33 +9,32 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: what is actually in encoding.py on 653
-
 Dermot,
 
-Nobody has been willing to say whether 653 needs to land for 0.1.26, and I th=
-ink that is partly because nobody outside the PR knows what is in it. I merge=
-d main in this morning and worked through the conflicts far enough to see the=
- shape of the file, so rather than keep answering this one comment at a time =
-in review, here is the whole inventory. Read it as a description of what exis=
-ts today, not as a proposal for anything.
+Nobody has been willing to say whether 653 needs to land for 0.1.26, and I =
+think that is partly because nobody outside the PR knows what is in it. I m=
+erged main in this morning and worked through the conflicts far enough to s=
+ee the shape of the file, so rather than keep answering this one comment at=
+ a time in review, here is the whole inventory. Read it as a description of=
+ what exists today, not as a proposal for anything.
 
-encoding.py is four things and nothing else. The first is the role set, the f=
-ixed set of roles a message is allowed to declare, which is what the rest of =
-the validation in the file hangs off. The second is FIREWORKS_BYTES_PER_TOKEN=
-, which is still 3. It was 3 before the merge and it is 3 after; I did not to=
-uch it and nobody has given me a reason to. The third is the error hierarchy,=
- which is small: ExampleTooLongError comes off EncodingError, so a caller tha=
-t catches the base type gets the too-long case along with everything else, wh=
-ether or not it wanted it. The fourth is the encoding blocks themselves.
+encoding.py is four things and nothing else. The first is the role set, the=
+ fixed set of roles a message is allowed to declare, which is what the rest=
+ of the validation in the file hangs off. The second is FIREWORKS_BYTES_PER=
+_TOKEN, which is still 3. It was 3 before the merge and it is 3 after; I di=
+d not touch it and nobody has given me a reason to. The third is the error =
+hierarchy, which is small: ExampleTooLongError comes off EncodingError, so =
+a caller that catches the base type gets the too-long case along with every=
+thing else, whether or not it wanted it. The fourth is the encoding blocks =
+themselves.
 
-The blocks are the part I would want a second pair of eyes on. They carry a t=
-okenizer flag, and when we ran the thing without a tokenizer configured that =
-flag came through as False rather than the run failing outright. Off the top =
-of my head that is defensible, since the alternative is refusing to encode at=
- all in a setup that has no tokenizer to hand, but it does mean the flag is d=
-escribing what was available at the time rather than anything the caller aske=
-d for. I'd say the rest of the file is solid enough. That one I have gotta th=
-ink through.
+The blocks are the part I would want a second pair of eyes on. They carry a=
+ tokenizer flag, and when we ran the thing without a tokenizer configured t=
+hat flag came through as False rather than the run failing outright. Off th=
+e top of my head that is defensible, since the alternative is refusing to e=
+ncode at all in a setup that has no tokenizer to hand, but it does mean the=
+ flag is describing what was available at the time rather than anything the=
+ caller asked for. I'd say the rest of the file is solid enough. That one I=
+ have gotta think through.
 
 Nikolai

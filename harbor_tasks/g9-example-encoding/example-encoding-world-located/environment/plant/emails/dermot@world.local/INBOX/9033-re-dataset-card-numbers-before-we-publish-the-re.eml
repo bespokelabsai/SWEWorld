@@ -9,10 +9,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ah ok that explains it. I was looking at the same gap last week when I was wr=
-iting the eval harness config and I assumed I had a filter wrong on my side, =
-so I just moved on lol.
+Ah ok, that explains it. I was looking at the same gap last week when I was=
+ writing the eval harness config and I assumed I had a filter wrong on my s=
+ide, so I just moved on lol.
 
-Nobody has started on the tables afaik, so go ahead. Do you want me to re-run=
- the dedup stats against the submitted manifest too while you are in there, o=
-r those were computed after the trim already?
+Nobody has started on the tables afaik, so go ahead. Do you want me to re-r=
+un the dedup stats against the submitted manifest too while you are in ther=
+e, or were those computed after the trim already?
+
+Gideon

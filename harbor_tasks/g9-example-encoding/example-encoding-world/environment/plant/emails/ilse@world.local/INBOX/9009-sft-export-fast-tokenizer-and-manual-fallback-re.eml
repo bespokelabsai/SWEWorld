@@ -9,25 +9,23 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the supervised_tokens number on the two-token smoke fixture
-
 Emil, Dermot,
 
-I was checking the smoke fixture we use for the loader =E2=80=94 the one with=
- the single "Hello" prompt and the "Hi there!" response =E2=80=94 and the cou=
-nter reports a value I cannot reconcile with what the batch actually contains=
-. The example comes back with eight weight entries, one per token, but the re=
-cord we log alongside it says nine. Both numbers are stable across runs, so t=
-his is not a flake.
+I was checking the smoke fixture we use for the loader =E2=80=94 the one wi=
+th the single "Hello" prompt and the "Hi there!" response =E2=80=94 and the=
+ counter reports a value I cannot reconcile with what the batch actually co=
+ntains. The example comes back with eight weight entries, one per token, bu=
+t the record we log alongside it says nine. Both numbers are stable across =
+runs, so this is not a flake.
 
-I checked whether the fixture was configured with assistant-only supervision =
-and it is not, so presumably every token is being counted rather than only th=
-e response. That still does not explain the extra one. Maybe I am reading the=
- wrong field, or maybe the counter is computed somewhere other than where I a=
-ssume it is. Off the top of my head I cannot see where the ninth would come f=
-rom.
+I checked whether the fixture was configured with assistant-only supervisio=
+n and it is not, so presumably every token is being counted rather than onl=
+y the response. That still does not explain the extra one. Maybe I am readi=
+ng the wrong field, or maybe the counter is computed somewhere other than w=
+here I assume it is. Off the top of my head I cannot see where the ninth wo=
+uld come from.
 
-Anyway, before I go further into it: do either of you know what that field is=
- actually counting?
+Anyway, before I go further into it: do either of you know what that field =
+is actually counting?
 
 Konrad

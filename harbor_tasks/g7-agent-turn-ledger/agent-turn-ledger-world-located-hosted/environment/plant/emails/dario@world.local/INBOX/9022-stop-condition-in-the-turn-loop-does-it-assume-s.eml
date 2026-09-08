@@ -9,27 +9,25 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the stop check throwing on a dict in last night's json-mode run
-
 Emil,
 
-Writing this down before the morning fills up, since it happened after everyo=
-ne had signed off and I don't want it to surface later as a mystery.
+Writing this down before the morning fills up, since it happened after ever=
+yone had signed off and I don't want it to surface later as a mystery.
 
-On a late night run I put the json-mode agent through my branch, mostly to se=
-e whether anything in the cancellation work upset the agent loop. It did not =
-get far. The run died at turn two with an AttributeError, and the traceback l=
-ands squarely in the stop check: it takes the content of the last assistant m=
-essage and reaches for a string method on it, and under json mode that conten=
-t arrives as a dict, so the attribute is simply not there and the exception t=
-akes the whole run down with it rather than being caught anywhere on the way =
-up.
+On a late night run I put the json-mode agent through my branch, mostly to =
+see whether anything in the cancellation work upset the agent loop. It did =
+not get far. The run died at turn two with an AttributeError, and the trace=
+back lands squarely in the stop check: it takes the content of the last ass=
+istant message and reaches for a string method on it, and under json mode t=
+hat content arrives as a dict, so the attribute is simply not there and the=
+ exception takes the whole run down with it rather than being caught anywhe=
+re on the way up.
 
-I am not entirely sure yet whether the branch has anything to do with it. If =
-I had to guess, it does not =E2=80=94 the stop check never looks at anything =
-my branch touches =E2=80=94 but I only have the one run, so I would rather sa=
-y that out loud than assume it. That said, the failure is clean and repeatabl=
-e enough that I do not think it is worth anyone chasing it as a branch regres=
-sion until someone has looked at the check itself.
+I am not entirely sure yet whether the branch has anything to do with it. I=
+f I had to guess, it does not =E2=80=94 the stop check never looks at anyth=
+ing my branch touches =E2=80=94 but I only have the one run, so I would rat=
+her say that out loud than assume it. That said, the failure is clean and r=
+epeatable enough that I do not think it is worth anyone chasing it as a bra=
+nch regression until someone has looked at the check itself.
 
 Dermot
