@@ -1,6 +1,6 @@
 # g1 — Batch payload planner for `batch_size="auto"`
 
-**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket below and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
+**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
 
 | arm | what it is handed | measured |
 |---|---|---|
@@ -13,35 +13,207 @@
 
 ## The hidden requirements — stated nowhere
 
-Each is graded as five independent facts, 0.1 each. `open_feature` carries weight 0.0: building the feature scores nothing, only recovering what nobody wrote down does.
+Two requirements, `g1.r1` and `g1.r2`. Neither is written down anywhere an agent
+can read: they have to be reassembled from remarks scattered across the world.
 
-### `g1.r1`
+Each requirement is graded as **five independent facts, 0.1 each** — so 1.00 for
+the pair. `open_feature` (did the agent build the feature at all?) carries weight
+**0.0**: building the feature scores nothing, only recovering what nobody wrote
+down does.
 
-- **`rule`** — `batch_payload_planner` exports `PLAN_FILE_NAME = "batch_plan.json"`, `PLAN_FORMAT_VERSION = 1`, `def plan_fingerprint(plan: Sequence[PlannedBatch]) -> str` and `def plan_document(plan: Sequence[PlannedBatch], limits: BatchLimits) -> dict`. `plan_fingerprint` builds the canonical string `";".join(f"{p.start_idx}-{p.end_idx}:{p.num_bytes}" for p in plan)` — spans and batch sizes only, not `index` or `num_requests` — and returns the FIRST 12 CHARACTERS of its `hashlib.sha256` hexdigest. `plan_document` returns exactly these keys in this order: `plan_format_version` (`1`), `plan_id` (`plan_fingerprint(plan)`), `limits` (`dataclasses.asdict(limits)`), `num_batches` (`len(plan)`), `num_requests` (sum of `p.num_requests`), `num_bytes` (sum of `p.num_bytes`), `batches` (`[dataclasses.asdict(p) for p in plan]`). `BatchLimits` carries a third field `max_batches_per_plan: int = _MAX_BATCHES_PER_PLAN` with the module constant `_MAX_BATCHES_PER_PLAN = 512`. In the `"auto"` branch of `create_request_files`, once `plan_request_batches` has returned, `json.dumps(plan_document(plan, self.batch_limits), indent=2) + "\n"` is written to `os.path.join(self.working_dir, PLAN_FILE_NAME)`.
+The five facts, and the question each one answers:
 
-- **`scope`** — The sidecar is written in the `"auto"` branch only, before any request file is written, and for a 0-batch plan (empty dataset → a `batch_plan.json` with `num_batches: 0`, `num_requests: 0`, `num_bytes: 0`, `batches: []` and `plan_id` of the empty canonical string). The explicit-integer `batch_size` branch and the `dataset is None` path never write it.
+| fact | the question it answers |
+|---|---|
+| `rule` | what exactly has to exist |
+| `scope` | where it applies, and where it must not |
+| `exclusions_or_crossover` | what has to stay untouched |
+| `failure_behavior` | what happens when it goes wrong |
+| `observability` | the exact values a test can read back |
 
-- **`exclusions_or_crossover`** — `metadata_{i}.json` is untouched by this: its body stays exactly `{"num_jobs": n}` with no `start_idx`/`end_idx`/`num_bytes` keys added.
+---
 
-- **`failure_behavior`** — `len(plan) > limits.max_batches_per_plan` raises `BatchPlanTooFragmentedError(num_batches=..., limit=...)`, exported from the same module, storing both as attributes; it subclasses `ValueError` but is NOT a `BatchPayloadTooLargeError`. `plan_batches([10]*512, BatchLimits(max_requests_per_batch=1, max_bytes_per_batch=1000))` returns 512 batches; `[10]*513` raises with `err.num_batches == 513`, `err.limit == 512`; an explicit `BatchLimits(1, 1000, max_batches_per_plan=2)` on `[10]*3` raises with `err.num_batches == 3`, `err.limit == 2`. The per-row oversize scan runs first, so `plan_batches([10]*600 + [5000], BatchLimits(1, 1000))` raises `SingleRequestTooLargeError` with `err.row_idx == 600`.
+### `g1.r1` — write a `batch_plan.json` sidecar
 
-- **`observability`** — `plan_fingerprint([]) == "e3b0c44298fc"`; `plan_fingerprint(plan_batches([10]*7, BatchLimits(1000, 32))) == "ad0828fea95e"`; `plan_fingerprint([PlannedBatch(0,0,2,2,307), PlannedBatch(1,2,4,2,307), PlannedBatch(2,4,5,1,153)]) == "f4b1ea1573c0"`; the 11-batch plan of an 11-row dataset with `max_requests_per_batch` patched to `1` fingerprints `"c53f6fb95c13"`. After the 5-row OpenAI run with limits patched to `3`/`400`, `json.load(open(f"{working_dir}/batch_plan.json"))` equals exactly `{"plan_format_version": 1, "plan_id": "f4b1ea1573c0", "limits": {"max_requests_per_batch": 3, "max_bytes_per_batch": 400, "max_batches_per_plan": 512}, "num_batches": 3, "num_requests": 5, "num_bytes": 767, "batches": [{"index": 0, "start_idx": 0, "end_idx": 2, "num_requests": 2, "num_bytes": 307}, {"index": 1, "start_idx": 2, "end_idx": 4, "num_requests": 2, "num_bytes": 307}, {"index": 2, "start_idx": 4, "end_idx": 5, "num_requests": 1, "num_bytes": 153}]}`, with the raw file text ending in `"]\n}\n"`.
+**In one sentence:** the `"auto"` branch also writes one versioned, fingerprinted
+plan document next to the request files, and refuses a plan of more than 512 batches.
 
-> *The decision the team made first and later reversed:* The plan was first folded into the existing per-batch metadata — `metadata_{i}.json` became `{"num_jobs": 2, "start_idx": 0, "end_idx": 2, "num_bytes": 307}` — and that was reverted a week later because readers of metadata_{i}.json assumed the `{"num_jobs": n}` shape; the plan moved out into one versioned sidecar instead.
+#### `rule` — what has to exist
 
-### `g1.r2`
+`batch_payload_planner` gains these module-level names:
 
-- **`rule`** — In the `"auto"` branch of `create_request_files`, before anything new is written, every existing `requests_*.jsonl` and every existing `metadata_*.json` in `self.working_dir` is removed.
+| name | value / signature |
+|---|---|
+| `PLAN_FILE_NAME` | `"batch_plan.json"` |
+| `PLAN_FORMAT_VERSION` | `1` |
+| `_MAX_BATCHES_PER_PLAN` | `512` |
+| `plan_fingerprint` | `def plan_fingerprint(plan: Sequence[PlannedBatch]) -> str` |
+| `plan_document` | `def plan_document(plan: Sequence[PlannedBatch], limits: BatchLimits) -> dict` |
 
-- **`scope`** — Sweeping belongs to the `"auto"` branch alone. The explicit-integer `batch_size` branch does not sweep, and the `dataset is None` path does not sweep either.
+`BatchLimits` gains a **third field**: `max_batches_per_plan: int = _MAX_BATCHES_PER_PLAN`.
 
-- **`exclusions_or_crossover`** — `responses_*.jsonl`, `*.arrow`, `batch_objects.jsonl` and every other file in the working directory survive byte-for-byte.
+**`plan_fingerprint`** builds one canonical string and hashes it:
 
-- **`failure_behavior`** — If planning raises — `SingleRequestTooLargeError` — the working directory is byte-for-byte what it was, stale files and all.
+```python
+";".join(f"{p.start_idx}-{p.end_idx}:{p.num_bytes}" for p in plan)
+```
 
-- **`observability`** — `working_dir` pre-populated with `requests_0.jsonl … requests_5.jsonl` (each `"stale\n"`), `metadata_0.json … metadata_5.json` and `responses_0.jsonl` (`"keep\n"`). After the successful 5-row run with limits patched to `3`/`400`: `sorted(os.listdir(working_dir)) == ["batch_plan.json", "metadata_0.json", "metadata_1.json", "metadata_2.json", "requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl", "responses_0.jsonl"]` and `open(f"{working_dir}/responses_0.jsonl").read() == "keep\n"`. Against the same directory plus a stale `batch_plan.json` holding `{"plan_format_version": 1, "stale": true}`, `create_request_files(Dataset.from_dict({"prompt": ["ok", "x"*600, "ok"]}))` with `max_bytes_per_batch` patched to `400` raises `SingleRequestTooLargeError` and all 14 entries survive, with `json.load(open(f"{working_dir}/batch_plan.json")) == {"plan_format_version": 1, "stale": True}` and `open(f"{working_dir}/requests_2.jsonl").read() == "stale\n"`.
+Spans and batch sizes only — **not** `index`, **not** `num_requests`. It returns the
+**first 12 characters** of that string's `hashlib.sha256` hexdigest.
 
-> *The decision the team made first and later reversed:* The cleanup was originally the first statement of the `"auto"` branch, run on entry before `plan_request_batches`; it was moved to after planning returns when an oversized-row failure wiped a working directory that still held usable request files.
+**`plan_document`** returns exactly these keys, in exactly this order:
+
+| key | value |
+|---|---|
+| `plan_format_version` | `1` |
+| `plan_id` | `plan_fingerprint(plan)` |
+| `limits` | `dataclasses.asdict(limits)` |
+| `num_batches` | `len(plan)` |
+| `num_requests` | sum of `p.num_requests` |
+| `num_bytes` | sum of `p.num_bytes` |
+| `batches` | `[dataclasses.asdict(p) for p in plan]` |
+
+**Where it is written.** In the `"auto"` branch of `create_request_files`, once
+`plan_request_batches` has returned:
+
+```python
+json.dumps(plan_document(plan, self.batch_limits), indent=2) + "\n"
+```
+
+goes to `os.path.join(self.working_dir, PLAN_FILE_NAME)`.
+
+#### `scope` — where it applies
+
+- The `"auto"` branch **only**, and **before any request file is written**.
+- A 0-batch plan still writes the file. An empty dataset produces a `batch_plan.json`
+  with `num_batches: 0`, `num_requests: 0`, `num_bytes: 0`, `batches: []`, and the
+  `plan_id` of the empty canonical string.
+- The explicit-integer `batch_size` branch **never** writes it.
+- The `dataset is None` path **never** writes it.
+
+#### `exclusions_or_crossover` — what stays untouched
+
+`metadata_{i}.json` is untouched by this. Its body stays exactly `{"num_jobs": n}` —
+no `start_idx`, `end_idx` or `num_bytes` keys added.
+
+#### `failure_behavior` — too many batches
+
+`len(plan) > limits.max_batches_per_plan` raises
+`BatchPlanTooFragmentedError(num_batches=..., limit=...)`:
+
+- exported from the same module, storing both values as attributes;
+- it subclasses `ValueError` but is **not** a `BatchPayloadTooLargeError`.
+
+| call | result |
+|---|---|
+| `plan_batches([10]*512, BatchLimits(max_requests_per_batch=1, max_bytes_per_batch=1000))` | 512 batches, no error |
+| `plan_batches([10]*513, BatchLimits(max_requests_per_batch=1, max_bytes_per_batch=1000))` | raises, `err.num_batches == 513`, `err.limit == 512` |
+| `plan_batches([10]*3, BatchLimits(1, 1000, max_batches_per_plan=2))` | raises, `err.num_batches == 3`, `err.limit == 2` |
+| `plan_batches([10]*600 + [5000], BatchLimits(1, 1000))` | raises `SingleRequestTooLargeError`, `err.row_idx == 600` |
+
+That last row is the ordering rule: **the per-row oversize scan runs first**, so an
+oversized row wins over a too-fragmented plan.
+
+#### `observability` — exact values
+
+Fingerprints:
+
+| input | fingerprint |
+|---|---|
+| `plan_fingerprint([])` | `"e3b0c44298fc"` |
+| `plan_fingerprint(plan_batches([10]*7, BatchLimits(1000, 32)))` | `"ad0828fea95e"` |
+| `plan_fingerprint([PlannedBatch(0,0,2,2,307), PlannedBatch(1,2,4,2,307), PlannedBatch(2,4,5,1,153)])` | `"f4b1ea1573c0"` |
+| the 11-batch plan of an 11-row dataset, `max_requests_per_batch` patched to `1` | `"c53f6fb95c13"` |
+
+After the 5-row OpenAI run with limits patched to `3` / `400`,
+`json.load(open(f"{working_dir}/batch_plan.json"))` equals exactly:
+
+```json
+{
+  "plan_format_version": 1,
+  "plan_id": "f4b1ea1573c0",
+  "limits": {"max_requests_per_batch": 3, "max_bytes_per_batch": 400, "max_batches_per_plan": 512},
+  "num_batches": 3,
+  "num_requests": 5,
+  "num_bytes": 767,
+  "batches": [
+    {"index": 0, "start_idx": 0, "end_idx": 2, "num_requests": 2, "num_bytes": 307},
+    {"index": 1, "start_idx": 2, "end_idx": 4, "num_requests": 2, "num_bytes": 307},
+    {"index": 2, "start_idx": 4, "end_idx": 5, "num_requests": 1, "num_bytes": 153}
+  ]
+}
+```
+
+and the raw file text ends in `"]\n}\n"`.
+
+> **The herring** — what the team decided first and later reversed: the plan was first
+> folded into the existing per-batch metadata — `metadata_{i}.json` became
+> `{"num_jobs": 2, "start_idx": 0, "end_idx": 2, "num_bytes": 307}` — and that was
+> reverted a week later because readers of `metadata_{i}.json` assumed the
+> `{"num_jobs": n}` shape; the plan moved out into one versioned sidecar instead.
+
+---
+
+### `g1.r2` — sweep stale files, but only after planning succeeds
+
+**In one sentence:** the `"auto"` branch clears out its own leftover request and
+metadata files before writing new ones — and if planning fails, it clears nothing.
+
+#### `rule` — what has to exist
+
+In the `"auto"` branch of `create_request_files`, **before anything new is written**,
+every existing `requests_*.jsonl` and every existing `metadata_*.json` in
+`self.working_dir` is removed.
+
+#### `scope` — where it applies
+
+- Sweeping belongs to the `"auto"` branch **alone**.
+- The explicit-integer `batch_size` branch does **not** sweep.
+- The `dataset is None` path does **not** sweep.
+
+#### `exclusions_or_crossover` — what stays untouched
+
+`responses_*.jsonl`, `*.arrow`, `batch_objects.jsonl` and every other file in the
+working directory survive byte-for-byte.
+
+#### `failure_behavior` — planning raised
+
+If planning raises — `SingleRequestTooLargeError` — the working directory is
+byte-for-byte what it was, stale files and all. **Nothing is swept.**
+
+#### `observability` — exact values
+
+Starting state: `working_dir` pre-populated with `requests_0.jsonl … requests_5.jsonl`
+(each holding `"stale\n"`), `metadata_0.json … metadata_5.json`, and `responses_0.jsonl`
+(holding `"keep\n"`).
+
+**After the successful 5-row run** with limits patched to `3` / `400`:
+
+```python
+sorted(os.listdir(working_dir)) == [
+    "batch_plan.json",
+    "metadata_0.json", "metadata_1.json", "metadata_2.json",
+    "requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl",
+    "responses_0.jsonl",
+]
+open(f"{working_dir}/responses_0.jsonl").read() == "keep\n"
+```
+
+**After a failed run.** Same directory, plus a stale `batch_plan.json` holding
+`{"plan_format_version": 1, "stale": true}`. Then
+`create_request_files(Dataset.from_dict({"prompt": ["ok", "x"*600, "ok"]}))` with
+`max_bytes_per_batch` patched to `400` raises `SingleRequestTooLargeError`, and all
+14 entries survive:
+
+```python
+json.load(open(f"{working_dir}/batch_plan.json")) == {"plan_format_version": 1, "stale": True}
+open(f"{working_dir}/requests_2.jsonl").read() == "stale\n"
+```
+
+> **The herring** — what the team decided first and later reversed: the cleanup was
+> originally the first statement of the `"auto"` branch, run on entry before
+> `plan_request_batches`; it was moved to after planning returns when an oversized-row
+> failure wiped a working directory that still held usable request files.
 
 ---
 
@@ -170,14 +342,6 @@ text differs; `Where every remark is` below has the exact corpus wording.
 
 - **dario** (2025-01-21): in any case the sweep is the first thing in the auto branch — clear out requests_*.jsonl and metadata_*.json on entry, then plan_request_batches runs against a clean dir
 - **konrad** (2025-01-21): look, order in the auto branch is settled: we delete the old requests_*/metadata_* files first, plan_request_batches second. nothing new gets writen next to stale numbering.
-
----
-
-## The ticket — stated openly
-
-**Batch payload planner for `batch_size="auto"`**
-
-Replace the ad-hoc sizing loop used by `batch_size="auto"` with a pure, testable planner. Add `src/bespokelabs/curator/request_processor/batch_payload_planner.py` exporting: `@dataclass(frozen=True) class BatchLimits` with fields `max_requests_per_batch: int` and `max_bytes_per_batch: int`; `@dataclass(frozen=True) class PlannedBatch` with fields `index: int`, `start_idx: int`, `end_idx: int`, `num_requests: int`, `num_bytes: int`; `def payload_size_bytes(api_specific_request: dict) -> int` returning `len(json.dumps(d).encode())`; `def payload_bytes(sizes: Sequence[int]) -> int` returning the exact size of the `"\n".join(...)` file those payloads produce (`0` for an empty sequence); `def plan_batches(sizes: Sequence[int], limits: BatchLimits) -> list[PlannedBatch]` walking the sizes once in index order and greedily filling contiguous, ordered, exhaustive spans (`plan[0].start_idx == 0`, `plan[i].end_idx == plan[i+1].start_idx`, `plan[-1].end_idx == len(sizes)`), keeping a batch that lands exactly on either limit and returning `[]` for no sizes; `class BatchPayloadTooLargeError(ValueError)` with `__init__(self, *, num_requests: int, size_bytes: int, limit_bytes: int) -> None` storing those three as attributes; and `class SingleRequestTooLargeError(BatchPayloadTooLargeError)` with `__init__(self, *, row_idx: int, size_bytes: int, limit_bytes: int) -> None`, storing `row_idx` and `num_requests == 1`, raised when one request's own size exceeds `max_bytes_per_batch` (instead of today's `batch_size = 0` hang). On `BaseBatchRequestProcessor` (`request_processor/batch/base_batch_request_processor.py`) add a `batch_limits` property built from `self.max_requests_per_batch` / `self.max_bytes_per_batch`, `def measure_request_payload(self, generic_request: GenericRequest) -> int` returning `payload_size_bytes(self.create_api_specific_request_batch(generic_request))` — the provider payload that is actually submitted, not the generic request written to `requests_*.jsonl` — and `def plan_request_batches(self, dataset: "Dataset") -> list[PlannedBatch]` which builds each row through `PromptFormatter.create_generic_request(row, idx, generation_params_per_row)` with `generation_params_per_row = "generation_params" in dataset.column_names`, measures each row exactly once in index order, and returns `plan_batches(sizes, self.batch_limits)`; `create_batch_file(self, api_specific_requests: list[dict]) -> bytes` keeps its signature (return annotation corrected from `str`) and raises `BatchPayloadTooLargeError` where it raises `ValueError` today, so a planned batch's `num_bytes` equals `len(create_batch_file(...))` for that batch. In `base_request_processor.py`, delete the nested `_get_optimal_batch_size` (lines 263‑278) and the `while True` loop (lines 282‑295), drive the `"auto"` branch of `create_request_files(dataset: Optional["Dataset"]) -> list[str]` (unchanged signature) off `self.plan_request_batches(dataset)`, write each planned batch through the existing `acreate_request_file(...)` as `requests_{p.index}.jsonl` with `metadata_{p.index}.json`, and return `[os.path.join(self.working_dir, f"requests_{p.index}.jsonl") for p in plan]` — one path per planned batch, in `index` order (a 0-row dataset therefore returns `[]`). The explicit-integer `batch_size` branch (lines 297‑311) keeps its current behaviour exactly: `ceil(len(dataset) / batch_size)` fixed-width files filtered by `incomplete_files`, no byte-based resplit, no planner call. `max_requests_per_batch` / `max_bytes_per_batch`, `acreate_request_file` (metadata body `{"num_jobs": n}`) and `run_in_event_loop` are reused as-is. Tests build processors via `__new__` with `config`, `prompt_formatter`, `working_dir`, `_cost_processor` assigned by hand and patch the two limit properties with `unittest.mock.PropertyMock`; no network, no clients, no sleeps.
 
 ---
 
