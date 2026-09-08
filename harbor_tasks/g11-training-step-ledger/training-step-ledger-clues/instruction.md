@@ -175,7 +175,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-03-24 · #engineering · konrad**
 
-> Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels and no repeats within a record.
+> Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels, and the double epoch row goes too - not by refusing the write, the record just carries the label once and a second mention folds into the first.
 
 **2025-03-24 · #cookbooks · nikolai**
 
@@ -215,7 +215,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-04-09 · #code-review · gideon**
 
-> so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise.
+> so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise - nor does handing it epoch twice, that comes back as one epoch.
 
 **2025-04-09 · #incidents · dermot**
 

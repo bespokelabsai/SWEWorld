@@ -1,0 +1,33 @@
+From: dermot@world.local
+To: emil@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: sft export =?utf-8?b?4oCU?= fast tokenizer and manual fallback
+ return different label weights
+Date: Tue, 13 May 2025 11:22:00 +0000
+Message-ID: <178880169039.2292275.10092248181322222424@world.local>
+In-Reply-To: <178880169037.2292275.18019815718582958607@world.local>
+References: <178880169037.2292275.18019815718582958607@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Emil, Konrad,
+
+If I am restating your explanation correctly, the logged figure is never deri=
+ved from the weights at all =E2=80=94 it is arithmetic on the span boundaries=
+, and the weight vector is a separate artefact that happens to line up in mos=
+t configurations. That would make the discrepancy a property of how the span =
+is measured rather than anything to do with supervision at all, which fits: K=
+onrad's fixture has no assistant-only behaviour in play and the gap is still =
+there.
+
+If I had to guess at the source of the extra one, it is the boundary conventi=
+on on the span itself rather than an extra token appearing from anywhere. I s=
+pent a late night on the truncation path a while back and the spans in that r=
+egion were half-open in some places and inclusive in others, so a one-token d=
+isagreement between a span width and a sequence length is a familiar shape.
+
+That said, I would rather have it stated than guessed at. Emil, is the field =
+computed off the boundaries and nothing else?
+
+Dermot

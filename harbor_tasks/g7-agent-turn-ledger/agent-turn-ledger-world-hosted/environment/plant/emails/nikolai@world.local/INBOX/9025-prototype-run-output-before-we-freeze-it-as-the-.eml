@@ -1,0 +1,18 @@
+From: emil@world.local
+To: dario@world.local, nikolai@world.local, konrad@world.local
+Subject: prototype run output before we freeze it as the reference transcript
+Date: Wed, 11 Jun 2025 09:42:00 +0000
+Message-ID: <178880237829.2304052.5378837543729362849@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Before anyone starts building against it =E2=80=94 are we treating last week'=
+s prototype run as the reference transcript, or is that still provisional? I =
+ask because two people have already pointed at that directory as the thing to=
+ diff against, and if it moves under them that is a bad week for everybody.
+
+Let me think through that. My read is that the run itself is fine, and what's=
+ unsettled is only how we describe it in the ledger. Is that roughly where yo=
+u landed too, or is there something in the output itself you're still unhappy=
+ with?

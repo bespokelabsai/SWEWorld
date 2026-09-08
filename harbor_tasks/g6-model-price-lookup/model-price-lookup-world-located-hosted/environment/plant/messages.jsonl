@@ -1,0 +1,148 @@
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T13:51:39+00:00", "text": "while we're still on cost numbers - i lost an hour today to a nonetype in the cost sum"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-07T13:54:39+00:00", "text": "was that the lookup handing back something odd, or the sum doing it on its own"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T13:55:39+00:00", "text": "the lookup. price came back with the input side empty"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T13:57:39+00:00", "text": "and it still went into the addition, if i had to guess"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T13:58:39+00:00", "text": "exactly. we summed it anyway, nothing said a word until it blew up"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-07T14:02:39+00:00", "text": "mhm. empty isn't a zero though, that's the part i want closed - the sum shouldn't ever be handed half a price to add"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-07T14:03:39+00:00", "text": "i'd rather it never gets that far than we patch around it at the addition, in any case"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T14:05:39+00:00", "text": "yeah ok. that's a ticket of its own, not sure whose yet"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-07T14:07:39+00:00", "text": "honestly though, a full hour. i was staring at the resume path the whole time"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:11:00+00:00", "text": "was poking at the price lookup with deliberately bad inputs over lunch, wanted to see which complaint falls out"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:12:00+00:00", "text": "resolve_model_price(\"no-such-model\", provider=\"not-a-provider\", completion_window=\"96h\")"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:14:00+00:00", "text": "and? what comes back"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:15:00+00:00", "text": "pasting what i got back: unknown_provider. thats the whole of it"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-14T13:16:00+00:00", "text": "and nothing about the model? or the window - both of those are junk in that call too"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:18:00+00:00", "text": "nope. not a word about either one, just the provider"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-14T13:19:00+00:00", "text": "yup, right call for an unregistered provider. nothing on the code side does that today though, someone still has to write it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:21:00+00:00", "text": "that tracks. honestly i half expected it to hand me all three at once"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T09:02:00+00:00", "text": "bit of context on that cost lookup fix while it's fresh - i burned twenty minutes on a miss last week before i found it"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T09:03:00+00:00", "text": "twenty minutes on the lookup itself, or on reading what it told you?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T09:04:00+00:00", "text": "reading it, honestly. i spent the whole time chasing a window typo"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T09:05:00+00:00", "text": "and it wasnt the window at all?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T09:06:00+00:00", "text": "no. i had misspelled the provider. the window was fine, it just looked wrong to me because that's where i was staring"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T09:07:00+00:00", "text": "makes sense. so the error should name the first thing that's wrong rather than whatever it trips over later - that's worth documenting wherever this lands"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T09:08:00+00:00", "text": "mhm. that's exactly the twenty minutes back"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T09:09:00+00:00", "text": "ya tbh i read the last line of those and nothing else"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-26T14:03:00+00:00", "text": "nils are you in the price lookup today? small thing while you're in there"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-06-26T14:06:00+00:00", "text": "yes, most of the afternoon. what is it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-26T14:07:00+00:00", "text": "my batch report came out with online prices again"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-06-26T14:11:00+00:00", "text": "let me think. either the batch numbers are wrong for that model, or the lookup matched nothing at all. i'd lean toward nothing"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-26T14:13:00+00:00", "text": "ya nothing. there's no 24h row for that model, i checked the table twice"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-06-26T14:16:00+00:00", "text": "so it's not a plain miss then, it lands on the star entry?"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-06-26T14:19:00+00:00", "text": "that's it. falls through to the star entry and takes the online prices off it, which is what gideon's report printed. i'll fold it into the pass i'm already doing rather than open something separate"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-06-26T14:21:00+00:00", "text": "mhm. explains the run i wrote off last month, i assumed i'd passed the wrong flag"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-06-25T15:44:00+00:00", "text": "quick one on the price lookup - model has a window map, nothing in it matches the window we passed. what comes back"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-25T15:46:00+00:00", "text": "there is a \"*\" row sitting on that model though"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-06-25T15:49:00+00:00", "text": "let me think through that - if the map has no row for the window you asked for thats unknown_window"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-25T15:51:00+00:00", "text": "ok but the star row is right there, presumably it just falls onto that?"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-06-25T15:54:00+00:00", "text": "no, thats the bit i dont want. we shouldnt be quietly borrowing the \"*\" tier. unknown_window is honestly the more truthful answer"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-06-25T15:57:00+00:00", "text": "ya. tbh i hit this on a nightly last week and read the number as real"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-24T15:25:07+00:00", "text": "is the tracker blowing up on an unknown model actually happening or are we designing for a maybe"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T15:26:07+00:00", "text": "Ya, thats not theoretical. it took the whole online run down last night"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-24T15:27:07+00:00", "text": "how far in"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T15:28:07+00:00", "text": "4k requests. on a model litellm has never heard of"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-24T15:29:07+00:00", "text": "so the run itself was fine and we lost it to the price lookup?"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T15:30:07+00:00", "text": "exactly. cost display, not the work"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T15:30:07+00:00", "text": "so basically the lookup doesnt get to end a run anymore, thats settled on my end"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-24T15:32:07+00:00", "text": "yep. 4k in is the part that stings"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-01T09:06:12+00:00", "text": "did anyone read the handover page against the actual viewer? i want to know what i got wrong in it before more people link to it"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-05-01T09:09:12+00:00", "text": "mostly it holds up. that said, the pricing gaps part of that page is the bit i'd push on. input_cost_per_million comes through None for a chunk of the models"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-01T09:10:12+00:00", "text": "ok but thats sort of the point of the section no? the gaps are expected, we say so"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-05-01T09:12:12+00:00", "text": "the gap is fine, yeah. what isnt fine is what happens after - the viewer renders it $0.00"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-05-01T09:13:12+00:00", "text": "oh. so readers read that as free"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-05-01T09:14:12+00:00", "text": "they do, and one of them is going to quote it back at us. that zero shouldnt be shown"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-01T09:17:12+00:00", "text": "ya ok. i pulled a handful of models this morning and more than one came up $0.00, so its not one weird row somewhere"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-19T11:44:03+00:00", "text": "batch estimate came in at a quarter of the invoice again. thats twice now"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T11:46:03+00:00", "text": "mhm. same shape as last month, if i had to guess"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-19T11:47:03+00:00", "text": "a quarter is the part i keep tripping on. one bad rate wouldnt get you all the way there"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T11:49:03+00:00", "text": "so basically its two separate layers, each one knocking half off the same price"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T11:50:03+00:00", "text": "The stacking isnt really in dispute at this point tbh, we all landed there already"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T11:52:03+00:00", "text": "yeah. nobody's written the fix though"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-19T11:53:03+00:00", "text": "yup. i'll quit re-running it hoping for a different number"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T18:30:53+00:00", "text": "while we're on the provider cost paths - i left the same note on the azure cost() override again. same note as last week"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-15T18:32:53+00:00", "text": "what note"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T18:33:53+00:00", "text": "why is this dividing by two here. no comment on it, no ticket, nothing"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-15T18:36:53+00:00", "text": "the halving, ya. thats the bit i stall on every time i read that file honestly. by the time cost() runs, batch_multiplier already ran"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T18:38:53+00:00", "text": "so which is it - the override is doing it a second time, or the multiplier never touched azure"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-15T18:40:53+00:00", "text": "the multiplier touches azure fine, i checked it back in march. the override is just older than it. so the divide comes out of cost() and thats that"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T18:41:53+00:00", "text": "yeah ok. i'd stopped assuming that was safe to remove"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-15T18:43:53+00:00", "text": "so basically the override predates the multiplier. tbh that would explain the azure line looking small in the march totals"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-05-02T12:26:24+00:00", "text": "can someone tell me why the batch discount comes off in two different places? i tripped over the second one this morning"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-05-02T12:28:24+00:00", "text": "i spent the morning on exactly that, honestly. working out which of the two subtractions was the real one"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-05-02T12:29:24+00:00", "text": "and? which of them wins"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-05-02T12:31:24+00:00", "text": "only one place in the tree gets to touch the price for batch. the other subtraction shouldnt be there at all"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-05-02T12:33:24+00:00", "text": "right, that part nobody argued about"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-05-02T12:34:24+00:00", "text": "yup. not written yet though, i havent picked a ticket for it"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-05-02T12:36:24+00:00", "text": "that tracks. i'd assumed the second one was deliberate and left it alone back in january"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-26T13:18:00+00:00", "text": "klusterai in the cost estimate is landing at about half what the invoice says. one of the two is lying"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-26T13:21:00+00:00", "text": "we take the batch discount off there tho, thats expected no"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-26T13:25:00+00:00", "text": "let me think - their published per-million is already the batch rate. there's nothing to take off it."}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-26T13:27:00+00:00", "text": "ok but that alone doesnt get us to half. the estimate is way under even without that"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-26T13:31:00+00:00", "text": "that's the rest of it. we went and took another 50% off it in the estimate anyway, so the thing is cut twice. the published number stands, the extra one comes out"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-26T13:34:00+00:00", "text": "that tracks. so the pricing entry stays as-is and the multiplier goes for them"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-26T13:36:00+00:00", "text": "ya tbh i think i copied that multiplier down from the block above when i added them"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-03T16:07:16+00:00", "text": "the pricing complaint from the cookbook user - worth its own ticket or just a note on the recipe"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T16:09:16+00:00", "text": "@Emil worth one, yes. its not a docs thing"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-03T16:11:16+00:00", "text": "what did they actually do though"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T16:12:16+00:00", "text": "put their negotiated input cost straight in the config"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T16:14:16+00:00", "text": "and it got ignored"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T16:16:16+00:00", "text": "no it took. the batch run reported half of what they typed"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-03T16:17:16+00:00", "text": "half. yeah ok thats a ticket"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-03T16:19:16+00:00", "text": "did they attach the config or did you have to go dig for it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T16:21:16+00:00", "text": "attached, thats how i knew what number they typed"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-03T14:18:00+00:00", "text": "costing question while i'm in here - for a batched run, where does the discount get applied? we don't do it in the caller do we"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-03T14:21:00+00:00", "text": "so basically the base cost processor has a batch_multiplier(), and in batch mode it comes back 0.5. the 50% is the whole of it, nothing else to apply"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-03T14:23:00+00:00", "text": "so on a normal sync run it just doesn't get called at all?"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-03T14:24:00+00:00", "text": "no it still gets called, you just get 1.0 back. um, same arithmetic either way which is nice"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-03T14:26:00+00:00", "text": "what about azure though, i had it in my head their batch discount was a different figure"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-03T14:27:00+00:00", "text": "ya i went and looked. azure is 0.5 as well, tbh one number for both, i was expecting to have to carry two"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-03T14:29:00+00:00", "text": "and azure outside batch mode, 1.0 the same as the other one"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-03T14:30:00+00:00", "text": "exactly, both hand back 1.0 there"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-03T14:32:00+00:00", "text": "ok, so no per provider special casing. i had half a branch written for that, going to bin it before someone finds it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-25T13:14:42+00:00", "text": "quick one on the price lookup - for klusterai batch, are we asserting a different number than the online path or the same one?"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-25T13:18:42+00:00", "text": "same one. on the adding side my batch test pins resolve_model_price(m, provider=\"klusterai\", completion_window=\"*\", batch=True).input_cost_per_million at 4.0"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-25T13:21:42+00:00", "text": "and with batch=False? same 4.0 or just near it"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-25T13:24:42+00:00", "text": "same float. not near, identical."}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-25T13:29:42+00:00", "text": "does that test cover the litellm side too or is that a separate one honestly i lost track"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-25T13:32:42+00:00", "text": "same test. with source == \"litellm\" it halves input_cost_per_million and output_cost_per_million, both of them, not just the input leg"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-25T13:35:42+00:00", "text": "ah. tbh i was reading the \"*\" in your snippet as a todo marker, not an actual arg you pass"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-01-27T16:36:32+00:00", "text": "whats the *2 doing in klusterai's cost(). looks wrong to me tbh"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-01-27T16:40:32+00:00", "text": "inference.net has the same multiply, if i'm reading it right"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-01-27T16:45:32+00:00", "text": "went and looked. the base cost processor halves every source that goes through it, and those two multiply their cost() by 2 to cancel it back out"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-01-27T16:49:32+00:00", "text": "halves it for what though"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-01-27T16:53:32+00:00", "text": "batch pricing. which is exactly why it doesnt fit those two — their tables are already batch tier, so the halving takes it off a second time"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-01-27T16:57:32+00:00", "text": "mhm. so the x2 is undoing a discount that was never meant to land on them"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-01-27T17:01:32+00:00", "text": "that tracks, yes. so it comes out of the base processor, not out of their cost() methods. nobody has picked up the actual change yet"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-01-27T17:03:32+00:00", "text": "ya. i read that multiply as a real pricing thing"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-27T18:30:51+00:00", "text": "on the batch cost thing — is the discount applied once down in the base cost(), or is each provider meant to do its own?"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-01-27T18:34:51+00:00", "text": "base. the discount stays in there, so nobody has to remember it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-27T18:37:51+00:00", "text": "mhm. some of the price tables are already batch numbers though, those would come out low twice over"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-01-27T18:40:51+00:00", "text": "those ones cancel it. x2 in their own cost() override, so the base discount washes out"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-27T18:42:51+00:00", "text": "klusterai does that? i saw a 2 sitting in there and couldnt make sense of it"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-01-27T18:44:51+00:00", "text": "right, klusterai and inference.net. both of them do it that way, presumably thats all of them off the top of my head"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-01-27T18:47:51+00:00", "text": "yeah ok. i read that override a while back and filed it under someone being clever"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-14T11:52:00+00:00", "text": "batch stats projection from yesterday came out at about a quarter of what the invoice says. um, anyone hit that?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-14T11:56:00+00:00", "text": "mhm i chased that this morning actually. its being halved twice - two layers each doing it on their own, so you land on a quarter"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-14T11:58:00+00:00", "text": "two layers? i thought klusterai and inference.net cancel the base one out with the x2 in their cost()"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-14T12:03:00+00:00", "text": "that was the arrangement as i remember it - base cost processor halves every source, and those two double back in cost() because their tables are already batch tier"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-14T12:08:00+00:00", "text": "that whole arrangement is gone. the factor lives in batch_multiplier() now and thats the only place it lives, nothing else applies it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-14T12:11:00+00:00", "text": "so what do klusterai and inference.net return then"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-14T12:15:00+00:00", "text": "1.0, and no cost() override at all. their tables already price the batch tier so theres nothing to cancel out"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-14T12:19:00+00:00", "text": "yeah ok. one halving nobody argues with"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-14T12:21:00+00:00", "text": "ya. i was half a minute from filing this against the provider backends tbh"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-03T18:20:49+00:00", "text": "konrad - your review note on the kluster pricing pr, the one about the x2. i can't find the override it points at"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-03T18:24:49+00:00", "text": "ah. scratch my reviewr note about the x2 in the provider's cost() override, i was reading an old copy. those overrides are deleted"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-06-03T18:27:49+00:00", "text": "that x2 was the thing we agreed months back - discount stays in the base, and providers whose table already lists batch prices cancel it with a x2 in their own cost(). klusterai and inference.net both did it that way"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-03T18:29:49+00:00", "text": "mhm, that's what i was hunting for. so what cancels it now"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-03T18:31:49+00:00", "text": "nothing has to. where a table already lists batch prices, batch_multiplier() returns 1.0. two places doing arithmetic on the same number is what bit us when kluster refreshed their table, the override kept discounting a price that was already batch"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-03T18:34:49+00:00", "text": "so the listed price still gets scaled somewhere further down? resolve_model_price i mean"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-03T18:37:49+00:00", "text": "no, resolve_model_price leaves the external-sourced price as listed. presumably that is the whole point of it being sourced"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-03T18:40:49+00:00", "text": "yeah ok. i was reading the pr against your old note the whole afternoon, no wonder the arithmetic didn't sit right"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-07T16:22:46+00:00", "text": "nikolai, on 622 — the klusterai input number. per million, or already scaled"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-07T16:24:46+00:00", "text": "per million its 4.0 in straight off their pricing page"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-07T16:26:46+00:00", "text": "short context tier or the blended one? i had it in my head they split above the window"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-07T16:27:46+00:00", "text": "yeah thats what i was circling. do we need a second row for the long context case"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-07T16:29:46+00:00", "text": "no window split on their table at all"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-07T16:30:46+00:00", "text": "it just sits under \"*\" thats the whole entry"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-07T16:32:46+00:00", "text": "mhm. one row covers it then"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-07T16:34:46+00:00", "text": "sounds right. the second row i had half drafted for it can go, that was me copying another providers table anyway"}

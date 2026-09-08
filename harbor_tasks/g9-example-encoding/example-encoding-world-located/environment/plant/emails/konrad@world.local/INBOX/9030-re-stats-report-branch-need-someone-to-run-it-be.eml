@@ -1,0 +1,18 @@
+From: nikolai@world.local
+To: emil@world.local, konrad@world.local, dario@world.local
+Subject: Re: stats report branch =?utf-8?b?4oCU?= need someone to run it
+ before the 0.1.25 cut
+Date: Tue, 13 May 2025 16:03:00 +0000
+Message-ID: <178880169053.2292275.12094493243478231062@world.local>
+In-Reply-To: <178880169051.2292275.13431186199361139095@world.local>
+References: <178880169051.2292275.13431186199361139095@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+resume case is real i hit it in january when the batch job died halfway
+
+dont move the write without checking what happens on the second start or youl=
+l get a metadata file that says zero for everything
+
+otherwise this looks solid enough to me

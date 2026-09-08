@@ -8,8 +8,16 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-quick one on the truncation flag while i'm in that file. when a subprocess ex=
-its non-zero we build the "command failed with exit code N" string and paste =
-the stderr inside it right. so if the stderr sitting in there already got cli=
-pped by the cap, what does error_truncated read at that point? someone is goi=
-ng to ask that in review eventually tbh, better we have an answer
+Hi team,
+
+Quick one on the truncation flag while I'm in that file.
+
+When a subprocess exits non-zero we build the "command failed with exit cod=
+e N" string and paste the stderr inside it, right. So if the stderr sitting=
+ in there already got clipped by the cap, what does error_truncated read at=
+ that point?
+
+Someone is going to ask that in review eventually tbh, better we have an an=
+swer.
+
+Gideon

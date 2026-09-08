@@ -1,0 +1,32 @@
+From: konrad@world.local
+To: emil@world.local, dario@world.local, nikolai@world.local
+Subject: Re: stats report branch =?utf-8?b?4oCU?= need someone to run it
+ before the 0.1.25 cut
+Date: Tue, 13 May 2025 11:52:00 +0000
+Message-ID: <178880169052.2292275.16045865573366987517@world.local>
+In-Reply-To: <178880169051.2292275.13431186199361139095@world.local>
+References: <178880169051.2292275.13431186199361139095@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Right, pulled it and ran two batches through fireworks last night. 400 reques=
+ts each, nothing exotic in the params.
+
+Good news first. The cost numbers are correct as far as I can check them agai=
+nst the invoice, and the cached counter does the right thing when I re-run th=
+e same batch. The printed table is readable, no complaints there.
+
+But =E2=80=94 did the stats pass on your branch, self.last_report is set in f=
+ormat_batch but not in to_jsonl_lines, so after my fireworks run it still had=
+ the previous batch's numbers. Both should set it. Took me a while to belive =
+it because the first batch looked fine, obviously, there was no previous batc=
+h to be stale from.
+
+Also the metadata write happens before the final flush in the batch path, pre=
+sumably that is intentional? I did not want to move it myself without asking.=
+ Off the top of my head that is the only other thing.
+
+Anyway, with those two sorted I think it is fine for 0.1.25.
+
+=E2=80=94 Konrad

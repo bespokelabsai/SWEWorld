@@ -1,0 +1,24 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 15:26:00 +0000
+Message-ID: <178880169042.2292275.7168269549608821174@world.local>
+In-Reply-To: <178880169042.2292275.4644813809196549418@world.local>
+References: <178880169042.2292275.4644813809196549418@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Right on both counts. The flag is derived, not passed in, and False is what c=
+ame back on the run without a tokenizer. Nothing decided it; it is a report o=
+f what was there.
+
+And yep, the constant survived the merge intact. That is the point I was most=
+ly trying to make by listing all four together: the role set, FIREWORKS_BYTES=
+_PER_TOKEN at 3, ExampleTooLongError off EncodingError, and the encoding bloc=
+ks with that flag. None of it is new behaviour introduced by 653. What is in =
+the PR is conflicts and the file above, which means the question of whether i=
+t lands is a scheduling question and not a design one, and I no longer think =
+it needs the review it has been waiting on.
+
+Nikolai

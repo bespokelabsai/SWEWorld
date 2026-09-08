@@ -1,0 +1,31 @@
+From: dermot@world.local
+To: dario@world.local, gideon@world.local, emil@world.local,
+ konrad@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: user question: does a local run without the tokenizer extra still
+ report encoding stats
+Date: Thu, 24 Apr 2025 14:31:00 +0000
+Message-ID: <178880169047.2292275.14016432592874947945@world.local>
+In-Reply-To: <178880169045.2292275.18118887838373085815@world.local>
+References: <178880169045.2292275.18118887838373085815@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dario,
+
+Let me restate this to be sure I have the shape of it, because I have been re=
+asoning from the opposite assumption for about a week.
+
+Your position as I read it: both branches terminate in the same writer, so th=
+e encoding block is structurally identical between them, and window_start is =
+a real measurement rather than a default, landing on 0 whenever no trimming o=
+ccurred. Fine, that follows. If I had to guess where it leaves us, though, th=
+e block is then identical either way and tells you nothing at all about which=
+ counter produced the count, so a record from a run with no tokenizer is simp=
+ly indistinguishable from a record where the tokenizer ran and the input happ=
+ened to fit inside the window. Is that the position you are taking, or is the=
+re something still in the block that separates the two cases?
+
+I ask because I spent a late night last week reconciling counts across two ru=
+ns on the assumption that each record announced its own provenance somewhere,=
+ and if it does not, I would rather know now than rediscover it.

@@ -1,0 +1,35 @@
+From: konrad@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: resume when the metadata json isn't on disk
+Date: Wed, 09 Apr 2025 14:10:00 +0000
+Message-ID: <178880237808.2304052.5017737785166505300@world.local>
+In-Reply-To: <178880237806.2304052.16214403045437798323@world.local>
+References: <178880237806.2304052.16214403045437798323@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+Right, your reading is what I meant. The json becomes a hint and stops being =
+a precondition.
+
+On the torn line, I agree and I will keep that failure. It is a clean distinc=
+tion: a file that is not there is benign and we resume, a file that is there =
+and damaged means we stop and print something a person can act on. The two ca=
+ses were collapsed into one error before, which is presumably how a harmless =
+missing json ended up blocking a run that had two perfectly good responses on=
+ disk.
+
+So, to write down what we have settled. A missing metadata json is not an err=
+or. The jsonl is the record. Resume adopts that log and issues only what the =
+log does not already contain, which for the case I broke by hand is exactly o=
+ne call_single_request(advisor, 2). A jsonl that cannot be parsed still stops=
+ the run, loudly.
+
+Anyway, that is what I will implement, and the deleted-json case goes in as a=
+ test alongside it so that it cannot come back on us quietly.
+
+Thank you for reading it through.
+Konrad

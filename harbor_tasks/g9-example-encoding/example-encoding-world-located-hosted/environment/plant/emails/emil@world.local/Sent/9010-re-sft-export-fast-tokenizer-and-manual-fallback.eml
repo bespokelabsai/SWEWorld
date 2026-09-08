@@ -1,0 +1,37 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: sft export =?utf-8?b?4oCU?= fast tokenizer and manual fallback
+ return different label weights
+Date: Tue, 13 May 2025 10:34:00 +0000
+Message-ID: <178880169038.2292275.13408601350768257285@world.local>
+In-Reply-To: <178880169037.2292275.18019815718582958607@world.local>
+References: <178880169037.2292275.18019815718582958607@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Konrad,
+
+Let me think through that, because I have been in the same file this week and=
+ the answer is less interesting than it looks, though it is worth writing dow=
+n properly so nobody rediscovers it in a month.
+
+Start with the configuration. With train_on_assistant_only off, neither branc=
+h does any selective work =E2=80=94 both paths hand back a flat vector of one=
+s, one entry per token, and the span that gets recorded is the whole example =
+rather than just the answer portion. So the two things you are comparing are =
+not really two views of the same quantity. The weight vector is per-token and=
+ comes out of the tokenised sequence directly; the logged figure comes out of=
+ the span. In that configuration supervised_tokens is the token count itself,=
+ which is exactly why it looks like it ought to agree with the length of the =
+weight vector and mostly does.
+
+On the fixture specifically: for the "Hello" / "Hi there!" pair the recorded =
+value is 9, and there are 8 weight slots. I am not entirely sure the two were=
+ ever meant to be read against each other, but people clearly are reading the=
+m that way, so we need to be intentional here about which one we treat as the=
+ length of the example. The weight vector is the one that matches what the mo=
+del sees.
+
+Emil

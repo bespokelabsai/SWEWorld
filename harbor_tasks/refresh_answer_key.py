@@ -99,6 +99,15 @@ def add_located(text: str) -> tuple[str, bool]:
     after the column of scores it sits in. Matching only one of them adds a
     second row for an arm that is already listed.
     """
+    # The sentence above the table enumerates what each arm is WITHHELD, which is
+    # the part a reader actually needs; a row added without it leaves the one arm
+    # whose withholding is subtlest — locations but never quotes — described only
+    # by a table cell.
+    text = text.replace(
+        "or which fact anything carries.",
+        "or which fact anything carries; `located` gets the same world as `world` "
+        "plus a map of where each remark sits, but never a quote, never which "
+        "requirement a conversation serves, and never which are herrings.", 1)
     if re.search(r"(?m)^\| `(world-)?located` \|", text):
         return text, False
     m = re.search(r"(?m)^\| `world` \|.*$", text)

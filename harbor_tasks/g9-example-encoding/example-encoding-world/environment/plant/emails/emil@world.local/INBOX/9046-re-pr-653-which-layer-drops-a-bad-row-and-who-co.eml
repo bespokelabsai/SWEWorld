@@ -1,0 +1,15 @@
+From: gideon@world.local
+To: emil@world.local, dario@world.local, nikolai@world.local
+Subject: Re: PR 653: which layer drops a bad row, and who counts it
+Date: Wed, 28 May 2025 13:58:00 +0000
+Message-ID: <178880169064.2292275.13528716717373478367@world.local>
+In-Reply-To: <178880169062.2292275.13501105309846763610@world.local>
+References: <178880169062.2292275.13501105309846763610@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ya the old ones are there, i think under the utils module? i dunno if they ar=
+e actually used anywhere anymore tbh. so basically check first, and if nothin=
+g imports them just delete and write fresh, that is cleaner than trying to re=
+use something nobody remembers.

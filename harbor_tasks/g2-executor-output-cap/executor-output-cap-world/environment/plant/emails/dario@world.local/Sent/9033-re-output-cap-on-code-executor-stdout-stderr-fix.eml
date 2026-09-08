@@ -10,7 +10,10 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-right so 80 against 64 means it doesnt fit. does the stderr come back shorten=
-ed then, and what happens to the line we print around it =E2=80=94 asking bec=
-ause tuesdays run chopped the message text too and thats how we ended up with=
- half a sentance sitting in the log
+Right, so 80 against 64 means it doesnt fit.
+
+Does the stderr come back shortened then, and what happens to the line we p=
+rint around it? Asking because tuesdays run chopped the message text too, a=
+nd thats how we ended up with half a sentance sitting in the log.
+
+Dario

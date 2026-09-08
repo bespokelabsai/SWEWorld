@@ -1,0 +1,22 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local, gideon@world.local
+Subject: Dataset card numbers before we publish the reasoning set
+Date: Wed, 16 Apr 2025 09:14:00 +0000
+Message-ID: <178880169054.2292275.13375075729600398190@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Doing what I hoped was a last pass over the dataset card this morning before =
+we push the reasoning set out, and the numbers are not reconciling for me. Th=
+e card says 41,880 rows and I can only account for 40,214 in what the batch a=
+ctually returned, which is roughly the gap I would expect if the card was wri=
+tten against the pre-trim manifest rather than the submitted one.
+
+not entirely sure whether the card was assembled before or after we pulled th=
+e long examples, that's really the question. Dermot I believe you put the ori=
+ginal counts together =E2=80=94 do you remember which manifest you were readi=
+ng off?
+
+I would rather we be intentional here and fix it now than publish something w=
+e quietly correct in a week.

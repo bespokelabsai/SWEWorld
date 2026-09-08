@@ -1,0 +1,25 @@
+From: dario@world.local
+To: nikolai@world.local, dermot@world.local, emil@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Re: batch cost estimates: the 50% discount is being applied to every
+ processor
+Date: Wed, 18 Jun 2025 14:41:00 +0000
+Message-ID: <178853332755.507296.11850325715459002353@world.local>
+In-Reply-To: <178853332752.507296.14994742052108999223@world.local>
+References: <178853332752.507296.14994742052108999223@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+To be honest, the thing I keep coming back to is that we have now seen this t=
+wice, which makes it a shape rather than an exception. A provider that only e=
+ver publishes one number is not telling us it has no batch tier =E2=80=94 it =
+is telling us the batch tier is the number. Treating a missing batch column a=
+s an invitation to compute one is where we get into trouble.
+
+On Dermot's point about the note living in the table: I think that is the rig=
+ht call, and I would go slightly further and have the note say why, not just =
+what. "Published price is already the batch price" is the fact, but the next =
+person to read the row will want to know whether we checked or assumed. In an=
+y case, for inference.net specifically I have no objection at all to the page=
+ figure going in unchanged.

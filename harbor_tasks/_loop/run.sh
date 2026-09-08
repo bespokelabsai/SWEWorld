@@ -49,6 +49,15 @@ fi
 CFG=$(mktemp /tmp/loopcfg-XXXX.yaml)
 cat > "$CFG" <<YAML
 n_concurrent_trials: 1
+# Harbor's agent setup is `apt-get update && apt-get install curl procps`, then the
+# Claude Code download, and it defaults to a 360s budget for all of it. The apt half
+# is pure waste here -- curl and node are already in sweworld:0.4.4 -- but harbor
+# runs it unconditionally, and archive.ubuntu.com is slow enough some nights to eat
+# the whole budget on its own: two g6 trials in a row died at exactly 360s with the
+# agent never started, while DNS, HTTPS and apt all worked fine when tested by hand.
+# Tripling it costs nothing on a normal night (setup finishes in ~90s and the timer
+# is never reached) and turns a class of phantom failure into a slow start.
+agent_setup_timeout_multiplier: 3.0
 agents:
   - name: claude-code
     model_name: $MODEL

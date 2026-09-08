@@ -1,0 +1,24 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, gideon@world.local
+Subject: PR 653: which layer drops a bad row, and who counts it
+Date: Wed, 28 May 2025 09:41:00 +0000
+Message-ID: <178880169062.2292275.13501105309846763610@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ran the finetuning client against a real dataset for the first time this morn=
+ing instead of the toy fixture and about 40 rows out of 12k dont convert. thr=
+ee seperate reasons - some are over the length limit some have a role sequenc=
+e that alternates wrong (two user turns back to back) and one shard has a tok=
+enizer that just wont load at all
+
+what i need decided is which layer raises and which layer skips and counts. r=
+ight now everything raises which means one bad row kills a run that was other=
+wise fine and thats clearly not what we want but i dont want to swallow the t=
+okenizer failure either since thats not a data problem thats a config problem
+
+also where does the per run report of dropped examples get writen. is that go=
+ing in the run dir next to the artifacts or somehwere else
+
+not blocking me today but its blocking me from calling this done

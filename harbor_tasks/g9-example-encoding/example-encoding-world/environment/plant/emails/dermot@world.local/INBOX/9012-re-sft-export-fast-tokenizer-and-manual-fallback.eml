@@ -1,0 +1,30 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: sft export =?utf-8?b?4oCU?= fast tokenizer and manual fallback
+ return different label weights
+Date: Tue, 13 May 2025 13:24:00 +0000
+Message-ID: <178880169040.2292275.15332795732690330133@world.local>
+In-Reply-To: <178880169037.2292275.18019815718582958607@world.local>
+References: <178880169037.2292275.18019815718582958607@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot, your restatement is right, and I can be exact about it.
+
+The field is the span's end minus its start, never the number of weights. The=
+re is no code path in which the weight vector is consulted to produce it, in =
+this configuration or any other. So on the fixture it reports 9 because that =
+is what the boundary subtraction yields for an example whose span covers the =
+entire sequence, and the 8 slots are simply the tokenised length, arriving by=
+ a different route. Your reading of it as a boundary convention rather than a=
+ stray token is what I believe is happening as well.
+
+Honestly the practical consequence is small but worth holding onto: supervise=
+d_tokens answers the question "how wide is the supervised region" and not "ho=
+w many tokens carry weight", and those questions only give the same answer wh=
+en the convention happens to line up. Konrad, for what you were doing, the ei=
+ght is the number you want.
+
+Emil

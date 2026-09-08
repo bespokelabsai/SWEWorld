@@ -1,0 +1,32 @@
+From: nikolai@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject:
+ Re: which state files does the resume consistency check actually cover
+Date: Wed, 11 Jun 2025 16:15:00 +0000
+Message-ID: <178880237814.2304052.14317943691984005697@world.local>
+In-Reply-To: <178880237810.2304052.1791072431245094391@world.local>
+References: <178880237810.2304052.1791072431245094391@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot, on your question: yes, the log side only. That was deliberate. The le=
+dger side is already in the string and, more to the point, anyone holding the=
+ exception can go read /work/agent/turn_ledger.json themselves, since the pat=
+h is right there in the message. The log side is the part that took work to r=
+econstruct, so that is the part we hand back. .log_responses is the count and=
+ .log_last_author is the name, and in the case I hit those were 2 and 'client=
+'.
+
+Dario, right, and your reading of the matching authors is the correct one. Th=
+e comparison does not require them to match, it just reports both, and in the=
+ tail-truncation case they come out the same.
+
+So the settled version is: TurnLedgerDesyncError out of verify_sidecar on res=
+ume, message reading "/work/agent/turn_ledger.json records 1 response(s) last=
+ authored by 'client', the log holds 2 last authored by 'client'", with .log_=
+responses and .log_last_author on the exception carrying the log side. That i=
+s what is in the tree now and I am not touching the wording again.
+
+Nikolai

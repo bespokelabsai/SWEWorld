@@ -9,7 +9,13 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-mhm. that said i dont think chasing the 29 is the fix =E2=80=94 the number we=
-re printing is just computed from the wrong side. it should be the original l=
-ength minus what we kept. the marker and its padding fall out of that on thei=
-r own, you dont have to account for them separately
+Hi both,
+
+Mhm. That said I dont think chasing the 29 is the fix.
+
+The number were printing is just computed from the wrong side. It should be=
+ the original length minus what we kept =E2=80=94 the marker and its paddin=
+g fall out of that on their own, you dont have to account for them separate=
+ly.
+
+Dermot

@@ -1,0 +1,31 @@
+From: dermot@world.local
+To: nikolai@world.local, emil@world.local, dario@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Re: PR 565: cost reporting before it lands
+Date: Tue, 08 Apr 2025 14:26:00 +0000
+Message-ID: <178853332772.507296.10372343052555371680@world.local>
+In-Reply-To: <178853332764.507296.270265699776099226@world.local>
+References: <178853332764.507296.270265699776099226@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+On the default question =E2=80=94 I would put it on the base class defaulting=
+ to off. The silent failure you are describing is real, but it is not symmetr=
+ic with the current one. Under the if-chain, the eligibility fact is invisibl=
+e from the provider entirely, so there is nothing to review; under a flag wit=
+h a default, it is a missing line in a class where every other pricing attrib=
+ute is sitting in plain sight, and that is the kind of omission a reader noti=
+ces. Defaulting to off also means the failure mode is that we overcharge ours=
+elves in an estimate rather than undercharge, which is the direction I would =
+rather be wrong in.
+
+So: flag on the base class, off by default, each provider that actually offer=
+s batch pricing sets it true alongside its other rates, and batch_multiplier =
+does a lookup instead of a name comparison. I am not entirely sure whether we=
+ want the discount rate itself on the class as well, but that is a separate a=
+rgument and the current numbers do not force it.
+
+That said, I do not think the if-chain was a mistake when it was written. Wit=
+h two providers in it, it read fine. It stopped reading fine somewhere around=
+ the fourth, and none of us were looking at it on the day that happened.

@@ -1,0 +1,29 @@
+From: dario@world.local
+To: nikolai@world.local, emil@world.local, gideon@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= what goes in the stats dict when the
+ backend doesnt tokenize
+Date: Wed, 14 May 2025 11:02:00 +0000
+Message-ID: <178880169056.2292275.11445349376407266117@world.local>
+In-Reply-To: <178880169056.2292275.9078933473573165245@world.local>
+References: <178880169056.2292275.9078933473573165245@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+i think the thing to hold onto here is that the stats object is a report on w=
+hat the export did, not a description of the data that went through it. so th=
+e question isnt really "what is true about these rows" its "what did this cod=
+e path do to them"
+
+honestly the Fireworks jsonl path never loads a tokenizer, so a token total a=
+nd a trim count coming back off it are just noise, both should read zero ther=
+e. nothing was counted and nothing was dropped and zero says both of those ac=
+curately
+
+None i'd push back on, it reads like the number went missing rather than the =
+work not happening, and then every caller has to decide what None means to th=
+em. and dropping the keys just moves the branch from us to whoever consumes i=
+t which is worse, we'd be handing out a return shape that changes under people
+
+in any case keep the shape stable across backends. its not a perfect signal b=
+ut its the best we can do without making the caller know which backend ran

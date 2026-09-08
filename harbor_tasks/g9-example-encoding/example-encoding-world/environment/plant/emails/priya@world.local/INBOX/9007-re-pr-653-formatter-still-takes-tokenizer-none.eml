@@ -1,0 +1,37 @@
+From: dario@world.local
+To: konrad@world.local, dermot@world.local, emil@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: PR 653: formatter still takes tokenizer=None
+Date: Tue, 06 May 2025 14:26:00 +0000
+Message-ID: <178880169035.2292275.6700671126527231972@world.local>
+In-Reply-To: <178880169033.2292275.3628240914124480993@world.local>
+References: <178880169033.2292275.3628240914124480993@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+That tracks, and it explains the shape of the curve better than the collator =
+theory does, because a mask of all ones is exactly a run that is training on =
+everything and therefore converging on the easy tokens too.
+
+On the question of how to fix it: I had been assuming the choice was either t=
+o leave the no-tokenizer branch as its own small per-segment implementation a=
+nd make it correct on its own terms, or to fold it onto the tokenized path. H=
+aving read your description I think folding is the only version that survives=
+ contact with us six months from now. Two implementations of the same masking=
+ rule is two things to keep in agreement, and honestly the truncation behavio=
+ur is where they would drift first =E2=80=94 the tokenized path trims after i=
+t has spans, and anything written separately would end up trimming before, an=
+d then the two would disagree only on long conversations, which is the case n=
+obody inspects by hand. So derive the spans from the prefix lengths, hand the=
+m to the existing function, let the trimming happen in the one place it alrea=
+dy happens.
+
+The other half of this, which I think matters as much as the fix, is that the=
+ fixture cannot stay the only caller. In any case a suite that is structurall=
+y incapable of failing on the thing it claims to test is worse than no suite,=
+ because it bought us weeks of confidence we had not earned. At minimum the a=
+ssistant-only cases need to run in both configurations, with a real tokenizer=
+ and without, and assert the same mask out of both.
+
+Dario

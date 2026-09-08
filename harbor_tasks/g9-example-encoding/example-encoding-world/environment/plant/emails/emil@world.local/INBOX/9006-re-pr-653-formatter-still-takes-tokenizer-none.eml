@@ -1,0 +1,46 @@
+From: konrad@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: PR 653: formatter still takes tokenizer=None
+Date: Tue, 06 May 2025 13:58:00 +0000
+Message-ID: <178880169034.2292275.765721555299223949@world.local>
+In-Reply-To: <178880169033.2292275.3628240914124480993@world.local>
+References: <178880169033.2292275.3628240914124480993@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+Right, but look =E2=80=94 the formatter is exactly where I would look, and th=
+e passing suite is not evidence of anything on this point. The mask construct=
+ion has two branches. When the formatter is built with a tokenizer, we ask it=
+ for the token span of each rendered segment, and we zero out everything that=
+ does not fall inside a span belonging to an assistant turn. When the formatt=
+er is built without one, we do not have spans, so that branch simply returns =
+a vector of 1.0 with the length of the rendered text and returns it. It never=
+ reads train_on_assistant_only. The flag is not dropped on the way in; on tha=
+t path it is not consulted at all.
+
+The formatter tests all construct the formatter with no tokenizer, because th=
+at is what makes them fast and independent of which model we are pointed at. =
+So every one of those mask assertions is running against the branch that hand=
+s back all ones, and every one of them passes, and none of them would notice =
+a masking bug even if the assistant-only logic were deleted entirely. Your ow=
+n case included, presumably. I checked the fixture this morning and there is =
+no tokenizer anywhere in it.
+
+What I would like us to agree is that the no-tokenizer branch has to honour t=
+he flag rather than ignore it, and that we do not do this by writing a second=
+ masking implementation inside that branch. We already know where each segmen=
+t begins and ends in the rendered string, because we accumulate the length of=
+ the prefix as we build it, so we can produce the assistant spans in characte=
+r units and pass them to the same masking function the tokenized path calls. =
+That includes the trimming step that clips a long example down to the maximum=
+ length, so that a conversation which gets cut is masked the same way whichev=
+er branch produced it. One code path, one place where the flag is read.
+
+Off the top of my head that is a small change, but it will make several of th=
+ose green tests turn red, which is the point of it.
+
+Konrad

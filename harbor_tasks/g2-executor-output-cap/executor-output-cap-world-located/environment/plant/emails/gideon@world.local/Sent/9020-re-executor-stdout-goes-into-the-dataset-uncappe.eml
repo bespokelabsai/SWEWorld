@@ -9,6 +9,9 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-so basically the two slices just get stuck together back to back? honestly th=
-ough from the outside that reads like a valid file that happens to be wrong, =
-um, nothing tells you a chunk went missing in the middle
+So basically the two slices just get stuck together back to back?
+
+Honestly though from the outside that reads like a valid file that happens =
+to be wrong, um, nothing tells you a chunk went missing in the middle.
+
+Gideon

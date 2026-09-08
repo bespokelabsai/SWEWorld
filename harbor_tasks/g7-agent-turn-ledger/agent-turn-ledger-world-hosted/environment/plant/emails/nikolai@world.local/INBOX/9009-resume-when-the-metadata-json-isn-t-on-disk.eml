@@ -1,0 +1,42 @@
+From: konrad@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: resume when the metadata json isn't on disk
+Date: Wed, 09 Apr 2025 08:12:00 +0000
+Message-ID: <178880237806.2304052.16214403045437798323@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: resume refuses to start when the metadata json is missing
+
+Hello Dermot,
+
+I spent part of yesterday evening on the resume path for the advisor run, and=
+ I would like to put what I found in front of you before I open anything, sin=
+ce you know that loader better than I do.
+
+The test was crude, but I think it is the right one. I deleted the metadata j=
+son out of the run directory by hand. That is as close as I can get to a mach=
+ine dying in the gap between the last response coming back and the checkpoint=
+ being written. Then I started the same run again. It refused to start at all=
+ =E2=80=94 it looked at the directory, did not find the json, and stopped wit=
+h an error before it made a single request. Meanwhile the responses jsonl was=
+ sitting there completely intact: three requests planned for that run, the fi=
+rst two written out, one line each, nothing truncated, nothing half-written.
+
+My position is that the missing file is benign. The json is a convenience for=
+ us; the jsonl is the thing we actually append to as responses arrive, and it=
+ survived exactly the failure that the json did not. So a resume that finds n=
+o json should not stop. It should adopt the log =E2=80=94 read the jsonl, tre=
+at the responses in it as done, and derive the remaining work from that. For =
+the run I was testing, the remaining work is one request, and the correct beh=
+aviour is exactly one call_single_request(advisor, 2) and nothing else. Not a=
+ re-issue of the first two, and certainly not a fresh run from the top.
+
+I am not entirely sure whether there was a reason for the hard failure that I=
+ am not seeing, so please tell me if you know of one. Otherwise I would like =
+to change it this week.
+
+Regards,
+Konrad

@@ -1,0 +1,31 @@
+From: dario@world.local
+To: nikolai@world.local, konrad@world.local, emil@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= where does role validation live, and what
+ do the cookbooks import
+Date: Tue, 13 May 2025 11:26:00 +0000
+Message-ID: <178880169050.2292275.12512569210273836673@world.local>
+In-Reply-To: <178880169049.2292275.3485773133541714730@world.local>
+References: <178880169049.2292275.3485773133541714730@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yeah dont put it in the client, i think we'd regret that within a month - the=
+ finetuning path is not the only caller and honestly it's not even the most l=
+ikely one long term
+
+encoding.py as it stands is ALLOWED_ROLES, InvalidRoleSequenceError and Token=
+izerCapabilityError, validate_role_sequence and EncodingReport, all re-export=
+ed from finetune/__init__ so notebooks just import from finetune. so there's =
+a home already, you shouldnt need to make one.
+
+on konrad's point - agreed and to be honest that's most of the reason the re-=
+exports exist in the first place. notebooks reaching into submodules is how w=
+e end up rewriting eight of them every time somebody moves a file around. pac=
+kage root only, and if something you need isnt reachable that way tell me and=
+ i'll widen it rather than you working around it
+
+in any case for 653 i'd rather you didnt block on this, the surface is stable=
+ enough to write against today
+
+- dario

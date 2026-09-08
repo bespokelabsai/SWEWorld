@@ -7,7 +7,13 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-something odd in the executor cap and i cant tell yet if its a bug or a defin=
-ition problem. i set max_output_bytes to 64 on a probe run this morning and w=
-hat came back was 35 bytes of actual program output. not a clean cut at 64 =
-=E2=80=94 thirty five.
+Hi everyone,
+
+Something odd in the executor cap and I cant tell yet if its a bug or a def=
+inition problem.
+
+I set max_output_bytes to 64 on a probe run this morning and what came back=
+ was 35 bytes of actual program output. Not a clean cut at 64 =E2=80=94 thi=
+rty five.
+
+Dario

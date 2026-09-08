@@ -441,9 +441,28 @@ FROM {BASE_IMAGE}
 # a missing dependency can take: every diagnosis of WHY an arm scored what it did
 # has come from reading those recordings back. Unpinned deliberately; an exact
 # version pin rots faster than the recorder's interface.
+# archive.ubuntu.com and security.ubuntu.com both went unreachable from GCP on
+# 2026-09-05 -- 22s for the first fetch and then nothing -- and took three local
+# g6 trials and a hosted validation down with them. Neither mirror FAILED; they
+# hung, so no timeout helped and the failures read as task defects. The
+# GCE-local mirror answers both pockets in under 15ms from this box and from
+# Horizon's builders, which are in the same region.
+RUN sed -i \\
+      -e 's|http://archive\\.ubuntu\\.com|http://us-central1.gce.archive.ubuntu.com|g' \\
+      -e 's|http://security\\.ubuntu\\.com|http://us-central1.gce.archive.ubuntu.com|g' \\
+      /etc/apt/sources.list /etc/apt/sources.list.d/*.sources \\
+      /etc/apt/sources.list.d/*.list 2>/dev/null; \\
+    printf 'Acquire::Retries "2";\\nAcquire::http::Timeout "20";\\n' \\
+      > /etc/apt/apt.conf.d/99-world-timeouts
+
+# NOT fatal, and that is the point. The recorder is how a run gets diagnosed, not
+# how it gets measured: the trial trains, grades and reports without it. A mirror
+# outage was able to fail the whole build, which is the wrong failure for a
+# diagnostic aid to cause. It says so loudly and the build continues.
 RUN apt-get update \\
  && apt-get install -y --no-install-recommends tmux asciinema \\
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \\
+ || echo "WARNING: tmux/asciinema unavailable -- the trial will grade but record nothing"
 
 # The world's services can boot slowly on a cold, shared host.
 ENV WAIT_TIMEOUT=600
@@ -456,7 +475,16 @@ RUN chmod 0755 /usr/local/bin/task-setup.sh
 # README when there is nothing to plant: Harbor drops zero-byte files, and
 # BuildKit then fails a COPY of a missing directory with "failed to calculate
 # checksum of ref", which names no path and reads like a platform fault.
-COPY plant /opt/task-plant
+#
+# 0700, because this directory IS the answer key to a discovery task. At COPY's
+# default 0755 the agent reads the planted corpus straight off local disk --
+# every chat remark, every page comment, every mail -- and skips the whole
+# exercise the task exists to measure. A g2 rollout already printed the listing
+# from `ls /opt/*`, sitting at drwxr-xr-x beside world-state's drwx------. The
+# ingest is unaffected: it runs as root from the healthcheck. Build-time and
+# unconditional, so an ingest that exits early on one of the failure paths below
+# cannot leave the corpus exposed.
+COPY --chmod=0700 plant /opt/task-plant
 
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/task-entrypoint.sh"]
@@ -472,11 +500,9 @@ HOSTED_DOCKERFILE = DOCKERFILE.replace(
     "# No `COPY --from=sweworld:repo-only-dev` — Horizon cannot resolve a second\n"
     "# local tag either, so /opt/curator-dev is already inside the published image.\n"
     "\n"
-    "# tmux and asciinema are the terminal recording, not the trial: without them\n"
-    "# the run still grades and the only record of what the agent typed is gone.\n"
-    "RUN apt-get update \\\n"
-    " && apt-get install -y --no-install-recommends tmux asciinema \\\n"
-    " && rm -rf /var/lib/apt/lists/*")
+    "# The recorder install lives in the shared template below. It used to be\n"
+    "# repeated here too, so every hosted image ran apt twice — which doubled\n"
+    "# the exposure the night both Ubuntu mirrors went unreachable.\n")
 
 WORLD_DOCKERFILE = DOCKERFILE.replace(
     f"FROM {BASE_IMAGE}",
@@ -594,9 +620,29 @@ if [[ -d /opt/task-plant ]]; then
       ingest_comments) [[ -s /opt/task-plant/comments.jsonl ]] || continue ;;
       ingest_mail)     [[ -d /opt/task-plant/emails ]]         || continue ;;
     esac
-    python3 "$S/$step.py" --data-dir /opt/task-plant >>/var/log/task-plant.log 2>&1 \
-      || { echo "task-plant: $step failed, see /var/log/task-plant.log" >&2; exit 1; }
+    python3 "$S/$step.py" --data-dir /opt/task-plant >>/opt/world-state/task-plant.log 2>&1 \
+      || { echo "task-plant: $step failed, see /opt/world-state/task-plant.log" >&2; exit 1; }
   done
+  # ingest_chat stages its import archive in /opt/mattermost/data/import and
+  # Mattermost keeps it after the job succeeds: a 0644 zip whose import.jsonl is
+  # every planted message's text, in a directory the agent can read. Locking
+  # /opt/task-plant does nothing about that second copy. Safe here because
+  # ingest_chat blocks on the import job before returning, and the glob also
+  # clears whatever the base image's own bake left behind.
+  rm -f /opt/mattermost/data/import/*.zip
+  # maddy stores every message body as a plain file under messages/ and indexes
+  # them in a world-readable SQLite db, so `grep -r /var/lib/world/maddy` returns
+  # the planted mail in full without ever opening IMAP. That is the same shortcut
+  # as a readable /opt/task-plant, one directory over: with the plant locked, this
+  # was the ONLY path a filesystem-wide grep as the agent still found. maddy runs
+  # as worldsvc and owns all of it, so 0640/0750 costs it nothing -- login, BODY
+  # search and fetch all verified after -- and Roundcube reaches mail over IMAP,
+  # not the disk. Done here rather than in world/bootstrap because the base image
+  # is published and old, exactly like the PLANT_JOIN guard below. SQLite gives a
+  # recreated -wal/-shm the mode of the db file, so it survives a restart.
+  chmod 0750 /var/lib/world/maddy/messages 2>/dev/null
+  chmod 0640 /var/lib/world/maddy/*.db /var/lib/world/maddy/*.db-wal \\
+             /var/lib/world/maddy/*.db-shm 2>/dev/null
   # Mattermost search is MEMBER-SCOPED, and the admin is created by bootstrap
   # rather than by the import, so it lands in Mattermost's defaults --
   # town-square and off-topic, both empty. An agent handed those credentials
@@ -612,7 +658,7 @@ if [[ -d /opt/task-plant ]]; then
   # script and silently undoes it. This is the guard that does not care how old
   # the image is. It is idempotent -- adding an existing member is a no-op --
   # so it costs nothing on a world that already got it right.
-  python3 - <<'PLANT_JOIN' >>/var/log/task-plant.log 2>&1 || \
+  python3 - <<'PLANT_JOIN' >>/opt/world-state/task-plant.log 2>&1 || \
     echo "task-plant: admin channel-join guard failed, chat search may be blind" >&2
 import json, urllib.request
 
@@ -657,7 +703,7 @@ for team in teams:
         page += 1
 print(f"task-plant: admin in {joined} channel(s)")
 PLANT_JOIN
-  echo "task-plant: ingested" >> /var/log/task-plant.log
+  echo "task-plant: ingested" >> /opt/world-state/task-plant.log
 fi
 
 touch "$MARK"

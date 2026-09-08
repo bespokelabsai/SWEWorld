@@ -1,0 +1,42 @@
+From: dermot@world.local
+To: konrad@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: what the run metadata says for a run that did not finish
+Date: Tue, 22 Apr 2025 13:05:00 +0000
+Message-ID: <178880237798.2304052.4649888222960768941@world.local>
+In-Reply-To: <178880237796.2304052.7747899735476211546@world.local>
+References: <178880237796.2304052.7747899735476211546@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Konrad,
+
+Mhm, I read this at lunch and then went and grepped it properly, because your=
+ account did not match what I remembered from the late night I spent in that =
+module in March.
+
+Let me restate what you are saying so that we are arguing about the same thin=
+g: your reading is that turn_ledger.json is produced once, on the way out of =
+run(), so that nothing exists on disk while the response loop is turning, and=
+ a killed run therefore leaves you a file describing some other run entirely.=
+ That is not what the code does now. The writer is called from run() in more =
+than one place. The first call lands immediately after the seed line goes int=
+o the transcript, before a single request has left the process, so the file i=
+s already on disk with responses 0, turns 1, last_author "client" and complet=
+ion_reason "open". That is 186 bytes, if you want the number, and I have it f=
+rom a run I deliberately killed on its first call this morning, on a fresh di=
+rectory where nothing could have been left behind by anything earlier. From t=
+here the same file is rewritten again after each response that comes back and=
+ is appended. A run that goes all the way through finishes at 189 bytes with =
+the real counts in it. There is no single write on the return path, and there=
+ has not been one for a while.
+
+Which leaves the question of what you actually looked at. If I had to guess, =
+your checkout predates the change =E2=80=94 the write used to sit on the retu=
+rn path and it moved into the loop when we added the seed line, and a build f=
+rom before that would behave exactly as you describe, one stale number and no=
+ updates. That said, I would rather you confirmed it from git log on your sid=
+e than have us both settle on my guess.
+
+Dermot

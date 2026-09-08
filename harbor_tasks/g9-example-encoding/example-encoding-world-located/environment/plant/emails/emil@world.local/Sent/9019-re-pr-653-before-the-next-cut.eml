@@ -1,0 +1,19 @@
+From: emil@world.local
+To: nikolai@world.local, konrad@world.local
+Subject: Re: PR 653 before the next cut
+Date: Wed, 07 May 2025 15:12:00 +0000
+Message-ID: <178880169045.2292275.5068163388514110971@world.local>
+In-Reply-To: <178880169043.2292275.4069940133458733849@world.local>
+References: <178880169043.2292275.4069940133458733849@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Fine by me either way, I'm not blocking on this =E2=80=94 but if the answer t=
+urns out to be that something is dropping, honestly I'd rather it get sorted =
+before the samples get regenerated. We rewrote those once already for the res=
+ponse object and I don't want to be doing it a third time in a fortnight.
+
+So, restating so I have it right: nothing lands until Nikolai confirms tomorr=
+ow, and if it does land I pick up the cookbook side after. Yup? We need to be=
+ intentional here about the ordering, that's all.

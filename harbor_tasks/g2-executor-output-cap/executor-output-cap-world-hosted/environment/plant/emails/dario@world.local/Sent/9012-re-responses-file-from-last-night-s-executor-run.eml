@@ -9,9 +9,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-right, thats the bit that bothers me. same config, two runs, different amount=
-s of output depending on how big the thing we threw away was. in any case the=
- cap should mean the kept bytes =E2=80=94 you ask for 64, you get 64 bytes of=
- program output, and the marker sits on top of that as framing. its our annot=
-ation, not the users content, i dont think it has any business being billed t=
-o them
+Right, thats the bit that bothers me. Same config, two runs, different amou=
+nts of output depending on how big the thing we threw away was.
+
+In any case the cap should mean the kept bytes. You ask for 64, you get 64 =
+bytes of program output, and the marker sits on top of that as framing. Its=
+ our annotation, not the users content, I dont think it has any business be=
+ing billed to them.
+
+Dario

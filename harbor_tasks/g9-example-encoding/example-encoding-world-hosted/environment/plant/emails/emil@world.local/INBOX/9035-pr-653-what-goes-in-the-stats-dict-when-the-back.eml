@@ -1,0 +1,24 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, gideon@world.local
+Subject: PR 653 =?utf-8?b?4oCU?= what goes in the stats dict when the backend
+ doesnt tokenize
+Date: Wed, 14 May 2025 09:41:00 +0000
+Message-ID: <178880169056.2292275.9078933473573165245@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+quick one on PR 653 before i push the next round
+
+the export returns a stats object and right now it always has token_total and=
+ trimmed_count in it no matter which backend we exported for the tinker path =
+fills them in properly since it actually tokenizes and drops the overlong row=
+s the fireworks path doesnt do either of those things it just writes the rows=
+ out
+
+so what do those two fields hold on the second path do we return None do we l=
+eave the keys out entirely or do we put zeros in there
+
+i'd say leaving them out is cleanest but it makes the return shape backend de=
+pendent and anyone writing a summary line off it has to branch gotta think th=
+rough that one before i commit to it

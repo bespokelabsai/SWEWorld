@@ -134,13 +134,30 @@ def landed(root: pathlib.Path, ledger: dict) -> dict[str, tuple[int, str, str]]:
     want = {c["clue_id"]: inject.must_appear(c)
             for c in inject.clues_of(ledger)
             if c.get("carrier") and inject.must_appear(c)}
+    # A chat exchange is written into ONE channel on ONE day -- `write_chat`
+    # takes both off the carrier -- so a matching line on any other day is a text
+    # collision, not part of the exchange. Counting those inflated g9's row 55 to
+    # "23 messages" for an eight-message thread and, because the span is just
+    # first-hit to last-hit, printed g11's row 2 as `11:12-11:10`: an end time
+    # earlier than its start. Mail and wiki are left alone; a mail thread really
+    # can run across days, and `row()` already renders that case.
+    day: dict[str, str] = {}
+    for c in inject.clues_of(ledger):
+        carrier = c.get("carrier") or {}
+        if carrier.get("source") == "slack" and carrier.get("date"):
+            day[c["clue_id"]] = carrier["date"]
     hits: dict[str, list[str]] = {cid: [] for cid in want}
+    anywhere: dict[str, list[str]] = {cid: [] for cid in want}
 
     def sweep(body: str, when: str) -> None:
         body = inject.flat(body)
         for cid, parts in want.items():
-            if any(part and part in body for part in parts):
-                hits[cid].append(when)
+            if not any(part and part in body for part in parts):
+                continue
+            anywhere[cid].append(when)
+            if cid in day and when and not when.startswith(day[cid]):
+                continue
+            hits[cid].append(when)
 
     for name in ("messages.jsonl", "comments.jsonl"):
         path = root / name
@@ -164,9 +181,14 @@ def landed(root: pathlib.Path, ledger: dict) -> dict[str, tuple[int, str, str]]:
         sweep(raw.decode("utf-8", "replace") if raw else "", stamp)
 
     out = {}
-    for cid, when in hits.items():
-        when = sorted(w for w in when if w)
-        out[cid] = (len(hits[cid]), when[0] if when else "", when[-1] if when else "")
+    for cid, found in hits.items():
+        # A chat_insert's minutes are shifted onto its anchor, so in principle the
+        # shift can push an exchange over midnight and the day filter then matches
+        # nothing. Falling back to the unfiltered hits keeps such a row honest
+        # rather than emitting a count of zero.
+        found = found or anywhere[cid]
+        when = sorted(w for w in found if w)
+        out[cid] = (len(found), when[0] if when else "", when[-1] if when else "")
     return out
 
 
@@ -230,12 +252,22 @@ def row(at: dict, land: tuple[int, str, str], titles: dict[str, str]
             span = f"{clock}–{ends[11:16]}"
         body = (f"a **comment** by **{at['who']}**" if turns == 1 else
                 f"an exchange of {turns} **comments** opened by **{at['who']}**")
-        return date, span, f"{named} (`{where}`) — {body}, not the page body"
+        # A `doc_new` writes the page AND the comments on it; a `doc_comment`
+        # hangs comments on a page the world already had. Only the second one is
+        # a page whose body the reader can safely skip.
+        tail = ("and the page they hang on" if at.get("kind") == "doc_new"
+                else "not the page body")
+        return date, span, f"{named} (`{where}`) — {body}, {tail}"
     if surface == "wiki page":
         title = titles.get(where, "")
         named = f'the wiki page “{title}”' if title else "a wiki page"
-        return date, clock, (f"{named} (`{where}`) — in the **page body**, "
-                             f"written by **{at['who']}**")
+        # "and its comments", always: a `doc_new` writes the body and hangs
+        # comments on it, and which half carries which piece is not something this
+        # row is allowed to say. BookStack's search reaches the body and not the
+        # comments, so a reader who stops at whichever one search found has read
+        # half of it.
+        return date, clock, (f"{named} (`{where}`) — the **page body**, written "
+                             f"by **{at['who']}**, and the comments on it")
     return date, clock, f"{surface} · {where} · {at.get('who', '?')}"
 
 
@@ -294,15 +326,19 @@ def splice(instruction: str, index: str) -> str:
     return head.rstrip() + "\n\n" + index + "\n" + marker + tail
 
 
-def patch_toml(text: str, slug: str) -> str:
+def patch_toml(text: str, slug: str, *, hosted: bool = False) -> str:
     """Only the name, the description and the variant may move.
 
     Everything else -- the image, the CPUs, the healthcheck, both timeouts -- has
     to stay byte-identical to the world arm, or the two arms stop being a
     comparison and the extra number means nothing.
     """
-    text = re.sub(r'(?m)^name = "([^"]+)-world"$',
-                  rf'name = "\1{SUFFIX}"', text)
+    if hosted:
+        text = re.sub(r'(?m)^name = "([^"]+)-world-hosted"$',
+                      rf'name = "\1{SUFFIX}-hosted"', text)
+    else:
+        text = re.sub(r'(?m)^name = "([^"]+)-world"$',
+                      rf'name = "\1{SUFFIX}"', text)
     # The world arms all end their description on the same clause, so the located
     # arm's is that description with its last sentence swapped rather than a
     # per-task string written out here -- the first version of this hardcoded g1's
@@ -315,25 +351,52 @@ def patch_toml(text: str, slug: str) -> str:
                          f"{hunt!r}, so the located arm's cannot be derived from "
                          "it. Reword it here deliberately.")
     text = text.replace(hunt, told, 1)
-    text = re.sub(r'(?m)^variant = "world"$', 'variant = "world-located"', text)
+    text = re.sub(r'(?m)^variant = "world(-hosted)?"$',
+                  'variant = "world-located"', text)
     return text
 
 
-def emit(slug: str, index: str, force: bool) -> pathlib.Path:
+def emit(slug: str, index: str, force: bool, *, hosted: bool = False) -> pathlib.Path:
+    """Copy one world arm and rewrite exactly two files in the copy.
+
+    `hosted` picks `-world-hosted` as the source instead of `-world`, so the
+    hosted twin is the hosted arm plus the map and nothing else. It is emitted
+    here rather than assembled by hand because the two used to be built in
+    separate sittings: the twin kept an older plant and an older suite than the
+    arm it is supposed to be a copy of, and nothing said so.
+    """
     task = load(slug)
     group = REPO / "harbor_tasks" / task.group
-    source = group / f"{task.slug}-world"
-    target = group / f"{task.slug}{SUFFIX}"
+    source = group / (f"{task.slug}-world-hosted" if hosted else f"{task.slug}-world")
+    target = group / (f"{task.slug}{SUFFIX}-hosted" if hosted else f"{task.slug}{SUFFIX}")
     if not (source / "task.toml").is_file():
         raise SystemExit(f"no world arm at {source}")
     if target.exists() and not force:
         raise SystemExit(f"{target} exists; pass --force to overwrite")
 
+    # Everything Horizon wrote about the arm -- its task id, its rollouts, its
+    # validations -- is under dot-directories that the rebuild has no business
+    # discarding. A push that cannot read .horizon/metadata.json creates a SECOND
+    # task and leaves the rollouts on the first.
+    keep = [d for d in (".horizon", ".rollouts", ".validation")
+            if (target / d).is_dir()]
+    stash = target.parent / f".{target.name}.keep" if keep else None
+    if stash is not None:
+        if stash.exists():
+            shutil.rmtree(stash)
+        stash.mkdir()
+        for d in keep:
+            shutil.move(str(target / d), str(stash / d))
     if target.exists():
         shutil.rmtree(target)
-    shutil.copytree(source, target)
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns(
+        ".horizon", ".rollouts", ".validation"))
+    if stash is not None:
+        for d in keep:
+            shutil.move(str(stash / d), str(target / d))
+        shutil.rmtree(stash)
     (target / "task.toml").write_text(
-        patch_toml((source / "task.toml").read_text(), task.slug))
+        patch_toml((source / "task.toml").read_text(), task.slug, hosted=hosted))
     (target / "instruction.md").write_text(
         splice((source / "instruction.md").read_text(), index))
     return target
@@ -352,6 +415,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="print the section and write nothing")
     ap.add_argument("--force", action="store_true",
                     help="overwrite an arm that is already there")
+    ap.add_argument("--hosted", action="store_true",
+                    help="also emit the -world-located-hosted twin, copied from "
+                         "the -world-hosted arm")
     args = ap.parse_args(argv)
 
     task = load(args.slug)
@@ -365,9 +431,12 @@ def main(argv: list[str] | None = None) -> int:
         print(index)
         return 0
 
-    target = emit(args.slug, index, args.force)
-    print(f"  {target.relative_to(REPO)}  ({len(spot)} remarks, plant {name}, "
-          f"read out of {root})")
+    made = [emit(args.slug, index, args.force)]
+    if args.hosted:
+        made.append(emit(args.slug, index, args.force, hosted=True))
+    for target in made:
+        print(f"  {target.relative_to(REPO)}  ({len(spot)} remarks, plant {name}, "
+              f"read out of {root})")
     return 0
 
 

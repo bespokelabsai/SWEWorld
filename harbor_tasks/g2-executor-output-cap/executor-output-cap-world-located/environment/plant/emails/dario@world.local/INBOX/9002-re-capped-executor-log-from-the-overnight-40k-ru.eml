@@ -9,6 +9,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-honestly i think its neither. let me think through that... its whatever the w=
-riter had in its running total when it bailed out of the loop, and i believe =
-both the head slice and the tail slice get added into that same variable
+Hey Dario,
+
+Honestly I think its neither.
+
+Let me think through that. Its whatever the writer had in its running total=
+ when it bailed out of the loop, and I believe both the head slice and the =
+tail slice get added into that same variable.
+
+Emil

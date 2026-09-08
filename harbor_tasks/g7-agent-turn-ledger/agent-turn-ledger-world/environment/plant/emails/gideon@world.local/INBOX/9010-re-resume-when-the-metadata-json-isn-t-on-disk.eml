@@ -1,0 +1,38 @@
+From: dermot@world.local
+To: konrad@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: resume when the metadata json isn't on disk
+Date: Wed, 09 Apr 2025 13:24:00 +0000
+Message-ID: <178880237807.2304052.333978506584385543@world.local>
+In-Reply-To: <178880237806.2304052.16214403045437798323@world.local>
+References: <178880237806.2304052.16214403045437798323@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Konrad,
+
+If I am reading your mail correctly, you want the json demoted from a precond=
+ition to a hint: resume proceeds without it and rebuilds its picture from the=
+ jsonl instead. I agree with that, and I do not know of a reason for the hard=
+ failure beyond it being the easiest thing to write at the time.
+
+The write ordering argues your side as well. The jsonl is appended and flushe=
+d per response; the json is only rewritten afterwards. So the json is by cons=
+truction the file most likely to be absent or behind after a bad exit, and th=
+e log is by construction the one that is ahead. Refusing to start on the abse=
+nce of the weaker of the two records is backwards. If I had to guess, that ch=
+eck dates from when the json was the only thing we kept, and nobody revisited=
+ it once the log went in.
+
+That said, I want one hard failure kept. If the jsonl itself cannot be read, =
+or the last line is torn, stop and say so rather than guess at it. Quietly de=
+ciding nothing was done and paying for the whole run a second time is the out=
+come I care about avoiding =E2=80=94 I have watched a late night turn into pr=
+ecisely that with other tooling.
+
+On your last paragraph, I want to be explicit, because that is the part which=
+ is easy to get wrong in the implementation: after adopting the log, the run =
+must issue exactly one call, call_single_request(advisor, 2). If a second cal=
+l turns up in the log for that test case, the adoption is not doing what we j=
+ust agreed it does.

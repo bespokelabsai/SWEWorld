@@ -1,0 +1,18 @@
+From: nikolai@world.local
+To: dario@world.local, konrad@world.local, emil@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= where does role validation live, and what
+ do the cookbooks import
+Date: Tue, 13 May 2025 12:03:00 +0000
+Message-ID: <178880169051.2292275.3544867640237947174@world.local>
+In-Reply-To: <178880169049.2292275.3485773133541714730@world.local>
+References: <178880169049.2292275.3485773133541714730@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+right thats what i needed
+
+ripping the check out of the client now and the notebook will go through the =
+package root
+
+- nikolai

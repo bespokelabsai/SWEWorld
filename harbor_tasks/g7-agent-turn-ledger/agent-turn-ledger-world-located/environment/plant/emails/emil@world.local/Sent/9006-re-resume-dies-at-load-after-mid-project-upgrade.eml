@@ -1,0 +1,41 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: resume dies at load after mid-project upgrade
+Date: Tue, 13 May 2025 15:05:00 +0000
+Message-ID: <178880237802.2304052.17164739261031055420@world.local>
+In-Reply-To: <178880237802.2304052.7392719398536391566@world.local>
+References: <178880237802.2304052.7392719398536391566@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+Yup =E2=80=94 the load threw for me too, on a checkpoint I had left over from=
+ a build a couple of weeks old, so it is not something about your tree.
+
+Let me think through that, because the specifics are what decide the question=
+. I dumped the sidecar side by side with what the writer emits today for that=
+ same log, and everything that describes the log agreed: the response count i=
+n the checkpoint matched the log exactly, and the last author recorded on the=
+ final entry matched it as well. Those two are what a resume actually leans o=
+n =E2=80=94 they are what tells you the checkpoint belongs to this log and ho=
+w far into it you are. The single divergence was interleave_faults. Both file=
+s carry the field, the writer still emits it, it is one of the eight; the che=
+ckpoint just had a nonzero figure sitting in it where the current writer puts=
+ a zero for the same log. Nothing in that number says anything about where th=
+e run stopped or which log it stopped in.
+
+So my conclusion is that comparing every key is too strict. As written, a boo=
+kkeeping counter whose accounting changed underneath us can veto a checkpoint=
+ that is a faithful description of its log, and the operator gets an unnamed =
+failure and an afternoon of doubting the log. I believe we need to be intenti=
+onal here about what the comparison is for: it is a guard against loading a c=
+heckpoint that belongs to some other log, not an assertion that the file was =
+written by the build we happen to be running now.
+
+I am not entirely sure interleave_faults is the only field that can drift thi=
+s way, and I would rather not find out one checkpoint at a time.
+
+Emil

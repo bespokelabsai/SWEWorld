@@ -354,12 +354,47 @@ def test_open_feature__one_step_unit_one_checkpoint_identity_one_resume_contract
     bare = CheckpointInfo(name="a", path="b", step=1, epoch=1, loss=0.5)
     assert (bare.batch_size, bare.gradient_accumulation_steps, bare.batches_completed, bare.dataset_signature) == (0, 0, 0, "")
 
+    # Present, defaulted, in that relative order -- NOT at a particular index.
+    # The ticket says "appended in this order" for CheckpointInfo above and only
+    # "gains" for these two, and nothing in the record settles where they sit. A
+    # solution that grouped them beside current_step/total_steps -- where they
+    # read best -- scored 1.0 on every hidden fact of g11 and lost the whole open
+    # feature on a field's position.
     stats_fields = [f.name for f in dataclasses.fields(TrainingStats)]
-    assert stats_fields[-2:] == ["current_batch", "total_batches"]
+    assert {"current_batch", "total_batches"}.issubset(stats_fields)
+    assert stats_fields.index("current_batch") < stats_fields.index("total_batches")
+    # and nothing that was already there was dropped, renamed or reordered
+    assert [f for f in stats_fields if f not in ("current_batch", "total_batches")] == [
+        "current_epoch",
+        "total_epochs",
+        "current_step",
+        "total_steps",
+        "current_loss",
+        "tokens_processed",
+        "samples_processed",
+        "learning_rate",
+        "elapsed_time",
+    ]
     assert (TrainingStats().current_batch, TrainingStats().total_batches) == (0, 0)
 
+    # Same wording, same treatment. One rollout inserted these mid-dataclass and
+    # only moved them to the end afterwards "to be safe" -- the tail was a coin
+    # flip, not a requirement.
     result_fields = [f.name for f in dataclasses.fields(TrainingResult)]
-    assert result_fields[-2:] == ["total_batches", "step_plan"]
+    assert {"total_batches", "step_plan"}.issubset(result_fields)
+    assert result_fields.index("total_batches") < result_fields.index("step_plan")
+    assert [f for f in result_fields if f not in ("total_batches", "step_plan")] == [
+        "final_loss",
+        "total_steps",
+        "total_epochs",
+        "total_time",
+        "tokens_processed",
+        "samples_processed",
+        "loss_history",
+        "weights_name",
+        "checkpoints",
+        "metadata",
+    ]
     minimal = TrainingResult(
         final_loss=0.0,
         total_steps=0,

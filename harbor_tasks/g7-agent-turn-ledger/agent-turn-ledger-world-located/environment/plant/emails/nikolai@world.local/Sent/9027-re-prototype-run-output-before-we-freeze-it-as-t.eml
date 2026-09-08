@@ -1,0 +1,17 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, konrad@world.local
+Subject:
+ Re: prototype run output before we freeze it as the reference transcript
+Date: Wed, 11 Jun 2025 13:20:00 +0000
+Message-ID: <178880237830.2304052.4371811005251205735@world.local>
+In-Reply-To: <178880237829.2304052.5378837543729362849@world.local>
+References: <178880237829.2304052.5378837543729362849@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yep that tracks with what i saw when i was poking at the same directory last =
+week i just assumed i had miscounted
+
+if the responses file has it then its the writer not the run right no need to=
+ redo anything expensive

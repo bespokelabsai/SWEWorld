@@ -106,7 +106,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-03-19 · #pipeline · gideon**
 
-> ya so basically I killed the run on its very first call and turn_ledger.json is already there at 186 bytes exactly - responses 0, turns 1, last_author client.
+> ya so basically I made the first call_single_request blow up and turn_ledger.json is already sitting there at 186 bytes with the newline - responses 0, turns 1, last_author client.
 
 **2025-03-19 · #engineering · dermot**
 
@@ -122,23 +122,19 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-03-24 · #pipeline · nils**
 
-> i wrote read_sidecar for the tests rather than leave it - hand it the working dir, get the record back as a dict. write_sidecar already returns the absolute path it wrote, so tests read straight off that.
+> i wrote read_sidecar for the tests - work dir in, record back as a dict. mine says version 1, responses 2, last_author client, and the 3-line log agrees on both.
 
-**2025-04-07 · wiki: WS-050: Batch Mode (50%-Cost Async Batch APIs) · nils**
+**2025-03-24 · #pipeline · dario**
 
-> one of those killed runs left half a json line and resume died in json.loads. we dont discard an intact log over that - adopt it, append the one line, three becomes four.
-
-**2025-04-09 · wiki: payload plan file: what the tests hold on to · dario**
-
-> sort_keys and indent 2 with a trailing newline please, exactly how turn_ledger.json goes out - the key order moved between two runs and every test diff after that was noise.
+> per-run, yeah - a responses file pins to a record by response count and last author, nothing else. first write carries created, verified is only a load where both matched.
 
 **2025-04-09 · mail: resume against a stale checkpoint — where is it supposed to refuse? · dermot**
 
-> ran the stale-checkpoint repro late last night - four calls burned before TurnLedgerDesyncError surfaced, though recorded_responses 3 and recorded_last_author 'advisor' do come off the exception. it should be refusing before the first call.
+> cut the jsonl to three lines, left turn_ledger.json stale - four calls burned before TurnLedgerDesyncError surfaced with recorded_responses 3, recorded_last_author 'advisor'. not one call should have fired, no line appended.
 
 **2025-04-09 · #incidents · dermot**
 
-> on the no-local-record side, ledger.sidecar_state is exactly eight keys — version, responses, turns, last_author, next_speaker, interleave_faults, completed, completion_reason. it goes back out through write_sidecar after every append, seed line included.
+> on the no-local-record side, ledger.sidecar_state() hands back eight keys — version, responses, turns, last_author, next_speaker, interleave_faults, completed, completion_reason — and i stat whatever write_sidecar hands me, after every append, seed included.
 
 **2025-04-09 · mail: resume when the metadata json isn't on disk · konrad**
 
@@ -147,6 +143,10 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 **2025-04-09 · mail: stop condition in the turn loop — does it assume string content? · dermot**
 
 > late night run — put the json-mode agent through my branch and the stop check threw AttributeError on a dict, killed the run at turn two.
+
+**2025-04-10 · #engineering · gideon**
+
+> ya so basically on WS-050 I pointed verify_sidecar at a turn_ledger.json json.loads chokes on - status adopted, nothing thrown. TurnLedgerDesyncError is the only raise in that module.
 
 **2025-04-10 · mail: stop sequences: what should count as a stop before I normalise across backends · dermot**
 
@@ -163,10 +163,6 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 **2025-04-22 · mail: what the run metadata says for a run that did not finish · konrad**
 
 > A run I killed at response seven left the json still claiming one response, it only gets written when run() returns. so yes the file lies about the run.
-
-**2025-04-24 · wiki: Batch job status persistence across process restarts · nikolai**
-
-> same goes for the responses file i opened a finished run to look at counters and load rewrote it under me it gets read back and verified not replaced
 
 **2025-04-24 · #code-review · dario**
 
@@ -186,11 +182,15 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-04-28 · #engineering · gideon**
 
-> ya so basically version 2 checkpoint, responses and last_author both matching the log, ledger comes back status verified and the file stays exactly as it was
+> ya so basically version 2 checkpoint, responses and last_author both matching — you hand it the work dir and the ledger we rebuilt off the jsonl, comes back status verified, file untouched.
 
 **2025-05-13 · #pipeline · emil**
 
 > honestly half the checkpoints on my box predate TURN_LEDGER_VERSION 2 and don't even carry the same keys - those are stale, not wrong. when a version-2 one does disagree, the error's .path attribute holds that turn_ledger.json path.
+
+**2025-05-13 · wiki: turn_ledger.json — the per-turn ledger artifact · dario**
+
+> turn_ledger.json goes out sort_keys, indent 2, trailing newline - the byte counts in the tests ride on it. key order moved once and every diff went noisy.
 
 **2025-05-13 · mail: resume dies at load after mid-project upgrade · emil**
 
@@ -210,7 +210,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-06-04 · #code-review · konrad**
 
-> Ran a clean four-turn conversation through to the end on 685: file lands at 189 bytes - responses 3, turns 4, last_author advisor, next_speaker null, completed true, completion_reason agent_signal
+> Ran four turns on 685: 189 bytes, read_sidecar off the work dir gives version 2, responses 3, turns 4, last_author advisor, next_speaker null, completed true, completion_reason agent_signal
 
 **2025-06-04 · wiki: Weekly sync notes: week of Jun 2 (release + CI) · emil**
 
@@ -220,9 +220,17 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > Also, scrap what I confirmed for the docs - is_completed is not a case-insensitve scan over the whole response, it's response.rstrip().endswith(COMPLETION_SENTINEL), exact casing, trailing whitespace ignored, non-str returns False.
 
+**2025-06-11 · #engineering · konrad**
+
+> Look, I passed the work dir in relative and the path handed back still opened from my home dir — absolute either way, /work/agent/turn_ledger.json.
+
 **2025-06-11 · mail: which state files does the resume consistency check actually cover · nikolai**
 
-> TurnLedgerDesyncError on resume, message verbatim: /work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'. .log_responses and .log_last_author sit on it too.
+> TurnLedgerDesyncError out of verify_sidecar on resume, str(exc) came back as /work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client' — .log_responses and .log_last_author sit on it too.
+
+**2025-06-11 · wiki: Inspecting a finished run without mutating it · nikolai**
+
+> i opened a finished run just to read counters and load_ledger rewrote it under me load_ledger is read the log rebuild in memory verify_sidecar nothing written
 
 **2025-06-11 · mail: prototype run output before we freeze it as the reference transcript · dario**
 
@@ -232,6 +240,10 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > so basically budget was 6 and the fake answered three times, so four lines in responses_0.jsonl, the tracker reporting three responses, and the ledger's own responses field at 3 too.
 
+**2025-06-13 · #pipeline · emil**
+
+> yup - verify_sidecar, same module as write_sidecar: fed it a freshly built ledger, status created - first with turn_ledger.json deleted, then nils' version 1 record. adopted both times, nothing written.
+
 **2025-06-13 · #engineering · emil**
 
 > the fake's third reply is "Then index funds. <<END_OF_CONVERSATION>>" and i want that entire string sitting as the content of the last dataset row, role PARTNER.
@@ -240,13 +252,17 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > yeah ok, re-ran dario's transcript on my branch and the dataset comes out at four rows now, same count as the jsonl log, closing message and all
 
-**2025-06-24 · wiki: resume behavior for auto batch mode: matching responses files to job records · dario**
+**2025-06-17 · wiki: Recovering an interrupted agent turn (turn ledger resume path) · nils**
 
-> on "a restart needs both" — a responses file is pinned to its job record by response count and who wrote last; a first write compares against nothing, so the ledger says created, not verified.
+> one of the killed runs left turn_ledger.json half written and json.loads dies on it — we treated it as absent, appended to the intact jsonl, three became four.
 
 **2025-07-02 · wiki: Reading completion_reason in the agent turn ledger · nils**
 
 > let me think through that — a run that ended on the marker did not run out of anything, so completion_reason on the ledger reads "agent_signal", never budget.
+
+**2025-07-10 · #engineering · konrad**
+
+> Look, our TurnLedgerError messages don't end with a full stop - I pasted that one into an assert with the sentence period still attached and lost an hour to the diff.
 
 **2025-12-29 · wiki: Weekly sync notes: week of Jun 2 (release + CI) · konrad**
 
@@ -255,6 +271,10 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 **2025-12-29 · #cookbooks · konrad**
 
 > Right, and completed reads True on the ledger for these runs. The agent said it was done, thats a finish, not a run we cut short.
+
+**2025-12-30 · #pipeline · konrad**
+
+> Look, clean work dir, ran it end to end - nothing to load so verify_sidecar never fired, and the ledger came back still carying the status it was built with.
 
 
 ## Getting around

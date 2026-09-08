@@ -1,0 +1,30 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: resume dies at load after mid-project upgrade
+Date: Tue, 13 May 2025 16:20:00 +0000
+Message-ID: <178880237804.2304052.1406324835094313870@world.local>
+In-Reply-To: <178880237802.2304052.7392719398536391566@world.local>
+References: <178880237802.2304052.7392719398536391566@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Konrad,
+
+That is the confirmation I wanted, and it makes the case cleanly: a field can=
+ keep its place in the file and still stop meaning what it meant, and the loa=
+der has no way to tell that apart from a checkpoint pointing at the wrong log.
+
+On your question, I would leave the older files exactly as they are. Rewritin=
+g a checkpoint so it can satisfy a check we are in the middle of relaxing is =
+work we would throw away, and it would also destroy the one honest record of =
+what that older build counted. The comparison instead looks at the fields tha=
+t tie the checkpoint to its log =E2=80=94 the response count and the author o=
+n the last entry =E2=80=94 and those it must match exactly, since a disagreem=
+ent there means the file describes something else and we should refuse it lou=
+dly. Everything else in the sidecar stays in the file and stays in the dump, =
+because it is worth reading when a run goes wrong. It simply stops having a v=
+ote on whether the checkpoint loads.
+
+Emil

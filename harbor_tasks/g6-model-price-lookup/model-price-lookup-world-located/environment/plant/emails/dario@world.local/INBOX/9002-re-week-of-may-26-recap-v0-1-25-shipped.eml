@@ -1,0 +1,34 @@
+From: dermot@world.local
+To: konrad@world.local, dario@world.local, emil@world.local,
+ nikolai@world.local, nolan@world.local, gideon@world.local
+Subject: Re: Week of May 26 recap: v0.1.25 shipped
+Date: Mon, 02 Jun 2025 11:52:00 +0000
+Message-ID: <178853332737.507296.16301164966345118548@world.local>
+In-Reply-To: <178853332736.507296.2911294555607558318@world.local>
+References: <178853332736.507296.2911294555607558318@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Konrad,
+
+So if I have you right, the complaint is not that the constructor rejected yo=
+ur string, it is that it rejected it by raising a different exception type th=
+an the one you were in the middle of constructing, and you had to go and read=
+ the class to find out why. That is fair, and it is the part of the design th=
+at reads badly from the outside.
+
+The validation is deliberate. The reason field ends up in the summary output =
+and in the aggregation on the viewer side, and both of those group by the exa=
+ct string, so a typo or a one-off variant would quietly produce a fourth buck=
+et that nobody had accounted for. Checking the argument against UnpricedModel=
+Error.REASONS in the constructor is the cheap way to make that impossible. Th=
+at said, the list is not sacred. Three was what the cases were when it was wr=
+itten, and if a genuinely new case turns up, adding a fourth string is a one-=
+line change plus whatever the viewer needs to display it.
+
+If I had to guess, your case is not a new one. A model with no entry in the p=
+rice table is the situation the existing reasons were written for, so I would=
+ look at those three before adding anything.
+
+Dermot

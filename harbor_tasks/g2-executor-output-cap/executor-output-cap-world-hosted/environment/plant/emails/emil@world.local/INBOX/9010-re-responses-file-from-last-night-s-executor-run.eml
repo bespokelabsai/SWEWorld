@@ -9,8 +9,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ok, that accounts for the arithmetic at least. what im less sure about is whe=
-ther thats intentional or just how the writer happened to fall out =E2=80=94 =
-is the 64 supposed to be the ceiling on the whole blob we hand back, or the c=
-eiling on the output itself? because as it stands the answer depends on how l=
-ong the marker text happens to be, which is not a thing the caller can see
+Ok, that accounts for the arithmetic at least.
+
+What Im less sure about is whether thats intentional or just how the writer=
+ happened to fall out. Is the 64 supposed to be the ceiling on the whole bl=
+ob we hand back, or the ceiling on the output itself? Because as it stands =
+the answer depends on how long the marker text happens to be, which is not =
+a thing the caller can see.
+
+Dario

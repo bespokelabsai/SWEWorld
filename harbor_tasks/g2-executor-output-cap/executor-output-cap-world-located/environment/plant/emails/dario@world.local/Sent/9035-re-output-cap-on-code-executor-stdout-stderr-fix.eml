@@ -10,5 +10,7 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-80 is a good pick for it as well, if it were exactly 64 id never catch an off=
- by one at the boundary
+80 is a good pick for it as well. If it were exactly 64 id never catch an o=
+ff by one at the boundary.
+
+Dario

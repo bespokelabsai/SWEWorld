@@ -1,0 +1,36 @@
+From: dermot@world.local
+To: dario@world.local, nikolai@world.local, emil@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= ran a curated set through the encode path
+Date: Wed, 07 May 2025 12:40:00 +0000
+Message-ID: <178880169031.2292275.10997392879170347272@world.local>
+In-Reply-To: <178880169028.2292275.9054621562454987743@world.local>
+References: <178880169028.2292275.9054621562454987743@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Nikolai, Dario,
+
+I came to this after the fact and had to read the encoder to follow it, so le=
+t me restate what I take the finding to be and you can correct me. The length=
+ field is populated after padding, hence 52 everywhere; the supervision mask =
+is applied to the answer span before truncation is applied to the sequence; t=
+runcation then removes the head of the answer but the mask that was computed =
+over the full span survives on whatever remains. If I had to guess, that orde=
+ring is also why the ratio has been suspiciously flat in every report since w=
+e moved to the fixed-length encoder.
+
+That said, I would put one refinement on the remedy. A truncated answer is no=
+t merely an unsupervised example =E2=80=94 it is an example we should be able=
+ to detect and count, otherwise we will lose the signal about how often our s=
+equences are too short for the material. If we drop those twelve positions fr=
+om supervision and say nothing else, supervised_tokens quietly falls and we w=
+ill have no way to tell a genuinely short answer from one we mutilated. I wou=
+ld like a per-row marker for the truncated case so that the loss of supervisi=
+on is visible as such.
+
+On the wider question, I agree with Nikolai that the two changes belong toget=
+her.
+
+Dermot

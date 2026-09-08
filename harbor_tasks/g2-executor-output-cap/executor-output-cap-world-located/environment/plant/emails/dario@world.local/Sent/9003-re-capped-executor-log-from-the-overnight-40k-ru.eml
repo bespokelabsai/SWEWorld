@@ -9,6 +9,9 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-right, but heres the part i cant close. i diffed the sizes =E2=80=94 the cell=
- is 812043 shorter than the raw log on disk. so the seam is under by 29 and i=
- have no idea what the 29 is
+Right, but heres the part I cant close.
+
+I diffed the sizes. The cell is 812043 shorter than the raw log on disk, so=
+ the seam is under by 29 and I have no idea what the 29 is.
+
+Dario

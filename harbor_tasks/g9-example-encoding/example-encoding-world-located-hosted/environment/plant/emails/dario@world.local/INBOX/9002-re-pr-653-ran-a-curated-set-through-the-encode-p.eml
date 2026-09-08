@@ -1,0 +1,32 @@
+From: nikolai@world.local
+To: dario@world.local, dermot@world.local, emil@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= ran a curated set through the encode path
+Date: Wed, 07 May 2025 11:33:00 +0000
+Message-ID: <178880169030.2292275.14395281318389627716@world.local>
+In-Reply-To: <178880169028.2292275.9054621562454987743@world.local>
+References: <178880169028.2292275.9054621562454987743@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dario,
+
+On the 52: that is the pad length, and I would say it has been since the enco=
+der was written. Nobody put a real length in that field, so nothing was ever =
+going to vary. Blunt question, because it decides how much of the set is affe=
+cted =E2=80=94 did you find a single row anywhere where token_count is not 52=
+, or is it 52 across the whole file?
+
+The twelve is the part that bothers me more than the constant. A constant tha=
+t lies in the summary is embarrassing. Supervising a fragment that begins mid=
+-sentence is a training signal we did not intend to give and cannot see in an=
+y metric we currently print, since supervised_tokens counts those twelve exac=
+tly like the other twenty-eight.
+
+Your second option, for my part. Splitting them means we ship a corrected cou=
+nt that still sits on top of a mask we know is wrong, and then the number loo=
+ks trustworthy while the data underneath it is not. That is worse than the cu=
+rrent state, which at least nobody believes.
+
+Nikolai

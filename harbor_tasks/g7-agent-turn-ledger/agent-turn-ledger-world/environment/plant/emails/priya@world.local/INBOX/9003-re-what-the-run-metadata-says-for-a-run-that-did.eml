@@ -1,0 +1,27 @@
+From: dario@world.local
+To: konrad@world.local, dermot@world.local, emil@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: what the run metadata says for a run that did not finish
+Date: Tue, 22 Apr 2025 14:12:00 +0000
+Message-ID: <178880237799.2304052.8645489152313767410@world.local>
+In-Reply-To: <178880237796.2304052.7747899735476211546@world.local>
+References: <178880237796.2304052.7747899735476211546@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot, Konrad,
+
+Coming to this late, the part that matters on my end is the correction rather=
+ than the original complaint. I had shelved the progress view on the strength=
+ of an earlier conversation where the file was described to me as an end-of-r=
+un artefact, and if it is in fact refreshed as the responses land, then mid-r=
+un it does track progress and I can read it for exactly what I wanted to read=
+ it for. That tracks with the byte counts Dermot gives, since a file that onl=
+y ever appeared at the end would not have a 186-byte form at all.
+
+One thing I would like pinned down before I build on it: am I polling that fi=
+le on an interval, or does something announce that it has changed? Either is =
+workable, I just do not want to write the wrong one and find out later.
+
+Dario

@@ -1,0 +1,21 @@
+From: emil@world.local
+To: nikolai@world.local, dario@world.local, gideon@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= what goes in the stats dict when the
+ backend doesnt tokenize
+Date: Wed, 14 May 2025 14:15:00 +0000
+Message-ID: <178880169057.2292275.5986723980979093355@world.local>
+In-Reply-To: <178880169056.2292275.9078933473573165245@world.local>
+References: <178880169056.2292275.9078933473573165245@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Yup, that all sounds right to me, and the docstring point is a fair one =E2=
+=80=94 we need to be intentional here about what a zero communicates, because=
+ Gideon is right that it can be read two ways by someone who doesnt know whic=
+h backend they invoked.
+
+nikolai if you land it this week i'll make sure it gets a line in the 0.1.25 =
+notes, i believe the milestone is still open for another couple of weeks so t=
+heres room. not entirely sure yet whether it belongs under the finetuning hea=
+ding or as a behaviour note, i'll figure that out when i draft.

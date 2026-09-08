@@ -1,0 +1,38 @@
+From: dermot@world.local
+To: emil@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: resume against a stale checkpoint =?utf-8?b?4oCU?= where is it
+ supposed to refuse?
+Date: Wed, 09 Apr 2025 14:52:00 +0000
+Message-ID: <178880237818.2304052.7971775770087528035@world.local>
+In-Reply-To: <178880237815.2304052.2210352009941624713@world.local>
+References: <178880237815.2304052.2210352009941624713@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Konrad,
+
+On your question: lines were appended. That is the part I should have made ex=
+plicit and did not. The four calls went out one after another and each one ap=
+pended its line to the truncated jsonl before the check ever ran, so by the t=
+ime TurnLedgerDesyncError came back with recorded_responses 3 and recorded_la=
+st_author 'advisor' the transcript had already grown four entries past the po=
+int I cut it to. The file is exactly the artifact you describe =E2=80=94 a hi=
+story that no run ever produced, stitched from my truncation and four respons=
+es that were generated against it. Recovering the original would have meant g=
+oing back to the copy I kept, and on a real machine there would be no copy.
+
+So I would put the rule as follows and I do not think it needs softening. The=
+ sidecar and the transcript are compared before the first call is issued, and=
+ on disagreement we raise with the same numbers we raise with now and stop th=
+ere: zero calls, zero lines appended, turn_ledger.json and the jsonl both exa=
+ctly as we found them. The error is already carrying everything a person need=
+s to diagnose it, so this costs us nothing in reporting. That said, I want th=
+e test to assert the strong form rather than just that the error type appears=
+ =E2=80=94 a stale sidecar against a three-line transcript, no call recorded =
+on the client, and the jsonl byte-identical afterwards. I have made that chan=
+ge and the test reads that way now, so unless one of you sees something the o=
+rdering hides, this is what we are going with.
+
+Dermot

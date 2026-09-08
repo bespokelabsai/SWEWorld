@@ -1,0 +1,19 @@
+From: gideon@world.local
+To: dario@world.local, nikolai@world.local, emil@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= what goes in the stats dict when the
+ backend doesnt tokenize
+Date: Wed, 14 May 2025 11:48:00 +0000
+Message-ID: <178880169057.2292275.636089210322024216@world.local>
+In-Reply-To: <178880169056.2292275.9078933473573165245@world.local>
+References: <178880169056.2292275.9078933473573165245@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ya exactly, stable shape please. I have the cookbook samples printing that di=
+ct straight out and if the keys come and go depending on backend every sample=
+ needs a guard around it.
+
+so basically zero is fine for me. honestly though can we get a line in the do=
+cstring saying what the fields mean per backend? tbh someone is going to read=
+ a zero and think their rows got dropped or something.

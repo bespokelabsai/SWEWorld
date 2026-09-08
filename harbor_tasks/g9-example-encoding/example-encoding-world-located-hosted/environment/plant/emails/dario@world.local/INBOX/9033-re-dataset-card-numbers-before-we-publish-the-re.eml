@@ -1,0 +1,18 @@
+From: gideon@world.local
+To: dermot@world.local, emil@world.local, dario@world.local
+Subject: Re: Dataset card numbers before we publish the reasoning set
+Date: Wed, 16 Apr 2025 12:06:00 +0000
+Message-ID: <178880169055.2292275.9169240760696075228@world.local>
+In-Reply-To: <178880169054.2292275.13375075729600398190@world.local>
+References: <178880169054.2292275.13375075729600398190@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+ah ok that explains it. I was looking at the same gap last week when I was wr=
+iting the eval harness config and I assumed I had a filter wrong on my side, =
+so I just moved on lol.
+
+Nobody has started on the tables afaik, so go ahead. Do you want me to re-run=
+ the dedup stats against the submitted manifest too while you are in there, o=
+r those were computed after the trim already?

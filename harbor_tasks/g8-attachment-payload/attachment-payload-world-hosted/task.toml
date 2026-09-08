@@ -45,7 +45,16 @@ timeout_sec = 2400.0
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
 network_mode = "public"
-cpus = 2
+# 8, not the 2 build_tasks.py generates, and hand-set on purpose: this arm is
+# submitted with `evaluations submit --machine-type e2-custom-8-16384`, which is
+# the only thing that gives the eval runner more than two cores. Docker REFUSES a
+# `cpus` above the host count rather than capping it, so this number and that flag
+# have to move together -- 8 here with a default-machine submit errors EVERY
+# rollout at `docker compose up --detach --wait`, buried under a screen of BuildKit
+# progress lines that reads like a build failure.
+# It also puts this arm beyond `horizon tasks validate`, whose runner has 4 cores.
+# A rebuild from build_tasks.py (HOSTED_CPUS = 2) silently puts it back to 2.
+cpus = 8
 memory_mb = 13000
 
 [environment.healthcheck]

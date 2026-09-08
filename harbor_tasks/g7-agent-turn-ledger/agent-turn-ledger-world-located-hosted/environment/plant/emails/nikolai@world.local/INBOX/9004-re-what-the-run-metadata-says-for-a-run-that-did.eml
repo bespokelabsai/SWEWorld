@@ -1,0 +1,37 @@
+From: konrad@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: what the run metadata says for a run that did not finish
+Date: Tue, 22 Apr 2025 15:25:00 +0000
+Message-ID: <178880237800.2304052.8661549400421025902@world.local>
+In-Reply-To: <178880237796.2304052.7747899735476211546@world.local>
+References: <178880237796.2304052.7747899735476211546@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dario, Dermot,
+
+Dermot is right and I was wrong, and I want the correction stated plainly, be=
+cause my first mail is the one that will turn up if anybody searches for this=
+ in six months. I checked git log as asked. My checkout is from the end of Ma=
+rch and does not have the change in it, which is the whole of my mystery: the=
+ single stale number I saw was an old build behaving correctly for that old b=
+uild, not the current writer misbehaving.
+
+So, settled. turn_ledger.json is created before the first request goes out, c=
+arrying responses 0 and completion_reason "open", and it is rewritten again a=
+s each response is appended. Mid-run it is an honest account of how far the r=
+un has got, which is the opposite of what I claimed yesterday. Dario, to your=
+ question: polling is the answer, since nothing signals the rewrite, and pres=
+umably an interval of a few seconds is more than enough given how slowly the =
+counts move.
+
+The one narrow thing that survives from my original mail is this: the file do=
+es not tell you whether the run is still alive. A run that was killed at resp=
+onse seven leaves the counts at seven and the completion reason at "open", an=
+d a run that is genuinely still working also sits at "open". Reading the file=
+ alone, those two are the same file. That is the real limit, and it is a much=
+ smaller one than the one I described.
+
+Konrad

@@ -1,0 +1,391 @@
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T15:47:00+00:00", "text": "who owns payload validation on the image path? one of yesterday's runs pushed a 31 meg screenshot straight at openai"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-15T15:49:00+00:00", "text": "nothing on our side objected to it, honestly. it just went"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T15:51:00+00:00", "text": "so we ate the upload, is that what you're saying"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-15T15:52:00+00:00", "text": "mhm. paid for every byte of it and then got a 400 back for the trouble"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-15T15:55:00+00:00", "text": "ya i chased that one. so basically the whole thing left us before anything objected, and openai is the one who eventually tells us its too big"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-15T15:56:00+00:00", "text": "which is backwards. that has to be caught localy, before we open the socket at all"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-15T15:58:00+00:00", "text": "yeah ok. nothing tracking it yet as far as i can see"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-15T16:00:00+00:00", "text": "i'll file it, nobody has written the check yet"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T10:18:00+00:00", "text": "quick one on the image blocks - do we know how big any given attachment is once its in the payload?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-23T10:21:00+00:00", "text": "not recorded anywhere at the moment, no. we'd have to put it there"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T10:22:00+00:00", "text": "we could decode it and len() the bytes, but thats a full copy of every image per request"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-23T10:26:00+00:00", "text": "yeah thats the bit i'd avoid honestly. we already have the base64 string in hand at the point the block gets built, so i'd weigh that rather than decoding it back down"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T10:28:00+00:00", "text": "mhm. base64 length tracks the real bytes closely enough for what we want out of it"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T10:30:00+00:00", "text": "ok. and where does the number actually live, some metadata dict under the block?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-23T10:33:00+00:00", "text": "no, nothing nested. just hang it off the block itself, size_mb, right there beside the rest"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T10:35:00+00:00", "text": "works, i'm in the block constructor for other reasons anyway"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T10:37:00+00:00", "text": "that said, blocks get built in two places on the encoder path last i looked"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-29T14:47:00+00:00", "text": "the run last night came back with `image attachment is 21.3 MB, over the 20.0 MB limit.` — i haven't touched the attachment doc yet, do i quote that verbatim or keep it loose"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-29T14:52:00+00:00", "text": "keep it loose i think. the docs shouldn't sit on that number, the error already says it at runtime"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-29T14:54:00+00:00", "text": "yeah ok. prose then, no figure in the text"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-29T14:56:00+00:00", "text": "wait what about something landing exactly on the line though? does that get rejected or no"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-29T14:59:00+00:00", "text": "goes through fine. its strictly over — 20.0 on the nose is not over, so it passes"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-29T15:01:00+00:00", "text": "ya thats what i had in my head, just wanted someone to say it out loud"}
+{"channel": "pipeline", "author": "theo", "created_at": "2025-04-16T14:02:00+00:00", "text": "quick one before i forget - if someone attaches something oversized now, do callers see the same failure as before? the handling round that path was only ever catching ValueError afaik"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-16T14:04:00+00:00", "text": "AttachmentTooLarge fires before we ever reach file_upload_limit_check, so the oversize case doesnt get that far"}
+{"channel": "pipeline", "author": "theo", "created_at": "2025-04-16T14:05:00+00:00", "text": "ok but thats the part im unsure on. is that a brand new type sitting on its own or does it hang off the tree we already have"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-16T14:07:00+00:00", "text": "it subclasses AttachmentError, like the rest of them"}
+{"channel": "pipeline", "author": "ilse", "created_at": "2025-04-16T14:08:00+00:00", "text": "does that get us anything though, the callers i'm thinking of dont catch AttachmentError anywhere"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-16T14:10:00+00:00", "text": "AttachmentError is a ValueError, so the old ValueError handlers still catch it. nothing downstream has to change"}
+{"channel": "pipeline", "author": "ilse", "created_at": "2025-04-16T14:11:00+00:00", "text": "huh, ok. thats not in the branch yet is it, i went looking earlier"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-16T14:12:00+00:00", "text": "no one's written it yet. we just know where it goes now"}
+{"channel": "pipeline", "author": "theo", "created_at": "2025-04-16T14:14:00+00:00", "text": "so file_upload_limit_check basically never sees an oversized one after this"}
+{"channel": "pipeline", "author": "petar", "created_at": "2025-03-19T14:02:00+00:00", "text": "cookbook run came back rejected this morning, body size. the cell has nine photos in it"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T14:04:00+00:00", "text": "nine in one cell? and each is under the limit i assume"}
+{"channel": "pipeline", "author": "petar", "created_at": "2025-03-19T14:05:00+00:00", "text": "yep checked all nine, every one of them under its own ceiling"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-19T14:06:00+00:00", "text": "and it still bounced?"}
+{"channel": "pipeline", "author": "petar", "created_at": "2025-03-19T14:07:00+00:00", "text": "still rejected for body size, yeah"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T14:09:00+00:00", "text": "look thats the answer then. the per-attachment limit isnt catching this. nine legal photos in one cell and the request is still too big"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-19T14:11:00+00:00", "text": "so the per file gate stays, its just not the one that decides"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T14:12:00+00:00", "text": "right, it never was. we just did not notice untill nine of them landed in the same cell"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:41:00+00:00", "text": "quick one on the size check for image payloads — do we measure the bytes we read off disk, or the encoded ones?"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:43:00+00:00", "text": "the numbers we log right now are the decoded ones i think"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-14T13:45:00+00:00", "text": "which is the wrong thing to gate on. the base64 ones are what the wire actually carries, so the ceiling wants to be over those"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:46:00+00:00", "text": "over each one or over the whole request tho"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-14T13:48:00+00:00", "text": "summed. one of them fitting means nothing if four go out together"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:48:00+00:00", "text": "ok. and the ceiling sits where"}
+{"channel": "code-review", "author": "nils", "created_at": "2025-03-14T13:50:00+00:00", "text": "45 MB is about where they stopped accepting us, so under that"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:52:00+00:00", "text": "mhm that tracks. the batch that fell over last week was four smallish ones, none of them anywhere near the line on their own"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T14:02:00+00:00", "text": "whos actually counting the images on the multimodal path"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-17T14:04:00+00:00", "text": "so basically that total lives only in _handle_multi_modal_prompt. nothing else is keeping a count"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T14:05:00+00:00", "text": "so _format_multimodal is clean then"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-17T14:06:00+00:00", "text": "no um, it still hands back both blocks for an over-45 set. it just doesnt care one way or other"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T14:08:00+00:00", "text": "right, so the check sits where the total already is. does that need its own error type"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-17T14:10:00+00:00", "text": "honestly though i think reusing the exception with kind prompt reads fine"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T14:12:00+00:00", "text": "mhm ok. i had penciled in a new one, glad not to"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-18T14:02:00+00:00", "text": "size gates question — if a prompt is already over 45, do we still run the per file checks or bail right there?"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-18T14:04:00+00:00", "text": "we run them i believe. each attachment we measure still gets its own file_upload_limit_check call first"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-18T14:05:00+00:00", "text": "ok so where does the whole prompt number land then. folded in as we go?"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-18T14:06:00+00:00", "text": "like does it trip mid loop the second the running total crosses"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T14:09:00+00:00", "text": "after, not woven in between them. all the per file calls go out first, the whole-prompt number comes after all of them"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T14:10:00+00:00", "text": "so busting 45 doesnt skip any of those, to be honest its just the one pass and then the other"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-18T14:12:00+00:00", "text": "yup. it reads like a running tally in there, thats the bit that keeps catching me"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-19T14:02:00+00:00", "text": "pulled the branch down and ran the tests locally and the unit ones sat there for ages"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-19T14:03:00+00:00", "text": "sat there as in hanging, or just slow?"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-19T14:05:00+00:00", "text": "slow theyre going out to the network now which they didnt used to"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-19T14:06:00+00:00", "text": "network from a unit test? what in there even wants a socket"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-19T14:08:00+00:00", "text": "the size pass  if the image is remote it pulls the whole thing down just to weigh it"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-19T14:09:00+00:00", "text": "mhm so any fixture with a url in it does a real fetch, that tracks with the slowness"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-19T14:10:00+00:00", "text": "honestly though a unit test should not be doing that, ever"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-19T14:12:00+00:00", "text": "yep thats settled then its not going out for bytes  what we end up counting for the remote ones is seperate gotta think through that one"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-20T15:31:00+00:00", "text": "quick one, a url image block got rejected as too big overnight. there is no image in it, it is a link"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-20T15:33:00+00:00", "text": "the signed url one? honestly i saw the same thing on my side and assumed it was the fetcher"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-20T15:34:00+00:00", "text": "not the fetcher. presumably we are counting the wrong thing somewhere before that"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-20T15:38:00+00:00", "text": "let me think through that - we were measuring the signed url string itself against the image ceiling, which is nonsense. long token, long url, over it goes"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-20T15:40:00+00:00", "text": "ok so what does a url block get instead, its own ceiling or nothing at all"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-20T15:42:00+00:00", "text": "nothing. url blocks skip the per-kind ceilings and file_upload_limit_check entirely"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-20T15:44:00+00:00", "text": "right, so on that path there is nothing to weigh in the first place"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-20T15:46:00+00:00", "text": "mhm, that tracks with the overnight one. it never had bytes in hand to be big with"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:06:00+00:00", "text": "quick one before i go back to the manifest - are url blocks supposed to come back with size_mb empty, or is that a bug on my side"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:08:00+00:00", "text": "not a bug. for a url block we never hold the bytes, so theres nothing to measure, it stays empty"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:09:00+00:00", "text": "mhm ok. so does the limit check just read it as nothing and wave it through, or"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:09:00+00:00", "text": "passing with an empty field and not being looked at at all are pretty different for what i'm writing"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:11:00+00:00", "text": "the second one. file_upload_limit_check never gets called on a url block, it isnt a pass, it just doesnt happen"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:12:00+00:00", "text": "so the hook only ever sees base64 blocks, that's the whole of its input"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:14:00+00:00", "text": "right. thats the only kind that ever reaches it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:15:00+00:00", "text": "ok. i had empty pencilled in as zero somewhere in my head, going to go unpick that"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-17T14:02:00+00:00", "text": "quick one — what should a url image block count as in the prompt size estimate?"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-17T14:05:00+00:00", "text": "none of those bytes are ours. the body just carries the link"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-17T14:07:00+00:00", "text": "ya but we still hand back one number for the whole prompt. does the link push that up or not"}
+{"channel": "engineering", "author": "nils", "created_at": "2025-03-17T14:12:00+00:00", "text": "makes sense to me — nothing of ours in that body, so the url blocks should be contributing nothing to the whole-prompt total"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-17T14:14:00+00:00", "text": "so my case thats twelve remote links plus a line of text comes back as just the line of text"}
+{"channel": "engineering", "author": "nils", "created_at": "2025-03-17T14:15:00+00:00", "text": "yes. thats the assert. nothing in the estimator does it that way today"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-17T14:17:00+00:00", "text": "mhm, the walk still visits them last i looked"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T12:48:20+00:00", "text": "the notebook run yesterday, was it hanging on the encode or on the send?"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T12:50:20+00:00", "text": "encode. the notebook handed us sixty images and we base64'd every one of them on the way in"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T12:52:20+00:00", "text": "so all sixty converted before anything complained?"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T12:53:20+00:00", "text": "worse honestly though, we passed that base64 string itself into file_upload_limit_check. only after all of that did anything give up"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T12:55:20+00:00", "text": "so the guard sits ahead of the encode then, thats the read? i believe so but not entirely sure"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T12:57:20+00:00", "text": "ya, ahead. so basically the guard runs ahead of all that, the sixty never get encoded and file_upload_limit_check never sees a thing. nobodys moved the call yet"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T12:59:20+00:00", "text": "makes sense. explains why it churned that long before dying, all of it was encode"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T13:38:00+00:00", "text": "what does the attachment cap actually count, every part in the cell or only the real attachments?"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:40:00+00:00", "text": "only attachments. look, _ATTACHMENT_COUNT_LIMIT is 12 and it stays at 12, i see no reason to move it"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T13:41:00+00:00", "text": "ok but i have cells with a ton of text chunks in them. do those eat into the twelve or not"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:43:00+00:00", "text": "no. texts dont count toward it at all"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T13:44:00+00:00", "text": "so forty text chunks and one image in one cell, thats fine as far as the cap is concerned?"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:46:00+00:00", "text": "that one is normal, nowhere near it. twelve is fine, thirteen is not, and that cell has one"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T13:48:00+00:00", "text": "yeah ok. so the thing that got rejected yesterday genuinely had thirteen files in it"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-20T16:02:00+00:00", "text": "the 31 image prompt from last week, the one that spiked. did anyone put it through the count up front yet or is that still just talk"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-20T16:04:00+00:00", "text": "ran it against the 31 image prompt this morning"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-20T16:06:00+00:00", "text": "and what did it do"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-20T16:08:00+00:00", "text": "stopped immediatly one line thats it"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-20T16:09:00+00:00", "text": "one line saying what though, does it give you the number or just a trace"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-20T16:11:00+00:00", "text": "`Prompt has 31 attachments, over the limit of 12.` whole message"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-20T16:13:00+00:00", "text": "mhm so nothing climbed at all. that lands in the payload builder then, none of which is written"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-20T16:14:00+00:00", "text": "nothing climbed no thats exactly what i wanted to see out of it instead of the memory spike"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-20T16:16:00+00:00", "text": "right so the count sits at the top, before we hand it anything. settled as far as im concerned"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T14:02:00+00:00", "text": "what do we raise when someone hands us more attachments than we take? right now it sails through and blows up later in the serializer"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-24T14:04:00+00:00", "text": "needs its own thing i'd say TooManyAttachments or close to it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-24T14:07:00+00:00", "text": "ya TooManyAttachments. and i think it should carry the count they sent along with the ceiling it broke, otherwise the message tells you nothing usefull"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T14:08:00+00:00", "text": "new base for it or does it hang off something existing"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-24T14:10:00+00:00", "text": "no new base, another AttachmentError subclass. same as AttachmentTooLarge is"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-24T14:11:00+00:00", "text": "ok. and it fires where, after we build the list out?"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-24T14:13:00+00:00", "text": "before we serialize a single one of them. no sense encoding things we are about to throw away"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-24T14:14:00+00:00", "text": "right so the bytes never get touched at all"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-02T15:56:25+00:00", "text": "the estimate on that multimodal batch came in way under what we got billed. either images are cheap or we're not counting them"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-05-02T15:58:25+00:00", "text": "if i had to guess they're counted, nothing in the walk skips an image block that i saw"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-02T16:00:25+00:00", "text": "honestly though, while i was poking at the same path - my anthropic run counted 85 per image, so those are in"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-02T16:01:25+00:00", "text": "and the pdfs? that request had document blocks in it too"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-02T16:03:25+00:00", "text": "zero for the two document blocks. so the estimate is only half the mesage"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-02T16:05:25+00:00", "text": "that tracks with how far off it was"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-05-02T16:06:25+00:00", "text": "so not a zero fallback, they're just never reaching the count"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-05-06T15:02:00+00:00", "text": "Quick one on the openai cost estimate. Do we have anything for pdfs there or is it only the image constant right now"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-06T15:05:00+00:00", "text": "only the image one at the moment. we'd sit a sibling next to it, _OPENAI_TOKENS_PER_DOCUMENT"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-05-06T15:07:00+00:00", "text": "And that scales per page? Also some of these arrive as a file block not a document one, presumably that changes the lookup"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-06T15:09:00+00:00", "text": "no, flat number whether it comes in as file or document. same value both ways, we are not counting pages"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-05-06T15:10:00+00:00", "text": "right. anyway what is the image one set to, I never actually looked at it"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-06T15:12:00+00:00", "text": "85 for an image_url block. same as anthropic's"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-05-06T15:14:00+00:00", "text": "yep and nobody has ever argued with that number on the anthropic side so"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-05-30T13:52:00+00:00", "text": "the counter fell over on a pdf attachment yesterday. what do we count a document block as, off the top of my head we never picked a number"}
+{"channel": "releases", "author": "emil", "created_at": "2025-05-30T13:56:00+00:00", "text": "let me think through that - anthropic puts a pdf page near 1400 tokens, so thats the number we work from"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-05-30T13:57:00+00:00", "text": "per page? we dont have the page count in hand at that point"}
+{"channel": "releases", "author": "emil", "created_at": "2025-05-30T14:00:00+00:00", "text": "no, flat. 1400 for each document block, we dont open the file to look"}
+{"channel": "releases", "author": "dario", "created_at": "2025-05-30T14:02:00+00:00", "text": "and what does the total come back as, i had it pencilled as a float in my head for some reason"}
+{"channel": "releases", "author": "emil", "created_at": "2025-05-30T14:04:00+00:00", "text": "plain int, nothing wrapped round it"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-05-30T14:06:00+00:00", "text": "mhm. so a two page pdf and a two hundred page one land on the counter the same"}
+{"channel": "releases", "author": "emil", "created_at": "2025-05-30T14:07:00+00:00", "text": "yup. untill someone hands us a page count thats where we are"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:22:00+00:00", "text": "quick one on the attachment cap - is it one number, or do images and documents each get their own?"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:24:00+00:00", "text": "if i had to guess one, but i've only ever seen it come up for images"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:26:00+00:00", "text": "one ceiling. same number for images and documents, i don't think theres a good reason to split it"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:27:00+00:00", "text": "ok. what is the number"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:28:00+00:00", "text": "20 mb"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:31:00+00:00", "text": "and when something comes in over that, we're the ones rejecting it? or is that upstream"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:34:00+00:00", "text": "honestly the provider's file_upload_limit_check runs first. ours only speaks once that hook clears, so we're the second word not the first"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:36:00+00:00", "text": "yeah ok. that would explain why the one from last night came back in their wording and not ours"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:38:00+00:00", "text": "mhm. i went looking in our code for where it rejects and could not find it, presumably because nobody put it there yet"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-01-22T15:31:00+00:00", "text": "on the upload path — does file_upload_limit_check run before the size ceiling, or after? i had the ceiling going first in my head"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:33:00+00:00", "text": "before. the check runs first, then the celing after it"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-01-22T15:35:00+00:00", "text": "ok. and the ceiling itself, one number or one per kind?"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:36:00+00:00", "text": "one. 20 MB, covers every kind, no per kind numbers anywhere"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-01-22T15:38:00+00:00", "text": "so nothing in there keys off the file type at all, it's just the one gate"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-01-22T15:39:00+00:00", "text": "right"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-01-22T15:42:00+00:00", "text": "yep thats the order the docstring already implies fwiw nobody wrote it down as such"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-31T15:38:00+00:00", "text": "quick one before it falls off my list. the 22 mb pdf from the support thread — that bounced on our side, not anthropic's. they take that size happily"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-31T15:39:00+00:00", "text": "and we have had one attachment ceiling, 20 mb, same number for images and documents, since forever"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-31T15:41:00+00:00", "text": "ya thats the part thats gone. the one shared ceiling is dead, we're splitting it by block type. 20.0 for image blocks, 24.0 for document"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-31T15:43:00+00:00", "text": "so a 22 mb pdf goes through and a 22 mb png still does not?"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-31T15:44:00+00:00", "text": "correct"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-31T15:45:00+00:00", "text": "what about the ordering though. my memory of what we agreed was we let the provider's file_upload_limit_check clear and only speak after that hook passes"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-31T15:47:00+00:00", "text": "thats the other half thats being dropped, and honestly it was backwards. AttachmentTooLarge fires in _canonical_attachment_block, before file_upload_limit_check. waiting on the provider hook meant we sat there and then complained about a size the provider was perfectly fine with, which is exactly how the 22s kept bouncing"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-31T15:49:00+00:00", "text": "yeah ok. matches the ticket then, nothing anthropic-side ever rejected those. we told them to split the file for no reason"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:31:00+00:00", "text": "quick one on attachments - is the size check still the last thing before handoff? reading the encoder path and it doesn't match what i remember"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:33:00+00:00", "text": "it moved. look, the ordring we agreed back whenever is dead - file_upload_limit_check runs first, then the one shared 20 MB ceiling covering every kind, no per-kind numbers. thats gone"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:34:00+00:00", "text": "the single ceiling was bouncing documents the provider takes without complaint"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:36:00+00:00", "text": "so what raises now, and where"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:37:00+00:00", "text": "AttachmentTooLarge, inside _canonical_attachment_block, ahead of file_upload_limit_check"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:39:00+00:00", "text": "still one number though? or - restating, the block knows what it is by then, so if i had to guess it picks its own"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:40:00+00:00", "text": "right. the kind field on the block picks the ceiling. image 20.0, document 24.0"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:44:00+00:00", "text": "mhm, that tracks. i have a pdf in the fixtures dir sitting just over the old number, been treating it as a bad fixture for months"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-02T11:02:00+00:00", "text": "quick one on attachments — size_mb, is that the file we read off disk or the encoded thing"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-02T11:05:00+00:00", "text": "let me think. the base64 text is what actually goes over the wire, so it's measured on that string, not the file bytes"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-02T11:07:00+00:00", "text": "so we encode and then measure the encoded blob. feels like a lot of work just to learn a number"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-02T11:10:00+00:00", "text": "not really — size_mb is just what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically, it doesn't decode anything to find out"}
+{"channel": "general", "author": "dermot", "created_at": "2025-06-02T11:11:00+00:00", "text": "ah ok. thats cheap then"}
+{"channel": "general", "author": "petar", "created_at": "2025-06-02T11:13:00+00:00", "text": "and mb is which mb here, the honest one or the disk-vendor one"}
+{"channel": "general", "author": "nils", "created_at": "2025-06-02T11:16:00+00:00", "text": "the divisor in there is 1024*1024. a 1000-based megabyte would quietly shift the boundary and i'd rather not have that argument later"}
+{"channel": "general", "author": "petar", "created_at": "2025-06-02T11:18:00+00:00", "text": "right, that lines up with the totals looking a touch smaller than i kept expecting"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-05-06T14:07:00+00:00", "text": "the oversize attachment test is still matching on the traceback text. broke again this morning"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-05-06T14:08:00+00:00", "text": "ya someone reworded the message. so what do we raise instead tbh"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-05-06T14:10:00+00:00", "text": "our own one AttachmentTooLarge(kind, size_mb, limit_mb)"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-05-06T14:11:00+00:00", "text": "three args in. are those kept or just for building the message string"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-05-06T14:13:00+00:00", "text": "kept .kind .size_mb .limit_mb so a test asserts on the fields and not the traceback"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-05-06T14:14:00+00:00", "text": "exactly what i was after. nobody has written it yet though right"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-05-06T14:15:00+00:00", "text": "nope still the plain string today"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-05-06T14:16:00+00:00", "text": "yeah ok, so the wording can move around later and nothing cares"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-05-05T14:02:00+00:00", "text": "quick one, what happens in the token estimate when a block kind isnt one we handle"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-05-05T14:04:00+00:00", "text": "not entirely sure. if i had to guess it hits the else and raises"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-05-05T14:06:00+00:00", "text": "thats what i was afraid of. a thinking block coming back would take the whole estimate down with it"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-05-05T14:10:00+00:00", "text": "honestly i think it just contributes zero and we carry on, we dont raise on it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-05-05T14:11:00+00:00", "text": "ok. and the text sitting inside it, that still counts toward the number?"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-05-05T14:13:00+00:00", "text": "no we dont charge its text either. the block is zero, contents and all"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-05-05T14:15:00+00:00", "text": "yeah ok. simpler than i had it in my head"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T14:02:00+00:00", "text": "nils did the pdf comparison thing go anywhere in the end"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T14:04:00+00:00", "text": "no. i spent yesterday afternoon trying to demonstrate that two runs sent the same pdf, and i could not get there"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T14:05:00+00:00", "text": "whats actually missing"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T14:07:00+00:00", "text": "there is nothing on the block to compare. i have two blocks and neither one says anything about what went out"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T14:08:00+00:00", "text": "the payload though? off the request log somewhere"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T14:09:00+00:00", "text": "we never log payloads. they are megabytes, it would eat the log in a day"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T14:11:00+00:00", "text": "yeah. so the block carries something comparable of its own, small enough that writing it down costs us nothing. that's worth documenting before anyone picks it up"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T14:13:00+00:00", "text": "honestly though i was pretty sure we had somthing like that on there already"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T17:15:31+00:00", "text": "if we're opening up the job record anyway, is it just model going in or is there other stuff we want on it"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T17:19:31+00:00", "text": "while we're in there i'd give the record a short digest of the payload too. the file path on its own tells you nothing once the file has moved"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-23T17:24:31+00:00", "text": "so that sits next to the fingerprint then. which is optional on the record today, i believe"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-23T17:28:31+00:00", "text": "leave it optional or make it a hard field? plenty of the writers dont have one to hand"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T17:31:31+00:00", "text": "required. same change"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-23T17:35:31+00:00", "text": "even where the caller has to go and compute one first?"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-23T17:40:31+00:00", "text": "yeah. optional means half the call sites forget it and we're back to guessing"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-23T17:44:31+00:00", "text": "sounds right, thats basically what the overnight record left us with"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-06T09:52:00+00:00", "text": "konrad quick one - did you keep the [:12] inline in the fingerprint bit? dermot flagged it in review and i lost the thread"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-05-06T09:54:00+00:00", "text": "no i took the nit. its a named constant now, _ATTACHMENT_FINGERPRINT_HEX_LEN, sitting right next to the helper"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-06T09:55:00+00:00", "text": "ok. and the helper itself, what does it want handed to it"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-05-06T09:57:00+00:00", "text": "the payload string, thats all. attachment_fingerprint does the rest of it"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-06T09:58:00+00:00", "text": "so callers still glue the prefix on themselves after?"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-05-06T10:00:00+00:00", "text": "no, it comes back with sha256: already on it. nothing prefixes at the call site anymore"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-05-06T10:01:00+00:00", "text": "ya honestly inline it just read as a magic 12 to me, no clue what it was counting"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-05-06T10:03:00+00:00", "text": "mhm. thats all the nit was, the name does the work now"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-25T13:41:00+00:00", "text": "the checksum the viewer shows on a download — is that stable or does it wander between runs"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-25T13:43:00+00:00", "text": "so basically i pinned it in the test. tmp file with just %PDF-1.4 in it, thats the entire fixture"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-25T13:44:00+00:00", "text": "pinned as in you assert the literal string? so if it wanders the test goes red"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-25T13:45:00+00:00", "text": "ya. sha256:fc1c4358d4aa, same value every run, i ran it a bunch"}
+{"channel": "viewer", "author": "petar", "created_at": "2025-04-25T13:47:00+00:00", "text": "and how does anyone reading it know what produced that. do we record it somewhere else"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-25T13:48:00+00:00", "text": "no need, the algoritm is right there in the string. thats what the bit before the colon is for"}
+{"channel": "viewer", "author": "petar", "created_at": "2025-04-25T13:50:00+00:00", "text": "ah. i wasnt reading the prefix as meaning anything"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:11:00+00:00", "text": "the finance exports, are those file names long because of the title or is there stuff appended to it"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:13:00+00:00", "text": "both, its the full title then the two dates then a final -"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:14:00+00:00", "text": "comes out to 73 characters for the basename on the ones i pulled"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T13:17:00+00:00", "text": "ok thats the name. how much is the block sitting around it, or is that the whole weight"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:21:00+00:00", "text": "barely anything, its just {\"type\": \"file\", \"file\": {\"filename\": ..., \"file_url\": ...}} and nothign else in there"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T13:23:00+00:00", "text": "mhm so when we count one of these, presumably we are mostly counting the filename"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T13:24:00+00:00", "text": "yep mostly filename"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-03T14:02:00+00:00", "text": "the attachment names we print in the block header, some of them are absurd. what do we cut them at"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-03T14:05:00+00:00", "text": "the one from this morning wrapped twice in my terminal, so, yeah"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-03T14:06:00+00:00", "text": "honestly 64 is plenty for the block name. past that its just the date written twice"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-03T14:07:00+00:00", "text": "ok. and that number sits where, inline in the builder?"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-03T14:08:00+00:00", "text": "_MAX_ATTACHMENT_FILENAME_LEN, next to the other caps. nobody's typed it yet"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-03T14:09:00+00:00", "text": "one thing though - a name thats exactly 64, does that get cut or not"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-03T14:10:00+00:00", "text": "we leave it alone. only longer ones get cut"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-03T14:11:00+00:00", "text": "mhm. i was reading it as strictly under when you said it, good that you asked"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:06:00+00:00", "text": "the long attachment filenames are getting cut somewhere in the payload right"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:09:00+00:00", "text": "yes, we cap the name. Look, i chopped one in the protoype and the .pdf came off the end, provider stopped seeing a pdf"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-24T15:11:00+00:00", "text": "so whatever the cut is, the suffix rides along at the end of it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:12:00+00:00", "text": "right. suffix stays on"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:14:00+00:00", "text": "and the ones with no extension at all"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:15:00+00:00", "text": "then its just the first 64 characters, nothing to keep on the end"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-24T15:18:00+00:00", "text": "mhm. none of the example names in the cookbooks are anywhere near long enough to hit it, its the scanned uploads"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-11T13:38:00+00:00", "text": "anyone looked at the 404 from the attachment thing this morning"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-04-11T13:40:00+00:00", "text": "yes but i dont follow it. we only make the name shorter, why does a fetch die"}
+{"channel": "releases", "author": "dario", "created_at": "2025-04-11T13:43:00+00:00", "text": "honestly thats where the 404 came from, we were trimming the url along with the name in the same pass"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-11T13:44:00+00:00", "text": "so what actually gets cut now"}
+{"channel": "releases", "author": "dario", "created_at": "2025-04-11T13:46:00+00:00", "text": "just the display name we derive. thats the only thing that shortens"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-04-11T13:47:00+00:00", "text": "and the url that goes in the payload, that one stays as is?"}
+{"channel": "releases", "author": "dario", "created_at": "2025-04-11T13:49:00+00:00", "text": "stays untouched, and so does the caller's File.url. neither of those is ours to shorten. nobody has written the patch yet but thats the shape of it"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-11T13:50:00+00:00", "text": "yep the short name was only ever cosmetic anyway"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-10T13:12:00+00:00", "text": "the dedupe pass on last nights viewer run dropped nothing. not one image. is that expected"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-10T13:15:00+00:00", "text": "um, which ones did it keep? so basically the fingerprint comes back empty anytime theres an http url on it"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-10T13:17:00+00:00", "text": "so anything remote just sails through untouched. how much of the run is that"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-10T13:19:00+00:00", "text": "half the run is remote tbh. so the pass is sitting idle on most of what it sees"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-10T13:21:00+00:00", "text": "so the fingerprint has to cover the remote ones too, or is it something further up"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-10T13:24:00+00:00", "text": "ya, it needs to come back with something for remote images as well, url or not. nobodys written that yet"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-10T13:26:00+00:00", "text": "right, and the run looked green the whole time. that is the annoying part"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T13:41:00+00:00", "text": "quick one before i forget, i put the same cat.jpeg through twice this morning and ended up with two cache entries for it"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-11T13:43:00+00:00", "text": "twice how"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T13:44:00+00:00", "text": "call them A and B. A had ?size=large on it, B was just the plain url. same picture obviously"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T13:46:00+00:00", "text": "so the one with the query param and the one without landed as two seperate entries, and you're asking if that's a bug"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T13:46:00+00:00", "text": "ya basically. tbh i assumed one of them would hit the other"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-11T13:48:00+00:00", "text": "no thats the behaviour i want A and B being two entries is correct"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T13:49:00+00:00", "text": "yeah ok. i went looking for that before i pinged and couldn't find it stated anywhere"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-11T13:51:00+00:00", "text": "yep thats the gap i'd say its fine as is it just needs writing down"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-24T14:02:00+00:00", "text": "quick one on the url cache key — do we canonicalize first, or hash whatever string we were handed?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-24T14:04:00+00:00", "text": "what we were handed. the stored string, exactly as we send it"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-24T14:05:00+00:00", "text": "honestly we never open a remote one, so theres nothing to canonicalize against anyway"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-24T14:06:00+00:00", "text": "query survives that? i had it in my head we trimmed it. nobody's picked the ticket up yet fwiw"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-24T14:07:00+00:00", "text": "query stays. anchor too, all of it goes in"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-24T14:08:00+00:00", "text": "restating to be sure: nothing prefixed to the input either? no kind marker for when a second source type shows up"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-24T14:09:00+00:00", "text": "no marker, and no salt. its the url text and that is all"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-24T14:11:00+00:00", "text": "mhm. i had a salt in the thing i sketched late last night, scrapping that then"}
+{"channel": "random", "author": "dermot", "created_at": "2025-04-25T14:07:00+00:00", "text": "quick one — the image payloads, are we hashing the decoded bytes or the text sitting in the field"}
+{"channel": "random", "author": "dermot", "created_at": "2025-04-25T14:09:00+00:00", "text": "if i had to guess decoded, but i can't find where that would happen"}
+{"channel": "random", "author": "emil", "created_at": "2025-04-25T14:11:00+00:00", "text": "honestly i tried that. decoding every payload before hashing, and the 40k pass just crawled, it was not subtle"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-04-25T14:12:00+00:00", "text": "so whats it doing instead"}
+{"channel": "random", "author": "emil", "created_at": "2025-04-25T14:14:00+00:00", "text": "hashing the base64 text as-is. no decode step at all"}
+{"channel": "random", "author": "dermot", "created_at": "2025-04-25T14:15:00+00:00", "text": "mhm. does the tiny one still come out distinct that way, thats the case i keep worrying about"}
+{"channel": "random", "author": "emil", "created_at": "2025-04-25T14:17:00+00:00", "text": "yup — the one byte image pins at sha256:5e21d86b709b. stable every run i did"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-04-25T14:19:00+00:00", "text": "yep i mean the crawl was bad enough i noticed it from outside without knowing why"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-14T14:11:00+00:00", "text": "does anything on our side normalise the detail value on image blocks, or is it passed through exactly as typed?"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-14T14:13:00+00:00", "text": "as typed. look, i burned an hour on a run last week beacuse of this"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-14T14:14:00+00:00", "text": "burned an hour on what, it rejected the value and you had to find the message?"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-14T14:15:00+00:00", "text": "no. no rejection at all, thats the whole problem. i passed detail=\"HIGH\" and every image came back looking like auto"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-14T14:17:00+00:00", "text": "so silent fallback. either we make it an error or we just accept the uppercase one, and honestly i'd rather accept it"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-14T14:18:00+00:00", "text": "accept it. shift key held down is not a typo, it should mean what it obviously means"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-14T14:20:00+00:00", "text": "yeah ok. an hour is charitable, i'd have blamed the images long before i blamed the string"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-24T14:21:00+00:00", "text": "for the module bullet on image detail - do we list the constant with the type or just the name"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-24T14:24:00+00:00", "text": "with the type. `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`. three entries, and the order isnt cosmetic - index 0 is what gets handed back when we cant match"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-24T14:25:00+00:00", "text": "mhm. anything else reading it or is it just the one place"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-24T14:26:00+00:00", "text": "just `normalize_detail`, thats the only reader. worth saying so in the bullet i think"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-24T14:28:00+00:00", "text": "and if nothing comes in at all? or does it never actually see that case"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-24T14:30:00+00:00", "text": "it does, honestly more often than youd expect. give it None and you get \"auto\" back"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-24T14:31:00+00:00", "text": "ok. thats one line then, i had penciled in three"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-21T14:04:00+00:00", "text": "My image fixtures are diffing this morning and I didnt touch them. detail comes out different than what went in"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:06:00+00:00", "text": "yeah thats the new warning path. it rewrote Image.detail in place on last nights run, if i had to guess thats your diff"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-21T14:07:00+00:00", "text": "ok but why is it writing to it at all"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:09:00+00:00", "text": "it shouldn't be. Resolving something for the request is fine, writing it back onto the source object is not — we shouldn't be mutating what the caller handed us"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:11:00+00:00", "text": "mhm. that said the warning itself fired on every image in that run too, all 40k of them"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:13:00+00:00", "text": "on all of them? most of that set never set one at all. so that's just noise, i think — nobody needs telling about a thing they didn't do"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:14:00+00:00", "text": "yeah ok. two changes then, neither of them written yet. i can take it once WS-050 is off my plate"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-21T14:15:00+00:00", "text": "ya honestly the mutation one is what got me, I spent all morning digging around in the encoder for it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:22:00+00:00", "text": "what happens if the value someone sets isnt one of the three? do we hard fail on it"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-05-13T15:24:00+00:00", "text": "no. we fall back to auto and log that once"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:25:00+00:00", "text": "is that one line per bad value, or one for the whole run"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-05-13T15:26:00+00:00", "text": "one each time we fall back. we dont track what weve already said - a run that trips it twice says it twice"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:27:00+00:00", "text": "and if nothing is set at all, does that warn too, or is that just the default and we stay quiet"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-05-13T15:29:00+00:00", "text": "yeah ok - nothing set at all logs nothing. and the block still goes out with detail \"auto\" either way"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:31:00+00:00", "text": "so a blank one and a typo'd one look identical downstream. fine by me"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-01-31T18:07:39+00:00", "text": "one thing on 427 before i sign off on it — the detail value. do we check it on our side or do we just send whatever we were handed"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-31T18:10:39+00:00", "text": "we send it. detail passes through exactly as written, we dont touch the string"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-01-31T18:12:39+00:00", "text": "even a value we dont recognise? honestly i thought we'd want to catch that before it leaves us"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-01-31T18:14:39+00:00", "text": "so the position is we keep no list of the good ones on our end, we just render whatever string the caller gave us"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-31T18:16:39+00:00", "text": "yeah thats it, and we let the provider decide what counts as valid. thats the best we can do i think, they move theirs around more than we'd ever keep up with"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-01-31T18:18:39+00:00", "text": "yup, sounds right"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-31T18:21:39+00:00", "text": "for what its worth the rest of 427 reads fine to me, i didnt have anything else on it"}
+{"channel": "general", "author": "gideon", "created_at": "2025-02-13T13:38:00+00:00", "text": "whats the plan on detail, do we check the string before we send it or just pass it along"}
+{"channel": "general", "author": "konrad", "created_at": "2025-02-13T13:40:00+00:00", "text": "pass it along. its the callers string, not ours"}
+{"channel": "general", "author": "gideon", "created_at": "2025-02-13T13:41:00+00:00", "text": "ya but if they put garbage in there we only find out from the provider side"}
+{"channel": "general", "author": "emil", "created_at": "2025-02-13T13:42:00+00:00", "text": "so you're saying we'd be keeping a copy of their enum in sync with them? honestly that sounds like the worse deal"}
+{"channel": "general", "author": "konrad", "created_at": "2025-02-13T13:44:00+00:00", "text": "mhm, and its work we lose every time they add a value to it"}
+{"channel": "general", "author": "gideon", "created_at": "2025-02-13T13:45:00+00:00", "text": "so nothing on our end holds a set of accepted values at all"}
+{"channel": "general", "author": "konrad", "created_at": "2025-02-13T13:46:00+00:00", "text": "right, so no allowlist on detail then. we just forward what we got, validating provider enums is not our job anyway"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T15:31:00+00:00", "text": "the run that 400'd this morning - detail was spelled \"hgih\" in the config. went out to the provider exactly like that and fell over mid flight"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-18T15:33:00+00:00", "text": "oof. so basically nothing looks at that string at all before it leaves?"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T15:34:00+00:00", "text": "no, and that was deliberate. the call in 427 was detail passes through exactly as written, we render the caller's string and let the provider decide what counts as valid"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T15:36:00+00:00", "text": "yeah that one is dead now to be honest. losing a run halfway through to a two letter swap isnt a trade i want to keep making"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T15:37:00+00:00", "text": "block-build runs it through normalize_detail on the way out instead of forwarding it untouched"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-18T15:38:00+00:00", "text": "and when it doesnt normalize to anything? do we raise there or um"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T15:40:00+00:00", "text": "no, falls back to auto. one warning and it carrys on, i'd rather the run finishes"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T15:41:00+00:00", "text": "so Image.detail picks up the same handling, is that the read"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-18T15:42:00+00:00", "text": "no, Image.detail is left alone. just the block build path"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T14:31:00+00:00", "text": "konrad, the detail field on image content, thats still passed through untouched yeah"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-29T14:32:00+00:00", "text": "it was. look, \"no allowlist on detail, its the callers string\" is dead"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-29T14:32:00+00:00", "text": "i burned an hour on detail=\"HIGH\" comming back as auto"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T14:34:00+00:00", "text": "mhm, and validating provider enums is not our job was the whole argument for leaving it alone"}
+{"channel": "general", "author": "emil", "created_at": "2025-04-29T14:35:00+00:00", "text": "honestly that argument held right up until the casing bit us. \"HIGH\" isnt an invalid enum, its our enum with a shift key"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-29T14:37:00+00:00", "text": "right exactly. so normalize_detail strips it and lowercases it first, \"HIGH\" lands as high"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T14:38:00+00:00", "text": "and a value thats not in the vocabulary at all, does that one still get forwarded"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-29T14:40:00+00:00", "text": "no. it goes against _SUPPORTED_IMAGE_DETAILS and anything off the list becomes auto. none of it is typed yet, presumably it rides along with whatever ticket the content block stuff is on"}
+{"channel": "general", "author": "emil", "created_at": "2025-04-29T14:41:00+00:00", "text": "yup. so the caller with a typo gets auto instead of a 400 from the provider, sounds right to me"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-16T14:12:00+00:00", "text": "quick one before i wire the vision path — what shape does an image actually go out in on the request? i keep guessing and getting 400s back"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-06-16T14:16:00+00:00", "text": "checked the openai side this morning each image goes out as type image_url"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-06-16T14:18:00+00:00", "text": "so one of those per image rather than one entry holding all of them, is that the read?"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-06-16T14:19:00+00:00", "text": "yep one per image and it carries an image_url object alongside"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-16T14:21:00+00:00", "text": "ok but whats in that object? i had it in my head as just the url but i swear there was a second key"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-06-16T14:23:00+00:00", "text": "url and detail"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-16T14:24:00+00:00", "text": "right and the inline ones? we dont have anything to put in url for those, theyre bytes in memory"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-06-16T14:26:00+00:00", "text": "same object nothing special we send the url as data:image/png;base64, and then the payload straight after it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-16T14:28:00+00:00", "text": "ahh. so the branch i wrote last week that dropped the raw b64 in bare was never going to work, that's the 400s right there"}
+{"channel": "help", "author": "petar", "created_at": "2025-04-21T15:22:00+00:00", "text": "that pinned value in the attachment fixture, the short sha looking one - is that hand written or does something generate it"}
+{"channel": "help", "author": "emil", "created_at": "2025-04-21T15:25:00+00:00", "text": "honestly nothing hand written in there. the block just stores what it gets back from the helper"}
+{"channel": "help", "author": "petar", "created_at": "2025-04-21T15:27:00+00:00", "text": "ok but is it the value for the input we actually pass, or a stale one somebody pasted in ages ago"}
+{"channel": "help", "author": "emil", "created_at": "2025-04-21T15:30:00+00:00", "text": "let me think through that - no its live. attachment_fingerprint(\"eA==\") returns \"sha256:5e21d86b709b\", so that pinned value is straight out of the helper"}
+{"channel": "help", "author": "dermot", "created_at": "2025-04-21T15:32:00+00:00", "text": "mhm. so the assert belongs on the helper, not on the block side"}
+{"channel": "help", "author": "emil", "created_at": "2025-04-21T15:33:00+00:00", "text": "sounds right. nobody has written that one yet though"}
+{"channel": "help", "author": "petar", "created_at": "2025-04-21T15:35:00+00:00", "text": "ok. i'd copied my expected string out of an old run"}
+{"channel": "incidents", "author": "emil", "created_at": "2025-04-09T13:21:00+00:00", "text": "does attachment_fingerprint short circuit an empty payload, or does it hash it like anything else"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-09T13:22:00+00:00", "text": "no short circut. i went looking for that branch too, its not there"}
+{"channel": "incidents", "author": "emil", "created_at": "2025-04-09T13:24:00+00:00", "text": "so an empty one still comes back with something? i expected some kind of marker honestly"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-09T13:25:00+00:00", "text": "ya. so basically \"\" just goes through sha256 like any other payload"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T13:26:00+00:00", "text": "with the prefix on the front too, or is that skipped for empty"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-09T13:27:00+00:00", "text": "prefix and all. nothing about the empty case is special cased"}
+{"channel": "incidents", "author": "emil", "created_at": "2025-04-09T13:29:00+00:00", "text": "should be in the docstring then, its not written down anywhere"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T13:31:00+00:00", "text": "mhm. would explain the entry i couldnt account for in yesterdays index dump"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-04-17T14:11:00+00:00", "text": "quick one on the attachment digest  for a url block is it hashed over the string we actually got or some tidied up version"}
+{"channel": "random", "author": "emil", "created_at": "2025-04-17T14:13:00+00:00", "text": "the string we got, i believe. fwiw i ran it — attachment_fingerprint(\"https://cdn.example.com/photos/cat.jpeg?size=large\") comes back sha256:80ce7facd006"}
+{"channel": "random", "author": "petar", "created_at": "2025-04-17T14:14:00+00:00", "text": "query string and all? nothing trimmed off the end"}
+{"channel": "random", "author": "emil", "created_at": "2025-04-17T14:14:00+00:00", "text": "yup, exactly as sent"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-04-17T14:16:00+00:00", "text": "ok so whats it do if someone hands you that same text but as a base64 block"}
+{"channel": "random", "author": "emil", "created_at": "2025-04-17T14:18:00+00:00", "text": "let me think through that. same digest — i tried a base64 block whose text is that same string and it landed on sha256:80ce7facd006 too. what goes in is the text the block is carrying"}
+{"channel": "random", "author": "nikolai", "created_at": "2025-04-17T14:19:00+00:00", "text": "so the picture itself never enters into it"}
+{"channel": "random", "author": "emil", "created_at": "2025-04-17T14:20:00+00:00", "text": "no. identical text, identical digest, thats the whole of it. two different renderings of one photo share nothing to hash"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T10:14:00+00:00", "text": "picking up the model support table action item from thursday — the image detail param for multimodal requests is the bit i keep stalling on. where does the constant actually live, request layer or the provider shim? and it's just the two values plus auto, i believe"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-05-13T10:21:00+00:00", "text": "checked the ordering nit low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lists them in"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T10:26:00+00:00", "text": "mhm, that tracks. honestly i'd leave it wherever it is right now, the cookbook PRs are blocked on the table existing not on where the tuple sits"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T10:33:00+00:00", "text": "yup. i'll write the table rows against that ordering then so we're not churning it in two weeks, we need to be intentional here. still not entirely sure auto belongs in the same"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-05-13T10:35:00+00:00", "text": "auto is a diffrent question imo it's not a detail level its a fallback"}

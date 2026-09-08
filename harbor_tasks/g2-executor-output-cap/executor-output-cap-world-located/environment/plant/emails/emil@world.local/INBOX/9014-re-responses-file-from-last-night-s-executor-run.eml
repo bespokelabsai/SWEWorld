@@ -9,7 +9,10 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-mhm. it does mean the blob we return can be 93 bytes when someone asked for 6=
-4, and whoever is sizing buffers downstream will have opinions about that, bu=
-t honestly thats the best we can do short of making the marker length fixed a=
-nd padding it
+Mhm. It does mean the blob we return can be 93 bytes when someone asked for=
+ 64, and whoever is sizing buffers downstream will have opinions about that.
+
+Honestly thats the best we can do short of making the marker length fixed a=
+nd padding it.
+
+Dario

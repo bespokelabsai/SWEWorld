@@ -1,0 +1,25 @@
+From: nikolai@world.local
+To: dario@world.local, konrad@world.local, emil@world.local
+Subject: PR 653 =?utf-8?b?4oCU?= where does role validation live, and what do
+ the cookbooks import
+Date: Tue, 13 May 2025 09:12:00 +0000
+Message-ID: <178880169049.2292275.3485773133541714730@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+quick one on PR 653 before i go further
+
+the chat template stuff needs role validation somewhere - right now i have a =
+half written check sitting in the client itself which i dont love since the s=
+ame rules apply outside the finetuning path
+
+where is that supposed to live i mean is there an existing home for it or am =
+i making one
+
+second thing and this is the one thats actually blocking me - the cookbook no=
+tebooks - do they import from submodules or from the package root i've seen b=
+oth in the examples dir and i dont want to write a notebook that goes stale i=
+n a week
+
+- nikolai

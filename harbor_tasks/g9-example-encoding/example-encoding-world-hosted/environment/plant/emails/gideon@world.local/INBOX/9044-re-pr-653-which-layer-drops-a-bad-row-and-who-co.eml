@@ -1,0 +1,32 @@
+From: dario@world.local
+To: nikolai@world.local, emil@world.local, gideon@world.local
+Subject: Re: PR 653: which layer drops a bad row, and who counts it
+Date: Wed, 28 May 2025 11:06:00 +0000
+Message-ID: <178880169062.2292275.10140661869131719181@world.local>
+In-Reply-To: <178880169062.2292275.13501105309846763610@world.local>
+References: <178880169062.2292275.13501105309846763610@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+i think the split you want is by whether the thing is recoverable at the row =
+level or not, which is roughly what you already said but stated differently.
+
+length and role sequence are row problems - one bad row says nothing about th=
+e next row, so those get counted and skipped. tokenizer that wont load is not=
+ a row problem at all, that's the same failure 12k times in a row, so it shou=
+ld come straight up and stop the run. honestly if we skip on that we'd just b=
+e printing 12000 skip lines and exiting with an empty dataset which is worse =
+than the traceback.
+
+as for who does the counting, and to_tinker_datum just raises ExampleTooLongE=
+rror straight out - the binning is format_batch's job, a single datum has no =
+batch to be counted into. so the caller catches, increments the right bucket,=
+ and moves on. keep the exception types distinct per reason or the report is =
+useless, don't collapse them into one ConversionError.
+
+on the report - either the run dir next to the artifacts, or nothing at all f=
+or now and we just log the counts at the end. i'd lean run dir since you alre=
+ady have the path plumbed through, but to be honest with 40 out of 12k the lo=
+g line is probably fine for this milestone. best we can do without knowing if=
+ anyone actually reads these files.

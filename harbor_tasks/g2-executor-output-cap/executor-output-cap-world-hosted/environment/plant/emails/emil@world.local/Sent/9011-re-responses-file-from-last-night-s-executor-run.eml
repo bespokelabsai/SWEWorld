@@ -9,6 +9,10 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-as written its the whole blob. marker is 29 bytes once the count is filled in=
-, hence your 35. and it isnt fixed either =E2=80=94 a six digit byte count pu=
-shes it to 30 and the kept output quietly shrinks by one
+As written its the whole blob. Marker is 29 bytes once the count is filled =
+in, hence your 35.
+
+And it isnt fixed either =E2=80=94 a six digit byte count pushes it to 30 a=
+nd the kept output quietly shrinks by one.
+
+Emil

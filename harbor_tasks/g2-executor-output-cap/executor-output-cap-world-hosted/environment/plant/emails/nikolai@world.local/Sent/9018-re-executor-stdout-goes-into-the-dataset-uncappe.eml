@@ -9,8 +9,10 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-same helper or a copy of it with the blob bits changed
+Same helper, or a copy of it with the blob bits changed?
 
-and where does the cut actually land i mean straight truncation is fine for a=
- log because the interesting part is at the end but on a serialised plan its =
-both ends and the middle is repeated env noise
+And where does the cut actually land. I mean straight truncation is fine fo=
+r a log because the interesting part is at the end, but on a serialised pla=
+n its both ends and the middle is repeated env noise.
+
+Nikolai

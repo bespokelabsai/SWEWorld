@@ -1,0 +1,31 @@
+From: konrad@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: resume against a stale checkpoint =?utf-8?b?4oCU?= where is it
+ supposed to refuse?
+Date: Wed, 09 Apr 2025 14:12:00 +0000
+Message-ID: <178880237816.2304052.1725661726409513788@world.local>
+In-Reply-To: <178880237815.2304052.2210352009941624713@world.local>
+References: <178880237815.2304052.2210352009941624713@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+Thank you for writing it out, this is clearer than the channel would have bee=
+n. I looked at the same path after reading your mail and I agree with your re=
+ading of where the check sits. Nothing in it needs the client, and nothing in=
+ it needs a response to have come back =E2=80=94 recorded_responses and recor=
+ded_last_author are both read straight off turn_ledger.json, so presumably th=
+e comparison could happen before the first call as easily as after the fourth=
+. I do not see a reason it was put where it is, other than it was written nex=
+t to the code that already had both files open.
+
+One plain question so I understand the damage properly. During those four cal=
+ls, was anything appended to the jsonl, or did the four calls fire and then t=
+he error prevent the write? Off the top of my head those are quite different =
+situations. If nothing was written then it is money wasted and no more than t=
+hat. If lines were appended past the point you truncated to, then the file on=
+ disk is now a thing that never happened in any run, and that is much worse t=
+han the cost of the calls.

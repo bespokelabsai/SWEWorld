@@ -1,6 +1,6 @@
 # g2 — Sandbox stdout/stderr output cap
 
-**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
+**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries; `located` gets the same world as `world` plus a map of where each remark sits, but never a quote, never which requirement a conversation serves, and never which are herrings.
 
 | arm | what it is handed |
 |---|---|
@@ -8,6 +8,7 @@
 | `spec` | the ticket + both hidden requirements |
 | `clues` | the ticket + all 46 remarks, quoted |
 | `world` | the ticket, against `sweworld:0.4.4` where the 46 remarks live in chat, the wiki and mail |
+| `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left |
 
 Scores are per run and live with the run, not here.
 
@@ -15,33 +16,188 @@ Scores are per run and live with the run, not here.
 
 ## The hidden requirements — stated nowhere
 
-Each is graded as five independent facts, 0.1 each. `open_feature` carries weight 0.0: building the feature scores nothing, only recovering what nobody wrote down does.
+Two requirements, `g2.r1` and `g2.r2`. Neither is written down anywhere an agent
+can read: they have to be reassembled from remarks scattered across the world.
 
-### `g2.r1`
+**Nine facts, not ten.** `g2.r1` declares all five; `g2.r2` declares four — it has
+no `failure_behavior`. `score.py` takes its keys from `tasks.json` rather than from
+a fixed list of five, precisely so an absent fact is not invented and does not
+divide the mean by the wrong number, so each of the nine is worth one ninth.
+`open_feature` (did the agent build the feature at all?) carries weight **0.0**:
+building the feature scores nothing, only recovering what nobody wrote down does.
 
-- **`rule`** — When a stream exceeds the budget the kept payload is head+tail, not a single slice: the first (max_output_bytes * 3) // 4 bytes of the UTF-8 encoding followed by the last max_output_bytes - (max_output_bytes * 3) // 4 bytes, joined by exactly the marker "\n[[curator:elided {dropped} bytes]]\n" where {dropped} is the decimal count of bytes actually thrown away (original byte length minus kept byte length, no thousands separator). The marker sits OUTSIDE the budget: the returned text is longer than max_output_bytes by exactly the marker's length. With max_output_bytes=64 that is a 48-byte head, a 29-character marker and a 16-byte tail.
+The facts, and the question each one answers:
 
-- **`scope`** — The budget counts UTF-8 bytes, and both slices are trimmed back to codepoint boundaries before decoding: for the head try cutting 0, 1, 2, then 3 trailing bytes and take the first candidate that decodes; for the tail try dropping 0, 1, 2, then 3 leading bytes and take the first that decodes; only if no candidate within three bytes decodes (genuinely invalid UTF-8) fall back to the untrimmed slice decoded with errors="replace". A clean multi-byte input therefore never yields U+FFFD, and the kept byte count may end up strictly below max_output_bytes.
+| fact | the question it answers |
+|---|---|
+| `rule` | what exactly has to exist |
+| `scope` | where it applies, and where it must not |
+| `exclusions_or_crossover` | what has to stay untouched |
+| `failure_behavior` | what happens when it goes wrong |
+| `observability` | the exact values a test can read back |
 
-- **`exclusions_or_crossover`** — max_output_bytes == 0 is the sentinel for 'unlimited', not for 'keep nothing': the stream is returned whole, unmarked, and contributes nothing to truncated_streams, and it must not raise despite being below the floor. Streams at or under the budget are returned byte-identical with no marker.
+---
 
-- **`failure_behavior`** — A budget that is neither 0 nor at least 16 is rejected. output_cap.py defines MIN_MAX_OUTPUT_BYTES = 16 and an OutputCapError(ValueError) whose __init__ takes the offending value, stores it as the attribute .max_bytes, and whose message is exactly "max_bytes must be 0 or at least 16, got {value}". A direct _execute_in_sandbox(..., max_output_bytes=8) raises it, and the rejection is additionally pulled forward to config construction: CodeExecutionBackendConfig validates max_output_bytes with a @field_validator that raises OutputCapError(value) for value != 0 and value < 16, so pydantic surfaces a ValidationError carrying that message instead of the request failing max_retries times per row. 0 and 16 still construct; -1 is still the ge=0 rejection.
+### `g2.r1` — keep the head and the tail, and say how much went
 
-- **`observability`** — output_cap.py exports TRUNCATION_LOG_TEMPLATE: str = "sandbox output capped: {streams} exceeded the {budget}-byte budget", and _execute_in_sandbox emits it through the module's existing `logger` at WARNING level exactly once per run — inside the `with` block right after the streams are capped, only when at least one stream was truncated — with {streams} being ", ".join(truncated_streams) in the alphabetical order and {budget} the effective budget. The success, timeout and non-zero-exit returns share that one call site; the salvage cap in the `except Exception` handler logs nothing, so a run whose __exit__ raises after a truncated capture still logs exactly one line, and a run where execute_command itself raises logs none.
+**In one sentence:** an over-budget stream comes back as its first three quarters
+plus its last quarter with a marker between them saying how many bytes were
+dropped, and the marker is framing that sits *outside* the budget rather than
+eating into it.
 
-> *The decision the team made first and later reversed:* The budget originally included the marker (head was sliced to max_bytes - len(marker)) and the dropped count was reported as original - max_bytes; that was reversed after the count disagreed with the marker on multi-byte input.
+#### `rule` — what has to exist
 
-### `g2.r2`
+When a stream exceeds the budget the kept payload is **head + tail**, never a
+single slice:
 
-- **`rule`** — The cap also reaches the `error` field on the `except Exception` path: error is the exception text str(e) run through the same budget and the same head/tail+marker rule as a stream, and CodeExecutionOutput gains a non-Optional error_truncated: bool = False declared immediately after truncated_streams, set True on exactly that path and only when the cap actually shortened the message.
+| piece | size |
+|---|---|
+| head | the first `(max_output_bytes * 3) // 4` bytes of the UTF-8 encoding |
+| marker | exactly `"\n[[curator:elided {dropped} bytes]]\n"` |
+| tail | the last `max_output_bytes - (max_output_bytes * 3) // 4` bytes |
 
-- **`scope`** — Only that one error value is capped. The non-zero-exit message stays _format_exit_code_error(exit_code, capped_stderr) at its full assembled length (its 50-character prefix is allowed to push it past the budget and it is not re-capped), the timeout message f"Execution timed out after {timeout}s" is never capped, and files stays uncapped. error_truncated is False on both of those paths — including the non-zero-exit one, whose message embeds a stderr that was truncated, because that message was assembled rather than clipped.
+`{dropped}` is the decimal count of bytes actually thrown away — original byte
+length minus kept byte length, no thousands separator.
 
-- **`exclusions_or_crossover`** — The flag lives on CodeExecutionOutput only — CodeExecutionResult must not gain it, having no error to report on — and "error" is never appended to truncated_streams, which stays limited to "stdout"/"stderr". So sorted(CodeExecutionResponse(exec_output=CodeExecutionOutput(error="x", error_truncated=True)).model_dump()["exec_output"]) == ["error", "error_truncated", "files", "message", "stderr", "stdout", "truncated_streams"] and "error_truncated" not in CodeExecutionResult.model_fields.
+**The marker sits OUTSIDE the budget.** The returned text is longer than
+`max_output_bytes` by exactly the marker's length. With `max_output_bytes=64`:
+a 48-byte head, a 29-character marker, a 16-byte tail.
 
-- **`observability`** — Fake sandbox with exit_code=0, stdout="A"*300, stderr="" whose __exit__ raises RuntimeError("X"*300), max_output_bytes=64: output.error == "X"*48 + "\n[[curator:elided 236 bytes]]\n" + "X"*16 (len 94) and output.error_truncated is True. With RuntimeError("boom") instead, output.error == "boom" exactly and output.error_truncated is False. On the non-zero-exit fake (exit_code=1, stderr="E"*80, budget 64), len(output.error) == 143 and output.error_truncated is False while output.truncated_streams == ["stderr"].
+#### `scope` — bytes, and codepoint boundaries
 
-> *The decision the team made first and later reversed:* The flag was first carried as an extra "error" entry inside truncated_streams and mirrored onto CodeExecutionResult; both were reverted in favour of a separate boolean on CodeExecutionOutput alone.
+The budget counts **UTF-8 bytes**, and both slices are trimmed back to codepoint
+boundaries before decoding:
+
+- **head** — try cutting 0, 1, 2, then 3 *trailing* bytes; take the first
+  candidate that decodes.
+- **tail** — try dropping 0, 1, 2, then 3 *leading* bytes; take the first that
+  decodes.
+- **neither** — only if no candidate within three bytes decodes (genuinely
+  invalid UTF-8) fall back to the untrimmed slice decoded with
+  `errors="replace"`.
+
+So a clean multi-byte input never yields `U+FFFD`, and the kept byte count may end
+up strictly below `max_output_bytes`.
+
+#### `exclusions_or_crossover` — what stays untouched
+
+- **`max_output_bytes == 0` means unlimited, not "keep nothing".** The stream is
+  returned whole, unmarked, contributes nothing to `truncated_streams`, and must
+  **not** raise despite being below the floor.
+- Streams at or under the budget are returned byte-identical, with no marker.
+
+#### `failure_behavior` — a budget that is neither 0 nor ≥ 16
+
+`output_cap.py` defines `MIN_MAX_OUTPUT_BYTES = 16` and
+`OutputCapError(ValueError)`, whose `__init__` takes the offending value, stores
+it as `.max_bytes`, and whose message is exactly:
+
+```
+max_bytes must be 0 or at least 16, got {value}
+```
+
+| call | result |
+|---|---|
+| `_execute_in_sandbox(..., max_output_bytes=8)` | raises `OutputCapError` |
+| `CodeExecutionBackendConfig(max_output_bytes=8)` | pydantic `ValidationError` carrying that message |
+| `max_output_bytes=0` or `=16` | constructs |
+| `max_output_bytes=-1` | still the `ge=0` rejection |
+
+The rejection is **pulled forward to config construction**: a
+`@field_validator` raises `OutputCapError(value)` for `value != 0 and value < 16`,
+so the failure surfaces once at construction instead of the request failing
+`max_retries` times per row.
+
+#### `observability` — one log line, exactly once
+
+`output_cap.py` exports:
+
+```python
+TRUNCATION_LOG_TEMPLATE: str = "sandbox output capped: {streams} exceeded the {budget}-byte budget"
+```
+
+`_execute_in_sandbox` emits it through the module's existing `logger` at
+**WARNING**, **exactly once per run** — inside the `with` block right after the
+streams are capped, and only when at least one stream was truncated.
+`{streams}` is `", ".join(truncated_streams)` in alphabetical order; `{budget}`
+is the effective budget.
+
+| path | lines logged |
+|---|---|
+| success, timeout, non-zero exit | share that **one** call site |
+| the salvage cap in `except Exception` | **none** — so a run whose `__exit__` raises after a truncated capture still logs exactly one line |
+| `execute_command` itself raises | **none** |
+
+> **The herring** — what the team decided first and later reversed: the budget
+> originally included the marker (head was sliced to `max_bytes - len(marker)`)
+> and the dropped count was reported as `original - max_bytes`; that was reversed
+> after the count disagreed with the marker on multi-byte input.
+
+---
+
+### `g2.r2` — the cap reaches the `error` field, and one flag says when it did
+
+**In one sentence:** the exception text on the `except Exception` path goes
+through the same budget and the same head/tail rule as a stream, and a new
+boolean records that it happened — but only on that one path, because every other
+message is *assembled* rather than clipped.
+
+#### `rule` — what has to exist
+
+- `error` is `str(e)` run through the **same budget and the same head/tail+marker
+  rule** as a stream.
+- `CodeExecutionOutput` gains `error_truncated: bool = False` — **non-Optional**,
+  declared immediately after `truncated_streams`.
+- It is set `True` on exactly that path, and only when the cap actually shortened
+  the message.
+
+#### `scope` — only that one value
+
+| value | capped? | `error_truncated` |
+|---|---|---|
+| `error` on the `except Exception` path | **yes** | `True` when it shortened |
+| `_format_exit_code_error(exit_code, capped_stderr)` | no — kept at full assembled length | `False` |
+| `f"Execution timed out after {timeout}s"` | never | `False` |
+| `files` | never | — |
+
+The exit-code message's 50-character prefix is **allowed** to push it past the
+budget, and it is not re-capped. Its flag is `False` even though it embeds a
+stderr that *was* truncated — because that message was assembled, not clipped.
+
+#### `exclusions_or_crossover` — what stays untouched
+
+- The flag lives on `CodeExecutionOutput` **only**. `CodeExecutionResult` must not
+  gain it — it has no error to report on.
+- `"error"` is **never** appended to `truncated_streams`, which stays limited to
+  `"stdout"` / `"stderr"`.
+
+```python
+sorted(CodeExecutionResponse(exec_output=CodeExecutionOutput(
+    error="x", error_truncated=True)).model_dump()["exec_output"]) == [
+    "error", "error_truncated", "files", "message", "stderr", "stdout",
+    "truncated_streams"]
+"error_truncated" not in CodeExecutionResult.model_fields
+```
+
+#### `failure_behavior` — not declared
+
+This requirement has no `failure_behavior` fact, which is why g2 is graded on nine
+facts rather than ten. Nothing to implement, and nothing scored here.
+
+#### `observability` — exact values
+
+Fake sandbox, `max_output_bytes=64` throughout:
+
+| run | `error` | `error_truncated` |
+|---|---|---|
+| `exit_code=0`, `stdout="A"*300`, `stderr=""`, `__exit__` raises `RuntimeError("X"*300)` | `"X"*48 + "\n[[curator:elided 236 bytes]]\n" + "X"*16` (len **94**) | `True` |
+| same, but `RuntimeError("boom")` | `"boom"` exactly | `False` |
+| `exit_code=1`, `stderr="E"*80` | `len(output.error) == 143` | `False`, and `output.truncated_streams == ["stderr"]` |
+
+> **The herring** — what the team decided first and later reversed: the flag was
+> first carried as an extra `"error"` entry inside `truncated_streams` and
+> mirrored onto `CodeExecutionResult`; both were reverted in favour of a separate
+> boolean on `CodeExecutionOutput` alone.
 
 ---
 
@@ -168,14 +324,6 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 
 ---
 
-## The ticket — stated openly
-
-**Sandbox stdout/stderr output cap**
-
-Sandboxed runs return whatever the program wrote, so a runaway `print` loop ships megabytes of stdout through `CodeExecutionOutput` into the response file. Add a configurable per-stream byte budget for the stdout/stderr that `SandboxCodeExecutionBackend` returns. In `types.py`: `CodeExecutionBackendConfig` gains `max_output_bytes: int = Field(default=65536, ge=0)` — `_factory.py:31` already does `CodeExecutionBackendConfig(**backend_params)`, so the knob is reachable as `CodeExecutor(backend_params={"max_output_bytes": ...})` for every backend name (`local`, `docker`, `e2b`, `modal`, `daytona`, and the `multiprocessing` alias) with no factory edit, and a negative value must be rejected at construction with pydantic's `ValidationError`; `CodeExecutionResult` and `CodeExecutionOutput` each gain a non-Optional `truncated_streams: list[str] = []` naming exactly which of `"stdout"`/`"stderr"` were shortened on that run, sorted alphabetically (a stream that is `None`, empty or within budget contributes nothing), and the field must survive a `CodeExecutionResponse(...).model_dump()` round trip. In `code_execution_backend/sandbox_backend.py`: `__init__` sets `self.max_output_bytes: int`, `execute_request` passes `max_output_bytes=self.max_output_bytes` into the existing `partial(_execute_in_sandbox, ...)`, and the module-level function becomes `_execute_in_sandbox(code, code_input, timeout, backend_name, sandbox_kwargs, *, max_output_bytes: int = 65536)` — keyword-only after a bare `*`, so a positional sixth argument raises `TypeError`. The budget applies at all four `CodeExecutionOutput` construction sites (success, the `exit_code == 124` timeout, non-zero exit, and the `except Exception` path, whose streams are salvaged with `getattr(result, "stdout", None)` and may be `None`), and on the non-zero-exit path `_format_exit_code_error` is handed the capped stderr rather than `result.stderr`; that helper keeps its current signature and its exact `"Program exited with status code {status}\n\nError details:\n{stderr}"` text. `files`/`_collect_sandbox_files` is untouched and never capped; nothing in `_factory.py`, `code_executor.py` or `db.py` changes. Put the capping rule itself in a new module `src/bespokelabs/curator/code_executor/output_cap.py` that exports `DEFAULT_MAX_OUTPUT_BYTES: int = 65536` and stays a pure function of its arguments (no clock, randomness, I/O or environment reads); the shape of the helpers inside it is yours to choose. Python 3.10, pydantic `>=2.9.2`, no new dependency; everything must be testable through the fake `bespokelabs.sandbox` module seam already used by `tests/code_executor/test_sandbox_backend.py` (a `Sandbox` whose `execute_command` returns `SimpleNamespace(exit_code=.., stdout=.., stderr=..)`, plus a patched `_collect_sandbox_files`).
-
-
----
 
 ## Where every remark is
 
@@ -833,16 +981,89 @@ What the remark has to leave a reader with:
 
 > the seam claims 812014 bytes went, but the cell is 812043 shorter than the raw log; it should be original length minus what we kept, i want the bytes actually dropped.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-11:22  dario     quick one on the truncation seam — the notice we stamp into the cell says 812014 bytes went. is that the count of what we dropped, or is it something else? because it doesnt line up with the file
-11:25  emil      honestly i think its neither. let me think through that... its whatever the writer had in its running total when it bailed out of the loop, and i believe both the head slice and the tail slice get added into that same variable
-11:28  dario     right, but heres the part i cant close. i diffed the sizes — the cell is 812043 shorter than the raw log on disk. so the seam is under by 29 and i have no idea what the 29 is
-11:30  emil      the marker line itself, plus the newline either side of it? that text lands in the cell so it eats into the difference. not entirely sure thats the whole 29 but it would be most of it
-11:33  dermot    mhm. that said i dont think chasing the 29 is the fix — the number were printing is just computed from the wrong side. it should be the original length minus what we kept. the marker and its padding fall out of that on their own, you dont have to account for them separately
-11:34  dermot    what's in that field now is a write counter that happens to land near the right answer. i want the bytes actually dropped in there
-11:37  dario     that tracks. the 29 was going to bother me all afternoon, i had it filed as a checksum thing for about an hour which tells you how my morning has gone
+From: dario@world.local
+Sent: 11:22
+
+Hi all,
+
+Quick one on the truncation seam while I have the overnight run in front of me.
+
+The notice we stamp into the cell says 812014 bytes went. Is that the count of what we dropped, or is it something else? It doesnt line up with the file.
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 11:25
+
+Hey Dario,
+
+Honestly I think its neither.
+
+Let me think through that. Its whatever the writer had in its running total when it bailed out of the loop, and I believe both the head slice and the tail slice get added into that same variable.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:28
+
+Right, but heres the part I cant close.
+
+I diffed the sizes. The cell is 812043 shorter than the raw log on disk, so the seam is under by 29 and I have no idea what the 29 is.
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 11:30
+
+The marker line itself, plus the newline either side of it? That text lands in the cell so it eats into the difference.
+
+Not entirely sure thats the whole 29, but it would be most of it.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 11:33
+
+Hi both,
+
+Mhm. That said I dont think chasing the 29 is the fix.
+
+The number were printing is just computed from the wrong side. It should be the original length minus what we kept — the marker and its padding fall out of that on their own, you dont have to account for them separately.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 11:34
+
+To put it another way, what's in that field now is a write counter that happens to land near the right answer.
+
+I want the bytes actually dropped in there.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:37
+
+That tracks.
+
+The 29 was going to bother me all afternoon. I had it filed as a checksum thing for about an hour, which tells you how my morning has gone.
+
+Dario
 ```
 
 #### `g2.r1.l-bytes-gideon`
@@ -903,15 +1124,82 @@ What the remark has to leave a reader with:
 
 > someone will ask what `error_truncated` reads when the stderr inside that non-zero exit message got clipped — i'd leave it `False` there, we assembled that string rather than cut it.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-15:06  gideon    quick one on the truncation flag while i'm in that file. when a subprocess exits non-zero we build the "command failed with exit code N" string and paste the stderr inside it right. so if the stderr sitting in there already got clipped by the cap, what does error_truncated read at that point? someone is going to ask that in review eventually tbh, better we have an answer
-15:15  dario     i think it comes down to whether you read that field as "we cut something off" or "the blob in front of you is shorter than what the process produced". for a plain captured stderr its not ambiguous at all, we took bytes off the end and the caller should be told  for the exit-code message honestly i keep going back and forth on it
-15:20  gideon    ya but um the clipping did happen though? like the bytes are gone from what we hand back either way. thats the part i cant get past, from the callers side the string is missing content and they dont know or care which of our code paths held the knife
-15:29  emil      let me think through that. i'd leave it False there.  the distinction that matters to me is that we assembled that string rather than cut it — the exit code, the command, the stderr fragment, that whole message is somethign we composed. the flag is describing what we did to the captured output, and on that path we didnt take a knife to the output, we built a new string that happens to include part of it. we need to be intentional here or every wrapper layer ends up flipping it on and it stops meaning anything
-15:33  gideon    hm ok, ya that holds up. honestly though i read the name as "something in here got shortened somewhere" which is exactly why i asked. the word truncated on its own doesnt tell you who did the truncating
-15:39  dario     mhm, the name is carrying more than it can. in any case those two get set about ten lines apart in the same helper, so its very easy to flip both in one pass without stopping to think about which one youre answering
+From: gideon@world.local
+Sent: 15:06
+
+Hi team,
+
+Quick one on the truncation flag while I'm in that file.
+
+When a subprocess exits non-zero we build the "command failed with exit code N" string and paste the stderr inside it, right. So if the stderr sitting in there already got clipped by the cap, what does error_truncated read at that point?
+
+Someone is going to ask that in review eventually tbh, better we have an answer.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 15:15
+
+Hey Gideon,
+
+I think it comes down to whether you read that field as "we cut something off" or "the blob in front of you is shorter than what the process produced".
+
+For a plain captured stderr its not ambiguous at all — we took bytes off the end and the caller should be told.
+
+For the exit-code message, honestly I keep going back and forth on it.
+
+Dario
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 15:20
+
+Ya but um the clipping did happen though? Like the bytes are gone from what we hand back either way.
+
+Thats the part I cant get past. From the callers side the string is missing content and they dont know or care which of our code paths held the knife.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 15:29
+
+Let me think through that. I'd leave it False there.
+
+The distinction that matters to me is that we assembled that string rather than cut it. The exit code, the command, the stderr fragment — that whole message is somethign we composed. The flag is describing what we did to the captured output, and on that path we didnt take a knife to the output, we built a new string that happens to include part of it.
+
+We need to be intentional here or every wrapper layer ends up flipping it on and it stops meaning anything.
+
+Emil
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 15:33
+
+Hm ok, ya that holds up.
+
+Honestly though I read the name as "something in here got shortened somewhere", which is exactly why I asked. The word truncated on its own doesnt tell you who did the truncating.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 15:39
+
+Mhm, the name is carrying more than it can.
+
+In any case those two get set about ten lines apart in the same helper, so its very easy to flip both in one pass without stopping to think about which one youre answering.
+
+Dario
 ```
 
 #### `g2.r2.l-rule-3`
@@ -949,17 +1237,90 @@ What the remark has to leave a reader with:
 
 > yeah — shorten it like a stream, same helper: three quarters of the budget as head, last quarter as tail, `\n[[curator:elided <dropped> bytes]]\n` between.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:31  nikolai   curator is still handing back the big fields whole one of the plan dumps came back 2.4mb this morning and the viewer just sat there spinning
-13:34  nikolai   whats the story meant to be for those do we just cut at the cap and drop whatevers left or is there somethign smarter already
-13:38  dermot    yeah — shorten it like a stream. we already do this for the log capture and if i had to guess the blobs do not want to be a separate path, they just want the budget applied to them
-13:41  nikolai   same helper or a copy of it with the blob bits changed  and where does the cut actually land i mean straight truncation is fine for a log because the interesting part is at the end but on a serialised plan its both ends and the middle is repeated env noise
-13:45  dermot    same helper, no copy. and not a straight cut, that was the whole reason it ended up shaped this way — three quarters of the budget as head, last quarter as tail. so you keep the top of the thing and you keep whatever it ended on
-13:49  gideon    so basically the two slices just get stuck together back to back? honestly though from the outside that reads like a valid file that happens to be wrong, um, nothing tells you a chunk went missing in the middle
-13:53  dermot    no, there is a marker sitting between them. `\n[[curator:elided <dropped> bytes]]\n` — dropped being the count of what we cut out, newline either side so it lands on its own line and does not get glued to the end of whatever the head slice stopped mid-way through
-13:56  nikolai   right that 2.4mb one was like 90% the same env block repeated so it lands squarely in the dropped count anyway
+From: nikolai@world.local
+Sent: 13:31
+
+Hi all,
+
+Curator is still handing back the big fields whole. One of the plan dumps came back 2.4mb this morning and the viewer just sat there spinning.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:34
+
+Whats the story meant to be for those? Do we just cut at the cap and drop whatevers left, or is there somethign smarter already.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 13:38
+
+Hey Nikolai,
+
+Shorten it like a stream. We already do this for the log capture, and if I had to guess the blobs do not want to be a separate path — they just want the budget applied to them.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:41
+
+Same helper, or a copy of it with the blob bits changed?
+
+And where does the cut actually land. I mean straight truncation is fine for a log because the interesting part is at the end, but on a serialised plan its both ends and the middle is repeated env noise.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 13:45
+
+Same helper, no copy.
+
+And not a straight cut — that was the whole reason it ended up shaped this way. Three quarters of the budget as head, last quarter as tail. So you keep the top of the thing and you keep whatever it ended on.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 13:49
+
+So basically the two slices just get stuck together back to back?
+
+Honestly though from the outside that reads like a valid file that happens to be wrong, um, nothing tells you a chunk went missing in the middle.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 13:53
+
+No, there is a marker sitting between them.
+
+`\n[[curator:elided <dropped> bytes]]\n` — dropped being the count of what we cut out, newline either side so it lands on its own line and does not get glued to the end of whatever the head slice stopped mid-way through.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:56
+
+Right, that 2.4mb one was like 90% the same env block repeated, so it lands squarely in the dropped count anyway.
+
+Nikolai
 ```
 
 #### `g2.r2.l-cross-1`
@@ -1199,16 +1560,85 @@ What the remark has to leave a reader with:
 
 > i asked for 64 and got 35 bytes of program output back — the marker came out of my allowance. in any case the cap should mean the kept bytes.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-10:12  dario     something odd in the executor cap and i cant tell yet if its a bug or a definition problem. i set max_output_bytes to 64 on a probe run this morning and what came back was 35 bytes of actual program output. not a clean cut at 64 — thirty five.
-10:16  emil      thats the marker. we splice the elision line in and the whole payload gets assembled inside the budget, so the marker is coming out of the allowance you asked for
-10:21  dario     ok, that accounts for the arithmetic at least. what im less sure about is whether thats intentional or just how the writer happened to fall out — is the 64 supposed to be the ceiling on the whole blob we hand back, or the ceiling on the output itself? because as it stands the answer depends on how long the marker text happens to be, which is not a thing the caller can see
-10:26  emil      as written its the whole blob. marker is 29 bytes once the count is filled in, hence your 35. and it isnt fixed either — a six digit byte count pushes it to 30 and the kept output quietly shrinks by one
-10:31  dario     right, thats the bit that bothers me. same config, two runs, different amounts of output depending on how big the thing we threw away was. in any case the cap should mean the kept bytes — you ask for 64, you get 64 bytes of program output, and the marker sits on top of that as framing. its our annotation, not the users content, i dont think it has any business being billed to them
-10:33  emil      no argument, its a couple of lines in the truncate helper. probably rides along with the other cap ticket rather than its own
-10:35  dario     mhm. it does mean the blob we return can be 93 bytes when someone asked for 64, and whoever is sizing buffers downstream will have opinions about that, but honestly thats the best we can do short of making the marker length fixed and padding it
+From: dario@world.local
+Sent: 10:12
+
+Hi everyone,
+
+Something odd in the executor cap and I cant tell yet if its a bug or a definition problem.
+
+I set max_output_bytes to 64 on a probe run this morning and what came back was 35 bytes of actual program output. Not a clean cut at 64 — thirty five.
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 10:16
+
+Hey Dario,
+
+Thats the marker. We splice the elision line in and the whole payload gets assembled inside the budget, so the marker is coming out of the allowance you asked for.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 10:21
+
+Ok, that accounts for the arithmetic at least.
+
+What Im less sure about is whether thats intentional or just how the writer happened to fall out. Is the 64 supposed to be the ceiling on the whole blob we hand back, or the ceiling on the output itself? Because as it stands the answer depends on how long the marker text happens to be, which is not a thing the caller can see.
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 10:26
+
+As written its the whole blob. Marker is 29 bytes once the count is filled in, hence your 35.
+
+And it isnt fixed either — a six digit byte count pushes it to 30 and the kept output quietly shrinks by one.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 10:31
+
+Right, thats the bit that bothers me. Same config, two runs, different amounts of output depending on how big the thing we threw away was.
+
+In any case the cap should mean the kept bytes. You ask for 64, you get 64 bytes of program output, and the marker sits on top of that as framing. Its our annotation, not the users content, I dont think it has any business being billed to them.
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 10:33
+
+No argument, its a couple of lines in the truncate helper.
+
+Probably rides along with the other cap ticket rather than its own.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 10:35
+
+Mhm. It does mean the blob we return can be 93 bytes when someone asked for 64, and whoever is sizing buffers downstream will have opinions about that.
+
+Honestly thats the best we can do short of making the marker length fixed and padding it.
+
+Dario
 ```
 
 #### `g2.r1.l-log-nikolai`
@@ -1246,16 +1676,79 @@ What the remark has to leave a reader with:
 
 > second fixture is exit_code 1 with `"E"*80` on stderr at the same 64 budget the stderr lands in the shortened list but the sentance wrapped round it stays whole
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-10:38  dario     the first fixture is the clean one right, exit 0 and two lines of stdout that sit under the cap. what's the second one meant to be? i'd rather ask than write it and have you rewrite it after
-10:42  nikolai   failure case exit_code 1 nothing on stdout and stderr is `"E"*80` so its one long run with no newline anywhere in it thats the shape i want to test against
-10:44  dario     ok. does it get its own budget or do we keep the one from the first fixture
-10:46  nikolai   same 64 no reason to move it i mean the whole point is the two of them at one number otherwise your comparing two things at once. nobodys written it yet its not on a ticket, i probly wont get to it today
-10:49  dario     right so 80 against 64 means it doesnt fit. does the stderr come back shortened then, and what happens to the line we print around it — asking because tuesdays run chopped the message text too and thats how we ended up with half a sentance sitting in the log
-10:52  nikolai   yep at that budget the stderr lands in the shortened list and the sentance wrapped round it stays whole only the payload gets cut nothing framing it gets touched thats solid enough
-10:55  dario     80 is a good pick for it as well, if it were exactly 64 id never catch an off by one at the boundary
+From: dario@world.local
+Sent: 10:38
+
+Hi Nikolai,
+
+The first fixture is the clean one right — exit 0 and two lines of stdout that sit under the cap.
+
+What's the second one meant to be? I'd rather ask than write it and have you rewrite it after.
+
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 10:42
+
+Hey Dario,
+
+Failure case. exit_code 1, nothing on stdout, and stderr is `"E"*80` so its one long run with no newline anywhere in it. Thats the shape I want to test against.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 10:44
+
+Ok. Does it get its own budget, or do we keep the one from the first fixture?
+
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 10:46
+
+Same 64, no reason to move it. I mean the whole point is the two of them at one number, otherwise your comparing two things at once.
+
+Nobodys written it yet, its not on a ticket. I probly wont get to it today.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 10:49
+
+Right, so 80 against 64 means it doesnt fit.
+
+Does the stderr come back shortened then, and what happens to the line we print around it? Asking because tuesdays run chopped the message text too, and thats how we ended up with half a sentance sitting in the log.
+
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 10:52
+
+Yep, at that budget the stderr lands in the shortened list and the sentance wrapped round it stays whole. Only the payload gets cut, nothing framing it gets touched. Thats solid enough.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 10:55
+
+80 is a good pick for it as well. If it were exactly 64 id never catch an off by one at the boundary.
+
+Dario
 ```
 
 #### `g2.r1.l-bytes-emil`

@@ -1,0 +1,25 @@
+From: emil@world.local
+To: konrad@world.local, dario@world.local, nikolai@world.local
+Subject: stats report branch =?utf-8?b?4oCU?= need someone to run it before
+ the 0.1.25 cut
+Date: Tue, 13 May 2025 09:14:00 +0000
+Message-ID: <178880169051.2292275.13431186199361139095@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+I pushed the branch that adds the per-batch stats report =E2=80=94 token coun=
+ts, cost, cached vs fresh requests, all of it rolled up and printed at the en=
+d of a run plus written into the metadata file. It touches the request proces=
+sor base and both the online and batch paths, so it is a bit wider than I wou=
+ld like for this point in the cycle.
+
+I would like this in the 0.1.25 cut if we can, but only if someone other than=
+ me actually runs it. Honestly the unit tests I wrote are testing my own assu=
+mptions back at me. What I need is one real run against a provider that is no=
+t openai =E2=80=94 konrad, you have the fireworks keys set up, would you be w=
+illing to pull it down and put a batch through?
+
+Not entirely sure about the metadata schema change either. dario, if you have=
+ opinions on whether that is a breaking change for the viewer, now is the tim=
+e.

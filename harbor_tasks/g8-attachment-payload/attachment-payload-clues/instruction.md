@@ -218,7 +218,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-04-23 · #pipeline · dario**
 
-> we already have the base64 string in hand when the block gets built, so i'd weigh that rather than decoding, and hang size_mb off the block as a plain float.
+> we already have the base64 string in hand when the block gets built, so i'd weigh that rather than decoding, and hang size_mb off the block itself rather than nesting it.
 
 **2025-04-23 · #pipeline · dermot**
 
@@ -230,7 +230,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-04-24 · #viewer · emil**
 
-> for the module bullet - `_SUPPORTED_IMAGE_DETAILS` is auto, low and high, nothing else, and `normalize_detail` is the only reader - hand it None and you get "auto" back.
+> for the module bullet - `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`, three entries, and index 0 is what the fallback hands back. `normalize_detail` is the only reader - give it None and you get "auto".
 
 **2025-04-25 · #random · emil**
 
@@ -268,7 +268,11 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > took Dermot's review nit, no inline [:12] slice - `_ATTACHMENT_FINGERPRINT_HEX_LEN` sits next to the helper now. `attachment_fingerprint` takes the payload string and hands back the "sha256:" prefix already on it.
 
-**2025-05-14 · #pipeline · dermot**
+**2025-05-13 · #pipeline · nikolai**
+
+> checked the ordering thing low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lsits them in
+
+**2025-05-13 · #pipeline · dermot**
 
 > yeah ok - if it isn't one of the three we fall back to auto and log that once. nothing set at all logs nothing and the block still goes out with detail "auto".
 
@@ -278,7 +282,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-06-02 · #general · nils**
 
-> let me think - the base64 text is what actually goes over the wire, so size_mb is just the length of that string over 1024*1024. no decoding first, and not 1000-based megabytes.
+> let me think - the base64 text is what actually goes over the wire, so size_mb is what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically instead of decoding, and the divisor in there is 1024*1024, not a 1000-based megabyte.
 
 **2025-06-16 · #pipeline · nikolai**
 

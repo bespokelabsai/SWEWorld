@@ -1,0 +1,32 @@
+From: emil@world.local
+To: dermot@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: stop condition in the turn loop =?utf-8?b?4oCU?= does it assume
+ string content?
+Date: Wed, 09 Apr 2025 11:05:00 +0000
+Message-ID: <178880237826.2304052.10849705757093576987@world.local>
+In-Reply-To: <178880237825.2304052.16380768467128268487@world.local>
+References: <178880237825.2304052.16380768467128268487@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+Let me think through that, because the sequencing matters for how we describe=
+ it to anyone else who trips over it.
+
+If I am restating your point correctly, the branch is incidental: the stop ch=
+eck assumes the last assistant message content is a plain string, json mode h=
+ands it a dict instead, and the check falls over on the attribute access rega=
+rdless of what code is underneath it. In which case any branch would have pro=
+duced the same AttributeError at roughly the same point, and yours is just th=
+e one that happened to be under the agent when you ran it.
+
+Honestly, the part I find more interesting than the exception is that it kill=
+ed the run outright at turn two rather than being absorbed. I believe we need=
+ to be intentional here about whether a stop check failing should be fatal at=
+ all, but that is a separate argument and I do not want to bundle it into you=
+r report.
+
+Emil

@@ -10,12 +10,15 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-let me think through that. i'd leave it False there.
+Let me think through that. I'd leave it False there.
 
-the distinction that matters to me is that we assembled that string rather th=
-an cut it =E2=80=94 the exit code, the command, the stderr fragment, that who=
-le message is somethign we composed. the flag is describing what we did to th=
-e captured output, and on that path we didnt take a knife to the output, we b=
-uilt a new string that happens to include part of it. we need to be intention=
-al here or every wrapper layer ends up flipping it on and it stops meaning an=
-ything
+The distinction that matters to me is that we assembled that string rather =
+than cut it. The exit code, the command, the stderr fragment =E2=80=94 that=
+ whole message is somethign we composed. The flag is describing what we did=
+ to the captured output, and on that path we didnt take a knife to the outp=
+ut, we built a new string that happens to include part of it.
+
+We need to be intentional here or every wrapper layer ends up flipping it o=
+n and it stops meaning anything.
+
+Emil

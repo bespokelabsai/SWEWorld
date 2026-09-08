@@ -1,0 +1,45 @@
+From: dario@world.local
+To: nikolai@world.local, dermot@world.local, emil@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject: PR 653 =?utf-8?b?4oCU?= ran a curated set through the encode path
+Date: Wed, 07 May 2025 11:04:00 +0000
+Message-ID: <178880169028.2292275.9054621562454987743@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: what our encoded rows are actually counting
+
+Nikolai, Dermot,
+
+Before 653 goes any further I spent the first part of this morning in the enc=
+oding path rather than the client surface, because the coverage figure we quo=
+te in the eval summary has looked too steady to me for several weeks now. Hon=
+estly, rather than trust the aggregate I pulled one row out of the encoded se=
+t and read the fields on it by hand, and what came back does not support the =
+reading we have been giving that figure.
+
+The row carries token_count 52. So does the row after it, and the one after t=
+hat =E2=80=94 52 is what every row carries, which tells me the field is being=
+ written from the padded length and not from anything the tokenizer actually =
+produced for that example. Against that constant, supervised_tokens on the ro=
+w is 40. That is where the 40 out of 52 we have been reporting comes from, an=
+d since both halves of it are fixed by construction, the number has never mea=
+sured the thing we describe it as measuring. It is arithmetic on the padding.
+
+The worse half of this is the 40 itself. Twelve of those forty positions are =
+the tail of an answer whose front we chopped off =E2=80=94 the example ran lo=
+ng, the head of the answer went, and the remainder stayed in the sequence and=
+ stayed marked as supervised. So we are training on the back half of an answe=
+r with no beginning attached to it, and counting those twelve positions as le=
+gitimate supervision while we do it.
+
+As I see it there are two ways to go: either we correct token_count to report=
+ the real tokenized length and leave the mask alone for the moment, or we tre=
+at the two as a single change and stop marking a chopped answer as supervised=
+ at all. I lean to the second, but I would rather not settle it by myself. In=
+ any case, I do not think 653 should land while the summary still describes 4=
+0 over 52 as coverage.
+
+Best,
+Dario

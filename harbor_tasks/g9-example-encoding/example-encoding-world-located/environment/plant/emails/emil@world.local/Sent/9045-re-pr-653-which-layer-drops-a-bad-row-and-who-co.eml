@@ -1,0 +1,20 @@
+From: emil@world.local
+To: dario@world.local, nikolai@world.local, gideon@world.local
+Subject: Re: PR 653: which layer drops a bad row, and who counts it
+Date: Wed, 28 May 2025 13:22:00 +0000
+Message-ID: <178880169063.2292275.7719315055265391867@world.local>
+In-Reply-To: <178880169062.2292275.13501105309846763610@world.local>
+References: <178880169062.2292275.13501105309846763610@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+so if i'm reading this right, the rule is: anything that a different row coul=
+d survive gets counted, anything that poisons the whole run gets raised. that=
+'s a clean enough line to write down somewhere.
+
+one thing though =E2=80=94 we need to be intentional here about the distinct =
+exception types. i believe we already have a couple of these defined in the t=
+okenizer path from the old work and if Nikolai adds a parallel set we'll end =
+up with two hierarchies that mean the same thing. worth a look before you wri=
+te new ones.

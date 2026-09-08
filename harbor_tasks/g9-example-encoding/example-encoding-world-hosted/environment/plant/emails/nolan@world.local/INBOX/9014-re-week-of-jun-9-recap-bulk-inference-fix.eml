@@ -1,0 +1,36 @@
+From: dermot@world.local
+To: nikolai@world.local, dario@world.local, emil@world.local,
+ konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 15:02:00 +0000
+Message-ID: <178880169042.2292275.4644813809196549418@world.local>
+In-Reply-To: <178880169041.2292275.8145689421251193091@world.local>
+References: <178880169041.2292275.8145689421251193091@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Nikolai,
+
+Thank you for writing it out; this is the first description of 653 I have bee=
+n able to read without opening the diff.
+
+Let me make sure I have the last point right, because I think it is the only =
+thing in your list that is a decision rather than an inventory item. Your rea=
+ding is that the tokenizer flag on the encoding blocks is derived rather than=
+ supplied, so the run we did without a tokenizer produced False on that flag =
+and carried on, instead of raising. If that is right then the flag is a recor=
+d of the environment rather than an instruction, and the two are easy to conf=
+use later when somebody reads False and concludes we chose it.
+
+On the error hierarchy, I would rather have it the way you describe it than t=
+he alternative. ExampleTooLongError deriving from EncodingError is the arrang=
+ement I would expect, and if a caller is catching the base and swallowing a l=
+ength failure, that is the caller's problem and not the file's. That said, it=
+ is worth someone knowing it, since a length failure is the one case where th=
+e caller can usually do something about the input.
+
+FIREWORKS_BYTES_PER_TOKEN at 3 matches what I remembered, and I am glad the m=
+erge did not quietly move it.
+
+Dermot

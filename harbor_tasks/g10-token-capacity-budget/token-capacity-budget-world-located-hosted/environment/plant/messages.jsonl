@@ -1,0 +1,355 @@
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-08T12:53:00+00:00", "text": "estimator came in light again on last nights batch"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-08T12:55:00+00:00", "text": "light how"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-08T12:57:00+00:00", "text": "enough that we went past the provider ceiling. thats three windows in a row now"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-08T12:59:00+00:00", "text": "and it never pulls itself back after"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-08T13:01:00+00:00", "text": "it cant, actually. the ledger resets to zero each minute"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-08T13:02:00+00:00", "text": "so the amount we went over by"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-08T13:04:00+00:00", "text": "gone. its not sitting anywhere when the next minute opens, which to be honest is most of why this keeps repeating"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-08T13:06:00+00:00", "text": "mhm. i kept looking at it right after a reset, no wonder it read fine every time"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:36:00+00:00", "text": "whats supposed to happen when a minute goes over what it reserved?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:37:00+00:00", "text": "today? nothing. the next minute opens fresh, every time"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:38:00+00:00", "text": "fresh as in zero even if we overshot. um, that seems wrong"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T15:40:00+00:00", "text": "honestly i dont love it either. we burned more than we reserved on that run and the boundary just wiped it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:41:00+00:00", "text": "so basically what should minute two look like instead"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T15:42:00+00:00", "text": "it should open owing that much. not at zero"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:44:00+00:00", "text": "mhm, the deficit rides over the boundary. im going to want a window that opens in the red to not read the same as a fresh one"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-17T13:11:00+00:00", "text": "if a request lands bigger than whats left in the minute do we just let it borrow ahead or does it wait"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-03-17T13:14:00+00:00", "text": "borrow  it goes negative and the following minutes make it up"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-17T13:15:00+00:00", "text": "how far negative though. is there a floor on that or does it just keep digging"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-03-17T13:18:00+00:00", "text": "not bottomless though  one bad settle and the run spends the rest of the night paying it back"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-17T13:20:00+00:00", "text": "so youre saying we clamp the deficit at some point rather than let it ride"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-03-17T13:22:00+00:00", "text": "right  i'd say we cap the hole at a quarter of the minute's alowance"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-17T13:24:00+00:00", "text": "yup, id rather stall a minute than carry it all night"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T14:03:00+00:00", "text": "whats the 0.25 in the settle path"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T14:04:00+00:00", "text": "floor fraction. it was written inline there and never got a name"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T14:06:00+00:00", "text": "ok but then why is the same 0.25 typed out in the tests too, i hit it grepping for something else"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T14:07:00+00:00", "text": "mhm. thats the actual problem, two copies of one number and nothing tying them together"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T14:08:00+00:00", "text": "anyway im pulling it out into a constant, CAPACITY_DEBT_FLOOR_FRACTION"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-19T14:09:00+00:00", "text": "living in capacity_budget.py or somewhere more shared?"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-03-19T14:10:00+00:00", "text": "capacity_budget.py, top of the file. settle path reads it and the test imports it instead of writing the number again"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T14:12:00+00:00", "text": "yeah ok. the loose one in the test was what threw me, i had it down as a different number entirely"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T11:29:03+00:00", "text": "the output side numbers from yesterday, why is it sitting so far under? i looked twice"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T11:31:03+00:00", "text": "so basically i ran a split limit config, separate ceiling each side"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T11:32:03+00:00", "text": "and output ended up way deeper in the hole than it had any buisness being"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T11:35:03+00:00", "text": "so both ceilings are getting charged off the one count, thats the guess?"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T11:37:03+00:00", "text": "ya. both halves got held against the input number"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T11:39:03+00:00", "text": "right, so the 500 a minute on output is just sitting there unused"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T11:41:03+00:00", "text": "exactly. its own 500 a minute never justfied a deficit anywhere near that. output has to come off its own count, thats the whole of it"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T11:44:03+00:00", "text": "mhm. i had that same config up friday and never once looked at the output half"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T15:22:00+00:00", "text": "quick one, if the caller passes 0 for the cap do we branch on that or no?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T15:24:00+00:00", "text": "i had it down as its own case tbh, 0 reads like \"no room\" to me"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T15:29:00+00:00", "text": "let me think. in the grid i wrote out yesterday, the row where the caller passed 0 is A"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T15:31:00+00:00", "text": "ok but what does A actually do with it"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T15:33:00+00:00", "text": "A still has the 100k default standing behind it"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T15:35:00+00:00", "text": "so 0 isnt a special case at all, it just lands on the default"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-21T15:36:00+00:00", "text": "right, it isn't a special case. thats worth documenting on the row itself"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T15:38:00+00:00", "text": "ya. i had a whole branch for it in my head, good thing nobody wrote that yet"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T15:11:00+00:00", "text": "settle threw on me, traceback bottoms out doing arithmetic on a None"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T15:14:00+00:00", "text": "the late night run? which value came back None"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T15:16:00+00:00", "text": "the token ceiling. that model has none at all, not zero, just absent"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T15:19:00+00:00", "text": "then theres nothing there to take a share of"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T15:20:00+00:00", "text": "so we fill in a default and carry on?"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T15:23:00+00:00", "text": "no, leave it be. no ceiling, no share to hand out"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T15:25:00+00:00", "text": "makes sense, otherwise were splitting up something that isnt there"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T15:27:00+00:00", "text": "ya. i burned twenty min looking for where it got set to zero and it never was"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:41:00+00:00", "text": "so basically the capacity dump off the run this morning has available_request_capacity at -50"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:42:00+00:00", "text": "why is it sitting at -50 though, thats the part i dont get"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:46:00+00:00", "text": "we reserve exactly one slot per request, thats the whole of it on that path"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:47:00+00:00", "text": "ya so it cant overspend. then by that logic it shouldnt ever be under zero at all no?"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:51:00+00:00", "text": "yup — one slot in, one slot back out, so nothing on the reserving path drives it under. which means the -50 got there some other way, and honestly thats the thing to go read"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:52:00+00:00", "text": "not the reserve accounting anyway, i'd leave that bit alone"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:55:00+00:00", "text": "mm. i had it down as a rounding thing on the requst side and its clearly not that"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-09T09:17:05+00:00", "text": "is there anything today that tells us how often we're bottoming out on capacity, or am i imagining that"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T09:18:05+00:00", "text": "nope, nothing tells you. honestly though i've been diffing ledgers between runs to see it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T09:18:05+00:00", "text": "which is stupid, im reconstructing a number the tracker allready knows"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-09T09:19:05+00:00", "text": "so it just carries the count itself and hands it over?"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T09:20:05+00:00", "text": "exactly. a plain counter on the tracker, and it tells me. no more diffing runs"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-09T09:21:05+00:00", "text": "does it only show up after the first one, or is it there from the start"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-09T09:22:05+00:00", "text": "from the start, sitting at 0. um, zero is information too - \"we never bottomed out\" is a real answer"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-09T09:23:05+00:00", "text": "yeah ok, no null case then. i can graph it straight"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:04:00+00:00", "text": "konrad, the clamp count in your capacity notes - mine comes out higher and i cant reconcile the two"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:06:00+00:00", "text": "what are you reading it off"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:07:00+00:00", "text": "num_capacity_debt_clamps, delta over last nights run"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:08:00+00:00", "text": "it moved by two there. i had that down as two separate clamped calls"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:09:00+00:00", "text": "two seperate calls or one call that got counted twice? because those look identical from the delta"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:10:00+00:00", "text": "one. single settle, and both halves bottomed out on it"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:12:00+00:00", "text": "right, so the settle behaved, the counter didnt"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:13:00+00:00", "text": "mhm. one settle happened, so my per-run figure is double what actually happened - its the count thats wrong, not my arithmetic"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:14:00+00:00", "text": "then the weekly numbers i pulled are off the same way, im not going to touch that column till its counting straight"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T13:41:00+00:00", "text": "on the clamp counter - call gets squeezed on both axes in one shot, does that come out as two"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-17T13:42:00+00:00", "text": "no. one call one tick"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T13:43:00+00:00", "text": "and the boring case i mean single axis sitting at the bottom"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-17T13:44:00+00:00", "text": "same, counts once. its the call we're counting, not which of them got pinned. nobody's written it yet but thats the shape"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T13:45:00+00:00", "text": "so both clamped in the same settle also lands as one, right"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-17T13:46:00+00:00", "text": "mhm, still only counts once"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T13:47:00+00:00", "text": "yep. i was reading it the other way and the totals werent adding up for me"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T11:44:03+00:00", "text": "what is the count on the smoke run actually counting? came back 47"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T11:46:03+00:00", "text": "that run never once went under. not a single time the whole way through"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T11:49:03+00:00", "text": "let me think. 47 on a run that never went under means its counting something other than what we think"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T11:51:03+00:00", "text": "if i had to guess its firing on the refill side, not the drain side"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T11:54:03+00:00", "text": "yeah thats it. every refill that tops out at the limit is ticking it. capacity comes back, hits the ceiling, count goes up"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T11:56:03+00:00", "text": "so basically every refill on an idle run. thats your 47 right there"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T11:58:03+00:00", "text": "and it shouldnt be. topping out isnt the thing that number is for, so that stops counting"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T13:47:00+00:00", "text": "quick one on the refill path — when the top up overshoots and gets pinned back down to the ceiling, do we want that surfaced anywhere?"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-18T13:49:00+00:00", "text": "im in that file for the throttle change so i'd like to know before i touch it"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-18T13:52:00+00:00", "text": "let me think through that"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-18T13:53:00+00:00", "text": "honestly a refill capped back at the limit is only a full bucket. nothing has gone wrong at that point"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T13:55:00+00:00", "text": "sure on the token side, thats just it sitting at max_tokens_per_minute. the request side pins the same way though and i didnt want to assume"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-18T13:57:00+00:00", "text": "same story there, it tops out at max_requests_per_minute and thats the healthy state. nothing worth recording either way"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-19T14:03:00+00:00", "text": "Quick one before I go back to 595 - what happens when a release hands back a big over-reservation?"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-19T14:05:00+00:00", "text": "hands back way more than it actually used you mean"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-19T14:06:00+00:00", "text": "mhm. the big ones. does the available pool just walk up past the top"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-19T14:08:00+00:00", "text": "no it clamps at max_tokens_per_minute it doesnt add through past it"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-19T14:09:00+00:00", "text": "and does that clamp get counted anywhere or does it just quietly happen"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-19T14:11:00+00:00", "text": "quietly. that ceiling isnt the event were watching for"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-19T14:12:00+00:00", "text": "makes sense, same goes for the release side then. its the same shape as the other case, i just hadnt seen it written down anywhere"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-19T14:14:00+00:00", "text": "right, nobody has written it yet. anyway, 595 is still open on my side"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-20T13:41:00+00:00", "text": "the counter - does every settle bump it, or only some of them"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-20T13:42:00+00:00", "text": "i had it as every settle honestly, thats how the ticket reads to me"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-20T13:44:00+00:00", "text": "look, a settle that leaves us at +100 on a 1000 tracker is not it either"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-20T13:45:00+00:00", "text": "so whats the bar. +100 is still on the right side of zero"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-20T13:46:00+00:00", "text": "it should only tick when we actaully stopped the fall. thats the whole test"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-20T13:47:00+00:00", "text": "ok so being in the black isnt the test at all"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-20T13:49:00+00:00", "text": "sounds right. the sheet i pasted monday counts all of them the same, that column isnt what the header says it is"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-01-21T14:02:00+00:00", "text": "quick one on free_capacity — if we underestimate a request and it comes back bigger than we reserved, what does the available number do"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-01-21T14:04:00+00:00", "text": "dips under i'd assume"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-21T14:07:00+00:00", "text": "no, thats the thing we settled in review. every axis gets clamped at 0.0, so available bottoms out there and never goes under"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-01-21T14:07:00+00:00", "text": "ok but the difference doesnt just evaporate does it. something still owes it back"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-21T14:09:00+00:00", "text": "honestly it does evaporate. we take the clamp and thats the end of it — at settlement the under-estimate isnt recorded anywhere, its just forgotten"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-01-21T14:10:00+00:00", "text": "huh ok. so an under-estimate is free once the request settles"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-01-21T14:11:00+00:00", "text": "right and nothing downstream has to know about signed numbers"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-01-21T14:13:00+00:00", "text": "mhm, thats about the size of it. best we can do without every reader of that struct handling a below-zero case"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-21T15:49:26+00:00", "text": "Going through Dario's pass on 387, one note there i want to be sure i read right"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-21T15:50:26+00:00", "text": "request asks for more capacity than is left in the bucket. where does the bucket land"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-21T15:53:26+00:00", "text": "zero. thats the floor, it doesnt go past that"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-21T15:54:26+00:00", "text": "and a bucket sitting at 0.0 means what exactly"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-21T15:56:26+00:00", "text": "empty. thats the whole story, theres nothign else to read into it"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-21T15:57:26+00:00", "text": "so nothing anywhere counts how far over the request went"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-21T15:59:26+00:00", "text": "right, no accounting for the overshoot at all"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-21T16:00:26+00:00", "text": "then at the next refill it just... fills?"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-21T16:02:26+00:00", "text": "starts clean, yup. nobody has put it in the path yet but thats what dario and i landed on"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-21T16:03:26+00:00", "text": "mhm. i had his note down as asking for more bookkeeping than that"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-08T14:42:43+00:00", "text": "the estimator overshot the openai ceiling again over the weekend. three windows back to back, still submitting"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-08T14:44:43+00:00", "text": "if i had to guess free_capacity is just eating it? we clamp every axis at 0.0, so an under-estimate gets forgotten at settlement. that was the review call last year"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T14:45:43+00:00", "text": "that was the call, yeah. and its gone. the 0.0 clamp comes out of free_capacity — forgiving the overshoot is exactly what let a light estimator run past the provider ceiling three windows straight"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-08T14:47:43+00:00", "text": "so it goes negative now"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T14:48:43+00:00", "text": "it goes negative now. you carry the debt into the next window instead of pretending nothing happend"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-08T14:49:43+00:00", "text": "one bad estimate digs a hole we never get out of then"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T14:50:43+00:00", "text": "no, theres a floor, per axis. -CAPACITY_DEBT_FLOOR_FRACTION * limit. so tokens can be underwater while requests is fine, and neither one goes deeper than that fraction of its own limit"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-04-08T14:51:43+00:00", "text": "and the fraction is"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-08T14:52:43+00:00", "text": "0.25. below that youre stalled a full window regardless, so theres honestly nothing left to track"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-08T14:54:43+00:00", "text": "mhm. is that a constant or does it come off the provider config"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-16T17:34:29+00:00", "text": "one more thing out of the batch-side pass while i still have it in front of me - the capacity accounting isnt what we wrote down. a call that overshoots doesnt just get forgiven at the minute boundary"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-16T17:39:29+00:00", "text": "so if i had to guess, that's dario's pass on 387 going away? zero is the floor, a bucket sitting at 0.0 is empty and that's the whole story, no accounting for overshoot, next refill starts clean"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-16T17:42:29+00:00", "text": "yup that ones gone. 0.0 isnt the floor anymore - minute two opens owing the overshoot instead of starting clean. the forgiving is exactly how we were sailing past the limit"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-16T17:47:29+00:00", "text": "mhm, that was mine. so is it unbounded on the negative side, or does it stop somewhere"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-16T17:50:29+00:00", "text": "bounded. -CAPACITY_DEBT_FLOOR_FRACTION * limit is as deep as it goes"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-16T17:54:29+00:00", "text": "and we can see it when a call lands on that floor, or is it silent"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-16T17:57:29+00:00", "text": "num_capacity_debt_clamps, counts each such call. none of it is in the tree yet, thats the shape we settled on"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-16T18:02:29+00:00", "text": "i wrote the 0.0-is-empty line in 387 like it was the obvious reading and it just quietly ate the overshoot every minute"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T15:07:00+00:00", "text": "dermot the capacity dump off the stalled run has available_request_capacity None sitting in it"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T15:08:00+00:00", "text": "did we put that there or is something eating it"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T15:12:00+00:00", "text": "neither. same shape on the request side as the one you were poking at yesterday"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T15:13:00+00:00", "text": "same shape how, None isnt a number, whats even reading it"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T15:15:00+00:00", "text": "with no max_requests_per_minute set, available_request_capacity just reads back None. nothing ever gets put in it"}
+{"channel": "incidents", "author": "nikolai", "created_at": "2025-04-18T15:16:00+00:00", "text": "ok so does the floor still land on it or does it skip"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-18T15:17:00+00:00", "text": "so theres nothing there to floor either. no value sitting in it to clamp at all"}
+{"channel": "incidents", "author": "petar", "created_at": "2025-04-18T15:19:00+00:00", "text": "that lines up with the box, no request limit configured on it"}
+{"channel": "help", "author": "gideon", "created_at": "2025-04-21T13:15:01+00:00", "text": "back on that same profile - the haiku calls are the other thing. we reserve way more output than they ever use"}
+{"channel": "help", "author": "dermot", "created_at": "2025-04-21T13:16:01+00:00", "text": "reserve how much per call"}
+{"channel": "help", "author": "gideon", "created_at": "2025-04-21T13:17:01+00:00", "text": "1k output tokens. every single haiku call, doesnt matter what it is"}
+{"channel": "help", "author": "dermot", "created_at": "2025-04-21T13:18:01+00:00", "text": "and what actually comes back"}
+{"channel": "help", "author": "gideon", "created_at": "2025-04-21T13:19:01+00:00", "text": "under 150. honestly though the part that hurts is after, we crawl for the rest of the minute"}
+{"channel": "help", "author": "nikolai", "created_at": "2025-04-21T13:20:01+00:00", "text": "crawling because the minute is already spoken for on paper"}
+{"channel": "help", "author": "gideon", "created_at": "2025-04-21T13:21:01+00:00", "text": "exactly. so the haiku number cant stay a flat guess, it has to follow what the calls really do"}
+{"channel": "help", "author": "nikolai", "created_at": "2025-04-21T13:22:01+00:00", "text": "yep thats your stuttering bars right there"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-16T13:50:27+00:00", "text": "the capacity we hold up front for a request — do we hand it back per request, or settle once the whole batch drains?"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-16T13:53:27+00:00", "text": "per request i think. sitting on it til the batch is done just starves everything at the tail"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-16T13:55:27+00:00", "text": "mhm. and on a clean response we put the whole booking back?"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-16T13:57:27+00:00", "text": "no, only the gap honestly. what we booked for it vs what it actually spent, the difference is the part that goes back"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-16T13:59:27+00:00", "text": "so the booking was the ceiling and we're just returning what we over-reserved. sounds right"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-16T14:00:27+00:00", "text": "mhm, thats it"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-16T14:02:27+00:00", "text": "then one that lands dead on its estimate returns nothing at all"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-16T14:04:27+00:00", "text": "right, nothing to give back there. best we can do until someone writes it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-17T14:03:00+00:00", "text": "konrad was the 429 wave last night their side, or something we did"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-17T14:05:00+00:00", "text": "ours. look, we handed the slot straight back the moment the response landed"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-17T14:06:00+00:00", "text": "enough to push us over though? most of those calls are tiny"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-17T14:08:00+00:00", "text": "240 went into a 200 minute. the quick ones kept freeing room we hadnt earned yet"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-17T14:09:00+00:00", "text": "did that stay in our logs or did it get as far as the provider"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-17T14:10:00+00:00", "text": "no, provider noticed. thats what the mail this morning was about"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-17T14:12:00+00:00", "text": "mhm. so the give-back is hanging off the wrong thing"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-17T14:13:00+00:00", "text": "right. it comes back with the window, not with the reply"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:42:00+00:00", "text": "we had a minute where nearly all the calls came back errors. does that minute get its budget back?"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:43:00+00:00", "text": "off the top of my head i had assumed failed ones dont count against you"}
+{"channel": "engineering", "author": "nils", "created_at": "2025-03-19T13:47:00+00:00", "text": "let me think through that - a request that actually reached the provider is spent for that minute"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T13:49:00+00:00", "text": "so an error response still counts, even with nothing usable in it"}
+{"channel": "engineering", "author": "nils", "created_at": "2025-03-19T13:50:00+00:00", "text": "whatever came back, yes. it went out, it does not un-happen"}
+{"channel": "engineering", "author": "nils", "created_at": "2025-03-19T13:51:00+00:00", "text": "the line is whether it left us, not what came back. one that never got sent never owed the minute anything"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T13:53:00+00:00", "text": "right. not what the code does today though"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T13:55:00+00:00", "text": "mhm, the late night run reads differently now. i was watching the wrong half of it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-10T11:40:16+00:00", "text": "whats the gemini thing from last night, is it the same as the deepseek throttling or a different animal"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-10T11:42:16+00:00", "text": "different, i think. it 503'd on everything, and that was all night not a window"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-10T11:44:16+00:00", "text": "different shape but same area honestly. deepseek makes you slow down, gemini just refused"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-10T11:45:16+00:00", "text": "slow down to what though, um. what were we actually pushing by then"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-10T11:47:16+00:00", "text": "by minute two we were down to one request every few seconds, with zero successes out of any of it"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-10T11:49:16+00:00", "text": "so it lands with the deepseek handling either way, same area, just not the same failure. nobodys writing that today though"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-04-10T11:51:16+00:00", "text": "wait, minute two. i was looking at the first minute and it read normal to me"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-20T13:35:00+00:00", "text": "Quick one on capacity. when an attempt errors, what goes back? full reservation or just the part it didnt use"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-20T13:38:00+00:00", "text": "whole thing i believe. the attempt bought us nothing"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-20T13:40:00+00:00", "text": "but it did burn tokens before it died. presumably that part is real"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-20T13:43:00+00:00", "text": "not from our side. refund_capacity hands back the entire token reservation"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-20T13:45:00+00:00", "text": "Right, so not whatever was left unspent"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-20T13:46:00+00:00", "text": "no, the full reserved amount. it errored, theres nothing to net it against"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-20T13:48:00+00:00", "text": "sounds right. i couldnt think of a case where the partial version helps anybody anyway"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:04:00+00:00", "text": "the cookbook batch took the whole morning again. what is actually slowing it down"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:07:00+00:00", "text": "not the ceiling, honestly. we are nowhere near it"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-20T13:09:00+00:00", "text": "counted it this morning we are doing thirty real requests a minute"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:11:00+00:00", "text": "thirty? we set that ceiling at sixty. so where does the other half go"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-20T13:14:00+00:00", "text": "the attempts that came back 503 are still sitting on their slots"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:16:00+00:00", "text": "so a dead attempt holds a slot same as a live one. that tracks with what i saw thursday"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-20T13:18:00+00:00", "text": "right nothing lets them go so we only ever get half the lane those need to come off"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:20:00+00:00", "text": "ok. so the ceiling was never the problem"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T14:02:00+00:00", "text": "whats meant to happen to the slot when a call comes back errored"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:03:00+00:00", "text": "it goes back. we took it for a call that didnt happen, so we hand it back"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T14:05:00+00:00", "text": "back once for the request, or once per retry? some of these go round three or four times"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:06:00+00:00", "text": "one per attemtp. every attempt that errors hands its one back, not the whole request in a lump"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T14:07:00+00:00", "text": "does that let it climb past where it was"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:08:00+00:00", "text": "no. never above what the minute started with, thats the ceiling"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T14:09:00+00:00", "text": "right. thats the errored-attempt side settled then"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T14:11:00+00:00", "text": "mhm. thats what bit us tuesday, the thing ended the minute higher than it went in"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-03-27T14:12:00+00:00", "text": "viewer capacity has been sagging all week. by late afternoon its nowhere near where it starts"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-03-27T14:18:00+00:00", "text": "mhm. i bounced it yesterday around 5 and it was back to full straight after"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-03-27T14:23:00+00:00", "text": "so basically its the retries against that flaky endpoint. every cycle takes anohter reservation"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-03-27T14:27:00+00:00", "text": "what happens to the one the failed attempt was already holding"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-03-27T14:33:00+00:00", "text": "thats the thing, it never comes back. capacity just walks down all afternoon and stays down til we restart"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-03-27T14:39:00+00:00", "text": "yeah ok. so the retry path is the one exit that doesnt let go of it"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-03-27T14:45:00+00:00", "text": "ya. so it needs to hand it back there too, same as the other exits do. otherwise one endpoint flapping eats the whole day"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-07T13:51:39+00:00", "text": "our capacity charts never recover after a bad model. it dips and thats the ceiling for the rest of teh run"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T13:53:39+00:00", "text": "so its not the chart, its that nothing ever puts the capacity back?"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-07T13:54:39+00:00", "text": "thats where i landed. i belive its somewhere in the retry path"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T13:56:39+00:00", "text": "the branch where attempts_left is zero, if i had to guess"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-07T13:58:39+00:00", "text": "thats the one. it appends the failure and returns, thats the whole of it, so what that request was holding stays spent. it has to give that back on the way out too, not just record the faliure"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-07T14:00:39+00:00", "text": "mhm"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-07T14:01:39+00:00", "text": "yup. and it stacks, two bad models in one run and theres barely any headroom left"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T13:41:00+00:00", "text": "capacity budget never climbed back after the run i killed friday. still low this morning"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T13:43:00+00:00", "text": "killed how? like you cancelled it, or it gave up on its own"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T13:45:00+00:00", "text": "gave up. we stopped trying that request at all, thats where it flattened"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T13:48:00+00:00", "text": "let me think - _refund_capacity is what should be firing at that moment, the point we give up on a request entirely. i dont think we ever covered that one"}
+{"channel": "general", "author": "gideon", "created_at": "2025-04-07T13:50:00+00:00", "text": "so what calls it there today"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T13:52:00+00:00", "text": "nothing does. i grepped after standup, no caller at that spot at all. elsewhere it fires fine, just not there"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-07T13:54:00+00:00", "text": "yeah, thats the hole. the call site simply isnt written yet, and that's worth documenting somewhere"}
+{"channel": "general", "author": "konrad", "created_at": "2025-04-07T13:56:00+00:00", "text": "anyway that matches friday, it sat flat for hours after"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:02:00+00:00", "text": "quick one on the budget side. when a request gets requeued, do we keep its booking or drop it?"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T14:06:00+00:00", "text": "drop, if i had to guess. it isn't in flight anymore at that point"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:09:00+00:00", "text": "but then nothing books it again? presumably the second attempt still needs capacity"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-19T14:15:00+00:00", "text": "let me think through that - a requeue puts the request back on the queue like any other, so it gets estimated again on the way out"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T14:17:00+00:00", "text": "right, and the old one is still sitting there against us"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-19T14:20:00+00:00", "text": "yup, thats the issue. holding the old booking against it is charging the budget twice for the one request"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T14:23:00+00:00", "text": "mhm. two holds, one request, and only one of them is real"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:02:00+00:00", "text": "capacity thing again on the release run, the bucket is over the line by the end of the minute. Not entirely sure where it goes wide"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:08:00+00:00", "text": "its the failure path i'd say not the limiter"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:11:00+00:00", "text": "what, the failed calls do not come back at all?"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:15:00+00:00", "text": "they come back yep just wrong on the failure path we hand back the token counts the failed response itself reported"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-24T15:18:00+00:00", "text": "so what gets released is whatever that response claimed for itself, not what we held. thats the gap?"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:21:00+00:00", "text": "right so the bucket finishes the minute holding more capacity than the limit allows"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-24T15:24:00+00:00", "text": "took me a whlie to spot that every number in there looks fine on its own"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:29:00+00:00", "text": "look, thats a whole morning I spent staring at the limiter. it sits on the error path then"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:31:00+00:00", "text": "went through todays run log, the output we booked and what the responses report back dont line up on a chunk of them"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:33:00+00:00", "text": "Look, the length ones are worst. the rest are close enough i think"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:34:00+00:00", "text": "length meaning what"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:35:00+00:00", "text": "finish_reason length. the truncated ones"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:37:00+00:00", "text": "how far off are we talking on those"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:38:00+00:00", "text": "took one at random, the reponse reports 800 output"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-03T15:39:00+00:00", "text": "against what we had booked for it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T15:40:00+00:00", "text": "against the 100 output we actually booked for it. anyway those we handle the way we agreed for the others, nobody has typed it up yet"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-03T15:42:00+00:00", "text": "mhm. thats not something you smooth over in an estimate"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:09:00+00:00", "text": "on the discard path what do we actually hand back? theres no real count coming home"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:13:00+00:00", "text": "let me think — the booking is the only number we own there, so thats what goes back"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-21T14:16:00+00:00", "text": "so we return the reservation as-is. doesnt that risk overshooting the ceiling"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:19:00+00:00", "text": "refund_capacity hands it back clamped, so available_token_capacity never ends above the limit"}
+{"channel": "general", "author": "nikolai", "created_at": "2025-04-21T14:21:00+00:00", "text": "right so worst case its a no op"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-21T14:24:00+00:00", "text": "more or less. thats worth documenting right next to the refund call i think"}
+{"channel": "general", "author": "nikolai", "created_at": "2025-04-21T14:26:00+00:00", "text": "yep. beats keeping a second number around for a response were dropping anyway"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-17T16:35:20+00:00", "text": "the last progress counter we ticked from both paths never matched the request count. either im reading it wrong or it isnt counting what i think it is"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-17T16:38:20+00:00", "text": "let me think through that... i believe those two only move on release. so the number youre looking at was never going to track requests"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-17T16:40:20+00:00", "text": "both of them though? i had num_capacity_refunds down as the acquire side, that was the whole basis for the check i drafted"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-17T16:43:20+00:00", "text": "no. an acquire bumps neither num_capacity_settlements nor num_capacity_refunds, nothing on the way in touches either one"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-04-17T16:45:20+00:00", "text": "mhm. so the delta only ever shows up coming back out"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-04-17T16:47:20+00:00", "text": "that tracks, and it explains the gap. the draft check comes out then, nobody has written it against the real thing yet"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-04-17T16:49:20+00:00", "text": "yup. honestly the naming does you no favors there either"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T13:36:00+00:00", "text": "when a hold gets released back to the pool, does the tracker dump show that anywhere or is it just folded into the totals"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-11T13:39:00+00:00", "text": "its all one bucket right now. fine until you actually have to read it"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T13:41:00+00:00", "text": "so one release count, or do you want it broken out"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-11T13:43:00+00:00", "text": "broken out. num_capacity_settlements as its own counter in the dump"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-11T13:44:00+00:00", "text": "and num_capacity_refunds seperate, next to it"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-11T13:47:00+00:00", "text": "whats actually wrong with the one number though"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-11T13:51:00+00:00", "text": "look, summed together i cannot tell the two kinds of release apart in a run. thats the whole of it"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-11T13:53:00+00:00", "text": "ok that i buy. added up they read as the same event and they arent"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-04-24T14:07:00+00:00", "text": "the anthropic run from last night, did any of the capacity numbers move"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-24T14:09:00+00:00", "text": "no i ran it overnight with no token ceiling set at all and the counts never moved"}
+{"channel": "releases", "author": "dario", "created_at": "2025-04-24T14:11:00+00:00", "text": "flat on both counters or just the settlements one"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-04-24T14:12:00+00:00", "text": "both. report came back with `num_capacity_settlements: int = 0` and the refunds one right under it"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-24T14:14:00+00:00", "text": "yep and `num_capacity_refunds: int = 0` is word for word what the field declares so what i got back and what it starts at are the same string i cant tell one from the other by looking"}
+{"channel": "releases", "author": "dario", "created_at": "2025-04-24T14:16:00+00:00", "text": "so broken or not, i cant tell from that either"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-04-24T14:18:00+00:00", "text": "thats the thing that run doesnt answer it i spent the morning hunting a bug that wasnt ther in anything i was reading were not calling it broken off a run with no ceiling on it someone sets one low enough to actually get hit and runs it again thats the only version of this thats worth anything"}
+{"channel": "releases", "author": "dario", "created_at": "2025-05-02T14:11:00+00:00", "text": "quick one before i touch the capacity counter — a release on an axis that had no limit set. counted, or skipped?"}
+{"channel": "releases", "author": "emil", "created_at": "2025-05-02T14:14:00+00:00", "text": "my read is counted but honestly not entirely sure. nothing moved on that axis so you could argue either way"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-02T14:16:00+00:00", "text": "counted. we're counting the call, not whether it moved a number"}
+{"channel": "releases", "author": "dario", "created_at": "2025-05-02T14:18:00+00:00", "text": "even when there was nothing to give back though? unlimited before, unlimited after"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-05-02T14:20:00+00:00", "text": "mhm. a release against an unlimited axis still went through the same code path as any other one, so it goes in the count"}
+{"channel": "releases", "author": "emil", "created_at": "2025-05-02T14:21:00+00:00", "text": "yup, no special case to thread through then"}
+{"channel": "releases", "author": "dario", "created_at": "2025-05-02T14:23:00+00:00", "text": "ok. the fixture i wrote assumes the opposite so thats mine to redo"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:12:00+00:00", "text": "quick one - when a request fails out, who gives the tokens back? i see the success path doing it and nothing on the other side"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:14:00+00:00", "text": "same call does both. one _free_capacity and both outcomes go through it, theres no second path"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:17:00+00:00", "text": "ok. what does it take? off the top of my head the failure side does not have the same things in scope"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:19:00+00:00", "text": "_free_capacity(status_tracker, used_tokens, blocked_capacity). thats the whole signature, and the failure side actually has all three sitting right there already"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:22:00+00:00", "text": "and the request slot? restating my guess - that one only comes back when the call actually returned"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:24:00+00:00", "text": "no, it goes back on failure too, exactly like it does on success. no difference there"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:26:00+00:00", "text": "mhm. i had two helpers half drawn in my diff, one of them can go"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-01-28T14:05:00+00:00", "text": "quick one on the capacity accounting does the slot come back when the call raises or only on the happy path"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-28T14:07:00+00:00", "text": "id assume it comes back but honestly i couldnt point at where"}
+{"channel": "releases", "author": "emil", "created_at": "2025-01-28T14:09:00+00:00", "text": "it comes back. by the time we're in the except branch we already have used_tokens built, so theres nothing to go reconstruct there"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-01-28T14:11:00+00:00", "text": "having it built isnt the same as handing it back tho. what does the handing back"}
+{"channel": "releases", "author": "emil", "created_at": "2025-01-28T14:13:00+00:00", "text": "the same _free_capacity(used, blocked) call success goes through. failure settles through that one, not a second thing"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-28T14:15:00+00:00", "text": "and the bails further up, the ones that never get to the request?"}
+{"channel": "releases", "author": "emil", "created_at": "2025-01-28T14:16:00+00:00", "text": "slot goes back on those too, every terminal path out of that function"}
+{"channel": "releases", "author": "nikolai", "created_at": "2025-01-28T14:18:00+00:00", "text": "right so no second set of bookkeping anywhere"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T13:21:00+00:00", "text": "the 240 in a 200 minute last night - if i had to guess its the release path"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T13:22:00+00:00", "text": "we settled this months ago, one _free_capacity(status_tracker, used_tokens, blocked_capacity) for both outcomes, and the request slot going back on failure exactly like it does on success"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:24:00+00:00", "text": "mhm, and thats the half thats gone. a request that actually landed spent its slot for that minute. handing it back is how you get 240 out of a 200 minute"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-09T13:25:00+00:00", "text": "So two calls now instead of the one?"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:26:00+00:00", "text": "yeah. success side is free_capacity(used, blocked), and the slot stays spent"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T13:27:00+00:00", "text": "and failure? not entirely sure what youre keeping there. the estimate comes back, but the slot too or no"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T13:28:00+00:00", "text": "refund_capacity(blocked) on that side, so the estimate plus the 1.0 slot back. nothing went out, so the minute never owed it in the first place"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-09T13:30:00+00:00", "text": "Ya ok. the retry loop hits the release twice on a timeout today, that was fine when both outcomes went through the same call"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-03T13:38:00+00:00", "text": "when a call raises, whats actually going back to the pool? i had failure and success settling the same way in my head"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-03T13:41:00+00:00", "text": "thats the old plan and its dead. we had it that the except branch has used_tokens built already, so failure settles through the same _free_capacity(used, blocked) as success, slot back on every terminal path. the code does neither half"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-03T13:43:00+00:00", "text": "ok so what does the except branch do"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-03T13:44:00+00:00", "text": "builds used_tokens, then calls refund_capacity(blocked). the whole estimate goes back and the used count just sits there"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-03T13:46:00+00:00", "text": "Which is the right way round, imo. I pulled a failed one reporting 800 output against a 100 booking"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-03T13:48:00+00:00", "text": "yup. on failure the booking comes back whole, the reported usage doesnt enter into it. 800 or otherwise"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-03T13:49:00+00:00", "text": "mhm. and the slot? i genuinely thought that one came back everywhere"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-03T13:51:00+00:00", "text": "failure only. the release lives in the except branch and the success path just doesnt do it. thats the part that has to move"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-04-03T13:53:00+00:00", "text": "Anyway, is the old version written down somewhere? id rather strike it before someone builds to it"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T13:42:00+00:00", "text": "quick one on the refund path — what is the processor side actually meant to do with the blocked capacity? i keep drawing the arrow both directions"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T13:44:00+00:00", "text": "if i had to guess you want it thin there. the processor doesnt do the arithmetic itself, it hands the number back to the tracker"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T13:45:00+00:00", "text": "ok but thin how. does it take the tracker in or go reach for it, and does it still keep its own bookkeping after"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-11T13:47:00+00:00", "text": "takes it in. `_refund_capacity(self, status_tracker, blocked_capacity)` — the tracker and the blocked amount, nothing else on the signature"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T13:48:00+00:00", "text": "and inside? theres got to be more in there tbh"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-11T13:50:00+00:00", "text": "no, honestly thats the whole body. it just calls `status_tracker.refund_capacity(blocked_capacity)` and thats it. no second set of numbers on the processor side"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-11T13:51:00+00:00", "text": "yeah ok. that matches how i had it in my head. nobody has typed it yet as far as i know"}
+{"channel": "incidents", "author": "gideon", "created_at": "2025-04-11T13:52:00+00:00", "text": "ya. i'll stop hunting for the subtraction in the processor then. is the tracker end already sitting there or is that new as well"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T15:04:00+00:00", "text": "quick one — if nobody configures a token limit anywhere, what does available_token_capacity read as"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-29T15:06:00+00:00", "text": "None. i think it's None from the moment that tracker comes up, there's nothing to compute it from"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T15:07:00+00:00", "text": "right, but it gets backfilled later? i couldn't find where i'd look for that"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-29T15:09:00+00:00", "text": "let me think — no. it stays None for the whole life of that tracker, it never becomes a number"}
+{"channel": "general", "author": "dermot", "created_at": "2025-04-29T15:10:00+00:00", "text": "mhm. so not a startup gap, just the state"}
+{"channel": "general", "author": "nils", "created_at": "2025-04-29T15:11:00+00:00", "text": "yeah. nothing sets it after the fact, so anything reading it has to cope with None the whole way through. that's worth documenting"}
+{"channel": "general", "author": "emil", "created_at": "2025-04-29T15:13:00+00:00", "text": "yup, that explains the one i was staring at this morning, it was blowing up on the compare"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-14T14:12:00+00:00", "text": "for the capacity row in the viewer, do we draw it the same on the unlimited runs? or is there something to hide there"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-14T14:14:00+00:00", "text": "so basically i dumped the trakcer on one of those unlimited runs to look. the counters are all sitting there like normal"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-14T14:15:00+00:00", "text": "sure but the capacity number itself, thats what i'm asking about"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-14T14:16:00+00:00", "text": "let me think through that. i believe it just pins at the ceiling and never moves? that would still be a number at least"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-14T14:18:00+00:00", "text": "no thats the thing, available_request_capacity comes back as None on those. so there is no number to watch there, um, nothing to put in that spot"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-14T14:19:00+00:00", "text": "mhm. so that row has nothing behind it at all"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-14T14:20:00+00:00", "text": "ya. only the counters on those runs, thats all the panel has to work with"}

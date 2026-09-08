@@ -1,0 +1,18 @@
+From: nikolai@world.local
+To: konrad@world.local, emil@world.local
+Subject: Re: PR 653 before the next cut
+Date: Wed, 07 May 2025 13:47:00 +0000
+Message-ID: <178880169044.2292275.2637292856229794466@world.local>
+In-Reply-To: <178880169043.2292275.4069940133458733849@world.local>
+References: <178880169043.2292275.4069940133458733849@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yep the error path one is fair i'll push that in a minute
+
+the other one i gotta think through that one, i mean i wrote the pair as a qu=
+ick sanity check and never counted them side by side so i can't tell you off =
+the top of my head whether thats deliberate or not
+
+give me till tomorrow morning before you approve

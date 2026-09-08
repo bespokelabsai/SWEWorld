@@ -1,0 +1,31 @@
+From: konrad@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, tomas@world.local
+Subject: Re: Weekly update: week of Apr 7
+Date: Mon, 14 Apr 2025 12:20:00 +0000
+Message-ID: <178880169059.2292275.608473322680621649@world.local>
+In-Reply-To: <178880169058.2292275.10282098633707352652@world.local>
+References: <178880169058.2292275.10282098633707352652@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+Right, I see it, and I agree it is a bug and not a preference. I had been thi=
+nking of the attribute as a running counter and you are describing it as a re=
+cord of one completed run, and yours is the reading that matches what the nam=
+e promises. Building the EncodingReport at the end and assigning once is stra=
+ightforward here, since all five fields are already local except dropped_indi=
+ces, which I can collect in a list and freeze into the tuple at the same poin=
+t.
+
+One question before I push anything. What is it supposed to read when nothing=
+ good has ever run? A formatter that was constructed and then had its very fi=
+rst batch abort halfway has no last good run behind it, so "whatever the last=
+ good run left" does not obviously say anything about that case. Presumably I=
+ should leave whatever is there alone, but I am not entirely sure what you ex=
+pect a caller to find, and I would rather write the test to your answer than =
+to my guess.
+
+Konrad

@@ -89,8 +89,28 @@ if [[ -d /opt/task-plant ]]; then
       ingest_comments) [[ -s /opt/task-plant/comments.jsonl ]] || continue ;;
       ingest_mail)     [[ -d /opt/task-plant/emails ]]         || continue ;;
     esac
-    python3 "$S/$step.py" --data-dir /opt/task-plant >>/var/log/task-plant.log 2>&1       || { echo "task-plant: $step failed, see /var/log/task-plant.log" >&2; exit 1; }
+    python3 "$S/$step.py" --data-dir /opt/task-plant >>/opt/world-state/task-plant.log 2>&1       || { echo "task-plant: $step failed, see /opt/world-state/task-plant.log" >&2; exit 1; }
   done
+  # ingest_chat stages its import archive in /opt/mattermost/data/import and
+  # Mattermost keeps it after the job succeeds: a 0644 zip whose import.jsonl is
+  # every planted message's text, in a directory the agent can read. Locking
+  # /opt/task-plant does nothing about that second copy. Safe here because
+  # ingest_chat blocks on the import job before returning, and the glob also
+  # clears whatever the base image's own bake left behind.
+  rm -f /opt/mattermost/data/import/*.zip
+  # maddy stores every message body as a plain file under messages/ and indexes
+  # them in a world-readable SQLite db, so `grep -r /var/lib/world/maddy` returns
+  # the planted mail in full without ever opening IMAP. That is the same shortcut
+  # as a readable /opt/task-plant, one directory over: with the plant locked, this
+  # was the ONLY path a filesystem-wide grep as the agent still found. maddy runs
+  # as worldsvc and owns all of it, so 0640/0750 costs it nothing -- login, BODY
+  # search and fetch all verified after -- and Roundcube reaches mail over IMAP,
+  # not the disk. Done here rather than in world/bootstrap because the base image
+  # is published and old, exactly like the PLANT_JOIN guard below. SQLite gives a
+  # recreated -wal/-shm the mode of the db file, so it survives a restart.
+  chmod 0750 /var/lib/world/maddy/messages 2>/dev/null
+  chmod 0640 /var/lib/world/maddy/*.db /var/lib/world/maddy/*.db-wal \
+             /var/lib/world/maddy/*.db-shm 2>/dev/null
   # Mattermost search is MEMBER-SCOPED, and the admin is created by bootstrap
   # rather than by the import, so it lands in Mattermost's defaults --
   # town-square and off-topic, both empty. An agent handed those credentials
@@ -106,7 +126,7 @@ if [[ -d /opt/task-plant ]]; then
   # script and silently undoes it. This is the guard that does not care how old
   # the image is. It is idempotent -- adding an existing member is a no-op --
   # so it costs nothing on a world that already got it right.
-  python3 - <<'PLANT_JOIN' >>/var/log/task-plant.log 2>&1 ||     echo "task-plant: admin channel-join guard failed, chat search may be blind" >&2
+  python3 - <<'PLANT_JOIN' >>/opt/world-state/task-plant.log 2>&1 ||     echo "task-plant: admin channel-join guard failed, chat search may be blind" >&2
 import json, urllib.request
 
 BASE = "http://localhost:8065/api/v4"
@@ -150,7 +170,7 @@ for team in teams:
         page += 1
 print(f"task-plant: admin in {joined} channel(s)")
 PLANT_JOIN
-  echo "task-plant: ingested" >> /var/log/task-plant.log
+  echo "task-plant: ingested" >> /opt/world-state/task-plant.log
 fi
 
 touch "$MARK"

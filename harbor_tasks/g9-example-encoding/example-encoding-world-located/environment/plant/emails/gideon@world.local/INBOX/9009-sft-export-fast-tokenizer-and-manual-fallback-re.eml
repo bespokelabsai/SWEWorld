@@ -1,0 +1,33 @@
+From: konrad@world.local
+To: emil@world.local, dermot@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: sft export =?utf-8?b?4oCU?= fast tokenizer and manual fallback return
+ different label weights
+Date: Tue, 13 May 2025 09:38:00 +0000
+Message-ID: <178880169037.2292275.18019815718582958607@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: the supervised_tokens number on the two-token smoke fixture
+
+Emil, Dermot,
+
+I was checking the smoke fixture we use for the loader =E2=80=94 the one with=
+ the single "Hello" prompt and the "Hi there!" response =E2=80=94 and the cou=
+nter reports a value I cannot reconcile with what the batch actually contains=
+. The example comes back with eight weight entries, one per token, but the re=
+cord we log alongside it says nine. Both numbers are stable across runs, so t=
+his is not a flake.
+
+I checked whether the fixture was configured with assistant-only supervision =
+and it is not, so presumably every token is being counted rather than only th=
+e response. That still does not explain the extra one. Maybe I am reading the=
+ wrong field, or maybe the counter is computed somewhere other than where I a=
+ssume it is. Off the top of my head I cannot see where the ninth would come f=
+rom.
+
+Anyway, before I go further into it: do either of you know what that field is=
+ actually counting?
+
+Konrad

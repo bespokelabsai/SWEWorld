@@ -1,0 +1,261 @@
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-17T14:02:00+00:00", "text": "picked up yesterdays conversation again this morning and it took me like ten minutes before i could even start"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-17T14:04:00+00:00", "text": "ten minutes on what exactly — reconstructing what it had already done, or just figuring out whose turn it was?"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-17T14:05:00+00:00", "text": "whose turn. i walked the whole jsonl top to bottom to work that out"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-17T14:07:00+00:00", "text": "honestly i have done the same thing. the log is the only thing that knows, so you end up re-reading it"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-17T14:09:00+00:00", "text": "and that's the bit i think is actually wrong. resuming shouldn't mean replaying the log to find your place"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-17T14:10:00+00:00", "text": "so basically where does it live instead"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-17T14:12:00+00:00", "text": "the working dir. you open it and the position is right there, you don't derive it from the transcript. log stays the record, it just stops being the only thing that knows where you are"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-17T14:13:00+00:00", "text": "yup, that's the shape. cheap enough too"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-17T14:14:00+00:00", "text": "ya would have saved me the morning. who is writing it"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-17T14:16:00+00:00", "text": "not me today, i'm buried. but it's not a big change"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T12:43:00+00:00", "text": "on the no-local-record case - are we asserting on what the sidecar actually contains, or just that something got written"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T12:45:00+00:00", "text": "contents. ledger.sidecar_state() hands back eight keys and the check at 186 walks all of them"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T12:46:00+00:00", "text": "eight? sidecar_state() gave me version, responses, turns, last_author and nothing else last i looked"}
+{"channel": "incidents", "author": "emil", "created_at": "2025-04-09T12:47:00+00:00", "text": "i believe ledger.sidecar_state grew when the completion fields landed"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T12:49:00+00:00", "text": "yeah. next_speaker, interleave_faults, completed, completion_reason are the other four"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T12:50:00+00:00", "text": "that tracks. and the file on disk itself, are you rebuilding the path from the cache dir or"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T12:52:00+00:00", "text": "no. i stat whatever write_sidecar hands me, thats 189"}
+{"channel": "incidents", "author": "dario", "created_at": "2025-04-09T12:53:00+00:00", "text": "once at the end of the run, or per append"}
+{"channel": "incidents", "author": "dermot", "created_at": "2025-04-09T12:55:00+00:00", "text": "after every append, seed included. thats the point where it went quiet on us last night"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-25T14:06:00+00:00", "text": "back to the ledger thing from yesterday when the counter file and the jsonl dont agree do we rewrite the log to match"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-25T14:10:00+00:00", "text": "you mean editing lines already on disk. not where i thought we landed"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-25T14:12:00+00:00", "text": "i mean one of them has to give though gideon whats the call"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-25T14:16:00+00:00", "text": "No, we leave the jsonl alone when the two disagree."}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-25T14:17:00+00:00", "text": "honestly though those lines cost real money, each one is a repsonse we already paid for"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-25T14:20:00+00:00", "text": "yeah ok. and the counter file costs us nothing to regenerate"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-25T14:21:00+00:00", "text": "exactly, the counters rebuild for free. what the run does when it spots the mismatch is a seperate thing, thats not moving"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-25T14:25:00+00:00", "text": "yeah. the cost of the lines is what i'd put in the comment, not the rebuild bit"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-24T18:30:09+00:00", "text": "back to the id file — did you land on per-run or per-dataset"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T18:35:09+00:00", "text": "per-run, honestly. nothings written yet but thats the shape - one record sitting next to the responses file for that run"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T18:38:09+00:00", "text": "and it pins to that file how. a checksum over the contents, if i had to guess"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T18:43:09+00:00", "text": "lighter than that. resposne count and the last author, nothing else in it"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-24T18:45:09+00:00", "text": "um so no hash at all? just those two fields"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T18:47:09+00:00", "text": "just those two. and the first write carries created"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T18:51:09+00:00", "text": "so verified is what, a later load where both of those still matched"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T18:55:09+00:00", "text": "mhm. only then"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:22:00+00:00", "text": "comparing old checkpoints against a fresh run and like half of them come back mismatched. either my box is bad or the comparison is"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T15:24:00+00:00", "text": "how old are they? honestly half the checkpoints on my box predate TURN_LEDGER_VERSION 2 and dont even carry the same keys"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:25:00+00:00", "text": "so those are just wrong then, or"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T15:26:00+00:00", "text": "stale, not wrong. different thing — theres nothing in them to fix, they're from before"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:27:00+00:00", "text": "ok that tracks. but a couple of mine are current and still disagree, thats the ones i actually care about"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:28:00+00:00", "text": "ya and how do you even find which one, the diff output is a wall"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T15:30:00+00:00", "text": "when a version-2 one does disagree the error's .path attribute holds that turn_ledger.json path. so you go straight to the file"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-05-13T15:31:00+00:00", "text": "path on the error object, not something you parse out of the message"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-05-13T15:32:00+00:00", "text": "yup. nobodys plumbed it into the comparison output yet, but thats where it lives"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T13:03:00+00:00", "text": "so basically for the empty case i turned on interleave_faults and made the first call_single_request blow up. nothing comes back at all"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-19T13:05:00+00:00", "text": "so the run dies before anything gets written? or is there still a file on disk"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T13:06:00+00:00", "text": "no it exists. turn_ledger.json is already sitting there, 186 bytes with the newline"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T13:07:00+00:00", "text": "seeded ahead of the call then. whats actually in the 186"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T13:09:00+00:00", "text": "responses 0, turns 1, last_author client. thats it"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T13:10:00+00:00", "text": "so next_speaker advisor, and completion_reason open rather than completed, if i'm reading that right"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T13:11:00+00:00", "text": "ya exactly. client just went so advisor is up, and nothing came back so open. um, the fixture writes that much, the assert against it isnt written yet"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-24T15:02:00+00:00", "text": "quick one — for the sidecar tests, is there a reader helper somewhere already or is everyone opening the file by hand"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-24T15:05:00+00:00", "text": "i wrote read_sidecar when i was putting the tests together. you hand it the work dir and it hands the record back as a dict"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T15:08:00+00:00", "text": "the work dir, not the path to the file itself? so it does the joining for you"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-24T15:11:00+00:00", "text": "and write_sidecar being the other half of that, yup. what does a read actually give you on ours right now"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-24T15:15:00+00:00", "text": "on mine it comes back version 1 and responses 2. last_author is client"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T15:18:00+00:00", "text": "and the log, does that line up with the dict or is that where it's been drifting"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-24T15:21:00+00:00", "text": "it lines up. the 3-line log agrees on both of those"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-24T15:24:00+00:00", "text": "ok good. the new test is still opening the file itself, i havent pointed it at the helper yet"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-02-26T15:38:00+00:00", "text": "on resume, if the log file has more turns in it than the ledger counted, which of the two do we believe?"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-02-26T15:39:00+00:00", "text": "the ledger. turn_ledger.json is the source of truth there, the log is just whatever happened to get flushed"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-02-26T15:41:00+00:00", "text": "yeah ok. that tells me who wins but not what happens to the extra lines, do they just sit in the file"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-02-26T15:42:00+00:00", "text": "no we cut them. if the log runs past the response count thats recorded, it gets truncated"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-02-26T15:44:00+00:00", "text": "truncated to where though, if i had to guess youd say back to the last response the ledger knows about"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-02-26T15:45:00+00:00", "text": "back before the first request, actually. thats the point where the two of them agree again"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-02-26T15:47:00+00:00", "text": "wait so the ledger being behind the log is just normal? and nothing does the cutting today right"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-02-26T15:49:00+00:00", "text": "normal after a crash yeah. and no, nobody has written the truncate part, the log is the thing that gets fixed up though, never the json"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-21T14:02:00+00:00", "text": "resume question — when the checkpoint count and whats actually sitting in the log dont match which side wins"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-21T14:06:00+00:00", "text": "if i had to guess the checkpoint. not entirely sure what we do with the surplus lines though"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-21T14:09:00+00:00", "text": "yup, checkpoint wins on the mismatch. the recorded count is the thing we treat as true, the log is the side that gets corrected"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-21T14:10:00+00:00", "text": "corrected how do we stop the run"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-21T14:12:00+00:00", "text": "no — log gets trimmed back to the recorded count and the run carries on. no reason to halt for it"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-21T14:14:00+00:00", "text": "mhm. so standard resumable-writer behaviour. the writer doesnt actually do the trim today"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-21T14:15:00+00:00", "text": "right, nobodys written that part yet. but there's nothing exotic in it"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-24T18:28:59+00:00", "text": "whats the story with resume truncating the log back to turn_ledger.json? a run of mine came back short today and i cant tell if thats a bug or the design"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-24T18:31:59+00:00", "text": "that was the design. the ledger was the source of truth, so if the log ran past the recorded response count we cut it back before the first request"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-24T18:32:59+00:00", "text": "not anymore though, dario pulled it. resume was binning paid turns"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-24T18:35:59+00:00", "text": "so what does it do in that spot now, just refuse?"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-24T18:40:59+00:00", "text": "mhm. if the checkpoints are on the current version and they disagree on responses or last_author we raise TurnLedgerDesyncError instead of quietly picking a winner. i think that's the best we can do, throwing away someone's tokens to make a file line up was never worth it"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-24T18:42:59+00:00", "text": "and it notices when? mid run or up front"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-24T18:45:59+00:00", "text": "before the first request goes out. the whole point is that you havent spent anything yet when it fires"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-24T18:46:59+00:00", "text": "ok. what does it hang off, i want to catch it in the wrapper"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-24T18:49:59+00:00", "text": "TurnLedgerError, which is honestly just a RuntimeError. nothing clever under it"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:38:00+00:00", "text": "quick one on the ledger resume path — are we still trimming the jsonl back to the count in the checkpoint?"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:41:00+00:00", "text": "no, that ones dead. \"checkpoint wins on the mismatch, log gets trimmed back to the recorded count, run carries on\" — thats what we agreed and it threw away turns we had already paid for. so it's gone."}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:43:00+00:00", "text": "oof. ok so what does resume look at instead"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:45:00+00:00", "text": "theres a stamp on the file now. the version key, holding TURN_LEDGER_VERSION, which is 2 at the moment"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:48:00+00:00", "text": "and the ledgers written before that key existed? either those blow up or we're doing something quieter"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:51:00+00:00", "text": "quieter. missing, or below 2, gets status adopted and we keep going. the only thing that aborts is a version-2 mismatch. nobodys rewritten the resume path against that yet but thats the shape"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:53:00+00:00", "text": "mhm. adopted as in we take the file as-is and keep appending to it, no truncation anywhere"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:56:00+00:00", "text": "how many turns did the trim eat on that run btw"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:58:00+00:00", "text": "honestly not sure, i never recounted it. enough that i noticed on the bill before i noticed in the log"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-28T14:22:00+00:00", "text": "quick one on the ledger check — checkpoint on disk is already at the current version, what does verify actually do there"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-28T14:24:00+00:00", "text": "counts thing i'd say off the top of my head"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-28T14:26:00+00:00", "text": "ya so basically version 2 checkpoint, and responses and last_author both matching the log. thats the case"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-28T14:28:00+00:00", "text": "and it hands back something? or is it silent"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-28T14:29:00+00:00", "text": "no it comes back status verified"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-28T14:31:00+00:00", "text": "mhm. so the file is untouched, not even a rewrite with the same contents, thats what im hearing"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-28T14:33:00+00:00", "text": "exactly, nothing rewritten. it stays exactly as it was"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-28T14:35:00+00:00", "text": "yep i mean nothing in that path does that today"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-06-04T13:39:42+00:00", "text": "has anyone actually looked at the sidecar after a real run, or are we all still reading off the schema"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-04T13:41:42+00:00", "text": "i ran four turns on 685 before lunch. 189 bytes on disk, and read_sidecar off the work dir picks it up with no complaints"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-06-04T13:43:42+00:00", "text": "what does it say inside though, the counts are the part i cant guess at"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-04T13:44:42+00:00", "text": "version 2, responses 3, turns 4. last_author advisor"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-06-04T13:46:42+00:00", "text": "and the stopping side? i believe next_speaker is where it went sideways for me last time"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-04T13:48:42+00:00", "text": "next_speaker null. completed true, completion_reason agent_signal. so it stopped the way we wanted it to, not by running out"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-06-04T13:51:42+00:00", "text": "mhm, that tracks. version 2 is what i had been assuming and now i dont have to assume it"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-25T12:29:46+00:00", "text": "quick one on the disk side while i'm in here — does the record for a run show up at submit, or only once there's something to actually write"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-25T12:31:46+00:00", "text": "at submit. we seed it there, and completed is false from that first write"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-25T12:32:46+00:00", "text": "and it stays false while the appends are going, or does it flip over as soon as there are rows in there"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-25T12:34:46+00:00", "text": "stays false the whole way through, every append leaves it alone. it only flips true once the run actually finishes"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-25T12:35:46+00:00", "text": "yup. so a half written run on disk and a run that died look the same, which is fine by me honestly"}
+{"channel": "viewer", "author": "dermot", "created_at": "2025-04-25T12:36:46+00:00", "text": "mhm. and nothing in between submit and the finish goes near it"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-25T12:37:46+00:00", "text": "no. only the finish path touches it, nobody has written that bit yet but thats where it goes"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-06-02T16:51:02+00:00", "text": "the file the viewer reads - does it only land once a run finishes? i've never actually sat and watched one get written"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-06-02T16:53:02+00:00", "text": "i think it writes more than once actually, i've seen it grow while a run was still going. cant tell a mid run copy from the last one though"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-06-02T16:55:02+00:00", "text": "Look, it does write mid-run. the telling apart is completion_reason"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-06-02T16:56:02+00:00", "text": "meaning its blank until the end, or"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-06-02T16:57:02+00:00", "text": "no. it sits at \"open\" on every write while the run is still going"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-06-02T16:58:02+00:00", "text": "and after that?"}
+{"channel": "viewer", "author": "konrad", "created_at": "2025-06-02T17:00:02+00:00", "text": "it only stops saying open once the run actualy ends. so anything reading mid run sees open, every time, thats the whole signal"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-06-02T17:02:02+00:00", "text": "ok. so nothing in the viewer reads that field today, it just trusts whatever file it got handed"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T11:53:00+00:00", "text": "quick one on the resume path - to work out who speaks next, do we have to read back through the jsonl?"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T11:55:00+00:00", "text": "no. next_speaker is nothing more than the partner of last_author"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T11:57:00+00:00", "text": "right but all i have on disk is the last one written. if it ends on client what comes back"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T11:58:00+00:00", "text": "advisor. thats just the pairing"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T12:00:00+00:00", "text": "yeah ok - ends on client, comes back advisor. so nobody has to replay the file, its off the one field"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T12:02:00+00:00", "text": "mhm, cheaper than i had it in my head"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T12:03:00+00:00", "text": "ya i was half way into writing a scan loop for this, binning that. someone still needs to do it properly though"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-25T15:22:00+00:00", "text": "whats interleave_faults actually counting the name tells me nothing"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-25T15:26:00+00:00", "text": "the spots where the log doubles back on the same author. thats the whole of it honestly"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-25T15:28:00+00:00", "text": "doubles back meaning the same one lands twice in a row"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-25T15:29:00+00:00", "text": "yup"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-04-25T15:33:00+00:00", "text": "so a transcript that just alternates the whole way down never trips it"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-25T15:36:00+00:00", "text": "right, clean client/advisor straight down rebuilds to 0 every time"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-04-25T15:38:00+00:00", "text": "yep thats a lot smaller than i had it in my head"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-07-10T14:12:00+00:00", "text": "lost an hour this morning to a one character diff in a test assert. expected string didnt match and i could not see why"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-07-10T14:14:00+00:00", "text": "it was the trailing period. i pasted the TurnLedgerError text out of a sentence and the sentence's full stop came along with it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-07-10T14:16:00+00:00", "text": "so is the real text shorter by one, or was your assert just off on spacing somewhere"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-07-10T14:18:00+00:00", "text": "shorter by one. our TurnLedgerError messages dont end with a full stop, none of them do"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-07-10T14:19:00+00:00", "text": "mhm ok, that tracks"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-07-10T14:21:00+00:00", "text": "fine, but anyone copying one out of prose walks into the same thing. that said i dont know where youd even put the warning"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-07-10T14:25:00+00:00", "text": "presumably yes. anyway the messages stay as they are, it is the pasting that needs the care"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-07-10T14:26:00+00:00", "text": "honestly id have lost the same hour. a period at the end of a string is invisible in a diff"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-13T13:04:00+00:00", "text": "quick one, what does verify_sidecar actually do when theres nothing on disk yet? cant tell from reading it tbh"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-06-13T13:08:00+00:00", "text": "it sits in the same module as write_sidecar, right underneath it. i pointed it at a freshly built ledger, status created"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-06-13T13:11:00+00:00", "text": "and the disk side? if i had to guess you ran that first pass with turn_ledger.json deleted"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-06-13T13:13:00+00:00", "text": "yup, that one first. then again with nils' old record sitting there"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-13T13:15:00+00:00", "text": "which version did nils have on it"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-06-13T13:17:00+00:00", "text": "version 1. came back adopted both times, not verified. and nothing written either way, honestly i checked twice"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-06-13T13:20:00+00:00", "text": "mhm. so the writing stays on write_sidecar's side of the line. i hadnt actually run it myself"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-06-13T13:22:00+00:00", "text": "ok ya, ill stop hunting for the write in the other one then"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-10T16:33:49+00:00", "text": "quick one before i forget - if the sidecar checker gets handed a ledger it cant parse, what does it actually do? i assumed it bails loudly"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-10T16:36:49+00:00", "text": "ya so basically on WS-050 i pointed verify_sidecar at a turn_ledger.json that json.loads chokes on"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-10T16:37:49+00:00", "text": "status came back adopted. um. that was the whole point of the run tbh"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-10T16:39:49+00:00", "text": "adopted as in it passed? so youre saying nothing surfaced at all, no exception, it just carried on"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-10T16:41:49+00:00", "text": "honestly i'd have expected a raise there too. thats a bad shape to be quiet about"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-10T16:45:49+00:00", "text": "nothing thrown, no. i went through the module after - TurnLedgerDesyncError is the only raise in there, so theres literally no other exit for it to take. and that one is the wrong thing to reuse here, so the parse failure gets its own answer"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-10T16:48:49+00:00", "text": "mhm. a file that wont load isnt a desync in any reading of the word"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-11T10:12:00+00:00", "text": "wrote up how per-turn state lands on disk, it's on the wiki under agent loop. short version is the ledger sidecar gets flushed at the end of each turn, not on the criterion check, so if you kill the process mid-turn you lose that turn but nothing before it"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-11T10:14:00+00:00", "text": "that said i'm not entirely sure the flush ordering is what we want when resume is in play. worth a second pair of eyes from the finetuning side"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-11T10:41:00+00:00", "text": "Look, I passed the work dir in relative and the path handed back still opened from my home dir — /work/agent/turn_ledger.json either way. Took me a while to notice becuase the first run did write something, just not where I was looking"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-06-11T10:52:00+00:00", "text": "hm. so you're saying the relative bit never actually made it through, it just got normalized somewhere upstream of the sidecar? honestly i'd have guessed the loop resolves it at construction but i haven't looked at that code in a while"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-11T10:55:00+00:00", "text": "presumably yes. anyway it's not blocking me, I just wanted the two runs side by side and got confused for ten minutes"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-11T11:03:00+00:00", "text": "yeah ok. i'll add a line about it in the write-up when i'm back in there, the flush section is the part i actually want reviewed"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-12-30T10:09:00+00:00", "text": "quick one before i lose the thread - on a totally clean checkout, nothing on disk to resume from, what does the ledger status actually come back as at the end? i keep assuming its just whatever the constructor put there but honestly not entirely sure"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-12-30T10:14:00+00:00", "text": "Look, clean work dir, ran it end to end - nothing to load, so verify_sidecar never fired and the ledger came back still carrying the status it was built with."}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-12-30T10:14:00+00:00", "text": "so yes. your assumption holds, at least for that path"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-12-30T10:17:00+00:00", "text": "so youre saying the only thing that ever writes that field is the resume path, and the fresh case just... leaks the placeholder out to whoever's reading it. sounds right, matches what i saw friday"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-12-30T10:19:00+00:00", "text": "mhm. presumably. off the top of my head nobody wrote down what the empty case is supposed to report anyway"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-12-30T10:26:00+00:00", "text": "we need to be intentional here eventually. i'll put it somewhere, not this week though"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:32:00+00:00", "text": "ran the negotiation demo four times today and got the identical shape out of every run"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:33:00+00:00", "text": "what does it do"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:35:00+00:00", "text": "never stops early. it just keeps going"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:37:00+00:00", "text": "keeps going as in it burns through the whole budget, or it quits somewhere short and just doesnt tell you"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:39:00+00:00", "text": "the whole budget. everytime, all four. and thats with the partner writing that it has nothing left to add, in as many words"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:42:00+00:00", "text": "then the demo isnt hearing it. thats the thing to fix i think — when the partner says its done the run should end there instead of us paying out the rest for nothing"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-20T13:44:00+00:00", "text": "mhm. do the other demos do this too or is it only this one"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:46:00+00:00", "text": "havent run the others honestly. four for four on this one though so its not luck"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-16T14:02:00+00:00", "text": "i've been grepping for where we consume the end marker in the agent transcripts and i can't find a reader anywhere. am i looking in the wrong package or is there genuinely nothing"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-16T14:05:00+00:00", "text": "the agent prompts page does instruct both agents to close their final message with `<<END_OF_CONVERSATION>>`. i believe thats been in there a good while"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-16T14:07:00+00:00", "text": "right, so who reads it. does the loop terminate off it or is it decorative"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-16T14:09:00+00:00", "text": "decorative. so basically no code has ever looked for that string, i went through it this morning, there is no path that reads it at all"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-16T14:10:00+00:00", "text": "and \"a good while\" is how long, roughly"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-16T14:12:00+00:00", "text": "since the first demo, um, both prompts, never touched. honestly though the marker is fine, it's the reading side that should exist and doesnt"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-16T14:14:00+00:00", "text": "yup. so we make something actually read it rather than pull the line out of the prompts"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-16T14:15:00+00:00", "text": "ya exactly, nobody has written that yet though"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:22:00+00:00", "text": "quick one, what is the done check on the base agent actually meant to do"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:23:00+00:00", "text": "far as i can tell it just says no, every time, forever"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:26:00+00:00", "text": "if i had to guess it was left as a stub for subclasses to fill in. that said the agents nobody subclassed never come back"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-14T13:31:00+00:00", "text": "yep thats the bug i'd say for the base one nobody subclassed it should just look for the marker instead of answering no forever"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-14T13:33:00+00:00", "text": "which marker though, we have one already?"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-14T13:35:00+00:00", "text": "the one we already put in the prompts its been sitting there doing nothing"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:37:00+00:00", "text": "mhm so base only, anything that overrides keeps whatever it defines"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-03-14T13:38:00+00:00", "text": "right"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T14:09:00+00:00", "text": "either the loop wants the marker exactly as we print it, or close enough counts. which is it in the cookbook one"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T14:12:00+00:00", "text": "marker is STOP thats the only thing the cell breaks on"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:14:00+00:00", "text": "look, I typed it lowercase in the notebook cell yesterday and the loop still quit on me"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T14:15:00+00:00", "text": "so is the lowercase one supposed to count, or did we just get sloppy"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:17:00+00:00", "text": "presumably sloppy. if its a marker then it has to be the marker, capitals included"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T14:18:00+00:00", "text": "yep thats how i had it in my head"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:21:00+00:00", "text": "anyway that explains last weeks run looking clean to me, I counted a quit that wasnt one"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-15T12:53:00+00:00", "text": "picking the 639 diff back up — is the basemodel path worth guarding properly or do we just let it fall over"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-15T12:56:00+00:00", "text": "my read was its an edge case, which is honestly why it sat there unnoticed for so long. not entirely sure though"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-15T12:59:00+00:00", "text": "on 639 though thats not an edge case with response_format set the reply we pass around is a parsed object rather than text"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-04-15T13:01:00+00:00", "text": "ok but is that one caller somewhere or is it actually a normal thing people do"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-15T13:04:00+00:00", "text": "three of the cookbooks are built that way i mean thats the shape anyone doing structured output ends up with"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-04-15T13:07:00+00:00", "text": "yup, then it gets handled on the main path, not as some rare branch. Im taking the edge case wording out of my comment, wrong frame to review it under"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-13T16:31:00+00:00", "text": "the fake we hand the runner — is the third reply the one carrying the marker, or does the marker land on its own row after it"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-06-13T16:34:00+00:00", "text": "third reply, and its the whole reply not just a suffix. Then index funds. <<END_OF_CONVERSATION>>"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-06-13T16:36:00+00:00", "text": "ok so do we strip the marker off before it goes in, or does the row keep it exactly as typed"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-13T16:37:00+00:00", "text": "and the label on that last one, if i had to guess its not us"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-06-13T16:40:00+00:00", "text": "no stripping, honestly. that entire string sits as the content of the last row, and the role there is PARTNER"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-06-13T16:42:00+00:00", "text": "mhm. Then plus the marker, one field. i had it in my head as two rows"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T15:11:00+00:00", "text": "quick one, what tells us a turn is actually finished. do we match the whole reply against somethign?"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-22T15:13:00+00:00", "text": "no  just the sentinel token we ask for  we look for it in the reply"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T15:14:00+00:00", "text": "half of mine come back with it in shouty caps though, presumably that misses"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-22T15:15:00+00:00", "text": "we lowercase the whole reply first  then look"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T15:17:00+00:00", "text": "ok and where in the reply, does it need to sit in a particular spot or"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-01-22T15:19:00+00:00", "text": "anywhere in it, position doesnt matter. honestly the agents drop it wherever they like — mid paragraph, inside a code fence, after whatever closing sentence they felt like writing"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-22T15:20:00+00:00", "text": "yeah ok. so nothing to strip or normalise beyond the case, we just search the lowercased reply for it"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T15:22:00+00:00", "text": "right, that is simpler than what i had. the one that fooled me last week had it buried in a bullet, nobody has written this yet anyway"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-11T14:02:00+00:00", "text": "writing the is_completed paragraph for the docs page and i want to get it right. does the marker have to match exactly, or is it a search"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-11T14:03:00+00:00", "text": "search. we lower both sides and look for it inside the text"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-11T14:04:00+00:00", "text": "so it is not an exact compare, no"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-11T14:05:00+00:00", "text": "so done, Done, DONE, all the same as far as the check is concerned"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-11T14:06:00+00:00", "text": "right, casing is not something the user has to get right"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-11T14:07:00+00:00", "text": "mhm. and where does it have to sit in the response for the check to see it? if i had to guess it doesnt matter but the page shouldnt leave people guessing"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-11T14:09:00+00:00", "text": "anywhere. the scan is over the whole response, not a slice of it, so the placment is free too"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-11T14:11:00+00:00", "text": "yeah ok, then the sentence i had drafted is just wrong, it reads like the marker has to come back typed exactly the way it was configured"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-18T13:41:00+00:00", "text": "sim run last night died 4 turns in. is_completed went true and nobody had actually said goodbye"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T13:44:00+00:00", "text": "yeah i chased that one. the partner was explaining the handoff protocol to the other side and pasted <<END_OF_CONVERSATION>> mid sentence, right in the middle of a clause. run cut off right there"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-18T13:46:00+00:00", "text": "so youre saying it matched on the token being talked about rather than the token being used?"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T13:49:00+00:00", "text": "mhm. we never gave it any way to tell those apart. the old thing we agreed was: lowercase the whole reply, look for the token anywhere in it, position doesnt matter since agents drop it wherever they like. that held up fine until somebody wrote *about* it"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-18T13:51:00+00:00", "text": "ok so its dead. we pin it to the end instead?"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T13:54:00+00:00", "text": "thats the change. is_completed is response.rstrip().endswith(COMPLETION_SENTINEL), nothing else"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-18T13:56:00+00:00", "text": "does the lowercasing survive into the tail compare or is that gone with it"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-18T13:58:00+00:00", "text": "gone too. case sensitive now. honestly thats half the point, its the exact string or its not the sentinel"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-18T14:01:00+00:00", "text": "exactly, and the rstrip covers the trailing newline, which was the one thing i was going to ask about"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-04T18:31:31+00:00", "text": "konrad - the is_completed line we confirmed for the docs a while back. case insensitive scan over the whole response, casing and placement dont matter. is that still what it does"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-04T18:34:31+00:00", "text": "no. scrap that one, its wrong and i confirmed it so thats on me. there is no scan anywhere. it only looks at the end"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-06-04T18:36:31+00:00", "text": "so the run tuesday where the model talked about the marker halfway through the answer and we counted the turn as done - that was us trusting the scan wording"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-04T18:38:31+00:00", "text": "right, that one. look, its response.rstrip().endswith(COMPLETION_SENTINEL) and nothing more than that"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-06-04T18:41:31+00:00", "text": "so casing is load bearing again? the old line specifically said nobody had to get it right"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-04T18:43:31+00:00", "text": "exact casing yes. the only forgiving part is trailing whitespace, the rstrip eats that"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-06-04T18:45:31+00:00", "text": "and when response comes back as not a string at all, does it throw or does it just say no"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-04T18:47:31+00:00", "text": "False. no exception. which is presumably the better of the two anyway"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-06-13T15:12:00+00:00", "text": "did the transcript ever line up with the log in the end? off the top of my head it was coming out short"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-06-13T15:15:00+00:00", "text": "yeah ok, re-ran dario's transcript on my branch and the dataset comes out at four rows now"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-06-13T15:16:00+00:00", "text": "four is right? matching what"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-06-13T15:18:00+00:00", "text": "same count as the jsonl log, yeah. closing message and all, that was the one going missing"}
+{"channel": "releases", "author": "dario", "created_at": "2025-06-13T15:21:00+00:00", "text": "mhm that tracks, it was always the last one that dropped off. honestly i'd stopped trusting the count entirely"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-06-13T15:23:00+00:00", "text": "right. i had this filed as a serialiser thing, apparently not"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-12-29T15:04:00+00:00", "text": "quick one on the pair from friday did we cut those runs off or did they actually end"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-12-29T15:07:00+00:00", "text": "the ledger carries a flag for that per run. thats where i'd look before assuming either way"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-12-29T15:09:00+00:00", "text": "and it reads what for these two"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-12-29T15:12:00+00:00", "text": "Right, and completed reads True on the ledger for these runs. I pulled both up this mornign"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-12-29T15:14:00+00:00", "text": "True could just mean the loop stopped though no"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-12-29T15:17:00+00:00", "text": "no. the agent said it was done, thats a finish, not a run we cut short. look, its the agents own word for it, we take it"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-12-29T15:19:00+00:00", "text": "yeah ok. nothing keys off it on our side yet, that part still needs writing, but the reading is clear enough"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-12-29T15:21:00+00:00", "text": "yep i had them filed as truncated, thats me wrong then"}

@@ -1,0 +1,30 @@
+From: dario@world.local
+To: nikolai@world.local, dermot@world.local, emil@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject:
+ Re: which state files does the resume consistency check actually cover
+Date: Wed, 11 Jun 2025 15:40:00 +0000
+Message-ID: <178880237812.2304052.13217882424008610837@world.local>
+In-Reply-To: <178880237810.2304052.1791072431245094391@world.local>
+References: <178880237810.2304052.1791072431245094391@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot, Nikolai,
+
+That tracks with what I saw when I was chasing an interrupted run last week, =
+though at the time I only had the message and not the object, so I parsed the=
+ sentence with a regex, which I am not proud of. Knowing that .log_responses =
+and .log_last_author are sitting right there would have saved me an afternoon.
+
+One thing I would add for whoever reads this cold: the two authors being iden=
+tical is not a coincidence in this failure and it is worth understanding why.=
+ The desync shows up as the same author on both sides precisely because the m=
+issing write is the tail of the ledger, so the last entry that did land was w=
+ritten by the same participant as the one that did not. So 'client' appearing=
+ twice in that string is the normal shape of the common case, not a sign that=
+ something odd happened. Honestly, if I had seen two different authors there =
+I would have assumed the ledger was corrupt rather than merely behind.
+
+Dario

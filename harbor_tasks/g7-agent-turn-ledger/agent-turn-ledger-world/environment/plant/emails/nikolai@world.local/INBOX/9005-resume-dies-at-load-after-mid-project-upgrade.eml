@@ -1,0 +1,35 @@
+From: dermot@world.local
+To: emil@world.local, dario@world.local, konrad@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: resume dies at load after mid-project upgrade
+Date: Tue, 13 May 2025 13:32:00 +0000
+Message-ID: <178880237802.2304052.7392719398536391566@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: the checkpoint load throwing on a strict key comparison
+
+Emil,
+
+Writing this rather than catching you in the room, since it needs the whole p=
+icture and I am out from mid-afternoon.
+
+I picked up the run from Friday night this morning and the resume threw befor=
+e it read a single response back. The mechanism, for anyone reading this late=
+r without the code in front of them: the reader loads the sidecar, walks the =
+eight keys it finds there against what the writer would produce for the same =
+log, and refuses the checkpoint if any one of them disagrees. In my case one =
+of them disagreed. The error it prints does not name the field that failed, w=
+hich is a defect of its own, so I lost a good part of the late night convinci=
+ng myself the log had been truncated under me.
+
+The file does not look bad otherwise. The log it sits beside is intact, the l=
+ast entry is complete, and the counts I checked by hand line up with it. If I=
+ had to guess, the checkpoint is simply older than the writer in my current t=
+ree, and something in it has drifted that has no bearing on whether the check=
+point honestly describes the log next to it.
+
+Have you seen this, or is it particular to my tree?
+
+Dermot

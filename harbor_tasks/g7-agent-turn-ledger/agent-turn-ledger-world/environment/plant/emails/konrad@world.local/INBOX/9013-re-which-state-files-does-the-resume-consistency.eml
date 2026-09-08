@@ -1,0 +1,33 @@
+From: dermot@world.local
+To: nikolai@world.local, emil@world.local, dario@world.local,
+ konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+Subject:
+ Re: which state files does the resume consistency check actually cover
+Date: Wed, 11 Jun 2025 15:10:00 +0000
+Message-ID: <178880237811.2304052.16639487249120579640@world.local>
+In-Reply-To: <178880237810.2304052.1791072431245094391@world.local>
+References: <178880237810.2304052.1791072431245094391@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Nikolai,
+
+Thanks for putting the exact string in the mail rather than describing it. Th=
+at is the part that always gets lost.
+
+On the ordering, let me restate it to be sure I have it. The ledger is the fi=
+rst clause and the log is the second, so "records 1 response(s) last authored=
+ by 'client'" is what the file on disk believes, and "the log holds 2 last au=
+thored by 'client'" is the truth we reconstructed. If I had to guess from the=
+ counts alone I would have read it the other way round, because the larger nu=
+mber usually looks like the authority, but the path being printed first ancho=
+rs it to the ledger and that settles it.
+
+The attributes are the piece I want to be sure of. Since the ledger side is a=
+lready legible in the message, am I right that .log_responses and .log_last_a=
+uthor are the log side only, and that there is deliberately no matching pair =
+for the ledger side? I am not entirely sure whether that was a decision or ju=
+st what the comparison happened to have in hand when it raised.
+
+Dermot

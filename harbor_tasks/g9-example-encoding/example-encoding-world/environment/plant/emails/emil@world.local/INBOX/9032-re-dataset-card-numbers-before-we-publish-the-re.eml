@@ -1,0 +1,28 @@
+From: dermot@world.local
+To: emil@world.local, dario@world.local, gideon@world.local
+Subject: Re: Dataset card numbers before we publish the reasoning set
+Date: Wed, 16 Apr 2025 11:38:00 +0000
+Message-ID: <178880169054.2292275.17987732293015572545@world.local>
+In-Reply-To: <178880169054.2292275.13375075729600398190@world.local>
+References: <178880169054.2292275.13375075729600398190@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yeah, you have it right. the counts in the card came off the pre-trim manifes=
+t, i pulled them the evening before we decided to drop anything over the cont=
+ext limit and then never went back and regenerated them once the trim landed.=
+ 40,214 is the number that should be in there.
+
+the per-domain breakdown underneath it has the same problem, since it was der=
+ived from the same file =E2=80=94 math and code both come down, the rest are =
+close enough that the rounding hides it, but i would regenerate the whole tab=
+le rather than patch two rows.
+
+one more correction while we're on token counts: supervised_tokens in the rel=
+ease notes was inflated, it counted the long examples we threw out of the bat=
+ch. that said, none of this changes the license or provenance sections, so th=
+e rest of the card can stand as written.
+
+i can regenerate both tables from the submitted manifest this afternoon if no=
+body has started already.

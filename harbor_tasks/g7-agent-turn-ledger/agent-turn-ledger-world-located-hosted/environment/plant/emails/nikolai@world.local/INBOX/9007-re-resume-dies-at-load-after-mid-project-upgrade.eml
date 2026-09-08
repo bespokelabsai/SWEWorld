@@ -1,0 +1,27 @@
+From: konrad@world.local
+To: emil@world.local, dermot@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: resume dies at load after mid-project upgrade
+Date: Tue, 13 May 2025 15:47:00 +0000
+Message-ID: <178880237804.2304052.1521437770374371143@world.local>
+In-Reply-To: <178880237802.2304052.7392719398536391566@world.local>
+References: <178880237802.2304052.7392719398536391566@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Emil, Dermot,
+
+Right, and on interleave_faults I can date the drift, because it was my chang=
+e. When the fault injection was reworked at the end of March, the counter sto=
+pped being incremented on that path =E2=80=94 the retries it used to count ar=
+e accounted for elsewhere now, so for an ordinary run the writer records zero=
+ there. The key itself did not move. Both spellings of the file still have al=
+l eight fields and interleave_faults is still one of them; only the number in=
+ it changed meaning. Presumably that means every checkpoint written before th=
+at build carries the old figure and will fail the comparison forever, no matt=
+er how well it matches its log.
+
+What do we do with those older files? I do not have a strong view, and off th=
+e top of my head there are two shapes to it, but I would rather the answer ca=
+me from the person who has been staring at the dumps.

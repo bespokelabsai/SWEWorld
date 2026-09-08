@@ -1,0 +1,27 @@
+From: konrad@world.local
+To: nikolai@world.local, emil@world.local
+Subject: Re: PR 653 before the next cut
+Date: Wed, 07 May 2025 11:26:00 +0000
+Message-ID: <178880169044.2292275.13895322965282137016@world.local>
+In-Reply-To: <178880169043.2292275.4069940133458733849@world.local>
+References: <178880169043.2292275.4069940133458733849@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Right, I went through it properly this morning rather than skimming. Most of =
+it is fine =E2=80=94 the client itself I have no objection to, and the config=
+ handling reads much cleaner than the previous version.
+
+Two things. First, the error path when the upload fails silently swallows the=
+ response body, so presumably you get a bare exception with no context. Small=
+, but worth fixing before it lands. Second, and this is the one I want you to=
+ confirm: look, on your Hello / Hi there! pair the weights come back one shor=
+ter than the tokens - eight of them, [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]=
+. I am not entirely sure if that is intentional (shifted for the next-token p=
+rediction, maybe?) or if something is dropping off the end. Off the top of my=
+ head I could not tell from the code alone.
+
+If it is intended I will approve today. Anyway the rest is fine from my side.
+
+=E2=80=94 Konrad

@@ -126,11 +126,11 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-03-19 · #releases · konrad**
 
-> look, on the stability item - nightly died on ExampleTooLongError, 129 tokens agianst a cap of 40 and not one prompt token left standing
+> look, on the stability item - nightly died on `ExampleTooLongError: example of 129 tokens exceeds max_seq_length=40: 0 prompt tokens would survive, minimum is 16`, traceback right after.
 
 **2025-03-19 · #pipeline · nils**
 
-> let me think — the refusal line reads exactly: example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16. num_messages rides along as an attribute, it isn't printed.
+> let me think — the line is `example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16`, and num_messages rides along as an attribute, not printed.
 
 **2025-03-19 · #engineering · konrad**
 
@@ -162,7 +162,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-04-02 · wiki: Weekly Notes \u2014 Week of Mar 31 · nils**
 
-> on 615 — let me think, simplest is numbering them against the list i passed in, in the order i passed it, then i index straight into my own data.
+> on 615 — let me think, simplest is dropped_indices numbered against the list i handed in, in that order, so i index straight back into my own examples.
 
 **2025-04-03 · #cookbooks · gideon**
 
@@ -184,9 +184,9 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > one more correction while we're on token counts: supervised_tokens in the release notes is inflated, it counted the long examples we dropped from the batch. it shouldn't.
 
-**2025-04-17 · mail: Re: PR 643 review notes — cost fields on the response object · emil**
+**2025-04-18 · #engineering · emil**
 
-> yeah, a cleanup bumped a counter on last night's report after the run finished, so the figure i pasted in the ticket was wrong. agreed, reports are frozen once built.
+> related - a cleanup bumped a counter on an EncodingReport after the batch had finished, so the figure i pasted in the ticket was wrong. frozen=True on it, its finished when format_batch hands it back
 
 **2025-04-18 · #engineering · nikolai**
 
@@ -206,7 +206,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-04-28 · #viewer · gideon**
 
-> tbh i chased dropped_indices back to my input file and row 7 was fine, so basically those numbers only count among the ones we skipped.
+> tbh i chased dropped_indices back to my input file — came back (0, 1) when the rows i binned were 3 and 7. numbered among the ones we skipped.
 
 **2025-05-06 · mail: PR 653: formatter still takes tokenizer=None · konrad**
 
@@ -222,7 +222,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-05-13 · mail: sft export — fast tokenizer and manual fallback return different label weights · emil**
 
-> let me think through that — with train_on_assistant_only off both paths should hand back a flat vector of ones, and supervised_tokens counts tokens in the span, not weight slots.
+> let me think through that — with train_on_assistant_only off both paths hand back a flat vector of ones, and the span is the whole example rather than the answer, so supervised_tokens is the token count itself. on the Hello / Hi there! pair thats 9, against 8 weight slots — its the span's end minus its start, never the number of weights.
 
 **2025-05-13 · mail: PR 653 — where does role validation live, and what do the cookbooks import · dario**
 
@@ -230,7 +230,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-05-13 · #pipeline · nikolai**
 
-> yep same on the fireworks pass the drop positions lined up with the rows we wrote out not the list i submitted so i greped the wrong lines
+> yep same on the fireworks pass — to_jsonl_lines numbered dropped_indices against the rows we wrote out, not the list i submitted, so i greped the wrong lines.
 
 **2025-05-13 · mail: stats report branch — need someone to run it before the 0.1.25 cut · konrad**
 
@@ -260,9 +260,9 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > so basically the checkpoint from last night starts its answers mid-sentence, and every row i pulled had the question cut off but the reply still weighted.
 
-**2025-06-10 · wiki: Reading a capped executor log: how to count turns in it · nils**
+**2025-06-11 · #engineering · konrad**
 
-> let me think through that, what settles whether a turn is in or out is whether the opening token of its answer survived the cut, the tail end of it is in there either way
+> look, I measured the Hello / Hi there! case by hand - 15 charcters up to where the assistant header starts, 39 with that whole turn on the end.
 
 **2025-06-11 · wiki: what format_batch counts as a drop, and what stops the pass instead · dario**
 
@@ -280,9 +280,13 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > on 653 whats in encoding.py so far the role set FIREWORKS_BYTES_PER_TOKEN still 3 ExampleTooLongError off EncodingError and the encoding blocks tokenizer flag False when we ran without one
 
+**2025-06-17 · wiki: chat formatting and assistant span masking in the finetuning client · nils**
+
+> let me think through that, what settles whether a turn is in or out is whether the opening token of its answer survived the cut, the tail end of it is in there either way
+
 **2025-06-17 · wiki: chat formatting and assistant span masking in the finetuning client · dermot**
 
-> on the no-tokenizer path leave the `<|role|>` text and the `len // 4` count exactly as they are; an assistant span is the text length before and after that message, each `// 4`.
+> on the no-tokenizer path leave the `<|role|>` text and `len(chat_text) // 4` as they are; a span's ends are that count over messages[:i], then over messages[:i+1].
 
 **2025-06-17 · wiki: request builder: what we drop and what we raise on · dario**
 
@@ -294,11 +298,15 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-06-26 · wiki: Local offline inference: what the encode step returns when no tokenizer is loaded · gideon**
 
-> so basically on the mock path the ids are just range over the count, 0 through 8 for the Hello pair, and model_input is the first eight of those.
+> so basically on the mock path the encoding reads token_count 9 for the Hello pair, the whole chat_text in one go, ids 0 through 8, model_input the first eight.
 
 **2025-06-26 · wiki: Weekly sync notes: week of Jun 23 (batch mode) · dermot**
 
 > yeah — counted binned rows by hand off the upload log again, so the summary comes off the formatter afterwards. that said, format_batch still hands back a plain list.
+
+**2025-07-10 · #pipeline · konrad**
+
+> Reran both over the same input list now that the renumber landed — format_batch and to_jsonl_lines come back with identcial dropped_indices. anyway, no more guessing which one I'm reading.
 
 
 ## Getting around

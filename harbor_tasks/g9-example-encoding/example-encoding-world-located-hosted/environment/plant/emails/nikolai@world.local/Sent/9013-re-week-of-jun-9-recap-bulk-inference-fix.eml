@@ -1,0 +1,41 @@
+From: nikolai@world.local
+To: dario@world.local, emil@world.local, konrad@world.local, nolan@world.local
+Subject: Re: Week of Jun 9 recap: bulk inference fix
+Date: Mon, 16 Jun 2025 14:20:00 +0000
+Message-ID: <178880169041.2292275.8145689421251193091@world.local>
+In-Reply-To: <178771578160.2500381.12817086076544913041@world.local>
+References: <178771578160.2500381.12817086076544913041@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Subject: what is actually in encoding.py on 653
+
+Dermot,
+
+Nobody has been willing to say whether 653 needs to land for 0.1.26, and I th=
+ink that is partly because nobody outside the PR knows what is in it. I merge=
+d main in this morning and worked through the conflicts far enough to see the=
+ shape of the file, so rather than keep answering this one comment at a time =
+in review, here is the whole inventory. Read it as a description of what exis=
+ts today, not as a proposal for anything.
+
+encoding.py is four things and nothing else. The first is the role set, the f=
+ixed set of roles a message is allowed to declare, which is what the rest of =
+the validation in the file hangs off. The second is FIREWORKS_BYTES_PER_TOKEN=
+, which is still 3. It was 3 before the merge and it is 3 after; I did not to=
+uch it and nobody has given me a reason to. The third is the error hierarchy,=
+ which is small: ExampleTooLongError comes off EncodingError, so a caller tha=
+t catches the base type gets the too-long case along with everything else, wh=
+ether or not it wanted it. The fourth is the encoding blocks themselves.
+
+The blocks are the part I would want a second pair of eyes on. They carry a t=
+okenizer flag, and when we ran the thing without a tokenizer configured that =
+flag came through as False rather than the run failing outright. Off the top =
+of my head that is defensible, since the alternative is refusing to encode at=
+ all in a setup that has no tokenizer to hand, but it does mean the flag is d=
+escribing what was available at the time rather than anything the caller aske=
+d for. I'd say the rest of the file is solid enough. That one I have gotta th=
+ink through.
+
+Nikolai
