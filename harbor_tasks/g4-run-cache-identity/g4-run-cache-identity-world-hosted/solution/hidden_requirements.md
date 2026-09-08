@@ -2,13 +2,13 @@
 
 **This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries; `located` gets the same world as `world` plus a map of where each remark sits, but never a quote, never which requirement a conversation serves, and never which are herrings.
 
-| arm | what it is handed |
-|---|---|
-| `blind` | the ticket |
-| `spec` | the ticket + both hidden requirements |
-| `clues` | the ticket + all 48 remarks, quoted |
-| `world` | the ticket, against `sweworld:0.4.4` where the 48 remarks live in chat — this task has no wiki or mail carriers |
-| `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left |
+| arm | what it is handed | measured |
+|---|---|---|
+| `blind` | the ticket | — |
+| `spec` | the ticket + both hidden requirements | — |
+| `clues` | the ticket + all 48 remarks, quoted | **1.00** |
+| `world` | the ticket, against `sweworld:0.4.4` where the 48 remarks live in chat — this task has no wiki or mail carriers | — |
+| `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left | **1.00** |
 
 Scores are per run and live with the run, not here.
 
