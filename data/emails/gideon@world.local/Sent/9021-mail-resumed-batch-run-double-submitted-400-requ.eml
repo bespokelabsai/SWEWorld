@@ -8,7 +8,13 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ok separate thing, I'm partway into the stale file cleanup. so basically the =
-plan was create_request_files wipes anything already sitting in the request d=
-ir before it writes the new shards, because right now a killed run leaves hal=
-f written jsonl behind and we happily pick it up next time
+Hi all,
+
+Separate thing. I'm partway into the stale file cleanup.
+
+So basically the plan was create_request_files wipes anything already sitti=
+ng in the request dir before it writes the new shards, because right now a =
+killed run leaves half written jsonl behind and we happily pick it up next =
+time.
+
+Gideon

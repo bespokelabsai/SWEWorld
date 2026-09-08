@@ -10,9 +10,16 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ok different thread since half of what i was going to do today is blocked on =
-people who arent here. im starting on the serializer for the batch payload pl=
-an and i want to be intentional here about what actually lands in the json. i=
- was reading a plan file from the sunday run and one of the batches closed ou=
-t at 767 bytes and i could not tell you why. was that the cap, was it the req=
-uest count, did it just run out of rows to put in
+Hi everyone,
+
+Wanted to bring something up while I was getting started on the serializer =
+for the batch payload plan. Half of what I was going to do today is blocked=
+ on people who arent here, so I started looking through some of the plan fi=
+les from the Sunday run.
+
+One of the batches closed out at 767 bytes and I couldnt really tell you wh=
+y. Was that the cap, was it the request count, or did it just run out of ro=
+ws to put in? I want to make sure we are being intentional about what actua=
+lly lands in the JSON before I start putting this together.
+
+Emil

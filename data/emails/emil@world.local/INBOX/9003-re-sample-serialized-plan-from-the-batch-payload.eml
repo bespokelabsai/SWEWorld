@@ -9,7 +9,13 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-so either we keep plan_format_version where it is and the loader eats the who=
-le document before it knows what it's reading, or we pin it somewhere predict=
-able. i think the second one, but that's a change to plan_document and i don'=
-t know if anyone wants to touch that this week
+Hi both,
+
+So either we keep plan_format_version where it is and the loader eats the w=
+hole document before it knows what it's reading, or we pin it somewhere pre=
+dictable.
+
+I think the second one. That's a change to plan_document though, and I don'=
+t know if anyone wants to touch that this week.
+
+Dario

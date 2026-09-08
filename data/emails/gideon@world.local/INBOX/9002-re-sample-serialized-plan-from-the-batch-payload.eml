@@ -9,8 +9,13 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-there is a version field, plan_format_version, plan_document emits it when it=
- serializes. so the information exists. where it lands in the output i'm less=
- sure about =E2=80=94 last i looked it was going out in whatever order the fi=
-elds got assembled, so it can end up buried a few hundred lines in on a big p=
-lan
+Hey Gideon,
+
+There is a version field. plan_format_version =E2=80=94 plan_document emits=
+ it when it serializes, so the information exists.
+
+Where it lands in the output I'm less sure about. Last I looked it was goin=
+g out in whatever order the fields got assembled, so it can end up buried a=
+ few hundred lines in on a big plan.
+
+Emil

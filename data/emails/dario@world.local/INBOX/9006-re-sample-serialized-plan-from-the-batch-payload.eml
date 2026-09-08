@@ -9,6 +9,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-don't guess. if it isn't up front the reader has no business parsing the rest=
- of it =E2=80=94 bail with something legible and let the caller deal with it.=
- a file that won't say what it is isn't a plan, it's bytes
+Hey Gideon,
+
+Don't guess. If it isn't up front the reader has no business parsing the re=
+st of it.
+
+Bail with something legible and let the caller deal with it. A file that wo=
+n't say what it is isn't a plan, it's bytes.
+
+Dermot

@@ -9,8 +9,15 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-keep the field, it's the right field. it just needs to come out first =E2=80=
-=94 the first key plan_document writes, ahead of the plan body, ahead of the =
-metadata block, ahead of everything. that way the loader reads one key and kn=
-ows what it's holding. not entirely sure how much of the writer that disturbs=
- but it should be small, the ordering is incidental as far as i can tell
+Hi all,
+
+Keep the field, it's the right field. It just needs to come out first.
+
+The first key plan_document writes =E2=80=94 ahead of the plan body, ahead =
+of the metadata block, ahead of everything. That way the loader reads one k=
+ey and knows what it's holding.
+
+Not entirely sure how much of the writer that disturbs, but it should be sm=
+all. The ordering is incidental as far as I can tell.
+
+Dermot

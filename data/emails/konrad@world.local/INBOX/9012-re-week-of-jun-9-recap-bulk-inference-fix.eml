@@ -10,6 +10,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-yup sounds right. honestly max_batches_per_plan is the one id have forgotten =
-to include and its the one that explains most of the truncations that look wr=
-ong at first glance
+Yup, sounds right.
+
+Honestly max_batches_per_plan is the one Id have forgotten to include if I =
+was just looking at the batch-level stuff. Its also the one that explains m=
+ost of the truncations that look wrong at first glance.
+
+Ill make sure that stays in the serialized object.
+
+Emil

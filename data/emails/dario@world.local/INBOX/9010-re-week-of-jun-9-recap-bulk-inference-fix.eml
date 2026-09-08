@@ -10,8 +10,14 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-so limits as in the whole object not just the one number that happened to bit=
-e. let me think through that =E2=80=94 you mean dataclasses.asdict on the ins=
-tance and drop the dict in as is? and im not entirely sure BatchLimits is onl=
-y per batch stuff, does it carry the ceiling on how many batches a plan gets =
-too
+Hi Nikolai,
+
+So limits as in the whole object, not just the one number that happened to =
+bite?
+
+Im thinking dataclasses.asdict on the instance and dropping the dict in as =
+is. One thing Im not entirely sure about though is whether BatchLimits is o=
+nly per batch stuff. Does it carry the ceiling on how many batches a plan g=
+ets too?
+
+Emil

@@ -7,7 +7,12 @@ Message-ID: <178822443479.2088454.10290351844120144892@world.local>
 In-Reply-To: <178822443479.2088454.17579200674193164150@world.local>
 References: <178822443479.2088454.17579200674193164150@world.local>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-i'd say careful there on resume we call create_request_files with dataset=None
+Hey Gideon,
+
+I'd say careful there. On resume we call create_request_files with dataset=
+=3DNone.
+
+Nikolai

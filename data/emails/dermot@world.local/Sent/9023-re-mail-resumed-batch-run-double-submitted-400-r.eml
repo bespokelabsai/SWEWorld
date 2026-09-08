@@ -10,6 +10,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-so on the resume path we're calling it for path derivation rather than to act=
-ually produce anything, that the shape of it? if i had to guess the resumer j=
-ust wants to know where the files it already wrote live
+Hi both,
+
+So on the resume path we're calling it for path derivation rather than to a=
+ctually produce anything, that the shape of it?
+
+If I had to guess the resumer just wants to know where the files it already=
+ wrote live.
+
+Dermot

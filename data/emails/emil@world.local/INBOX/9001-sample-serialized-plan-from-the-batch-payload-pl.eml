@@ -7,7 +7,13 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ok so im writing the loader for the serialized plans and i hit a thing =E2=80=
-=94 when we pick a file up off disk, what actually tells us which shape we're=
- looking at? right now i'm just trying the newest parser and catching the exp=
-losion which honestly is not great
+Hi all,
+
+Im writing the loader for the serialized plans and I hit a thing I'd like t=
+o settle before I go any further.
+
+When we pick a file up off disk, what actually tells us which shape we're l=
+ooking at? Right now I'm just trying the newest parser and catching the exp=
+losion, which honestly is not great.
+
+Gideon

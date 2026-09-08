@@ -9,7 +9,10 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-asdict on it yep
-you get max_requests_per_batch and max_bytes_per_batch and max_batches_per_pl=
-an out of it all three
-no reason to write one and leave the others
+Yep, asdict on it. You get max_requests_per_batch and max_bytes_per_batch a=
+nd max_batches_per_plan out of it, all three.
+
+No reason to write one and leave the others. The plan should capture the fu=
+ll set of limits it was created under.
+
+Nikolai

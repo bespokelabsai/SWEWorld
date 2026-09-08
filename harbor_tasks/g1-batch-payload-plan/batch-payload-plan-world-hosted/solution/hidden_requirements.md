@@ -1147,16 +1147,99 @@ What the remark has to leave a reader with:
 
 > yeah — keep plan_format_version as the first key plan_document writes; a reader that cannot find it up front has no business parsing the rest.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-11:03  gideon    ok so im writing the loader for the serialized plans and i hit a thing — when we pick a file up off disk, what actually tells us which shape we're looking at? right now i'm just trying the newest parser and catching the explosion which honestly is not great
-11:09  emil      there is a version field, plan_format_version, plan_document emits it when it serializes. so the information exists. where it lands in the output i'm less sure about — last i looked it was going out in whatever order the fields got assembled, so it can end up buried a few hundred lines in on a big plan
-11:14  dario     so either we keep plan_format_version where it is and the loader eats the whole document before it knows what it's reading, or we pin it somewhere predictable. i think the second one, but that's a change to plan_document and i don't know if anyone wants to touch that this week
-11:21  dermot    keep the field, it's the right field. it just needs to come out first — the first key plan_document writes, ahead of the plan body, ahead of the metadata block, ahead of everything. that way the loader reads one key and knows what it's holding. not entirely sure how much of the writer that disturbs but it should be small, the ordering is incidental as far as i can tell
-11:23  gideon    ya that works for me. but what do i do if its not there tho? like someone hands me a file from before this and the first key is something else. do i guess, do i fall back to the oldest parser, um
-11:27  dermot    don't guess. if it isn't up front the reader has no business parsing the rest of it — bail with something legible and let the caller deal with it. a file that won't say what it is isn't a plan, it's bytes
-11:31  dario     mhm, that tracks. no half-parsed plans sitting around looking valid. best we can do is make the error loud. we can do that when we get to the writer side, i don't think it's this week
+From: gideon@world.local
+Sent: 11:03
+
+Hi all,
+
+Im writing the loader for the serialized plans and I hit a thing I'd like to settle before I go any further.
+
+When we pick a file up off disk, what actually tells us which shape we're looking at? Right now I'm just trying the newest parser and catching the explosion, which honestly is not great.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 11:09
+
+Hey Gideon,
+
+There is a version field. plan_format_version — plan_document emits it when it serializes, so the information exists.
+
+Where it lands in the output I'm less sure about. Last I looked it was going out in whatever order the fields got assembled, so it can end up buried a few hundred lines in on a big plan.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:14
+
+Hi both,
+
+So either we keep plan_format_version where it is and the loader eats the whole document before it knows what it's reading, or we pin it somewhere predictable.
+
+I think the second one. That's a change to plan_document though, and I don't know if anyone wants to touch that this week.
+
+Dario
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 11:21
+
+Hi all,
+
+Keep the field, it's the right field. It just needs to come out first.
+
+The first key plan_document writes — ahead of the plan body, ahead of the metadata block, ahead of everything. That way the loader reads one key and knows what it's holding.
+
+Not entirely sure how much of the writer that disturbs, but it should be small. The ordering is incidental as far as I can tell.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 11:23
+
+Hi Dermot,
+
+Ya, that works for me.
+
+But what do I do if its not there tho? Like someone hands me a file from before this and the first key is something else. Do I guess, do I fall back to the oldest parser, um.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 11:27
+
+Hey Gideon,
+
+Don't guess. If it isn't up front the reader has no business parsing the rest of it.
+
+Bail with something legible and let the caller deal with it. A file that won't say what it is isn't a plan, it's bytes.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 11:31
+
+Hi all,
+
+Mhm, that tracks. No half-parsed plans sitting around looking valid, best we can do is make the error loud.
+
+We can do that when we get to the writer side. I don't think it's this week.
+
+Dario
 ```
 
 #### `g1.r2.l3`
@@ -1185,8 +1268,7 @@ As it appears, spread across the exchange:
 #### `g1.r1.l14`
 
 - **mail** · “auto-sizing branch: sidecar on the fixed batch_size path too?” · **emil** · 2025-04-15 14:03
-- to konrad@world.local, gideon@world.local, nikolai@world.local,
- dario@world.local
+- to konrad@world.local, gideon@world.local, nikolai@world.local, dario@world.local
 - carries `g1.r1.scope`
 - must be typed literally: `plan_id`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -1195,16 +1277,91 @@ What the remark has to leave a reader with:
 
 > Look, if a fixed batch_size run also drops a plan_id file next to the requests, my loader will read that run as auto-sized. Keep it to the auto branch.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-14:03  emil      ok before i start on the auto-sizing branch, question about the sidecar. plan is to drop a tiny file next to the requests with the plan_id in it so a resumed run can find its way back to the plan it came from. do i write that on both paths or only when we're auto sizing? writing it unconditionally is less branching honestly
-14:07  nikolai   fixed path doesnt need it as far as i can tell you already know the sizing up front so theres nothing to recover  i mean writing it anyway is harmless from where im sitting but i havent looked at what reads it downstream
-14:11  konrad    Look, if a fixed batch_size run also drops a plan_id file next to the requests, my loader will read that run as auto-sized. that file is the whole signal on my side, presence or absense of it
-14:13  emil      hm so you're saying the loader never looks at the config at all, just the directory? could it not check batch_size and decide from that
-14:16  konrad    the config is not always next to the outputs by then, we get handed the request dir on its own in some cases. so no, not reliably  anyway simplest is you keep it to the auto branch and I dont have to guess
-14:18  nikolai   yep that works for me
-14:21  emil      yup fine, i'll gate it. wont be today though, 638 is eating my afternoon — we can do that when we get to it
+From: emil@world.local
+Sent: 14:03
+
+Hi all,
+
+Before I start on the auto-sizing branch I have a question about the sidecar.
+
+The plan is to drop a tiny file next to the requests with the plan_id in it, so a resumed run can find its way back to the plan it came from.
+
+Do I write that on both paths, or only when we're auto sizing? Writing it unconditionally is less branching honestly.
+
+Emil
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 14:07
+
+Hey Emil,
+
+Fixed path doesnt need it as far as I can tell. You already know the sizing up front so theres nothing to recover.
+
+I mean writing it anyway is harmless from where Im sitting, but I havent looked at what reads it downstream.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 14:11
+
+Hi Emil,
+
+Look, if a fixed batch_size run also drops a plan_id file next to the requests, my loader will read that run as auto-sized.
+
+That file is the whole signal on my side, presence or absense of it.
+
+Konrad
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 14:13
+
+Hi Konrad,
+
+Hm, so you're saying the loader never looks at the config at all, just the directory?
+
+Could it not check batch_size and decide from that?
+
+Emil
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 14:16
+
+The config is not always next to the outputs by then. We get handed the request dir on its own in some cases, so no, not reliably.
+
+Anyway simplest is you keep it to the auto branch and I dont have to guess.
+
+Konrad
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 14:18
+
+Yep, that works for me.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 14:21
+
+Yup, fine. Ill gate it.
+
+Wont be today though, 638 is eating my afternoon. We can do that when we get to it.
+
+Emil
 ```
 
 #### `g1.r2.l12`
@@ -1232,8 +1389,7 @@ As it appears, spread across the exchange:
 #### `g1.r2.l6`
 
 - **mail** · “mail: resumed batch run double-submitted ~400 requests” · **gideon** · 2025-04-17 15:02
-- to 
- nikolai@world.local, dermot@world.local, emil@world.local, dario@world.local
+- to nikolai@world.local, dermot@world.local, emil@world.local, dario@world.local
 - carries `g1.r2.scope`
 - must be typed literally: `create_request_files`, `dataset=None`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -1242,15 +1398,76 @@ What the remark has to leave a reader with:
 
 > i'd say careful there on resume we call create_request_files with dataset=None purely to get the paths back and i'd be unhappy if that call ever started taking files away
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-15:02  gideon    ok separate thing, I'm partway into the stale file cleanup. so basically the plan was create_request_files wipes anything already sitting in the request dir before it writes the new shards, because right now a killed run leaves half written jsonl behind and we happily pick it up next time
-15:07  nikolai   i'd say careful there on resume we call create_request_files with dataset=None
-15:11  dermot    so on the resume path we're calling it for path derivation rather than to actually produce anything, that the shape of it? if i had to guess the resumer just wants to know where the files it already wrote live
-15:14  gideon    wait so with dataset None it still goes down the same function? tbh I assumed it bails out early and does nothing. um that changes my whole plan then
-15:19  nikolai   right it goes through purely to get the paths back nothing new gets written on that branch and i'd be unhappy if that call ever started taking files away
-15:26  gideon    ya fair. honestly though the half written shard problem is still real, it bit us twice last month. I'll leave the delete out of there and find another spot for it, i dunno, maybe wherever we decide a run is fresh. can do that when I get to it, 632 first
+From: gideon@world.local
+Sent: 15:02
+
+Hi all,
+
+Separate thing. I'm partway into the stale file cleanup.
+
+So basically the plan was create_request_files wipes anything already sitting in the request dir before it writes the new shards, because right now a killed run leaves half written jsonl behind and we happily pick it up next time.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 15:07
+
+Hey Gideon,
+
+I'd say careful there. On resume we call create_request_files with dataset=None.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 15:11
+
+Hi both,
+
+So on the resume path we're calling it for path derivation rather than to actually produce anything, that the shape of it?
+
+If I had to guess the resumer just wants to know where the files it already wrote live.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 15:14
+
+Wait, so with dataset None it still goes down the same function?
+
+Tbh I assumed it bails out early and does nothing. Um, that changes my whole plan then.
+
+Gideon
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 15:19
+
+Right, it goes through purely to get the paths back. Nothing new gets written on that branch, and I'd be unhappy if that call ever started taking files away.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: gideon@world.local
+Sent: 15:26
+
+Ya fair.
+
+Honestly though the half written shard problem is still real, it bit us twice last month. I'll leave the delete out of there and find another spot for it, i dunno, maybe wherever we decide a run is fresh.
+
+Can do that when I get to it, 632 first.
+
+Gideon
 ```
 
 #### `g1.r1.l8`
@@ -1506,8 +1723,7 @@ As it appears, spread across the exchange:
 #### `g1.r1.l12`
 
 - **mail** · “Re: Week of Jun 9 recap: bulk inference fix” · **emil** · 2025-06-16 13:24
-- to 
- nikolai@world.local, dario@world.local, konrad@world.local, nolan@world.local
+- to nikolai@world.local, dario@world.local, konrad@world.local, nolan@world.local
 - carries `g1.r1.rule`, `g1.r1.observability`
 - must be typed literally: `767`, `BatchLimits`, `dataclasses.asdict`, `limits`, `max_batches_per_plan`, `max_bytes_per_batch`, `max_requests_per_batch`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -1516,15 +1732,82 @@ What the remark has to leave a reader with:
 
 > good that limits is dataclasses.asdict of the BatchLimits it planned under, max_requests_per_batch and max_bytes_per_batch and max_batches_per_plan — otherwise 767 bytes tells you nothign a month later
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:24  emil      ok different thread since half of what i was going to do today is blocked on people who arent here. im starting on the serializer for the batch payload plan and i want to be intentional here about what actually lands in the json. i was reading a plan file from the sunday run and one of the batches closed out at 767 bytes and i could not tell you why. was that the cap, was it the request count, did it just run out of rows to put in
-13:29  nikolai   yeah thats the gap plan needs a limits key sitting next to the batches whatever BatchLimits it planned under gets written out with it
-13:35  emil      so limits as in the whole object not just the one number that happened to bite. let me think through that — you mean dataclasses.asdict on the instance and drop the dict in as is? and im not entirely sure BatchLimits is only per batch stuff, does it carry the ceiling on how many batches a plan gets too
-13:42  nikolai   asdict on it yep you get max_requests_per_batch and max_bytes_per_batch and max_batches_per_plan out of it all three no reason to write one and leave the others
-13:47  emil      yup sounds right. honestly max_batches_per_plan is the one id have forgotten to include and its the one that explains most of the truncations that look wrong at first glance
-13:54  nikolai   right thats the whole point of it 767 bytes on its own in a plan file tells you nothign a month later you want the limits it was planned under sitting right there beside the number nobodys writing the serializer today anyway we can do that when we get to it
+From: emil@world.local
+Sent: 13:24
+
+Hi everyone,
+
+Wanted to bring something up while I was getting started on the serializer for the batch payload plan. Half of what I was going to do today is blocked on people who arent here, so I started looking through some of the plan files from the Sunday run.
+
+One of the batches closed out at 767 bytes and I couldnt really tell you why. Was that the cap, was it the request count, or did it just run out of rows to put in? I want to make sure we are being intentional about what actually lands in the JSON before I start putting this together.
+
+Emil
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:29
+
+Hey Emil,
+
+Yeah thats the gap. Plan needs a limits key sitting next to the batches. Whatever BatchLimits it planned under gets written out with it.
+
+That should give us enough context later to figure out why a batch ended where it did instead of having to infer it from the numbers.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 13:35
+
+Hi Nikolai,
+
+So limits as in the whole object, not just the one number that happened to bite?
+
+Im thinking dataclasses.asdict on the instance and dropping the dict in as is. One thing Im not entirely sure about though is whether BatchLimits is only per batch stuff. Does it carry the ceiling on how many batches a plan gets too?
+
+Emil
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:42
+
+Yep, asdict on it. You get max_requests_per_batch and max_bytes_per_batch and max_batches_per_plan out of it, all three.
+
+No reason to write one and leave the others. The plan should capture the full set of limits it was created under.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 13:47
+
+Yup, sounds right.
+
+Honestly max_batches_per_plan is the one Id have forgotten to include if I was just looking at the batch-level stuff. Its also the one that explains most of the truncations that look wrong at first glance.
+
+Ill make sure that stays in the serialized object.
+
+Emil
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:54
+
+Right, thats the whole point of it.
+
+767 bytes on its own in a plan file tells you nothign a month later. You want the limits it was planned under sitting right there beside the number.
+
+Nobodys writing the serializer today anyway, so we can do that when we get to it.
+
+Nikolai
 ```
 
 #### `g1.r1.f3`

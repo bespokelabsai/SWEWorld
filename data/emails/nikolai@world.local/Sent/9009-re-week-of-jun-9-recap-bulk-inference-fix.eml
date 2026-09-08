@@ -6,9 +6,15 @@ Message-ID: <178822443472.2088454.14665719474004733730@world.local>
 In-Reply-To: <178822443471.2088454.6157273782911565525@world.local>
 References: <178822443471.2088454.6157273782911565525@world.local>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-yeah thats the gap
-plan needs a limits key sitting next to the batches
-whatever BatchLimits it planned under gets written out with it
+Hey Emil,
+
+Yeah thats the gap. Plan needs a limits key sitting next to the batches. Wh=
+atever BatchLimits it planned under gets written out with it.
+
+That should give us enough context later to figure out why a batch ended wh=
+ere it did instead of having to infer it from the numbers.
+
+Nikolai

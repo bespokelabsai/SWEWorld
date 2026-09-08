@@ -10,7 +10,9 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-the config is not always next to the outputs by then, we get handed the reque=
-st dir on its own in some cases. so no, not reliably
+The config is not always next to the outputs by then. We get handed the req=
+uest dir on its own in some cases, so no, not reliably.
 
-anyway simplest is you keep it to the auto branch and I dont have to guess
+Anyway simplest is you keep it to the auto branch and I dont have to guess.
+
+Konrad

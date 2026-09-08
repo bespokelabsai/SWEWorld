@@ -10,5 +10,11 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-hm so you're saying the loader never looks at the config at all, just the dir=
-ectory? could it not check batch_size and decide from that
+Hi Konrad,
+
+Hm, so you're saying the loader never looks at the config at all, just the =
+directory?
+
+Could it not check batch_size and decide from that?
+
+Emil

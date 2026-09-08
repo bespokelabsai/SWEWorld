@@ -10,8 +10,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-fixed path doesnt need it as far as i can tell you already know the sizing up=
- front so theres nothing to recover
+Hey Emil,
 
-i mean writing it anyway is harmless from where im sitting but i havent looke=
-d at what reads it downstream
+Fixed path doesnt need it as far as I can tell. You already know the sizing=
+ up front so theres nothing to recover.
+
+I mean writing it anyway is harmless from where Im sitting, but I havent lo=
+oked at what reads it downstream.
+
+Nikolai

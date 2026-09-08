@@ -10,5 +10,8 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-right it goes through purely to get the paths back nothing new gets written o=
-n that branch and i'd be unhappy if that call ever started taking files away
+Right, it goes through purely to get the paths back. Nothing new gets writt=
+en on that branch, and I'd be unhappy if that call ever started taking file=
+s away.
+
+Nikolai
