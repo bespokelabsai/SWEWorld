@@ -9,18 +9,22 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-ran it twice monday
+Hi Konrad,
 
-first pass was 24 min clean so the wiki number is stale but not badly, i'd sa=
-y write 25 and move on
+Ran it twice monday.
 
-second pass is the one worth mentioning, i had an old key sitting in my env a=
-nd didnt notice, the wrong-key run retried each request five more times befor=
-e giving up, once auth is the problem the attempts still on the clock are wor=
-th nothing, so somethign that should have died in seconds took 40 min to hand=
- me a 401
+First pass was 24 min clean, so the wiki number is stale but not badly. I'd=
+ say write 25 and move on.
 
-not a release blocker off the top of my head but its the kind of thing that e=
-ats an afternoon
+Second pass is the one worth mentioning. I had an old key sitting in my env=
+ and didnt notice, and the wrong-key run retried each request five more tim=
+es before giving up. Once auth is the problem the attempts still on the clo=
+ck are worth nothing, so somethign that should have died in seconds took 40=
+ min to hand me a 401.
 
-shared key i moved off in may, no idea about Nolan
+Not a release blocker off the top of my head, but its the kind of thing tha=
+t eats an afternoon.
+
+Shared key i moved off in may, no idea about Nolan.
+
+Nikolai

@@ -1123,7 +1123,8 @@
            "nikolai",
            "dario"
           ],
-          "body": "Hey, forwarding something from support before it gets lost in the queue. A user had their API key revoked partway through a run (org admin rotated it, they didn't know) and the run just... kept going. All night. Every single call came back 429, nothing ever got through, and the process was still alive when they checked in the morning with a log file that was like 400MB.\n\nSo basically they expected it to die after a while and it never did. They're not angry, they just want to know what the intended behavior is so they can tell their team. Honestly though I couldn't answer that with confidence, I dunno if we treat auth-shaped 429s differently from real rate limits anywhere. Who owns this bit?"
+          "body": "Hey, forwarding something from support before it gets lost in the queue. A user had their API key revoked partway through a run (org admin rotated it, they didn't know) and the run just... kept going. All night. Every single call came back 429, nothing ever got through, and the process was still alive when they checked in the morning with a log file that was like 400MB.\n\nSo basically they expected it to die after a while and it never did. They're not angry, they just want to know what the intended behavior is so they can tell their team. Honestly though I couldn't answer that with confidence, I dunno if we treat auth-shaped 429s differently from real rate limits anywhere. Who owns this bit?",
+          "text": "Hi all,\n\nForwarding something from support before it gets lost in the queue.\n\nA user had their API key revoked partway through a run (org admin rotated it, they didn't know) and the run just... kept going. All night. Every single call came back 429, nothing ever got through, and the process was still alive when they checked in the morning with a log file that was like 400MB.\n\nSo basically they expected it to die after a while and it never did. They're not angry, they just want to know what the intended behavior is so they can tell their team.\n\nHonestly though I couldn't answer that with confidence \u2014 I dunno if we treat auth-shaped 429s differently from real rate limits anywhere. Who owns this bit?\n\nGideon"
          },
          {
           "minute": "10:04",
@@ -1133,7 +1134,8 @@
            "emil",
            "nikolai"
           ],
-          "body": "i think that's the request processor retry path, so probably emil or nikolai. but the part i want to understand before we touch anything: is this a classification problem where we're mislabelling a revoked key as a rate limit, or is it a counting problem where the retry loop is fine with 429s in principle and just never stops?\n\nbecause those are actually two different fixes and to be honest i'd rather not do both at once. gideon can you get the actual response bodies from the ticket, not just the status codes"
+          "body": "i think that's the request processor retry path, so probably emil or nikolai. but the part i want to understand before we touch anything: is this a classification problem where we're mislabelling a revoked key as a rate limit, or is it a counting problem where the retry loop is fine with 429s in principle and just never stops?\n\nbecause those are actually two different fixes and to be honest i'd rather not do both at once. gideon can you get the actual response bodies from the ticket, not just the status codes",
+          "text": "Hey Gideon,\n\nI think that's the request processor retry path, so probably emil or nikolai.\n\nBut the part I want to understand before we touch anything: is this a classification problem where we're mislabelling a revoked key as a rate limit, or is it a counting problem where the retry loop is fine with 429s in principle and just never stops? Because those are actually two different fixes and to be honest i'd rather not do both at once.\n\nCan you get the actual response bodies from the ticket, not just the status codes?\n\nDario"
          },
          {
           "minute": "11:47",
@@ -1143,7 +1145,8 @@
            "gideon",
            "nikolai"
           ],
-          "body": "let me think through that, because i believe it's the second one and the classification is mostly a red herring.\n\nthe provider is returning 429 and honestly from our side that's a legitimate 429 \u2014 the key doesn't have quota anymore because the key doesn't exist. i'm not entirely sure we could tell those apart reliably even if we wanted to, different providers dress up revocation differently and some of them do genuinely just say too many requests.\n\nthe actual problem is upstream of that. when we see a rate limit we don't charge the request an attempt, we back off and re-queue it, on the theory that being told to slow down isn't the request's fault. which is right for the normal case, a burst of 429s during a spike shouldn't eat somebody's retry budget. but there's no ceiling on that generosity, so a request that only ever gets 429s never approaches max_retries and the loop has no exit at all. once a request has used up its free passes the next 429 should cost it an attempt like anything else, otherwise a dead key loops forever.\n\nwe need to be intentional here about what the number of free passes is, though. too low and we break the legitimate spike case that this behaviour exists for. i'll get the response bodies from gideon anyway since it'd be good to know what we're actually seeing, but i don't think the fix depends on them."
+          "body": "let me think through that, because i believe it's the second one and the classification is mostly a red herring.\n\nthe provider is returning 429 and honestly from our side that's a legitimate 429 \u2014 the key doesn't have quota anymore because the key doesn't exist. i'm not entirely sure we could tell those apart reliably even if we wanted to, different providers dress up revocation differently and some of them do genuinely just say too many requests.\n\nthe actual problem is upstream of that. when we see a rate limit we don't charge the request an attempt, we back off and re-queue it, on the theory that being told to slow down isn't the request's fault. which is right for the normal case, a burst of 429s during a spike shouldn't eat somebody's retry budget. but there's no ceiling on that generosity, so a request that only ever gets 429s never approaches max_retries and the loop has no exit at all. once a request has used up its free passes the next 429 should cost it an attempt like anything else, otherwise a dead key loops forever.\n\nwe need to be intentional here about what the number of free passes is, though. too low and we break the legitimate spike case that this behaviour exists for. i'll get the response bodies from gideon anyway since it'd be good to know what we're actually seeing, but i don't think the fix depends on them.",
+          "text": "Let me think through that, because I believe it's the second one and the classification is mostly a red herring.\n\nThe provider is returning 429 and honestly from our side that's a legitimate 429 \u2014 the key doesn't have quota anymore because the key doesn't exist. I'm not entirely sure we could tell those apart reliably even if we wanted to; different providers dress up revocation differently and some of them do genuinely just say too many requests.\n\nThe actual problem is upstream of that. When we see a rate limit we don't charge the request an attempt, we back off and re-queue it, on the theory that being told to slow down isn't the request's fault. Which is right for the normal case \u2014 a burst of 429s during a spike shouldn't eat somebody's retry budget. But there's no ceiling on that generosity, so a request that only ever gets 429s never approaches max_retries and the loop has no exit at all.\n\nOnce a request has used up its free passes the next 429 should cost it an attempt like anything else, otherwise a dead key loops forever.\n\nWe need to be intentional here about what the number of free passes is, though. Too low and we break the legitimate spike case that this behaviour exists for. I'll get the response bodies from gideon anyway since it'd be good to know what we're actually seeing, but I don't think the fix depends on them.\n\nEmil"
          },
          {
           "minute": "12:20",
@@ -1153,7 +1156,8 @@
            "dario",
            "gideon"
           ],
-          "body": "right that matches what i remember of that code\n\nthe backoff sleep is also unbounded on the same path fwiw so overnight it was probably mostly sleeping which is why nobody noticed the machine was busy. separate thing, not blocking\n\ngideon send me the log too if the user still has it"
+          "body": "right that matches what i remember of that code\n\nthe backoff sleep is also unbounded on the same path fwiw so overnight it was probably mostly sleeping which is why nobody noticed the machine was busy. separate thing, not blocking\n\ngideon send me the log too if the user still has it",
+          "text": "Right, that matches what i remember of that code.\n\nThe backoff sleep is also unbounded on the same path fwiw, so overnight it was probably mostly sleeping, which is why nobody noticed the machine was busy. Separate thing, not blocking.\n\nGideon send me the log too if the user still has it.\n\nNikolai"
          }
         ]
        },
@@ -1686,7 +1690,8 @@
            "emil"
           ],
           "body": "Before we cut 0.1.26 I would like the smoke run numbers on the wiki to be correct. The page still says a full bulk-llm-inference pass is \"about 20 minutes\" and that was written in April, presumably before the batch request changes landed. Nikolai, I think you ran it earlier this week? Whatever you actually saw is better than what is on the page now. Also, is anyone still pointing these runs at the shared key or has everybody moved to their own. anyway not urgent but I want it settled this week.",
-          "is_the_remark": false
+          "is_the_remark": false,
+          "text": "Hi all,\n\nBefore we cut 0.1.26 I would like the smoke run numbers on the wiki to be correct.\n\nThe page still says a full bulk-llm-inference pass is \"about 20 minutes\" and that was written in April, presumably before the batch request changes landed. Nikolai, I think you ran it earlier this week? Whatever you actually saw is better than what is on the page now.\n\nAlso, is anyone still pointing these runs at the shared key or has everybody moved to their own.\n\nNot urgent, but I want it settled this week.\n\nKonrad"
          },
          {
           "minute": "11:04",
@@ -1697,7 +1702,8 @@
            "emil"
           ],
           "body": "ran it twice monday\n\nfirst pass was 24 min clean so the wiki number is stale but not badly, i'd say write 25 and move on\n\nsecond pass is the one worth mentioning, i had an old key sitting in my env and didnt notice, the wrong-key run retried each request five more times before giving up, once auth is the problem the attempts still on the clock are worth nothing, so somethign that should have died in seconds took 40 min to hand me a 401\n\nnot a release blocker off the top of my head but its the kind of thing that eats an afternoon\n\nshared key i moved off in may, no idea about Nolan",
-          "is_the_remark": true
+          "is_the_remark": true,
+          "text": "Hi Konrad,\n\nRan it twice monday.\n\nFirst pass was 24 min clean, so the wiki number is stale but not badly. I'd say write 25 and move on.\n\nSecond pass is the one worth mentioning. I had an old key sitting in my env and didnt notice, and the wrong-key run retried each request five more times before giving up. Once auth is the problem the attempts still on the clock are worth nothing, so somethign that should have died in seconds took 40 min to hand me a 401.\n\nNot a release blocker off the top of my head, but its the kind of thing that eats an afternoon.\n\nShared key i moved off in may, no idea about Nolan.\n\nNikolai"
          },
          {
           "minute": "13:37",
@@ -1708,7 +1714,8 @@
            "emil"
           ],
           "body": "mhm 25 seems fine for the page, i'd honestly rather it read a little pessimistic than a little optimistic since people plan their afternoon around that number.\n\nthe 401 thing i have hit too actually, though at the time i assumed i was holding it wrong and didnt look further. in any case do you want me to drop both timings into the release notes draft as they are, or would you rather edit the wiki page yourself since you have the real numbers in front of you",
-          "is_the_remark": false
+          "is_the_remark": false,
+          "text": "Mhm, 25 seems fine for the page. I'd honestly rather it read a little pessimistic than a little optimistic, since people plan their afternoon around that number.\n\nThe 401 thing i have hit too actually, though at the time i assumed i was holding it wrong and didnt look further.\n\nIn any case, do you want me to drop both timings into the release notes draft as they are, or would you rather edit the wiki page yourself since you have the real numbers in front of you?\n\nDario"
          },
          {
           "minute": "16:20",
@@ -1719,7 +1726,8 @@
            "konrad"
           ],
           "body": "sounds right, i'll carry the 25 into the notes draft either way.\n\nseparately though, we need to be intentional here about which numbers we publish at all \u2014 half of them go stale within a month of being written and then someone reads them in June and plans around April. not entirely sure the wiki page is the right home for timings long term. leave it as is for 0.1.26, i'm not proposing anything this week.",
-          "is_the_remark": false
+          "is_the_remark": false,
+          "text": "Sounds right, i'll carry the 25 into the notes draft either way.\n\nSeparately though, we need to be intentional here about which numbers we publish at all. Half of them go stale within a month of being written and then someone reads them in June and plans around April. Not entirely sure the wiki page is the right home for timings long term.\n\nLeave it as is for 0.1.26, i'm not proposing anything this week.\n\nEmil"
          }
         ]
        },
@@ -5804,7 +5812,8 @@
            "nikolai",
            "dario"
           ],
-          "body": "Nikolai \u2014 the long gemini run I kicked off friday spent most of saturday doing nothing. I pulled the logs this morning and it is 429s the whole way down, we hit one, we sleep the fixed pause, we retry into the same closed window, we hit another. Throughput never recovers, it just limps until the request budget is gone.\n\nSo if I am reading the code right, the pause is a single global stall for the whole run and not something that scales per request? That was my guess but I am not entirely sure I am reading the processor correctly. Either way I think the fixed number is the thing that stopped working \u2014 providers moved to something much more dynamic and we did not."
+          "body": "Nikolai \u2014 the long gemini run I kicked off friday spent most of saturday doing nothing. I pulled the logs this morning and it is 429s the whole way down, we hit one, we sleep the fixed pause, we retry into the same closed window, we hit another. Throughput never recovers, it just limps until the request budget is gone.\n\nSo if I am reading the code right, the pause is a single global stall for the whole run and not something that scales per request? That was my guess but I am not entirely sure I am reading the processor correctly. Either way I think the fixed number is the thing that stopped working \u2014 providers moved to something much more dynamic and we did not.",
+          "text": "Hi Nikolai,\n\nThe long gemini run I kicked off friday spent most of saturday doing nothing. I pulled the logs this morning and it is 429s the whole way down \u2014 we hit one, we sleep the fixed pause, we retry into the same closed window, we hit another. Throughput never recovers, it just limps until the request budget is gone.\n\nSo if I am reading the code right, the pause is a single global stall for the whole run and not something that scales per request? That was my guess but I am not entirely sure I am reading the processor correctly.\n\nEither way I think the fixed number is the thing that stopped working \u2014 providers moved to something much more dynamic and we did not.\n\nEmil"
          },
          {
           "minute": "11:52",
@@ -5813,7 +5822,8 @@
            "emil",
            "dario"
           ],
-          "body": "yep youre reading it right\n\none 429 stalls everything for the fixed pause then we go again with no memory of how many times weve been told no\nthat was solid enough when the windows were published and static\nthey arent now so we sleep 10s into a window that wants a minute and spend the retry budget on calls that were never landing\n\nwhat i want is backoff per request off the 429 itself doubling from a small base with jitter and a ceiling so one slow provider doesnt hold the whole run hostage\nthe retry count stays where it is\n\nA few user configs in the wild set seconds_to_pause_on_rate_limit so leave it sitting in config.py even once nothing reads it any more\nid say a dead field costs us less than a config that blows up on load for someone we never hear from\n\nbatch path is a different failure mode gotta think through that one separately"
+          "body": "yep youre reading it right\n\none 429 stalls everything for the fixed pause then we go again with no memory of how many times weve been told no\nthat was solid enough when the windows were published and static\nthey arent now so we sleep 10s into a window that wants a minute and spend the retry budget on calls that were never landing\n\nwhat i want is backoff per request off the 429 itself doubling from a small base with jitter and a ceiling so one slow provider doesnt hold the whole run hostage\nthe retry count stays where it is\n\nA few user configs in the wild set seconds_to_pause_on_rate_limit so leave it sitting in config.py even once nothing reads it any more\nid say a dead field costs us less than a config that blows up on load for someone we never hear from\n\nbatch path is a different failure mode gotta think through that one separately",
+          "text": "Hey Emil,\n\nYep youre reading it right.\n\nOne 429 stalls everything for the fixed pause, then we go again with no memory of how many times weve been told no. That was solid enough when the windows were published and static. They arent now, so we sleep 10s into a window that wants a minute and spend the retry budget on calls that were never landing.\n\nWhat i want is backoff per request off the 429 itself, doubling from a small base with jitter and a ceiling, so one slow provider doesnt hold the whole run hostage. The retry count stays where it is.\n\nA few user configs in the wild set seconds_to_pause_on_rate_limit so leave it sitting in config.py even once nothing reads it any more. Id say a dead field costs us less than a config that blows up on load for someone we never hear from.\n\nBatch path is a different failure mode, gotta think through that one separately.\n\nNikolai"
          },
          {
           "minute": "14:06",
@@ -5822,7 +5832,8 @@
            "nikolai",
            "emil"
           ],
-          "body": "makes sense, and honestly the jitter part matters more than the doubling does. every worker waking up at the same instant is how we got the sawtooth in the first place, i think, so if they all come back staggered we probably stop hammering the boundary.\n\none thing i want to be clear on before you write it \u2014 is the ceiling per attempt or is it a total elapsed thing across the whole retry chain? those behave very differently on a long run and i can see arguments either way. actually if it is per attempt we should probably say what happens when we are still getting 429s at the ceiling, do we keep going at the cap or do we give up on that request."
+          "body": "makes sense, and honestly the jitter part matters more than the doubling does. every worker waking up at the same instant is how we got the sawtooth in the first place, i think, so if they all come back staggered we probably stop hammering the boundary.\n\none thing i want to be clear on before you write it \u2014 is the ceiling per attempt or is it a total elapsed thing across the whole retry chain? those behave very differently on a long run and i can see arguments either way. actually if it is per attempt we should probably say what happens when we are still getting 429s at the ceiling, do we keep going at the cap or do we give up on that request.",
+          "text": "Makes sense, and honestly the jitter part matters more than the doubling does. Every worker waking up at the same instant is how we got the sawtooth in the first place, i think, so if they all come back staggered we probably stop hammering the boundary.\n\nOne thing i want to be clear on before you write it \u2014 is the ceiling per attempt or is it a total elapsed thing across the whole retry chain? Those behave very differently on a long run and i can see arguments either way.\n\nActually, if it is per attempt we should probably say what happens when we are still getting 429s at the ceiling. Do we keep going at the cap, or do we give up on that request?\n\nDario"
          },
          {
           "minute": "15:31",
@@ -5831,7 +5842,8 @@
            "nikolai",
            "dario"
           ],
-          "body": "yup, that all sounds right to me. I will re-run the gemini job once it is in and see whether saturday repeats itself."
+          "body": "yup, that all sounds right to me. I will re-run the gemini job once it is in and see whether saturday repeats itself.",
+          "text": "Yup, that all sounds right to me.\n\nI will re-run the gemini job once it is in and see whether saturday repeats itself.\n\nEmil"
          }
         ]
        },

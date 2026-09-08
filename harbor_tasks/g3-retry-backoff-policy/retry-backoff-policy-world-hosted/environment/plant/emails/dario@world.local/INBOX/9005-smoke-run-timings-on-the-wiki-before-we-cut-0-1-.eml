@@ -7,10 +7,19 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Before we cut 0.1.26 I would like the smoke run numbers on the wiki to be cor=
-rect. The page still says a full bulk-llm-inference pass is "about 20 minutes=
-" and that was written in April, presumably before the batch request changes =
-landed. Nikolai, I think you ran it earlier this week? Whatever you actually =
-saw is better than what is on the page now. Also, is anyone still pointing th=
-ese runs at the shared key or has everybody moved to their own. anyway not ur=
-gent but I want it settled this week.
+Hi all,
+
+Before we cut 0.1.26 I would like the smoke run numbers on the wiki to be c=
+orrect.
+
+The page still says a full bulk-llm-inference pass is "about 20 minutes" an=
+d that was written in April, presumably before the batch request changes la=
+nded. Nikolai, I think you ran it earlier this week? Whatever you actually =
+saw is better than what is on the page now.
+
+Also, is anyone still pointing these runs at the shared key or has everybod=
+y moved to their own.
+
+Not urgent, but I want it settled this week.
+
+Konrad

@@ -1,6 +1,6 @@
 # g3 — Failure-class retry policy for online request processors
 
-**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
+**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries; `located` gets the same world as `world` plus a map of where each remark sits, but never a quote, never which requirement a conversation serves, and never which are herrings.
 
 | arm | what it is handed |
 |---|---|
@@ -8,6 +8,7 @@
 | `spec` | the ticket + both hidden requirements |
 | `clues` | the ticket + all 49 remarks, quoted |
 | `world` | the ticket, against `sweworld:0.4.4` where the 49 remarks live in chat, the wiki and mail |
+| `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left |
 
 Scores are per run and live with the run, not here.
 
@@ -15,33 +16,191 @@ Scores are per run and live with the run, not here.
 
 ## The hidden requirements — stated nowhere
 
-Each is graded as five independent facts, 0.1 each. `open_feature` carries weight 0.0: building the feature scores nothing, only recovering what nobody wrote down does.
+Two requirements, `g3.r1` and `g3.r2`. Neither is written down anywhere an agent
+can read: they have to be reassembled from remarks scattered across the world.
 
-### `g3.r1`
+**Nine facts, not ten.** `g3.r1` declares all five; `g3.r2` declares four — it has
+no `failure_behavior`. `score.py` takes its keys from `tasks.json` rather than from
+a fixed list of five, precisely so an absent fact is not invented and does not
+divide the mean by the wrong number, so each of the nine is worth one ninth.
+`open_feature` (did the agent build the feature at all?) carries weight **0.0**:
+building the feature scores nothing, only recovering what nobody wrote down does.
 
-- **`rule`** — A failure is priced against the request's remaining attempt budget by class, and the price is not uniform: TRANSIENT costs 1 attempt, CONTRACT costs 2 attempts, and THROTTLE costs 0 attempts as long as the request still holds one of its rate-limit waivers. Each `APIRequest` carries its own waiver counter, a new field `throttle_waivers_left: int = DEFAULT_THROTTLE_WAIVERS` seeded from a module-level `DEFAULT_THROTTLE_WAIVERS: int = 6` exported by `retry_policy.py`; a THROTTLE failure with `throttle_waivers_left > 0` decrements the waiver instead of the budget, and once the waivers are gone a THROTTLE failure costs 1 like any transient. `decide` takes `throttle_waivers_left` as a third keyword argument alongside `attempts_made`/`attempts_left`, and its verdict reports both the post-failure budget and the post-failure waiver count, as the frozen fields `attempts_left_after` and `throttle_waivers_after`, which the caller writes back onto the request.
+The facts, and the question each one answers:
 
-- **`scope`** — The waiver allowance is per-request, not per-run and not per-model: a fresh `APIRequest` starts with six waivers regardless of how many 429s other in-flight requests have already absorbed, and nothing on `OnlineStatusTracker` or in `OnlineRequestProcessorConfig` holds or seeds the waiver count. `attempts_left` keeps its existing seeding from `config.max_retries`; only the amount deducted per failure changes.
+| fact | the question it answers |
+|---|---|
+| `rule` | what exactly has to exist |
+| `scope` | where it applies, and where it must not |
+| `exclusions_or_crossover` | what has to stay untouched |
+| `failure_behavior` | what happens when it goes wrong |
+| `observability` | the exact values a test can read back |
 
-- **`exclusions_or_crossover`** — A TERMINAL verdict discards the rest of the budget rather than preserving it: the request's `attempts_left` is set to 0 even when several attempts remained, while its waiver count is passed through unchanged. Conversely a zero-cost THROTTLE failure at `attempts_left == 0` is still retried, because `0 - 0 >= 0` holds — an empty attempt budget does not by itself stop a rate-limited request while a waiver remains.
+---
 
-- **`failure_behavior`** — The cost is charged first and the exhaustion test is `attempts_left - cost < 0`, evaluated after pricing rather than as an `attempts_left <= 0` check before it. When it trips, the verdict is not-retry with outcome `exhausted`, a delay of `0.0` (the schedule is never consulted and the jitter source is never drawn for a verdict that will not be retried), and a post-failure budget clamped to `0` — never a negative number. A CONTRACT failure at `attempts_left == 1` therefore ends the request rather than getting one more try.
+### `g3.r1` — a failure costs attempts by class, and rate limits get six free passes
 
-- **`observability`** — `DEFAULT_THROTTLE_WAIVERS == 6` and a freshly constructed `APIRequest` has `throttle_waivers_left == 6`. With a healthy budget: a rate-limit failure at `attempts_left=3, throttle_waivers_left=6` leaves `attempts_left == 3` and `throttle_waivers_left == 5`; a rate-limit failure at `attempts_left=0, throttle_waivers_left=3` is still retried and leaves `throttle_waivers_left == 2`; the same at `throttle_waivers_left=0` is not retried, reason code `throttle:exhausted`, `attempts_left == 0`. `ValueError("finish_reason was length")` at `attempts_left=3` leaves `attempts_left == 1`; at `attempts_left=1` it is not retried with reason code `contract:exhausted` and `attempts_left == 0`, not `-1`. `Exception("invalid api key")` at `attempts_left=7, throttle_waivers_left=6` yields reason code `terminal:abort`, `attempts_left == 0` and `throttle_waivers_left == 6`.
+**In one sentence:** how much a failure costs depends on what kind of failure it
+is, and a rate limit costs nothing at all until the request has burned through six
+per-request waivers.
 
-> *The decision the team made first and later reversed:* Rate-limit failures were initially made free without any cap (no waiver counter at all, on the theory that a 429 says nothing about the request); that was reversed after a run with a permanently throttled key re-queued the same requests for hours, and the six-waiver allowance was introduced as the compromise.
+#### `rule` — what has to exist
 
-### `g3.r2`
+A failure is priced against the request's remaining attempt budget **by class**,
+and the price is not uniform:
 
-- **`rule`** — The rate-limit pause is driven by an absolute horizon stored on the tracker, not by a config constant. `OnlineStatusTracker` gains exactly one new dataclass field, `throttle_cooldown_until: float = 0.0`, placed immediately after `time_of_last_rate_limit_error`. When a THROTTLE verdict is recorded on the tracker the policy reads its injected clock once for `now`, sets `time_of_last_rate_limit_error = now`, and advances the horizon monotonically: `throttle_cooldown_until = max(throttle_cooldown_until, now + delay_seconds)`, so a later short delay never pulls in a horizon an earlier longer delay already set. `remaining_cooldown_seconds(tracker, now)` returns `max(0.0, round(tracker.throttle_cooldown_until - now, 3))`.
+| class | cost |
+|---|---|
+| `TRANSIENT` | 1 attempt |
+| `CONTRACT` | **2** attempts |
+| `THROTTLE` | **0** attempts, while the request still holds a waiver |
 
-- **`scope`** — The horizon is run-level state on the tracker, extended only by THROTTLE verdicts. Recording a TRANSIENT, CONTRACT or TERMINAL verdict increments its counter and touches neither `throttle_cooldown_until` nor `time_of_last_rate_limit_error`, and does not call the injected clock at all — so the clock-call count over a mixed sequence of failures equals the number of rate-limit failures.
+The waiver counter lives on the request:
 
-- **`exclusions_or_crossover`** — `config.seconds_to_pause_on_rate_limit` is no longer read by any code path after this change: it stays in `config.py` as a dead knob for backwards compatibility, and the pause is never derived from it or from elapsed time since `time_of_last_rate_limit_error`. A run, model or request that has never been throttled waits zero seconds at the pause point even though the knob is still set to 10.
+- `retry_policy.py` exports `DEFAULT_THROTTLE_WAIVERS: int = 6`.
+- `APIRequest` gains `throttle_waivers_left: int = DEFAULT_THROTTLE_WAIVERS`.
+- A `THROTTLE` failure with `throttle_waivers_left > 0` **decrements the waiver
+  instead of the budget**. Once the waivers are gone, a `THROTTLE` failure costs 1
+  like any transient.
 
-- **`observability`** — With a clock pinned at `1000.0` and jitter `0.25`: after one rate-limit failure, `throttle_cooldown_until == 1005.0`, `time_of_last_rate_limit_error == 1000.0`, and the clock has been called once; a contract failure recorded next leaves both at `1005.0`/`1000.0` with the clock still called once; a second rate-limit failure whose delay is `1.0` at the same clock leaves `throttle_cooldown_until == 1005.0`, not `1001.0`. `remaining_cooldown_seconds(tracker, 1002.0) == 3.0`, `(tracker, 1004.5) == 0.5`, `(tracker, 1005.0) == 0.0`, `(tracker, 1099.0) == 0.0`. A freshly constructed `OnlineStatusTracker()` has `throttle_cooldown_until == 0.0`, so `remaining_cooldown_seconds(tracker, 12345.0) == 0.0`.
+`decide` takes `throttle_waivers_left` as a third keyword argument alongside
+`attempts_made` / `attempts_left`, and its verdict reports both post-failure
+numbers as the frozen fields `attempts_left_after` and `throttle_waivers_after`,
+which the caller writes back onto the request.
 
-> *The decision the team made first and later reversed:* The horizon was first written as a plain assignment `throttle_cooldown_until = now + delay_seconds`; that was reversed to a monotonic `max()` after a late transient-class failure was observed shortening a 40-second throttle horizon to a fraction of a second and re-opening the flood.
+#### `scope` — per request, not per run
+
+- A fresh `APIRequest` starts with **six** waivers regardless of how many 429s
+  other in-flight requests have already absorbed.
+- Nothing on `OnlineStatusTracker` or in `OnlineRequestProcessorConfig` holds or
+  seeds the waiver count.
+- `attempts_left` keeps its existing seeding from `config.max_retries`. Only the
+  amount deducted per failure changes.
+
+#### `exclusions_or_crossover` — the two asymmetries
+
+- **`TERMINAL` discards the rest of the budget** rather than preserving it:
+  `attempts_left` is set to `0` even when several attempts remained, while the
+  waiver count passes through unchanged.
+- **A zero-cost `THROTTLE` at `attempts_left == 0` is still retried**, because
+  `0 - 0 >= 0` holds. An empty attempt budget does not by itself stop a
+  rate-limited request while a waiver remains.
+
+#### `failure_behavior` — charge first, then test
+
+The exhaustion test is `attempts_left - cost < 0`, evaluated **after** pricing —
+not an `attempts_left <= 0` check before it. When it trips:
+
+- verdict is not-retry, outcome `exhausted`
+- delay is `0.0` — the schedule is never consulted and the jitter source is never
+  drawn for a verdict that will not be retried
+- the post-failure budget is clamped to `0`, **never negative**
+
+So a `CONTRACT` failure at `attempts_left == 1` ends the request rather than
+getting one more try.
+
+#### `observability` — exact values
+
+`DEFAULT_THROTTLE_WAIVERS == 6`, and a fresh `APIRequest` has
+`throttle_waivers_left == 6`.
+
+| failure | at | result |
+|---|---|---|
+| rate limit | `attempts_left=3, throttle_waivers_left=6` | `attempts_left == 3`, `throttle_waivers_left == 5` |
+| rate limit | `attempts_left=0, throttle_waivers_left=3` | still retried, `throttle_waivers_left == 2` |
+| rate limit | `attempts_left=0, throttle_waivers_left=0` | not retried, `throttle:exhausted`, `attempts_left == 0` |
+| `ValueError("finish_reason was length")` | `attempts_left=3` | `attempts_left == 1` |
+| `ValueError("finish_reason was length")` | `attempts_left=1` | not retried, `contract:exhausted`, `attempts_left == 0` (**not `-1`**) |
+| `Exception("invalid api key")` | `attempts_left=7, throttle_waivers_left=6` | `terminal:abort`, `attempts_left == 0`, `throttle_waivers_left == 6` |
+
+> **The herring** — what the team decided first and later reversed: rate-limit
+> failures were initially made free with **no cap at all** (no waiver counter, on
+> the theory that a 429 says nothing about the request); that was reversed after a
+> run with a permanently throttled key re-queued the same requests for hours, and
+> the six-waiver allowance was introduced as the compromise.
+
+---
+
+### `g3.r2` — the pause is an absolute horizon, and it only ever moves outward
+
+**In one sentence:** the rate-limit pause stops being a config constant and
+becomes a timestamp on the tracker that later, shorter delays can never pull back
+in.
+
+#### `rule` — what has to exist
+
+`OnlineStatusTracker` gains **exactly one** new dataclass field,
+`throttle_cooldown_until: float = 0.0`, placed immediately after
+`time_of_last_rate_limit_error`.
+
+When a `THROTTLE` verdict is recorded, the policy reads its injected clock **once**
+for `now` and then:
+
+```python
+tracker.time_of_last_rate_limit_error = now
+tracker.throttle_cooldown_until = max(tracker.throttle_cooldown_until,
+                                      now + delay_seconds)
+```
+
+The `max()` is the point: a later short delay never pulls in a horizon an earlier
+longer delay already set.
+
+```python
+remaining_cooldown_seconds(tracker, now) == max(0.0, round(tracker.throttle_cooldown_until - now, 3))
+```
+
+#### `scope` — extended only by throttles
+
+The horizon is run-level state on the tracker, extended **only** by `THROTTLE`
+verdicts. Recording a `TRANSIENT`, `CONTRACT` or `TERMINAL` verdict increments its
+counter and:
+
+- touches neither `throttle_cooldown_until` nor `time_of_last_rate_limit_error`
+- **does not call the injected clock at all**
+
+So over a mixed sequence of failures, the clock-call count equals the number of
+rate-limit failures.
+
+#### `exclusions_or_crossover` — the dead knob stays
+
+`config.seconds_to_pause_on_rate_limit` is **no longer read by any code path**. It
+stays in `config.py` as a dead knob for backwards compatibility, and the pause is
+never derived from it, nor from elapsed time since
+`time_of_last_rate_limit_error`.
+
+A run, model or request that has never been throttled waits **zero** seconds at
+the pause point, even though the knob is still set to `10`.
+
+#### `failure_behavior` — not declared
+
+This requirement has no `failure_behavior` fact, which is why g3 is graded on nine
+facts rather than ten. Nothing to implement, and nothing scored here.
+
+#### `observability` — exact values
+
+Clock pinned at `1000.0`, jitter `0.25`:
+
+| step | `throttle_cooldown_until` | `time_of_last_rate_limit_error` | clock calls |
+|---|---|---|---|
+| one rate-limit failure | `1005.0` | `1000.0` | 1 |
+| then a contract failure | `1005.0` | `1000.0` | still 1 |
+| then a rate limit with delay `1.0`, same clock | `1005.0` (**not `1001.0`**) | — | — |
+
+```python
+remaining_cooldown_seconds(tracker, 1002.0) == 3.0
+remaining_cooldown_seconds(tracker, 1004.5) == 0.5
+remaining_cooldown_seconds(tracker, 1005.0) == 0.0
+remaining_cooldown_seconds(tracker, 1099.0) == 0.0
+```
+
+A freshly constructed `OnlineStatusTracker()` has `throttle_cooldown_until == 0.0`,
+so `remaining_cooldown_seconds(tracker, 12345.0) == 0.0`.
+
+> **The herring** — what the team decided first and later reversed: the horizon was
+> first written as a plain assignment `throttle_cooldown_until = now +
+> delay_seconds`; that was reversed to a monotonic `max()` after a late
+> transient-class failure was observed shortening a 40-second throttle horizon to a
+> fraction of a second and re-opening the flood.
 
 ---
 
@@ -166,14 +325,6 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 
 ---
 
-## The ticket — stated openly
-
-**Failure-class retry policy for online request processors**
-
-Add a failure-class retry policy to the online request processors. Create `src/bespokelabs/curator/request_processor/online/retry_policy.py` — pure, standard-library only, importing nothing from `aiohttp`, `time` or `random` — defining `class FailureClass(str, enum.Enum)` with exactly `THROTTLE = "throttle"`, `TRANSIENT = "transient"`, `CONTRACT = "contract"`, `TERMINAL = "terminal"` in that declaration order, and `classify_failure(exc: BaseException) -> FailureClass`, which never raises and consults four signals in order, returning on the first that yields a class: (1) an HTTP status read from `getattr(exc, "status_code", None)` falling back to `getattr(exc, "status", None)`, used only when the value is an `int` that is either a key of the table (400/413/422 → CONTRACT, 401/403/404 → TERMINAL, 408/409/425 → TRANSIENT, 429/529 → THROTTLE) or in 500–599 (→ TRANSIENT), any other `int` falling through to the next signal; (2) the exception type, matched by `__name__` along `type(exc).__mro__` in MRO order (`TimeoutError`/`ConnectionError`/`ClientConnectorError` → TRANSIENT, `ValueError`/`ValidationError`/`JSONDecodeError`/`KeyError` → CONTRACT, `PermissionError`/`NotImplementedError` → TERMINAL); (3) case-insensitive substring markers over `str(exc)`, scanned in table order regardless of where they occur in the message (`rate limit`, `ratelimit`, `too many requests`, `overloaded`, `quota` → THROTTLE; `timed out`, `timeout`, `connection reset`, `temporarily unavailable`, `response is empty` → TRANSIENT; `invalid api key`, `authentication`, `permission denied` → TERMINAL); (4) the default, `TRANSIENT`. The same module defines `class RetryPolicy`, constructed with two injected callables `clock: Callable[[], float]` and `jitter: Callable[[], float]` (no defaults, neither called at construction), exposing `delay_for(failure_class, attempt_index) -> float`, which raises `ValueError` when `attempt_index < 1` and otherwise computes `raw = min(cap, base * factor ** (attempt_index - 1))` from the per-class schedule THROTTLE `(8.0, 2.0, 60.0)`, TRANSIENT `(0.5, 3.0, 20.0)`, CONTRACT and TERMINAL `(0.0, 1.0, 0.0)`, returns `0.0` when `raw <= 0`, and otherwise returns `round(raw * (0.5 + 0.5 * j), 3)` with `j` the injected jitter clamped to `[0.0, 1.0]` — so the cap binds before jitter and the jitter source is drawn exactly once per positive delay and not at all otherwise; a `decide(exc, *, attempts_made: int, attempts_left: int, ...)` method returning a frozen dataclass verdict that tells the caller whether to re-queue, which `FailureClass` it was, the 1-based index of the attempt that just failed, how long to wait before the retry, and a two-part reason code spelled `f"{failure_class.value}:{outcome}"` with `outcome` one of `retry`/`exhausted`/`abort` (`abort` for a TERMINAL verdict, `exhausted` when the budget could not pay for another attempt); and a method that records a verdict on an `OnlineStatusTracker`, incrementing exactly one counter per failure — `num_rate_limit_errors` for THROTTLE, `num_api_errors` for TRANSIENT and TERMINAL, `num_other_errors` for CONTRACT. Also `remaining_cooldown_seconds(tracker, now: float) -> float`, the seconds a caller must still wait before issuing more requests; `format_failure_summary(failure_log: Sequence[tuple[FailureClass, str]]) -> list[str]`, one `f"[{failure_class.value}] {message} (x{count})"` entry per distinct (class, message) pair, ordered by count descending with ties broken by first occurrence and `[]` for an empty log; and `format_attempt_label(attempts_made: int, max_retries: int) -> str` returning `f"attempt #{attempts_made + 1} of {max_retries + 1}"`. Wire it in: `APIRequest` gains `attempts_made: int = 0` and `failure_log: list = field(default_factory=list)` (`attempts_left` keeps its name and its seeding from `config.max_retries`); `BaseOnlineRequestProcessor.__init__` builds the policy; the `except Exception as e:` block (lines 526–563) delegates to it, appending `(failure class, str(e))` to `failure_log`, updating the request's counters from the verdict, re-queueing on a retry verdict and otherwise writing `GenericResponse(response_errors=format_failure_summary(request.failure_log), response_message=None, raw_response=None)`; `cool_down_if_rate_limit_error` is rewritten on top of `remaining_cooldown_seconds`; the retry-loop debug line at line 424 uses `format_attempt_label` so both log sites agree on the attempt number; and the hand-rolled rate-limit blocks in `openai_online_request_processor.py` (296–303), `anthropic_online_request_processor.py` (282–289) and `litellm_online_request_processor.py` (428–433) stop mutating tracker counters — delete the compensating `num_api_errors -= 1` / `num_other_errors -= 1` decrements and just re-raise — so every failure is classified and counted exactly once, in the base class.
-
-
----
 
 ## Where every remark is
 
@@ -1006,13 +1157,68 @@ What the remark has to leave a reader with:
 
 > yup — once a request has used up its free passes the next 429 costs it an attempt like anything else, otherwise a dead key just loops forever.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:12  gideon    Hey, forwarding something from support before it gets lost in the queue. A user had their API key revoked partway through a run (org admin rotated it, they didn't know) and the run just... kept going. All night. Every single call came back 429, nothing ever got through, and the process was still alive when they checked in the morning with a log file that was like 400MB.  So basically they expected it to die after a while and it never did. They're not angry, they just want to know what the intended behavior is so they can tell their team. Honestly though I couldn't answer that with confidence, I dunno if we treat auth-shaped 429s differently from real rate limits anywhere. Who owns this bit?
-10:04  dario     i think that's the request processor retry path, so probably emil or nikolai. but the part i want to understand before we touch anything: is this a classification problem where we're mislabelling a revoked key as a rate limit, or is it a counting problem where the retry loop is fine with 429s in principle and just never stops?  because those are actually two different fixes and to be honest i'd rather not do both at once. gideon can you get the actual response bodies from the ticket, not just the status codes
-11:47  emil      let me think through that, because i believe it's the second one and the classification is mostly a red herring.  the provider is returning 429 and honestly from our side that's a legitimate 429 — the key doesn't have quota anymore because the key doesn't exist. i'm not entirely sure we could tell those apart reliably even if we wanted to, different providers dress up revocation differently and some of them do genuinely just say too many requests.  the actual problem is upstream of that. when we see a rate limit we don't charge the request an attempt, we back off and re-queue it, on the theory that being told to slow down isn't the request's fault. which is right for the normal case, a burst of 429s during a spike shouldn't eat somebody's retry budget. but there's no ceiling on that generosity, so a request that only ever gets 429s never approaches max_retries and the loop has no exit at all. once a request has used up its free passes the next 429 should cost it an attempt like anything else, otherwise a dead key loops forever.  we need to be intentional here about what the number of free passes is, though. too low and we break the legitimate spike case that this behaviour exists for. i'll get the response bodies from gideon anyway since it'd be good to know what we're actually seeing, but i don't think the fix depends on them.
-12:20  nikolai   right that matches what i remember of that code  the backoff sleep is also unbounded on the same path fwiw so overnight it was probably mostly sleeping which is why nobody noticed the machine was busy. separate thing, not blocking  gideon send me the log too if the user still has it
+From: gideon@world.local
+Sent: 09:12
+
+Hi all,
+
+Forwarding something from support before it gets lost in the queue.
+
+A user had their API key revoked partway through a run (org admin rotated it, they didn't know) and the run just... kept going. All night. Every single call came back 429, nothing ever got through, and the process was still alive when they checked in the morning with a log file that was like 400MB.
+
+So basically they expected it to die after a while and it never did. They're not angry, they just want to know what the intended behavior is so they can tell their team.
+
+Honestly though I couldn't answer that with confidence — I dunno if we treat auth-shaped 429s differently from real rate limits anywhere. Who owns this bit?
+
+Gideon
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 10:04
+
+Hey Gideon,
+
+I think that's the request processor retry path, so probably emil or nikolai.
+
+But the part I want to understand before we touch anything: is this a classification problem where we're mislabelling a revoked key as a rate limit, or is it a counting problem where the retry loop is fine with 429s in principle and just never stops? Because those are actually two different fixes and to be honest i'd rather not do both at once.
+
+Can you get the actual response bodies from the ticket, not just the status codes?
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 11:47
+
+Let me think through that, because I believe it's the second one and the classification is mostly a red herring.
+
+The provider is returning 429 and honestly from our side that's a legitimate 429 — the key doesn't have quota anymore because the key doesn't exist. I'm not entirely sure we could tell those apart reliably even if we wanted to; different providers dress up revocation differently and some of them do genuinely just say too many requests.
+
+The actual problem is upstream of that. When we see a rate limit we don't charge the request an attempt, we back off and re-queue it, on the theory that being told to slow down isn't the request's fault. Which is right for the normal case — a burst of 429s during a spike shouldn't eat somebody's retry budget. But there's no ceiling on that generosity, so a request that only ever gets 429s never approaches max_retries and the loop has no exit at all.
+
+Once a request has used up its free passes the next 429 should cost it an attempt like anything else, otherwise a dead key loops forever.
+
+We need to be intentional here about what the number of free passes is, though. Too low and we break the legitimate spike case that this behaviour exists for. I'll get the response bodies from gideon anyway since it'd be good to know what we're actually seeing, but I don't think the fix depends on them.
+
+Emil
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 12:20
+
+Right, that matches what i remember of that code.
+
+The backoff sleep is also unbounded on the same path fwiw, so overnight it was probably mostly sleeping, which is why nobody noticed the machine was busy. Separate thing, not blocking.
+
+Gideon send me the log too if the user still has it.
+
+Nikolai
 ```
 
 #### `g3.r1.l18`
@@ -1313,13 +1519,68 @@ What the remark has to leave a reader with:
 
 > ran it with the wrong key and each request retried five more times before giving up once auth is the problem the attempts on the clock are worth nothing
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:12  konrad    Before we cut 0.1.26 I would like the smoke run numbers on the wiki to be correct. The page still says a full bulk-llm-inference pass is "about 20 minutes" and that was written in April, presumably before the batch request changes landed. Nikolai, I think you ran it earlier this week? Whatever you actually saw is better than what is on the page now. Also, is anyone still pointing these runs at the shared key or has everybody moved to their own. anyway not urgent but I want it settled this week.
-11:04  nikolai   ran it twice monday  first pass was 24 min clean so the wiki number is stale but not badly, i'd say write 25 and move on  second pass is the one worth mentioning, i had an old key sitting in my env and didnt notice, the wrong-key run retried each request five more times before giving up, once auth is the problem the attempts still on the clock are worth nothing, so somethign that should have died in seconds took 40 min to hand me a 401  not a release blocker off the top of my head but its the kind of thing that eats an afternoon  shared key i moved off in may, no idea about Nolan
-13:37  dario     mhm 25 seems fine for the page, i'd honestly rather it read a little pessimistic than a little optimistic since people plan their afternoon around that number.  the 401 thing i have hit too actually, though at the time i assumed i was holding it wrong and didnt look further. in any case do you want me to drop both timings into the release notes draft as they are, or would you rather edit the wiki page yourself since you have the real numbers in front of you
-16:20  emil      sounds right, i'll carry the 25 into the notes draft either way.  separately though, we need to be intentional here about which numbers we publish at all — half of them go stale within a month of being written and then someone reads them in June and plans around April. not entirely sure the wiki page is the right home for timings long term. leave it as is for 0.1.26, i'm not proposing anything this week.
+From: konrad@world.local
+Sent: 09:12
+
+Hi all,
+
+Before we cut 0.1.26 I would like the smoke run numbers on the wiki to be correct.
+
+The page still says a full bulk-llm-inference pass is "about 20 minutes" and that was written in April, presumably before the batch request changes landed. Nikolai, I think you ran it earlier this week? Whatever you actually saw is better than what is on the page now.
+
+Also, is anyone still pointing these runs at the shared key or has everybody moved to their own.
+
+Not urgent, but I want it settled this week.
+
+Konrad
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 11:04
+
+Hi Konrad,
+
+Ran it twice monday.
+
+First pass was 24 min clean, so the wiki number is stale but not badly. I'd say write 25 and move on.
+
+Second pass is the one worth mentioning. I had an old key sitting in my env and didnt notice, and the wrong-key run retried each request five more times before giving up. Once auth is the problem the attempts still on the clock are worth nothing, so somethign that should have died in seconds took 40 min to hand me a 401.
+
+Not a release blocker off the top of my head, but its the kind of thing that eats an afternoon.
+
+Shared key i moved off in may, no idea about Nolan.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 13:37
+
+Mhm, 25 seems fine for the page. I'd honestly rather it read a little pessimistic than a little optimistic, since people plan their afternoon around that number.
+
+The 401 thing i have hit too actually, though at the time i assumed i was holding it wrong and didnt look further.
+
+In any case, do you want me to drop both timings into the release notes draft as they are, or would you rather edit the wiki page yourself since you have the real numbers in front of you?
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 16:20
+
+Sounds right, i'll carry the 25 into the notes draft either way.
+
+Separately though, we need to be intentional here about which numbers we publish at all. Half of them go stale within a month of being written and then someone reads them in June and plans around April. Not entirely sure the wiki page is the right home for timings long term.
+
+Leave it as is for 0.1.26, i'm not proposing anything this week.
+
+Emil
 ```
 
 #### `g3.r2.s4d`
@@ -1334,13 +1595,64 @@ What the remark has to leave a reader with:
 
 > A few user configs in the wild still set seconds_to_pause_on_rate_limit, so it stays in config.py with its default of 10 unchanged, even once nothing reads it.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:14  emil      Nikolai — the long gemini run I kicked off friday spent most of saturday doing nothing. I pulled the logs this morning and it is 429s the whole way down, we hit one, we sleep the fixed pause, we retry into the same closed window, we hit another. Throughput never recovers, it just limps until the request budget is gone.  So if I am reading the code right, the pause is a single global stall for the whole run and not something that scales per request? That was my guess but I am not entirely sure I am reading the processor correctly. Either way I think the fixed number is the thing that stopped working — providers moved to something much more dynamic and we did not.
-11:52  nikolai   yep youre reading it right  one 429 stalls everything for the fixed pause then we go again with no memory of how many times weve been told no that was solid enough when the windows were published and static they arent now so we sleep 10s into a window that wants a minute and spend the retry budget on calls that were never landing  what i want is backoff per request off the 429 itself doubling from a small base with jitter and a ceiling so one slow provider doesnt hold the whole run hostage the retry count stays where it is  A few user configs in the wild set seconds_to_pause_on_rate_limit so leave it sitting in config.py even once nothing reads it any more id say a dead field costs us less than a config that blows up on load for someone we never hear from  batch path is a different failure mode gotta think through that one separately
-14:06  dario     makes sense, and honestly the jitter part matters more than the doubling does. every worker waking up at the same instant is how we got the sawtooth in the first place, i think, so if they all come back staggered we probably stop hammering the boundary.  one thing i want to be clear on before you write it — is the ceiling per attempt or is it a total elapsed thing across the whole retry chain? those behave very differently on a long run and i can see arguments either way. actually if it is per attempt we should probably say what happens when we are still getting 429s at the ceiling, do we keep going at the cap or do we give up on that request.
-15:31  emil      yup, that all sounds right to me. I will re-run the gemini job once it is in and see whether saturday repeats itself.
+From: emil@world.local
+Sent: 09:14
+
+Hi Nikolai,
+
+The long gemini run I kicked off friday spent most of saturday doing nothing. I pulled the logs this morning and it is 429s the whole way down — we hit one, we sleep the fixed pause, we retry into the same closed window, we hit another. Throughput never recovers, it just limps until the request budget is gone.
+
+So if I am reading the code right, the pause is a single global stall for the whole run and not something that scales per request? That was my guess but I am not entirely sure I am reading the processor correctly.
+
+Either way I think the fixed number is the thing that stopped working — providers moved to something much more dynamic and we did not.
+
+Emil
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 11:52
+
+Hey Emil,
+
+Yep youre reading it right.
+
+One 429 stalls everything for the fixed pause, then we go again with no memory of how many times weve been told no. That was solid enough when the windows were published and static. They arent now, so we sleep 10s into a window that wants a minute and spend the retry budget on calls that were never landing.
+
+What i want is backoff per request off the 429 itself, doubling from a small base with jitter and a ceiling, so one slow provider doesnt hold the whole run hostage. The retry count stays where it is.
+
+A few user configs in the wild set seconds_to_pause_on_rate_limit so leave it sitting in config.py even once nothing reads it any more. Id say a dead field costs us less than a config that blows up on load for someone we never hear from.
+
+Batch path is a different failure mode, gotta think through that one separately.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 14:06
+
+Makes sense, and honestly the jitter part matters more than the doubling does. Every worker waking up at the same instant is how we got the sawtooth in the first place, i think, so if they all come back staggered we probably stop hammering the boundary.
+
+One thing i want to be clear on before you write it — is the ceiling per attempt or is it a total elapsed thing across the whole retry chain? Those behave very differently on a long run and i can see arguments either way.
+
+Actually, if it is per attempt we should probably say what happens when we are still getting 429s at the ceiling. Do we keep going at the cap, or do we give up on that request?
+
+Dario
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 15:31
+
+Yup, that all sounds right to me.
+
+I will re-run the gemini job once it is in and see whether saturday repeats itself.
+
+Emil
 ```
 
 #### `g3.r2.s1a`

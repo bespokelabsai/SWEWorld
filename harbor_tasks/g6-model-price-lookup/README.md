@@ -1,6 +1,6 @@
 # g6 — Unified model price resolution
 
-**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries.
+**This is the answer key.** Nothing here is shown to an agent in any arm. The `blind` and `world` arms get the ticket and nothing else; `spec` also gets the hidden requirements; `clues` gets the remarks quoted in its prompt but never their dates' meaning, who is wrong, or which fact anything carries; `located` gets the same world as `world` plus a map of where each remark sits, but never a quote, never which requirement a conversation serves, and never which are herrings.
 
 | arm | what it is handed |
 |---|---|
@@ -8,6 +8,7 @@
 | `spec` | the ticket + both hidden requirements |
 | `clues` | the ticket + all 33 remarks, quoted |
 | `world` | the ticket, against `sweworld:0.4.4` where the 33 remarks live in chat, the wiki and mail |
+| `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left |
 
 Scores are per run and live with the run, not here.
 
@@ -15,27 +16,147 @@ Scores are per run and live with the run, not here.
 
 ## The hidden requirements — stated nowhere
 
-Each is graded as five independent facts, 0.1 each. `open_feature` carries weight 0.0: building the feature scores nothing, only recovering what nobody wrote down does.
+Two requirements, `g6.r1` and `g6.r2`. Neither is written down anywhere an agent
+can read: they have to be reassembled from remarks scattered across the world.
 
-### `g6.r1`
+**Seven facts, not ten.** `g6.r1` declares three — no `scope`, no
+`failure_behavior`; `g6.r2` declares four — no `failure_behavior`. `score.py`
+takes its keys from `tasks.json` rather than from a fixed list of five, precisely
+so an absent fact is not invented and does not divide the mean by the wrong
+number, so each of the seven is worth one seventh. That is why a `clues` run that
+misses one lands on 0.857 rather than 0.9. `open_feature` (did the agent build the
+feature at all?) carries weight **0.0**: building the feature scores nothing, only
+recovering what nobody wrote down does.
 
-- **`rule`** — `resolve_model_price` never returns a `ModelPrice` carrying a `None` price: every failure raises `UnpricedModelError`, and the `reason` it carries is exactly one of the three strings `unknown_provider`, `unknown_model`, `unknown_window`.
+The facts, and the question each one answers:
 
-- **`exclusions_or_crossover`** — An unregistered provider is `unknown_provider` even when the model is also absent and the window is also unrecognised, and a missing model key is `unknown_model` even when the window is also unrecognised. A model present in `litellm.model_cost` but carrying a missing or `None` input price is `unknown_model`, and a window that is absent from a model's price map is `unknown_window` rather than a fallback to the wildcard tier.
+| fact | the question it answers |
+|---|---|
+| `rule` | what exactly has to exist |
+| `scope` | where it applies, and where it must not |
+| `exclusions_or_crossover` | what has to stay untouched |
+| `failure_behavior` | what happens when it goes wrong |
+| `observability` | the exact values a test can read back |
 
-- **`observability`** — `resolve_model_price("no-such-model", provider="not-a-provider", completion_window="96h")` raises with `reason == "unknown_provider"`; the same call with a registered provider raises with `reason == "unknown_model"`; a model that provider does list, asked for an unlisted window, raises with `reason == "unknown_window"`. Every `cost()` method and both trackers catch `UnpricedModelError` and degrade — `cost()` to `0.0`, a tracker to `None` prices and a recorded reason.
+---
 
-### `g6.r2`
+### `g6.r1` — a price is never `None`; it is a raise with one of three reasons
 
-- **`rule`** — The batch discount factor is applied by exactly one method, `batch_multiplier()`, on the cost processors; no `cost()` override multiplies or divides its result by anything. `resolve_model_price(..., batch=True)` applies that same fixed factor to the per-million numbers it returns.
+**In one sentence:** the lookup either returns a fully priced `ModelPrice` or
+raises, and the reason it raises is one of a closed vocabulary of three — so a
+half-populated row can never reach a report as a zero.
 
-- **`scope`** — `batch_multiplier()` returns the discount factor only where the pricing data is a list price: it returns `1.0` when the processor is not in batch mode, and `1.0` on the klusterai and inference.net processors in every mode. `resolve_model_price` discounts a `source == "litellm"` price and leaves a `source == "external"` price exactly as the table lists it.
+#### `rule` — what has to exist
 
-- **`exclusions_or_crossover`** — A user-supplied per-million price is never discounted: `batch_multiplier()` returns `1.0` whenever the config carries an explicit input cost, even in batch mode on a processor that would otherwise discount. Which processors are exempt is decided by a class-level flag and by which source answered the lookup.
+`resolve_model_price` **never** returns a `ModelPrice` carrying a `None` price.
+Every failure raises `UnpricedModelError`, and the `reason` it carries is exactly
+one of three strings:
 
-- **`observability`** — `batch_multiplier()` is the discount factor on the base and Azure processors in batch mode and `1.0` out of it, and `1.0` on the klusterai and inference.net processors even in batch mode. `resolve_model_price(model, provider="klusterai", completion_window="*", batch=True).input_cost_per_million` equals the `batch=False` value exactly, while a litellm-sourced model's `batch=True` value is exactly half its `batch=False` value.
+```python
+"unknown_provider"   "unknown_model"   "unknown_window"
+```
 
-> *The decision the team made first and later reversed:* the team once applied the fixed batch discount uniformly to every source inside the base cost processor, then had klusterai/inference.net multiply their own result by 2 to cancel it back out because their tables were already batch-tier prices; that compensating multiply was later dropped in favour of one method that simply declines to discount those two providers
+#### `scope` — not declared
+
+This requirement has no `scope` fact. Nothing to implement, and nothing scored
+here.
+
+#### `exclusions_or_crossover` — which reason wins, and the null-price trap
+
+The three are ordered, not alternatives — the first thing that is wrong is the
+reason, regardless of what else is also wrong:
+
+| situation | reason |
+|---|---|
+| provider not registered — even if the model is absent **and** the window unrecognised | `unknown_provider` |
+| model key missing — even if the window is also unrecognised | `unknown_model` |
+| model **is** in `litellm.model_cost` but its input price is missing or `None` | `unknown_model` |
+| window absent from that model's price map | `unknown_window` — **not** a fallback to the wildcard tier |
+
+The third row is the one the world argues about: a row that exists and is
+half-populated is a failure, not a free model.
+
+#### `failure_behavior` — not declared
+
+This requirement has no `failure_behavior` fact. Nothing to implement, and nothing
+scored here.
+
+#### `observability` — exact values
+
+| call | raises with |
+|---|---|
+| `resolve_model_price("no-such-model", provider="not-a-provider", completion_window="96h")` | `reason == "unknown_provider"` |
+| the same call with a **registered** provider | `reason == "unknown_model"` |
+| a model that provider does list, asked for an unlisted window | `reason == "unknown_window"` |
+
+Every `cost()` method and both trackers catch `UnpricedModelError` and **degrade**
+rather than propagate — `cost()` to `0.0`, a tracker to `None` prices plus a
+recorded reason.
+
+---
+
+### `g6.r2` — one method owns the batch discount, and two providers never get it
+
+**In one sentence:** the batch discount is applied in exactly one place, and it is
+declined — not cancelled out afterwards — for the providers whose published
+numbers are already batch prices, and for any price the user supplied themselves.
+
+#### `rule` — what has to exist
+
+The batch discount factor is applied by **exactly one** method,
+`batch_multiplier()`, on the cost processors. No `cost()` override multiplies or
+divides its result by anything. `resolve_model_price(..., batch=True)` applies that
+same fixed factor to the per-million numbers it returns.
+
+#### `scope` — where the factor is 1.0
+
+`batch_multiplier()` returns the discount factor **only** where the pricing data is
+a list price:
+
+| processor / state | returns |
+|---|---|
+| not in batch mode | `1.0` |
+| klusterai, in any mode | `1.0` |
+| inference.net, in any mode | `1.0` |
+| base / Azure, in batch mode | the discount factor |
+
+And in the lookup: `resolve_model_price` discounts a `source == "litellm"` price
+and leaves a `source == "external"` price **exactly as the table lists it**.
+
+#### `exclusions_or_crossover` — a user's own price is never touched
+
+`batch_multiplier()` returns `1.0` whenever the config carries an **explicit input
+cost**, even in batch mode on a processor that would otherwise discount.
+
+Which processors are exempt is decided by a **class-level flag** and by which
+source answered the lookup — not by a name comparison at the call site.
+
+#### `failure_behavior` — not declared
+
+This requirement has no `failure_behavior` fact. Nothing to implement, and nothing
+scored here.
+
+#### `observability` — exact values
+
+- `batch_multiplier()` is the discount factor on the base and Azure processors in
+  batch mode, and `1.0` out of it.
+- `batch_multiplier()` is `1.0` on the klusterai and inference.net processors
+  **even in batch mode**.
+
+```python
+# an already-batch-priced provider: batch and non-batch are the same number
+resolve_model_price(model, provider="klusterai", completion_window="*",
+                    batch=True).input_cost_per_million  # == the batch=False value
+
+# a litellm-sourced model: batch is exactly half
+```
+
+> **The herring** — what the team decided first and later reversed: the team once
+> applied the fixed batch discount uniformly to every source inside the base cost
+> processor, then had klusterai and inference.net multiply their own result by 2 to
+> cancel it back out, because their tables were already batch-tier prices. That
+> compensating multiply was later dropped in favour of one method that simply
+> declines to discount those two providers.
 
 ---
 
@@ -140,78 +261,6 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 
 ---
 
-## The ticket — stated openly
-
-**Unified model price resolution**
-
-Consolidate the scattered, inconsistent model-price lookups into one canonical path.
-
-Today that logic is spread across `src/bespokelabs/curator/cost.py` — which mixes external-table and litellm-table logic ad hoc across `external_model_cost()` and four separate `cost()` methods — and across the batch/online status trackers.
-
-### 1. Add a frozen dataclass `ModelPrice`
-
-With these fields:
-
-- `model: str`
-- `provider: str | None`
-- `completion_window: str`
-- `input_cost_per_million: float`
-- `output_cost_per_million: float`
-- `source: str` ("litellm" or "external")
-- `batch: bool`
-- `output_price_inferred: bool`
-- `max_tokens: int | None`
-
-Plus `input_cost_per_token`/`output_cost_per_token` properties (`round(value, 9)` for per-million figures, `round(per_million/1e6, 15)` for per-token).
-
-### 2. Add `UnpricedModelError(LookupError)`
-
-- A class-level `REASONS` frozenset naming the permitted reason strings.
-- A keyword-only `__init__(*, model, provider, completion_window, reason)` that raises `ValueError` for an unrecognized `reason`.
-- Otherwise it produces the message `f"{reason}: model={model!r} provider={provider!r} completion_window={completion_window!r}"`.
-
-### 3. Add `resolve_model_price(model, *, provider=None, completion_window=None, batch=False) -> ModelPrice`
-
-The single function that consults `_DEFAULT_COST_MAP`'s external provider tables and `litellm.model_cost`. It:
-
-- Raises `UnpricedModelError` instead of ever returning a `None`-valued price.
-- Applies a batch-rate discount to the returned per-million prices where the pricing data calls for it when `batch=True`.
-- When a table entry has no explicit output price, copies the input price into the output price and sets `output_price_inferred=True`.
-
-### 4. Add `register_price_with_litellm(price: ModelPrice) -> dict`
-
-- Writes `{"max_tokens": ..., "input_cost_per_token": ..., "output_cost_per_token": ..., "litellm_provider": ...}` into `litellm.model_cost` via `litellm.register_model`.
-- Raises `ValueError` if `price.batch` is `True`.
-- Returns that same four-key `{"max_tokens": ..., "input_cost_per_token": ..., "output_cost_per_token": ..., "litellm_provider": ...}` dict — the entry it just wrote, not `{price.model: {...}}`.
-
-### 5. Add `format_cost_strings(price: ModelPrice | None, *, rich: bool) -> tuple[str, str]`
-
-The sole place display strings like `"$0.045"` (or `"[red]$0.045[/red]"` when `rich`) are built. It:
-
-- Appends `"*"` to the output string when `output_price_inferred` is true.
-- Returns `("N/A", "N/A")` (or the `[dim]`-wrapped equivalent) for `price is None`.
-
-### 6. Rewrite `external_model_cost(model, completion_window="*", provider="default") -> dict[str, float]`
-
-As a thin shim over `resolve_model_price(..., batch=False)`.
-
-### 7. Delete `_get_litellm_cost_map`
-
-### 8. Give `BatchStatusTracker`/`OnlineStatusTracker` two new fields and one new method
-
-New fields:
-
-- `price_unavailable_reason: Optional[str]`
-- `output_price_inferred: bool`
-
-New method `refresh_model_price(*, price_model: str | None = None) -> Optional[str]`, called from `model_post_init`/`__post_init__` and from the batch request processors' `set_model_cost()`. It:
-
-- Re-resolves and assigns the two per-million prices, `output_price_inferred`, and `input_cost_str`/`output_cost_str` (via `format_cost_strings`).
-- Sets `price_unavailable_reason` to `None` on success or to `err.reason` on `UnpricedModelError`.
-- Never raises.
-
-
----
 
 ## Where every remark is
 
@@ -540,8 +589,7 @@ As it appears, spread across the exchange:
 #### `g6.r2.g6r2-s3-l3`
 
 - **mail** · “PR 565: cost reporting before it lands” · **dermot** · 2025-04-08 13:12
-- to nikolai@world.local, emil@world.local, dario@world.local,
- konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+- to nikolai@world.local, emil@world.local, dario@world.local, konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
 - carries `g6.r2.exclusions_or_crossover`, `g6.r2.rule`
 - must be typed literally: `batch_multiplier`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -550,19 +598,51 @@ What the remark has to leave a reader with:
 
 > reading the cost path in 565 — we're picking who gets the batch discount with an if-chain on provider names inside batch_multiplier, that belongs on the class as a flag instead.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:12  dermot    Subject: the provider if-chain in batch_multiplier  Nikolai,  I spent a good part of a late night going through the cost path in 565, and there is one thing in there I would rather raise now than after it lands, because it will only get more expensive to unpick.  The way we currently decide who gets the batch discount is an if-chain on provider names inside batch_multiplier. The function walks through a sequence of string comparisons against the provider name, returns a discounted multiplier for the ones it recognises, and falls through to full price for everything else. Functionally it produces the right numbers today, so this is not a bug report. The problem is where the knowledge lives. Whether a given provider offers batch pricing at all is a fact about that provider, and at the moment that fact is written down nowhere near the provider — it is buried in the middle of a cost function, expressed as a name match. Adding a provider now means remembering to go and edit an unrelated function, and if you forget, the silent result is that the provider is quietly billed at full price rather than erroring.  What I would like instead is for that eligibility to be a flag on the class, and for batch_multiplier to read the flag rather than the name. The multiplier calculation stays where it is; it just stops making the eligibility decision itself.  If I had to guess, this is a small change in practice, but I did not want to make it inside the review without agreement that it is the right direction.  Dermot
-13:44  nikolai   Right, I agree with the direction. I have written that if-chain twice now and both times it felt like the wrong place to be typing provider names.  One thing I want pinned down before anyone touches it. Does the flag sit on the base class with a default, so subclasses only speak up when they differ, or does every provider have to declare it explicitly? Off the top of my head the default is the nicer ergonomics, but it reintroduces the same silent failure you just described, only one level up — a new provider that forgets to set it inherits the default and nobody notices.  The rest of it is solid enough as you have it. I would keep batch_multiplier owning the arithmetic and nothing else.
-14:26  dermot    On the default question — I would put it on the base class defaulting to off. The silent failure you are describing is real, but it is not symmetric with the current one. Under the if-chain, the eligibility fact is invisible from the provider entirely, so there is nothing to review; under a flag with a default, it is a missing line in a class where every other pricing attribute is sitting in plain sight, and that is the kind of omission a reader notices. Defaulting to off also means the failure mode is that we overcharge ourselves in an estimate rather than undercharge, which is the direction I would rather be wrong in.  So: flag on the base class, off by default, each provider that actually offers batch pricing sets it true alongside its other rates, and batch_multiplier does a lookup instead of a name comparison. I am not entirely sure whether we want the discount rate itself on the class as well, but that is a separate argument and the current numbers do not force it.  That said, I do not think the if-chain was a mistake when it was written. With two providers in it, it read fine. It stopped reading fine somewhere around the fourth, and none of us were looking at it on the day that happened.
+From: dermot@world.local
+Sent: 13:12
+
+Nikolai,
+
+I spent a good part of a late night going through the cost path in 565, and there is one thing in there I would rather raise now than after it lands, because it will only get more expensive to unpick.
+
+The way we currently decide who gets the batch discount is an if-chain on provider names inside batch_multiplier. The function walks through a sequence of string comparisons against the provider name, returns a discounted multiplier for the ones it recognises, and falls through to full price for everything else. Functionally it produces the right numbers today, so this is not a bug report. The problem is where the knowledge lives. Whether a given provider offers batch pricing at all is a fact about that provider, and at the moment that fact is written down nowhere near the provider — it is buried in the middle of a cost function, expressed as a name match. Adding a provider now means remembering to go and edit an unrelated function, and if you forget, the silent result is that the provider is quietly billed at full price rather than erroring.
+
+What I would like instead is for that eligibility to be a flag on the class, and for batch_multiplier to read the flag rather than the name. The multiplier calculation stays where it is; it just stops making the eligibility decision itself.
+
+If I had to guess, this is a small change in practice, but I did not want to make it inside the review without agreement that it is the right direction.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:44
+
+Right, I agree with the direction. I have written that if-chain twice now and both times it felt like the wrong place to be typing provider names.
+
+One thing I want pinned down before anyone touches it. Does the flag sit on the base class with a default, so subclasses only speak up when they differ, or does every provider have to declare it explicitly? Off the top of my head the default is the nicer ergonomics, but it reintroduces the same silent failure you just described, only one level up — a new provider that forgets to set it inherits the default and nobody notices.
+
+The rest of it is solid enough as you have it. I would keep batch_multiplier owning the arithmetic and nothing else.
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 14:26
+
+On the default question — I would put it on the base class defaulting to off. The silent failure you are describing is real, but it is not symmetric with the current one. Under the if-chain, the eligibility fact is invisible from the provider entirely, so there is nothing to review; under a flag with a default, it is a missing line in a class where every other pricing attribute is sitting in plain sight, and that is the kind of omission a reader notices. Defaulting to off also means the failure mode is that we overcharge ourselves in an estimate rather than undercharge, which is the direction I would rather be wrong in.
+
+So: flag on the base class, off by default, each provider that actually offers batch pricing sets it true alongside its other rates, and batch_multiplier does a lookup instead of a name comparison. I am not entirely sure whether we want the discount rate itself on the class as well, but that is a separate argument and the current numbers do not force it.
+
+That said, I do not think the if-chain was a mistake when it was written. With two providers in it, it read fine. It stopped reading fine somewhere around the fourth, and none of us were looking at it on the day that happened.
 ```
 
 #### `g6.r2.g6r2-s2-l4`
 
 - **mail** · “Re: Weekly update: week of Apr 7” · **konrad** · 2025-04-14 09:16
-- to dermot@world.local, emil@world.local, dario@world.local,
- gideon@world.local, nikolai@world.local, tomas@world.local
+- to dermot@world.local, emil@world.local, dario@world.local, gideon@world.local, nikolai@world.local, tomas@world.local
 - carries `g6.r2.scope`, `g6.r2.exclusions_or_crossover`
 - must be typed literally: `resolve_model_price`, `batch=True`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -571,12 +651,50 @@ What the remark has to leave a reader with:
 
 > on your cost question — resolve_model_price with provider=klusterai and batch=True came back at half the table rate, and anything we read out of those provider tables should come back exactly as listed.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-09:16  konrad    Subject: the klusterai number on the cost sheet looks halved  Emil,  I am putting together the cost estimate for the batch runs we discussed last week, and before I circulate anything I want to be sure I am reading the pricing helper correctly, because one of the numbers does not match what I expected.  The case is klusterai in batch mode. I looked up the per-token figure in the provider table by hand, then asked the helper for the same thing, and the helper came back with exactly half of what the table lists. Half is a suspiciously round factor, so it is presumably deliberate, but I cannot tell from the outside whether it is a batch discount the helper is applying on purpose or whether something is being divided that should not be. The difference matters because the estimate goes out to people who will not check it.  There is a second thing I would like confirmed while you are in there. For the ordinary case, where I am not asking for batch at all and just want the price of a model that sits in one of the provider tables, should I take what comes back as the table value unchanged, or is there any adjustment applied on that path as well? Off the top of my head I assumed unchanged, but I have assumed wrong once already in this mail.  Thanks, Konrad
-11:02  emil      Konrad,  On your cost question — both of those are working as intended, and I can tell you exactly where each number comes from, because I went through the resolution path this morning to be sure I was not repeating something I half remembered.  The klusterai case first. What you called is resolve_model_price with provider=klusterai and batch=True, and the half-of-table figure it returned is the correct answer, not a lost digit. Batch pricing for that provider is a fifty percent reduction against the listed rate, and rather than carry a second set of numbers that would drift out of date the moment the provider republishes, the helper takes the listed rate and halves it at lookup time. So the round factor you noticed is the whole of the batch behaviour, and you can put the halved number on the sheet with a clear conscience. If it had come back at anything other than exactly half the table rate, that would have been the thing worth mailing about.  On your second point, your assumption was the right one. Anything we read out of those provider tables comes back exactly as listed — no rounding, no markup, no unit conversion, nothing applied on the way out. The table is the source of truth for the non-batch path, and if the helper and the table ever disagree there, we have a bug rather than a policy. I say this with some emphasis because we need to be intentional here about not accumulating quiet adjustments in the lookup layer; the moment a number changes shape between the table and the caller, nobody can reconcile an invoice again. Batch halving is the one transformation, and it only applies when you ask for it.  So, concretely: halved for the klusterai batch line, as listed everywhere else.  Emil
-11:47  konrad    Emil,  That settles it, and it settles it in the direction that costs me the least rework, since the sheet already carries the halved figure and I was preparing to raise it back up.  What threw me was that I had the two behaviours the wrong way round in my head. I had it that the tables held the batch rates already and that the flag was some kind of no-op left over from an earlier design, which would have made the halving a genuine fault. Knowing that the halving is the flag doing its one job, and that the plain lookup is untouched, I can read any of these numbers now without going back to the table to check it by hand. I have corrected the note in my own file that said otherwise, in case anyone else was reading over my shoulder.  Konrad
+From: konrad@world.local
+Sent: 09:16
+
+Emil,
+
+I am putting together the cost estimate for the batch runs we discussed last week, and before I circulate anything I want to be sure I am reading the pricing helper correctly, because one of the numbers does not match what I expected.
+
+The case is klusterai in batch mode. I looked up the per-token figure in the provider table by hand, then asked the helper for the same thing, and the helper came back with exactly half of what the table lists. Half is a suspiciously round factor, so it is presumably deliberate, but I cannot tell from the outside whether it is a batch discount the helper is applying on purpose or whether something is being divided that should not be. The difference matters because the estimate goes out to people who will not check it.
+
+There is a second thing I would like confirmed while you are in there. For the ordinary case, where I am not asking for batch at all and just want the price of a model that sits in one of the provider tables, should I take what comes back as the table value unchanged, or is there any adjustment applied on that path as well? Off the top of my head I assumed unchanged, but I have assumed wrong once already in this mail.
+
+Thanks,
+Konrad
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 11:02
+
+Konrad,
+
+On your cost question — both of those are working as intended, and I can tell you exactly where each number comes from, because I went through the resolution path this morning to be sure I was not repeating something I half remembered.
+
+The klusterai case first. What you called is resolve_model_price with provider=klusterai and batch=True, and the half-of-table figure it returned is the correct answer, not a lost digit. Batch pricing for that provider is a fifty percent reduction against the listed rate, and rather than carry a second set of numbers that would drift out of date the moment the provider republishes, the helper takes the listed rate and halves it at lookup time. So the round factor you noticed is the whole of the batch behaviour, and you can put the halved number on the sheet with a clear conscience. If it had come back at anything other than exactly half the table rate, that would have been the thing worth mailing about.
+
+On your second point, your assumption was the right one. Anything we read out of those provider tables comes back exactly as listed — no rounding, no markup, no unit conversion, nothing applied on the way out. The table is the source of truth for the non-batch path, and if the helper and the table ever disagree there, we have a bug rather than a policy. I say this with some emphasis because we need to be intentional here about not accumulating quiet adjustments in the lookup layer; the moment a number changes shape between the table and the caller, nobody can reconcile an invoice again. Batch halving is the one transformation, and it only applies when you ask for it.
+
+So, concretely: halved for the klusterai batch line, as listed everywhere else.
+
+Emil
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 11:47
+
+That settles it, and it settles it in the direction that costs me the least rework, since the sheet already carries the halved figure and I was preparing to raise it back up.
+
+What threw me was that I had the two behaviours the wrong way round in my head. I had it that the tables held the batch rates already and that the flag was some kind of no-op left over from an earlier design, which would have made the halving a genuine fault. Knowing that the halving is the flag doing its one job, and that the plain lookup is untouched, I can read any of these numbers now without going back to the table to check it by hand. I have corrected the note in my own file that said otherwise, in case anyone else was reading over my shoulder.
+
+Konrad
 ```
 
 #### `g6.r2.g6r2-s1-l4`
@@ -668,8 +786,7 @@ As it appears, spread across the exchange:
 #### `g6.r1.l13`
 
 - **mail** · “Re: Weekly update: week of Apr 14” · **dario** · 2025-04-21 13:08
-- to emil@world.local, nikolai@world.local, gideon@world.local,
- dermot@world.local, tomas@world.local, tobias@world.local
+- to emil@world.local, nikolai@world.local, gideon@world.local, dermot@world.local, tomas@world.local, tobias@world.local
 - carries `g6.r1.observability`
 - must be typed literally: `WS-054`, `input_cost_per_million`, `output_cost_per_million`, `price_unavailable_reason`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -678,13 +795,62 @@ What the remark has to leave a reader with:
 
 > on WS-054 — for the trackers input_cost_per_million and output_cost_per_million just stay empty and the reason sits on price_unavailable_reason, so we can show why rather than a number.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:08  dario     Subject: what the trackers should report when we have no price for a model (WS-054)  Nikolai, Emil, Dermot,  I have been working through the cost accounting piece on WS-054 and I have hit the question we all knew was coming, which is what a tracker should report for a model whose price we simply do not have. This happens more than I expected: a model that is new enough that the registry has not caught up, a provider that never published per-token numbers in the first place, and the various self-hosted cases where there is no meaningful list price at all.  The tempting option is to put a zero in and move on, and I think that is actually the worst thing we could do, because a zero is a number and a number gets summed, charted and quoted back at us in a monthly total that is quietly wrong. My proposal is the opposite: for those models input_cost_per_million and output_cost_per_million just stay empty on the tracker, and we do not substitute anything for them. Nothing gets invented and nothing gets added up that should not be.  Empty on its own is not very helpful to whoever is reading the output, though, so the second half of the proposal is that the tracker carries price_unavailable_reason alongside those two fields, and that is where the explanation goes - the model is not in the registry, the provider publishes no pricing, self-hosted, whichever applies. The point is that we can show why there is no number rather than showing a number we made up.  Either we do that, or we pick a sentinel value and spend the next year explaining it to people. I would rather have the empty fields and the reason.  Best, Dario
-13:44  nikolai   Empty rather than zero is right, and I would have argued for it if you had not. A zero in a cost column is indistinguishable from a genuinely free call, and we have a couple of those.  One blunt question: does anything downstream sum these fields today without checking for empty first? If the aggregation path assumes a number is always there, then leaving input_cost_per_million and output_cost_per_million empty moves the problem rather than solving it, and I would want that checked before we call it settled. Off the top of my head the summary path is the only place that touches both fields.  On price_unavailable_reason, that seems solid enough to me. One field, one string, and the reader gets told what happened.
-14:26  emil      Dario, Nikolai,  On the reason field, let me make sure I have understood the shape of it correctly. You are saying that when a price is unknown, price_unavailable_reason is populated on the tracker and the two cost fields are left empty, so the presence of a reason is effectively the signal that the numbers are absent by design rather than by accident. If that is right then I am in agreement, because that is a much better story to tell a user than a silent zero.  We need to be intentional about what actually goes into that string, though. If it ends up as three different phrasings of the same situation depending on which code path filled it in, the display becomes noise. I would keep it to a small set of reasons we can write down now and extend deliberately later, and I would write them in language a user can read, not an internal identifier.  On Nikolai's question about the summing path, I believe the summary only reaches for those fields when it has them, but I would not want to state that as fact without looking.  Emil
-15:07  dario     Emil, that is exactly the shape. The reason being present is what tells you the empty cost fields are deliberate, and I agree entirely that the wording should come from a short fixed set rather than being composed at whatever call site happened to notice the gap. I will keep it to the handful we know about and we can add to it when a real case turns up that none of them cover.  Nikolai, on the summing question, I went and read it after your mail. The aggregation skips a tracker that has no cost numbers on it rather than treating them as zero, so the totals come out as a sum over the models we actually priced, which is the honest answer. To be honest that is the part I was least sure of before I checked.  So the settled position on WS-054 is this: two empty cost fields, one populated price_unavailable_reason, and output that says plainly what it does not know instead of quoting a figure nobody can defend. In any case it is the best we can do until the registry catches up with the providers, and I would rather be visibly missing a number than confidently wrong about one.  Best, Dario
+From: dario@world.local
+Sent: 13:08
+
+Nikolai, Emil, Dermot,
+
+I have been working through the cost accounting piece on WS-054 and I have hit the question we all knew was coming, which is what a tracker should report for a model whose price we simply do not have. This happens more than I expected: a model that is new enough that the registry has not caught up, a provider that never published per-token numbers in the first place, and the various self-hosted cases where there is no meaningful list price at all.
+
+The tempting option is to put a zero in and move on, and I think that is actually the worst thing we could do, because a zero is a number and a number gets summed, charted and quoted back at us in a monthly total that is quietly wrong. My proposal is the opposite: for those models input_cost_per_million and output_cost_per_million just stay empty on the tracker, and we do not substitute anything for them. Nothing gets invented and nothing gets added up that should not be.
+
+Empty on its own is not very helpful to whoever is reading the output, though, so the second half of the proposal is that the tracker carries price_unavailable_reason alongside those two fields, and that is where the explanation goes - the model is not in the registry, the provider publishes no pricing, self-hosted, whichever applies. The point is that we can show why there is no number rather than showing a number we made up.
+
+Either we do that, or we pick a sentinel value and spend the next year explaining it to people. I would rather have the empty fields and the reason.
+
+Best,
+Dario
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 13:44
+
+Right, I agree with the direction. I have written that if-chain twice now and both times it felt like the wrong place to be typing provider names.
+
+One thing I want pinned down before anyone touches it. Does the flag sit on the base class with a default, so subclasses only speak up when they differ, or does every provider have to declare it explicitly? Off the top of my head the default is the nicer ergonomics, but it reintroduces the same silent failure you just described, only one level up — a new provider that forgets to set it inherits the default and nobody notices.
+
+The rest of it is solid enough as you have it. I would keep batch_multiplier owning the arithmetic and nothing else.
+
+--------------------------------------------------------------
+
+From: emil@world.local
+Sent: 14:26
+
+On the reason field, let me make sure I have understood the shape of it correctly. You are saying that when a price is unknown, price_unavailable_reason is populated on the tracker and the two cost fields are left empty, so the presence of a reason is effectively the signal that the numbers are absent by design rather than by accident. If that is right then I am in agreement, because that is a much better story to tell a user than a silent zero.
+
+We need to be intentional about what actually goes into that string, though. If it ends up as three different phrasings of the same situation depending on which code path filled it in, the display becomes noise. I would keep it to a small set of reasons we can write down now and extend deliberately later, and I would write them in language a user can read, not an internal identifier.
+
+On Nikolai's question about the summing path, I believe the summary only reaches for those fields when it has them, but I would not want to state that as fact without looking.
+
+Emil
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 15:07
+
+Emil, that is exactly the shape. The reason being present is what tells you the empty cost fields are deliberate, and I agree entirely that the wording should come from a short fixed set rather than being composed at whatever call site happened to notice the gap. I will keep it to the handful we know about and we can add to it when a real case turns up that none of them cover.
+
+Nikolai, on the summing question, I went and read it after your mail. The aggregation skips a tracker that has no cost numbers on it rather than treating them as zero, so the totals come out as a sum over the models we actually priced, which is the honest answer. To be honest that is the part I was least sure of before I checked.
+
+So the settled position on WS-054 is this: two empty cost fields, one populated price_unavailable_reason, and output that says plainly what it does not know instead of quoting a figure nobody can defend. In any case it is the best we can do until the registry catches up with the providers, and I would rather be visibly missing a number than confidently wrong about one.
+
+Best,
+Dario
 ```
 
 #### `g6.r2.g6r2-s2-l3`
@@ -788,8 +954,7 @@ As it appears, spread across the exchange:
 #### `g6.r1.l3`
 
 - **mail** · “Re: Week of May 26 recap: v0.1.25 shipped” · **konrad** · 2025-06-02 11:14
-- to dario@world.local, emil@world.local, nikolai@world.local,
- nolan@world.local, gideon@world.local
+- to dario@world.local, emil@world.local, nikolai@world.local, nolan@world.local, gideon@world.local
 - carries `g6.r1.rule`
 - must be typed literally: `PR 681`, `UnpricedModelError.REASONS`, `ValueError`, `reason='no_pricing_data'`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -798,12 +963,49 @@ What the remark has to leave a reader with:
 
 > One note on PR 681: I passed reason='no_pricing_data' and the constructor threw ValueError straight back at me - it checks the arg against UnpricedModelError.REASONS, which is those three strings and nothing else.
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-11:14  konrad    Subject: the reason argument on PR 681  Dermot,  I spent part of this morning wiring the unpriced-model path into my branch, and I ran into something on PR 681 that I would like to have written down somewhere, because otherwise it stays inside the review and the next person loses the same ten minutes I did.  At the point where we raise for a model that has no entry in the price table, I passed reason='no_pricing_data' to the constructor. That looked to me like the obvious string for the situation, and I did not think about it any further. The constructor threw ValueError straight back at me. It does not simply record whatever string you hand it. It checks the argument against UnpricedModelError.REASONS first, and that constant is a closed list of three strings and nothing else. My string was not one of the three, so the error I was trying to raise never got as far as being raised, and what the caller saw was a ValueError from inside the error class itself, which is confusing the first time.  Look, I am not arguing against the check. Presumably the intention is that the reason is a fixed vocabulary and not free text, and if that is the intention then rejecting anything outside the three is exactly right. What I want to know is whether the three are meant to stay as they are, or whether adding a fourth is a normal thing to do when a new case turns up. I could not quote all three back to you off the top of my head, but they are enumerated in the class and it is a short list.  Anyway, if the answer is that the list is closed on purpose, I will use one of the existing three and stop trying to invent my own.  Konrad
-11:52  dermot    Konrad,  So if I have you right, the complaint is not that the constructor rejected your string, it is that it rejected it by raising a different exception type than the one you were in the middle of constructing, and you had to go and read the class to find out why. That is fair, and it is the part of the design that reads badly from the outside.  The validation is deliberate. The reason field ends up in the summary output and in the aggregation on the viewer side, and both of those group by the exact string, so a typo or a one-off variant would quietly produce a fourth bucket that nobody had accounted for. Checking the argument against UnpricedModelError.REASONS in the constructor is the cheap way to make that impossible. That said, the list is not sacred. Three was what the cases were when it was written, and if a genuinely new case turns up, adding a fourth string is a one-line change plus whatever the viewer needs to display it.  If I had to guess, your case is not a new one. A model with no entry in the price table is the situation the existing reasons were written for, so I would look at those three before adding anything.  Dermot
-12:20  konrad    Right, that matches what I found once I read the class properly. One of the three covers my case and I have switched to it, so nothing needs to change in the code.  On the confusing part, I have put a short note on PR 681 saying that the constructor validates the reason against UnpricedModelError.REASONS and raises ValueError if it does not match. That is the sentence I would have wanted to read before I passed reason='no_pricing_data' and spent a while wondering why my exception had turned into a different one.  Konrad
+From: konrad@world.local
+Sent: 11:14
+
+Dermot,
+
+I spent part of this morning wiring the unpriced-model path into my branch, and I ran into something on PR 681 that I would like to have written down somewhere, because otherwise it stays inside the review and the next person loses the same ten minutes I did.
+
+At the point where we raise for a model that has no entry in the price table, I passed reason='no_pricing_data' to the constructor. That looked to me like the obvious string for the situation, and I did not think about it any further. The constructor threw ValueError straight back at me. It does not simply record whatever string you hand it. It checks the argument against UnpricedModelError.REASONS first, and that constant is a closed list of three strings and nothing else. My string was not one of the three, so the error I was trying to raise never got as far as being raised, and what the caller saw was a ValueError from inside the error class itself, which is confusing the first time.
+
+Look, I am not arguing against the check. Presumably the intention is that the reason is a fixed vocabulary and not free text, and if that is the intention then rejecting anything outside the three is exactly right. What I want to know is whether the three are meant to stay as they are, or whether adding a fourth is a normal thing to do when a new case turns up. I could not quote all three back to you off the top of my head, but they are enumerated in the class and it is a short list.
+
+Anyway, if the answer is that the list is closed on purpose, I will use one of the existing three and stop trying to invent my own.
+
+Konrad
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 11:52
+
+Konrad,
+
+So if I have you right, the complaint is not that the constructor rejected your string, it is that it rejected it by raising a different exception type than the one you were in the middle of constructing, and you had to go and read the class to find out why. That is fair, and it is the part of the design that reads badly from the outside.
+
+The validation is deliberate. The reason field ends up in the summary output and in the aggregation on the viewer side, and both of those group by the exact string, so a typo or a one-off variant would quietly produce a fourth bucket that nobody had accounted for. Checking the argument against UnpricedModelError.REASONS in the constructor is the cheap way to make that impossible. That said, the list is not sacred. Three was what the cases were when it was written, and if a genuinely new case turns up, adding a fourth string is a one-line change plus whatever the viewer needs to display it.
+
+If I had to guess, your case is not a new one. A model with no entry in the price table is the situation the existing reasons were written for, so I would look at those three before adding anything.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: konrad@world.local
+Sent: 12:20
+
+Right, that matches what I found once I read the class properly. One of the three covers my case and I have switched to it, so nothing needs to change in the code.
+
+On the confusing part, I have put a short note on PR 681 saying that the constructor validates the reason against UnpricedModelError.REASONS and raises ValueError if it does not match. That is the sentence I would have wanted to read before I passed reason='no_pricing_data' and spent a while wondering why my exception had turned into a different one.
+
+Konrad
 ```
 
 #### `g6.r2.rev2` · **reversal**
@@ -851,8 +1053,7 @@ As it appears, spread across the exchange:
 #### `g6.r1.l7`
 
 - **mail** · “Week of Jun 9 rollup: gemini batch runs showing $0.00” · **dermot** · 2025-06-18 13:12
-- to nikolai@world.local, emil@world.local, dario@world.local,
- konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+- to nikolai@world.local, emil@world.local, dario@world.local, konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
 - carries `g6.r1.exclusions_or_crossover`
 - must be typed literally: `litellm.model_cost`, `input_cost_per_token`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -861,19 +1062,59 @@ What the remark has to leave a reader with:
 
 > right that gemini row does exist in litellm.model_cost but input_cost_per_token on it is null and we priced a whole week of runs at zero off the back of it
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:12  dermot    Subject: the gemini line coming back at zero for the week of the 9th  Nikolai,  I spent part of this morning reconciling the spend report for the week of the 9th and the Gemini line comes back at zero on every single run in the window. It is not a rounding artefact and it is not one bad run — it is 0.00 on the input side across the board, on runs that we know moved a serious volume of tokens.  If I had to guess, we simply never had a pricing entry for that model, the lookup found nothing, and the code fell through to a default of zero instead of raising. That said, I have not read the table itself, so I may have the mechanism wrong and I would rather not go to Priya with a theory. You were closer to the pricing path than I was when it landed. Does that match what you would expect, or is it something else entirely?  Dermot
-14:05  nikolai   Dermot,  It is something else, and the something else is worse than a missing entry.  Right, that Gemini row does exist in litellm.model_cost. I pulled it up before writing this because I expected to find what you described and did not. The row is present, it has the model name we look up under, it has an output price on it. What it does not have is a price on the input side: input_cost_per_token on that row is null. So the lookup succeeds. It hands back a row, we read the field, we get a null, and the arithmetic downstream turns that into a zero without raising anything or logging anything.  The consequence is that we priced a whole week of runs at zero off the back of it. Not a fraction of the cost, not a few outlier runs — the entire input side of every run in that window that touched the model. A genuinely absent entry would have been the easy version of this, because we would have got a lookup failure and someone would have seen it the same day.  I would say the reporting side is solid enough otherwise; this is one null in one row propagating quietly. What we do about the general case of a partially populated row is a separate question and I have to think that one through properly.  Nikolai
-15:20  dario     Nikolai, Dermot,  That tracks, and it explains something I had put down to my own error. I re-ran the week's totals by hand after reading this, pulling the input price from the provider's own page rather than from our table, and the shape of it is exactly what Nikolai describes — the output side of the Gemini runs is priced correctly, the input side is a clean zero, and the gap between the two numbers is the entire input cost of the week.  Honestly, the part that bothers me is not the null itself but that a null and a real zero are indistinguishable by the time the number reaches the report. A row that is half populated reads to us as a row that is fully populated and happens to be free, and there is no free model in that table.  In any case, the corrected figure for the week comes out at a little over four times what the report showed. That is the number going to finance on Friday, in place of the one they already have.  Dario
+From: dermot@world.local
+Sent: 13:12
+
+Nikolai,
+
+I spent a good part of a late night going through the cost path in 565, and there is one thing in there I would rather raise now than after it lands, because it will only get more expensive to unpick.
+
+The way we currently decide who gets the batch discount is an if-chain on provider names inside batch_multiplier. The function walks through a sequence of string comparisons against the provider name, returns a discounted multiplier for the ones it recognises, and falls through to full price for everything else. Functionally it produces the right numbers today, so this is not a bug report. The problem is where the knowledge lives. Whether a given provider offers batch pricing at all is a fact about that provider, and at the moment that fact is written down nowhere near the provider — it is buried in the middle of a cost function, expressed as a name match. Adding a provider now means remembering to go and edit an unrelated function, and if you forget, the silent result is that the provider is quietly billed at full price rather than erroring.
+
+What I would like instead is for that eligibility to be a flag on the class, and for batch_multiplier to read the flag rather than the name. The multiplier calculation stays where it is; it just stops making the eligibility decision itself.
+
+If I had to guess, this is a small change in practice, but I did not want to make it inside the review without agreement that it is the right direction.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 14:05
+
+Dermot,
+
+It is something else, and the something else is worse than a missing entry.
+
+Right, that Gemini row does exist in litellm.model_cost. I pulled it up before writing this because I expected to find what you described and did not. The row is present, it has the model name we look up under, it has an output price on it. What it does not have is a price on the input side: input_cost_per_token on that row is null. So the lookup succeeds. It hands back a row, we read the field, we get a null, and the arithmetic downstream turns that into a zero without raising anything or logging anything.
+
+The consequence is that we priced a whole week of runs at zero off the back of it. Not a fraction of the cost, not a few outlier runs — the entire input side of every run in that window that touched the model. A genuinely absent entry would have been the easy version of this, because we would have got a lookup failure and someone would have seen it the same day.
+
+I would say the reporting side is solid enough otherwise; this is one null in one row propagating quietly. What we do about the general case of a partially populated row is a separate question and I have to think that one through properly.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 15:20
+
+That tracks, and it explains something I had put down to my own error. I re-ran the week's totals by hand after reading this, pulling the input price from the provider's own page rather than from our table, and the shape of it is exactly what Nikolai describes — the output side of the Gemini runs is priced correctly, the input side is a clean zero, and the gap between the two numbers is the entire input cost of the week.
+
+Honestly, the part that bothers me is not the null itself but that a null and a real zero are indistinguishable by the time the number reaches the report. A row that is half populated reads to us as a row that is fully populated and happens to be free, and there is no free model in that table.
+
+In any case, the corrected figure for the week comes out at a little over four times what the report showed. That is the number going to finance on Friday, in place of the one they already have.
+
+Dario
 ```
 
 #### `g6.r2.g6r2-s2-l2`
 
 - **mail** · “batch cost estimates: the 50% discount is being applied to every processor” · **nikolai** · 2025-06-18 13:42
-- to dermot@world.local, emil@world.local, dario@world.local,
- konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
+- to dermot@world.local, emil@world.local, dario@world.local, konrad@world.local, gideon@world.local, priya@world.local, ilse@world.local
 - carries `g6.r2.scope`
 - must be typed literally: `inference.net`
 - find it: Roundcube, or IMAP on :143 as worldadmin@world.local
@@ -882,13 +1123,54 @@ What the remark has to leave a reader with:
 
 > same story with inference.net the number on their pricing page is already what a batch job costs so theres nothing left to take off it
 
-As it appears, spread across the exchange:
+As it appears, spread across the thread:
 
 ```
-13:42  nikolai   Subject: the inference.net figure is already the batch price  Dermot, Dario,  I have been going down the provider list finishing off the batch side of the pricing table, and inference.net turns out to be the same story we hit earlier in the week. Their pricing page publishes a single number per model, dollars per million tokens in and out, and that number is what a batch job is actually billed at. There is no second column for batch, no footnote offering a percentage off, and no separate batch price list anywhere else on the site that I could find.  The reason I am writing rather than just filling the cell is that our table is built around the assumption that a provider gives you a standard rate and you take something off it for batch. For inference.net there is nothing left to take off. The published figure is the floor. If we apply the usual reduction on top of it we will be quoting a price below anything the provider will ever charge, and every estimate that comes out of it will read low.  So my position is that inference.net goes in at the page price for both the standard and the batch entry, with a note saying the published number is already the batch price. I would say that is solid enough unless one of you knows of a discount schedule I have not seen.  Nikolai
-14:20  dermot    Nikolai,  If I had to guess, what you are describing is that inference.net does not price batch as a discount off an interactive rate at all, and that the single figure on the page is the whole of it — so the reduction we apply elsewhere would be a second discount on a price that has already absorbed one. That is my reading of your mail, and if it is right then I agree with where you land.  The failure mode is worth stating plainly, because it is the quiet kind. Nothing errors. The table fills in, the estimate comes out, and it is simply too low by whatever fraction we shaved off, which nobody notices until an invoice contradicts it. That said, I am not entirely sure the page has always read that way; my memory is of an older version that was less explicit. It does not change the conclusion, since we price against what is published now, but it is the sort of thing that makes me want the note you mention to be in the table itself and not in a commit message.  Dermot
-14:41  dario     To be honest, the thing I keep coming back to is that we have now seen this twice, which makes it a shape rather than an exception. A provider that only ever publishes one number is not telling us it has no batch tier — it is telling us the batch tier is the number. Treating a missing batch column as an invitation to compute one is where we get into trouble.  On Dermot's point about the note living in the table: I think that is the right call, and I would go slightly further and have the note say why, not just what. "Published price is already the batch price" is the fact, but the next person to read the row will want to know whether we checked or assumed. In any case, for inference.net specifically I have no objection at all to the page figure going in unchanged.
-15:16  nikolai   Dermot, Dario,  Yep, that is the reading. One published number, and it is the batch number, so the row goes in at the page price with no reduction applied on either side.  I have written the note into the table rather than the commit, and worded it the way Dario asked for — that the published figure is the batch price, and that I confirmed it against the pricing page today rather than inferring it from the absence of a batch column. Off the top of my head that is the only provider left in the list where the two entries are deliberately identical, so the note also stops it from looking like a copy-paste mistake to whoever reads it next.  Nikolai
+From: nikolai@world.local
+Sent: 13:42
+
+Dermot, Dario,
+
+I have been going down the provider list finishing off the batch side of the pricing table, and inference.net turns out to be the same story we hit earlier in the week. Their pricing page publishes a single number per model, dollars per million tokens in and out, and that number is what a batch job is actually billed at. There is no second column for batch, no footnote offering a percentage off, and no separate batch price list anywhere else on the site that I could find.
+
+The reason I am writing rather than just filling the cell is that our table is built around the assumption that a provider gives you a standard rate and you take something off it for batch. For inference.net there is nothing left to take off. The published figure is the floor. If we apply the usual reduction on top of it we will be quoting a price below anything the provider will ever charge, and every estimate that comes out of it will read low.
+
+So my position is that inference.net goes in at the page price for both the standard and the batch entry, with a note saying the published number is already the batch price. I would say that is solid enough unless one of you knows of a discount schedule I have not seen.
+
+Nikolai
+
+--------------------------------------------------------------
+
+From: dermot@world.local
+Sent: 14:20
+
+Nikolai,
+
+If I had to guess, what you are describing is that inference.net does not price batch as a discount off an interactive rate at all, and that the single figure on the page is the whole of it — so the reduction we apply elsewhere would be a second discount on a price that has already absorbed one. That is my reading of your mail, and if it is right then I agree with where you land.
+
+The failure mode is worth stating plainly, because it is the quiet kind. Nothing errors. The table fills in, the estimate comes out, and it is simply too low by whatever fraction we shaved off, which nobody notices until an invoice contradicts it. That said, I am not entirely sure the page has always read that way; my memory is of an older version that was less explicit. It does not change the conclusion, since we price against what is published now, but it is the sort of thing that makes me want the note you mention to be in the table itself and not in a commit message.
+
+Dermot
+
+--------------------------------------------------------------
+
+From: dario@world.local
+Sent: 14:41
+
+To be honest, the thing I keep coming back to is that we have now seen this twice, which makes it a shape rather than an exception. A provider that only ever publishes one number is not telling us it has no batch tier — it is telling us the batch tier is the number. Treating a missing batch column as an invitation to compute one is where we get into trouble.
+
+On Dermot's point about the note living in the table: I think that is the right call, and I would go slightly further and have the note say why, not just what. "Published price is already the batch price" is the fact, but the next person to read the row will want to know whether we checked or assumed. In any case, for inference.net specifically I have no objection at all to the page figure going in unchanged.
+
+--------------------------------------------------------------
+
+From: nikolai@world.local
+Sent: 15:16
+
+Yep, that is the reading. One published number, and it is the batch number, so the row goes in at the page price with no reduction applied on either side.
+
+I have written the note into the table rather than the commit, and worded it the way Dario asked for — that the published figure is the batch price, and that I confirmed it against the pricing page today rather than inferring it from the absence of a batch column. Off the top of my head that is the only provider left in the list where the two entries are deliberately identical, so the note also stops it from looking like a copy-paste mistake to whoever reads it next.
+
+Nikolai
 ```
 
 #### `g6.r2.g6r2-s4-l2`

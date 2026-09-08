@@ -10,35 +10,33 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the reason argument on PR 681
-
 Dermot,
 
-I spent part of this morning wiring the unpriced-model path into my branch, a=
-nd I ran into something on PR 681 that I would like to have written down some=
-where, because otherwise it stays inside the review and the next person loses=
- the same ten minutes I did.
+I spent part of this morning wiring the unpriced-model path into my branch,=
+ and I ran into something on PR 681 that I would like to have written down =
+somewhere, because otherwise it stays inside the review and the next person=
+ loses the same ten minutes I did.
 
-At the point where we raise for a model that has no entry in the price table,=
- I passed reason=3D'no_pricing_data' to the constructor. That looked to me li=
-ke the obvious string for the situation, and I did not think about it any fur=
-ther. The constructor threw ValueError straight back at me. It does not simpl=
-y record whatever string you hand it. It checks the argument against Unpriced=
-ModelError.REASONS first, and that constant is a closed list of three strings=
- and nothing else. My string was not one of the three, so the error I was try=
-ing to raise never got as far as being raised, and what the caller saw was a =
-ValueError from inside the error class itself, which is confusing the first t=
-ime.
+At the point where we raise for a model that has no entry in the price tabl=
+e, I passed reason=3D'no_pricing_data' to the constructor. That looked to m=
+e like the obvious string for the situation, and I did not think about it a=
+ny further. The constructor threw ValueError straight back at me. It does n=
+ot simply record whatever string you hand it. It checks the argument agains=
+t UnpricedModelError.REASONS first, and that constant is a closed list of t=
+hree strings and nothing else. My string was not one of the three, so the e=
+rror I was trying to raise never got as far as being raised, and what the c=
+aller saw was a ValueError from inside the error class itself, which is con=
+fusing the first time.
 
-Look, I am not arguing against the check. Presumably the intention is that th=
-e reason is a fixed vocabulary and not free text, and if that is the intentio=
-n then rejecting anything outside the three is exactly right. What I want to =
-know is whether the three are meant to stay as they are, or whether adding a =
-fourth is a normal thing to do when a new case turns up. I could not quote al=
-l three back to you off the top of my head, but they are enumerated in the cl=
-ass and it is a short list.
+Look, I am not arguing against the check. Presumably the intention is that =
+the reason is a fixed vocabulary and not free text, and if that is the inte=
+ntion then rejecting anything outside the three is exactly right. What I wa=
+nt to know is whether the three are meant to stay as they are, or whether a=
+dding a fourth is a normal thing to do when a new case turns up. I could no=
+t quote all three back to you off the top of my head, but they are enumerat=
+ed in the class and it is a short list.
 
-Anyway, if the answer is that the list is closed on purpose, I will use one o=
-f the existing three and stop trying to invent my own.
+Anyway, if the answer is that the list is closed on purpose, I will use one=
+ of the existing three and stop trying to invent my own.
 
 Konrad

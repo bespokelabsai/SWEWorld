@@ -9,10 +9,12 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-right that matches what i remember of that code
+Right, that matches what i remember of that code.
 
-the backoff sleep is also unbounded on the same path fwiw so overnight it was=
- probably mostly sleeping which is why nobody noticed the machine was busy. s=
-eparate thing, not blocking
+The backoff sleep is also unbounded on the same path fwiw, so overnight it =
+was probably mostly sleeping, which is why nobody noticed the machine was b=
+usy. Separate thing, not blocking.
 
-gideon send me the log too if the user still has it
+Gideon send me the log too if the user still has it.
+
+Nikolai

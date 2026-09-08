@@ -9,12 +9,18 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-i think that's the request processor retry path, so probably emil or nikolai.=
- but the part i want to understand before we touch anything: is this a classi=
-fication problem where we're mislabelling a revoked key as a rate limit, or i=
-s it a counting problem where the retry loop is fine with 429s in principle a=
-nd just never stops?
+Hey Gideon,
 
-because those are actually two different fixes and to be honest i'd rather no=
-t do both at once. gideon can you get the actual response bodies from the tic=
-ket, not just the status codes
+I think that's the request processor retry path, so probably emil or nikola=
+i.
+
+But the part I want to understand before we touch anything: is this a class=
+ification problem where we're mislabelling a revoked key as a rate limit, o=
+r is it a counting problem where the retry loop is fine with 429s in princi=
+ple and just never stops? Because those are actually two different fixes an=
+d to be honest i'd rather not do both at once.
+
+Can you get the actual response bodies from the ticket, not just the status=
+ codes?
+
+Dario

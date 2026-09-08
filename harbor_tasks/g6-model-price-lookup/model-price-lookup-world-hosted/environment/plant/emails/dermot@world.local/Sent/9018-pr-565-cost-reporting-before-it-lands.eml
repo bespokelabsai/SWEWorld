@@ -8,33 +8,32 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the provider if-chain in batch_multiplier
-
 Nikolai,
 
-I spent a good part of a late night going through the cost path in 565, and t=
-here is one thing in there I would rather raise now than after it lands, beca=
-use it will only get more expensive to unpick.
+I spent a good part of a late night going through the cost path in 565, and=
+ there is one thing in there I would rather raise now than after it lands, =
+because it will only get more expensive to unpick.
 
-The way we currently decide who gets the batch discount is an if-chain on pro=
-vider names inside batch_multiplier. The function walks through a sequence of=
- string comparisons against the provider name, returns a discounted multiplie=
-r for the ones it recognises, and falls through to full price for everything =
-else. Functionally it produces the right numbers today, so this is not a bug =
-report. The problem is where the knowledge lives. Whether a given provider of=
-fers batch pricing at all is a fact about that provider, and at the moment th=
-at fact is written down nowhere near the provider =E2=80=94 it is buried in t=
-he middle of a cost function, expressed as a name match. Adding a provider no=
-w means remembering to go and edit an unrelated function, and if you forget, =
-the silent result is that the provider is quietly billed at full price rather=
- than erroring.
+The way we currently decide who gets the batch discount is an if-chain on p=
+rovider names inside batch_multiplier. The function walks through a sequenc=
+e of string comparisons against the provider name, returns a discounted mul=
+tiplier for the ones it recognises, and falls through to full price for eve=
+rything else. Functionally it produces the right numbers today, so this is =
+not a bug report. The problem is where the knowledge lives. Whether a given=
+ provider offers batch pricing at all is a fact about that provider, and at=
+ the moment that fact is written down nowhere near the provider =E2=80=94 i=
+t is buried in the middle of a cost function, expressed as a name match. Ad=
+ding a provider now means remembering to go and edit an unrelated function,=
+ and if you forget, the silent result is that the provider is quietly bille=
+d at full price rather than erroring.
 
-What I would like instead is for that eligibility to be a flag on the class, =
-and for batch_multiplier to read the flag rather than the name. The multiplie=
-r calculation stays where it is; it just stops making the eligibility decisio=
-n itself.
+What I would like instead is for that eligibility to be a flag on the class=
+, and for batch_multiplier to read the flag rather than the name. The multi=
+plier calculation stays where it is; it just stops making the eligibility d=
+ecision itself.
 
-If I had to guess, this is a small change in practice, but I did not want to =
-make it inside the review without agreement that it is the right direction.
+If I had to guess, this is a small change in practice, but I did not want t=
+o make it inside the review without agreement that it is the right directio=
+n.
 
 Dermot

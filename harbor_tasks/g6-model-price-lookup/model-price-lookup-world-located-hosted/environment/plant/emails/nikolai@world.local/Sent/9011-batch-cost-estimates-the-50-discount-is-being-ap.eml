@@ -9,28 +9,26 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the inference.net figure is already the batch price
-
 Dermot, Dario,
 
-I have been going down the provider list finishing off the batch side of the =
-pricing table, and inference.net turns out to be the same story we hit earlie=
-r in the week. Their pricing page publishes a single number per model, dollar=
-s per million tokens in and out, and that number is what a batch job is actua=
-lly billed at. There is no second column for batch, no footnote offering a pe=
-rcentage off, and no separate batch price list anywhere else on the site that=
- I could find.
+I have been going down the provider list finishing off the batch side of th=
+e pricing table, and inference.net turns out to be the same story we hit ea=
+rlier in the week. Their pricing page publishes a single number per model, =
+dollars per million tokens in and out, and that number is what a batch job =
+is actually billed at. There is no second column for batch, no footnote off=
+ering a percentage off, and no separate batch price list anywhere else on t=
+he site that I could find.
 
-The reason I am writing rather than just filling the cell is that our table i=
-s built around the assumption that a provider gives you a standard rate and y=
-ou take something off it for batch. For inference.net there is nothing left t=
-o take off. The published figure is the floor. If we apply the usual reductio=
-n on top of it we will be quoting a price below anything the provider will ev=
-er charge, and every estimate that comes out of it will read low.
+The reason I am writing rather than just filling the cell is that our table=
+ is built around the assumption that a provider gives you a standard rate a=
+nd you take something off it for batch. For inference.net there is nothing =
+left to take off. The published figure is the floor. If we apply the usual =
+reduction on top of it we will be quoting a price below anything the provid=
+er will ever charge, and every estimate that comes out of it will read low.
 
-So my position is that inference.net goes in at the page price for both the s=
-tandard and the batch entry, with a note saying the published number is alrea=
-dy the batch price. I would say that is solid enough unless one of you knows =
-of a discount schedule I have not seen.
+So my position is that inference.net goes in at the page price for both the=
+ standard and the batch entry, with a note saying the published number is a=
+lready the batch price. I would say that is solid enough unless one of you =
+knows of a discount schedule I have not seen.
 
 Nikolai

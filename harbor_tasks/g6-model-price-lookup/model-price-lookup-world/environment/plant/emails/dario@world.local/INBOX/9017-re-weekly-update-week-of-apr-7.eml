@@ -10,19 +10,17 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Emil,
+That settles it, and it settles it in the direction that costs me the least=
+ rework, since the sheet already carries the halved figure and I was prepar=
+ing to raise it back up.
 
-That settles it, and it settles it in the direction that costs me the least r=
-ework, since the sheet already carries the halved figure and I was preparing =
-to raise it back up.
-
-What threw me was that I had the two behaviours the wrong way round in my hea=
-d. I had it that the tables held the batch rates already and that the flag wa=
-s some kind of no-op left over from an earlier design, which would have made =
-the halving a genuine fault. Knowing that the halving is the flag doing its o=
-ne job, and that the plain lookup is untouched, I can read any of these numbe=
-rs now without going back to the table to check it by hand. I have corrected =
-the note in my own file that said otherwise, in case anyone else was reading =
-over my shoulder.
+What threw me was that I had the two behaviours the wrong way round in my h=
+ead. I had it that the tables held the batch rates already and that the fla=
+g was some kind of no-op left over from an earlier design, which would have=
+ made the halving a genuine fault. Knowing that the halving is the flag doi=
+ng its one job, and that the plain lookup is untouched, I can read any of t=
+hese numbers now without going back to the table to check it by hand. I hav=
+e corrected the note in my own file that said otherwise, in case anyone els=
+e was reading over my shoulder.
 
 Konrad

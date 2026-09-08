@@ -7,14 +7,21 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Hey, forwarding something from support before it gets lost in the queue. A us=
-er had their API key revoked partway through a run (org admin rotated it, the=
-y didn't know) and the run just... kept going. All night. Every single call c=
-ame back 429, nothing ever got through, and the process was still alive when =
-they checked in the morning with a log file that was like 400MB.
+Hi all,
 
-So basically they expected it to die after a while and it never did. They're =
-not angry, they just want to know what the intended behavior is so they can t=
-ell their team. Honestly though I couldn't answer that with confidence, I dun=
-no if we treat auth-shaped 429s differently from real rate limits anywhere. W=
-ho owns this bit?
+Forwarding something from support before it gets lost in the queue.
+
+A user had their API key revoked partway through a run (org admin rotated i=
+t, they didn't know) and the run just... kept going. All night. Every singl=
+e call came back 429, nothing ever got through, and the process was still a=
+live when they checked in the morning with a log file that was like 400MB.
+
+So basically they expected it to die after a while and it never did. They'r=
+e not angry, they just want to know what the intended behavior is so they c=
+an tell their team.
+
+Honestly though I couldn't answer that with confidence =E2=80=94 I dunno if=
+ we treat auth-shaped 429s differently from real rate limits anywhere. Who =
+owns this bit?
+
+Gideon

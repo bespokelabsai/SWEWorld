@@ -9,14 +9,18 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-makes sense, and honestly the jitter part matters more than the doubling does=
-. every worker waking up at the same instant is how we got the sawtooth in th=
-e first place, i think, so if they all come back staggered we probably stop h=
-ammering the boundary.
+Makes sense, and honestly the jitter part matters more than the doubling do=
+es. Every worker waking up at the same instant is how we got the sawtooth i=
+n the first place, i think, so if they all come back staggered we probably =
+stop hammering the boundary.
 
-one thing i want to be clear on before you write it =E2=80=94 is the ceiling =
-per attempt or is it a total elapsed thing across the whole retry chain? thos=
-e behave very differently on a long run and i can see arguments either way. a=
-ctually if it is per attempt we should probably say what happens when we are =
-still getting 429s at the ceiling, do we keep going at the cap or do we give =
-up on that request.
+One thing i want to be clear on before you write it =E2=80=94 is the ceilin=
+g per attempt or is it a total elapsed thing across the whole retry chain? =
+Those behave very differently on a long run and i can see arguments either =
+way.
+
+Actually, if it is per attempt we should probably say what happens when we =
+are still getting 429s at the ceiling. Do we keep going at the cap, or do w=
+e give up on that request?
+
+Dario

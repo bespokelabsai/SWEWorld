@@ -50,7 +50,13 @@ RUN chmod 0755 /usr/local/bin/task-setup.sh
 # README when there is nothing to plant: Harbor drops zero-byte files, and
 # BuildKit then fails a COPY of a missing directory with "failed to calculate
 # checksum of ref", which names no path and reads like a platform fault.
-COPY plant /opt/task-plant
+# 0700, because this directory IS the answer key to a discovery task. At COPY's
+# default 0755 the agent reads the planted corpus straight off local disk --
+# every chat remark, every page comment, every mail -- and skips the whole
+# exercise the task exists to measure. A g2 rollout already printed the listing
+# from `ls /opt/*`, sitting at drwxr-xr-x beside world-state's drwx------. The
+# ingest is unaffected: it runs as root from the healthcheck.
+COPY --chmod=0700 plant /opt/task-plant
 
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/task-entrypoint.sh"]

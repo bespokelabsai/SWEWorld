@@ -10,22 +10,20 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Nikolai, Dermot,
+That tracks, and it explains something I had put down to my own error. I re=
+-ran the week's totals by hand after reading this, pulling the input price =
+from the provider's own page rather than from our table, and the shape of i=
+t is exactly what Nikolai describes =E2=80=94 the output side of the Gemini=
+ runs is priced correctly, the input side is a clean zero, and the gap betw=
+een the two numbers is the entire input cost of the week.
 
-That tracks, and it explains something I had put down to my own error. I re-r=
-an the week's totals by hand after reading this, pulling the input price from=
- the provider's own page rather than from our table, and the shape of it is e=
-xactly what Nikolai describes =E2=80=94 the output side of the Gemini runs is=
- priced correctly, the input side is a clean zero, and the gap between the tw=
-o numbers is the entire input cost of the week.
+Honestly, the part that bothers me is not the null itself but that a null a=
+nd a real zero are indistinguishable by the time the number reaches the rep=
+ort. A row that is half populated reads to us as a row that is fully popula=
+ted and happens to be free, and there is no free model in that table.
 
-Honestly, the part that bothers me is not the null itself but that a null and=
- a real zero are indistinguishable by the time the number reaches the report.=
- A row that is half populated reads to us as a row that is fully populated an=
-d happens to be free, and there is no free model in that table.
-
-In any case, the corrected figure for the week comes out at a little over fou=
-r times what the report showed. That is the number going to finance on Friday=
-, in place of the one they already have.
+In any case, the corrected figure for the week comes out at a little over f=
+our times what the report showed. That is the number going to finance on Fr=
+iday, in place of the one they already have.
 
 Dario

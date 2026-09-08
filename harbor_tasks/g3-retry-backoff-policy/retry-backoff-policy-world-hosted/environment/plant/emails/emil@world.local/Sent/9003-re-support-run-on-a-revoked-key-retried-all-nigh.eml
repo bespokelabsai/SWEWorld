@@ -9,25 +9,30 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-let me think through that, because i believe it's the second one and the clas=
-sification is mostly a red herring.
+Let me think through that, because I believe it's the second one and the cl=
+assification is mostly a red herring.
 
-the provider is returning 429 and honestly from our side that's a legitimate =
-429 =E2=80=94 the key doesn't have quota anymore because the key doesn't exis=
-t. i'm not entirely sure we could tell those apart reliably even if we wanted=
- to, different providers dress up revocation differently and some of them do =
-genuinely just say too many requests.
+The provider is returning 429 and honestly from our side that's a legitimat=
+e 429 =E2=80=94 the key doesn't have quota anymore because the key doesn't =
+exist. I'm not entirely sure we could tell those apart reliably even if we =
+wanted to; different providers dress up revocation differently and some of =
+them do genuinely just say too many requests.
 
-the actual problem is upstream of that. when we see a rate limit we don't cha=
-rge the request an attempt, we back off and re-queue it, on the theory that b=
-eing told to slow down isn't the request's fault. which is right for the norm=
-al case, a burst of 429s during a spike shouldn't eat somebody's retry budget=
-. but there's no ceiling on that generosity, so a request that only ever gets=
- 429s never approaches max_retries and the loop has no exit at all. once a re=
-quest has used up its free passes the next 429 should cost it an attempt like=
- anything else, otherwise a dead key loops forever.
+The actual problem is upstream of that. When we see a rate limit we don't c=
+harge the request an attempt, we back off and re-queue it, on the theory th=
+at being told to slow down isn't the request's fault. Which is right for th=
+e normal case =E2=80=94 a burst of 429s during a spike shouldn't eat somebo=
+dy's retry budget. But there's no ceiling on that generosity, so a request =
+that only ever gets 429s never approaches max_retries and the loop has no e=
+xit at all.
 
-we need to be intentional here about what the number of free passes is, thoug=
-h. too low and we break the legitimate spike case that this behaviour exists =
-for. i'll get the response bodies from gideon anyway since it'd be good to kn=
-ow what we're actually seeing, but i don't think the fix depends on them.
+Once a request has used up its free passes the next 429 should cost it an a=
+ttempt like anything else, otherwise a dead key loops forever.
+
+We need to be intentional here about what the number of free passes is, tho=
+ugh. Too low and we break the legitimate spike case that this behaviour exi=
+sts for. I'll get the response bodies from gideon anyway since it'd be good=
+ to know what we're actually seeing, but I don't think the fix depends on t=
+hem.
+
+Emil

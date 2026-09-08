@@ -10,29 +10,27 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Subject: the klusterai number on the cost sheet looks halved
-
 Emil,
 
-I am putting together the cost estimate for the batch runs we discussed last =
-week, and before I circulate anything I want to be sure I am reading the pric=
-ing helper correctly, because one of the numbers does not match what I expect=
-ed.
+I am putting together the cost estimate for the batch runs we discussed las=
+t week, and before I circulate anything I want to be sure I am reading the =
+pricing helper correctly, because one of the numbers does not match what I =
+expected.
 
-The case is klusterai in batch mode. I looked up the per-token figure in the =
-provider table by hand, then asked the helper for the same thing, and the hel=
-per came back with exactly half of what the table lists. Half is a suspicious=
-ly round factor, so it is presumably deliberate, but I cannot tell from the o=
-utside whether it is a batch discount the helper is applying on purpose or wh=
-ether something is being divided that should not be. The difference matters b=
-ecause the estimate goes out to people who will not check it.
+The case is klusterai in batch mode. I looked up the per-token figure in th=
+e provider table by hand, then asked the helper for the same thing, and the=
+ helper came back with exactly half of what the table lists. Half is a susp=
+iciously round factor, so it is presumably deliberate, but I cannot tell fr=
+om the outside whether it is a batch discount the helper is applying on pur=
+pose or whether something is being divided that should not be. The differen=
+ce matters because the estimate goes out to people who will not check it.
 
-There is a second thing I would like confirmed while you are in there. For th=
-e ordinary case, where I am not asking for batch at all and just want the pri=
-ce of a model that sits in one of the provider tables, should I take what com=
-es back as the table value unchanged, or is there any adjustment applied on t=
-hat path as well? Off the top of my head I assumed unchanged, but I have assu=
-med wrong once already in this mail.
+There is a second thing I would like confirmed while you are in there. For =
+the ordinary case, where I am not asking for batch at all and just want the=
+ price of a model that sits in one of the provider tables, should I take wh=
+at comes back as the table value unchanged, or is there any adjustment appl=
+ied on that path as well? Off the top of my head I assumed unchanged, but I=
+ have assumed wrong once already in this mail.
 
 Thanks,
 Konrad

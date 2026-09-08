@@ -1045,13 +1045,18 @@ def resync(root: pathlib.Path, ledger: dict) -> list[str]:
     paragraphs, a sign-off — with the information and the identifiers deliberately
     unchanged. Nothing here checks that; `must_appear` and the clue judge do.
 
-    Matched on (author, minute), never on text, because text is the thing that
-    moved. A minute that names two messages from the same person is skipped rather
-    than guessed at: the plant would silently acquire somebody else's words.
+    Matched on (author, date, minute), never on text, because text is the thing
+    that moved. The date is load-bearing rather than belt-and-braces: g6 has two
+    different dermot messages at 13:12, months apart, and keying on the minute
+    alone made both ambiguous and skipped both. The date comes off the clue's
+    carrier, which is where the plant records which day a remark was placed on.
+
+    A key that still names two messages is skipped rather than guessed at: the
+    plant would otherwise silently acquire somebody else's words.
 
     Mutates `ledger` and returns the clue ids it changed; the caller writes it.
     """
-    byminute: dict[tuple[str, str], list[str]] = collections.defaultdict(list)
+    byminute: dict[tuple[str, str, str], list[str]] = collections.defaultdict(list)
     for path in sorted(root.glob("emails/**/*.eml")):
         if "/Sent/" not in str(path):
             continue                       # one copy per message, the sender's
@@ -1060,15 +1065,17 @@ def resync(root: pathlib.Path, ledger: dict) -> list[str]:
         body = (raw.decode("utf-8", "replace") if raw else "").strip()
         who = email.utils.parseaddr(note.get("From", ""))[1].split("@")[0]
         when = email.utils.parsedate_to_datetime(note.get("Date", ""))
-        byminute[(who, when.strftime("%H:%M"))].append(body)
+        byminute[(who, when.strftime("%Y-%m-%d"), when.strftime("%H:%M"))].append(body)
 
     changed: list[str] = []
     for clue in clues_of(ledger):
-        if (clue.get("carrier") or {}).get("source") not in ("email", "mail"):
+        carrier = clue.get("carrier") or {}
+        if carrier.get("source") not in ("email", "mail"):
             continue
         touched = False
         for msg in (clue.get("invented") or {}).get("messages") or []:
-            key = (who_said(msg), msg.get("minute") or "")
+            key = (who_said(msg), (carrier.get("date") or "")[:10],
+                   msg.get("minute") or "")
             hits = byminute.get(key) or []
             if len(hits) != 1 or flat(hits[0]) == flat(what_said(msg)):
                 continue
