@@ -7,7 +7,7 @@
 | `blind` | the ticket | **0.00** |
 | `spec` | the ticket + both hidden requirements | **1.00** |
 | `clues` | the ticket + all 50 remarks, quoted | **1.00** |
-| `world` | the ticket, against `sweworld:0.4.7` where the 50 remarks live in chat, the wiki and mail | see `horizon/results.json` |
+| `world` | the ticket, against `sweworld:0.4.8` where the 50 remarks live in chat, the wiki and mail | see `horizon/results.json` |
 | `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left | **1.00** |
 
 ---
@@ -1179,8 +1179,6 @@ Emil
 From: dario@world.local
 Sent: 11:14
 
-Hi both,
-
 So either we keep plan_format_version where it is and the loader eats the whole document before it knows what it's reading, or we pin it somewhere predictable.
 
 I think the second one. That's a change to plan_document though, and I don't know if anyone wants to touch that this week.
@@ -1191,8 +1189,6 @@ Dario
 
 From: dermot@world.local
 Sent: 11:21
-
-Hi all,
 
 Keep the field, it's the right field. It just needs to come out first.
 
@@ -1206,8 +1202,6 @@ Dermot
 
 From: gideon@world.local
 Sent: 11:23
-
-Hi Dermot,
 
 Ya, that works for me.
 
@@ -1232,8 +1226,6 @@ Dermot
 
 From: dario@world.local
 Sent: 11:31
-
-Hi all,
 
 Mhm, that tracks. No half-parsed plans sitting around looking valid, best we can do is make the error loud.
 
@@ -1311,8 +1303,6 @@ Nikolai
 From: konrad@world.local
 Sent: 14:11
 
-Hi Emil,
-
 Look, if a fixed batch_size run also drops a plan_id file next to the requests, my loader will read that run as auto-sized.
 
 That file is the whole signal on my side, presence or absense of it.
@@ -1323,8 +1313,6 @@ Konrad
 
 From: emil@world.local
 Sent: 14:13
-
-Hi Konrad,
 
 Hm, so you're saying the loader never looks at the config at all, just the directory?
 

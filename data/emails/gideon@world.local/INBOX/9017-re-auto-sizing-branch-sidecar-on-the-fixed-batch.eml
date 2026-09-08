@@ -10,8 +10,6 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Hi Konrad,
-
 Hm, so you're saying the loader never looks at the config at all, just the =
 directory?
 

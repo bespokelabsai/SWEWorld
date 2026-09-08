@@ -456,6 +456,38 @@ def cmd_answers(args) -> int:
     return 0
 
 
+def cmd_resync(args) -> int:
+    """Point the plant's recorded mail text at a corpus somebody edited by hand."""
+    import json as _json, pathlib as _pl
+    from tg import inject as inject_mod
+    from tg.model import REPO
+    task = load(args.slug)
+    path = task.dir / args.plant / "plant.json"
+    if not path.is_file():
+        raise SystemExit(f"no plant at {path}")
+    root = _pl.Path(args.corpus) if args.corpus else REPO / "data"
+    ledger = _json.loads(path.read_text())
+    changed = inject_mod.resync(root, ledger)
+    if not changed:
+        print(f"  nothing to resync in {path} against {root}")
+        return 0
+    if args.dry_run:
+        print(f"  would resync {len(changed)}: {', '.join(changed)}")
+        return 0
+    path.write_text(_json.dumps(ledger, indent=1) + "\n")
+    print(f"  {path}  resynced {len(changed)}: {', '.join(changed)}")
+    # The point of the exercise: `located()` has to stop refusing. Saying so here
+    # means a resync that did not actually fix it is visible now rather than three
+    # commands later when the answer key will not write.
+    try:
+        inject_mod.located(root, ledger)
+    except SystemExit as exc:
+        print(f"  ! still not located: {exc}")
+        return 1
+    print(f"  located() resolves against {root}")
+    return 0
+
+
 def cmd_snap(args) -> int:
     """Copy the plant aside under a label, before something rewrites it."""
     from tg import clues
@@ -632,6 +664,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="the written corpus to read locations out of; default data/")
     an.add_argument("--out", default=None,
                     help="default: harbor_tasks/<id>-<slug>/README.md")
+
+    rs = add("resync", cmd_resync)
+    rs.add_argument("--corpus", default=None,
+                    help="the written corpus the plant should match; default data/")
+    rs.add_argument("--plant", default="clues",
+                    help="which snapshot under out/<slug>/ to update; the live one "
+                         "is whichever `located()` still resolves against, which is "
+                         "not always `clues`")
+    rs.add_argument("--dry-run", action="store_true")
 
     sn = add("snap", cmd_snap)
     sn.add_argument("label", help="e.g. v7-perfect-1.00, pre-settle")

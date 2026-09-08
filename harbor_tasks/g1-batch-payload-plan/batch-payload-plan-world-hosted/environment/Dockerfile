@@ -24,9 +24,24 @@ FROM us-central1-docker.pkg.dev/apex-485220/horizon/environments/sweworld-batch-
 # Diagnosing why an arm scored what it did has meant reading those transcripts
 # every time, so a missing recorder costs the next investigation, not this one.
 # Unpinned deliberately — an exact version pin rots faster than the recorder API.
+# archive.ubuntu.com and security.ubuntu.com both went unreachable from GCP on
+# 2026-09-05 -- 22s for the first fetch and then nothing -- and took three local
+# g6 trials and a hosted validation down with them. Neither mirror FAILED; they
+# hung, so no timeout helped and the failures read as task defects. The
+# GCE-local mirror answers both pockets in under 15ms from this box and from
+# Horizon's builders, which are in the same region.
+RUN sed -i \
+      -e 's|http://archive\.ubuntu\.com|http://us-central1.gce.archive.ubuntu.com|g' \
+      -e 's|http://security\.ubuntu\.com|http://us-central1.gce.archive.ubuntu.com|g' \
+      /etc/apt/sources.list /etc/apt/sources.list.d/*.sources \
+      /etc/apt/sources.list.d/*.list 2>/dev/null; \
+    printf 'Acquire::Retries "2";\nAcquire::http::Timeout "20";\n' \
+      > /etc/apt/apt.conf.d/99-world-timeouts
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends tmux asciinema \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ || echo "WARNING: tmux/asciinema unavailable -- the trial will grade but record nothing"
 
 # The world's services can boot slowly on a cold, shared host.
 ENV WAIT_TIMEOUT=600

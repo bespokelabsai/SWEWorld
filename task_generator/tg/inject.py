@@ -916,10 +916,38 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
     want = {c["clue_id"]: must_appear(c)[0]
             for c in clues_of(ledger) if c.get("carrier") and must_appear(c)}
     span = {c["clue_id"]: len(must_appear(c)) for c in clues_of(ledger)}
+    # Which surface this remark was WRITTEN to, so a match somewhere else cannot
+    # win by scan order. `doc_new` writes the page body AND hangs the comments on
+    # it, and comments.jsonl is read first here -- so every authored page was
+    # reported as "an exchange of N comments ... not the page body", which sends
+    # the reader past half the planted material. BookStack indexes the body and
+    # not the comments, so that is the half that is findable.
+    PREFER = {"chat_thread": "chat", "chat_insert": "chat",
+              "doc_new": "wiki page", "doc_edit": "wiki page",
+              "doc_comment": "wiki comment",
+              "mail_new": "mail", "mail_reply": "mail"}
+    prefer = {c["clue_id"]: PREFER.get((c.get("carrier") or {}).get("kind", ""))
+              for c in clues_of(ledger) if c.get("carrier")}
     found: dict[str, dict] = {}
 
+    def wanted(cid: str, surface: str) -> bool:
+        """Take this hit? Only if nothing has it yet, or this is the right surface."""
+        if cid not in want:
+            return False
+        seen = found.get(cid)
+        if seen is None:
+            return True
+        return surface == prefer.get(cid) and seen.get("surface") != surface
+
+    kind = {c["clue_id"]: (c.get("carrier") or {}).get("kind", "")
+            for c in clues_of(ledger) if c.get("carrier")}
+
     def note(cid, **row):
-        found[cid] = {**row, "turns": span.get(cid, 1)}
+        # The carrier kind rides along because a `doc_new`'s remark lands in the
+        # page's COMMENTS while the page it hangs on is planted too -- so a row
+        # that says "not the page body" about one is telling the reader to skip
+        # material that was written for them.
+        found[cid] = {**row, "turns": span.get(cid, 1), "kind": kind.get(cid, "")}
 
     for line in (root / "messages.jsonl").read_text(encoding="utf-8").splitlines():
         line = line.strip()
@@ -928,7 +956,7 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
         row = json.loads(line)
         body = flat(row.get("text") or "")
         for cid, opener in want.items():
-            if cid not in found and opener and opener in body:
+            if wanted(cid, "chat") and opener and opener in body:
                 note(cid, surface="chat", where=f"#{row['channel']}",
                      when=row["created_at"], who=row["author"])
 
@@ -940,7 +968,7 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
             row = json.loads(line)
             body = flat(row.get("text") or "")
             for cid, opener in want.items():
-                if cid not in found and opener and opener in body:
+                if wanted(cid, "wiki comment") and opener and opener in body:
                     note(cid, surface="wiki comment", where=f"docs/{row['doc']}",
                          when=row["created_at"], who=row["author"])
 
@@ -953,7 +981,7 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
         subject = " ".join(str(email.header.make_header(
             email.header.decode_header(note_.get("Subject", "")))).split())
         for cid, opener in want.items():
-            if cid not in found and opener and opener in body:
+            if wanted(cid, "mail") and opener and opener in body:
                 note(cid, surface="mail", where=f"“{subject}”",
                      when=email.utils.parsedate_to_datetime(
                          note_.get("Date", "")).isoformat(),
@@ -974,7 +1002,7 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
         text = path.read_text(encoding="utf-8", errors="replace")
         body = flat(text)
         pending = [cid for cid, opener in want.items()
-                   if cid not in found and opener and opener in body]
+                   if wanted(cid, "wiki page") and opener and opener in body]
         if not pending:
             continue
         meta = {}
@@ -999,6 +1027,56 @@ def located(root: pathlib.Path, ledger: dict) -> dict[str, dict]:
             + ", ".join(lost[:6]) + ". The corpus and the plant disagree — "
             "re-run `cli.py inject` before writing the answer key.")
     return found
+
+
+def resync(root: pathlib.Path, ledger: dict) -> list[str]:
+    """Point a plant's recorded message text at a corpus somebody edited by hand.
+
+    `located()` finds a remark by searching the corpus for the plant's own words,
+    so editing a body in the world makes the plant a record of something nobody
+    says any more — and then the answer key and the located arm both refuse to
+    build rather than emit rows of `?`. This is the same relationship in the other
+    direction: the corpus is right, and the plant catches up to it.
+
+    Mail only, deliberately. Chat and wiki remarks live in files the plant is the
+    sole author of, so a hand edit there means the plant and the world disagree
+    about what was planted, which is a re-plant and not a bookkeeping fix. A mail
+    body is the one thing that gets rewritten for how it READS — greetings,
+    paragraphs, a sign-off — with the information and the identifiers deliberately
+    unchanged. Nothing here checks that; `must_appear` and the clue judge do.
+
+    Matched on (author, minute), never on text, because text is the thing that
+    moved. A minute that names two messages from the same person is skipped rather
+    than guessed at: the plant would silently acquire somebody else's words.
+
+    Mutates `ledger` and returns the clue ids it changed; the caller writes it.
+    """
+    byminute: dict[tuple[str, str], list[str]] = collections.defaultdict(list)
+    for path in sorted(root.glob("emails/**/*.eml")):
+        if "/Sent/" not in str(path):
+            continue                       # one copy per message, the sender's
+        note = email.message_from_bytes(path.read_bytes())
+        raw = note.get_payload(decode=True)
+        body = (raw.decode("utf-8", "replace") if raw else "").strip()
+        who = email.utils.parseaddr(note.get("From", ""))[1].split("@")[0]
+        when = email.utils.parsedate_to_datetime(note.get("Date", ""))
+        byminute[(who, when.strftime("%H:%M"))].append(body)
+
+    changed: list[str] = []
+    for clue in clues_of(ledger):
+        if (clue.get("carrier") or {}).get("source") not in ("email", "mail"):
+            continue
+        touched = False
+        for msg in (clue.get("invented") or {}).get("messages") or []:
+            key = (who_said(msg), msg.get("minute") or "")
+            hits = byminute.get(key) or []
+            if len(hits) != 1 or flat(hits[0]) == flat(what_said(msg)):
+                continue
+            msg["text"] = hits[0]
+            touched = True
+        if touched:
+            changed.append(clue["clue_id"])
+    return changed
 
 
 HOW = {

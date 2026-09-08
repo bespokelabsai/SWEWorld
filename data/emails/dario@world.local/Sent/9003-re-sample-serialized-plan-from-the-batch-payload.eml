@@ -9,8 +9,6 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Hi both,
-
 So either we keep plan_format_version where it is and the loader eats the w=
 hole document before it knows what it's reading, or we pin it somewhere pre=
 dictable.

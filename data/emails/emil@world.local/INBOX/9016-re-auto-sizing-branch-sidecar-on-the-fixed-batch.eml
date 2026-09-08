@@ -10,8 +10,6 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Hi Emil,
-
 Look, if a fixed batch_size run also drops a plan_id file next to the reque=
 sts, my loader will read that run as auto-sized.
 
