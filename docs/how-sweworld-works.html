@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  A standalone copy of the SWEWorld guide, readable straight off disk.
+
+  It is also published as a Claude Artifact:
+    https://claude.ai/code/artifact/663b480e-8703-4129-ac23-633a36e7f179
+
+  The published version is a FRAGMENT - the host supplies the doctype, the head
+  and a small reset - so this file is that fragment plus the wrapper it would
+  otherwise be given. Wrapping the published copy in <html> would nest a
+  document inside a document, so edit the content once and re-copy.
+-->
+<style>
+  /* The reset the artifact host supplies, restated first so this file stands
+     alone and the page's own rules still win on anything they both set. */
+  html{color-scheme:light dark}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>The SWEWorld Machine</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#F3F5F5;
+    --surface:#FFFFFF;
+    --sunk:#E9EDED;
+    --ink:#151A1D;
+    --muted:#5B6B71;
+    --faint:#8A9AA0;
+    --line:#D3DBDC;
+    --rule:#B9C4C6;
+    --plant:#A55F0B;      /* planted evidence, the hidden half */
+    --plant-soft:#F6EBDA;
+    --graded:#1F6558;     /* measured, verified, green */
+    --graded-soft:#DDEBE7;
+    --trap:#9C3A2C;       /* the things that cost debugging time */
+    --trap-soft:#F6E3DF;
+    --shadow:0 1px 2px rgba(21,26,29,.05),0 8px 24px -18px rgba(21,26,29,.35);
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+    --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0F1315; --surface:#161B1E; --sunk:#1C2326;
+      --ink:#E4EAEA; --muted:#9AAAAF; --faint:#71848A;
+      --line:#283134; --rule:#3A4649;
+      --plant:#E0973F; --plant-soft:#2B2317;
+      --graded:#63B6A3; --graded-soft:#152825;
+      --trap:#D8796A; --trap-soft:#2B1B18;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -20px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0F1315; --surface:#161B1E; --sunk:#1C2326;
+    --ink:#E4EAEA; --muted:#9AAAAF; --faint:#71848A;
+    --line:#283134; --rule:#3A4649;
+    --plant:#E0973F; --plant-soft:#2B2317;
+    --graded:#63B6A3; --graded-soft:#152825;
+    --trap:#D8796A; --trap-soft:#2B1B18;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -20px rgba(0,0,0,.8);
+  }
+
+  body{background:var(--ground);color:var(--ink);font-family:var(--serif);
+       font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  *{box-sizing:border-box}
+
+  .shell{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 96px;
+         display:grid;grid-template-columns:210px minmax(0,1fr);gap:56px;align-items:start;}
+  @media (max-width:900px){.shell{grid-template-columns:minmax(0,1fr);gap:0}}
+
+  /* ---- masthead ---- */
+  header.top{grid-column:1/-1;padding-block:64px 40px;border-bottom:1px solid var(--rule);}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+           color:var(--plant);margin:0 0 18px;}
+  h1{font-family:var(--sans);font-weight:800;font-size:clamp(40px,7vw,72px);line-height:.98;
+     letter-spacing:-.025em;margin:0;text-wrap:balance;}
+  h1 em{font-style:normal;color:var(--muted);}
+  .standfirst{font-size:clamp(18px,2.2vw,21px);color:var(--muted);max-width:60ch;margin:22px 0 0;}
+  .figures{display:flex;flex-wrap:wrap;gap:28px 44px;margin-top:34px;padding-top:26px;
+           border-top:1px solid var(--line);}
+  .figures div{min-width:86px}
+  .figures b{display:block;font-family:var(--sans);font-weight:700;font-size:26px;line-height:1.1;
+             font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+  .figures span{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+                color:var(--faint);}
+
+  /* ---- nav rail ---- */
+  nav{position:sticky;top:24px;padding-top:44px;font-family:var(--sans);font-size:13.5px;line-height:1.45;}
+  @media (max-width:900px){nav{position:static;padding:28px 0 0;border-bottom:1px solid var(--line);
+    padding-bottom:24px;margin-bottom:8px;}}
+  nav p{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+        color:var(--faint);margin:0 0 12px;}
+  nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
+  @media (max-width:900px){nav ol{flex-direction:row;flex-wrap:wrap;gap:8px 18px;}}
+  nav a{color:var(--muted);text-decoration:none;display:flex;gap:9px;}
+  nav a:hover{color:var(--plant)}
+  nav a b{font-family:var(--mono);font-weight:400;color:var(--faint);font-size:11.5px;padding-top:2px;}
+
+  main{padding-top:44px;min-width:0;}
+  section{margin-bottom:72px;scroll-margin-top:20px;}
+  h2{font-family:var(--sans);font-weight:700;font-size:clamp(25px,3.4vw,33px);letter-spacing:-.02em;
+     line-height:1.15;margin:0 0 6px;text-wrap:balance;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+          color:var(--faint);margin:0 0 10px;}
+  h3{font-family:var(--sans);font-weight:700;font-size:19px;letter-spacing:-.01em;margin:38px 0 8px;}
+  h4{font-family:var(--sans);font-weight:600;font-size:16px;margin:26px 0 4px;}
+  p{margin:0 0 16px;max-width:66ch;}
+  main ul,main ol{max-width:66ch;padding-left:20px;margin:0 0 16px;}
+  main li{margin-bottom:7px;}
+  code{font-family:var(--mono);font-size:.86em;background:var(--sunk);padding:.1em .34em;
+       border-radius:3px;word-break:break-word;}
+  a{color:var(--plant);text-decoration-thickness:1px;text-underline-offset:2px;}
+  strong{font-weight:600}
+
+  /* ---- tables ---- */
+  .scroll{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:6px;
+          background:var(--surface);box-shadow:var(--shadow);}
+  table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:14px;line-height:1.45;}
+  th{text-align:left;font-weight:600;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+     color:var(--faint);padding:12px 14px;border-bottom:1px solid var(--rule);white-space:nowrap;}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none}
+  td code{background:transparent;padding:0;font-size:13px;color:var(--ink);}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .tag{font-family:var(--mono);font-size:11px;padding:.18em .5em;border-radius:3px;white-space:nowrap;}
+  .tag.src{background:var(--graded-soft);color:var(--graded);}
+  .tag.gen{background:var(--plant-soft);color:var(--plant);}
+  .tag.ign{background:var(--sunk);color:var(--faint);}
+
+  /* ---- figures ---- */
+  figure{margin:30px 0;padding:24px 22px 18px;background:var(--surface);border:1px solid var(--line);
+         border-radius:6px;box-shadow:var(--shadow);}
+  figure svg{display:block;max-width:100%;height:auto;color:var(--ink);}
+  figcaption{font-size:14px;color:var(--muted);margin-top:16px;padding-top:14px;
+             border-top:1px solid var(--line);max-width:70ch;}
+  .svg-label{font-family:"Bricolage Grotesque",Arial,sans-serif;font-size:13px;font-weight:600;}
+  .svg-small{font-family:"IBM Plex Mono",monospace;font-size:10.5px;}
+  .svg-note{font-family:"Source Serif 4",Georgia,serif;font-size:11.5px;font-style:italic;}
+
+  /* ---- call-outs ---- */
+  .note{border-left:3px solid var(--rule);padding:2px 0 2px 18px;margin:24px 0;color:var(--muted);
+        max-width:66ch;}
+  .note b{color:var(--ink)}
+  .trap{border-left:3px solid var(--trap);background:var(--trap-soft);padding:16px 18px;margin:22px 0;
+        border-radius:0 4px 4px 0;max-width:68ch;}
+  .trap b{font-family:var(--sans);font-size:15px;display:block;margin-bottom:4px;}
+  .trap p{margin:0;font-size:15.5px;}
+
+  pre{font-family:var(--mono);font-size:13px;line-height:1.6;background:var(--surface);
+      border:1px solid var(--line);border-radius:6px;padding:16px 18px;overflow-x:auto;margin:20px 0;
+      box-shadow:var(--shadow);}
+  pre b{font-weight:500;color:var(--plant);}
+  pre i{font-style:normal;color:var(--faint);}
+
+  .ladder{display:grid;gap:2px;margin:24px 0;}
+  .rung{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;padding:14px 16px;
+        background:var(--surface);border:1px solid var(--line);align-items:baseline;}
+  .rung:first-child{border-radius:6px 6px 0 0}
+  .rung:last-child{border-radius:0 0 6px 6px}
+  .rung+.rung{border-top:none}
+  .rung dt{font-family:var(--mono);font-size:13px;color:var(--plant);}
+  .rung dd{margin:0;font-size:15.5px;}
+  .rung dd em{font-style:normal;color:var(--muted);display:block;font-size:14px;margin-top:2px;}
+  @media (max-width:560px){.rung{grid-template-columns:1fr;gap:4px}}
+
+  footer{grid-column:1/-1;border-top:1px solid var(--rule);padding-top:24px;margin-top:24px;
+         font-size:14px;color:var(--faint);font-family:var(--sans);}
+  @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+  :focus-visible{outline:2px solid var(--plant);outline-offset:2px;border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header class="top">
+  <p class="eyebrow">A benchmark factory, in one repository</p>
+  <h1>The SWEWorld<br><em>Machine</em></h1>
+  <p class="standfirst">A self-hosted software company — git server, chat, wiki and mail — populated
+  with fifteen months of its own history, so an agent can be asked to build something whose real
+  requirements were never written in the ticket. They were said once, in passing, in a thread from
+  last March.</p>
+  <div class="figures">
+    <div><b class="num">9,802</b><span>chat messages</span></div>
+    <div><b class="num">161</b><span>days of history</span></div>
+    <div><b class="num">108</b><span>wiki pages</span></div>
+    <div><b class="num">613</b><span>emails</span></div>
+    <div><b class="num">24</b><span>personas</span></div>
+    <div><b class="num">12</b><span>tasks</span></div>
+    <div><b class="num">80</b><span>graded arms</span></div>
+  </div>
+</header>
+
+<nav>
+  <p>Contents</p>
+  <ol>
+    <li><a href="#idea"><b>01</b>The idea</a></li>
+    <li><a href="#machines"><b>02</b>Three machines</a></li>
+    <li><a href="#world"><b>03</b>The world</a></li>
+    <li><a href="#corpus"><b>04</b>The corpus</a></li>
+    <li><a href="#plant"><b>05</b>Hiding a requirement</a></li>
+    <li><a href="#task"><b>06</b>Authoring a task</a></li>
+    <li><a href="#arms"><b>07</b>The arm ladder</a></li>
+    <li><a href="#grading"><b>08</b>Grading</a></li>
+    <li><a href="#measure"><b>09</b>Measuring</a></li>
+    <li><a href="#map"><b>10</b>Repo map</a></li>
+    <li><a href="#traps"><b>11</b>Traps</a></li>
+    <li><a href="#changed"><b>12</b>What changed</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="idea">
+  <p class="kicker">01 — The idea</p>
+  <h2>A requirement nobody wrote down</h2>
+  <p>Give an agent a ticket that says <em>add an output cap to the code executor</em> and it will write
+  something reasonable. Whether it writes the <em>right</em> thing depends on facts that live in no
+  specification: that the cap is counted per stream and not per process, that exceeding it truncates
+  from the middle rather than the tail, that the sentinel a truncated stream carries is spelled
+  <code>…[capped]…</code> and is checked elsewhere by an exact match.</p>
+  <p>In a real company those facts exist. They are just not in the ticket. They are in the thread
+  where two people argued about it in February, in a wiki page somebody updated afterwards, in a
+  comment on that page, and in a mail thread that reversed an earlier decision. An engineer joining
+  the team recovers them by reading, asking, and noticing that the January decision was overturned
+  in May.</p>
+  <p>SWEWorld builds that company so the recovery can be measured. One container runs a real Gitea, a
+  real Mattermost, a real BookStack wiki and a real mail server, populated with fifteen months of
+  chat, documents and mail generated for it. The product the company ships is real too:
+  <a href="https://github.com/bespokelabsai/curator">bespokelabs/curator</a>, vendored and served
+  from the in-world git server with its history rewritten onto the company's own people.</p>
+  <p>The agent works inside as an ordinary engineer: no <code>sudo</code>, and code reaches a running
+  service only by being pushed and passing CI. What is measured is not whether it can code. It is
+  whether it can find out what it was supposed to build.</p>
+</section>
+
+<section id="machines">
+  <p class="kicker">02 — Orientation</p>
+  <h2>Three machines that share one repository</h2>
+  <p>Almost every confusion about this repo comes from mistaking one of these for another. They run
+  at different times, on different hardware, and cost different amounts of money.</p>
+
+  <figure>
+    <svg viewBox="0 0 860 300" role="img" aria-label="data_gen generates a corpus into data/, which is baked into a container image, from which task_generator emits graded task arms">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#A55F0B"/>
+        </marker>
+      </defs>
+
+      <rect x="1" y="34" width="238" height="150" rx="5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text class="svg-small" x="14" y="24" fill="currentColor" opacity=".55">RUNS ON YOUR MACHINE · COSTS TOKENS</text>
+      <text class="svg-label" x="16" y="60" fill="currentColor">data_gen/</text>
+      <text class="svg-small" x="16" y="82" fill="currentColor" opacity=".75">stages 0–2: read real curator</text>
+      <text class="svg-small" x="16" y="100" fill="currentColor" opacity=".75">phase 1: the company + its people</text>
+      <text class="svg-small" x="16" y="118" fill="currentColor" opacity=".75">phase 2: what happened each day</text>
+      <text class="svg-small" x="16" y="136" fill="currentColor" opacity=".75">phase 3: hide the requirements</text>
+      <text class="svg-small" x="16" y="154" fill="currentColor" opacity=".75">phase 4: simulate the conversations</text>
+      <text class="svg-note" x="16" y="174" fill="currentColor" opacity=".6">tens of hours for a full run</text>
+
+      <line x1="243" y1="109" x2="299" y2="109" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)"/>
+      <text class="svg-small" x="248" y="101" fill="currentColor" opacity=".6">install</text>
+
+      <rect x="304" y="64" width="150" height="90" rx="5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text class="svg-label" x="318" y="94" fill="currentColor">data/</text>
+      <text class="svg-small" x="318" y="114" fill="currentColor" opacity=".75">the handoff:</text>
+      <text class="svg-small" x="318" y="130" fill="currentColor" opacity=".75">chat · docs · mail</text>
+      <text class="svg-small" x="318" y="146" fill="currentColor" opacity=".75">history · identities</text>
+
+      <line x1="458" y1="109" x2="514" y2="109" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar)"/>
+      <text class="svg-small" x="461" y="101" fill="currentColor" opacity=".6">bake</text>
+
+      <rect x="519" y="34" width="200" height="150" rx="5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text class="svg-small" x="532" y="24" fill="currentColor" opacity=".55">ONE CONTAINER IMAGE</text>
+      <text class="svg-label" x="534" y="60" fill="currentColor">world/ + scripts/</text>
+      <text class="svg-small" x="534" y="82" fill="currentColor" opacity=".75">gitea · mattermost</text>
+      <text class="svg-small" x="534" y="100" fill="currentColor" opacity=".75">bookstack · maddy + roundcube</text>
+      <text class="svg-small" x="534" y="118" fill="currentColor" opacity=".75">CI runner · deploy daemon</text>
+      <text class="svg-note" x="534" y="140" fill="currentColor" opacity=".6">supervisord is PID 1</text>
+      <text class="svg-note" x="534" y="158" fill="currentColor" opacity=".6">gated on world-verify</text>
+
+      <path d="M619 189 L619 232" stroke="#A55F0B" stroke-width="1.5" marker-end="url(#arp)"/>
+      <text class="svg-small" x="628" y="214" fill="#A55F0B">boots</text>
+
+      <rect x="304" y="236" width="415" height="58" rx="5" fill="none" stroke="#A55F0B" stroke-width="1.5"/>
+      <text class="svg-label" x="318" y="262" fill="#A55F0B">task_generator/ → harbor_tasks/</text>
+      <text class="svg-small" x="318" y="282" fill="#A55F0B" opacity=".85">authors one task, emits its arms, grades them</text>
+
+      <path d="M120 189 L120 265 L298 265" fill="none" stroke="#A55F0B" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arp)"/>
+      <text class="svg-small" x="132" y="258" fill="#A55F0B" opacity=".8">the plant it re-uses</text>
+    </svg>
+    <figcaption>The corpus is generated once and handed over as files; the image is baked from those
+    files; the task arms boot the image. The dashed return edge is the part people miss — the task
+    factory re-uses <code>data_gen</code>'s planting machinery, but plants into a corpus that already
+    exists rather than into conversations not yet simulated.</figcaption>
+  </figure>
+
+  <p><strong><code>data_gen/</code> generates the content.</strong> It runs on your machine, spends
+  LLM tokens, and writes to <code>data_gen/build/</code>. A full phase-4 corpus run is tens of hours;
+  a three-day slice is about twenty minutes.</p>
+  <p><strong><code>world/</code> and <code>scripts/</code> build and populate the container.</strong>
+  <code>data/</code> is the handoff between the two halves: everything under it except
+  <code>data/schemas/</code> is generated.</p>
+  <p><strong><code>task_generator/</code> and <code>harbor_tasks/</code> make and measure the
+  tasks.</strong> The first authors a task and emits it; the second is where the emitted arms and the
+  graders that score them live.</p>
+
+  <div class="trap">
+    <b><code>make run</code> gives you an empty world.</b>
+    <p>That is the base image by design, and it is the single most likely thing to confuse someone who
+    opens BookStack and finds nothing. Populate with <code>make bake-image</code>, or ingest into a
+    running container — order matters there, because comments need their pages to exist first.</p>
+  </div>
+</section>
+
+<section id="world">
+  <p class="kicker">03 — The container</p>
+  <h2>The world</h2>
+  <p>One image, <code>ubuntu:24.04</code>, with supervisord as PID 1 and every service pinned to a
+  version. There is no docker-compose, no Redis and no object storage. There are exactly two
+  databases and everything else is SQLite.</p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Service</th><th>Vhost</th><th>Port</th><th>Store</th></tr></thead>
+      <tbody>
+        <tr><td>Gitea 1.27.2</td><td><code>git.world.local</code></td><td class="num">3300</td><td>SQLite</td></tr>
+        <tr><td>Mattermost 11.9.1</td><td><code>chat.world.local</code></td><td class="num">8065</td><td>PostgreSQL 16</td></tr>
+        <tr><td>BookStack v25.11</td><td><code>docs.world.local</code></td><td class="num">7090</td><td>MariaDB</td></tr>
+        <tr><td>Roundcube 1.7.3</td><td><code>mail.world.local</code></td><td class="num">7080</td><td>SQLite</td></tr>
+        <tr><td>maddy 0.9.5</td><td><code>mx.world.local</code></td><td class="num">25 · 587 · 143</td><td>SQLite (imapsql)</td></tr>
+        <tr><td>passstore</td><td><code>pass.world.local</code></td><td class="num">7250</td><td>a static page</td></tr>
+        <tr><td>curator (the app)</td><td><code>curator.world.local</code></td><td class="num">9100</td><td>—</td></tr>
+        <tr><td>nginx ingress</td><td><code>*.world.local</code></td><td class="num">80</td><td>routes on <code>Host</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Published and container-internal ports are deliberately identical. BookStack redirects to its
+  own <code>APP_URL</code>, so a mismatch half-works — which is worse than failing.</p>
+
+  <h3>Boot order</h3>
+  <p>Build-time seeding runs in numbered dependency order: users and directories, then the
+  datastores, then mail, then Gitea (which pulls in the curator import), then BookStack, then
+  Mattermost. At runtime supervisord starts by priority — <code>init-runtime</code> writes the
+  <code>*.world.local</code> hosts entries first, then the databases, php-fpm, Gitea and maddy, the
+  deploy daemon, nginx, the CI runner, Mattermost, and last the curator service itself.</p>
+
+  <h3>How code reaches a running service</h3>
+  <p>This is the part that makes the world a workplace rather than a file tree. The agent cannot
+  restart anything; it can only push.</p>
+
+  <figure>
+    <svg viewBox="0 0 840 190" role="img" aria-label="An agent pushes to Gitea, CI runs on act_runner and files a deploy request, a root daemon installs the release, flips the current symlink, restarts the service and rolls back if the health check fails">
+      <defs>
+        <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="ar2g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#1F6558"/>
+        </marker>
+      </defs>
+      <rect x="1" y="52" width="112" height="52" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="20" y="76" fill="currentColor">agent</text>
+      <text class="svg-small" x="20" y="93" fill="currentColor" opacity=".6">user: ubuntu</text>
+
+      <line x1="117" y1="78" x2="163" y2="78" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar2)"/>
+      <text class="svg-small" x="118" y="70" fill="currentColor" opacity=".65">git push</text>
+
+      <rect x="168" y="52" width="104" height="52" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="188" y="76" fill="currentColor">Gitea</text>
+      <text class="svg-small" x="183" y="93" fill="currentColor" opacity=".6">worldadmin/curator</text>
+
+      <line x1="276" y1="78" x2="322" y2="78" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar2)"/>
+      <text class="svg-small" x="277" y="70" fill="currentColor" opacity=".65">triggers</text>
+
+      <rect x="327" y="52" width="112" height="52" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="347" y="76" fill="currentColor">act_runner</text>
+      <text class="svg-small" x="347" y="93" fill="currentColor" opacity=".6">user: deploy</text>
+
+      <line x1="443" y1="78" x2="489" y2="78" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar2)"/>
+      <text class="svg-small" x="440" y="70" fill="currentColor" opacity=".65">request-deploy</text>
+
+      <rect x="494" y="52" width="112" height="52" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="509" y="76" fill="currentColor">deploy queue</text>
+      <text class="svg-small" x="514" y="93" fill="currentColor" opacity=".6">a spool dir</text>
+
+      <line x1="610" y1="78" x2="656" y2="78" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar2)"/>
+      <text class="svg-small" x="612" y="70" fill="currentColor" opacity=".65">picks up</text>
+
+      <rect x="661" y="52" width="112" height="52" rx="4" fill="none" stroke="#1F6558" stroke-width="1.6"/>
+      <text class="svg-label" x="678" y="76" fill="#1F6558">daemon</text>
+      <text class="svg-small" x="678" y="93" fill="#1F6558" opacity=".8">user: root</text>
+
+      <path d="M717 108 L717 140 L360 140" fill="none" stroke="#1F6558" stroke-width="1.4" marker-end="url(#ar2g)" opacity=".9"/>
+      <text class="svg-small" x="430" y="133" fill="#1F6558">install release · flip `current` · restart · check /health</text>
+      <path d="M360 148 L717 148 L717 130" fill="none" stroke="#9C3A2C" stroke-width="1.4" stroke-dasharray="4 3"/>
+      <text class="svg-small" x="378" y="164" fill="#9C3A2C">if the check fails: roll back to `last-good`</text>
+    </svg>
+    <figcaption>The privilege boundary is the point. The agent owns none of the steps after the push;
+    a release that fails its health check is reverted without anybody asking.</figcaption>
+  </figure>
+
+  <h3>The Makefile</h3>
+  <pre><b>make build-image</b>      <i>sweworld:dev — services, no content</i>
+<b>make run</b>              <i>boot and publish every service</i>
+<b>make verify</b>           <i>33 acceptance checks against the running world</i>
+<b>make shell</b>            <i>a shell in as the agent (ubuntu, no sudo)</i>
+<b>make history</b>          <i>HOST ONLY: rewrite curator/ history into data/history/</i>
+<b>make bake-image</b> TAG=… <i>boot base, ingest data/, gate on verify, commit</i>
+<b>make push-image</b> TAG=… <i>deliberately separate from bake</i></pre>
+  <p>There is no test suite. <code>world/bin/world-verify</code> is the acceptance gate, and it checks
+  the running world rather than the code: every supervised service, every vhost, the service APIs,
+  IMAP and SMTP, the admin login on all four apps, the curator repository and its history, the
+  privilege model — and the corpus minimums, so a bake cannot quietly publish an empty world.
+  <code>make bake-image</code> refuses to commit unless it passes.</p>
+  <p><code>make history</code> is the only target that touches <code>curator/</code>, read-only, and
+  the only one that runs outside a container.</p>
+</section>
+
+<section id="corpus">
+  <p class="kicker">04 — data_gen</p>
+  <h2>Where fifteen months of company history comes from</h2>
+  <p>Two chains run here. The first reads the real repository and invents nothing technical; the
+  second builds the world's content on top of it.</p>
+
+  <h3>Stages 0–2 — read the real thing</h3>
+  <p>Deterministic wherever possible. <code>extract_repository_history.py</code> mines every commit,
+  PR, issue and review with before/after blobs; <code>build_episodes.py</code> turns that into
+  PR-anchored engineering episodes; <code>analyze_repository.py</code> works out the repository's
+  shape — subsystems, interfaces, CI, ownership; <code>make_report.py</code> renders both groundings
+  as a readable HTML report.</p>
+
+  <h3>Phases 1–4 — build the content</h3>
+  <p>Each phase reads the previous phase's JSON. Run them in order.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Phase</th><th>Script</th><th>Answers</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td><code>phase1_company_grounding.py</code></td><td>who works here, who owns what</td></tr>
+        <tr><td class="num">2a</td><td><code>phase2_timeline.py</code></td><td>project state per day — pure arithmetic, no model</td></tr>
+        <tr><td class="num">2b</td><td><code>phase2_workstreams.py</code></td><td>threads of work, and the docs and mail they produce</td></tr>
+        <tr><td class="num">2c</td><td><code>phase2_days.py</code></td><td>one conversation spec per channel per day</td></tr>
+        <tr><td class="num">3</td><td><code>phase3_plant.py</code></td><td>hide requirements as scattered clues</td></tr>
+        <tr><td class="num">4</td><td><code>phase4_simulate.py</code></td><td>the specs become actual messages</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The result, as installed today: <strong>9,802 messages across 161 days</strong> (October 2024 to
+  January 2026) in ten channels, <strong>108 wiki pages</strong> in six collections,
+  <strong>613 emails</strong> across 23 mailboxes, 17 page comments, and 24 personas at
+  <code>world.local</code>.</p>
+  <p><code>repolib.py</code> is the shared infrastructure: a disk-cached Claude client, path
+  constants, git access, logging. Every LLM response is cached by model, effort, prompts and schema,
+  so re-running costs nothing and <code>--no-refresh</code> never opens a socket.</p>
+
+  <h3>Phase 4 — simulation, and what it checks</h3>
+  <p>Phase 4 drives a persona engine whose tools write the ingest schemas directly: a page written in
+  conversation lands as <code>docs/&lt;collection&gt;/&lt;page&gt;.md</code> with the frontmatter the
+  ingest script parses. Personas' voices live in <code>cast.json</code> at the phase-4 root rather
+  than per run, because redrawing them per run would make one person sound like two across the
+  corpus.</p>
+  <p>Then every planted clue is checked against what was actually said. A clue need not be worded as
+  planted — the persona's words are their own — but the information must be there, and any identifier
+  must appear literally. The check runs <strong>element by element over the whole planted
+  remark</strong>, never against the one-clause summary of it, because what a persona reliably keeps
+  is the flat observation and what they drop is the half that says why anybody minds — which is the
+  half that tells a reader there is a requirement here at all.</p>
+  <p>Two failures, two costs. A clue <strong>nobody said</strong> re-runs the channel-day. A clue said
+  <strong>thinner than planted</strong> is repaired where it stands: the same person sends the missing
+  part as one more message seconds later. Re-simulating a whole day for one half-said remark re-rolls
+  every other clue in the room that was already right.</p>
+</section>
+
+<section id="plant">
+  <p class="kicker">05 — The conceptual core</p>
+  <h2>How a requirement gets hidden</h2>
+  <p>A task states its feature openly and hides requirements written down nowhere. Each hidden
+  requirement is decomposed into a tree — <strong>subconclusions</strong> a reader must infer, and
+  <strong>leaves</strong>, individual remarks that imply them — and the leaves are scattered across
+  months, channels and sources so that no single sitting recovers the whole thing.</p>
+
+  <figure>
+    <svg viewBox="0 0 840 330" role="img" aria-label="A hidden requirement decomposes into subconclusions and leaf remarks, which are placed in different sources months apart, with a herring planted before the remark that overturns it">
+      <defs>
+        <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <rect x="250" y="4" width="340" height="44" rx="4" fill="#F6EBDA" stroke="#A55F0B" stroke-width="1.6"/>
+      <text class="svg-label" x="270" y="24" fill="#A55F0B">the hidden requirement</text>
+      <text class="svg-small" x="270" y="40" fill="#A55F0B" opacity=".85">rule · scope · exclusions · failure · observability</text>
+
+      <line x1="380" y1="50" x2="250" y2="74" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar3)"/>
+      <line x1="460" y1="50" x2="590" y2="74" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar3)"/>
+
+      <rect x="150" y="78" width="200" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="166" y="102" fill="currentColor">subconclusion A</text>
+      <rect x="490" y="78" width="200" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="506" y="102" fill="currentColor">subconclusion B</text>
+
+      <line x1="200" y1="118" x2="150" y2="150" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+      <line x1="270" y1="118" x2="300" y2="150" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+      <line x1="560" y1="118" x2="500" y2="150" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+      <line x1="630" y1="118" x2="670" y2="150" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+
+      <rect x="80" y="154" width="140" height="34" rx="3" fill="none" stroke="#A55F0B" stroke-width="1.3"/>
+      <text class="svg-small" x="94" y="175" fill="#A55F0B">leaf · a remark</text>
+      <rect x="240" y="154" width="140" height="34" rx="3" fill="none" stroke="#A55F0B" stroke-width="1.3"/>
+      <text class="svg-small" x="254" y="175" fill="#A55F0B">leaf · a remark</text>
+      <rect x="430" y="154" width="140" height="34" rx="3" fill="none" stroke="#A55F0B" stroke-width="1.3"/>
+      <text class="svg-small" x="444" y="175" fill="#A55F0B">leaf · a remark</text>
+      <rect x="610" y="154" width="140" height="34" rx="3" fill="none" stroke="#A55F0B" stroke-width="1.3"/>
+      <text class="svg-small" x="624" y="175" fill="#A55F0B">leaf · a remark</text>
+
+      <line x1="150" y1="192" x2="150" y2="242" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#ar3)"/>
+      <line x1="310" y1="192" x2="380" y2="242" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#ar3)"/>
+      <line x1="500" y1="192" x2="560" y2="242" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#ar3)"/>
+      <line x1="680" y1="192" x2="700" y2="242" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#ar3)"/>
+
+      <line x1="40" y1="262" x2="800" y2="262" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-small" x="40" y="284" fill="currentColor" opacity=".7">Oct</text>
+      <text class="svg-small" x="200" y="284" fill="currentColor" opacity=".7">Jan</text>
+      <text class="svg-small" x="380" y="284" fill="currentColor" opacity=".7">Mar</text>
+      <text class="svg-small" x="560" y="284" fill="currentColor" opacity=".7">Jun</text>
+      <text class="svg-small" x="740" y="284" fill="currentColor" opacity=".7">Nov</text>
+      <circle cx="150" cy="262" r="4.5" fill="#A55F0B"/><text class="svg-small" x="132" y="254" fill="#A55F0B">chat</text>
+      <circle cx="380" cy="262" r="4.5" fill="#A55F0B"/><text class="svg-small" x="366" y="254" fill="#A55F0B">wiki</text>
+      <circle cx="560" cy="262" r="4.5" fill="#A55F0B"/><text class="svg-small" x="540" y="254" fill="#A55F0B">comment</text>
+      <circle cx="700" cy="262" r="4.5" fill="#A55F0B"/><text class="svg-small" x="688" y="254" fill="#A55F0B">mail</text>
+      <circle cx="80" cy="262" r="4.5" fill="none" stroke="#9C3A2C" stroke-width="1.6"/>
+      <text class="svg-small" x="44" y="254" fill="#9C3A2C">herring</text>
+      <path d="M80 270 L80 300 L146 300" fill="none" stroke="#9C3A2C" stroke-width="1.3" stroke-dasharray="4 3"/>
+      <text class="svg-small" x="152" y="304" fill="#9C3A2C">…planted strictly before the remark that overturns it</text>
+    </svg>
+    <figcaption>Every fact of a requirement must be carried by some leaf, and the leaves must span at
+    least two sources, three weeks and two channels. A decision the team really made and later
+    reversed — a herring — is dated before its reversal, so a reader going in date order meets the
+    wrong answer first.</figcaption>
+  </figure>
+
+  <h3>The vocabulary, which recurs everywhere downstream</h3>
+  <ul>
+    <li><strong>fact</strong> — a requirement's five atomic parts: <code>rule</code>,
+    <code>scope</code>, <code>exclusions_or_crossover</code>, <code>failure_behavior</code>,
+    <code>observability</code>. A fact nothing carries makes the task unscoreable.</li>
+    <li><strong>leaf / clue</strong> — one remark. <code>covers</code> names which facts it carries,
+    <code>settles</code> is the third-person clause phase 4 turns into an end state, and
+    <code>verbatim</code> names identifiers that must appear literally.</li>
+    <li><strong>herring</strong> — a decision the team really made and later reversed.</li>
+    <li><strong>carrier / slot</strong> — where a clue lands: an existing conversation, a wiki page, a
+    page comment, or a mail message.</li>
+  </ul>
+
+  <h3>The gates, all of which fail the run</h3>
+  <p>Every fact carried; no leaf restating the requirement's own wording; the spread requirement
+  above; solvability proved by a closed-book reconstruct-then-grade, voted best of three,
+  <strong>with the herrings present</strong>; and a structural check that no single remark closes its
+  subconclusion alone while the subconclusions together still reach the requirement.</p>
+
+  <div class="note">
+    <p><b>A name cannot be inferred; a value usually can.</b> If no remark ever types
+    <code>plan_fingerprint</code>, the attribute the test reads does not exist and the fact scores
+    zero however well the corpus is read. Nobody needs a remark printing a hash, as long as somebody
+    says which string was hashed and how much of the digest was kept. So the emitters refuse an arm
+    whose remarks never type a graded name, and merely report the values.</p>
+  </div>
+</section>
+
+<section id="task">
+  <p class="kicker">06 — task_generator</p>
+  <h2>Authoring a task, and proving it discriminates</h2>
+  <p>The first sixty tasks were written ticket-first, with hidden requirements attached afterwards.
+  Measurement said what that cost: a large share of their facts were <em>coincidences</em>, passed by
+  an implementation that had never seen the requirement — and each was discovered only after a paid
+  agent trial.</p>
+  <p>So <code>task_generator</code> inverts it. It <strong>designs the whole implementation first and
+  cuts it afterwards</strong>, then proves the cut discriminates before spending anything on an
+  agent.</p>
+
+  <pre>author → build oracle → <b>split</b> → tests → build naive/spec → <b>bracket</b> → <b>emit</b>
+      → clues → settle → reverse → reorder → reknit → <b>prove</b> → horizon → trial</pre>
+
+  <h3>The bracket is the gate</h3>
+  <p>One suite, four independently built trees, a verdict per fact. It is free and takes about a
+  minute, against roughly nine dollars for the agent trial it replaces.</p>
+
+  <figure>
+    <svg viewBox="0 0 800 250" role="img" aria-label="One test suite is run against four trees — pristine, naive, oracle and spec — and the pattern of pass and fail gives each fact a verdict">
+      <defs>
+        <marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <rect x="300" y="6" width="190" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <text class="svg-label" x="330" y="31" fill="currentColor">one grading suite</text>
+
+      <line x1="340" y1="48" x2="90" y2="84" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+      <line x1="378" y1="48" x2="290" y2="84" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+      <line x1="412" y1="48" x2="500" y2="84" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+      <line x1="450" y1="48" x2="700" y2="84" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+
+      <rect x="10" y="88" width="160" height="56" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="26" y="110" fill="currentColor">pristine</text>
+      <text class="svg-small" x="26" y="128" fill="currentColor" opacity=".7">untouched checkout</text>
+
+      <rect x="210" y="88" width="160" height="56" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <text class="svg-label" x="226" y="110" fill="currentColor">naive</text>
+      <text class="svg-small" x="226" y="128" fill="currentColor" opacity=".7">built from the ticket only</text>
+
+      <rect x="420" y="88" width="160" height="56" rx="4" fill="none" stroke="#1F6558" stroke-width="1.5"/>
+      <text class="svg-label" x="436" y="110" fill="#1F6558">oracle</text>
+      <text class="svg-small" x="436" y="128" fill="#1F6558" opacity=".85">built from the whole spec</text>
+
+      <rect x="620" y="88" width="160" height="56" rx="4" fill="none" stroke="#1F6558" stroke-width="1.5"/>
+      <text class="svg-label" x="636" y="110" fill="#1F6558">spec</text>
+      <text class="svg-small" x="636" y="128" fill="#1F6558" opacity=".85">ticket + requirements</text>
+
+      <text class="svg-small" x="10" y="178" fill="currentColor" opacity=".6">fail</text>
+      <text class="svg-small" x="210" y="178" fill="currentColor" opacity=".6">fail</text>
+      <text class="svg-small" x="420" y="178" fill="#1F6558">pass</text>
+      <text class="svg-small" x="620" y="178" fill="#1F6558">pass</text>
+
+      <rect x="10" y="192" width="770" height="46" rx="4" fill="#F6EBDA" stroke="#A55F0B" stroke-width="1.5"/>
+      <text class="svg-label" x="28" y="213" fill="#A55F0B">that pattern, and only that pattern, is a fact worth grading</text>
+      <text class="svg-small" x="28" y="230" fill="#A55F0B" opacity=".85">naive passing = coincidence · pristine passing = vacuous · oracle failing = broken · spec failing = unreachable</text>
+    </svg>
+    <figcaption>The naive tree is the blind condition, mechanised: a separate agent that has seen only
+    the ticket. Nothing is emitted until every declared fact reads <code>hidden</code>.</figcaption>
+  </figure>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Verdict</th><th>pristine</th><th>naive</th><th>oracle</th><th>What to do</th></tr></thead>
+      <tbody>
+        <tr><td><strong>hidden</strong></td><td>fail</td><td>fail</td><td>pass</td><td>ship it</td></tr>
+        <tr><td>coincidence</td><td>fail</td><td><strong>pass</strong></td><td>pass</td><td>extend the specification — do <em>not</em> re-cut</td></tr>
+        <tr><td>vacuous</td><td><strong>pass</strong></td><td>pass</td><td>pass</td><td>the test does not require the feature to exist; fix the test</td></tr>
+        <tr><td>broken</td><td>—</td><td>—</td><td><strong>fail</strong></td><td>a real defect. Stop here</td></tr>
+        <tr><td>unreachable</td><td>fail</td><td>fail</td><td>pass, <strong>spec fails</strong></td><td>the requirement does not say what the suite grades</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <p><b>A coincidence is a fact about the specification, not about the cut.</b> When the bracket
+    reports one, the instinct is to hide different facts. That does not work: re-cutting only chooses
+    <em>which</em> parts to hide, and if every part was derivable from the surrounding source, each
+    new cut is as bad as the last. What works is extending the specification with parts carrying
+    content the codebase cannot supply — an invented name, a chosen value, a policy with no local
+    evidence, or a deliberate departure from what the surrounding code plainly does.</p>
+  </div>
+
+  <h3>The test that decides whether a part is really hidden</h3>
+  <p><em>Could a competent engineer, with the ticket and the surrounding source, arrive at this by
+  reading?</em> If yes it is not hidden, however many alternatives exist. This is stricter than
+  "name two plausible alternatives", and it is the rule the whole authoring prompt now turns on.</p>
+
+  <h3>What is automated, and what is not</h3>
+  <p>Every stage is automated: the specification, the oracle patch, the cut, the suite, the naive
+  build, the bracket, the emitted arms. The judgement <em>between</em> stages is not. Two things are
+  irreducibly human — choosing an area where two sides genuinely disagree and the disagreement is
+  reachable, and writing the brief that names exact files and line numbers. A brief pointing at an
+  area with one obvious implementation produces facts the bracket will reject.</p>
+</section>
+
+<section id="arms">
+  <p class="kicker">07 — The measurement design</p>
+  <h2>The arm ladder</h2>
+  <p>A low blind score on its own is ambiguous between three different failures: the agent could not
+  build the feature, could not find the evidence, or found it and could not use it. Each arm removes
+  one of those explanations, and the whole design is the difference between them.</p>
+
+  <dl class="ladder">
+    <div class="rung"><dt>blind</dt><dd>the ticket alone.<em>Should score ~0. If it scores 0 <strong>and</strong> the open feature passes, the agent built competently and recovered nothing — which is the load-bearing part of the zero.</em></dd></div>
+    <div class="rung"><dt>spec</dt><dd>the ticket plus the hidden requirements, stated outright.<em>Should score ~1.00. This is the proof that the suite is satisfiable and the requirements as written are sufficient.</em></dd></div>
+    <div class="rung"><dt>clues</dt><dd>the ticket plus every planted remark, quoted inline in date order, herrings included and unlabelled.<em>The ceiling: can an agent use scattered evidence once it has already been pulled out for it?</em></dd></div>
+    <div class="rung"><dt>world</dt><dd>the blind ticket, byte for byte, against a populated image whose chat, wiki and mail genuinely contain those remarks.<em>The real article: can it find the evidence itself?</em></dd></div>
+    <div class="rung"><dt>world-located</dt><dd>the world arm with the search already done — the agent is told which pages and days hold the evidence.<em>Splits retrieval from reading: handed the right rooms, does it still miss it?</em></dd></div>
+    <div class="rung"><dt>…-hosted</dt><dd>the same arms built <code>FROM</code> the published registry image, pinned by digest.<em>Horizon cannot resolve a local tag, so the hosted twins differ only in their base.</em></dd></div>
+  </dl>
+
+  <p>Reading them against each other is the whole method. <strong><code>clues</code> matching its
+  <code>spec</code> twin</strong> means the plant is sufficient and any blind gap is retrieval.
+  <strong><code>clues</code> matching the blind arm</strong> means the plant is too thin and no amount
+  of corpus work will fix it.</p>
+  <p>Only <code>world*</code> arms boot the populated image; every other arm must see an empty
+  Mattermost, or the corpus stops being the one variable between them.</p>
+
+  <div class="note">
+    <p><b>A name being present is not the same as a decision being made.</b> A clues arm can have
+    every graded identifier typed somewhere, by any regex you like, and still be met by runs that
+    build the ticket and ignore the remarks. The check that catches this decomposes each requirement
+    against <em>its own test assertions</em> — atomic by construction, and what is actually scored —
+    and judges each one <code>stated</code> / <code>implied</code> / <code>absent</code> /
+    <code>not_required</code> against the corpus. <code>implied</code> is the finding: true, in the
+    right room, in the right voice, and it tells nobody to do anything.</p>
+  </div>
+</section>
+
+<section id="grading">
+  <p class="kicker">08 — harbor_tasks/_suites</p>
+  <h2>Grading, and the forgery that shaped it</h2>
+  <p>Grading runs inside the container against <strong>what the agent pushed</strong> — not its
+  working tree, and not the deployed release. That separation is what makes a result readable: the
+  provenance checks say separately whether the change was pushed, whether CI went green and whether
+  it deployed, so an agent that wrote the right code and never deployed it scores zero on provenance
+  and full marks on the requirements, instead of one shared zero that could mean either.</p>
+
+  <p>Importing the submission <em>is</em> executing it. When the grading pytest ran as root with the
+  submission early on the path, a pushed <code>sitecustomize.py</code> ran as uid 0 before a single
+  assertion, rewrote the grader's own <code>score.py</code>, and returned every subscore at 1.0 from a
+  tree that implemented nothing. Dropping to an unprivileged uid removed that — and did not remove
+  score forgery, because the same child still wrote the report the score was read from: an
+  <code>atexit</code> hook in the submission rewrote <code>junit.xml</code> and produced
+  <code>reward 1.0</code> from a pristine tree.</p>
+  <p>A uid cannot fix that. The fix is structural.</p>
+
+  <figure>
+    <svg viewBox="0 0 800 230" role="img" aria-label="A worker process running as nobody imports the submission and writes observations; a judge process running as root reads the observations and the source text and decides pass or fail without importing agent code">
+      <defs>
+        <marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="ar5g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#1F6558"/>
+        </marker>
+      </defs>
+      <rect x="1" y="40" width="300" height="130" rx="5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <text class="svg-small" x="16" y="30" fill="currentColor" opacity=".55">UNPRIVILEGED — user: nobody</text>
+      <text class="svg-label" x="18" y="68" fill="currentColor">worker (probe.py)</text>
+      <text class="svg-small" x="18" y="92" fill="currentColor" opacity=".75">imports the submission</text>
+      <text class="svg-small" x="18" y="110" fill="currentColor" opacity=".75">runs a fixed ordered list of probes</text>
+      <text class="svg-small" x="18" y="128" fill="currentColor" opacity=".75">returns observations, or error markers</text>
+      <text class="svg-note" x="18" y="152" fill="#9C3A2C">its atexit hooks can only touch files it owns</text>
+
+      <path d="M306 105 L378 105" stroke="currentColor" stroke-width="1.6" marker-end="url(#ar5)"/>
+      <text class="svg-small" x="308" y="97" fill="currentColor" opacity=".7">observations</text>
+      <text class="svg-small" x="308" y="124" fill="currentColor" opacity=".55">harvested O_NOFOLLOW, size-capped</text>
+
+      <rect x="383" y="40" width="300" height="130" rx="5" fill="none" stroke="#1F6558" stroke-width="1.8"/>
+      <text class="svg-small" x="398" y="30" fill="#1F6558" opacity=".8">PRIVILEGED — user: root</text>
+      <text class="svg-label" x="400" y="68" fill="#1F6558">judge (judge.py)</text>
+      <text class="svg-small" x="400" y="92" fill="#1F6558" opacity=".85">NEVER imports the submission</text>
+      <text class="svg-small" x="400" y="110" fill="#1F6558" opacity=".85">runs the assertions over the observations</text>
+      <text class="svg-small" x="400" y="128" fill="#1F6558" opacity=".85">reads the cloned source as text</text>
+      <text class="svg-note" x="400" y="152" fill="#1F6558">emits {fact_key: passed | failed}</text>
+
+      <path d="M688 105 L760 105" stroke="#1F6558" stroke-width="1.6" marker-end="url(#ar5g)"/>
+      <text class="svg-small" x="700" y="97" fill="#1F6558">score.py</text>
+      <text class="svg-small" x="120" y="202" fill="currentColor" opacity=".65">the process that IMPORTS agent code is no longer the process that DECIDES pass/fail</text>
+    </svg>
+    <figcaption>A suite that ships <code>probe.py</code> and <code>judge.py</code> is graded
+    out-of-process; one without them takes the older in-process path. The split is opt-in per suite,
+    and it is what makes a forged pass impossible rather than merely harder.</figcaption>
+  </figure>
+
+  <p><code>score.py</code> folds outcomes into per-fact reward keys — <code>g1.r1.rule</code> and
+  friends — seeding every expected key at 0.0 first, so a suite that could not even run scores zero
+  rather than silently omitting keys. The headline <code>reward</code> is the mean over hidden facts
+  and <strong>excludes</strong> the open feature, which is why the open feature is reported
+  separately: a blind arm scoring 0.00 with the open feature at 1.0 means something completely
+  different from one scoring 0.00 with the open feature at 0.</p>
+  <p>The same <code>score.py</code> is imported by the local bracket rather than reimplemented, so a
+  fact key means exactly the same thing in a free local run and in a paid hosted one.</p>
+</section>
+
+<section id="measure">
+  <p class="kicker">09 — Running the experiment</p>
+  <h2>Measuring</h2>
+  <p>Locally first — one machine, one model, the instruction the only variable — and spend hosted
+  rollouts only on what the local bracket cannot answer. A hosted average multiplies a completion
+  rate by a recovery rate, and five rollouts cannot separate them.</p>
+
+  <h3>Two numbers are the verdict</h3>
+  <p><code>spec ≈ 1.00</code> says the suite is satisfiable. <code>blind ≈ 0.00</code> says the
+  requirements are genuinely hidden. Everything else is diagnosis.</p>
+
+  <h3>When several facts fail together</h3>
+  <p><strong>Perfectly correlated per-fact failures are one defect, not variance.</strong> Three facts
+  failing together on the same runs with byte-identical assertion errors is a single ambiguous
+  sentence somewhere, not three problems. Find it before sampling more, and read the failing
+  assertion's two sides rather than the fact's name.</p>
+
+  <h3>Hosted runs</h3>
+  <p>The hosted platform's CLI lives in its own virtualenv outside this repo. Pushing writes a
+  binding file recording the task's server id and version — losing it makes the next push create a
+  <em>second</em> task rather than a new version, which is why those files are deliberately not
+  gitignored. Validation in the hosted idiom is this repo's own bracket: an oracle agent must come
+  back 1.00 and a noop agent 0.00.</p>
+
+  <div class="trap">
+    <b>The agent type is a function of the task format.</b>
+    <p>The apex-format arms and the harbor-format arms have different rosters. Submitting a harbor
+    task with the apex agent type fails the whole evaluation in about three minutes with zero
+    rollouts, zero spend, and a step trace that looks exactly like an exhausted budget. Check the
+    format in the binding file before you start debugging credentials.</p>
+  </div>
+
+  <div class="trap">
+    <b>While an evaluation is running, its status table lies.</b>
+    <p>The rendered table shows every unfinished rollout as failed with no score — indistinguishable
+    from twenty genuine failures. The truth is in the JSON: one field counts what actually errored,
+    another counts what has finished. An evaluation was once cancelled on the strength of that column
+    while all twenty runs were healthy and mid-flight: seventeen dollars spent, no refund, no
+    measurement.</p>
+  </div>
+
+  <p>Rollouts are pulled back as per-run JSON carrying the score and a subscore map keyed exactly like
+  the local bracket, so a hosted number and a local number are directly comparable. Reading them is
+  its own discipline: cross-check each transcript against the answer key remark by remark, because
+  the subscores only tell you where to look.</p>
+</section>
+
+<section id="map">
+  <p class="kicker">10 — Orientation</p>
+  <h2>Every directory, and who writes it</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Path</th><th></th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code>world/</code></td><td><span class="tag src">source</span></td><td>the image: Dockerfile, supervisord, nginx vhosts, numbered bootstrap scripts, <code>bin/</code> (deploy daemon, <code>world-verify</code>), per-service config, the CI template</td></tr>
+        <tr><td><code>scripts/</code></td><td><span class="tag src">source</span></td><td>the ingests — history, forge, docs, comments, chat, mail — plus <code>worldlib.py</code>. Run in that order by <code>bake-image</code></td></tr>
+        <tr><td><code>vendor/</code></td><td><span class="tag src">source</span></td><td>frozen third-party source: the curator snapshot and the <code>actions/checkout</code> tree, never cloned at build time</td></tr>
+        <tr><td><code>data/schemas/</code></td><td><span class="tag src">source</span></td><td>the hand-written data contracts an ingest expects</td></tr>
+        <tr><td><code>data/</code></td><td><span class="tag gen">generated</span></td><td>the corpus itself: identities, channels, <code>messages.jsonl</code>, <code>docs/</code>, <code>emails/</code>, <code>comments.jsonl</code>, and <code>history/</code> (gitignored, ~104MB)</td></tr>
+        <tr><td><code>data_gen/</code></td><td><span class="tag src">source</span></td><td>the generator: stages 0–2, phases 1–4, <code>repolib.py</code>, and <code>input/tasks.json</code> — 60 hand-written tasks</td></tr>
+        <tr><td><code>data_gen/build/</code>, <code>cache/</code></td><td><span class="tag ign">ignored</span></td><td>generated output and the LLM cache. Large. Re-running a phase overwrites more than you expect</td></tr>
+        <tr><td><code>task_generator/</code></td><td><span class="tag src">source</span></td><td>the authoring pipeline: <code>cli.py</code>, the <code>tg/</code> library, <code>fleet/</code> for running many at once, <code>prompts/</code>, and the emitters that write into <code>harbor_tasks/</code></td></tr>
+        <tr><td><code>task_generator/out/</code></td><td><span class="tag gen">generated</span></td><td><strong>tracked on purpose</strong> — the brief, the cut, the plant and the fixtures, none of which can be regenerated for free</td></tr>
+        <tr><td><code>harbor_tasks/</code></td><td><span class="tag gen">generated</span></td><td>the emitted arms, one folder per task. Editing one in place is undone by the next build</td></tr>
+        <tr><td><code>harbor_tasks/_suites/</code></td><td><span class="tag src">source</span></td><td>the graders — copied whole into every arm's <code>tests/</code>, because only whole directories travel</td></tr>
+        <tr><td><code>harbor_tasks/_env/</code></td><td><span class="tag src">source</span></td><td>the two base images: the repo-only local base, and the registry world the hosted arms build from</td></tr>
+        <tr><td><code>failed_tasks/</code></td><td><span class="tag gen">generated</span></td><td>the first hand-written batch (<code>t0</code>–<code>t40</code>), kept for the record with its suites, job configs and bracket report</td></tr>
+        <tr><td><code>curator/</code></td><td><span class="tag ign">ignored</span></td><td>a working clone of the real upstream repository. An input, read-only, never a source</td></tr>
+        <tr><td><code>jobs/</code></td><td><span class="tag ign">ignored</span></td><td>local trial output. Hundreds of megabytes, regenerated by re-running the trial</td></tr>
+        <tr><td><code>tasks/</code></td><td><span class="tag src">notes</span></td><td>the working notebook: <code>todo.md</code>, <code>lessons.md</code>, handoffs, and the rollout analysis</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="traps">
+  <p class="kicker">11 — Hard-won</p>
+  <h2>Things that cost real debugging time</h2>
+
+  <h4>The auth split</h4>
+  <p>Persona agent turns run on the CLI subscription token; one-shot calls — directors, judges, and
+  all of phase 3 — run on the API key. Both fail silently the wrong way round. The decision is made
+  once, the moment the persona package is first touched, which is why auth resolution has to happen
+  <em>before</em> any import that reaches it. Phase 3 is entirely one-shots, so run it on the API key:
+  the CLI backend cold-starts a session per call, about 25 seconds, against seconds for the API path.</p>
+
+  <h4>Which name each service wants at the login box</h4>
+  <p>Gitea and Mattermost want the <strong>username</strong> (<code>worldadmin</code>). BookStack and
+  Roundcube want the <strong>email</strong> (<code>worldadmin@world.local</code>).</p>
+
+  <h4>Backdating BookStack means four tables, not one</h4>
+  <p><code>entities</code>, <code>comments</code>, <code>page_revisions</code> and
+  <code>activities</code>. Correcting only the first two leaves a wiki whose pages read right but
+  whose Recent Activity feed — the dashboard's main content — says "World Admin created page X, 3
+  minutes ago" for the entire world.</p>
+
+  <h4><code>maddy creds create</code> exits 0 when it fails</h4>
+  <p>It once shipped a mail server with zero accounts while logging <code>15-mail: OK</code>. The
+  bootstrap script now asserts the account exists afterwards.</p>
+
+  <h4>Offline CI needs two things seeded</h4>
+  <p><code>actions/checkout</code> vendored into a local <code>actions</code> org, and Node in the
+  image. Actions are JavaScript: without Node every workflow dies <em>after</em> resolving the action,
+  which reads like a resolution failure and is not.</p>
+
+  <h4>Two databases, and only two</h4>
+  <p>PostgreSQL for Mattermost, MariaDB for BookStack. Neither has an alternative. Everything else is
+  SQLite.</p>
+
+  <h4>Some prose in <code>data/schemas/</code> is stale</h4>
+  <p>Parts of it still describe an earlier wiki and its authorship model; the world moved to BookStack.
+  Where the schema prose and the code disagree, trust <code>world/</code> and the ingest scripts.</p>
+
+  <h4>Judge the artefact, not its summary</h4>
+  <p>The clue gate once judged the one-clause condensation of a remark rather than the remark, and
+  passed transcripts that had lost half of it. Whenever a check compares against a <em>summary</em> of
+  a thing rather than the thing, ask what the summary drops — that is exactly what will go missing,
+  and the check will report success.</p>
+</section>
+
+<section id="changed">
+  <p class="kicker">12 — This pass</p>
+  <h2>What the reorganization changed</h2>
+  <p>Four commits, each revertible on its own, on top of a checkpoint of work that was already in the
+  tree.</p>
+  <ol>
+    <li><strong>The emitters moved to the pipeline that owns them.</strong>
+    <code>build_tasks.py</code>, <code>clue_digest.py</code>, <code>build_located_arm.py</code>,
+    <code>refresh_answer_key.py</code> and <code>mail_register.py</code> read
+    <code>task_generator/out/</code> and write into <code>harbor_tasks/</code> — they are the
+    authoring pipeline's last stage, not graded artifacts, and one of them already had to reach
+    across <code>sys.path</code> to import the library it depends on. They now live in
+    <code>task_generator/</code>.</li>
+    <li><strong>The retired <code>t*</code> material moved next to the tasks it grades.</strong> Eight
+    dead suites were sitting in <code>_suites/</code>, which is copied wholesale into every arm, so
+    all 80 live arms shipped suites for tasks nobody runs. They, the measurement record, the report
+    generator and the two job configs now live in <code>failed_tasks/</code> with the tasks
+    themselves.</li>
+    <li><strong>Two traps the move exposed, fixed.</strong> A retired task would have emitted an arm
+    whose <code>tests/</code> had no suite in it — a collection error at verify time rather than an
+    honest "this task has no suite"; and a bare <code>build_tasks.py</code> run defaulted to emitting
+    seven arms nobody wanted.</li>
+    <li><strong>Deletions:</strong> a stray <code>.rollouts/</code> at the repo root (the tool writes
+    into the current directory, so one pull from the wrong place landed 13MB a level above the arms
+    they describe), two stale one-off logs, an empty virtualenv, and two empty config directories.</li>
+  </ol>
+  <p><strong>It was proven rather than asserted.</strong> The emitters were run from two git worktrees
+  — one at the commit before the move, one after — on nine tasks and every arm type. Stdout, stderr
+  and the emitted trees came back byte-identical, and the only differences in the second run were the
+  ten retired artifacts no longer being copied into 46 places. No file's contents differed anywhere,
+  and all 80 arms still carry their own suite.</p>
+  <div class="note">
+    <p><b>One thing was reported as a duplicate and is not.</b> The two <code>g4</code> hosted
+    directories bind <em>different</em> server tasks — versions 5 and 7 — and both have pulled
+    rollouts and validations; the rollout analysis points at the first. Neither was deleted. What they
+    do share is one task name in their config, which is the actual bug and is worth fixing
+    deliberately.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Generated from the repository at commit <code>8738be9</code> on the <code>data-creation</code>
+  branch. Figures counted from <code>data/</code> and <code>harbor_tasks/</code> directly.</p>
+</footer>
+
+</div>
+
+</body>
+</html>

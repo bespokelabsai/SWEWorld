@@ -1,5 +1,13 @@
 # SWEWorld
 
+> **Start here: [`docs/how-sweworld-works.html`](docs/how-sweworld-works.html)** — the whole
+> repository explained end to end, with diagrams: the container world, the generated corpus, how a
+> requirement gets hidden, and how the task arms are authored, graded and measured. Open it in a
+> browser. This README covers the container half only.
+>
+> Also published at
+> <https://claude.ai/code/artifact/663b480e-8703-4129-ac23-633a36e7f179>.
+
 A self-hosted company "world" for agent tasks: a git server, a chat workspace, a
 docs wiki, and a mail server, running as **one container image** with
 supervisord as PID 1 — the same shape as AlphaShop, so both run under the same
