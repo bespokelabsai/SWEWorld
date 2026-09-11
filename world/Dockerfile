@@ -84,6 +84,17 @@ RUN set -eux; \
       | tar -C /opt -xz; \
     mv "/opt/roundcubemail-${ROUNDCUBE_VERSION}" /opt/roundcube
 
+# Maddy answers THREAD with a space between thread groups — `(1) (2) (10 12)` —
+# which RFC 5256's grammar never allows, and Roundcube's parser stops at the
+# first gap: the Threads view showed one message, "Welcome, Dario", out of 107.
+# Closing the gaps cannot change a conforming response, which has no space after
+# `)`. The count check fails the build if a Roundcube upgrade moves the anchor.
+RUN set -eux; \
+    f=/opt/roundcube/program/lib/Roundcube/rcube_result_thread.php; \
+    [ "$(grep -c '\$this->raw_data = empty(\$data)' "$f")" = 1 ]; \
+    sed -i 's#^\( *\)\$this->raw_data = empty(\$data)#\1$data = preg_replace("/\\)\\s+\\(/", ")(", $data);\n&#' "$f"; \
+    grep -qF ')(", $data)' "$f"
+
 # --- bookstack (notion analogue) ---------------------------------------------
 # Cloned + composer install at build time; the world runs offline afterwards.
 RUN set -eux; \
