@@ -51,7 +51,8 @@ task_generator/out/**/curator-src.tar.gz
 data/history/
 
 # Corpora `build_located_arm.py --corpus image:<tag>` pulls out of a world image.
-harbor_tasks/.located-corpora/
+# Beside the script, which lives with the pipeline that emits arms.
+task_generator/.located-corpora/
 
 # A virtualenv, not project code.
 horizon_env/

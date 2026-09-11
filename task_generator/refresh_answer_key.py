@@ -36,9 +36,9 @@ answer keys in three to five arm directories, and an edit that lands in only the
 hosted one leaves the others quietly wrong. Copies that were NOT identical to
 begin with are refused rather than overwritten.
 
-    python3 harbor_tasks/refresh_answer_key.py g1-batch-payload-plan \\
+    python3 task_generator/refresh_answer_key.py g1-batch-payload-plan \\
         --corpus data/emails
-    python3 harbor_tasks/refresh_answer_key.py g2-executor-output-cap \\
+    python3 task_generator/refresh_answer_key.py g2-executor-output-cap \\
         --corpus harbor_tasks/g2-executor-output-cap/executor-output-cap-world-hosted/environment/plant/emails \\
         --apply
 
@@ -190,7 +190,10 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
-    root = pathlib.Path(__file__).resolve().parent
+    # A bare group name is resolved under the harbor tree, not beside this
+    # script: the answer keys it rewrites live with the arms, and this file
+    # lives with the pipeline that emits them.
+    root = pathlib.Path(__file__).resolve().parents[1] / "harbor_tasks"
     group = root / args.group if not pathlib.Path(args.group).is_dir() else pathlib.Path(args.group)
     msgs = corpus(args.corpus)
 

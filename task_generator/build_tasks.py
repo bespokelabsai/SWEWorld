@@ -24,8 +24,8 @@ separates them for the cost of one extra `instruction.md`. Only `instruction.md`
 and `[task].name` may differ between a pair — anything else and the pair stops
 being a control.
 
-    python3 harbor_tasks/build_tasks.py --limit 4
-    python3 harbor_tasks/build_tasks.py --pick t7,t12
+    python3 task_generator/build_tasks.py --limit 4
+    python3 task_generator/build_tasks.py --pick t7,t12
 
 Rebuilding is idempotent: generated files are overwritten, `_suites/` is copied
 into each task's `tests/` (Harbor copies `tests/` to /tests at verify time, and
@@ -42,10 +42,13 @@ from pathlib import Path
 
 import clue_digest
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent          # task_generator/
 REPO = ROOT.parent
 TASKS_JSON = REPO / "data_gen" / "input" / "tasks.json"
-SUITES = ROOT / "_suites"
+# This script lives with the authoring pipeline and writes into the harbor tree,
+# so every output path goes through HARBOR and never through ROOT.
+HARBOR = REPO / "harbor_tasks"
+SUITES = HARBOR / "_suites"
 
 # The base every task builds one thin layer on. Verified to be repository +
 # history with nothing else: see harbor_tasks/_env/Dockerfile.
@@ -977,7 +980,7 @@ def write(path: Path, text: str, executable: bool = False) -> None:
 
 def group_dir(task: dict, slug: str) -> Path:
     """The folder holding every version of one task, plus its fixtures."""
-    return ROOT / f"{task['_id']}-{slug}"
+    return HARBOR / f"{task['_id']}-{slug}"
 
 
 def check_clue_arm(task: dict, text: str) -> None:

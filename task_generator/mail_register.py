@@ -20,8 +20,8 @@ generated even when every word under it is good.
 What this does NOT do is rewrite prose. A body that still reads as chat -- all
 lowercase, no sign-off -- needs a person, and is reported rather than touched:
 
-    python3 harbor_tasks/mail_register.py <emails-dir>            # dry run
-    python3 harbor_tasks/mail_register.py <emails-dir> --apply
+    python3 task_generator/mail_register.py <emails-dir>            # dry run
+    python3 task_generator/mail_register.py <emails-dir> --apply
 
 Threads are grouped by subject with every `Re:`/`Fwd:` prefix stripped, because
 the corpus contains both `foo` and ` Re: foo` for one conversation and treating

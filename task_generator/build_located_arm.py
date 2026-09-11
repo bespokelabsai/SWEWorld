@@ -20,8 +20,8 @@ ids are grouped `r1`/`r2` and would give it away), which four are herrings (`kin
 or which fact a remark carries (`covers`). Anything more and this stops measuring
 inference and starts measuring reading comprehension of the answer key.
 
-    python3 harbor_tasks/build_located_arm.py batch-payload-plan --print
-    python3 harbor_tasks/build_located_arm.py batch-payload-plan
+    python3 task_generator/build_located_arm.py batch-payload-plan --print
+    python3 task_generator/build_located_arm.py batch-payload-plan
 
 Locations are read back out of the corpus rather than out of the plant, through
 `tg.inject.located` -- the same function the answer key uses, for the same reason:
@@ -45,9 +45,11 @@ import shutil
 import subprocess
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent
+ROOT = pathlib.Path(__file__).resolve().parent          # task_generator/
 REPO = ROOT.parent
-sys.path.insert(0, str(REPO / "task_generator"))
+# `tg` is a sibling of this file, so running it as a script already finds it.
+# Stated anyway, because importing this module from anywhere else would not.
+sys.path.insert(0, str(ROOT))
 
 from tg import inject                      # noqa: E402
 from tg.model import load                  # noqa: E402

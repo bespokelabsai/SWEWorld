@@ -1103,7 +1103,7 @@ def world_image() -> str:
     later, and a doc that quietly names the wrong image is worse than one that
     names none.
     """
-    text = (REPO / "harbor_tasks" / "build_tasks.py").read_text()
+    text = (REPO / "task_generator" / "build_tasks.py").read_text()
     found = re.search(r'WORLD_IMAGE\s*=\s*"([^"]+)"', text)
     return found.group(1) if found else "the populated world image"
 

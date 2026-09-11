@@ -185,7 +185,7 @@ def cmd_emit(args) -> int:
     task = load(args.slug)
     for key in ("suite", "fixtures", "generated"):
         print(f"  {out[key]}")
-    print(f"\nnext:\n  python3 harbor_tasks/build_tasks.py "
+    print(f"\nnext:\n  python3 task_generator/build_tasks.py "
           f"--extra-tasks {out['generated']} --pick {task.id}\n"
           f"  python3 task_generator/cli.py trial {task.slug} --arm spec")
     return 0

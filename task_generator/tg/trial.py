@@ -38,7 +38,7 @@ def launch(task: Task, arm: str, job: str | None = None,
         raise SystemExit(
             f"no harbor task at {path}. Emit it first:\n"
             f"  python3 {REPO}/task_generator/cli.py emit {task.slug}\n"
-            f"  python3 {REPO}/harbor_tasks/build_tasks.py "
+            f"  python3 {REPO}/task_generator/build_tasks.py "
             f"--extra-tasks {REPO}/task_generator/tasks.generated.json --pick {task.id}")
 
     name = job or f"{arm}-{task.id}-1"

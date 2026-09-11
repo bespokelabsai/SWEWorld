@@ -5,7 +5,7 @@ This is what the `-clues` arm of each harbor task hands the agent instead of the
 requirement: every remark phase 3 placed for that task, in date order, with where
 and when it was said and by whom — and the herrings sitting unmarked among them.
 
-    python3 harbor_tasks/clue_digest.py t1        # read one before shipping it
+    python3 task_generator/clue_digest.py t1        # read one before shipping it
 
 The point of the arm is to split a low blind-arm score into its causes. `-spec`
 asks whether the requirement can be implemented once stated; this asks whether it
