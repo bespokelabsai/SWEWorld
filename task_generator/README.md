@@ -139,12 +139,15 @@ cli report <slug>                   # -> report.md, the four-condition matrix
 And to build the harbor arms after `emit`:
 
 ```bash
-python3 harbor_tasks/build_tasks.py \
+python3 task_generator/build_tasks.py \
     --extra-tasks task_generator/tasks.generated.json --pick g1 [--world]
 ```
 
-`--extra-tasks` is the only change this package makes outside its own directory.
-It exists because ids in `data_gen/input/tasks.json` are **positional** (`t1`…`t60`)
+`harbor_tasks/` is this package's **output tree**: `build_tasks.py`,
+`build_located_arm.py`, `refresh_answer_key.py` and `tg/emit.py` all write into
+it, and nothing there writes back. What the package does not touch is the
+hand-written 60 in `data_gen/input/tasks.json`, which is what `--extra-tasks` is
+for: ids in that file are **positional** (`t1`…`t60`)
 and `SLUGS`/`SUITE_DIR` are hardcoded index dicts, so a generated task has to
 carry its own id, slug and suite. The hand-written 60 are never touched.
 `--world` adds a fourth arm that boots the populated image, where the remarks are
@@ -377,7 +380,7 @@ here means exactly what it will mean in `jobs/<job>/result.json`.
 the hidden requirements still fails, so the requirement's wording is wrong, and no
 amount of re-cutting will help. A `coincidence`, by contrast, comes off a `naive`
 tree built **exactly once**, so one sample of a stochastic process decided it;
-`harbor_tasks/BRACKET.md` records 14 hidden / 13 coincidence across t1–t4 and
+`failed_tasks/BRACKET.md` records 14 hidden / 13 coincidence across t1–t4 and
 those tasks shipped.
 
 **On coincidences, do not re-cut.** This is the one decision the tool does not
@@ -506,7 +509,7 @@ cli reknit <slug>          # the invented conversations must SAY the remark
 cli inject <slug>          # -> a copy of the corpus with the plant written in
 python3 data_gen/install_corpus.py --run <run>-<id>
 make bake-image TAG=0.4.2  # gated on world-verify
-python3 harbor_tasks/build_tasks.py --extra-tasks task_generator/tasks.generated.json \
+python3 task_generator/build_tasks.py --extra-tasks task_generator/tasks.generated.json \
         --pick g1 --world
 cli trial <slug> --arm world
 ```
@@ -686,7 +689,7 @@ that treats every non-zero exit as fatal will stop on a perfectly good artifact:
   chosen value or a policy the code is silent about instead of on a name.
 - **`bracket`** builds `naive` exactly ONCE, so a single sample of a stochastic
   process decides every coincidence verdict — the same defect `prove` had before it
-  gained `--runs 3`. `harbor_tasks/BRACKET.md` records 14 hidden / 13 coincidence
+  gained `--runs 3`. `failed_tasks/BRACKET.md` records 14 hidden / 13 coincidence
   across t1–t4, and those tasks shipped.
 
 Read both, then measure. **The verdict is `cli.py trial --arm spec` and

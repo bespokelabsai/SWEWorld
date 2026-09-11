@@ -3,7 +3,7 @@
 A role — `oracle`, `naive`, or any extra variant — gets its own copy of the
 curator checkout to edit, and produces a fixture: a patch plus a short applier
 taking the checkout path. That is the calling convention
-`harbor_tasks/BRACKET.md` and `_suites/bracket_matrix.txt` already use
+`failed_tasks/BRACKET.md` and `failed_tasks/_suites/bracket_matrix.txt` already use
 (`python3 fixtures/oracle.py <checkout>`), so nothing downstream has to learn a
 new shape — but the patch is generated from what the agent actually did rather
 than hand-written, which is what makes this scale past one task.

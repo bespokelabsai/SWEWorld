@@ -351,8 +351,19 @@ vendor/                   frozen third-party source (curator), never cloned
 scripts/                  ingestion: git, docs, comments, chat, mail
                           (+ worldlib)
 data/schemas/             the data contracts a generation step must satisfy
-data/                     placeholder content matching those contracts
+data/                     the corpus those contracts describe — 9.6k chat
+                          messages, 108 wiki pages, 613 mails, and the
+                          rewritten curator history under history/
 Makefile                  build-image · run · verify · bake-image · push-image
+
+data_gen/                 generates the corpus: stages 0-2 read the real
+                          curator repository, phases 1-4 build the company,
+                          its people and months of chat, docs and mail
+task_generator/           authors one hidden-requirement task at a time, and
+                          emits its arms into harbor_tasks/
+harbor_tasks/             the emitted arms, plus _suites/ (the graders that
+                          run inside the container) and _env/ (their bases)
+failed_tasks/             the first hand-written batch, kept for the record
 ```
 
 ## Publishing

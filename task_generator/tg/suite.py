@@ -8,7 +8,7 @@ import it is `/opt/curator-dev/venv` inside `sweworld:repo-only-dev`, which hold
 curator's whole dependency closure with curator itself deliberately uninstalled
 so the tree under test is what gets imported (see `harbor_tasks/_env/Dockerfile`).
 
-This reproduces `harbor_tasks/BRACKET.md` §"Reproducing this" — the same recipe
+This reproduces `failed_tasks/BRACKET.md` §"Reproducing this" — the same recipe
 that replaced a seven-hour, eight-trial agent experiment whose numbers had to be
 discarded, with a thirty-second deterministic one.
 

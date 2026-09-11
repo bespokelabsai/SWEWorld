@@ -23,7 +23,7 @@ night. A run is ~20 minutes and ~$9 of subscription usage.
 Before every re-run the bracket is re-checked in `devbox`: **oracle must still
 pass every test** (a fix that breaks satisfiability is worse than the bug) and
 pristine must still fail. Fixes that make a fact non-discriminating are recorded
-in `_suites/bracket_matrix.txt`, never reverted to keep a number alive.
+in `failed_tasks/_suites/bracket_matrix.txt`, never reverted to keep a number alive.
 
 `run.sh` passes `CLAUDE_CODE_OAUTH_TOKEN` and nothing else. `ANTHROPIC_API_KEY`
 lives in `.env` for phase-3 one-shots and must not reach an agent turn.

@@ -4,7 +4,7 @@
 # single non-recursive `iterdir()`, so a folder of folders-of-tasks reads as a
 # folder with no tasks in it. Each group directory is named here instead:
 #
-#     harbor run -c harbor_tasks/all.yaml -a oracle
+#     harbor run -c failed_tasks/all.yaml -a oracle
 #
 # One group at a time is the same command with -p:
 #

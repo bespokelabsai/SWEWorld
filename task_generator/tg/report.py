@@ -1,6 +1,6 @@
 """One page: what each condition of the rubric's protocol actually returned.
 
-Deliberately renders and never measures. `harbor_tasks/make_bracket.py` is built
+Deliberately renders and never measures. `failed_tasks/make_bracket.py` is built
 the same way and for the same reason — regenerating the prose must not be able to
 quietly change a number.
 """
