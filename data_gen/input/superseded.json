@@ -1,0 +1,584 @@
+{
+  "why": "Phase 4 simulated some days more than once before worldapps.Store.drop_day existed, and kept every pass's mail and pages: the chat for a re-simulated day was replaced (merge_days), nothing else was. Each entry names a copy that is not the corpus and the copy that is. install_corpus.py drops `drop` only while `keep` is present. Mail keeps the last pass's copy, because that pass's chat is the chat the corpus has; a page keeps the copy the plan asked for and the chat links to.",
+  "mail": [
+    {
+      "what": "dario 2024-12-17, v0.1.12 announcement, 'Millrow v0.1.12 is out'",
+      "drop": "<178764660502.1848256.10536108791294479575@world.local>",
+      "keep": "<178777336440.2892162.3232262825243765718@world.local>"
+    },
+    {
+      "what": "konrad 2025-01-20, weekly update for the week of Jan 13",
+      "drop": "<178777888220.3039647.7362977399608977492@world.local>",
+      "keep": "<178777955182.3039647.18391637851398135571@world.local>"
+    },
+    {
+      "what": "dermot 2025-01-28, v0.1.17 announcement, first pass",
+      "drop": "<178766256489.1938449.2376797950120810351@world.local>",
+      "keep": "<178778365066.3143269.9061679023111206752@world.local>"
+    },
+    {
+      "what": "dermot 2025-01-28, v0.1.17 announcement, second pass",
+      "drop": "<178777977906.3039647.837971111677206117@world.local>",
+      "keep": "<178778365066.3143269.9061679023111206752@world.local>"
+    },
+    {
+      "what": "dermot 2025-01-28, v0.1.17 announcement retitled 'v0.1.17 out — Millrow / Stratos Crunch'",
+      "drop": "<178778095067.3039647.6702175486265469170@world.local>",
+      "keep": "<178778365066.3143269.9061679023111206752@world.local>"
+    },
+    {
+      "what": "dario 2025-01-28, 'Re: Prompt-level response cache keying' at 10:17",
+      "drop": "<178778016246.3039647.5210324312917939812@world.local>",
+      "keep": "<178778395245.3143269.5820508031317902647@world.local>"
+    },
+    {
+      "what": "dario 2025-01-28, 'Re: Prompt-level response cache keying' at 11:06",
+      "drop": "<178778124972.3039647.9112027119644135363@world.local>",
+      "keep": "<178778395245.3143269.5820508031317902647@world.local>"
+    },
+    {
+      "what": "konrad 2025-02-03, weekly update for the week of Jan 27",
+      "drop": "<178766484965.1957902.2715477333807031806@world.local>",
+      "keep": "<178778403561.3143269.690691804223481739@world.local>"
+    },
+    {
+      "what": "dario 2025-02-03, handover of request-processing core and provider backends",
+      "drop": "<178766487638.1957902.1953571829137639938@world.local>",
+      "keep": "<178778417583.3143269.12323392419973166707@world.local>"
+    },
+    {
+      "what": "gideon 2025-02-17, 0.1.19 announcement, 'Millrow 0.1.19 is out — please upgrade'",
+      "drop": "<178767226655.2014360.11002897527673696847@world.local>",
+      "keep": "<178777384015.2918913.12019411953410589892@world.local>"
+    },
+    {
+      "what": "konrad 2025-02-17, weekly update for the week of Feb 10; the first pass's Sent copy was overwritten, leaving only priya's INBOX copy",
+      "drop": "<178767266458.2014360.16647351902353724792@world.local>",
+      "keep": "<178777397949.2918913.6024094928441666835@world.local>"
+    },
+    {
+      "what": "emil 2025-02-24, weekly update for the week of Feb 17",
+      "drop": "<178767534553.2037813.9615381600721291928@world.local>",
+      "keep": "<178778560563.3143269.2513433582787632379@world.local>"
+    },
+    {
+      "what": "konrad 2025-03-10, welcome to Nils and Theo, 'Welcome to the team'",
+      "drop": "<178768340927.2077659.11160539315328233319@world.local>",
+      "keep": "<178777461040.2918913.17117661670697989410@world.local>"
+    },
+    {
+      "what": "nikolai 2025-04-16, 'Re: Docker code executor image pinning' at 10:38",
+      "drop": "<178778985170.3143269.12933420250823233973@world.local>",
+      "keep": "<178778890300.3143269.15171802653801680503@world.local>"
+    }
+  ],
+  "docs": [
+    {
+      "what": "dario 2025-01-28, filed on a second shelf; chat links design/",
+      "drop": "engineering/prompt-level-response-cache-keying.md",
+      "keep": "design/prompt-level-response-cache-keying.md"
+    },
+    {
+      "what": "nikolai 2025-04-16, filed on a second shelf; chat links engineering/",
+      "drop": "design/docker-code-executor-image-pinning.md",
+      "keep": "engineering/docker-code-executor-image-pinning.md"
+    },
+    {
+      "what": "dermot 2025-04-07, filed on a second shelf; design/ is the later pass",
+      "drop": "engineering/ws-055-release-engineering-ci-test-suite.md",
+      "keep": "design/ws-055-release-engineering-ci-test-suite.md"
+    },
+    {
+      "what": "gideon 2024-12-16, the Dec 4 postmortem written twice; the plan's title, which chat quotes, is the other one",
+      "drop": "incidents/dec-4-revert-end-of-run-retry-logic.md",
+      "keep": "incidents/postmortem-dec-4-revert-of-end-of-run-retry-logic.md"
+    },
+    {
+      "what": "gideon 2025-03-04, notes for the week of Feb 24 written again a week late; the plan asked for them on 2025-02-26",
+      "drop": "meetings/weekly-sync-notes-week-of-feb-24.md",
+      "keep": "meetings/weekly-sync-notes-week-of-feb-24-v0-1-19-post1-and-v0-1-20-shipped.md"
+    },
+    {
+      "what": "dario 2024-11-25, v0.1.9.post1 release notes written again and contradicting the first (LiteLLM revert, not the caching fix); the plan asked for them on 2024-11-19, where 11 chat messages point. Two 2024-11-25 chat messages link to this path and are left pointing at nothing.",
+      "drop": "releases/release-notes-v0-1-9-post1.md",
+      "keep": "releases/v0-1-9-post1-release-notes.md"
+    }
+  ],
+  "chat": [
+    {
+      "what": "nikolai #releases 2025-04-24, the same sentence posted again at 11:49",
+      "drop": "m-releases-2025-04-24-533",
+      "keep": "m-releases-2025-04-24-525"
+    },
+    {
+      "what": "gideon #incidents 2025-03-12, the same remark restated in the same minute",
+      "drop": "m-incidents-2025-03-12-148",
+      "keep": "m-incidents-2025-03-12-147"
+    },
+    {
+      "what": "emil #code-review 2025-07-10, the same sentence posted again at 14:14",
+      "drop": "m-code-review-2025-07-10-3046",
+      "keep": "m-code-review-2025-07-10-3028"
+    },
+    {
+      "what": "dermot #engineering 2024-11-01 09:00, same 'plan is in good shape' status cross-posted same minute",
+      "drop": "m-engineering-2024-11-01-010",
+      "keep": "m-code-review-2024-11-01-022"
+    },
+    {
+      "what": "dermot #code-review 2024-11-04 15:10, same 'plan doesn't cover bella/flatten_list' re-said same channel hours later",
+      "drop": "m-code-review-2024-11-04-054",
+      "keep": "m-code-review-2024-11-04-040"
+    },
+    {
+      "what": "gideon #code-review 2024-11-06 15:19, same 'release eng plan not on wiki' said again an hour later, unanswered",
+      "drop": "m-code-review-2024-11-06-080",
+      "keep": "m-viewer-2024-11-06-011"
+    },
+    {
+      "what": "dermot #engineering 2024-11-07 12:13, same source_file-still-open claim a third time, unanswered",
+      "drop": "m-engineering-2024-11-07-126",
+      "keep": "m-code-review-2024-11-07-105"
+    },
+    {
+      "what": "gideon #code-review 2024-11-08 13:18, same 'cookbooks plan not on wiki' re-said next day, nobody answered this copy",
+      "drop": "m-code-review-2024-11-08-146",
+      "keep": "m-engineering-2024-11-07-128"
+    },
+    {
+      "what": "dario #engineering 2024-11-11 16:50, same 'parsing fix + token fallback ready, up today' status re-said same day",
+      "drop": "m-engineering-2024-11-11-195",
+      "keep": "m-engineering-2024-11-11-180"
+    },
+    {
+      "what": "dermot #code-review 2024-11-14 09:20, same 'asyncio + client cleanup merged, stable' cross-posted a third time",
+      "drop": "m-code-review-2024-11-14-251",
+      "keep": "m-engineering-2024-11-14-237"
+    },
+    {
+      "what": "gideon #code-review 2024-11-14 13:25, same 'anyone take PR 44 this afternoon' ask 22 min later",
+      "drop": "m-code-review-2024-11-14-263",
+      "keep": "m-code-review-2024-11-14-261"
+    },
+    {
+      "what": "konrad #cookbooks 2024-11-15 09:00, same README/links/poem-example wrap-up cross-posted same minute",
+      "drop": "m-cookbooks-2024-11-15-149",
+      "keep": "m-releases-2024-11-15-000"
+    },
+    {
+      "what": "dario #code-review 2024-11-15 14:38, same 'announcement sent to konrad/gideon/dermot/emil'; releases copy is the one Dermot replies to",
+      "drop": "m-code-review-2024-11-15-271",
+      "keep": "m-releases-2024-11-15-008"
+    },
+    {
+      "what": "konrad #cookbooks 2024-11-15 16:02, same 'process plan not written yet, on me' re-said two days later",
+      "drop": "m-cookbooks-2024-11-15-163",
+      "keep": "m-code-review-2024-11-13-244"
+    },
+    {
+      "what": "gideon #code-review 2024-11-23 09:00, same 'PR 141 waiting on review, LiteLLM+instructor' re-ping; 377 kept as the copy Dario follows up on",
+      "drop": "m-code-review-2024-11-23-366",
+      "keep": "m-code-review-2024-11-22-352"
+    },
+    {
+      "what": "dario #engineering 2024-11-25 15:39, same Otto onboarding page question cross-posted 40 min later, no reply",
+      "drop": "m-engineering-2024-11-25-351",
+      "keep": "m-pipeline-2024-11-25-151"
+    },
+    {
+      "what": "dario #code-review 2024-11-25 15:42, same Otto onboarding page question cross-posted a third time, no reply",
+      "drop": "m-code-review-2024-11-25-394",
+      "keep": "m-pipeline-2024-11-25-151"
+    },
+    {
+      "what": "dario #engineering 2024-11-25 18:24, re-states taking the pbar/timeout second pass, already confirmed by Gideon at 17:30",
+      "drop": "m-engineering-2024-11-25-363",
+      "keep": "m-engineering-2024-11-25-355"
+    },
+    {
+      "what": "dario #code-review 2024-11-26 17:22, same row-hash keying statement again 80 min later, nothing new",
+      "drop": "m-code-review-2024-11-26-416",
+      "keep": "m-code-review-2024-11-26-411"
+    },
+    {
+      "what": "gideon #code-review 2024-11-28 09:00, same '141 and 161 waiting for review' status two days later, no change",
+      "drop": "m-code-review-2024-11-28-421",
+      "keep": "m-code-review-2024-11-26-400"
+    },
+    {
+      "what": "konrad #engineering 2024-12-09 09:26, PR 106 'up for review' cross-posted 3 min later",
+      "drop": "m-engineering-2024-12-09-456",
+      "keep": "m-code-review-2024-12-09-537"
+    },
+    {
+      "what": "dario #pipeline 2024-12-11 13:30, same cross-service-diff question; keep the later copy Dermot actually answered",
+      "drop": "m-pipeline-2024-12-11-321",
+      "keep": "m-pipeline-2024-12-11-325"
+    },
+    {
+      "what": "dario #engineering 2024-12-11 13:48, same 'is it still being outlined' ask, already answered by Dermot at 12:01",
+      "drop": "m-engineering-2024-12-11-518",
+      "keep": "m-pipeline-2024-12-11-314"
+    },
+    {
+      "what": "dario #code-review 2024-12-13 18:30, same 'design not on the wiki, still in draft?' ask, answered Dec 11-12; no reply",
+      "drop": "m-code-review-2024-12-13-627",
+      "keep": "m-code-review-2024-12-10-574"
+    },
+    {
+      "what": "dario #pipeline 2024-12-13 18:30, identical ask cross-posted 1s later",
+      "drop": "m-pipeline-2024-12-13-364",
+      "keep": "m-code-review-2024-12-10-574"
+    },
+    {
+      "what": "dario #incidents 2024-12-13 18:30, identical ask cross-posted 2s later",
+      "drop": "m-incidents-2024-12-13-067",
+      "keep": "m-code-review-2024-12-10-574"
+    },
+    {
+      "what": "dario #code-review 2024-12-16 15:28, cross-post 16 min later of the design-missing + logging-fields point",
+      "drop": "m-code-review-2024-12-16-641",
+      "keep": "m-pipeline-2024-12-16-382"
+    },
+    {
+      "what": "dario #code-review 2024-12-16 17:24, same 'read Dec 10 postmortem, completion-flag, doesn't touch my work' same day, other channel",
+      "drop": "m-code-review-2024-12-16-644",
+      "keep": "m-releases-2024-12-16-156"
+    },
+    {
+      "what": "dermot #engineering 2024-12-16 18:28, same-day repeat that the design isn't on the wiki; ownership already known",
+      "drop": "m-engineering-2024-12-16-566",
+      "keep": "m-engineering-2024-12-16-560"
+    },
+    {
+      "what": "dario #pipeline 2024-12-18 18:30, design-missing status cross-posted again 1 min later; its follow-up 416 is also dropped",
+      "drop": "m-pipeline-2024-12-18-415",
+      "keep": "m-engineering-2024-12-18-579"
+    },
+    {
+      "what": "dario #pipeline 2024-12-18 18:30, same question cross-posted 1 min later, unanswered",
+      "drop": "m-pipeline-2024-12-18-416",
+      "keep": "m-engineering-2024-12-18-580"
+    },
+    {
+      "what": "dario #engineering 2024-12-19 11:50, re-asks what Dermot answered the day before (to 580, cluster 42); companion line 'I couldn't find it on the wiki' (11:50) is also a repeat and would dangle",
+      "drop": "m-engineering-2024-12-19-599",
+      "keep": "m-engineering-2024-12-18-579"
+    },
+    {
+      "what": "dario #engineering 2024-12-19 11:50, the follow-up line of a repeat that is also dropped",
+      "drop": "m-engineering-2024-12-19-600",
+      "keep": "m-engineering-2024-12-18-579"
+    },
+    {
+      "what": "dermot #engineering 2024-12-19 14:13, same 'not on the wiki, still working it up' status; only answers Dario's 599 which is also dropped",
+      "drop": "m-engineering-2024-12-19-605",
+      "keep": "m-pipeline-2024-12-12-348"
+    },
+    {
+      "what": "dario #code-review 2024-12-20 11:50, restates the unconfirmed-batch-record point 4s later",
+      "drop": "m-code-review-2024-12-20-681",
+      "keep": "m-code-review-2024-12-20-679"
+    },
+    {
+      "what": "dario #code-review 2024-12-20 12:16, same design-missing status again; companion '@Dermot, is it written up yet?' (12:16) is also a repeat and would dangle",
+      "drop": "m-code-review-2024-12-20-682",
+      "keep": "m-engineering-2024-12-18-579"
+    },
+    {
+      "what": "dario #code-review 2024-12-20 12:16, the follow-up line of a repeat that is also dropped",
+      "drop": "m-code-review-2024-12-20-683",
+      "keep": "m-engineering-2024-12-18-579"
+    },
+    {
+      "what": "dermot #pipeline 2025-01-07 09:00, same docstring/test-move status cross-posted; keep the copy Konrad replied to",
+      "drop": "m-pipeline-2025-01-07-460",
+      "keep": "m-code-review-2025-01-07-895"
+    },
+    {
+      "what": "dermot #releases 2025-01-07 09:00, same status cross-posted; coverage-gaps point also in 684",
+      "drop": "m-releases-2025-01-07-198",
+      "keep": "m-code-review-2025-01-07-895"
+    },
+    {
+      "what": "dermot #releases 2025-01-08 09:00, same jan-6 sync-notes-are-up line cross-posted 12s later, nobody responds",
+      "drop": "m-releases-2025-01-08-230",
+      "keep": "m-engineering-2025-01-08-710"
+    },
+    {
+      "what": "emil #pipeline 2025-01-10 15:10, same non-Anthropic-suite-running status cross-posted, no new state, unanswered",
+      "drop": "m-pipeline-2025-01-10-526",
+      "keep": "m-code-review-2025-01-10-962"
+    },
+    {
+      "what": "dermot #engineering 2025-01-13 12:39, same examples-cookbooks-this-afternoon commitment 14 min later; Emil's follow-up still reads against 805",
+      "drop": "m-engineering-2025-01-13-810",
+      "keep": "m-engineering-2025-01-13-805"
+    },
+    {
+      "what": "nikolai #cookbooks 2025-01-14 09:49, unplanted earlier copy of the planted sandbox:latest decision",
+      "drop": "m-cookbooks-2025-01-14-199",
+      "keep": "m-cookbooks-2025-01-14-215"
+    },
+    {
+      "what": "nikolai #cookbooks 2025-01-14 09:49, unplanted earlier copy of the planted rebuild-and-pull rationale",
+      "drop": "m-cookbooks-2025-01-14-200",
+      "keep": "m-cookbooks-2025-01-14-216"
+    },
+    {
+      "what": "dario #engineering 2025-01-15 14:02, same WS-016-not-on-wiki claim; the code-review copy is kept because its scope question (1036) is answered and needs it as antecedent",
+      "drop": "m-engineering-2025-01-15-847",
+      "keep": "m-code-review-2025-01-15-1035"
+    },
+    {
+      "what": "dario #engineering 2025-01-15 14:03, same scope-input ask; only the code-review copy is answered (Konrad, Dermot)",
+      "drop": "m-engineering-2025-01-15-848",
+      "keep": "m-code-review-2025-01-15-1036"
+    },
+    {
+      "what": "dermot #pipeline 2025-01-20 09:05, same PR 384 containment question; only the later @Dario copy gets an answer",
+      "drop": "m-pipeline-2025-01-20-623",
+      "keep": "m-pipeline-2025-01-20-626"
+    },
+    {
+      "what": "emil #pipeline 2025-01-20 18:07, same cuda mock-out in-progress status cross-posted 2 min later, unanswered",
+      "drop": "m-pipeline-2025-01-20-653",
+      "keep": "m-engineering-2025-01-20-910"
+    },
+    {
+      "what": "emil #engineering 2025-01-21 11:51, same v0.1.16 max-parallel TBD note; Dermot's 'close that TBD' replies to the pipeline copy",
+      "drop": "m-engineering-2025-01-21-922",
+      "keep": "m-pipeline-2025-01-21-662"
+    },
+    {
+      "what": "dario #releases 2025-01-30 15:38, same litellm-edge-case question re-asked 7 min later; Dermot answers the @Dermot copy",
+      "drop": "m-releases-2025-01-30-345",
+      "keep": "m-releases-2025-01-30-346"
+    },
+    {
+      "what": "emil #engineering 2025-02-04 12:41, WS-028-not-on-wiki / still-drafted question re-asked next day, already answered, unanswered again",
+      "drop": "m-engineering-2025-02-04-1072",
+      "keep": "m-pipeline-2025-02-03-740"
+    },
+    {
+      "what": "emil #pipeline 2025-02-04 14:47, same WS-028 question a third time, same channel, unanswered",
+      "drop": "m-pipeline-2025-02-04-764",
+      "keep": "m-pipeline-2025-02-03-740"
+    },
+    {
+      "what": "emil #pipeline 2025-02-12 12:24, same handover-doc-not-on-wiki question to Dario 8 days later, no new state, unanswered (its 12:24 follow-up 'couldn't find it on the wiki' is orphaned by this)",
+      "drop": "m-pipeline-2025-02-12-877",
+      "keep": "m-pipeline-2025-02-04-763"
+    },
+    {
+      "what": "emil #pipeline 2025-02-12 12:24, the follow-up line of a repeat that is also dropped",
+      "drop": "m-pipeline-2025-02-12-878",
+      "keep": "m-pipeline-2025-02-04-763"
+    },
+    {
+      "what": "emil #code-review 2025-02-12 13:15, same 'handover doc not on wiki' status, same channel 40 min later",
+      "drop": "m-code-review-2025-02-12-1462",
+      "keep": "m-code-review-2025-02-12-1459"
+    },
+    {
+      "what": "emil #pipeline 2025-02-12 14:27, same 'handover doc still not on wiki' status cross-posted, nobody responds",
+      "drop": "m-pipeline-2025-02-12-885",
+      "keep": "m-code-review-2025-02-12-1459"
+    },
+    {
+      "what": "emil #pipeline 2025-02-14 12:41, same 'provider paths clean after batch client refactor' cross-posted",
+      "drop": "m-pipeline-2025-02-14-939",
+      "keep": "m-engineering-2025-02-14-1221"
+    },
+    {
+      "what": "gideon #code-review 2025-02-17 11:29, same '0.1.19 release notes are up' announcement again same day",
+      "drop": "m-code-review-2025-02-17-1532",
+      "keep": "m-code-review-2025-02-17-1524"
+    },
+    {
+      "what": "gideon #code-review 2025-02-17 15:01, same '0.1.19 release notes are up' announcement a third time",
+      "drop": "m-code-review-2025-02-17-1543",
+      "keep": "m-code-review-2025-02-17-1524"
+    },
+    {
+      "what": "gideon #code-review 2025-02-17 15:01, 'I already said it' restatement of the same announcement",
+      "drop": "m-code-review-2025-02-17-1545",
+      "keep": "m-code-review-2025-02-17-1524"
+    },
+    {
+      "what": "dario #releases 2025-02-28 16:01, same 'v0.1.19 release notes page not up' as 442 45 min earlier (and 1378 on 02-25)",
+      "drop": "m-releases-2025-02-28-443",
+      "keep": "m-releases-2025-02-28-442"
+    },
+    {
+      "what": "dermot #code-review 2025-03-03 16:59, same 'handover doc is on engineering wiki' pointer, same channel same day, no reply",
+      "drop": "m-code-review-2025-03-03-1742",
+      "keep": "m-code-review-2025-03-03-1730"
+    },
+    {
+      "what": "konrad #code-review 2025-03-10 10:04, same 'working through 571 from the examples side this morning' status an hour later",
+      "drop": "m-code-review-2025-03-10-1812",
+      "keep": "m-code-review-2025-03-10-1809"
+    },
+    {
+      "what": "konrad #code-review 2025-03-11 09:00, same-second cross-post, strict subset of 1468 ('mime type fix is through')",
+      "drop": "m-code-review-2025-03-11-1825",
+      "keep": "m-engineering-2025-03-11-1468"
+    },
+    {
+      "what": "gideon #pipeline 2025-03-19 14:02, same 'still waiting on a call on the throttle check' status cross-posted 3 min later, nobody answers it",
+      "drop": "m-pipeline-2025-03-19-1336",
+      "keep": "m-engineering-2025-03-19-1579"
+    },
+    {
+      "what": "nils #code-review 2025-03-21 09:00, 'PR 584 ready for review' re-posted next day after Emil already said he'd review it",
+      "drop": "m-code-review-2025-03-21-1975",
+      "keep": "m-engineering-2025-03-20-1596"
+    },
+    {
+      "what": "nils #code-review 2025-03-21 09:00, the follow-up line of a repeat that is also dropped",
+      "drop": "m-code-review-2025-03-21-1976",
+      "keep": "m-engineering-2025-03-20-1596"
+    },
+    {
+      "what": "nils #code-review 2025-03-24 09:18, 'PR 584 is up' re-posted again, no reply",
+      "drop": "m-code-review-2025-03-24-1995",
+      "keep": "m-engineering-2025-03-20-1596"
+    },
+    {
+      "what": "nils #code-review 2025-03-24 09:18, the follow-up line of a repeat that is also dropped",
+      "drop": "m-code-review-2025-03-24-1996",
+      "keep": "m-engineering-2025-03-20-1596"
+    },
+    {
+      "what": "dermot #releases 2025-03-24 11:08, same offline-validator warn-or-fail question re-asked 75 min later, no answer in between; dario's answer still follows the first",
+      "drop": "m-releases-2025-03-24-477",
+      "keep": "m-releases-2025-03-24-476"
+    },
+    {
+      "what": "nils #code-review 2025-03-25 09:00, 'PR 584 is up' re-posted again, no reply",
+      "drop": "m-code-review-2025-03-25-2017",
+      "keep": "m-engineering-2025-03-20-1596"
+    },
+    {
+      "what": "nils #code-review 2025-03-25 09:00, the follow-up line of a repeat that is also dropped",
+      "drop": "m-code-review-2025-03-25-2018",
+      "keep": "m-engineering-2025-03-20-1596"
+    },
+    {
+      "what": "emil #code-review 2025-04-02 11:57, shorter copy of the planted azure-restart remark 40s later; the planted copy must stay",
+      "drop": "m-code-review-2025-04-02-2167",
+      "keep": "m-code-review-2025-04-02-2169"
+    },
+    {
+      "what": "gideon #pipeline 2025-04-08 17:31, same 'waiting on Emil's registry result' status later the same day, nobody responds",
+      "drop": "m-pipeline-2025-04-08-1595",
+      "keep": "m-pipeline-2025-04-08-1582"
+    },
+    {
+      "what": "dermot #engineering 2025-04-09 09:05, same WS-050/batch-scope question to Emil; emil answers only the later pipeline copy, so keep that one and drop this one",
+      "drop": "m-engineering-2025-04-09-1810",
+      "keep": "m-pipeline-2025-04-09-1608"
+    },
+    {
+      "what": "emil #code-review 2025-04-15 14:13, same 'WS-050 isn't in the tracker' claim; dario's 'So it just hasn't been filed yet?' answers only the pipeline copy, so keep that one and drop this one",
+      "drop": "m-code-review-2025-04-15-2347",
+      "keep": "m-pipeline-2025-04-15-1664"
+    },
+    {
+      "what": "gideon #engineering 2025-04-17 09:00, same 'PR 632 basically done, needs a review pass' status two days later",
+      "drop": "m-engineering-2025-04-17-1889",
+      "keep": "m-code-review-2025-04-15-2332"
+    },
+    {
+      "what": "gideon #code-review 2025-04-21 09:00, PR 632 re-announced as a small CLI batch-update-frequency change on a later day",
+      "drop": "m-code-review-2025-04-21-2412",
+      "keep": "m-code-review-2025-04-18-2401"
+    },
+    {
+      "what": "gideon #general 2025-04-21 09:31, same PR 632 status cross-posted to #general the same morning; nikolai's 'On the PRs' answers dermot's backlog line, not this",
+      "drop": "m-general-2025-04-21-141",
+      "keep": "m-code-review-2025-04-18-2401"
+    },
+    {
+      "what": "gideon #code-review 2025-04-21 13:09, same 'anyone free to look at PR 632 this afternoon' ask re-posted days later, nobody responds",
+      "drop": "m-code-review-2025-04-21-2421",
+      "keep": "m-code-review-2025-04-18-2400"
+    },
+    {
+      "what": "gideon #help 2025-04-21 14:06, verbatim second half of the previous message, 7s later",
+      "drop": "m-help-2025-04-21-116",
+      "keep": "m-help-2025-04-21-115"
+    },
+    {
+      "what": "gideon #code-review 2025-04-23 10:14, same 'just needs a review pass' status a week later, no new info",
+      "drop": "m-code-review-2025-04-23-2439",
+      "keep": "m-code-review-2025-04-15-2332"
+    },
+    {
+      "what": "gideon #viewer 2025-04-24 17:38, same 'pbar fix in, readout unchanged' status later the same day; emil's reply answers the next line, not this",
+      "drop": "m-viewer-2025-04-24-182",
+      "keep": "m-viewer-2025-04-24-178"
+    },
+    {
+      "what": "emil #pipeline 2025-04-29 15:12, same 'is WS-055 still on Dermot' question, same channel, same day, unanswered",
+      "drop": "m-pipeline-2025-04-29-1810",
+      "keep": "m-pipeline-2025-04-29-1801"
+    },
+    {
+      "what": "emil #code-review 2025-04-29 15:38, same WS-055 question cross-posted to code-review",
+      "drop": "m-code-review-2025-04-29-2523",
+      "keep": "m-pipeline-2025-04-29-1801"
+    },
+    {
+      "what": "emil #code-review 2025-05-01 12:41, same WS-055 still-pending question two days later, nothing new, unanswered",
+      "drop": "m-code-review-2025-05-01-2539",
+      "keep": "m-pipeline-2025-04-29-1801"
+    },
+    {
+      "what": "nikolai #code-review 2025-05-09 09:00, same 'neither blocking, want them in' line re-posted next day",
+      "drop": "m-code-review-2025-05-09-2704",
+      "keep": "m-code-review-2025-05-08-2639"
+    },
+    {
+      "what": "nikolai #code-review 2025-05-09 09:35, same unanswered torch-absent testing question for PR 663 re-asked next day",
+      "drop": "m-code-review-2025-05-09-2706",
+      "keep": "m-code-review-2025-05-08-2640"
+    },
+    {
+      "what": "konrad #code-review 2025-05-23 09:00, same PR 674 status cross-posted at the same moment",
+      "drop": "m-code-review-2025-05-23-2766",
+      "keep": "m-engineering-2025-05-23-2131"
+    },
+    {
+      "what": "konrad #code-review 2025-05-29 10:22, same 'this week's notes not out' claim; dropped the earlier copy because the later one is the antecedent of the author's 'Who's on those this week?'",
+      "drop": "m-code-review-2025-05-29-2808",
+      "keep": "m-engineering-2025-05-29-2184"
+    },
+    {
+      "what": "konrad #engineering 2025-06-04 09:00, same finetuning-wrapped status cross-posted to engineering",
+      "drop": "m-engineering-2025-06-04-2232",
+      "keep": "m-code-review-2025-06-04-2884"
+    },
+    {
+      "what": "konrad #engineering 2025-06-04 09:07, same finetuning-done status said again 7 minutes later",
+      "drop": "m-engineering-2025-06-04-2233",
+      "keep": "m-code-review-2025-06-04-2884"
+    },
+    {
+      "what": "nikolai #code-review 2025-06-16 12:51, same which-PRs-for-0.1.26 question cross-posted, unanswered",
+      "drop": "m-code-review-2025-06-16-2984",
+      "keep": "m-engineering-2025-06-16-2280"
+    },
+    {
+      "what": "emil #code-review 2025-06-25 11:10, same batch-mode notes announcement; kept the engineering copy since Nikolai's question about the notes follows it there",
+      "drop": "m-code-review-2025-06-25-3004",
+      "keep": "m-engineering-2025-06-25-2297"
+    },
+    {
+      "what": "konrad #engineering 2026-01-23 13:01, same PR 704 / cleanup-on-hold status re-posted as bullets later the same day",
+      "drop": "m-engineering-2026-01-23-2395",
+      "keep": "m-engineering-2026-01-23-2385"
+    }
+  ]
+}

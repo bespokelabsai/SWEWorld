@@ -24,10 +24,16 @@ What it does NOT own, and never touches:
 
 Nothing here talks to a running world. It copies and it validates the shape;
 `make bake-image` does the ingesting.
+
+What it removes after the copy: the copies `input/superseded.json` names. Runs
+made before `worldapps.Store.drop_day` hold the same mail and pages once per
+pass over a day, and a replace from any of them would put every copy back.
+`--prune` applies the same list to `data/` as it stands, without a run.
 """
 from __future__ import annotations
 
 import argparse
+import email.parser
 import json
 import shutil
 import sys
@@ -44,6 +50,10 @@ OWNED = ("docs", "emails", "messages.jsonl", "comments.jsonl")
 # finding that out during a bake is finding it out ten minutes too late.
 DOC_REQUIRED = {"title", "author", "created_at"}
 DOC_OPTIONAL = {"updated_at", "publish", "icon", "full_width", "tags"}
+
+# Which copy of a twice-written mail, page or chat line is the corpus. See
+# `drop_superseded`.
+SUPERSEDED = Path(__file__).resolve().parent / "input" / "superseded.json"
 
 
 def latest_run(build: Path, name: str) -> Path:
@@ -88,6 +98,17 @@ def check_docs(docs: Path, problems: list[str]) -> tuple[int, int]:
             problems.append(f"{page.name}: frontmatter has no {want!r}")
         for odd in sorted(keys - DOC_REQUIRED - DOC_OPTIONAL):
             problems.append(f"{page.name}: frontmatter key {odd!r} is not allowed")
+    # One page per name. A second pass over a day that filed the same page on
+    # another shelf left both, and BookStack imports them as two pages with one
+    # title — nothing on either says which is the real one.
+    books: dict[str, list[str]] = {}
+    for page in pages:
+        books.setdefault(page.name, []).append(page.parent.name)
+    for name, where in sorted(books.items()):
+        if len(where) > 1:
+            problems.append(f"{name} is a page in {len(where)} books "
+                            f"({', '.join(where)}) — name the copy to keep in "
+                            f"{SUPERSEDED.name}")
     return len(pages), len(listed)
 
 
@@ -223,11 +244,104 @@ def dedupe_index(index: Path) -> int:
     return total - len(order)
 
 
-def install(run: Path, data: Path, apply: bool) -> int:
-    rl.heading(f"{run.name} -> {data}")
+def drop_superseded(data: Path, listing: Path, problems: list[str]) -> int:
+    """Remove the copies `listing` names, each only if the copy it keeps is here.
+
+    The list, not a heuristic, decides: a later pass retitled the same mail
+    ("v0.1.17 is out", then "v0.1.17 out — Millrow / Stratos Crunch") and filed
+    the same page on another shelf, so nothing mechanical tells a second copy
+    from a second message. The `keep` guard is what lets a list written against
+    one run be applied to another without deleting both copies; an entry whose
+    copy is simply absent is fine — a run made with `drop_day` never had it.
+    """
+    if not listing.exists():
+        return 0
+    spec = json.loads(listing.read_text(encoding="utf-8"))
+    gone = 0
+
+    def doomed(entries, present, kind):
+        out = set()
+        for entry in entries or []:
+            if entry["drop"] not in present:
+                continue
+            if entry["keep"] not in present:
+                problems.append(f"superseded {kind} {entry['drop']} kept: the "
+                                f"copy it gives way to, {entry['keep']}, is not here")
+                continue
+            out.add(entry["drop"])
+        return out
+
+    # Mail by Message-ID, every copy: the sender's Sent and one INBOX per
+    # recipient, each with its own index line.
+    emails = data / "emails"
+    index = emails / "index.jsonl"
+    if spec.get("mail") and index.exists():
+        lines = index.read_text(encoding="utf-8").splitlines(keepends=True)
+        mid_of = {}
+        for raw in lines:
+            if raw.strip() and not raw.strip().startswith("#"):
+                path = json.loads(raw)["path"]
+                if (emails / path).exists():
+                    with open(emails / path, "rb") as fh:
+                        head = email.parser.BytesHeaderParser().parse(fh)
+                    mid_of[path] = (head["Message-ID"] or "").strip()
+        drop = doomed(spec["mail"], set(mid_of.values()), "mail")
+        keep = []
+        for raw in lines:
+            path = json.loads(raw)["path"] if raw.strip() and \
+                not raw.strip().startswith("#") else ""
+            if mid_of.get(path) in drop:
+                (emails / path).unlink()
+                continue
+            keep.append(raw)
+        gone += len(lines) - len(keep)
+        if drop:
+            index.write_text("".join(keep), encoding="utf-8")
+
+    # Pages by path under docs/. Not one that carries comments: those would be
+    # orphaned, and moving them is a decision, not a cleanup.
+    docs = data / "docs"
+    comments = data / "comments.jsonl"
+    commented = {json.loads(raw).get("doc") for raw in
+                 (comments.read_text(encoding="utf-8").splitlines()
+                  if comments.exists() else [])
+                 if raw.strip() and not raw.startswith("#")}
+    present = {str(p.relative_to(docs)) for p in docs.glob("*/*.md")} \
+        if docs.exists() else set()
+    for rel in sorted(doomed(spec.get("docs"), present, "page")):
+        if rel in commented:
+            problems.append(f"superseded page {rel} kept: it has comments")
+            continue
+        (docs / rel).unlink()
+        gone += 1
+
+    # Chat by message id. Not a thread root: its replies name it in
+    # `thread_id`, and `ingest_chat.py` rejects a reply whose root is gone.
+    chat = data / "messages.jsonl"
+    if spec.get("chat") and chat.exists():
+        lines = chat.read_text(encoding="utf-8").splitlines(keepends=True)
+        rows = [json.loads(raw) for raw in lines
+                if raw.strip() and not raw.startswith("#")]
+        ids = {row.get("id") for row in rows}
+        roots = {row["thread_id"] for row in rows if row.get("thread_id")}
+        drop = doomed(spec["chat"], ids, "chat message")
+        for mid in sorted(drop & roots):
+            problems.append(f"superseded chat message {mid} kept: it has replies")
+        drop -= roots
+        keep = [raw for raw in lines if not raw.strip() or raw.startswith("#")
+                or json.loads(raw).get("id") not in drop]
+        gone += len(lines) - len(keep)
+        if drop:
+            chat.write_text("".join(keep), encoding="utf-8")
+    return gone
+
+
+def install(run: Path | None, data: Path, apply: bool) -> int:
+    """Replace `data/` from `run`, or with no run just prune it in place."""
+    rl.heading(f"{run.name if run else 'prune only'} -> {data}")
     copied, skipped = [], []
 
-    for name in OWNED:
+    for name in OWNED if run else ():
         src = run / name
         if not src.exists():
             skipped.append(name)
@@ -265,6 +379,10 @@ def install(run: Path, data: Path, apply: bool) -> int:
         return 0
 
     problems: list[str] = []
+    gone = drop_superseded(data, SUPERSEDED, problems)
+    if gone:
+        rl.warn(f"  removed {gone} superseded file(s) and row(s) named in "
+                f"{SUPERSEDED.name} — copies a re-simulated day left behind")
     pages, shelves = check_docs(data / "docs", problems)
     mails = check_mail(data / "emails", problems)
     msgs = check_jsonl(data / "messages.jsonl",
@@ -307,9 +425,12 @@ def main(argv=None) -> int:
                         default=rl.REPO_ROOT / "data")
     parser.add_argument("--dry-run", action="store_true",
                         help="say what would be written and change nothing")
+    parser.add_argument("--prune", action="store_true",
+                        help=f"install no run: apply {SUPERSEDED.name} to data/ "
+                             "as it stands, then check it")
     args = parser.parse_args(argv)
 
-    run = latest_run(args.build, args.run)
+    run = None if args.prune else latest_run(args.build, args.run)
     if not args.data_dir.is_dir():
         rl.fail(f"{args.data_dir} does not exist")
     return install(run, args.data_dir, apply=not args.dry_run)
