@@ -29,6 +29,11 @@ jobs/
 harbor_tasks/**/.cache/
 harbor_tasks/**/.validation/
 harbor_tasks/**/.rollouts/
+# `horizon rollouts pull` writes .rollouts/ under the CURRENT directory, so a
+# pull run from the repo root lands 13MB of transcripts here instead of beside
+# the arm they belong to. Ignored so that mistake stays out of git rather than
+# being committed and deleted again.
+/.rollouts/
 
 # task_generator/out/ IS tracked -- it holds the plant, the brief and the
 # fixtures, none of which can be regenerated for free. Only the bulk inside it
