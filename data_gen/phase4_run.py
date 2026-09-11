@@ -1217,6 +1217,17 @@ async def _run(world, days, built, people, root: Path, out: Path, args) -> int:
         base = dt.datetime.fromisoformat(date).replace(hour=DAY_OPEN_HOUR)
         end = dt.datetime.fromisoformat(date).replace(hour=18, minute=30)
         clock.set_day(base.replace(tzinfo=UTC))
+        # A day that comes round again REPLACES its old self — the rule
+        # `merge_days` applies to chat. Mail and pages reach disk the moment a
+        # persona writes them, so every earlier pass over a day kept its own
+        # copy, and 28 Jan 2025 held three of Dermot's "v0.1.17 is out". Not
+        # under --channels: re-running one room must not delete what the rooms
+        # left alone wrote, since nothing would write it back.
+        if not args.channels:
+            gone = sum(s.drop_day(date) for s in stores if hasattr(s, "drop_day"))
+            if gone:
+                rl.info(f"{date}: removed {gone} page(s), comment(s) and mail "
+                        f"file(s) an earlier pass left")
 
         # The engine's message cap is ONE counter shared by every channel in
         # the run. At its default of 70 a six-channel day is decapitated

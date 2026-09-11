@@ -100,6 +100,11 @@ class Store:
     def activity(self) -> list[dict]:
         return list(self._touched)
 
+    def drop_day(self, date: str) -> int:
+        """Delete what an earlier pass wrote on `date`, before the day is
+        simulated again. Nothing, for an app that keeps nothing on disk."""
+        return 0
+
     # -- bookkeeping --------------------------------------------------------
     def _record(self, *, kind: str, ident: str, title: str, by: str,
                 action: str, ts: str, **extra) -> dict:
@@ -273,16 +278,7 @@ class Wiki(Store):
             rel = f"{path.parent.name}/{path.name}"
             if rel in self._pages:
                 continue
-            head, _, body = path.read_text(encoding="utf-8").partition("---\n")[2] \
-                .partition("\n---\n")
-            meta = {}
-            for line in head.splitlines():
-                key, _, value = line.partition(":")
-                if value.strip():
-                    try:
-                        meta[key.strip()] = json.loads(value.strip())
-                    except ValueError:
-                        meta[key.strip()] = value.strip()
+            meta, body = self._frontmatter(path)
             title = str(meta.get("title") or path.stem)
             by = str(meta.get("author") or "")
             self._pages[rel] = {"title": title, "author": by, "body": body.strip()}
@@ -308,6 +304,45 @@ class Wiki(Store):
                              by=row.get("author", ""), action="comment",
                              ts=row.get("created_at", ""))
         return len(self._pages)
+
+    @staticmethod
+    def _frontmatter(path: Path) -> tuple[dict, str]:
+        """A page's frontmatter fields and its body, as `write` lays them out."""
+        head, _, body = path.read_text(encoding="utf-8").partition("---\n")[2] \
+            .partition("\n---\n")
+        meta = {}
+        for line in head.splitlines():
+            key, _, value = line.partition(":")
+            if value.strip():
+                try:
+                    meta[key.strip()] = json.loads(value.strip())
+                except ValueError:
+                    meta[key.strip()] = value.strip()
+        return meta, body
+
+    def drop_day(self, date: str) -> int:
+        """Delete the pages and comments an earlier pass wrote on `date`.
+
+        By `created_at`, which `write` restamps on every rewrite, so a page
+        first written days before and rewritten on `date` goes too — its file
+        only ever held the `date` version. Overwriting in place is not enough:
+        a persona files the page where they like, and a second pass that chose
+        another book is how one page came to sit in both `design/` and
+        `engineering/`.
+        """
+        gone = 0
+        for path in sorted(self.docs.glob("*/*.md")):
+            if str(self._frontmatter(path)[0].get("created_at", "")).startswith(date):
+                path.unlink()
+                gone += 1
+        if self.comments.exists():
+            lines = self.comments.read_text(encoding="utf-8").splitlines(keepends=True)
+            keep = [raw for raw in lines if not raw.strip() or raw.startswith("#")
+                    or not str(json.loads(raw).get("created_at", "")).startswith(date)]
+            if len(keep) < len(lines):
+                self.comments.write_text("".join(keep), encoding="utf-8")
+                gone += len(lines) - len(keep)
+        return gone
 
     def read(self, rel: str) -> str:
         page = self._pages.get(rel)
@@ -468,7 +503,12 @@ class Mail(Store):
         self.domain = domain
         self.addresses = addresses            # persona id -> mailbox address
         self._threads: dict[str, dict] = {}   # subject key -> last message
-        self._n = 0
+        # Numbered on from what is already on disk. A counter restarting at 0 in
+        # every process handed a later pass an earlier file's name, so it
+        # overwrote that file and the index listed the path twice — 33 paths in
+        # the corpus run.
+        self._n = max((int(m.group()) for row in self._rows()
+                       if (m := re.match(r"\d+", Path(row["path"]).name))), default=0)
 
     def tool_names(self) -> list[str]:
         return ["send_mail", "reply_to_mail", "check_inbox", "read_mail"]
@@ -533,6 +573,36 @@ class Mail(Store):
                      to=", ".join(recipients))
         return mid
 
+    def _rows(self) -> list[dict]:
+        """The index, parsed, minus blank lines and `#` comments."""
+        if not self.index.exists():
+            return []
+        return [json.loads(raw) for raw in
+                self.index.read_text(encoding="utf-8").splitlines()
+                if raw.strip() and not raw.strip().startswith("#")]
+
+    def drop_day(self, date: str) -> int:
+        """Delete every copy of the mail an earlier pass sent on `date`.
+
+        Matched on the index's `date`, which is the simulated day. Every copy,
+        because each has its own line: the sender's `Sent` and one `INBOX` per
+        recipient, all under the same file name.
+        """
+        if not self.index.exists():
+            return 0
+        lines = self.index.read_text(encoding="utf-8").splitlines(keepends=True)
+        keep = []
+        for raw in lines:
+            if raw.strip() and not raw.strip().startswith("#"):
+                row = json.loads(raw)
+                if str(row.get("date", "")).startswith(date):
+                    (self.dir / row["path"]).unlink(missing_ok=True)
+                    continue
+            keep.append(raw)
+        if len(keep) < len(lines):
+            self.index.write_text("".join(keep), encoding="utf-8")
+        return len(lines) - len(keep)
+
     def extend(self, mid: str, said: str) -> int:
         """Append sentences to a message already sent, in every copy of it.
 
@@ -563,14 +633,8 @@ class Mail(Store):
         Only the sender's own copy: every recipient holds a duplicate of the
         same message, and counting those would report one mail as several.
         """
-        if not self.index.exists():
-            return 0
         seen = 0
-        for raw in self.index.read_text(encoding="utf-8").splitlines():
-            raw = raw.strip()
-            if not raw or raw.startswith("#"):
-                continue
-            row = json.loads(raw)
+        for row in self._rows():
             if (row.get("folder") or "") != "Sent":
                 continue
             path = self.root / "emails" / row["path"]
