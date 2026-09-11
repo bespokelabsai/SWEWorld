@@ -3,7 +3,7 @@
 {"channel": "code-review", "author": "nikolai", "created_at": "2025-06-03T14:07:00+00:00", "text": "finish_reason length every time same request came back that way four times"}
 {"channel": "code-review", "author": "emil", "created_at": "2025-06-03T14:09:00+00:00", "text": "so truncated output, not a transport error? i believe we count those as retryable right now"}
 {"channel": "code-review", "author": "konrad", "created_at": "2025-06-03T14:11:00+00:00", "text": "mhm we do. look, a broken payload shoudn't get that many goes, thats four attempts spent on nothing"}
-{"channel": "code-review", "author": "konrad", "created_at": "2025-06-03T14:12:00+00:00", "text": "and length wont fix itself on a retry anyway, so it stops being retryable, fail it out on the first"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-06-03T14:12:00+00:00", "text": "and length does come good on a retry now and then, so dont stop retrying it, it just shouldnt get as many goes as a timeout"}
 {"channel": "code-review", "author": "nikolai", "created_at": "2025-06-03T14:14:00+00:00", "text": "yep no argument here"}
 {"channel": "code-review", "author": "emil", "created_at": "2025-06-03T14:16:00+00:00", "text": "sounds right, whoever has the retry ticket open can fold it in"}
 {"channel": "code-review", "author": "nikolai", "created_at": "2025-06-03T14:19:00+00:00", "text": "log line should say which reason it was too they all read the same at the moment"}
@@ -93,7 +93,7 @@
 {"channel": "code-review", "author": "konrad", "created_at": "2025-04-03T15:16:00+00:00", "text": "comes back 2. it spends one"}
 {"channel": "code-review", "author": "gideon", "created_at": "2025-04-03T15:17:00+00:00", "text": "ya ok so basically the 429 path is the only thing eating them"}
 {"channel": "code-review", "author": "nikolai", "created_at": "2025-04-03T15:18:00+00:00", "text": "and with the pool empty"}
-{"channel": "code-review", "author": "konrad", "created_at": "2025-04-03T15:19:00+00:00", "text": "no requeue then, its terminal and the reason is throttle:exhausted. so at 0 thats what we tag"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-04-03T15:19:00+00:00", "text": "no requeue then - thats attempts_left 0 with the waivers gone too, both empty. terminal, throttle:exhausted. if theres still attempts on the clock it just spends one and goes back on"}
 {"channel": "code-review", "author": "dario", "created_at": "2025-04-03T15:22:00+00:00", "text": "mhm that tracks. is the 3 per provider or just the default we ship, i dont remember off hand"}
 {"channel": "pipeline", "author": "petar", "created_at": "2025-03-17T14:02:00+00:00", "text": "the 11:40 rerun took a retry after the budget was already spent out. anyone seen that one"}
 {"channel": "pipeline", "author": "petar", "created_at": "2025-03-17T14:03:00+00:00", "text": "it logged the retry and then died on the charge"}

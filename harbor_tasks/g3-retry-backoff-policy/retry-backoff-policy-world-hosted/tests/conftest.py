@@ -24,6 +24,45 @@ missing key, loudly, without a guard that can fail the innocent.
 from __future__ import annotations
 
 import os
+import sys
+
+
+def _put_submission_on_path() -> str:
+    """Add the submission's `src` to `sys.path`, behind the stdlib.
+
+    `run_suites.py` passes it as SUBMISSION_SRC rather than on PYTHONPATH, and
+    the difference is the whole point. PYTHONPATH is searched BEFORE the
+    standard library, so a pushed `src/sitecustomize.py` — or `src/os.py`, or
+    `src/encodings/__init__.py` — executes while the interpreter is still
+    starting, before this file, before pytest, and before any test could
+    object. That is how a pristine tree was made to score 1.00 on every hidden
+    fact: the payload ran, rewrote `score.py`, and no assertion was ever
+    consulted.
+
+    Inserting it here instead means the first agent code to run is the
+    `import bespokelabs` below, in a process that has finished building itself.
+    The entry still goes AHEAD of site-packages, because
+    `_unshadow_bespokelabs_siblings` depends on the submission owning the
+    `bespokelabs` name; it just no longer goes ahead of `os`.
+    """
+    src = os.environ.get("SUBMISSION_SRC", "")
+    if not src or not os.path.isdir(src):
+        return f"not applied ({src or 'unset'})"
+    if src in sys.path:
+        return "already present"
+    import sysconfig
+
+    purelib = sysconfig.get_paths().get("purelib", "")
+    at = len(sys.path)
+    for i, entry in enumerate(sys.path):
+        if entry and (entry == purelib or entry.endswith("site-packages")):
+            at = i
+            break
+    sys.path.insert(at, src)
+    return f"inserted at {at}"
+
+
+_SUBMISSION_STATUS = _put_submission_on_path()
 
 # ---------------------------------------------------------------------------
 # Before any curator import. Order matters; see the module docstring.
@@ -124,6 +163,10 @@ def hosts_mapped():
     """Say once what happened to /etc/hosts, so a connection failure is
     diagnosable from the log rather than from first principles."""
     print(f"[verifier] provider hostnames: {_HOSTS_STATUS}")
+    # Same reasoning as the line above: when the submission is not on the path
+    # every test fails on ImportError, and that is far quicker to read here
+    # than to derive from a page of collection errors.
+    print(f"[verifier] submission on sys.path: {_SUBMISSION_STATUS}")
     return _HOSTS_STATUS
 
 

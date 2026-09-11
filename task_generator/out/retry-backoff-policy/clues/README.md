@@ -162,7 +162,7 @@ Add a failure-class retry policy to the online request processors. Create `src/b
 14:07  nikolai: finish_reason length every time same request came back that way four times
 14:09  emil: so truncated output, not a transport error? i believe we count those as retryable right now
 14:11  konrad: mhm we do. look, a broken payload shoudn't get that many goes, thats four attempts spent on nothing
-14:12  konrad: and length wont fix itself on a retry anyway, so it stops being retryable, fail it out on the first
+14:12  konrad: and length does come good on a retry now and then, so dont stop retrying it, it just shouldnt get as many goes as a timeout
 14:14  nikolai: yep no argument here
 14:16  emil: sounds right, whoever has the retry ticket open can fold it in
 14:19  nikolai: log line should say which reason it was too they all read the same at the moment

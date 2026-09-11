@@ -17,150 +17,40 @@ no network — and a context manager that patches the two limit properties with
 Nothing here asserts anything about a plan sidecar or about files being removed: those are
 r1's and r2's hidden facts, and every assertion below is written so that an implementation
 which does neither still passes.
+
+The answer-free helpers/fixtures below (the processor builder, the limit-patching context,
+the dataset factories and the log/metadata readers) live in `probe_support` so the split
+worker (`probe.py`) and this human reference share ONE definition and cannot drift. The
+expected VALUES this test asserts stay here (and in `judge.py`); `probe_support` holds none.
+`test_r1`/`test_r2` import the names they need `from test_open`, which re-exports them.
 """
 from __future__ import annotations
 
-import contextlib
 import glob
 import json
 import os
 
 import pytest
 from datasets import Dataset
-from unittest.mock import PropertyMock, patch
 
-from harness import read_field, surface
+from harness import read_field, surface  # noqa: F401 - surface used below
 
-from bespokelabs.curator.llm.prompt_formatter import PromptFormatter
-from bespokelabs.curator.request_processor.batch.openai_batch_request_processor import OpenAIBatchRequestProcessor
-from bespokelabs.curator.request_processor.config import BatchRequestProcessorConfig
-
-MODEL = "gpt-4o-mini"
-
-
-class _CostProcessorStub:
-    """Batch processors touch `_cost_processor` on construction paths we never reach."""
-
-    def cost(self, **kwargs):
-        return 0.0
-
-
-def make_processor(working_dir, *, batch_size="auto", generation_params=None):
-    """An OpenAI batch processor with no client, the way curator's own unit tests build one."""
-    processor = OpenAIBatchRequestProcessor.__new__(OpenAIBatchRequestProcessor)
-    processor.config = BatchRequestProcessorConfig(model=MODEL, batch_size=batch_size)
-    processor.prompt_formatter = PromptFormatter(
-        model_name=MODEL,
-        # `.get` rather than `[...]`: the `dataset is None` path formats an empty dict.
-        prompt_func=lambda row: row.get("prompt", "say 0"),
-        parse_func=None,
-        response_format=None,
-        generation_params=dict(generation_params or {}),
-        system_prompt=None,
-    )
-    processor.working_dir = str(working_dir)
-    processor._cost_processor = _CostProcessorStub()
-    os.makedirs(processor.working_dir, exist_ok=True)
-    return processor
-
-
-@contextlib.contextmanager
-def patched_limits(*, max_requests=None, max_bytes=None):
-    """Patch either provider limit on the class, leaving the other one alone."""
-    with contextlib.ExitStack() as stack:
-        if max_requests is not None:
-            prop = stack.enter_context(patch.object(OpenAIBatchRequestProcessor, "max_requests_per_batch", new_callable=PropertyMock))
-            prop.return_value = max_requests
-        if max_bytes is not None:
-            prop = stack.enter_context(patch.object(OpenAIBatchRequestProcessor, "max_bytes_per_batch", new_callable=PropertyMock))
-            prop.return_value = max_bytes
-        yield
-
-
-def planner():
-    """The new module, or a failure that says so in one line."""
-    try:
-        from bespokelabs.curator.request_processor import batch_payload_planner
-    except ImportError as exc:  # pragma: no cover - the pristine tree
-        pytest.fail("bespokelabs.curator.request_processor.batch_payload_planner does not import, " f"so there is no planner to grade: {exc}")
-    return batch_payload_planner
-
-
-def limits_of(module, max_requests, max_bytes, **extra):
-    return module.BatchLimits(max_requests_per_batch=max_requests, max_bytes_per_batch=max_bytes, **extra)
-
-
-def tuples(plan):
-    """(index, start_idx, end_idx, num_requests, num_bytes) per planned batch."""
-    return [
-        (
-            read_field(p, "index"),
-            read_field(p, "start_idx"),
-            read_field(p, "end_idx"),
-            read_field(p, "num_requests"),
-            read_field(p, "num_bytes"),
-        )
-        for p in plan
-    ]
-
-
-def spans(plan):
-    """(index, start_idx, end_idx, num_requests) per batch — the shape, not the byte count."""
-    return [t[:4] for t in tuples(plan)]
-
-
-def counts(plan):
-    return [read_field(p, "num_requests") for p in plan]
-
-
-def check_cover(plan, n_rows):
-    """The plan is a contiguous, ordered, exhaustive cover of the dataset."""
-    assert plan, "the plan is empty"
-    assert read_field(plan[0], "start_idx") == 0, f"the plan does not start at row 0: {plan}"
-    assert read_field(plan[-1], "end_idx") == n_rows, f"the plan does not reach row {n_rows}: {plan}"
-    for i, planned in enumerate(plan):
-        assert read_field(planned, "index") == i, f"planned batches are not indexed 0..n-1: {plan}"
-        assert read_field(planned, "num_requests") == (read_field(planned, "end_idx") - read_field(planned, "start_idx")), f"bad span: {planned}"
-    for earlier, later in zip(plan, plan[1:]):
-        assert read_field(earlier, "end_idx") == read_field(later, "start_idx"), f"planned batches are not a contiguous cover: {plan}"
-    return True
-
-
-def prompt_dataset(n, prefix="say "):
-    return Dataset.from_dict({"prompt": [f"{prefix}{i}" for i in range(n)]})
-
-
-GEN_PARAMS = '{"temperature": 0.9}'
-
-
-def genparams_dataset(n):
-    return Dataset.from_dict({"prompt": [f"say {i}" for i in range(n)], "generation_params": [GEN_PARAMS] * n})
-
-
-def api_requests_for(processor, dataset, start_idx, end_idx, generation_params_per_row=False):
-    """The provider-specific dicts `create_batch_file` would be handed for one span."""
-    return [
-        processor.create_api_specific_request_batch(processor.prompt_formatter.create_generic_request(dataset[idx], idx, generation_params_per_row))
-        for idx in range(start_idx, end_idx)
-    ]
-
-
-def request_lines(path):
-    with open(path) as handle:
-        return [json.loads(line) for line in handle if line.strip()]
-
-
-def row_indices(path):
-    return [line["original_row_idx"] for line in request_lines(path)]
-
-
-def metadata_of(working_dir, index):
-    with open(os.path.join(str(working_dir), f"metadata_{index}.json")) as handle:
-        return json.load(handle)
-
-
-def basenames(paths):
-    return [os.path.basename(p) for p in paths]
+from probe_support import (  # noqa: F401 - re-exported for test_r1/test_r2
+    MODEL,
+    api_requests_for,
+    basenames,
+    check_cover,
+    genparams_dataset,
+    limits_of,
+    make_processor,
+    metadata_of,
+    patched_limits,
+    planner,
+    prompt_dataset,
+    request_lines,
+    row_indices,
+    tuples,
+)
 
 
 # =============================================================================

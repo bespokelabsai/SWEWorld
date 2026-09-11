@@ -174,7 +174,7 @@
          {
           "author": "konrad",
           "minute": "14:12",
-          "text": "and length wont fix itself on a retry anyway, so it stops being retryable, fail it out on the first"
+          "text": "and length does come good on a retry now and then, so dont stop retrying it, it just shouldnt get as many goes as a timeout"
          },
          {
           "author": "nikolai",
@@ -210,7 +210,7 @@
           "carried_by": "konrad 14:11"
          },
          {
-          "piece": "the decision: length-truncated responses stop being retryable, fail on the first attempt",
+          "piece": "the decision: length-truncated responses stay retryable, they just get fewer goes than a timeout",
           "carried_by": "konrad 14:12, agreed by nikolai 14:14 and emil 14:16"
          }
         ]
@@ -2146,7 +2146,7 @@
          {
           "author": "konrad",
           "minute": "15:19",
-          "text": "no requeue then, its terminal and the reason is throttle:exhausted. so at 0 thats what we tag"
+          "text": "no requeue then - thats attempts_left 0 with the waivers gone too, both empty. terminal, throttle:exhausted. if theres still attempts on the clock it just spends one and goes back on"
          },
          {
           "author": "dario",
