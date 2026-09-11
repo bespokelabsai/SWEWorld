@@ -1123,10 +1123,12 @@ def main(argv: list[str] | None = None) -> int:
                          "them in the ticket")
     ap.add_argument("--limit", type=int, default=None,
                     help="take the first N tasks instead of --pick")
-    ap.add_argument("--pick", default="t1,t2,t3,t4,t12,t23,t40",
-                    help="comma-separated task ids (default: the four the "
-                         "plant covers, plus the three that have suites but "
-                         "no plant)")
+    # No default. It used to name t1..t40, whose suites have since been retired
+    # to failed_tasks/ along with the tasks themselves, so a bare run emitted
+    # seven arms nobody wanted and skipped every task anybody does.
+    ap.add_argument("--pick", default="",
+                    help="comma-separated task ids, e.g. g2,g3 (required "
+                         "unless --limit is given)")
     ap.add_argument("--no-control", action="store_true",
                     help="skip the -spec twins")
     ap.add_argument("--hosted", action="store_true",
@@ -1164,6 +1166,12 @@ def main(argv: list[str] | None = None) -> int:
         chosen = tasks[:args.limit]
     else:
         want = [p.strip() for p in args.pick.split(",") if p.strip()]
+        if not want:
+            print("nothing to build: pass --pick <ids> or --limit N. The usual "
+                  "invocation is\n  python3 task_generator/build_tasks.py "
+                  "--extra-tasks task_generator/tasks.generated.json --pick g2",
+                  file=sys.stderr)
+            return 1
         by_id = {t["_id"]: t for t in tasks}
         missing = [w for w in want if w not in by_id]
         if missing:
@@ -1188,8 +1196,17 @@ def main(argv: list[str] | None = None) -> int:
         digits = task["_id"][1:]
         n = int(digits) if digits.isdigit() and task["_id"].startswith("t") else None
         slug = task.get("_slug") or SLUGS.get(n) or slugify(task["title"])
+        # Both halves of this matter. A task with no suite NAME never had one;
+        # a name whose directory is gone is a retired task — the t* suites moved
+        # to failed_tasks/ with the tasks they grade. Emitting either produces an
+        # arm whose tests/ has no suite in it, which fails at verify time as a
+        # collection error rather than as "this task has no suite".
         if not task["_suite"]:
             print(f"  {task['_id']}: no grading suite yet — skipped")
+            continue
+        if not (SUITES / task["_suite"]).is_dir():
+            print(f"  {task['_id']}: suite {task['_suite']} is not in "
+                  f"{SUITES.name}/ — retired to failed_tasks/? — skipped")
             continue
         made.append(emit(task, slug, "blind"))
         # The world arm is emitted BEFORE the --no-control bail. It is not a

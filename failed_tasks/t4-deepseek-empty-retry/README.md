@@ -46,4 +46,4 @@ harbor run -p failed_tasks/t4-deepseek-empty-retry -a oracle
 | r2 | `rule` | fail | PASS | PASS | coincidence |
 | r2 | `scope` | fail | PASS | PASS | coincidence |
 
-2 genuinely hidden, 4 coincidence, 0 unmeasurable. See [BRACKET.md](../../harbor_tasks/BRACKET.md) for what those mean.
+2 genuinely hidden, 4 coincidence, 0 unmeasurable. See [BRACKET.md](../BRACKET.md) for what those mean.

@@ -48,4 +48,4 @@ harbor run -p failed_tasks/t2-batch-cost-estimate -a oracle
 | r2 | `rule` | fail | fail | PASS | **hidden** |
 | r2 | `scope` | fail | fail | PASS | **hidden** |
 
-3 genuinely hidden, 2 coincidence, 2 unmeasurable. See [BRACKET.md](../../harbor_tasks/BRACKET.md) for what those mean.
+3 genuinely hidden, 2 coincidence, 2 unmeasurable. See [BRACKET.md](../BRACKET.md) for what those mean.

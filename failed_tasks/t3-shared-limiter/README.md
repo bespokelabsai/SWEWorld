@@ -48,4 +48,4 @@ harbor run -p failed_tasks/t3-shared-limiter -a oracle
 | r2 | `rule` | fail | fail | PASS | **hidden** |
 | r2 | `scope` | fail | fail | PASS | **hidden** |
 
-5 genuinely hidden, 2 coincidence, 0 unmeasurable. See [BRACKET.md](../../harbor_tasks/BRACKET.md) for what those mean.
+5 genuinely hidden, 2 coincidence, 0 unmeasurable. See [BRACKET.md](../BRACKET.md) for what those mean.
