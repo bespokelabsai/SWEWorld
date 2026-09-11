@@ -1,0 +1,1032 @@
+{
+ "g1": [
+  {
+   "id": "8d664a4c-790c-4dd3-a080-52ea2ceac561",
+   "eval": "8db49761",
+   "run": 1,
+   "score": 0.8588235294117647,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "e1cfa814-1dd7-4a48-a4c5-fb739e6ddf1e",
+   "eval": "8db49761",
+   "run": 2,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "a653d6d4-48fa-4431-8c2b-c985b36309e8",
+   "eval": "8db49761",
+   "run": 3,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "6cb5be65-cdef-474a-8e36-e5191476c165",
+   "eval": "8db49761",
+   "run": 4,
+   "score": 0.7176470588235294,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "12f8950a-8402-4dc4-a911-2c73618054d7",
+   "eval": "8db49761",
+   "run": 5,
+   "score": 0.8588235294117647,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "58cecadc-b16d-4f82-8462-8b21fecb4819",
+   "eval": "8db49761",
+   "run": 6,
+   "score": 0.788235294117647,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "1f06df7a-900e-4edc-9c83-57b256abf635",
+   "eval": "8db49761",
+   "run": 7,
+   "score": 0.788235294117647,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "725ada84-4911-4e32-a3c2-467c621de31f",
+   "eval": "8db49761",
+   "run": 8,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "9016ab99-aa97-4ad0-bcad-6ab2a9660746",
+   "eval": "8db49761",
+   "run": 9,
+   "score": 0.788235294117647,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "15525502-f6b3-4e28-9a46-a3336294d680",
+   "eval": "8db49761",
+   "run": 10,
+   "score": 0.7176470588235294,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g2": [
+  {
+   "id": "6d73e7af-d4dc-442a-a6ad-3e4b547c76a2",
+   "eval": "9f2db992",
+   "run": 1,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "2dc46c26-dcd0-4ec2-af0d-dbce09eaf5ea",
+   "eval": "9f2db992",
+   "run": 2,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "069b893c-74c7-4242-b419-ba91d7e155d7",
+   "eval": "9f2db992",
+   "run": 3,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "615d1360-5fab-42c2-8aea-19c1caade194",
+   "eval": "9f2db992",
+   "run": 4,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "62b9f306-ae89-4810-8682-68111754676c",
+   "eval": "9f2db992",
+   "run": 5,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "f4648f93-1983-4648-bbe0-f93d1ca2bbde",
+   "eval": "9f2db992",
+   "run": 6,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "33b81bf0-9961-49e2-a31b-4fe9d05a254d",
+   "eval": "9f2db992",
+   "run": 7,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "7be2f425-f702-487f-8f2f-62cd29530ea6",
+   "eval": "9f2db992",
+   "run": 8,
+   "score": 0.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "4ba13ac7-7518-42f9-8d32-499ac19b522e",
+   "eval": "9f2db992",
+   "run": 9,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "7919e169-bffc-4fb7-a245-85a739c08e44",
+   "eval": "9f2db992",
+   "run": 10,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g3": [
+  {
+   "id": "ccc381f3-73bd-456d-be56-ce881ea0ee80",
+   "eval": "ce846459",
+   "run": 1,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "63d214a1-8d99-4698-808c-ce2239681c38",
+   "eval": "ce846459",
+   "run": 2,
+   "score": 0.7708375,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "dbcedd39-8bb4-4cf2-959e-b0ecc4087ee3",
+   "eval": "ce846459",
+   "run": 3,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "34a87e12-2723-46e2-93e0-80ee0833a57e",
+   "eval": "ce846459",
+   "run": 4,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "46cec654-eadf-4c0e-9f7c-da8c6a4fccdf",
+   "eval": "ce846459",
+   "run": 5,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "3b3fcb93-dab9-420c-8fdf-044ba5afe338",
+   "eval": "ce846459",
+   "run": 6,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "3111b210-c0b6-4fce-b13d-f32b79c4e824",
+   "eval": "ce846459",
+   "run": 7,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "cd046ece-8f4a-4fb1-b7fd-c720a823b2f9",
+   "eval": "ce846459",
+   "run": 8,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "40be2bf1-a8ba-4e92-b173-69a26bf20e36",
+   "eval": "ce846459",
+   "run": 9,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "f6e50c9e-44c4-4fbe-9790-c1f50e42691d",
+   "eval": "ce846459",
+   "run": 10,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g4": [
+  {
+   "id": "31a202dc-526e-4bd9-baad-11d16e3913ab",
+   "eval": "0ebb2b86",
+   "run": 1,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "342998b2-45b3-4f6b-af01-f9e2d0ac3049",
+   "eval": "0ebb2b86",
+   "run": 2,
+   "score": 0.06666666666666667,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "76b379d3-7c15-448e-b355-7572b07c44af",
+   "eval": "0ebb2b86",
+   "run": 3,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "ad4a75af-24c0-4463-bad6-d19d00b068c2",
+   "eval": "0ebb2b86",
+   "run": 4,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "3794f374-9f15-47da-83f7-64207e273416",
+   "eval": "0ebb2b86",
+   "run": 5,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "ec814c80-4d78-4c0c-89e5-498b4e1e2bb6",
+   "eval": "0ebb2b86",
+   "run": 6,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "22c149ca-ddf2-4b1a-b88e-9f11e0d8e036",
+   "eval": "0ebb2b86",
+   "run": 7,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "ad4ce258-96f5-4aa3-ac3f-6b25a92a9fcd",
+   "eval": "0ebb2b86",
+   "run": 8,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "e157d675-6911-48f4-95d6-c15caba27a64",
+   "eval": "0ebb2b86",
+   "run": 9,
+   "score": 0.06666666666666667,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "4359a8a5-28e7-4620-a706-1b6a65c3128f",
+   "eval": "0ebb2b86",
+   "run": 10,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g6": [
+  {
+   "id": "468cd6fe-6ad5-4bc1-b222-9ccb4909a1dc",
+   "eval": "30b9f0dd",
+   "run": 1,
+   "score": 0.07142857142857142,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "ce421264-6bc9-48ef-b6ae-32db25ab063e",
+   "eval": "30b9f0dd",
+   "run": 2,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "1adecb6c-8761-41b3-aa7e-c9f3fb24b2a4",
+   "eval": "30b9f0dd",
+   "run": 3,
+   "score": 0.07142857142857142,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "18bbfdc9-7347-40fc-b4dc-07064fd8102d",
+   "eval": "30b9f0dd",
+   "run": 4,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "f6788014-0361-465d-a6f0-f96d7dbf8804",
+   "eval": "30b9f0dd",
+   "run": 5,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "6887d254-9435-4f66-860a-074faea07854",
+   "eval": "30b9f0dd",
+   "run": 6,
+   "score": 0.8163285714285714,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "e9fac7c8-6b26-44ef-9d9b-86bb071b4b99",
+   "eval": "30b9f0dd",
+   "run": 7,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "c69f70f0-0788-437a-b434-498795bcdd50",
+   "eval": "30b9f0dd",
+   "run": 8,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "ed6472ea-8c0a-4c1d-a86e-cc91c37b4107",
+   "eval": "30b9f0dd",
+   "run": 9,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "d949cdcf-827d-456f-a519-fec60eb6f326",
+   "eval": "30b9f0dd",
+   "run": 10,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g7": [
+  {
+   "id": "d7d2552c-8cfd-4624-9782-6065ccbb7f7b",
+   "eval": "8deffce4",
+   "run": 1,
+   "score": 0.8333333333333334,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "c22e6a99-925b-414d-8bc9-034c1f1562ef",
+   "eval": "8deffce4",
+   "run": 2,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "e53e89fc-a691-46e5-92f6-e2f5956d053e",
+   "eval": "8deffce4",
+   "run": 3,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "625bf84c-a0f5-4a1c-988c-cfd65ce323a1",
+   "eval": "8deffce4",
+   "run": 4,
+   "score": 0.75,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "8a514932-27f7-4143-8e15-9d40650b48e6",
+   "eval": "8deffce4",
+   "run": 5,
+   "score": 0.06666666666666667,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "abbd1b41-3c5d-4084-b52e-b8cf88e37874",
+   "eval": "8deffce4",
+   "run": 6,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "9bd32b81-650a-44eb-af3a-f9a7d8cb39f5",
+   "eval": "8deffce4",
+   "run": 7,
+   "score": 0.6666666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "4df9fa70-e8e7-4cb3-b0fa-6ac21766fd69",
+   "eval": "8deffce4",
+   "run": 8,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "bfd713dc-094d-4ba7-9556-33976bf6ed43",
+   "eval": "8deffce4",
+   "run": 9,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "41f9c9fd-3b3c-416e-9c15-556a7010c52f",
+   "eval": "8deffce4",
+   "run": 10,
+   "score": 0.75,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g8": [
+  {
+   "id": "7e8d6c66-fe6c-48fd-871b-d8d9815466c7",
+   "eval": "30c95df4",
+   "run": 1,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "bb7a8be9-cbbf-496d-a58f-1eea1b7e41af",
+   "eval": "30c95df4",
+   "run": 2,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "8bdfd136-61d4-4108-9b12-ad5e3f0da0cd",
+   "eval": "30c95df4",
+   "run": 3,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "458ef5bd-6782-40ff-abdd-cf3b87168b5c",
+   "eval": "30c95df4",
+   "run": 4,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "d6eabf95-6f8b-4ab6-8c04-272aa1e276d3",
+   "eval": "30c95df4",
+   "run": 5,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "320144bf-7b2e-45d0-96da-2dc91319e16a",
+   "eval": "30c95df4",
+   "run": 6,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "bf6f3ad8-6151-42bb-9ad6-d62f31ffc8e0",
+   "eval": "30c95df4",
+   "run": 7,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "20a3f00f-6b78-4ebc-8f37-dfa4efc2aa07",
+   "eval": "30c95df4",
+   "run": 8,
+   "score": null,
+   "errored": true,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "8a9deee3-8e89-4520-8254-e4d096d85ada",
+   "eval": "48fe71f7",
+   "run": 1,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "28142e4d-c8c8-4286-9963-75e1f6ce9624",
+   "eval": "66eb8a20",
+   "run": 1,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "9fc94c4d-cd79-47ed-9036-98db62d12308",
+   "eval": "66eb8a20",
+   "run": 2,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g9": [
+  {
+   "id": "fe224554-177d-4a0f-84b7-2349d8eb2c48",
+   "eval": "3b0b259f",
+   "run": 1,
+   "score": 0.8163285714285714,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "f7cf25ff-a8ea-41ed-a3b4-10901df1e7ce",
+   "eval": "3b0b259f",
+   "run": 2,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "3ad4d147-adcd-4523-b322-0447c9d08218",
+   "eval": "3b0b259f",
+   "run": 3,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "a22ae416-9870-4e23-a9dd-151f16e42a02",
+   "eval": "3b0b259f",
+   "run": 4,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "e776537c-d6db-47f6-b1d9-d503e7670bb9",
+   "eval": "3b0b259f",
+   "run": 5,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "e26f06c1-5081-4788-86c8-76adb6185a00",
+   "eval": "3b0b259f",
+   "run": 6,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "775a81a2-5c3b-4b6d-b860-f0ad0a93f820",
+   "eval": "3b0b259f",
+   "run": 7,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "5c4fad06-a0a0-4f08-941e-702c691107e1",
+   "eval": "3b0b259f",
+   "run": 8,
+   "score": 0.8163285714285714,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "0b39d6d4-6515-44b5-a198-089935e4bb95",
+   "eval": "3b0b259f",
+   "run": 9,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "3f9184ba-2187-448b-bf9f-de76ea0a2c66",
+   "eval": "3b0b259f",
+   "run": 10,
+   "score": 0.9081571428571428,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g10": [
+  {
+   "id": "f29b27b5-a854-4c18-bb14-56c027423956",
+   "eval": "5b468409",
+   "run": 1,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "b0a5402b-1f2f-4bcd-a34b-6b9bc7cff27c",
+   "eval": "5b468409",
+   "run": 2,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "35e26f76-0cba-4714-b6cc-1e0446f616bf",
+   "eval": "5b468409",
+   "run": 3,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "2d3c926b-3311-498a-b045-87418967b746",
+   "eval": "5b468409",
+   "run": 4,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "97d72c87-4ab7-4ba1-90b5-91d1cc45149b",
+   "eval": "5b468409",
+   "run": 5,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "1e9edef5-2321-4a35-8051-b6c7cedf4a3f",
+   "eval": "5b468409",
+   "run": 6,
+   "score": 0.9166666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "accecdfc-b73a-4b66-9a50-cf603380d787",
+   "eval": "5b468409",
+   "run": 7,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "b2357bac-e451-4032-8a01-03a6fff94f09",
+   "eval": "5b468409",
+   "run": 8,
+   "score": 0.06666666666666667,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "1aea4bd6-d451-41c0-a476-c2e345690376",
+   "eval": "5b468409",
+   "run": 9,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "8dec3046-794f-489f-b9e3-a61841a788fb",
+   "eval": "5b468409",
+   "run": 10,
+   "score": 0.6666666666666666,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ],
+ "g11": [
+  {
+   "id": "3347ed25-6836-4386-8a52-2467ca7e6f2f",
+   "eval": "94bf8242",
+   "run": 1,
+   "score": 0.69445,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "22513549-8db9-4081-82e2-b7f69a03f037",
+   "eval": "94bf8242",
+   "run": 2,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "dc2703c8-7c38-4866-b657-9b480ddcc246",
+   "eval": "94bf8242",
+   "run": 3,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "d6f00008-3f13-4d5b-b601-09f77f924e93",
+   "eval": "94bf8242",
+   "run": 4,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "2f540570-2ca5-4dec-b996-5e3eff002fa0",
+   "eval": "94bf8242",
+   "run": 5,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "f8059d35-9895-4946-9bd7-a99128313236",
+   "eval": "94bf8242",
+   "run": 6,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "66a0621c-b871-4790-87f6-bdd12b3e0ade",
+   "eval": "94bf8242",
+   "run": 7,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "fa827d89-a5e1-4c03-ba27-0325d77252b7",
+   "eval": "94bf8242",
+   "run": 8,
+   "score": 1.0,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "1daa88e2-0880-44bd-81be-c9cd1a794efc",
+   "eval": "94bf8242",
+   "run": 9,
+   "score": 0.9236125,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  },
+  {
+   "id": "eb0dccde-d498-4bd4-ad42-f2602c9cd24b",
+   "eval": "94bf8242",
+   "run": 10,
+   "score": 0.847225,
+   "errored": false,
+   "turns": null,
+   "cost": null,
+   "stop": null
+  }
+ ]
+}

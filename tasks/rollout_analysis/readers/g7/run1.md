@@ -1,0 +1,24 @@
+# g7 run 1 (d7d2552c) — reward 0.75
+
+## What this run found
+
+The agent ran a genuinely thorough search: every Mattermost channel dumped twice (`/tmp/chat` then `/tmp/chat2`), all 135 mail messages pulled to `/tmp/mail`/`/tmp/mails.txt`, and every wiki page matched by six search queries (`ledger`, `turn_ledger`, `agent`, `conversation`, `resume`, later `sidecar`/`agent loop`) fetched whole — 87–143 pages, comments included. On the strength of that, it correctly recovered essentially all of `g7.r2` (the sentinel rule): it read both r2 herrings (`h1-sentinel-substring-ci` at code-review.txt:1219, `h2-sentinel-placement-free` at cookbooks.txt:453) and both reversals (`rev1` at code-review.txt:2101-2110, `rev2` at engineering.txt:2477-2480) in full, correctly concluded `response.rstrip().endswith(COMPLETION_SENTINEL)` — case-sensitive, suffix-only — and shipped exactly that (line 3488, 3520). It also fully recovered `g7.r1.failure_behavior` and `g7.r1.observability`: the mail threads `l3`/`l16`/`l12` and chat remarks `rev1`/`fix28`/`l4`/`say21` gave it the three-arm `verify_sidecar` (absent/unparseable/old-version → adopted; agreeing → verified; disagreeing current-version → raise `TurnLedgerDesyncError` before the first call) and the exact 186/189-byte, sort_keys/indent-2 serialization, both verified against the passing tests.
+
+## What it missed and why
+
+Both losses are r1, and both are precise, evidence-traceable misses rather than vague gaps.
+
+**`g7.r1.rule` (missing `TURN_LEDGER_FILENAME`).** The probe fails on its very first assertion: `sym("TURN_LEDGER_FILENAME")` doesn't exist — the agent used the bare string `"turn_ledger.json"` throughout instead of a module constant. Exactly one remark in the whole 51 carries that literal name: `g7.r1.l2`, a comment on wiki page 211 (`weekly-sync-notes-week-of-jun-2-release-ci.md`). That page *was* fetched to `/tmp/wiki/211.txt` during the search dump (visible in the `ls /tmp/wiki` output) but was never opened — every subsequent grep pass used narrow identifier lists (`sidecar`, `TURN_LEDGER`, `verify_sidecar`...) that don't appear in page 211's actual text, and the page was never picked for direct reading the way 143/144/147/150/152 were.
+
+**`g7.r1.scope` (`'adopted' != 'created'`).** This is not a not-found — it's a near-miss the agent had almost dead to rights. `g7.r1.fix30` (pipeline.txt:197-202, read in full) says almost exactly the failing scenario: *"on a totally clean checkout, nothing on disk to resume from... nothing to load, so verify_sidecar never fired and the ledger came back still carrying the status it was built with."* `g7.r1.fix27` (also read in full, same channel) adds *"a freshly built ledger, status created"* — before `verify_sidecar` ever runs. But the agent's own Analysis immediately after reading both (line 2955) collapses them into a single verify_sidecar-centric model ("adopted when nothing usable on disk") and never implements a distinct constructor-level `created` state for a genuinely fresh run. Strikingly, near the very end of the run — after CI was already green and the service deployed — the agent independently rediscovered a version of this exact bug and shipped a follow-up patch (`status = self.ledger.status if self.ledger is not None else "created"`, PR #738). But that patch only covers the mid-run re-derivation fallback, not the initial construction path `run()` takes through `load_ledger()` before the seed line is written — so the exact scenario `test_scope` checks (a truly fresh directory, `Boom` on the first call, `processor.ledger.status`) still comes back `adopted`.
+
+## What it believed, and why
+
+All four herrings were correctly resisted. The two r1 herrings (`checkpoint authoritative, truncate the log`) and their reversals were both seen in full via `#pipeline`/`#code-review` grep passes; the two r2 herrings (case-insensitive substring match anywhere) and their reversals were both seen in full via the sentinel-keyword grep. In every case the agent registered the reversal as the live truth and shipped accordingly — no herring made it into the code.
+
+## Lost-fact causes
+
+- `g7.r1.rule` → **not_found**: the sole carrier of `TURN_LEDGER_FILENAME` (wiki page 211, a comment) was fetched to disk but never read.
+- `g7.r1.scope` → **implementation_slip**: the two clearest remarks were both read in full and even partially re-derived independently late in the run, but the shipped fix doesn't reach the code path the grader actually exercises.
+
+Two secondary near-misses worth flagging as task/search artifacts rather than agent error: `g7.r1.rev2`'s herring-quoting half fell outside a `-B4/-A8` grep window (only the back half was ever shown), and `g7.r1.l7`'s key sentence ("comparing every key is too strict") was cut by `cut -c1-220`-style column truncation before it appeared — in both cases the fact still passed on the strength of other remarks.

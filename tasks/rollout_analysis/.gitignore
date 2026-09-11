@@ -1,0 +1,4 @@
+# Pulled from Horizon and regenerable with pull.py; ~100 MB of transcripts and grade records.
+rollouts/
+full/
+__pycache__/

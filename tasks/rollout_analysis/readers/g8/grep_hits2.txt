@@ -1,0 +1,88 @@
+=== g8.r1.g8-pre-r1-single-ceiling-konrad  [settled the ordring\|one shared 20 MB ceiling covering every kind] ===
+
+=== g8.r2.detail-passthrough-1  [detail passes through exactly as written] ===
+3219:[1744990440000] qzddymjxqifp38x4p4dcxaaf6c: no, and that was deliberate. the call in 427 was detail passes through exactly as written, we render the caller's st
+3974:/tmp/chat2/world__engineering.txt:1673:[1738347039000] qjqbs9dy938zj84sugumz9tz7c: we send it. detail passes through exactly as written, we dont touch the strin
+
+=== g8.r1.s4-gideon  [notebook handed us sixty images\|guard runs ahead of all that] ===
+
+=== g8.r1.s4-konrad  [_ATTACHMENT_COUNT_LIMIT is 12\|forty text chunks] ===
+2404:/tmp/chat2/world__engineering.txt:990:[1742391600000] gmj5ghrd7idumc1r9d9jf71kmw: only attachments. look, _ATTACHMENT_COUNT_LIMIT is 12 and it stays at 12, i se
+
+=== g8.r1.s2-konrad  [nine photos\|rejected for body size] ===
+4313:[1742392920000] 3ht1pb8937fj5xd98ujd33h4nw: cookbook run came back rejected this morning, body size. the cell has nine photos in it
+4320:[1742393220000] 3ht1pb8937fj5xd98ujd33h4nw: still rejected for body size, yeah
+
+=== g8.r1.s3-nikolai  [unit tests started reaching for the network\|slow theyre going out to the network] ===
+
+=== g8.r1.s3-emil  [we were measuring the signed url\|nonsense. url blocks skip] ===
+
+=== g8.r1.s4-dario  [TooManyAttachments or close to it\|no new base, another AttachmentError subclass] ===
+2798:[1742825040000] 7pyfqgd9s3r8dpyfz59dhbx1ww: needs its own thing i'd say TooManyAttachments or close to it
+2802:[1742825400000] qjqbs9dy938zj84sugumz9tz7c: no new base, another AttachmentError subclass. same as AttachmentTooLarge is
+2952:/tmp/chat2/world__engineering.txt:638:[1742825040000] 7pyfqgd9s3r8dpyfz59dhbx1ww: needs its own thing i'd say TooManyAttachments or close to it
+2955:/tmp/chat2/world__engineering.txt:641:[1742825400000] qjqbs9dy938zj84sugumz9tz7c: no new base, another AttachmentError subclass. same as AttachmentTooLarge is
+
+=== g8.r2.say22  [expected attachment_fingerprint\|no short circut] ===
+2657:[1744204920000] sdoin7iqh3868nrrgq9w378anh: no short circut. i went looking for that branch too, its not there
+
+=== g8.r2.l9  [fingerprint comes back empty for anythng with an http url\|half the run is remote] ===
+2770:[1744291140000] sdoin7iqh3868nrrgq9w378anh: half the run is remote tbh. so the pass is sitting idle on most of what it sees
+
+=== g8.r2.l10  [ended up with two cache entries\|A and B being two entries] ===
+2667:[1744378860000] sdoin7iqh3868nrrgq9w378anh: quick one before i forget, i put the same cat.jpeg through twice this morning and ended up with two cache entries fo
+2674:[1744379280000] 7pyfqgd9s3r8dpyfz59dhbx1ww: no thats the behaviour i want A and B being two entries is correct
+
+=== g8.r2.l13  [every image came back looking like auto\|burned an hour on a run] ===
+
+=== g8.r1.s1-gideon  [paid for the upload and got a 400\|caught localy] ===
+
+=== g8.r1.s1-dermot  [fires before we ever reach file_upload_limit_check\|AttachmentError is a ValueError] ===
+2945:/tmp/chat2/world__pipeline.txt:315:[1744812240000] qzddymjxqifp38x4p4dcxaaf6c: AttachmentTooLarge fires before we ever reach file_upload_limit_check, so the ove
+3020:[1744812240000] qzddymjxqifp38x4p4dcxaaf6c: AttachmentTooLarge fires before we ever reach file_upload_limit_check, so the oversize case doesnt get that far
+3025:[1744812600000] qzddymjxqifp38x4p4dcxaaf6c: AttachmentError is a ValueError, so the old ValueError handlers still catch it. nothing downstream has to change
+
+=== g8.r2.l15  [My image fixtures are diffing\|rewrote Image.detail] ===
+
+=== g8.r1.s1-dario  [we already have the base64 string in hand\|hang it off the block itself] ===
+4102:[1745404380000] qjqbs9dy938zj84sugumz9tz7c: no, nothing nested. just hang it off the block itself, size_mb, right there beside the rest
+
+=== g8.r2.l2  [give the record a short digest of the payload\|optional means half the call sites] ===
+
+=== g8.r2.l11  [the stored string, exactly as we send it\|never open a remote one] ===
+
+=== g8.r2.l14  [three entries, and the order isnt cosmetic\|index 0 is what gets handed back] ===
+
+=== g8.r2.l4  [pinned it in the test\|%PDF-1.4] ===
+
+=== g8.r2.l12  [decoding every payload before hashing\|hashing the base64 text as-is] ===
+
+=== g8.r2.rev2  [no allowlist on detail\|burned an hour on detail] ===
+3298:[1745937120000] gmj5ghrd7idumc1r9d9jf71kmw: it was. look, "no allowlist on detail, its the callers string" is dead
+3299:[1745937120000] gmj5ghrd7idumc1r9d9jf71kmw: i burned an hour on detail="HIGH" comming back as auto
+3900:/tmp/chat2/world__general.txt:159:[1745937120000] gmj5ghrd7idumc1r9d9jf71kmw: it was. look, "no allowlist on detail, its the callers string" is dead
+3950:/tmp/chat2/world__general.txt:159:[1745937120000] gmj5ghrd7idumc1r9d9jf71kmw: it was. look, "no allowlist on detail, its the callers string" is dead
+3951:/tmp/chat2/world__general.txt:160:[1745937120000] gmj5ghrd7idumc1r9d9jf71kmw: i burned an hour on detail="HIGH" comming back as auto
+
+=== g8.r1.s5-gideon  [estimate on that multimodal batch\|counted 85 per image] ===
+
+=== g8.r1.say25  [block kind isnt one we handle\|it just contributes zero] ===
+
+=== g8.r2.l3  [did you keep the \[:12\] inline\|_ATTACHMENT_FINGERPRINT_HEX_LEN] ===
+2519:/tmp/chat2/world__code-review.txt:478:[1746525120000] sdoin7iqh3868nrrgq9w378anh: konrad quick one - did you keep the [:12] inline in the fingerprint bit? dermo
+2554:[1746525120000] sdoin7iqh3868nrrgq9w378anh: konrad quick one - did you keep the [:12] inline in the fingerprint bit? dermot flagged it in review and i lost the
+2556:[1746525240000] gmj5ghrd7idumc1r9d9jf71kmw: no i took the nit. its a named constant now, _ATTACHMENT_FINGERPRINT_HEX_LEN, sitting right next to the helper
+2586:Analysis: Confirmed: attachment_fingerprint(payload) returns 'sha256:' + 12 hex chars, constant _ATTACHMENT_FINGERPRINT_HEX_LEN. Need where it's used (probably a field on AttachmentBlock).
+4926:> _ATTACHMENT_FINGERPRINT_HEX_LEN: int = 12
+4991:>     digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:_ATTACHMENT_FINGERPRINT_HEX_LEN]
+4995:    digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:_ATTACHMENT_FINGERPRINT_HEX_LEN]
+7246:- **`src/bespokelabs/curator/types/attachment.py`** (new): frozen `AttachmentBlock`, `normalize_mime_type`, the error tree (`AttachmentError(ValueError)` → `UnknownAttachmentMimeType`, `MissingLocalAttachment`, `EmptyAttachment`, plus the parked `AttachmentTooLarge(kind, size_mb, limit_mb)` and `TooManyAttachments(count, limit)`), `normalize_detail` against `_SUPPORTED_IMAGE_DETAILS` (off-list → `auto` + one warning), `attachment_fingerprint` (`sha256:` + `_ATTACHMENT_FINGERPRINT_HEX_LEN` hex, no empty-payload short circuit — reproduces both pinned values `sha256:5e21d86b709b` and `sha256:80ce7facd006`), `_MAX_ATTACHMENT_FILENAME_LEN = 64` truncation that keeps the extension, per-kind ceilings (image 20.0 / document 24.0, strictly over) and the 45 MB whole-prompt total.
+
+=== g8.r1.s5-dermot  [only the image one at the moment\|_OPENAI_TOKENS_PER_DOCUMENT] ===
+
+=== g8.r2.fix24  [image detail param for multimodal requests\|cheapest first] ===
+
+=== g8.r2.l16  [isnt one of the three\|nothing set at all logs nothing] ===
+
+=== g8.r2.say20  [each image goes out as type image_url\|url and detail] ===
+

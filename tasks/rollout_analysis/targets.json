@@ -1,0 +1,94 @@
+{
+ "g1": {
+  "tid": "6877f4a4-3eb2-4536-8d04-229c55517ca4",
+  "v": 14,
+  "evals": [
+   "8db49761"
+  ],
+  "arm": "harbor_tasks/g1-batch-payload-plan/batch-payload-plan-world-hosted",
+  "slug": "batch-payload-plan"
+ },
+ "g2": {
+  "tid": "5ced3c30-bc80-4c8a-9440-9b0d41e61adc",
+  "v": 11,
+  "evals": [
+   "9f2db992"
+  ],
+  "arm": "harbor_tasks/g2-executor-output-cap/executor-output-cap-world-hosted",
+  "slug": "executor-output-cap"
+ },
+ "g3": {
+  "tid": "dba9d0a7-e6ce-47d1-8ff5-11040eb8ea05",
+  "v": 7,
+  "evals": [
+   "ce846459"
+  ],
+  "arm": "harbor_tasks/g3-retry-backoff-policy/retry-backoff-policy-world-hosted",
+  "slug": "retry-backoff-policy"
+ },
+ "g4": {
+  "tid": "1e913041-ab20-4fae-a1ae-a104b5f8bb62",
+  "v": 5,
+  "evals": [
+   "0ebb2b86"
+  ],
+  "arm": "harbor_tasks/g4-run-cache-identity/g4-run-cache-identity-world-hosted",
+  "slug": "run-cache-identity"
+ },
+ "g6": {
+  "tid": "80babb9d-9bf3-4160-9f97-9315ee9a2566",
+  "v": 6,
+  "evals": [
+   "30b9f0dd"
+  ],
+  "arm": "harbor_tasks/g6-model-price-lookup/model-price-lookup-world-hosted",
+  "slug": "model-price-lookup"
+ },
+ "g7": {
+  "tid": "035a0274-1da4-488f-b2d8-32ce51949566",
+  "v": 5,
+  "evals": [
+   "8deffce4"
+  ],
+  "arm": "harbor_tasks/g7-agent-turn-ledger/agent-turn-ledger-world-hosted",
+  "slug": "agent-turn-ledger"
+ },
+ "g8": {
+  "tid": "3c2d44eb-8949-4fca-baf2-17dae899b203",
+  "v": 8,
+  "evals": [
+   "30c95df4",
+   "66eb8a20",
+   "48fe71f7"
+  ],
+  "arm": "harbor_tasks/g8-attachment-payload/attachment-payload-world-hosted",
+  "slug": "attachment-payload"
+ },
+ "g9": {
+  "tid": "149947c5-d450-4993-9904-58ecde65ced4",
+  "v": 8,
+  "evals": [
+   "3b0b259f"
+  ],
+  "arm": "harbor_tasks/g9-example-encoding/example-encoding-world-hosted",
+  "slug": "example-encoding"
+ },
+ "g10": {
+  "tid": "34977c02-de6b-4fa9-aadd-b25a143d8e80",
+  "v": 5,
+  "evals": [
+   "5b468409"
+  ],
+  "arm": "harbor_tasks/g10-token-capacity-budget/token-capacity-budget-world-hosted",
+  "slug": "token-capacity-budget"
+ },
+ "g11": {
+  "tid": "aa5d35bc-601a-4449-b842-150094c6ff22",
+  "v": 7,
+  "evals": [
+   "94bf8242"
+  ],
+  "arm": "harbor_tasks/g11-training-step-ledger/training-step-ledger-world-hosted",
+  "slug": "training-step-ledger"
+ }
+}

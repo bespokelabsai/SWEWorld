@@ -1,0 +1,962 @@
+{
+  "task": "g10",
+  "run": 8,
+  "eval": "5b468409",
+  "rollout_id": "b2357bac",
+  "reward": 0,
+  "facts": {
+    "g10.r1.rule": 0,
+    "g10.r1.scope": 0,
+    "g10.r1.exclusions_or_crossover": 0,
+    "g10.r1.observability": 0,
+    "g10.r2.rule": 0,
+    "g10.r2.scope": 0,
+    "g10.r2.exclusions_or_crossover": 0,
+    "g10.r2.observability": 0
+  },
+  "remarks": [
+    {
+      "id": "g10.r1.clamp-at-zero-decision",
+      "kind": "herring",
+      "carries": [],
+      "found": "yes",
+      "step": 89,
+      "line": 4836,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "herring",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.h1",
+      "kind": "herring",
+      "carries": [],
+      "found": "yes",
+      "step": 9,
+      "line": 860,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "herring",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.clamp-at-zero-rationale",
+      "kind": "herring",
+      "carries": [],
+      "found": "yes",
+      "step": 66,
+      "line": 3678,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "herring",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.h2",
+      "kind": "herring",
+      "carries": [],
+      "found": "yes",
+      "step": 110,
+      "line": 5901,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "herring",
+      "agent_quote": "I now have enough understanding of the codebase and the parked design decisions. 1. CAPACITY_DEBT_FLOOR_FRACTION = 0.25 in capacity_budget.py; settle (free_capacity) no longer clamps at 0.0 \u2014 buckets can go negative, floored at -fraction*limit per axis; num_capacity_debt_clamps counts calls where the floor actually stopped a settle (only the floor, not ceiling clamps; one increment per call even if both axes clamp). 2. Failure path: tracker.refund_capacity(blocked) returns whole booking + 1.0 request slot, clamped at limits; processor _refund_capacity(...) thin delegate. 3. Counters ... bumped on release only. 4. Requeue drops the booking (refund), re-estimated on next attempt. 5. None axes skipped everywhere.",
+      "quote_line": "step 125, line 6659",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s3.l2",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 54,
+      "line": 3051,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s2.l4",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "yes",
+      "step": 89,
+      "line": 4858,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s1.l3",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 57,
+      "line": 3223,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s3.l3",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole; read via targeted line windows keyed off other keyword hits, so this exchange (no exact keyword grepped) was never opened",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r2.s1_l3",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/engineering.txt but only read via targeted sed/grep windows and dated keyword hits; this remark's line/date window was never opened",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r1.g10.r1.s4.l2",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 66,
+      "line": 3684,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s2.l1",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/engineering.txt but only read via targeted sed/grep windows and dated keyword hits; this remark's line/date window was never opened",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r1.g10.r1.s4.l1",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover",
+        "observability"
+      ],
+      "found": "yes",
+      "step": 110,
+      "line": 5912,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "I now have enough understanding of the codebase and the parked design decisions. 1. CAPACITY_DEBT_FLOOR_FRACTION = 0.25 in capacity_budget.py; settle (free_capacity) no longer clamps at 0.0 \u2014 buckets can go negative, floored at -fraction*limit per axis; num_capacity_debt_clamps counts calls where the floor actually stopped a settle (only the floor, not ceiling clamps; one increment per call even if both axes clamp). 2. Failure path: tracker.refund_capacity(blocked) returns whole booking + 1.0 request slot, clamped at limits; processor _refund_capacity(...) thin delegate. 3. Counters ... bumped on release only. 4. Requeue drops the booking (refund), re-estimated on next attempt. 5. None axes skipped everywhere.",
+      "quote_line": "step 125, line 6659",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s1_l4",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/engineering.txt but only read via targeted sed/grep windows and dated keyword hits; this remark's line/date window was never opened",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r2.s3_l4",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "yes",
+      "step": 110,
+      "line": 5915,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "I now have enough understanding of the codebase and the parked design decisions. 1. CAPACITY_DEBT_FLOOR_FRACTION = 0.25 in capacity_budget.py; settle (free_capacity) no longer clamps at 0.0 \u2014 buckets can go negative, floored at -fraction*limit per axis; num_capacity_debt_clamps counts calls where the floor actually stopped a settle (only the floor, not ceiling clamps; one increment per call even if both axes clamp). 2. Failure path: tracker.refund_capacity(blocked) returns whole booking + 1.0 request slot, clamped at limits; processor _refund_capacity(...) thin delegate. 3. Counters ... bumped on release only. 4. Requeue drops the booking (refund), re-estimated on next attempt. 5. None axes skipped everywhere.",
+      "quote_line": "step 125, line 6659",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s1.l4",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 54,
+      "line": 3043,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s4.l3",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 79,
+      "line": 4319,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s2_l3",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 76,
+      "line": 4179,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s2_l2",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 110,
+      "line": 5917,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "I now have enough understanding of the codebase and the parked design decisions. 1. CAPACITY_DEBT_FLOOR_FRACTION = 0.25 in capacity_budget.py; settle (free_capacity) no longer clamps at 0.0 \u2014 buckets can go negative, floored at -fraction*limit per axis; num_capacity_debt_clamps counts calls where the floor actually stopped a settle (only the floor, not ceiling clamps; one increment per call even if both axes clamp). 2. Failure path: tracker.refund_capacity(blocked) returns whole booking + 1.0 request slot, clamped at limits; processor _refund_capacity(...) thin delegate. 3. Counters ... bumped on release only. 4. Requeue drops the booking (refund), re-estimated on next attempt. 5. None axes skipped everywhere.",
+      "quote_line": "step 125, line 6659",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s4.l4",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 81,
+      "line": 4436,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s2_l4",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 76,
+      "line": 4185,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s2.l2",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/pipeline.txt (12 remarks live here, the most of any channel); only a subset of line windows around keyword hits were read, so a remark sitting between two read windows was skipped",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r2.s4_l1",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover",
+        "rule"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2871,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s2.l3",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "yes",
+      "step": 57,
+      "line": 3230,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s3_l1",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2876,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.rev2",
+      "kind": "reversal of g10.r2.h2",
+      "carries": [
+        "rule",
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2880,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s4_l2",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 60,
+      "line": 3379,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s3_l3",
+      "kind": "clue",
+      "carries": [
+        "scope",
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole; only two short windows (185-240) opened",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r2.s3_l2",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/pipeline.txt (12 remarks live here, the most of any channel); only a subset of line windows around keyword hits were read, so a remark sitting between two read windows was skipped",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r1.g10.r1.s1.l1",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/engineering.txt but only read via targeted sed/grep windows and dated keyword hits; this remark's line/date window was never opened",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r1.rev1",
+      "kind": "reversal of g10.r1.clamp-at-zero-decision",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 52,
+      "line": 2959,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.g10.r1.s3.l1",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2843,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.rev1",
+      "kind": "reversal of g10.r2.h1",
+      "carries": [
+        "rule",
+        "scope"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2857,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s2_l1",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/pipeline.txt (12 remarks live here, the most of any channel); only a subset of line windows around keyword hits were read, so a remark sitting between two read windows was skipped",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r2.s5_l2",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2874,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.say23",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2862,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.say25",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 66,
+      "line": 3673,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s1_l2",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole to /tmp/chat2/engineering.txt but only read via targeted sed/grep windows and dated keyword hits; this remark's line/date window was never opened",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r1.rev2",
+      "kind": "reversal of g10.r1.clamp-at-zero-rationale",
+      "carries": [
+        "rule",
+        "observability"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2849,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s5_l1",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2853,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r1.say19",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "yes",
+      "step": 50,
+      "line": 2868,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s1_l1",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel never dumped/opened individually \u2014 #help carries only this one remark and no keyword search for its distinctive terms (\"haiku\", \"1k output tokens\") was ever run",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r2.s4_l3",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 90,
+      "line": 4873,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s5_l3",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole but read late and thinly (only 2 short windows opened all run)",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r2.say24",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 90,
+      "line": 4874,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    },
+    {
+      "id": "g10.r2.s5_l4",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "channel dumped whole but read late and thinly (only 2 short windows opened all run)",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a",
+      "note": "Verified absent: grepped the full transcript for this remark's distinctive wording/identifiers and found zero hits (not a rendering truncation \u2014 the phrase never appears)."
+    },
+    {
+      "id": "g10.r1.g10.r1.s1.l2",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 47,
+      "line": 2696,
+      "how": "Mattermost channel dumped whole to /tmp/chat2/<channel>.txt via a python script, then grepped/read in a line-numbered window around a keyword hit (capacity_budget/refund/debt/floor/clamp/etc.)",
+      "near_miss": null,
+      "registered": "requirement",
+      "agent_quote": "So far parked decisions: 1. free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) ... 2. Failure path: refund_capacity(blocked) returns whole estimate + request slot (1.0) ... 3. Counters num_capacity_settlements and num_capacity_refunds, incremented on release only ... 4. Retry path must also release (refund). 5. available_request_capacity None when max_requests_per_minute is None (unlimited).",
+      "quote_line": "step 64, line 3543",
+      "acted": "n/a",
+      "note": "Correctly folded into the design synthesis and implemented in the uncommitted working tree (src/bespokelabs/curator/status_tracker/capacity_budget.py and the rewritten online_status_tracker.py / base_online_request_processor.py), but never git-added, committed or pushed, so it never reached the graded submission \u2014 see end_reason."
+    }
+  ],
+  "herrings": [
+    {
+      "herring": "g10.r1.clamp-at-zero-decision",
+      "reversal": "g10.r1.rev1",
+      "saw_herring": "yes, step 89, line 4836",
+      "saw_reversal": "yes, step 52, line 2959",
+      "believed": "reversal",
+      "quote": "free_capacity no longer clamps at 0.0 \u2014 buckets can go negative (debt), floored at -CAPACITY_DEBT_FLOOR_FRACTION*limit (0.25) (step 64, line 3543); implemented as _debt_floor()/free_capacity in capacity_budget-era online_status_tracker.py (line 7603-7607).",
+      "code_followed_herring": false
+    },
+    {
+      "herring": "g10.r1.clamp-at-zero-rationale",
+      "reversal": "g10.r1.rev2",
+      "saw_herring": "yes, step 66, line 3678",
+      "saw_reversal": "yes, step 50, line 2849",
+      "believed": "reversal",
+      "quote": "Clarified: num_capacity_debt_clamps counts per call (one settle = one increment even if both axes clamp) (step ~64, line 3649); the 0.0-is-empty herring is never mentioned again after the synthesis.",
+      "code_followed_herring": false
+    },
+    {
+      "herring": "g10.r2.h1",
+      "reversal": "g10.r2.rev1",
+      "saw_herring": "yes, step 9, line 860",
+      "saw_reversal": "yes, step 50, line 2857",
+      "believed": "reversal",
+      "quote": "Failure path: tracker.refund_capacity(blocked) returns whole booking + 1.0 request slot, clamped at limits; processor _refund_capacity(...) thin delegate. Success path: free_capacity(used, blocked), slot stays spent. (step 64/125, lines 3545/6661) \u2014 i.e. two operations, not the herring's single _free_capacity for both outcomes.",
+      "code_followed_herring": false
+    },
+    {
+      "herring": "g10.r2.h2",
+      "reversal": "g10.r2.rev2",
+      "saw_herring": "yes, step 110, line 5901",
+      "saw_reversal": "yes, step 50, line 2880",
+      "believed": "reversal",
+      "quote": "Same as g10.r2.h1 above \u2014 the agent implemented refund_capacity as a distinct operation from free_capacity (line 7733: \"refund_capacity: hands back the whole booking plus the 1.0 request slot, clamped at the limits\"), matching the reversal, not either herring.",
+      "code_followed_herring": false
+    }
+  ],
+  "lost_facts": [
+    {
+      "fact": "g10.r1.rule",
+      "assertion": "bespokelabs.curator.status_tracker.capacity_budget did not import: ImportError(\"cannot import name 'capacity_budget' from 'bespokelabs.curator.status_tracker'\")",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r1.g10.r1.s1.l1",
+        "g10.r1.g10.r1.s1.l2",
+        "g10.r1.g10.r1.s1.l3",
+        "g10.r1.g10.r1.s1.l4",
+        "g10.r1.rev1",
+        "g10.r1.rev2"
+      ]
+    },
+    {
+      "fact": "g10.r1.scope",
+      "assertion": "same import failure, reached via require_feature(has_floor_constant(), ...) -> find_const -> budget_module()",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r1.g10.r1.s2.l1",
+        "g10.r1.g10.r1.s2.l2",
+        "g10.r1.g10.r1.s2.l3",
+        "g10.r1.g10.r1.s2.l4",
+        "g10.r1.say19"
+      ]
+    },
+    {
+      "fact": "g10.r1.exclusions_or_crossover",
+      "assertion": "TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock' (tracker() fixture)",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r1.g10.r1.s4.l1",
+        "g10.r1.g10.r1.s4.l2",
+        "g10.r1.g10.r1.s4.l3",
+        "g10.r1.g10.r1.s4.l4"
+      ]
+    },
+    {
+      "fact": "g10.r1.observability",
+      "assertion": "bespokelabs.curator.status_tracker.capacity_budget did not import (budget_module().TokenLimitStrategy.seperate)",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r1.g10.r1.s3.l1",
+        "g10.r1.g10.r1.s3.l2",
+        "g10.r1.g10.r1.s3.l3",
+        "g10.r1.g10.r1.s4.l1",
+        "g10.r1.rev2"
+      ]
+    },
+    {
+      "fact": "g10.r2.rule",
+      "assertion": "TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock' (tracker() fixture)",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r2.s1_l1",
+        "g10.r2.s1_l2",
+        "g10.r2.s1_l3",
+        "g10.r2.s1_l4",
+        "g10.r2.s2_l1",
+        "g10.r2.s2_l2",
+        "g10.r2.s2_l3",
+        "g10.r2.s2_l4",
+        "g10.r2.s4_l1",
+        "g10.r2.say23",
+        "g10.r2.rev1",
+        "g10.r2.rev2"
+      ]
+    },
+    {
+      "fact": "g10.r2.scope",
+      "assertion": "TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock' (tracker() fixture, via reserve())",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r2.s3_l1",
+        "g10.r2.s3_l2",
+        "g10.r2.s3_l3",
+        "g10.r2.s3_l4",
+        "g10.r2.rev1"
+      ]
+    },
+    {
+      "fact": "g10.r2.exclusions_or_crossover",
+      "assertion": "TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock' (tracker() fixture)",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r2.s4_l1",
+        "g10.r2.s4_l2",
+        "g10.r2.s4_l3",
+        "g10.r2.rev2"
+      ]
+    },
+    {
+      "fact": "g10.r2.observability",
+      "assertion": "TypeError: OnlineStatusTracker.__init__() got an unexpected keyword argument 'capacity_clock' (tracker() fixture)",
+      "cause": "infra",
+      "evidence": "The entire 200-step transcript contains zero occurrences of `git commit`, `git add` or `git push` (grepped for all three; none found). The agent created `feat/capacity-budget` (step 125, line 6671) and wrote a complete, behaviourally-verified implementation into the working tree (capacity_budget.py, the rewritten online_status_tracker.py and base_online_request_processor.py, confirmed by a passing smoke test at line 7902-7912: 'after settle -10.0 1' showing the debt floor and clamp counter both working), then spent its remaining budget (steps 183-200) writing its own unit test file tests/unittests/test_capacity_budget.py line-by-line via single-line appends before the 200-step budget ran out (transcript ends mid-append at step 200, line 10474) without ever staging or pushing anything. provenance.pushed=0/ci_green=0/deployed=0 confirm nothing reached Gitea. Because the graded submission is therefore byte-identical to the unmodified repo, every test in this fact's suite fails at the same import/constructor boundary regardless of whether the underlying reasoning was correct.",
+      "remarks": [
+        "g10.r2.s5_l1",
+        "g10.r2.s5_l2",
+        "g10.r2.s5_l3",
+        "g10.r2.s5_l4",
+        "g10.r2.say24",
+        "g10.r2.say25"
+      ]
+    }
+  ],
+  "passed_facts": [],
+  "search_strategy": "Thorough and well-organised, but read in windows rather than exhaustively. Sequence: cloned the repo, read the existing online_status_tracker.py and base_online_request_processor.py in full (steps 1-25); checked Gitea issues/PRs for anything named after the ticket (steps 26-30, nothing found); pulled every BookStack wiki page via the REST API into /tmp/wiki including comments (BookStack search does not index comments, and the agent knew this from the ticket and fetched pages whole rather than relying on /api/search), then grepped for capacity/reservation/refund/origin/clock keywords (steps 31-40, wiki carried none of the 46 remarks so this was correctly unproductive); dumped every Mattermost channel to /tmp/chat2/<channel>.txt via a Python script with readable usernames and timestamps (step ~38), then iteratively grepped for keywords (capacity_budget, refund, debt, floor, clamp, origin, unlimited, defaulted, CAPACITY_DEBT_FLOOR_FRACTION, num_capacity_*) and read fixed line windows around each hit rather than the channel files end-to-end; also fetched all mail over IMAP into /tmp/mail.txt and grepped it (steps ~62-64, correctly unproductive \u2014 no remarks live in mail for this task). The chat search was iterative and mostly self-directed by keyword rather than exhaustive per-channel reading, which is exactly why 13 of 46 remarks (28%) were never opened: several sit in #pipeline (12 remarks, the densest channel) and #engineering/#general/#help between the windows that were actually read. #help (1 remark total) was never dumped/searched at all. Two synthesis passes (step 64 and step 125) correctly reconstructed both requirements' rule/scope/exclusions/observability facts and both herring/reversal pairs despite the gaps, because each subconclusion had 3-4 redundant clues and enough of each were found.",
+  "end_reason": "Reward is 0 not because the requirements were misunderstood but because nothing was ever committed or pushed: a grep of the full 200-step transcript for `git commit`, `git add` and `git push` returns zero hits. The agent built a genuinely correct implementation in the working tree \u2014 capacity_budget.py (created step 126, line 6713), a full rewrite of OnlineStatusTracker (capacity_clock field, debt floor, num_capacity_debt_clamps, num_capacity_settlements/refunds \u2014 steps 126-148) and BaseOnlineRequestProcessor (_reserve_capacity/_free_capacity/_refund_capacity, both retry-path release calls \u2014 steps 148-166), verified with a passing smoke test (line 7902-7912) \u2014 but then spent steps 183-200 writing its own unit-test file for the change in tiny single-line-redirect increments (to work around the sandbox's heredoc/JSON-escaping problems: 61 of 200 steps triggered 'Extra text detected after JSON object' warnings and 65 steps triggered terminal-idle watchdog warnings, both symptomatic of the agent fighting its own tool-call formatting rather than making progress) and ran out of its 200-step budget mid-append at step 200 (line 10474), never reaching `git add`/`commit`/`push`. The failing-test traces bear this out exactly: test_open.py and test_r1.py fail because `bespokelabs.curator.status_tracker.capacity_budget` does not import at all (the file was never in the submission), and test_r2.py fails one step later because `OnlineStatusTracker.__init__()` has no `capacity_clock` parameter \u2014 both are simply the pristine, unmodified repo, which is what provenance.pushed=0, ci_green=0 and deployed=0 mean literally. This is an infra-class failure per the reader instructions ('nothing pushed because the run died'), though the more precise description is a self-inflicted pacing failure: the agent never treated committing/pushing as a checkpoint to protect, and spent the second half of its budget on unrequired, increasingly slow self-authored tests instead of banking the already-complete and already-verified implementation.",
+  "notable": [
+    "Zero git commit/add/push calls across all 200 steps (grep confirmed) \u2014 the single root cause of the 0 reward; see end_reason.",
+    "A branch feat/capacity-budget was created (step 125, line 6671) but never committed to.",
+    "The agent's own smoke test (line 7902-7912) shows the debt-floor + clamp-counter working correctly in the uncommitted tree: 'after settle -10.0 1' (negative debt, one clamp counted) \u2014 i.e. g10.r1.rule/scope/observability were behaviourally correct at implementation time.",
+    "Both herring/reversal pairs for r1 and r2 were correctly resolved in favour of the reversal in the agent's own synthesis (step 64, line 3543 and step 125, line 6659) well before implementation began \u2014 no herring-following risk here.",
+    "13 of 46 remarks (28%) were never surfaced at all, concentrated in #pipeline (the densest channel, 12 remarks) and #engineering/#general/#help; #help (which carries g10.r2.s1_l1, 'estimator books 1k output tokens on every haiku call') was never searched. This had no effect on the outcome since redundant clues elsewhere covered every fact, but it is a real gap in the search.",
+    "The ticket itself is unusually complete for a g10-class task \u2014 it spells out exact constant names, field names, signatures and line-number anchors for the OPEN feature, consistent with open_feature carrying 0 weight in this task's scoring; the hidden requirements (debt floor, refund vs. settle) are absent from it entirely.",
+    "61/200 steps produced 'Extra text detected after JSON object' warnings and 65/200 produced terminal-idle watchdog warnings, evidence the agent burned a large fraction of its budget on formatting/heredoc friction rather than task progress \u2014 directly implicated in running out of budget before committing."
+  ]
+}

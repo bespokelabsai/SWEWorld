@@ -985,3 +985,31 @@ for absent facts would quietly divide every mean by the wrong number."
 Five of the ten requirements across g2/g3/g4/g6 have no `failure_behavior`, and
 g6.r1 has only three of the five. **Read the suite's test count, not the key's
 boilerplate, before reasoning about what a score means.**
+
+## Rollout analysis is reading transcripts against the answer key (2026-09-11)
+
+Asked to analyze g1-g11 lumen rollouts, I planned per-fact subscore tables plus a
+shingle matcher computing "seen" rates. Rejected: "look at the transcripts and cross
+check what clues it was able to find with the answer key ... and see what its
+reasoning was".
+
+**Rules for myself:**
+- The unit is (transcript x answer-key remark): found? how? what did the agent's
+  `analysis`/`plan` say about it? did the code follow it? Same for every herring and
+  its reversal.
+- A subscore says a fact failed; a string match says text scrolled past. Neither says
+  whether the agent registered, dismissed or overrode the remark. Mechanical passes
+  aim the reading; they never stand in for it.
+
+## A herring that works is not a defect (2026-09-11)
+
+I registered g9's mail herring as "task defect G9-H" because its only reversal sits in
+wiki comments that search does not index, and 6/10 runs believed it. Nidhi: "Remove g9
+... they are fine", then "for g9 though remove it".
+
+**Rules for myself:**
+- Hidden and hard to reach is the task's design. A defect is the world arguing AGAINST
+  the answer key (scaffolding that contradicts `settles`), a clause that never rendered,
+  or a grader that measures something other than the requirement.
+- A herring whose reversal exists and is reachable by reading the corpus is working.
+  Report its capture rate as a measurement, not as something to fix.
