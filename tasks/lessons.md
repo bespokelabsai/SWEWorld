@@ -1013,3 +1013,15 @@ wiki comments that search does not index, and 6/10 runs believed it. Nidhi: "Rem
   or a grader that measures something other than the requirement.
 - A herring whose reversal exists and is reachable by reading the corpus is working.
   Report its capture rate as a measurement, not as something to fix.
+
+## Fixed defects leave the analysis (2026-09-11)
+
+Three times Nidhi removed a defect I kept listing after it stopped being one: G9-H (by
+design), G7-A ("g7 was fixed and re evaled so it shouldnt be counted in the artifact"),
+then G7-D once its grader fix was in ("remove g7d from the artifact and .md file").
+
+**Rules for myself:**
+- The report's defect lists, fix lists and register are for OPEN problems. When one is
+  fixed, remove its entries rather than badging them "fixed".
+- Remove the label, never the measurement: the runs still lost what they lost in that
+  eval, so rewards and loss counts stay as measured and are described plainly.

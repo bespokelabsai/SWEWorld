@@ -34,6 +34,7 @@ from test_open import (
     SEEDER,
     SIDECAR,
     authors,
+    call_write_sidecar,
     log_lines,
     sym,
     write_log,
@@ -124,7 +125,8 @@ def test_rule__a_versioned_checkpoint_rewritten_after_every_appended_response(tm
     # returns where it put it.
     ledger = load(tmp_path, max_responses=4)
     assert ledger.sidecar_state() == state
-    returned = write_sidecar(str(tmp_path), ledger)
+    # Either argument order: the world never says which (see call_write_sidecar).
+    returned = call_write_sidecar(write_sidecar, str(tmp_path), ledger)
     assert os.path.isabs(returned)
     assert os.path.realpath(returned) == os.path.realpath(path)
     assert json.loads(open(path).read()) == state

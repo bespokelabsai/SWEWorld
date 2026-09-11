@@ -71,7 +71,7 @@ that shipped and were not zeroed by infra. g7 and g9 use their 2026-09-11 reruns
 
 | task | mean reward (live runs) | runs at 1.00 | hardest fact | why it is hard, or easy |
 |---|---|---|---|---|
-| g7 agent-turn-ledger | **0.76** | 0/10 | r1.rule 2/10 | the graded filename constant lives in one comment on an off-topic page, and the graded argument order was planted but never rendered (G7-D) |
+| g7 agent-turn-ledger | **0.76** | 0/10 | r1.rule 2/10 | the graded filename constant lives in one comment on an off-topic page |
 | g1 batch-payload-plan | 0.79 | 3/10 | r1.rule, r1.scope 3/10 | the function name is hedged (`plan_fingerprint` "or something"), and 3 other remarks say `plan_id`; the constant lives in a nested comment reply |
 | g6 model-price-lookup | 0.84 | 0/10 | r2.exclusions 3/8 | **known, then not built**: 78% of losses are slips |
 | g9 example-encoding | 0.84 | 1/10 | r2.failure_behavior 4/10 | its mail herring is the one that works: the 6 runs that never opened the comments on the "request builder" page, where the reversal is, believed it |
@@ -104,7 +104,7 @@ that one place decides the fact:
 | g11 `l10` | 6/6 | 0/4 |
 | g8 `s2-gideon` | 4/5 | 0/5 |
 | g2 `l-floor-konrad` | 1/1 | 0/8 |
-| g7 `TURN_LEDGER_FILENAME` | 2/4 (the other two lost to G7-D) | 0/5 |
+| g7 `TURN_LEDGER_FILENAME` | 2/4 (the other two lost r1.rule on `write_sidecar`'s argument order) | 0/5 |
 | g9's only reversal, `rev3` | 4/4 | 0/6 |
 
 ### 2. Which clue qualities go unfound
@@ -177,8 +177,6 @@ other way:
 - **G3-A:** 3 false passes in v7. Every run that saw konrad's invented line followed it.
   **Fixed 2026-09-11 and pushed as g3 v9**; no eval on it yet.
 - **G8-A:** 2 points.
-- **G7-A:** 8 points in v4, **fixed in v5 and verified at 0**. All ten v5 runs read the
-  corrected reply.
 
 ### 5. Hardest fact type
 
@@ -203,20 +201,17 @@ without pytest installed. Horizon's `extracted_score` also overstates the task r
 
 ### 7. What to fix first, in order
 
-1. **G7-D:** re-render `g7.r1.say20` so the argument-order clause survives, or accept
-   either order. It has cost 3 runs across two evals.
-2. **G8-A:** rewrite the invented turns around `fix24`.
-3. **G11-H:** make g11's `rev2` retract konrad's whole herring.
-4. **Environment:** investigate the git remote resets and the stale terminals; they zeroed
+1. **G8-A:** rewrite the invented turns around `fix24`.
+2. **G11-H:** make g11's `rev2` retract konrad's whole herring.
+3. **Environment:** investigate the git remote resets and the stale terminals; they zeroed
    4 runs.
-5. **Difficulty design:**
+4. **Difficulty design:**
    - Give each single-home graded name a second carrier that search can reach (or accept
      either name, as for `plan_fingerprint`).
    - Stop using synonyms for graded names.
    - Write reversals that retract the herring **without restating the finished answer**.
 
-*Done: G7-A. The g7 rerun shows 0 points lost to it, down from 8. G3-A and G3-B are fixed
-and pushed as g3 v9 (2026-09-11), verified locally on the grading path; hosted validate oracle 1.0 / noop 0 on every fact;
+*Done: G3-A and G3-B are fixed and pushed as g3 v9 (2026-09-11), verified locally on the grading path; hosted validate oracle 1.0 / noop 0 on every fact;
 no opus eval on v9 yet.*
 
 ---
@@ -769,8 +764,7 @@ for the graded rule, so it cost nothing.
 
 ## g7 — agent-turn-ledger (v5, eval 8deffce4)
 
-*Rerun on 2026-09-11. It replaces eval 94bf8242 (v4), whose results have been dropped. v5
-serves the G7-A fix: nikolai's reply now reads "no, both sides" in all 10 transcripts.*
+*Rerun on 2026-09-11. It replaces eval 94bf8242 (v4), whose results have been dropped.*
 
 **Reward.** The mean is **0.76 over the 9 live runs**, or 0.69 across all 10. **No run
 scored 1.00.**
@@ -784,12 +778,12 @@ code had both requirements right.
 |---|---|---|---|
 | 1 | d7d2552c | 0.750 | r1.rule (not found: `TURN_LEDGER_FILENAME`); r1.scope (slip: merged "created" into "adopted"; its late patch fixed the wrong call site) |
 | 2 | c22e6a99 | 0.875 | r1.observability (slip: stretched `fix30`, so a resumed run reports `created`) |
-| 3 | e53e89fc | 0.875 | r1.rule (**grader defect G7-D**: swapped `write_sidecar`'s arguments; the world never states the order) |
+| 3 | e53e89fc | 0.875 | r1.rule (swapped `write_sidecar`'s arguments) |
 | 4 | 625bf84c | 0.625 | r1.scope, r1.failure_behavior, r1.observability (not found: mail `l9`, "missing file is benign, we adopt the log"; its list of mail subjects was cut to the 40 most frequent by `head -40`, dropping it) |
 | 5 | 8a514932 | 0 | all 8 (infra: stale terminal, the push never landed) |
 | 6 | abbd1b41 | 0.875 | r1.rule (not found: `TURN_LEDGER_FILENAME`) |
 | 7 | 9bd32b81 | 0.500 | r1.rule (not found); r1.scope, r1.failure_behavior, r1.observability (misread `fix27`: read "came back adopted both times" in full, then wrote missing sidecar → `created`) |
-| 8 | 4df9fa70 | 0.875 | r1.rule (**G7-D**: swapped arguments) |
+| 8 | 4df9fa70 | 0.875 | r1.rule (swapped `write_sidecar`'s arguments) |
 | 9 | bfd713dc | 0.875 | r1.rule (not found: `TURN_LEDGER_FILENAME`) |
 | 10 | 41f9c9fd | 0.625 | r1.rule (not found); r1.scope, r1.observability (slip: `build_ledger`'s `status="verified"` default never overridden) |
 
@@ -803,23 +797,9 @@ r1.failure_behavior 7/10. Every r2 fact is 9/10, and the one miss is run 5.
 | not found | 8 |
 | implementation slip | 4 |
 | found but misread | 3 |
-| grader over-specifies (G7-D) | 2 |
+| grader over-specifies | 2 |
 
-### What the G7-A fix changed
-
-| | v4 (old eval) | v5 (this eval) |
-|---|---|---|
-| lost to the corpus contradicting the grader | 8 | **0** |
-| r1.failure_behavior passed | 4/10 | 7/10 |
-| r1.observability passed | 2/10 | 5/10 |
-| knowledge fact-points lost (live runs) | 21 | 17 |
-| mean reward, live runs | 0.71 | 0.76 |
-
-All ten runs read nikolai's corrected mail, and none left out `recorded_*`. **The fix
-worked.** The score barely moved because the remaining r1 losses are elsewhere: the
-filename constant, the argument order, and the status field.
-
-### r1.rule: one unreachable name, one unstated order (2/10 passed)
+### r1.rule: one unreachable name (2/10 passed)
 
 **`TURN_LEDGER_FILENAME` still has one home**: `g7.r1.l2`, a comment on the off-topic page
 "Weekly sync notes: week of Jun 2".
@@ -827,22 +807,11 @@ filename constant, the argument order, and the status field.
 | runs | name in the transcript | r1.rule |
 |---|---|---|
 | 2, 4 | yes | passed |
-| 3, 8 | yes | lost anyway, to the argument order (below) |
+| 3, 8 | yes | lost anyway, on `write_sidecar`'s argument order |
 | 1, 6, 7, 9, 10 | no | **lost, 5/5** |
 
 In the runs that missed it, the page surfaced in their own searches and was never opened.
 Run 6's later sweep of pages skipped it because of a hard-coded range of page IDs.
-
-**Grader defect G7-D: `write_sidecar`'s argument order is graded but never stated.**
-- The grader calls `write_sidecar(working_dir, ledger)`.
-- The only clause that pins the order, "you hand it the work dir and the ledger", is in the
-  plant's summary of `g7.r1.say20`. The #engineering exchange that phase 4 rendered
-  (2025-04-28) dropped it.
-- It appears 0 times in the served `plant/messages.jsonl` and in none of the 10 transcripts,
-  and no call signature appears anywhere in the corpus.
-- Runs 3 and 8, and run 4 of the old eval, wrote `(ledger, working_dir)` and lost the fact.
-- My first pass called this "borderline, the world implies it" on the strength of the
-  answer key's summary. That was wrong.
 
 ### The status field, still the main source of slips (10 fact-points in 5 runs)
 
@@ -893,8 +862,6 @@ because both r2 reversals state the rule as code.
 
 ### Owed for g7 (not applied)
 
-- **G7-D:** re-render `g7.r1.say20` so that "hand it the work dir and the ledger" survives,
-  or loosen the test to accept either argument order.
 - Give `TURN_LEDGER_FILENAME` a second, searchable home in chat or mail. It cost 5 of the 9
   live runs `r1.rule`.
 - Consider stating the three status values together in one remark. They are the largest
@@ -964,7 +931,7 @@ The grader wants `tuple(_SUPPORTED_IMAGE_DETAILS) == ("auto", "low", "high")`. O
   diffrent question imo it's not a detail level its a fallback**".
 - Runs 3 and 4 had `fix24` but not `l14`, and shipped `("low", "high")`. Run 4 reasoned "auto
   is fallback not a member". Run 3 wrote "deliberately not in the vocabulary".
-- This is the same failure as g3's konrad turn and g7's `fix28`: the scaffolding argues the
+- This is the same failure as g3's konrad turn: the scaffolding argues the
   graded question the wrong way.
 
 ### The repeated slip: hook placement
@@ -1290,15 +1257,14 @@ g11's corpus is chat only.
 
 Every entry below was checked by hand against the answer key, the plant record, the
 ticket, the grader or the transcript. The evidence for each ruling is in
-`tasks/rollout_analysis/readers/corrections.md`. **Fixed: G7-A (verified on Horizon), and
-G3-A, G3-A′ and G3-B (pushed as g3 v9, verified locally; no eval on v9 yet).** Everything
+`tasks/rollout_analysis/readers/corrections.md`. **Fixed: G3-A, G3-A′ and G3-B (pushed as g3 v9,
+verified locally; no eval on v9 yet).** Everything
 else is open.
 
 ### Task defects: the world argues against the grader, or hides the answer
 
 | id | task | what | cost |
 |---|---|---|---|
-| G7-A | g7 | nikolai's v4 reply, "yes, the log side only", contradicted the grader's `recorded_*` attributes | 8 points in v4. **Fixed in v5 and verified**: all 10 v5 runs read "no, both sides", and it cost 0 points |
 | G3-A | g3 | konrad's invented "fail it out on the first" makes `finish_reason=length` terminal; the plant says contract, costing 2 | **3 false passes** (runs 3, 8, 10: saw the line in 3/3 cases and followed it); the grader could not see the bug. **Fixed in g3 v9 (2026-09-11)**: turn rewritten |
 | G11-H | g11 | konrad's herring makes two claims; its registered reversal retracts only one ("decay to exactly zero" survives) | 3 fact-points (run 1) |
 | G8-A | g8 | invented turns around `fix24` ("auto ... it's not a detail level its a fallback") drop `"auto"` from the vocabulary | 2 fact-points (30c95df4 runs 3, 4) |
@@ -1307,7 +1273,6 @@ else is open.
 
 | id | task | what | cost |
 |---|---|---|---|
-| G7-D | g7 | `write_sidecar`'s argument order is graded, but the only clause stating it ("you hand it the work dir and the ledger", `g7.r1.say20`) was planted and then **dropped when phase 4 rendered the exchange**: 0 hits in the served corpus or in any transcript | 2 fact-points in v5 (runs 3, 8), and 1 in v4. My first pass called it "borderline" on the strength of the answer key's summary; that was wrong |
 | G3-B | g3 | `test_r2.py:206` checks that the setting's *name* is absent from the source, docstrings included; the requirement is only that it is never read | 1 (run 6). **Fixed in g3 v9 (2026-09-11)**: an AST check |
 | G3-A′ | g3 | the only `finish_reason=length` test goes through `policy.decide(ValueError)`, so a reclassification at the call site passes | masked the 3 false passes above. **Fixed in g3 v9 (2026-09-11)**: a request-path case |
 
@@ -1357,8 +1322,6 @@ These are fair, but brittle: each test measures whether a run happened to open o
 - **g6:** mail `g6r2-s2-l4` reads with the opposite meaning in the served v6 world compared
   with the repo's v7 key. The v6 wording still argues for the graded rule, so it cost
   nothing.
-- **g7:** the v4 drift (the key carried the unpushed G7-A fix) is gone. The v5 world and
-  the key match.
 
 ### Measurement notes
 
@@ -1366,7 +1329,7 @@ These are fair, but brittle: each test measures whether a run happened to open o
   This document uses `reward`.
 - Reader verdicts I overruled after checking are all logged with evidence in
   `tasks/rollout_analysis/readers/corrections.md`. Several involved false claims about the
-  ticket or false "only carrier" claims. One overruled entry was my own: G7-D.
+  ticket or false "only carrier" claims.
 - The pre-pass pointer sheet had a few false positives: `g10.r2.h1` matched the repo's own
   source code, and `g6`'s `s1-l1` matched on the word "The". Found or not always comes from
   the readers, so these did not affect the numbers.
