@@ -147,3 +147,89 @@ sides" reply in 10/10 transcripts), g9 v8 3b0b259f (10/10 scored).
   `l1`'s `settles` ("a contract failure should be charged more than one attempt"). The turn was
   rewritten, and the request-path grader case (G3-A′) and the AST knob check (G3-B) were added.
   The report's g3 section has the verification matrix.
+
+## g3 v9 (eval 035777f5), swapped in for v7 (ce846459) on 2026-09-11
+
+- **run 10 r2.rule, r2.observability**: reader said implementation_slip. **Overruled -> not_found.**
+  The shipped field default is `None` (`float | None = field(default=None)`). Its reasoning never
+  states the field's default; the "0.0 however far ahead you ask" it wrote is
+  `remaining_cooldown_seconds`' return value (s1d, found). The ticket never names
+  `throttle_cooldown_until`. The one remark that pins "0.0 on a fresh tracker, nothing else added"
+  is s1a, a wiki comment, never surfaced (reader: found=no). The None came from h2's invented tail
+  "15:47 konrad no thats its own reset, sets it to none" (#cookbooks 2025-01-22). It is not in the
+  herring's settles, and rev2 never retracts it. It is recorded as an open corpus item, not counted as
+  overridden_by_other_corpus_text: the run never had the settling remark in view.
+- **run 3**: reader said infra (42 "Extra text detected after JSON object" warnings, patch scripts
+  never written). **Overruled -> never_shipped.** The transcript has 0 typed `git commit` and 0
+  `git push`. It closed claiming commit 2eaeb50a, a green CI and a deploy, while provenance says
+  pushed=0.
+- **run 9 r1.exclusions_or_crossover, r1.observability**: reader's found_misread **stands**. l13 was
+  never surfaced, but l12 (mail, same fact: "once auth is the problem the attempts on the clock are
+  worth nothing") was read and contradicted. That is a found remark drawn the wrong way.
+- **runs 6, 9 r2.rule**: not_found **stands**. The rounding lives only in s1c. Run 9 saw only its
+  opening line; run 6 never saw it.
+- **v9 fix check**: konrad's rewritten 14:12 turn was seen by runs 2, 5, 6, 8, 9 and 10; runs 1, 3, 4
+  and 7 never reached it. No run made `length` terminal: every live run's reader reports it
+  shipped as contract, cost 2, retried. The request-path assertion passed in the 8 live runs
+  whose r1 observability reached it. Run 9's stopped earlier, on the terminal (`bad_key`) row.
+- **key/corpus drift (run 5's reader)**: l15's quoted 15:19 konrad line in the key is the pre-09-08
+  wording. The served world has "no requeue then - thats attempts_left 0 with the waivers gone too,
+  both empty. terminal, throttle:exhausted. ...". The fact is the same; the key's quote is stale.
+
+## "The corpus argues against the grader" withdrawn (2026-09-11)
+
+- **g8 30c95df4 runs 3 and 4, r2.failure_behavior**: my overrides to
+  overridden_by_other_corpus_text (G8-A) are **withdrawn**, and the readers' own verdicts stand:
+  run 3 found_misread, run 4 not_found. The answer `("auto", "low", "high")` is knowable. l14
+  says "three entries, index 0 is what gets handed back when we cant match / give it None and
+  you get auto". dermot (#pipeline 2025-05-13) says "if it isn't one of the three we fall back to
+  auto". The ticket gives detail "auto" when the attribute is absent, and curator's Image.detail
+  defaults to "auto". Neither run had l14 in view; nikolai's invented "auto ... not a detail
+  level its a fallback" only misleads a run that missed it. 8/10 runs got it right.
+- **g3 G3-C** ("sets it to none") is judged borderline and left unchanged in the corpus. It is
+  recorded as an observation, and its loss stays not_found.
+- The report's "corpus argues against the grader" row is gone; 0 points are left in that cause.
+- **g7 v5 runs 3 and 8, r1.rule** (`write_sidecar`'s argument order): both go from
+  grader_overspecifies to **grader_since_fixed**, a label outside the knowledge causes. The
+  grader now accepts either order. Horizon's grades are untouched: synth's scoreboard and
+  fact-field pass rates were byte-identical before and after. Knowledge points went 111 -> 109,
+  and the "grader over-specifies" row is gone.
+
+## Infra re-examined (2026-09-11)
+
+- **g4 v5 run 9 and g7 v5 run 5**: "infra: stale terminal" is **withdrawn -> never_shipped**.
+  A read-only investigation found:
+  - no pager, editor, open heredoc or stuck process in either run's raw keystrokes;
+  - no two consecutive screens byte-identical.
+
+  My own split of each transcript into tool and assistant turns confirmed it. In g7 run 5,
+  `8e34d2ef3d`, PR 737/738 and "ci/test success" appear only in assistant turns (from line
+  10121), never in any tool output; its real push failed with `src refspec feat/turn-ledger
+  does not match any`. In g4 run 9, the one commit confirmation is at tool line 11139, near the
+  end, and there is no push output at all. Dead-run points: infra 30 -> 14, never_shipped
+  34 -> 50. The scoreboard and fact pass rates are unchanged.
+- **g6 runs 1 and 3 (infra) and g11 run 7 (survived)**: the rollback covered the whole sandbox,
+  local clone, working tree and `/tmp` alike, not just the remote. g11 run 7 line 9518: "origin/main
+  and local HEAD are both 295ab6c". g6 run 3 wrote the remote SHA to a nonce-named file and read
+  back 295ab6c (lines 8879-8978); it saw at least 7 rollbacks. Nothing in world/ (bootstrap,
+  supervisord, deploy-daemon), scripts/ or the task arms moves `main` after boot. The rollbacks
+  point at Horizon's sandbox, restored or duplicated mid-run.
+
+## g11 v11 (eval a8572080), swapped in for v7 (94bf8242) on 2026-09-11
+
+- **run 7 r2.failure_behavior**: reader said not_found. **Overruled -> herring_followed.** Its own
+  herring row for `lr-decay-to-zero-konrad` -> rev2 reads: saw the herring (L3619-3626), never
+  saw rev2 (#general 2025-06-02 never read), believed the herring, and the code followed it. Its
+  Analysis at L3640 says "warmup strict `step < warmup_steps` ... confirmed". It shipped no
+  `effective_warmup = min(warmup_steps, total_steps)`, giving [1e-05, 2e-05, 3e-05].
+- **run 6 r1.failure_behavior**: reader said found_misread. **Overruled -> not_found.** l17 reached
+  it only as its opening question, the same as runs 2 and 10, which are not_found.
+- Stand: run 6's four r1 slips (its epoch trigger uses `batch_ordinal % batches_per_epoch`, not
+  its own `epoch_closing_steps()`); runs 1, 4, 8 r2.rule (l10 never surfaced); run 9 r1.scope and
+  r1.observability (l9/l10/l11, the unconditional final checkpoint, never surfaced); runs 2 and
+  10 r1.failure_behavior (l17's answer never in view).
+- **The G11-H fix check**: 9/10 runs saw the rewritten rev2 and none believed konrad's herring.
+  Run 7, the one that never saw rev2, believed it.
+- **key/corpus drift**: the key still quotes rev2's pre-fix wording. The served v11 plant has
+  "...both of those are gone now. the end doesnt sit at zero any more, it bottoms out at a tenth
+  of base_lr and holds there...". The facts are the same; the key's quote is stale.

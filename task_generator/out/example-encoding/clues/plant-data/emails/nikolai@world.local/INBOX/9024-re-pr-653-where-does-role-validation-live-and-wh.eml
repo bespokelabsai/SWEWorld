@@ -1,0 +1,23 @@
+From: konrad@world.local
+To: nikolai@world.local, dario@world.local, emil@world.local
+Subject: Re: PR 653 =?utf-8?b?4oCU?= where does role validation live, and what
+ do the cookbooks import
+Date: Tue, 13 May 2025 09:48:00 +0000
+Message-ID: <178880169049.2292275.17911591773136657329@world.local>
+In-Reply-To: <178880169049.2292275.3485773133541714730@world.local>
+References: <178880169049.2292275.3485773133541714730@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+On the second one I have some stake. The cookbooks are already in a bad state=
+ after the response object change, we are still going through which samples a=
+re affected.
+
+So whatever answer we give here, please can it be one answer. Right now every=
+ notebook does its own thing and each time something moves internally we pay =
+for it again.
+
+Not entirely sure about the validation question, that is not mine. Dario?
+
+=E2=80=94 Konrad

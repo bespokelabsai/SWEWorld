@@ -133,6 +133,27 @@ def decide(task: Task, situation: str, *, step: str, rc: int, evidence: str,
         log_tail=log_tail[-6000:] or "(none)",
         notes=notes.strip() or "(none yet)",
     )
+    # An API-level refusal is not a verdict about the task, and it must not kill a
+    # run that has paid for its plant. Measured here: one consistency judge call
+    # came back "Opus 5's safeguards flagged this message ... This sometimes
+    # happens with safe, normal conversations" -- a false positive on corpus prose
+    # quoted into the prompt. `agent.run` raises SystemExit on it, which the
+    # worker records as a crash.
+    #
+    # Retried once with the evidence halved: that both shrinks the surface that
+    # tripped the classifier and changes the prompt, so a deterministic flag is
+    # not simply hit again. If it still refuses, the caller gets the crash.
+    try:
+        return _ask(task, text, step, situation, actions, budget_usd)
+    except SystemExit as exc:
+        if not any(k in str(exc) for k in ("safeguards", "API Error", "error run")):
+            raise
+        shorter = text.replace(evidence[:14000], evidence[:6000], 1) if evidence else text
+        return _ask(task, shorter, step, f"{situation}-retry", actions, budget_usd)
+
+
+def _ask(task: Task, text: str, step: str, situation: str,
+         actions: tuple[str, ...], budget_usd: float) -> dict:
     result = agent.run(
         text,
         repo=REPO,

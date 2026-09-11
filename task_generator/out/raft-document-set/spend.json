@@ -1,0 +1,254 @@
+[
+ {
+  "label": "author",
+  "cost_usd": 2.3618,
+  "turns": 31,
+  "seconds": 637.5,
+  "session": "4b732449-5826-4577-9a63-518f7664cf79"
+ },
+ {
+  "label": "build-oracle",
+  "cost_usd": 0.9035,
+  "turns": 12,
+  "seconds": 151.2,
+  "session": "e7b10a60-1e73-4f92-876b-10bea6e81b8e"
+ },
+ {
+  "label": "split",
+  "cost_usd": 0.4847,
+  "turns": 2,
+  "seconds": 128.1,
+  "session": "d874ee5c-cd52-44ff-9b60-49d394f8aa76"
+ },
+ {
+  "label": "split",
+  "cost_usd": 0.6034,
+  "turns": 2,
+  "seconds": 186.1,
+  "session": "d70eb4bc-a080-4b06-874a-9383eef7d846"
+ },
+ {
+  "label": "fleet-judge-split-split",
+  "cost_usd": 0.4268,
+  "turns": 10,
+  "seconds": 81.6,
+  "session": "2afc496a-a557-4f8a-9a30-04b020b1b1d1"
+ },
+ {
+  "label": "fleet-reformat-g13",
+  "cost_usd": 0.9342,
+  "turns": 22,
+  "seconds": 140.8,
+  "session": "67da0884-269e-472c-83a4-6ea8873fb693"
+ },
+ {
+  "label": "tests",
+  "cost_usd": 2.5319,
+  "turns": 29,
+  "seconds": 520.5,
+  "session": "ec2448bd-e20b-4c1c-ad6e-149185a567d4"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 0.5283,
+  "turns": 8,
+  "seconds": 97.6,
+  "session": "2c61caba-f275-4f78-a2c2-caa037898a63"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 1.1274,
+  "turns": 20,
+  "seconds": 215.9,
+  "session": "c307db88-98c8-404b-83d8-7ac88e51ab85"
+ },
+ {
+  "label": "fleet-judge-bracket-bracket",
+  "cost_usd": 0.2997,
+  "turns": 5,
+  "seconds": 39.5,
+  "session": "beb35665-750e-49df-af94-2ce8e7d66483"
+ },
+ {
+  "label": "author-extend",
+  "cost_usd": 1.8116,
+  "turns": 16,
+  "seconds": 361.2,
+  "session": "daf5dc86-4950-4d86-9f5f-d25e72bd1491"
+ },
+ {
+  "label": "build-oracle",
+  "cost_usd": 0.877,
+  "turns": 8,
+  "seconds": 124.6,
+  "session": "35089b18-ef8f-4ba9-9d48-658de0a4bf67"
+ },
+ {
+  "label": "split",
+  "cost_usd": 1.0283,
+  "turns": 2,
+  "seconds": 314.6,
+  "session": "b9e17c8b-9f4d-4f72-bc33-2231cfc615c7"
+ },
+ {
+  "label": "split",
+  "cost_usd": 1.1913,
+  "turns": 3,
+  "seconds": 271.3,
+  "session": "976f1e4b-3974-46e0-b341-a4d0769f8445"
+ },
+ {
+  "label": "fleet-judge-split-split",
+  "cost_usd": 0.2848,
+  "turns": 5,
+  "seconds": 53.3,
+  "session": "c741f7d9-4ab0-4c80-853d-25894a923cbe"
+ },
+ {
+  "label": "tests",
+  "cost_usd": 2.4318,
+  "turns": 24,
+  "seconds": 430.3,
+  "session": "4588c658-934e-4fb7-baf9-b38ac42d7678"
+ },
+ {
+  "label": "build-naive",
+  "cost_usd": 0.5074,
+  "turns": 6,
+  "seconds": 105.3,
+  "session": "982620d6-fbd1-4cb4-9d98-6e4f7ce37539"
+ },
+ {
+  "label": "build-spec",
+  "cost_usd": 0.6891,
+  "turns": 9,
+  "seconds": 137.3,
+  "session": "a43c89b6-98ab-4a5d-a999-0099c2a1218c"
+ },
+ {
+  "label": "audit-r1-rule",
+  "cost_usd": 0.4921,
+  "turns": 4,
+  "seconds": 161.7,
+  "session": "23cdfd94-32d9-416d-834d-8b98de930738"
+ },
+ {
+  "label": "audit-r1-scope",
+  "cost_usd": 0.6049,
+  "turns": 4,
+  "seconds": 226.5,
+  "session": "e2ae1529-a90c-4657-b115-37e40e88edd6"
+ },
+ {
+  "label": "audit-r1-exclusions_or_crossover",
+  "cost_usd": 0.7402,
+  "turns": 4,
+  "seconds": 288.3,
+  "session": "8b717b7c-6243-41c9-b827-e08af753c475"
+ },
+ {
+  "label": "audit-r1-observability",
+  "cost_usd": 0.5886,
+  "turns": 6,
+  "seconds": 199.9,
+  "session": "72cdd35a-6383-49aa-90da-423b95e406cc"
+ },
+ {
+  "label": "audit-r2-rule",
+  "cost_usd": 0.5373,
+  "turns": 4,
+  "seconds": 188.1,
+  "session": "4868f1b4-278b-4ed1-a66e-33568e9de4b6"
+ },
+ {
+  "label": "audit-r2-scope",
+  "cost_usd": 0.6166,
+  "turns": 4,
+  "seconds": 230.5,
+  "session": "90585bb4-173f-44c0-a483-2acdff8b3777"
+ },
+ {
+  "label": "audit-r2-exclusions_or_crossover",
+  "cost_usd": 0.5134,
+  "turns": 6,
+  "seconds": 158.4,
+  "session": "c1d15ccc-e8f2-4038-bab6-46f00e5f6f4a"
+ },
+ {
+  "label": "audit-r2-failure_behavior",
+  "cost_usd": 0.6108,
+  "turns": 6,
+  "seconds": 205.2,
+  "session": "0ab37573-33e6-49b2-8840-ac7016ebbfe0"
+ },
+ {
+  "label": "fleet-judge-audit-audit",
+  "cost_usd": 0.3369,
+  "turns": 4,
+  "seconds": 26.5,
+  "session": "68899ff8-3799-4e83-87e7-86162792ee6a"
+ },
+ {
+  "label": "trim-g13.r1.rule",
+  "cost_usd": 0.105,
+  "turns": 2,
+  "seconds": 31.1,
+  "session": "f1a1af6d-f97e-4b3b-b87c-836ba790940b"
+ },
+ {
+  "label": "trim-g13.r1.scope",
+  "cost_usd": 0.2486,
+  "turns": 4,
+  "seconds": 65.8,
+  "session": "607ccc79-f049-416d-9fa1-32af35172eaa"
+ },
+ {
+  "label": "trim-g13.r1.exclusions_or_crossover",
+  "cost_usd": 0.1719,
+  "turns": 3,
+  "seconds": 42.1,
+  "session": "e8bb129a-8380-430b-8383-19cf5f2b3219"
+ },
+ {
+  "label": "trim-g13.r1.observability",
+  "cost_usd": 0.2913,
+  "turns": 4,
+  "seconds": 82.8,
+  "session": "f1c715fc-83db-466a-947b-8cd43c96ed98"
+ },
+ {
+  "label": "trim-g13.r2.rule",
+  "cost_usd": 0.1799,
+  "turns": 4,
+  "seconds": 45.6,
+  "session": "aa676741-568e-4109-a94f-efc5b897acb0"
+ },
+ {
+  "label": "trim-g13.r2.scope",
+  "cost_usd": 0.1892,
+  "turns": 4,
+  "seconds": 47.7,
+  "session": "8a5ac814-d7d7-4dea-8335-18070c6757ba"
+ },
+ {
+  "label": "trim-g13.r2.exclusions_or_crossover",
+  "cost_usd": 0.1147,
+  "turns": 2,
+  "seconds": 35.5,
+  "session": "2006a77d-abb7-48d2-bf5b-32dcc762a460"
+ },
+ {
+  "label": "trim-g13.r2.failure_behavior",
+  "cost_usd": 0.2094,
+  "turns": 3,
+  "seconds": 53.6,
+  "session": "4d1af95a-343a-4b02-9f05-bf8352a1f2c4"
+ },
+ {
+  "label": "fleet-judge-evaluate-crash",
+  "cost_usd": 0.1782,
+  "turns": 4,
+  "seconds": 37.1,
+  "session": "0356680c-9d51-48f6-afda-139168658836"
+ }
+]

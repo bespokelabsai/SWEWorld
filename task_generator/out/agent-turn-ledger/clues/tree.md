@@ -9,8 +9,8 @@
 - **nils** (2025-03-17, #pipeline): resumed yesterday's conversation this morning and had to walk the whole jsonl just to work out whose turn it was. the working dir should carry that position, not make you replay the log.
 - **gideon** (2025-06-04, page:meetings/weekly-sync-notes-week-of-jun-2-release-ci.md): so basically the working dir gets TURN_LEDGER_FILENAME, turn_ledger.json, holding what we derive off the log — turns is the jsonl line count, seed line included, so responses plus one.
 - **konrad** (2025-04-22, thread:new|g7.r1.l3): A run I killed at response seven left the json still claiming one response, it only gets written when run() returns. so yes the file lies about the run.
-- **dermot** (2025-04-09, #incidents): on the no-local-record side, ledger.sidecar_state is exactly eight keys — version, responses, turns, last_author, next_speaker, interleave_faults, completed, completion_reason. it goes back out through write_sidecar after every append, seed line included.
-- **konrad** (2025-06-04, #code-review): Ran a clean four-turn conversation through to the end on 685: file lands at 189 bytes - responses 3, turns 4, last_author advisor, next_speaker null, completed true, completion_reason agent_signal
+- **dermot** (2025-04-09, #incidents): on the no-local-record side, ledger.sidecar_state() hands back eight keys — version, responses, turns, last_author, next_speaker, interleave_faults, completed, completion_reason — and i stat whatever write_sidecar hands me, after every append, seed included.
+- **konrad** (2025-06-04, #code-review): Ran four turns on 685: 189 bytes, read_sidecar off the work dir gives version 2, responses 3, turns 4, last_author advisor, next_speaker null, completed true, completion_reason agent_signal
 - **konrad** (2025-06-02, #viewer): Look, it does write mid-run - completion_reason sits at "open" on every write while the run is still going, it only stops saying open once the run actualy ends.
 - **dermot** (2025-03-19, #engineering): yeah ok — next_speaker is nothing more than the partner of last_author, a log ending on client comes back with next_speaker advisor, so nobody has to replay the jsonl
 
@@ -18,11 +18,11 @@
 
 *The leap nobody states:* The side that costs money to produce is the side you trust, and a derived summary can always be rebuilt from it.
 
-- **nikolai** (2025-04-24, page:design/batch-job-status-persistence-across-process-restarts.md): same goes for the responses file i opened a finished run to look at counters and load rewrote it under me it gets read back and verified not replaced
+- **nikolai** (2025-06-11, page:engineering/inspecting-a-finished-run-without-mutating-it.md): i opened a finished run just to read counters and load_ledger rewrote it under me load_ledger is read the log rebuild in memory verify_sidecar nothing written
 - **gideon** (2025-04-25, #code-review): No, we leave the jsonl alone when the two disagree, honestly those lines cost real money and the counters rebuild for free.
 - **emil** (2025-05-13, thread:new|g7.r1.l7): yup — the load threw for me too: checkpoint carried interleave_faults from an older build, though response count and last author matched the log exactly. comparing every key is too strict.
-- **dario** (2025-06-24, page:engineering/resume-behavior-for-auto-batch-mode-matching-responses-files-to-job-records.md): on "a restart needs both" — a responses file is pinned to its job record by response count and who wrote last; a first write compares against nothing, so the ledger says created, not verified.
-- **gideon** (2025-04-28, #engineering): ya so basically version 2 checkpoint, responses and last_author both matching the log, ledger comes back status verified and the file stays exactly as it was
+- **dario** (2025-03-24, #pipeline): per-run, yeah - a responses file pins to a record by response count and last author, nothing else. first write carries created, verified is only a load where both matched.
+- **gideon** (2025-04-28, #engineering): ya so basically version 2 checkpoint, responses and last_author both matching — you hand it the work dir and the ledger we rebuilt off the jsonl, comes back status verified, file untouched.
 - **dario** (2025-04-25, #viewer): on the disk side - the record gets seeded at submit with completed false and stays false through every append, it only flips true once the run actually finishes
 - **emil** (2025-04-25, #cookbooks): yup — interleave_faults is just counting the spots where the log doubles back on the same author, so a clean client/advisor alternation always rebuilds to 0.
 
@@ -32,17 +32,17 @@
 
 - **konrad** (2025-04-09, thread:new|g7.r1.l9): Look, deleted the json by hand to test resume and the rerun refused to start, jsonl sitting there intact. Missing file is benign - we adopt the log, then exactly one call_single_request(advisor, 2).
 - **emil** (2025-05-13, #pipeline): honestly half the checkpoints on my box predate TURN_LEDGER_VERSION 2 and don't even carry the same keys - those are stale, not wrong. when a version-2 one does disagree, the error's .path attribute holds that turn_ledger.json path.
-- **nils** (2025-04-07, page:engineering/ws-050-batch-mode-50-cost-async-batch-apis.md): one of those killed runs left half a json line and resume died in json.loads. we dont discard an intact log over that - adopt it, append the one line, three becomes four.
-- **nikolai** (2025-06-11, thread:new|g7.r1.l12): TurnLedgerDesyncError on resume, message verbatim: /work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'. .log_responses and .log_last_author sit on it too.
+- **nils** (2025-06-17, page:engineering/recovering-an-interrupted-agent-turn-turn-ledger-resume-path.md): one of the killed runs left turn_ledger.json half written and json.loads dies on it — we treated it as absent, appended to the intact jsonl, three became four.
+- **nikolai** (2025-06-11, thread:new|g7.r1.l12): TurnLedgerDesyncError out of verify_sidecar on resume, str(exc) came back as /work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client' — .log_responses and .log_last_author sit on it too.
 
 ### g7.r1.s4 — The file is on disk from the moment the seed line lands, written in one fixed spelling that is stable across runs and loadable back through a reader of its own, and on a disagreement the run stops before it issues a request or appends anything, leaving the log exactly as it found it.
 
 *The leap nobody states:* A checkpoint you can only inspect by hand, or that only appears once a run succeeds, is not something a test or a person can lean on.
 
-- **gideon** (2025-03-19, #pipeline): ya so basically I killed the run on its very first call and turn_ledger.json is already there at 186 bytes exactly - responses 0, turns 1, last_author client.
-- **dario** (2025-04-09, page:engineering/payload-plan-file-what-the-tests-hold-on-to.md): sort_keys and indent 2 with a trailing newline please, exactly how turn_ledger.json goes out - the key order moved between two runs and every test diff after that was noise.
-- **nils** (2025-03-24, #pipeline): i wrote read_sidecar for the tests rather than leave it - hand it the working dir, get the record back as a dict. write_sidecar already returns the absolute path it wrote, so tests read straight off that.
-- **dermot** (2025-04-09, thread:new|g7.r1.l16): ran the stale-checkpoint repro late last night - four calls burned before TurnLedgerDesyncError surfaced, though recorded_responses 3 and recorded_last_author 'advisor' do come off the exception. it should be refusing before the first call.
+- **gideon** (2025-03-19, #pipeline): ya so basically I made the first call_single_request blow up and turn_ledger.json is already sitting there at 186 bytes with the newline - responses 0, turns 1, last_author client.
+- **dario** (2025-05-13, page:engineering/turn-ledger-json-the-per-turn-ledger-artifact.md): turn_ledger.json goes out sort_keys, indent 2, trailing newline - the byte counts in the tests ride on it. key order moved once and every diff went noisy.
+- **nils** (2025-03-24, #pipeline): i wrote read_sidecar for the tests - work dir in, record back as a dict. mine says version 1, responses 2, last_author client, and the 3-line log agrees on both.
+- **dermot** (2025-04-09, thread:new|g7.r1.l16): cut the jsonl to three lines, left turn_ledger.json stale - four calls burned before TurnLedgerDesyncError surfaced with recorded_responses 3, recorded_last_author 'advisor'. not one call should have fired, no line appended.
 
 ### herrings — believed at the time, reversed later
 

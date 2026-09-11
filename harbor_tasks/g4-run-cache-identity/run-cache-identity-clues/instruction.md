@@ -56,7 +56,7 @@ or `("identity_version",)`.
 - Move `_get_function_hash` verbatim into the new module and re-export it there.
 - Delete `_hash_fingerprint` in favour of `LLM._run_identity(dataset_hash, *, cache_enabled: bool, ...)`.
 - Add `LLM.backend` and `LLM.backend_params` properties.
-- `LLM.__call__` reconciles the run directory before using it.
+- `LLM.__call__` reconciles the run directory before using it; its signature, like `_run_identity`'s, may grow whatever the work needs.
 - `LLM._get_cached_response` re-raises `RunIdentityError`, while still returning `None`
   (with the existing warning) for anything else.
 
@@ -223,7 +223,7 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-04-16 · #code-review · dario**
 
-> nit: IDENTITY_COMPONENT_KEYS is the one exported tuple and we're keeping it alphabetical — backend, backend_params, batch_mode — and batch_mode is sitting above backend here.
+> nit: IDENTITY_COMPONENT_KEYS is the one exported tuple and we're keeping it alphabetical — backend, backend_params, batch_mode, then model_name further down — and batch_mode is sitting above backend here.
 
 **2025-04-17 · #engineering · nikolai**
 
@@ -276,7 +276,6 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 **2025-06-03 · #engineering · nikolai**
 
 > check moved ahead of run dir creation - compute_run_identity refuses an id on a cached run, and refuses cache off with run_id None or "". LLM.__call__ is where the default gets minted - CURATOR_RUN_ID when it is set, otherwise a fresh uuid4 - and it passes that down as the run_id argument, so the only refusal that ever surfaces out of __call__ is the cached-run one. nothing left on disk either way.
-
 
 ## Getting around
 

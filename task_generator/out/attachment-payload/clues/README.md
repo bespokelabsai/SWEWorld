@@ -1,6 +1,6 @@
 # Clues for g8 — Canonical attachment blocks for multimodal prompts
 
-50 remarks across 2 hidden requirements, to be planted in `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/runs/corpus`.
+51 remarks across 2 hidden requirements, to be planted in `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/runs/corpus`.
 
 Clue window `2025-03-14` to `2026-01-27`; herrings before `2025-03-13`.
 
@@ -122,7 +122,7 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 | 2025-04-23 | #pipeline *(new)* | dario | we already have the base64 string in hand when the block gets built, so i'd weigh that rather than decoding, and hang size_mb off the block as a plain float. | `rule` |
 | 2025-04-23 | #pipeline | dermot | while we're in there, give the record a short digest of the payload and make fingerprint required. optional means half the call sites forget it and we're back to guessing | `rule` |
 | 2025-04-24 | #pipeline *(new)* | dario | honestly we never open a remote one, so the helper hashes the stored url string exactly as we send it, query and anchor included, no kind marker and no salt. | `exclusions_or_crossover` |
-| 2025-04-24 | #viewer *(new)* | emil | for the module bullet - `_SUPPORTED_IMAGE_DETAILS` is auto, low and high, nothing else, and `normalize_detail` is the only reader - hand it None and you get "auto" back. | `failure_behavior` |
+| 2025-04-24 | #viewer *(new)* | emil | for the module bullet - `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`, three entries, and index 0 is what the fallback hands back. `normalize_detail` is the only reader - give it None and you get "auto". | `failure_behavior` |
 | 2025-04-25 | #viewer *(new)* | gideon | so basically I pinned it in the test - tmp file with just %PDF-1.4 in it comes out sha256:fc1c4358d4aa, same value every run, algoritm is right there in the string | `rule` |
 | 2025-04-25 | #random *(new)* | emil | honestly i tried decoding every payload before hashing and the 40k pass crawled — hashing the base64 text as-is pins the one-byte image at sha256:5e21d86b709b. | `exclusions_or_crossover`, `rule` |
 | 2025-04-29 | #pipeline *(new)* | emil | from the run: `image attachment is 21.3 MB, over the 20.0 MB limit.` documents shouldn't sit on that number. and it's strictly over - exactly 20.0 goes through fine. | `rule` |
@@ -132,9 +132,10 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 | 2025-05-06 | #releases *(new)* | dermot | yeah ok - _OPENAI_TOKENS_PER_DOCUMENT beside the image constant, flat number whether it comes in as file or document. the image one is 85 for an image_url block, same as anthropic's. | `observability` |
 | 2025-05-06 | #incidents *(new)* | nikolai | AttachmentTooLarge(kind, size_mb, limit_mb) and it keeps all three as .kind .size_mb and .limit_mb so a test can asssert on them not scrape a traceback | `rule` |
 | 2025-05-06 | #code-review | konrad | took Dermot's review nit, no inline [:12] slice - `_ATTACHMENT_FINGERPRINT_HEX_LEN` sits next to the helper now. `attachment_fingerprint` takes the payload string and hands back the "sha256:" prefix already on it. | `rule` |
-| 2025-05-14 | #pipeline *(new)* | dermot | yeah ok - if it isn't one of the three we fall back to auto and log that once. nothing set at all logs nothing and the block still goes out with detail "auto". | `failure_behavior` |
+| 2025-05-13 | #pipeline *(new)* | dermot | yeah ok - if it isn't one of the three we fall back to auto and log that once. nothing set at all logs nothing and the block still goes out with detail "auto". | `failure_behavior` |
+| 2025-05-13 | #pipeline *(new)* | nikolai | checked the ordering thing low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lsits them in | `failure_behavior` |
 | 2025-05-30 | #releases *(new)* | emil | let me think through that - anthropic puts a pdf page near 1400 tokens, so we charge 1400 flat for each document block. the total comes back a plain int. | `observability` |
-| 2025-06-02 | #general *(new)* | nils | let me think - the base64 text is what actually goes over the wire, so size_mb is just the length of that string over 1024*1024. no decoding first, and not 1000-based megabytes. | `rule` |
+| 2025-06-02 | #general *(new)* | nils | let me think - the base64 text is what actually goes over the wire, so size_mb is what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically instead of decoding, and the divisor in there is 1024*1024, not a 1000-based megabyte. | `rule` |
 | 2025-06-16 | #pipeline *(new)* | nikolai | checked the openai side each image goes out as type image_url with an image_url object carrying url and detail and for inline we send the url as data:image/png;base64, then the payload | `failure_behavior` |
 
 ## g8.r1
@@ -340,9 +341,9 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 
 **nils**, 2025-06-02, #general
 
-> let me think - the base64 text is what actually goes over the wire, so size_mb is just the length of that string over 1024*1024. no decoding first, and not 1000-based megabytes.
+> let me think - the base64 text is what actually goes over the wire, so size_mb is what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically instead of decoding, and the divisor in there is 1024*1024, not a 1000-based megabyte.
 
-*What a reader should take from it:* the team agrees size_mb is the base64 character count divided by 1024*1024
+*What a reader should take from it:* the team agrees size_mb comes from get_base64_size on the base64 string, which yields the payload's byte count over 1024*1024 without decoding it
 
 *Step it builds toward:* `g8.r1.s1` — Each base64 attachment gets its own size in megabytes computed from the base64 text and recorded on the block, and that size is compared against a ceiling that differs by kind (tighter for images than for documents), with a dedicated attachment error naming the kind, the measured size and the ceiling it broke; this happens while the block is being built, ahead of the provider's own upload hook.
 
@@ -352,19 +353,19 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 
 *Still leaves open:* what the ceilings are, which kinds they differ by, what happens when one is exceeded, and where the check runs relative to the provider hook
 
-*Must appear literally:* `size_mb`, `1024*1024`
+*Must appear literally:* `1024*1024`, `get_base64_size`, `size_mb`
 
 *A new conversation in #general on 2025-06-02:*
 
 ```
-11:18  konrad: quick one, size_mb on an attachment - is that the raw file or the encoded blob? off the top of my head i assumed raw
-11:20  nikolai: the base64 text is what actually goes over the wire not the file on disk so that one
-11:22  konrad: ok so do i decode it back and measure that, or just measure the string. and which megabyte
-11:24  nils: let me think through that. just the string - size_mb is its length over 1024*1024, theres no decode step in front of it
-11:25  konrad: so 1024 and not 1000
-11:27  nils: 1024*1024, yes. the 1000-based megabyte reads smaller for the same payload and thats not the number we want to be carrying around
-11:28  nikolai: yep thats the one i'd expect
-11:29  konrad: right. my branch has 1e6 sitting in it, that part is coming back out
+11:02  dermot: quick one on attachments — size_mb, is that the file we read off disk or the encoded thing
+11:05  nils: let me think. the base64 text is what actually goes over the wire, so it's measured on that string, not the file bytes
+11:07  dermot: so we encode and then measure the encoded blob. feels like a lot of work just to learn a number
+11:10  nils: not really — size_mb is just what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically, it doesn't decode anything to find out
+11:11  dermot: ah ok. thats cheap then
+11:13  petar: and mb is which mb here, the honest one or the disk-vendor one
+11:16  nils: the divisor in there is 1024*1024. a 1000-based megabyte would quietly shift the boundary and i'd rather not have that argument later
+11:18  petar: right, that lines up with the totals looking a touch smaller than i kept expecting
 ```
 
 > **Problems:** longer than one remark
@@ -427,13 +428,13 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #code-review on 2025-03-17:*
 
 ```
-14:02  nikolai: where does the count for the multimodal case actually get checked
-14:04  gideon: so basically that total lives only in _handle_multi_modal_prompt. nothing above it counts anything
-14:06  nikolai: so _format_multimodal is clean then
-14:08  gideon: no thats the part that bit us. it still hands back both blocks for an over-45 set, it just doesnt look
-14:10  konrad: ok. so what do we throw at the check, a new error type?
-14:12  gideon: honestly though reusing the exception with kind prompt reads fine, no need for a second one
-14:14  konrad: mhm. i had half of a seperate one written yesterday, glad i stopped
+14:02  nikolai: whos actually counting the images on the multimodal path
+14:04  gideon: so basically that total lives only in _handle_multi_modal_prompt. nothing else is keeping a count
+14:05  nikolai: so _format_multimodal is clean then
+14:06  gideon: no um, it still hands back both blocks for an over-45 set. it just doesnt care one way or other
+14:08  konrad: right, so the check sits where the total already is. does that need its own error type
+14:10  gideon: honestly though i think reusing the exception with kind prompt reads fine
+14:12  konrad: mhm ok. i had penciled in a new one, glad not to
 ```
 
 #### `g8.r1.s2-dario` — scope
@@ -457,13 +458,13 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #code-review on 2025-03-18:*
 
 ```
-14:12  gideon: quick one on the upload path - if a prompt is already busting 45, do we even bother checking the attachments one by one?
-14:15  emil: we do, yeah. every attachment still gets its own file_upload_limit_check call, no short circuit anywhere in there
-14:16  gideon: ok but then where does the whole-prompt one land? the trace i read looked like it was interleaved with them
-14:19  dario: its after. all the per attachment calls go first, then the whole prompt number gets looked at once at the end
-14:20  dario: nothing woven in between them, honestly i think thats just how the log lines flush
-14:22  emil: yup, that lines up with what i saw when i stepped through it
-14:23  gideon: ya ok. i was reading the trace as the order of operations, my bad
+14:02  gideon: size gates question — if a prompt is already over 45, do we still run the per file checks or bail right there?
+14:04  emil: we run them i believe. each attachment we measure still gets its own file_upload_limit_check call first
+14:05  gideon: ok so where does the whole prompt number land then. folded in as we go?
+14:06  gideon: like does it trip mid loop the second the running total crosses
+14:09  dario: after, not woven in between them. all the per file calls go out first, the whole-prompt number comes after all of them
+14:10  dario: so busting 45 doesnt skip any of those, to be honest its just the one pass and then the other
+14:12  emil: yup. it reads like a running tally in there, thats the bit that keeps catching me
 ```
 
 > **Problems:** claims verbatim 'calls' but does not contain it
@@ -585,13 +586,14 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #code-review on 2025-03-19:*
 
 ```
-13:39  dario: has anyone actually pulled that branch down and run it, or are we all just reading the diff
-13:41  nikolai: i ran the branch locally last night
-13:42  konrad: and? what did you see
-13:44  nikolai: it goes and pulls the remote images down just to weigh them thats all it wants from them
-13:45  dario: wait, weigh them as in the size? it downloads the whole thing for that
-13:46  konrad: mhm that would explain why my run sat there
-13:47  nikolai: yep and the knock on is my unit tests started reaching for the network which i'd rather they didnt
+14:02  nikolai: pulled the branch down and ran the tests locally and the unit ones sat there for ages
+14:03  gideon: sat there as in hanging, or just slow?
+14:05  nikolai: slow theyre going out to the network now which they didnt used to
+14:06  dario: network from a unit test? what in there even wants a socket
+14:08  nikolai: the size pass  if the image is remote it pulls the whole thing down just to weigh it
+14:09  dario: mhm so any fixture with a url in it does a real fetch, that tracks with the slowness
+14:10  gideon: honestly though a unit test should not be doing that, ever
+14:12  nikolai: yep thats settled then its not going out for bytes  what we end up counting for the remote ones is seperate gotta think through that one
 ```
 
 #### `g8.r1.s3-emil` — exclusions_or_crossover
@@ -771,14 +773,14 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #engineering on 2025-03-24:*
 
 ```
-14:12  nikolai: whats the error when someone hands us more attachments than we allow
-14:14  dario: TooManyAttachments i think. it carries the count they sent plus the ceiling it broke, so nobody has to go count them by hand off a stack trace
-14:15  nikolai: brand new exception or does it hang off something
-14:16  dario: another AttachmentError subclass, same shelf as AttachmentTooLarge
-14:18  gideon: ok but when does it fire tho, after we built the payload?
-14:20  dario: no, before we serialize a single one of them. honestly no point encoding a pile we are going to reject anyway
-14:21  gideon: ya ok, and we know how many there are before any of that so its cheap
-14:22  nikolai: right and the test doesnt need real bytes then just a long enough list
+14:02  gideon: what do we raise when someone hands us more attachments than we take? right now it sails through and blows up later in the serializer
+14:04  nikolai: needs its own thing i'd say TooManyAttachments or close to it
+14:07  dario: ya TooManyAttachments. and i think it should carry the count they sent along with the ceiling it broke, otherwise the message tells you nothing usefull
+14:08  gideon: new base for it or does it hang off something existing
+14:10  dario: no new base, another AttachmentError subclass. same as AttachmentTooLarge is
+14:11  gideon: ok. and it fires where, after we build the list out?
+14:13  dario: before we serialize a single one of them. no sense encoding things we are about to throw away
+14:14  nikolai: right so the bytes never get touched at all
 ```
 
 ### g8.r1.s5 — The token estimator prices file and document blocks at a flat 1400 tokens via its own module constant, alongside the existing per-image constant.
@@ -1290,14 +1292,13 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #cookbooks on 2025-03-21:*
 
 ```
-13:31  konrad: These finance exports, what is actually in the file name? They run very long and i want to know if thats normal
-13:33  nikolai: normal yep thats just what they emit
-13:35  dario: its the full title, then the two dates, then a trailing - on the end. nothing gets shortened anywhere
-13:37  konrad: long how, roughly
-13:39  nikolai: 73 characters on the basename for the batch i pulled this morning
-13:40  konrad: so in the block we send, the name is most of it? presumably the url part is small
-13:42  nikolai: right the block is just {"type": "file", "file": {"filename": ..., "file_url": ...}} so its mostly filename, anything we plan around the block we plan around the name
-13:44  dario: that tracks. the export i had open monday was exactly that shape, title dates dash, i just never counted it
+13:11  dario: the finance exports, are those file names long because of the title or is there stuff appended to it
+13:13  nikolai: both, its the full title then the two dates then a final -
+13:14  nikolai: comes out to 73 characters for the basename on the ones i pulled
+13:17  dario: ok thats the name. how much is the block sitting around it, or is that the whole weight
+13:21  nikolai: barely anything, its just {"type": "file", "file": {"filename": ..., "file_url": ...}} and nothign else in there
+13:23  konrad: mhm so when we count one of these, presumably we are mostly counting the filename
+13:24  nikolai: yep mostly filename
 ```
 
 > **Problems:** longer than one remark
@@ -1427,14 +1428,13 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #viewer on 2025-04-10:*
 
 ```
-13:12  gideon: dedupe pass ran over the viewer images last night and dropped exactly nothing. every remote one still sitting in the list
-13:14  konrad: local files collapse fine though?
-13:16  gideon: ya those are fine. the fingerprint comes back empty for anythng with an http url
-13:17  emil: so empty just gets kept instead of compared? small slice presumably
-13:19  gideon: half the run is remote tbh. so basically empty cant keep meaning keep
-13:21  gideon: we fingerprint the remote ones off what the local path already fingerprints, then dedupe once over the lot. no seperate branch for them
-13:23  konrad: right, so the dropped count in yesterdays summary was only ever the local ones
-13:24  gideon: exactly
+13:12  konrad: the dedupe pass on last nights viewer run dropped nothing. not one image. is that expected
+13:15  gideon: um, which ones did it keep? so basically the fingerprint comes back empty anytime theres an http url on it
+13:17  konrad: so anything remote just sails through untouched. how much of the run is that
+13:19  gideon: half the run is remote tbh. so the pass is sitting idle on most of what it sees
+13:21  dario: so the fingerprint has to cover the remote ones too, or is it something further up
+13:24  gideon: ya, it needs to come back with something for remote images as well, url or not. nobodys written that yet
+13:26  konrad: right, and the run looked green the whole time. that is the annoying part
 ```
 
 #### `g8.r2.l10` — exclusions_or_crossover
@@ -1489,14 +1489,14 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #random on 2025-04-17:*
 
 ```
-13:21  nikolai: same image comes in twice, once as a link once pasted inline. two rows or one
-13:23  emil: fwiw i ran it, attachment_fingerprint("https://cdn.example.com/photos/cat.jpeg?size=large") comes back sha256:80ce7facd006
-13:24  nikolai: thats the link one. the pasted one is what im asking
-13:25  gideon: ya same, thats the bit the ticket doesnt say
-13:27  emil: a base64 block whose text is that same string lands on the same digest. 80ce7facd006 both times, i checked
-13:28  nikolai: right. one row then
-13:29  gideon: honestly though nobody has run this outside your repl yet has it
-13:30  emil: nope, just the repl
+14:11  nikolai: quick one on the attachment digest  for a url block is it hashed over the string we actually got or some tidied up version
+14:13  emil: the string we got, i believe. fwiw i ran it — attachment_fingerprint("https://cdn.example.com/photos/cat.jpeg?size=large") comes back sha256:80ce7facd006
+14:14  petar: query string and all? nothing trimmed off the end
+14:14  emil: yup, exactly as sent
+14:16  nikolai: ok so whats it do if someone hands you that same text but as a base64 block
+14:18  emil: let me think through that. same digest — i tried a base64 block whose text is that same string and it landed on sha256:80ce7facd006 too. what goes in is the text the block is carrying
+14:19  nikolai: so the picture itself never enters into it
+14:20  emil: no. identical text, identical digest, thats the whole of it. two different renderings of one photo share nothing to hash
 ```
 
 > **Problems:** longer than one remark
@@ -1648,13 +1648,14 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 *A new conversation in #general on 2025-04-21:*
 
 ```
-14:12  dermot: the overnight job logged the detail warning on every single image. all 40k of them
-14:15  nils: all of them? most of that set never set one in the first place, i think
-14:17  dermot: mhm. so we're warning people about something they didnt ask for, thats just noise in the log
-14:20  nils: fair enough, it should only be saying anything where somebody actually made a choice. the part that got me though is it rewrote Image.detail under me
-14:22  dermot: rewrote as in on the object we handed it? if i had to guess you mean in place
-14:25  nils: in place, yes. my fixtures diff now, which is how i noticed. we shouldn't be mutating the source like that
-14:28  nikolai: yep mine came back dirty friday too im leaving them till thats sorted
+14:04  gideon: My image fixtures are diffing this morning and I didnt touch them. detail comes out different than what went in
+14:06  dermot: yeah thats the new warning path. it rewrote Image.detail in place on last nights run, if i had to guess thats your diff
+14:07  gideon: ok but why is it writing to it at all
+14:09  nils: it shouldn't be. Resolving something for the request is fine, writing it back onto the source object is not — we shouldn't be mutating what the caller handed us
+14:11  dermot: mhm. that said the warning itself fired on every image in that run too, all 40k of them
+14:13  nils: on all of them? most of that set never set one at all. so that's just noise, i think — nobody needs telling about a thing they didn't do
+14:14  dermot: yeah ok. two changes then, neither of them written yet. i can take it once WS-050 is off my plate
+14:15  gideon: ya honestly the mutation one is what got me, I spent all morning digging around in the encoder for it
 ```
 
 > **Problems:** longer than one remark
@@ -1663,7 +1664,7 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 
 **emil**, 2025-04-24, #viewer
 
-> for the module bullet - `_SUPPORTED_IMAGE_DETAILS` is auto, low and high, nothing else, and `normalize_detail` is the only reader - hand it None and you get "auto" back.
+> for the module bullet - `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`, three entries, and index 0 is what the fallback hands back. `normalize_detail` is the only reader - give it None and you get "auto".
 
 *What a reader should take from it:* the team agrees the accepted vocabulary is three fixed values behind a named constant, checked in one named place
 
@@ -1675,23 +1676,25 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 
 *Still leaves open:* what happens on a value outside those three, and whether the caller's own attribute is touched
 
-*Must appear literally:* `None`, `_SUPPORTED_IMAGE_DETAILS`, `auto`, `normalize_detail`
+*Must appear literally:* `None`, `_SUPPORTED_IMAGE_DETAILS`, `auto`, `normalize_detail`, `tuple[str, ...]`
 
 *A new conversation in #viewer on 2025-04-24:*
 
 ```
-14:11  konrad: for the module bullet on image detail - what do i list as the accepted values? off the top of my head its auto and low, i think there is a third
-14:14  emil: `_SUPPORTED_IMAGE_DETAILS` is auto, low and high. thats the whole set, nothing else goes in it
-14:15  konrad: right. anything reading that set apart from the validator?
-14:17  emil: `normalize_detail` is the only reader. i went looking yesterday and nothing else touches it
-14:20  dario: what about when nobody passes detail at all though. does that raise or does it just land on something
-14:22  emil: hand `normalize_detail` None and you get "auto" back. worth putting in the bullet plainly, people keep guessing at it
-14:24  konrad: mhm. i had it down as raising, so thats one line less than i was going to write
+14:21  konrad: for the module bullet on image detail - do we list the constant with the type or just the name
+14:24  emil: with the type. `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`. three entries, and the order isnt cosmetic - index 0 is what gets handed back when we cant match
+14:25  konrad: mhm. anything else reading it or is it just the one place
+14:26  emil: just `normalize_detail`, thats the only reader. worth saying so in the bullet i think
+14:28  dario: and if nothing comes in at all? or does it never actually see that case
+14:30  emil: it does, honestly more often than youd expect. give it None and you get "auto" back
+14:31  konrad: ok. thats one line then, i had penciled in three
 ```
+
+> **Problems:** longer than one remark; contains its own forbidden term 'fallback'
 
 #### `g8.r2.l16` — failure_behavior
 
-**dermot**, 2025-05-14, #pipeline
+**dermot**, 2025-05-13, #pipeline
 
 > yeah ok - if it isn't one of the three we fall back to auto and log that once. nothing set at all logs nothing and the block still goes out with detail "auto".
 
@@ -1707,15 +1710,16 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 
 *Must appear literally:* `auto`, `detail`
 
-*A new conversation in #pipeline on 2025-05-14:*
+*A new conversation in #pipeline on 2025-05-13:*
 
 ```
-09:41  gideon: what do we do when the detail value isnt one of the three we accept? someone typo'd it in a config yesterday and i honestly could not tell what it ended up doing
-09:43  dermot: falls back to auto. thats what we'd want anyway
-09:44  dario: quietly though? nothing warns on it today, i'd want to know it happened
-09:46  dermot: no we log it. once, not per call
-09:47  gideon: and um, when its not set at all? same log or no
-09:50  dermot: yeah ok - nothing set at all logs nothing. block still goes out with detail "auto" either way
+15:22  gideon: what happens if the value someone sets isnt one of the three? do we hard fail on it
+15:24  dermot: no. we fall back to auto and log that once
+15:25  gideon: is that one line per bad value, or one for the whole run
+15:26  dermot: one each time we fall back. we dont track what weve already said - a run that trips it twice says it twice
+15:27  dario: and if nothing is set at all, does that warn too, or is that just the default and we stay quiet
+15:29  dermot: yeah ok - nothing set at all logs nothing. and the block still goes out with detail "auto" either way
+15:31  dario: so a blank one and a typo'd one look identical downstream. fine by me
 ```
 
 > **Problems:** longer than one remark
@@ -1880,4 +1884,34 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 ```
 
 > **Problems:** longer than one remark
+
+### the team agrees the vocabulary constant keeps low before high, in provider-doc order rather than any sorted order — *(no such subconclusion)*
+
+#### `g8.r2.fix24` — failure_behavior
+
+**nikolai**, 2025-05-13, #pipeline
+
+> checked the ordering thing low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lsits them in
+
+*What a reader should take from it:* the team agrees low precedes high in the vocabulary constant
+
+*Drafted as:* checked the ordering nit - low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS`, cheapest first, same order their docs table lists them in.
+
+*Why there:* None of the eight candidates is chewing on multimodal request vocabulary. The 2025-04-04 and 2025-04-14 code-review days are about PR merge state and review ordering; 2025-06-16 and 2025-05-08 are review-queue triage (the closest thread, Emil taking the model support table action item, is about per-model capability ownership, not the values inside an image-detail constant); the two #cookbooks days are the SimpleStrat taxonomy and the verifier path; #engineering 2026-01-23 is PR 704 and the plan doc; #random 2025-04-25 is about model-name lists disagreeing, which is adjacent vocabulary-wise but is a support-ticket thread with no constant under construction and no Emil in it. A remark confirming the element order of `_SUPPORTED_IMAGE_DETAILS` only lands where someone is actually writing that constant out, alongside Emil's module bullet placing "auto" and the position-0 fallback. That is the provider request layer, so #pipeline, in the weeks after Emil claimed the support table work on 2025-05-08 and the stalled multimodal cookbook PRs surfaced.
+
+*Still leaves open:* where "auto" sits relative to those two, and that the fallback reads position 0 - without emil's module bullet a reader still cannot write the tuple out.
+
+*Must appear literally:* `_SUPPORTED_IMAGE_DETAILS`, `low`, `high`
+
+*A new conversation in #pipeline on 2025-05-13:*
+
+```
+10:14  emil: picking up the model support table action item from thursday — the image detail param for multimodal requests is the bit i keep stalling on. where does the constant actually live, request layer or the provider shim? and it's just the two values plus auto, i believe
+10:21  nikolai: checked the ordering nit low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lists them in
+10:26  dario: mhm, that tracks. honestly i'd leave it wherever it is right now, the cookbook PRs are blocked on the table existing not on where the tuple sits
+10:33  emil: yup. i'll write the table rows against that ordering then so we're not churning it in two weeks, we need to be intentional here. still not entirely sure auto belongs in the same
+10:35  nikolai: auto is a diffrent question imo it's not a detail level its a fallback
+```
+
+> **Problems:** names no known subconclusion
 

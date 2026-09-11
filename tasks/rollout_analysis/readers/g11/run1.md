@@ -1,62 +1,66 @@
-# g11 run 1 (94bf8242 / 3347ed25) — reward 0.5556
+# g11 run 1 (e0b0463c) — reward 0.8889, 8/9 hidden facts
 
-## What it found
+## What this run found
 
-This run's search was exhaustive and largely successful on `g11.r1` (checkpoint
-reasons/identity): it exported every Mattermost channel to flat text files and ran
-repeated broad greps for `ledger`, `checkpoint`, `epoch`, `reasons`, and specific
-identifiers (`CHECKPOINT_REASONS`, `canonical_reasons`, `CHECKPOINT_NAME_TEMPLATE`),
-following each hit with a full-context read of the surrounding thread. That
-recovered the fixed reason vocabulary and its ledger order (not alphabetical, l6/l7),
-the deterministic `checkpoint-s{step:06d}` name template (l2/l3/l18), the
-config-gated interval/epoch triggers with an unconditional final checkpoint
-(l10/l11/l12), the epoch-from-plan-not-loop-variable rule (l13/l14), the ten-field
-`CheckpointInfo` ending in `dataset_signature` then `reasons` (l4/say23/say25), and
-both r1 herrings (twin-checkpoint writes, alphabetical sort) correctly identified as
-superseded via their reversals (rev1 at transcript line 3323, rev2 at line 2805).
-`g11.r1.rule`, `g11.r1.scope`, `g11.r1.exclusions_or_crossover` and
-`g11.r1.observability` all scored 1.
+This run's research phase is the most disciplined of the pattern: it wrote a Mattermost search
+script, then a full-channel-pull script, dumped every channel to `/tmp/chat/*.txt` (code-review
+3236 lines, pipeline 2008, engineering 2477, cookbooks 773, releases 701, incidents 270, viewer
+338, general 261, help 150), and then worked almost entirely off local `grep`/`sed` against that
+dump rather than re-hitting the Mattermost API. It caught all four herrings, both r1 herrings and
+both r2 herrings, and all four reversals, and correctly believed every reversal — none of the
+shipped code follows a herring. It recovered 42 of the 47 remarks (r1: all 22 remarks and both
+herrings/reversals; r2: 15 of 20 clues plus both herrings/reversals), which is enough to pass 5/5
+of `g11.r1`'s facts and 3/4 of `g11.r2`'s.
+
+Its running "Analysis" text repeatedly names the exact parked decisions it is reconstructing —
+"Key parked decision: checkpoints carry a `reasons` field (keyword-only)..." (line 3011), "Found
+the LR schedule design thread: warmup then decay, bottoming out at a tenth of base_lr,
+effective_warmup = min(warmup_steps, total_steps), compare 1 <= step <= effective_warmup" (line
+3445) — and its final summary (lines 10036-10050) lists eight of the nine facts' content nearly
+verbatim against the answer key, then ships it: `CHECKPOINT_REASONS` in ledger order,
+`checkpoint_name(prefix, step)` zero-padded, replace-on-repeat-name, always-final-checkpoint,
+plan-derived epoch/`gradient_accumulation_steps`, and the r2 decay shape with `MIN_LR_RATIO = 0.1`,
+`effective_warmup`, and the `1 <= step <= effective_warmup` compare.
 
 ## What it missed, and why
 
-**`g11.r1.failure_behavior` (0):** the code correctly replaces a repeat-named
-checkpoint in place (from l16, fully read) but never merges the old and new
-`reasons` tuples — the test wants `['final', 'interval']` after two saves and gets
-only `['final']`. The only remark carrying that merge detail, `g11.r1.l17` (dermot,
-#releases: "both carry forward onto it, neither set gets dropped"), was seen only as
-its opening question line inside a broad grep dump at transcript line 2641 — the
-answering half of the exchange was never re-opened for context, unlike every other
-comparable thread in this run. This is a clean **not_found**.
+The one fact it lost, `g11.r2.rule`, failed on a single assertion buried deep in a long test:
+`judge.py`'s `eq(o["param_kind"], "KEYWORD_ONLY", ...)` — the shipped `learning_rate_at` defines
+`min_lr_ratio: float = MIN_LR_RATIO` with no bare `*` before it, so `inspect.signature` reports
+`POSITIONAL_OR_KEYWORD` instead of `KEYWORD_ONLY`. Every other assertion in that same test passed
+(`MIN_LR_RATIO == 0.1`, every worked rate value) — this is a narrow, single-element miss, not a
+wrong formula.
 
-**`g11.r2.rule`, `g11.r2.exclusions_or_crossover`, `g11.r2.observability` (all 0):**
-all three trace to one root cause. The agent settled its `learning_rate_at` design
-after just two threads — the `#viewer` herring ("zero. exactly zero at
-total_steps", line 2551) and the `#general` June 2 reversal thread (line 2963) — and
-never searched further. But that June 2 thread (`g11.r2.rev2`) only ever reverses
-the *warmup-compare* half of the herring (`step < warmup_steps` →
-`1 <= step <= effective_warmup`); it never touches the decay floor. The agent's own
-Analysis at line 3028 misreads it as confirming "decay reaches exactly zero at
-total_steps," and that belief ships unchanged into the final code (`max(base_lr *
-remaining/decay_steps, 0.0)`, floored at literal zero). The correcting reversal,
-`g11.r2.rev1` (#help, emil, "MIN_LR_RATIO = 0.1... ends at 1e-05"), was never found —
-nor were four independent, redundant carriers of the same `MIN_LR_RATIO` fact
-(`l9` #incidents, `l10` #code-review, `say20` #help, plus the numeric sequences in
-`l5`/`l7`). Zero of the nine `MIN_LR_RATIO`-adjacent remarks in `#viewer`,
-`#incidents`, `#code-review`, and `#help` were surfaced after the agent stopped
-LR-specific searching. All three facts are **not_found**, with the r2 herring/reversal
-split (two herrings, two non-overlapping reversals) as the structural reason a single
-missed search pass produced three lost facts at once rather than one.
+The requirement that `min_lr_ratio` sit behind a bare `*` is carried by exactly one remark,
+`g11.r2.l10` (#code-review, 2025-05-30, nikolai/emil: "min_lr_ratio sits behind a bare * so
+callers have to name it, MIN_LR_RATIO stays the module-level default"). It never surfaces
+anywhere in the transcript — no grep for `663`, `bare`, or `min_lr_ratio` against the chat dump
+ever ran (`min_lr_ratio` was only ever grepped against `/tmp/wiki`, never against `/tmp/chat`).
+`code-review.txt` was pulled in full early on (step ~28), but every later re-print of it stayed
+inside the March 14–April 14 window; the May-30 thread sits further down the same file and was
+never revisited. This is a clean `not_found`, not a misread or an overridden read: the agent's own
+final decision list (line 10045) records `min_lr_ratio`'s default and slope-rescaling behaviour in
+detail but never once says "keyword-only," which is exactly what its research never told it.
 
-## Believed vs. reversed
+## Herrings and the rewritten reversal
 
-Both r1 herrings were correctly reversed and never shipped. For r2, the warmup-strict-
-compare herring was correctly reversed (feeds `g11.r2.failure_behavior`, scored 1),
-but the decay-to-zero herring was never reversed in the agent's model — it is the
-one belief in this run that survived, unchallenged, from a two-line grep hit all the
-way into shipped code.
+The run correctly distinguished all four herring/reversal pairs. Notably, `g11.r2.rev2` in this
+world was rewritten for v11: the transcript shows what was actually served (`general.txt:239`,
+picked up by a `warmup` grep at step 37/38): *"we had it that decay lands at exactly zero at
+total_steps and warmup keeps the strict step < warmup_steps compare tinker_trainer already uses.
+both of those are gone now. the end doesnt sit at zero any more, it bottoms out at a tenth of
+base_lr and holds there, and a first step at rate 0 is not something i want to keep defending"* —
+fuller than the answer key's on-file quote, which lacks the "bottoms out at a tenth of base_lr and
+holds there" clause. This didn't change the outcome: the floor/clamp content was independently
+carried by `g11.r2.rev1` and `g11.r2.l9`, both of which the agent also found, so the extra
+sentence in the rewritten rev2 was redundant rather than load-bearing here.
 
-## End state
+## Bottom line
 
-The feature was fully built, merged, and deployed with CI green — nothing here is an
-infrastructure failure. The 0.4444 reward loss is purely four of nine hidden-requirement
-facts, three of which collapse to a single un-found `#help` reversal.
+Lost fact: `g11.r2.rule` (one of nine, weight 1/9). Cause: `not_found` — the sole carrier of the
+keyword-only constraint on `min_lr_ratio` (`g11.r2.l10`) was never located because no search the
+agent ran (against a fully-dumped but not fully re-read `code-review.txt`) used any of its
+distinctive vocabulary. Everything else this run reconstructed — one-checkpoint-per-step with
+merged reasons, the fixed `CHECKPOINT_REASONS` vocabulary and ledger ordering, plan-derived epoch,
+always-final checkpoints, and the full r2 decay shape including the (rewritten) warmup/floor
+reversal — was found, correctly believed over its herring, and shipped faithfully.

@@ -155,6 +155,54 @@ def main():
           f"- saw the herring but not its reversal: {pct(h['saw_herring_not_reversal'], n)}",
           f"- believed the herring: {pct(h['believed_herring'], n)}", f"- shipped code followed the herring: {pct(h['code_followed_herring'], n)}", ""]
 
+    # 6. corpus spread: does it matter whether a task's remarks all sit in chat, or are
+    # split across chat, wiki and mail? The surface is the answer key's; "found" is the
+    # readers'; a not_found loss is placed by the remark(s) its reader named as missing.
+    def group_of(meta):
+        c = collections.Counter(m.get("surface") for m in meta.values())
+        share = c["chat"] / sum(c.values())
+        return c, ("chat only" if share == 1 else "mostly chat" if share >= 0.8 else "spread")
+
+    L += ["## Corpus spread: chat only, mostly chat, or spread across chat, wiki and mail (live runs)", "",
+          "| task | group | remarks by surface | mean reward (live) | found on chat | found off chat | not-found points: missing remark in chat / off chat |",
+          "|---|---|---|---|---|---|---|"]
+    grp = collections.defaultdict(collections.Counter)
+    members = collections.defaultdict(list)
+    for g, (meta, plant, runs) in pooled.items():
+        mix, label = group_of(meta)
+        members[label].append(g)
+        live = [d for d in runs if not d["_dead"]]
+        t = collections.Counter(runs=len(live), reward=sum(d["_reward"] or 0 for d in live))
+        for d in live:
+            for r in d["remarks"]:
+                m = meta.get(r["id"])
+                if not m:
+                    continue
+                where = "chat" if m.get("surface") == "chat" else "off"
+                t[f"{where}_n"] += 1
+                t[f"{where}_found"] += A.norm_found(r.get("found")) != "no"
+            for l in d.get("lost_facts", []):
+                if l["cause"] in KNOWLEDGE:
+                    t["lost"] += 1
+                if l["cause"] != "not_found":
+                    continue
+                surfaces = {meta[x].get("surface") == "chat" for x in (l.get("remarks") or []) if x in meta}
+                t["nf_" + ("chat" if surfaces == {True} else "off" if surfaces == {False} else "mixed" if surfaces else "unnamed")] += 1
+        grp[label].update(t)
+        extra = "".join(f", {t['nf_' + k]} {k}" for k in ("mixed", "unnamed") if t["nf_" + k])
+        L.append(f"| {g} | {label} | {', '.join(f'{k} {v}' for k, v in mix.most_common())} | {t['reward'] / t['runs']:.2f} | "
+                 f"{pct(t['chat_found'], t['chat_n'])} | {pct(t['off_found'], t['off_n'])} | {t['nf_chat']} / {t['nf_off']}{extra} |")
+    L += ["", "| group | tasks | live runs | mean reward (live) | found on chat | found off chat | knowledge points lost per live run | not-found per live run | not-found with the missing remark off chat |",
+          "|---|---|---|---|---|---|---|---|---|"]
+    for label in ("chat only", "mostly chat", "spread"):
+        t = grp[label]
+        if not t["runs"]:
+            continue
+        nf = t["nf_chat"] + t["nf_off"] + t["nf_mixed"] + t["nf_unnamed"]
+        L.append(f"| {label} | {', '.join(members[label])} | {t['runs']} | {t['reward'] / t['runs']:.2f} | {pct(t['chat_found'], t['chat_n'])} | "
+                 f"{pct(t['off_found'], t['off_n'])} | {t['lost'] / t['runs']:.2f} | {nf / t['runs']:.2f} | {pct(t['nf_off'] + t['nf_mixed'], nf)} |")
+    L += [""]
+
     open(f"{S}/synth.md", "w").write("\n".join(L) + "\n")
     print("\n".join(L))
 

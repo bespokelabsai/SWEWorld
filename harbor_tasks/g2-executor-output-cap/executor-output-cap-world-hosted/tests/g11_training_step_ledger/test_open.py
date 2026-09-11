@@ -25,81 +25,34 @@ import ast
 import dataclasses
 import inspect
 import random
-import sys
-from types import SimpleNamespace
-
-import pytest
+import sys  # noqa: F401 - kept for local human runs of this reference
 
 from harness import read_field
 
-# Imported defensively and re-raised inside the test rather than at collection
-# time: a missing `step_ledger` module is one fact failing per requirement, not
-# three files pytest refuses to collect and a scoreboard with no rows on it.
-IMPORT_ERROR = None
-try:
-    from bespokelabs.curator.finetune import step_ledger as sl
-except Exception as _exc:  # pragma: no cover - the shape of an unimplemented tree
-    IMPORT_ERROR = _exc
-    sl = None
-
-from bespokelabs.curator.finetune.config import FireworksTrainerConfig, TinkerTrainerConfig
-from bespokelabs.curator.finetune.trainer import FireworksTrainer, TinkerTrainer
-from bespokelabs.curator.finetune.types import CheckpointInfo, TrainingResult, TrainingStats
-
-
-# ---------------------------------------------------------------------------
-# Finding the names, wherever the implementation chose to keep them
-# ---------------------------------------------------------------------------
-_CANDIDATE_MODULES = (
-    "bespokelabs.curator.finetune.step_ledger",
-    "bespokelabs.curator.finetune",
-    "bespokelabs.curator.finetune.types",
-    "bespokelabs.curator.finetune.config",
-    "bespokelabs.curator.finetune.trainer.tinker_trainer",
-    "bespokelabs.curator.finetune.trainer.fireworks_trainer",
+# The answer-free helpers/inputs live in probe_support so the worker (probe.py)
+# and this human reference share ONE definition and cannot drift. The expected
+# VALUES this test asserts stay here (and in judge.py); probe_support holds none.
+from probe_support import (  # noqa: F401
+    IMPORT_ERROR,
+    CheckpointInfo,
+    DATA,
+    FakeClock,
+    FireworksTrainer,
+    FireworksTrainerConfig,
+    TinkerTrainer,
+    TinkerTrainerConfig,
+    TrainingResult,
+    TrainingStats,
+    clock_for,
+    e2e_config,
+    has_ledger,
+    ledger,
+    mock_env,
+    record_stats,
+    sl,
+    sym,
+    tracker_total_steps,
 )
-
-
-def sym(name: str):
-    """A name exported by the finetune package, from whichever module holds it.
-
-    The ticket puts the ledger in `step_ledger.py`, but a constant or a helper is
-    graded on existing and on what it says, not on which file it was typed into.
-    """
-    for mod_name in _CANDIDATE_MODULES:
-        mod = sys.modules.get(mod_name)
-        if mod is None:
-            try:
-                __import__(mod_name)
-            except Exception:
-                continue
-            mod = sys.modules.get(mod_name)
-        if mod is not None and hasattr(mod, name):
-            return getattr(mod, name)
-    for mod_name, mod in sorted(sys.modules.items()):
-        if mod_name.startswith("bespokelabs.curator") and hasattr(mod, name):
-            return getattr(mod, name)
-    pytest.fail(f"the implementation exports no {name!r} anywhere in bespokelabs.curator.finetune")
-
-
-def ledger():
-    """Fail one test, not the whole module, when the new module is absent."""
-    if IMPORT_ERROR is not None:
-        pytest.fail(f"bespokelabs.curator.finetune.step_ledger could not be imported: {IMPORT_ERROR!r}")
-    return sl
-
-
-def has_ledger() -> bool:
-    return IMPORT_ERROR is None
-
-
-# ---------------------------------------------------------------------------
-# The end-to-end inputs the ticket names
-# ---------------------------------------------------------------------------
-DATA = [
-    {"messages": [{"role": "user", "content": f"Q{i}"}, {"role": "assistant", "content": f"A{i}"}]}
-    for i in range(10)
-]
 
 SIGNATURE = "ds1-10-5d661fe8c9a2d002"
 
@@ -114,90 +67,6 @@ BATCH_LOSSES = [
     2.1081007054826135,
     2.348343636960536,
 ]
-
-
-def e2e_config(**overrides):
-    """The end-to-end configuration: 10 examples, 4 batches an epoch, 3 optimizer steps."""
-    kwargs = dict(
-        base_model="Qwen3-8B",
-        epochs=2,
-        batch_size=3,
-        gradient_accumulation_steps=3,
-        warmup_steps=2,
-        log_every_n_steps=2,
-        checkpoint_every_n_steps=2,
-        checkpoint_every_epoch=True,
-        save_weights_on_complete=False,
-        seed=0,
-        api_key=None,
-    )
-    kwargs.update(overrides)
-    return TinkerTrainerConfig(**kwargs)
-
-
-class FakeClock:
-    """A clock that hands back the values it was given and counts the asking."""
-
-    def __init__(self, values):
-        self.values = list(values)
-        self.calls = 0
-
-    def __call__(self) -> float:
-        if self.calls >= len(self.values):
-            raise AssertionError(f"the clock was called {self.calls + 1} times; only {len(self.values)} values were provided")
-        value = self.values[self.calls]
-        self.calls += 1
-        return value
-
-
-def clock_for(*values) -> FakeClock:
-    """A clock with slack past the expected calls, so an extra call fails on a number."""
-    return FakeClock(list(values) + [9.0e9] * 8)
-
-
-def record_stats(monkeypatch):
-    """Capture every `TrainingStats` the run pushes, wherever the tracker is built.
-
-    Patched in every finetune module that holds the name, with one shared
-    recorder between them, so "one per batch" still means one in total whichever
-    module the trainer reached for.
-    """
-    recorder = SimpleNamespace(stats=[], init_kwargs={}, init_args=(), built=0)
-
-    class Tracker:
-        def __init__(self, *args, **kwargs):
-            recorder.built += 1
-            recorder.init_args = args
-            recorder.init_kwargs = kwargs
-
-        def update(self, stats=None, *args, **kwargs):
-            recorder.stats.append(stats)
-
-        def __getattr__(self, name):
-            return lambda *args, **kwargs: None
-
-    patched = 0
-    for mod_name, mod in list(sys.modules.items()):
-        if mod_name.startswith("bespokelabs.curator.finetune") and hasattr(mod, "FinetuneStatusTracker"):
-            monkeypatch.setattr(mod, "FinetuneStatusTracker", Tracker, raising=False)
-            patched += 1
-    assert patched, "no finetune module exposes FinetuneStatusTracker to patch"
-    return recorder
-
-
-def tracker_total_steps(recorder):
-    """The denominator the tracker was built with, however it was passed."""
-    if "total_steps" in recorder.init_kwargs:
-        return recorder.init_kwargs["total_steps"]
-    if len(recorder.init_args) >= 3:          # model, total_epochs, total_steps, batch_size
-        return recorder.init_args[2]
-    raise AssertionError(f"the status tracker was built with no total_steps: {recorder.init_args} {recorder.init_kwargs}")
-
-
-def mock_env(monkeypatch):
-    """No provider key anywhere: every trainer runs its mock branch."""
-    monkeypatch.delenv("TINKER_API_KEY", raising=False)
-    monkeypatch.delenv("FIREWORKS_API_KEY", raising=False)
 
 
 def test_open_feature__one_step_unit_one_checkpoint_identity_one_resume_contract(monkeypatch):
@@ -354,12 +223,47 @@ def test_open_feature__one_step_unit_one_checkpoint_identity_one_resume_contract
     bare = CheckpointInfo(name="a", path="b", step=1, epoch=1, loss=0.5)
     assert (bare.batch_size, bare.gradient_accumulation_steps, bare.batches_completed, bare.dataset_signature) == (0, 0, 0, "")
 
+    # Present, defaulted, in that relative order -- NOT at a particular index.
+    # The ticket says "appended in this order" for CheckpointInfo above and only
+    # "gains" for these two, and nothing in the record settles where they sit. A
+    # solution that grouped them beside current_step/total_steps -- where they
+    # read best -- scored 1.0 on every hidden fact of g11 and lost the whole open
+    # feature on a field's position.
     stats_fields = [f.name for f in dataclasses.fields(TrainingStats)]
-    assert stats_fields[-2:] == ["current_batch", "total_batches"]
+    assert {"current_batch", "total_batches"}.issubset(stats_fields)
+    assert stats_fields.index("current_batch") < stats_fields.index("total_batches")
+    # and nothing that was already there was dropped, renamed or reordered
+    assert [f for f in stats_fields if f not in ("current_batch", "total_batches")] == [
+        "current_epoch",
+        "total_epochs",
+        "current_step",
+        "total_steps",
+        "current_loss",
+        "tokens_processed",
+        "samples_processed",
+        "learning_rate",
+        "elapsed_time",
+    ]
     assert (TrainingStats().current_batch, TrainingStats().total_batches) == (0, 0)
 
+    # Same wording, same treatment. One rollout inserted these mid-dataclass and
+    # only moved them to the end afterwards "to be safe" -- the tail was a coin
+    # flip, not a requirement.
     result_fields = [f.name for f in dataclasses.fields(TrainingResult)]
-    assert result_fields[-2:] == ["total_batches", "step_plan"]
+    assert {"total_batches", "step_plan"}.issubset(result_fields)
+    assert result_fields.index("total_batches") < result_fields.index("step_plan")
+    assert [f for f in result_fields if f not in ("total_batches", "step_plan")] == [
+        "final_loss",
+        "total_steps",
+        "total_epochs",
+        "total_time",
+        "tokens_processed",
+        "samples_processed",
+        "loss_history",
+        "weights_name",
+        "checkpoints",
+        "metadata",
+    ]
     minimal = TrainingResult(
         final_loss=0.0,
         total_steps=0,

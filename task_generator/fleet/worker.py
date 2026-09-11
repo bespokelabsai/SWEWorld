@@ -43,7 +43,16 @@ TG = REPO / "task_generator"
 PLANT_STAGES = ("clues", "settle", "reverse", "reorder", "reknit", "consistency")
 
 MAX_ATTEMPTS = 2          # per step, for `retry`
-MAX_REWINDS = 2           # per task, for author_extend / resplit / amend_ticket
+# Per task PER PHASE, because a rewind does not cost the same in both.
+#
+# In phase A a rewind is `author --extend` or `amend_ticket` plus the rebuilds
+# behind it -- $15 and half an hour, and if the second one has not fixed the cut
+# the third will not either. In phase C the repairs are `rewrite_exchanges`
+# (~$1.50 for the exchanges a gate named) and they CONVERGE: measured on g9,
+# consistency reported 13 conflicts, then 11, then 7, then 6, each round
+# removing real ones. Stopping that at two leaves a fixable plant unfixed.
+MAX_REWINDS = {"A": 2, "B": 2, "C": 5}
+DEFAULT_MAX_REWINDS = 2
 # Measured, not guessed: phase A came in at ~$28/task, and phase C's clue chain
 # runs $38-53 on the g4/g6 evidence (g1's $113 was 239 placement calls for 50
 # remarks, the pathological case `recipe.py`'s $45 budget is drawn from). Phase
@@ -94,7 +103,20 @@ def tail(path: pathlib.Path, n: int = 6000) -> str:
 
 # --------------------------------------------------------------------------- gates
 
-def evaluate(task: Task, step: plan.Step, rc: int, log: pathlib.Path) -> gates.Verdict:
+def last_conflicts(run_id: str, slug: str) -> set[str] | None:
+    """The clues `consistency` named last time it ran, or None if it never has.
+
+    `gates.clue_gate` needs it to tell a conflict that survived a re-read from
+    one the judge sampled once -- see the comment there. Read out of the history
+    the worker already writes, so it costs nothing.
+    """
+    rows = state.load(run_id)["tasks"][slug].get("history") or []
+    seen = [h for h in rows if h.get("step") == "consistency" and h.get("hard") is not None]
+    return gates.named_clues(seen[-1]["hard"]) if seen else None
+
+
+def evaluate(task: Task, step: plan.Step, rc: int, log: pathlib.Path,
+             previous: set[str] | None = None) -> gates.Verdict:
     """What this step actually produced. One branch per step that has an artifact."""
     if step.cmd == "split":
         return gates.split_gate(task, rc)
@@ -103,7 +125,7 @@ def evaluate(task: Task, step: plan.Step, rc: int, log: pathlib.Path) -> gates.V
     if step.cmd == "emit":
         return gates.emit_gate(task)
     if step.cmd in PLANT_STAGES:
-        return gates.clue_gate(task)
+        return gates.clue_gate(task, previous)
     # Steps with no artifact of their own are judged by their exit code alone,
     # which is honest for them: `author`, `build` and `tests` write files whose
     # correctness the NEXT gate measures, and inventing a check here would be a
@@ -152,8 +174,21 @@ def reformat_ticket(task: Task, findings: list[str]) -> None:
     it would look like a formatting change.
     """
     import re
-    spans = lambda text: sorted(re.findall(r"`[^`]+`", text))
-    before = spans((task.dir / "ticket.md").read_text())
+
+    # Backticks are paired left to right, so a FENCED block (```python) throws
+    # the pairing off by three and every "span" after it is the prose BETWEEN
+    # two identifiers rather than an identifier. g13's ticket has four fences
+    # and the guard below reported six dropped spans that read
+    # `` ` does not read it. ` `` -- text, not names. It parked a healthy task
+    # on a false positive, and it would do it to any ticket carrying a fence.
+    # So fences come out first, and are then checked in their own right: their
+    # CONTENT is graded text too, and dropping a whole code block must not
+    # become invisible by virtue of being excluded here.
+    fenced = lambda text: sorted(re.findall(r"```.*?```", text, flags=re.S))
+    spans = lambda text: sorted(
+        re.findall(r"`[^`\n]+`", re.sub(r"```.*?```", "", text, flags=re.S)))
+    before, before_fenced = spans((task.dir / "ticket.md").read_text()), \
+        fenced((task.dir / "ticket.md").read_text())
     snapshot = task.dir / "cuts" / f"pre-reformat-{int(time.time())}"
     snapshot.mkdir(parents=True, exist_ok=True)
     for name in ("task.json", "ticket.md"):
@@ -168,12 +203,15 @@ def reformat_ticket(task: Task, findings: list[str]) -> None:
                        budget_usd=2.0, log_dir=task.dir / "logs", timeout_s=2700)
     tg_steps._record(task, f"fleet-reformat-{task.id}", text, result)
 
-    after = spans((task.dir / "ticket.md").read_text())
+    written = (task.dir / "ticket.md").read_text()
+    after, after_fenced = spans(written), fenced(written)
     lost = [s for s in before if s not in after]
-    if lost:
+    lost_fenced = [s for s in before_fenced if s not in after_fenced]
+    if lost or lost_fenced:
         for name in ("task.json", "ticket.md"):
             (task.dir / name).write_text((snapshot / name).read_text())
         raise Parked(f"reformat dropped {len(lost)} backticked span(s) — {lost[:5]} — "
+                     f"and {len(lost_fenced)} fenced block(s) — "
                      f"reverted from {snapshot}. Any of them may be graded.")
     described = json.loads((task.dir / "task.json").read_text()).get("description") or ""
     if sorted(set(spans(described))) != sorted(set(after)):
@@ -276,9 +314,10 @@ def act(run_id: str, task: Task, order: list[plan.Step], index: int,
         if not ids:
             raise Parked("rewrite_exchanges: the findings name no clue id to re-weave")
         rewinds = bump(run_id, task.slug, counter)
-        if rewinds > MAX_REWINDS:
+        cap = MAX_REWINDS.get(phase, DEFAULT_MAX_REWINDS)
+        if rewinds > cap:
             raise Parked(f"rewrite_exchanges chosen {rewinds} times in phase {phase}; "
-                         f"the cap is {MAX_REWINDS}")
+                         f"the cap is {cap}")
         log = state.log_path(run_id, task.slug, "rewrite_exchanges", rewinds)
         rc = cli("reknit", task.slug,
                  ("--only", ",".join(ids), "--redo", "--run", plan.CORPUS_RUN), log,
@@ -289,9 +328,10 @@ def act(run_id: str, task: Task, order: list[plan.Step], index: int,
 
     if action in ("repair", "replace", "reclues"):
         rewinds = bump(run_id, task.slug, counter)
-        if rewinds > MAX_REWINDS:
+        cap = MAX_REWINDS.get(phase, DEFAULT_MAX_REWINDS)
+        if rewinds > cap:
             raise Parked(f"{action} was chosen {rewinds} times in phase {phase}; "
-                         f"the cap is {MAX_REWINDS} and each one is a paid pass")
+                         f"the cap is {cap} and each one is a paid pass")
         cmd = "clues" if action == "reclues" else action
         args = ("--run", plan.CORPUS_RUN) if cmd in plan.TAKES_RUN else ()
         log = state.log_path(run_id, task.slug, action, rewinds)
@@ -308,9 +348,10 @@ def act(run_id: str, task: Task, order: list[plan.Step], index: int,
                          "and worker.act() have drifted apart")
 
     rewinds = bump(run_id, task.slug, "rewinds")
-    if rewinds > MAX_REWINDS:
-        raise Parked(f"{action} was chosen {rewinds} times; "
-                     f"the cap is {MAX_REWINDS} and each one is a paid rebuild")
+    cap = MAX_REWINDS.get(phase, DEFAULT_MAX_REWINDS)
+    if rewinds > cap:
+        raise Parked(f"{action} was chosen {rewinds} times in phase {phase}; "
+                     f"the cap is {cap} and each one is a paid rebuild")
 
     if action == "author_extend":
         log = state.log_path(run_id, task.slug, "author.extend", rewinds)
@@ -503,10 +544,14 @@ def walk(run_id: str, slug: str, order: list[plan.Step], *, start: str = "") -> 
                 row = state.load(run_id)["tasks"][slug]
                 if row.get("sources"):
                     args = args + ("--sources", row["sources"])
+            seen_before = (last_conflicts(run_id, slug)
+                           if step.cmd in PLANT_STAGES else None)
             with held(step):
                 rc = cli(step.cmd, slug, args, log, timeout_s=step.timeout_s)
             task = load(slug)
-            verdict = evaluate(task, step, rc, log)
+            # Read BEFORE this step's own row is written, so it is the previous
+            # run's findings and not this one's.
+            verdict = evaluate(task, step, rc, log, previous=seen_before)
         elif step.kind == "hosted":
             rc = 0
             try:

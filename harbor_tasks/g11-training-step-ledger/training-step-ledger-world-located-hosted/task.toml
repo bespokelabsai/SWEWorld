@@ -45,7 +45,18 @@ timeout_sec = 2400.0
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
 network_mode = "public"
-cpus = 2
+# EIGHT, and it must be submitted with `--machine-type e2-custom-8-16384`.
+# 0e81bc4 raised g7, g8 and g9's hosted arms from 2 to 8 and silently missed
+# g10 and g11, so this arm ran the whole world -- postgres, mariadb,
+# mattermost, bookstack, gitea and its CI runner, maddy, nginx -- plus the
+# agent and its pytest on two cores while its siblings had eight. Run 2 of
+# eval f25dfb66 came back "Harbor trial did not complete" with the agent
+# logging git HEAD flipping between three commits and /tmp files vanishing
+# between commands. Docker REFUSES a `cpus` above the host count rather than
+# capping it, so without that --machine-type flag every rollout errors at
+# `docker compose up` with zero spend -- see build_tasks.py, which resets
+# this to 2 on a rebuild.
+cpus = 8
 memory_mb = 13000
 
 [environment.healthcheck]

@@ -1,0 +1,19 @@
+From: emil@world.local
+To: konrad@world.local, dario@world.local, nikolai@world.local
+Subject: Re: stats report branch =?utf-8?b?4oCU?= need someone to run it
+ before the 0.1.25 cut
+Date: Tue, 13 May 2025 13:40:00 +0000
+Message-ID: <178880169052.2292275.10089547898256913889@world.local>
+In-Reply-To: <178880169051.2292275.13431186199361139095@world.local>
+References: <178880169051.2292275.13431186199361139095@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+yup, that is on me =E2=80=94 I wrote the batch path second and clearly stoppe=
+d paying attention. let me think through the metadata ordering before I move =
+it though, I have a vague memory that the flush was deliberate because of the=
+ resume case, but I do not trust that memory very much.
+
+Will push both this afternoon. thank you for actually running it, I would not=
+ have caught the stale one locally.

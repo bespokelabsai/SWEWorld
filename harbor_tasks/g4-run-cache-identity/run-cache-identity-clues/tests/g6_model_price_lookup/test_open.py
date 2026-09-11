@@ -14,106 +14,27 @@ test that runs after it. `pricing_sandbox()` restores both.
 """
 from __future__ import annotations
 
-import contextlib
-import copy
 import dataclasses
 
 import pytest
 
-from harness import read_field, surface
+from harness import read_field
 
-try:
-    import litellm
-except Exception:  # pragma: no cover - reported by require_cost(), per test
-    litellm = None
-
-try:
-    from bespokelabs.curator import cost as cost_mod
-except Exception:  # pragma: no cover - reported by require_cost(), per test
-    cost_mod = None
-
-# The three table rows every file below reads. Their numbers are fixed by
-# `_default_rate_limits.json`, which the ticket says is the source of truth.
-MAVERICK = "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8"   # in 0.2/"*", out 0.8/"*"
-DEEPSEEK = "deepseek-ai/DeepSeek-R1"                             # in 3.0/"*", out 5.0/"*"
-INFNET_8B = "meta-llama/llama-3.1-8b-instruct/fp-8"              # in 0.045, no output price
-
-
-def require_cost(*names):
-    """The named symbols out of `bespokelabs.curator.cost`, or a clear failure.
-
-    Imported off the module rather than `from ... import`, so that a missing symbol is
-    one legible failure in the test that needed it instead of a collection error that
-    takes the whole file down with it.
-    """
-    if cost_mod is None:
-        pytest.fail("bespokelabs.curator.cost does not import")
-    missing = [n for n in names if not hasattr(cost_mod, n)]
-    if missing:
-        pytest.fail(f"bespokelabs.curator.cost has no {', '.join(missing)}; it exports {surface(cost_mod)}")
-    out = [getattr(cost_mod, n) for n in names]
-    return out[0] if len(out) == 1 else tuple(out)
-
-
-def _memo_sets():
-    """The cost processors' registration memos, wherever they exist."""
-    out = []
-    for name in ("_KlusterAICostProcessor", "_InferenceNetCostProcessor"):
-        cls = getattr(cost_mod, name, None)
-        memo = getattr(cls, "_registered_models", None)
-        if isinstance(memo, set):
-            out.append(memo)
-    return out
-
-
-@contextlib.contextmanager
-def pricing_sandbox(add=None, drop=()):
-    """Run with a scratch copy of litellm's price table and empty registration memos.
-
-    `add` is merged into `litellm.model_cost`, `drop` removed from it. On the way out
-    both the table and the memo sets are put back exactly as they were — the table by
-    content rather than by rebinding the name, because an implementation may hold the
-    dict under `from litellm import model_cost`.
-
-    Deep copies throughout: `litellm.register_model` updates an existing row in place, so
-    a shallow snapshot restores the outer dict while leaving the row it mutated changed,
-    and inserting a module-level constant hands `register_model` that constant to edit.
-    """
-    original = litellm.model_cost
-    before = copy.deepcopy(dict(original))
-    memos = [(memo, set(memo)) for memo in _memo_sets()]
-    for memo in _memo_sets():
-        memo.clear()
-    try:
-        for key in drop:
-            original.pop(key, None)
-        original.update(copy.deepcopy(add or {}))
-        yield original
-    finally:
-        for table in {id(original): original, id(litellm.model_cost): litellm.model_cost}.values():
-            table.clear()
-            table.update(copy.deepcopy(before))
-        for memo, saved in memos:
-            memo.clear()
-            memo.update(saved)
-
-
-def price_fields(price):
-    """The nine numbers/strings a `ModelPrice` carries, read by name."""
-    return {
-        name: read_field(price, name)
-        for name in (
-            "model",
-            "provider",
-            "completion_window",
-            "input_cost_per_million",
-            "output_cost_per_million",
-            "source",
-            "batch",
-            "output_price_inferred",
-            "max_tokens",
-        )
-    }
+# The answer-free helpers/inputs live in probe_support so the worker (probe.py)
+# and this human reference share ONE definition and cannot drift. The expected
+# VALUES this test asserts stay here (and in judge.py); probe_support holds none.
+# test_r1/test_r2 do `from test_open import MAVERICK/DEEPSEEK/INFNET_8B/
+# pricing_sandbox/require_cost`, so those names are re-exported through here.
+from probe_support import (  # noqa: F401
+    DEEPSEEK,
+    INFNET_8B,
+    MAVERICK,
+    cost_mod,
+    litellm,
+    price_fields,
+    pricing_sandbox,
+    require_cost,
+)
 
 
 # =============================================================================

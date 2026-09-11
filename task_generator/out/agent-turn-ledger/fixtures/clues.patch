@@ -1,0 +1,1034 @@
+diff --git a/src/bespokelabs/curator/agent/agent.py b/src/bespokelabs/curator/agent/agent.py
+index 150970e..888b4dc 100644
+--- a/src/bespokelabs/curator/agent/agent.py
++++ b/src/bespokelabs/curator/agent/agent.py
+@@ -7,6 +7,7 @@ from xxhash import xxh64
+ from bespokelabs import curator
+ from bespokelabs.curator.agent.agent_response import MultiTurnResponse
+ from bespokelabs.curator.agent.processor import MultiTurnAgenticProcessor
++from bespokelabs.curator.agent.turn_ledger import COMPLETION_SENTINEL
+ from bespokelabs.curator.client import Client
+ from bespokelabs.curator.constants import PUBLIC_CURATOR_VIEWER_HOME_URL
+ from bespokelabs.curator.db import MetadataDB
+@@ -37,16 +38,23 @@ class Agent(curator.LLM):
+         self.name = name
+         super().__init__(*args, **kwargs)
+ 
+-    def is_completed(self, response: str) -> bool:
+-        """Check if the agent's response is signals conversation completion.
++    def is_completed(self, response: t.Any) -> bool:
++        """Check if the agent's response signals conversation completion.
++
++        The agents are asked to end their final message with the completion
++        sentinel, so a message ending on it is the agent saying it is done.
++        A message that merely mentions the sentinel is still going, and a
++        response that is not text cannot signal anything.
+ 
+         Args:
+-            response (str): The response string to check.
++            response (Any): The response to check.
+ 
+         Returns:
+             bool: True if the conversation is completed, False otherwise.
+         """
+-        return False
++        if not isinstance(response, str):
++            return False
++        return response.rstrip().endswith(COMPLETION_SENTINEL)
+ 
+     def __str__(self):
+         """Return a string representation of the agent.
+@@ -75,19 +83,21 @@ class MultiTurnAgents:
+     Attributes:
+         seeder (Agent): The agent that initiates the conversation.
+         partner (Agent): The agent that responds to the seeder.
+-        max_length (int): The maximum number of turns in the conversation.
++        max_length (int): The maximum number of responses the agents may generate.
+         seed_message (str): The initial message to start the conversation.
+     """
+ 
+-    def __init__(self, seeder: Agent, partner: Agent, max_length: int, seed_message: str):
++    def __init__(self, seeder: Agent, partner: Agent, max_length: int, seed_message: str, *, now_fn: t.Callable[[], datetime] = datetime.now):
+         """Initialize a MultiTurnAgents instance.
+ 
+         Args:
+             seeder (Agent): The agent that initiates the conversation.
+             partner (Agent): The agent that responds to the seeder.
+-            max_length (int): The maximum number of turns in the conversation.
++            max_length (int): The maximum number of responses the agents may generate.
+             seed_message (str): The initial message to start the conversation.
+                                 Note: This message is send to partner agent.
++            now_fn (Callable[[], datetime.datetime]): Source of the timestamps
++                stamped on the seed turn.
+ 
+         Raises:
+             AssertionError: If seeder and partner have the same name.
+@@ -98,7 +108,7 @@ class MultiTurnAgents:
+         self.seed_message = seed_message
+ 
+         assert self.seeder.name != self.partner.name, "Seeder and partner must have different names"
+-        self._processor = MultiTurnAgenticProcessor(self.seeder, self.partner, self.max_length, self.seed_message)
++        self._processor = MultiTurnAgenticProcessor(self.seeder, self.partner, self.max_length, self.seed_message, now_fn=now_fn)
+ 
+     def _setup_metadata(self, fingerprint: str) -> dict:
+         """Set up metadata for the curator.
+diff --git a/src/bespokelabs/curator/agent/agent_response.py b/src/bespokelabs/curator/agent/agent_response.py
+index 44ac6ae..3209858 100644
+--- a/src/bespokelabs/curator/agent/agent_response.py
++++ b/src/bespokelabs/curator/agent/agent_response.py
+@@ -89,7 +89,7 @@ class MultiTurnResponse:
+             succeeded=tracker.num_responses,
+             failed=tracker.num_errors,
+             in_progress=0,  # AgentStatusTracker doesn't track this
+-            cached=0,  # AgentStatusTracker doesn't track this
++            cached=tracker.num_cached,
+         )
+ 
+         # Update performance statistics
+diff --git a/src/bespokelabs/curator/agent/processor.py b/src/bespokelabs/curator/agent/processor.py
+index 907c702..cdcc48a 100644
+--- a/src/bespokelabs/curator/agent/processor.py
++++ b/src/bespokelabs/curator/agent/processor.py
+@@ -1,3 +1,4 @@
++import datetime
+ import json
+ import os
+ import typing as t
+@@ -8,6 +9,15 @@ from datasets import Dataset
+ from datasets.arrow_writer import ArrowWriter
+ 
+ from bespokelabs.curator.agent.agent_response import AgentResponse
++from bespokelabs.curator.agent.turn_ledger import (
++    RESPONSES_FILENAME,
++    TurnLedger,
++    build_ledger,
++    build_seed_record,
++    load_ledger,
++    read_log,
++    write_sidecar,
++)
+ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.online.base_online_request_processor import APIRequest
+ from bespokelabs.curator.status_tracker.agent_status_tracker import AgentStatusTracker, AgentTurn
+@@ -27,26 +37,39 @@ class MultiTurnAgenticProcessor:
+     Attributes:
+         seeder (Agent): The agent that initiates the conversation.
+         partner (Agent): The agent that responds to the seeder.
+-        max_length (int): The maximum number of turns in the conversation.
++        max_length (int): The maximum number of responses the agents may generate.
+         seed_message (str): The initial message to start the conversation.
++        now_fn (Callable[[], datetime.datetime]): Source of the timestamps stamped on the seed turn.
+         conversation_history (list): List of message dictionaries containing role and content.
+         status_tracker (AgentStatusTracker): Tracks the status of the conversation.
++        ledger (Optional[TurnLedger]): The last state derived from the response log.
+     """
+ 
+-    def __init__(self, seeder: "Agent", partner: "Agent", max_length: int, seed_message: str):
++    def __init__(
++        self,
++        seeder: "Agent",
++        partner: "Agent",
++        max_length: int,
++        seed_message: str,
++        now_fn: t.Callable[[], datetime.datetime] = datetime.datetime.now,
++    ):
+         """Initialize a MultiTurnAgenticProcessor instance.
+ 
+         Args:
+             seeder (Agent): The agent that initiates the conversation.
+             partner (Agent): The agent that responds to the seeder.
+-            max_length (int): The maximum number of turns in the conversation.
++            max_length (int): The maximum number of responses the agents may generate.
+             seed_message (str): The initial message to start the conversation.
++            now_fn (Callable[[], datetime.datetime]): Source of the timestamps
++                stamped on the seed turn.
+         """
+         self.seeder = seeder
+         self.partner = partner
+         self.max_length = max_length
+         self.seed_message = seed_message
+-        self.conversation_history = []
++        self.now_fn = now_fn
++        self.conversation_history: list[dict[str, str]] = []
++        self.ledger: t.Optional[TurnLedger] = None
+ 
+         # Create status tracker with model information
+         self.status_tracker = AgentStatusTracker(
+@@ -57,37 +80,109 @@ class MultiTurnAgenticProcessor:
+             partner_model=self.partner.model_name,  # Use partner's model for cost tracking
+         )
+ 
+-    def load_cache(self, working_dir: str) -> int:
+-        """Load cached conversation history from a JSONL file.
++    def load_cache(self, working_dir: str) -> TurnLedger:
++        """Load the state of a cached conversation from its response log.
+ 
+         Args:
+             working_dir (str): Directory containing the cached conversation file.
+ 
+         Returns:
+-            int: The number of messages loaded from the cache.
++            TurnLedger: The state of the conversation on disk.
+         """
+-        cache_file = os.path.join(working_dir, "responses_0.jsonl")
+-        if os.path.exists(cache_file):
+-            with open(cache_file, "r") as f:
+-                for line in f:
+-                    response = AgentResponse.model_validate_json(line)
+-                    self.conversation_history.append({"role": response.name, "content": response.response_message})
+-                    # Update status tracker for cached responses
+-                    if response.name == self.seeder.name:
+-                        self.status_tracker.update_turn(AgentTurn.SEEDER)
+-                        if self.seeder.is_completed(response.response_message):
+-                            return self.max_length
+-                    else:
+-                        self.status_tracker.update_turn(AgentTurn.PARTNER)
+-                        if self.partner.is_completed(response.response_message):
+-                            return self.max_length
+-        return len(self.conversation_history)
++        ledger = load_ledger(
++            working_dir,
++            seeder_name=self.seeder.name,
++            partner_name=self.partner.name,
++            max_responses=self.max_length,
++            is_completed=self._is_completed,
++        )
++        return self._adopt_ledger(ledger)
++
++    def _adopt_ledger(self, ledger: TurnLedger) -> TurnLedger:
++        """Keep a ledger and mirror it into the conversation history.
++
++        Args:
++            ledger (TurnLedger): The ledger the processor now holds.
++
++        Returns:
++            TurnLedger: The very same ledger.
++        """
++        self.ledger = ledger
++        self.conversation_history = ledger.messages()
++        return ledger
++
++    def _rebuild_ledger(self, records: list[AgentResponse]) -> TurnLedger:
++        """Derive the ledger afresh from the records read or written so far.
++
++        Args:
++            records (list[AgentResponse]): The conversation as it stands, in log order.
++
++        Returns:
++            TurnLedger: The state the records add up to.
++        """
++        return self._adopt_ledger(
++            build_ledger(
++                records,
++                seeder_name=self.seeder.name,
++                partner_name=self.partner.name,
++                max_responses=self.max_length,
++                is_completed=self._is_completed,
++                status="created",
++            )
++        )
++
++    def _is_completed(self, author: str, content: t.Any) -> bool:
++        """Ask the agent that wrote a message whether it ends the conversation.
++
++        Args:
++            author (str): Name of the agent the message was written under.
++            content (Any): The message content.
++
++        Returns:
++            bool: True if that agent considers the conversation finished.
++        """
++        if author == self.seeder.name:
++            return self.seeder.is_completed(content)
++        if author == self.partner.name:
++            return self.partner.is_completed(content)
++        return False
++
++    def _agent_for(self, name: str) -> "Agent":
++        """Return the agent going by a name.
++
++        Args:
++            name (str): Name of the agent.
++
++        Returns:
++            Agent: The seeder or the partner.
++
++        Raises:
++            KeyError: If the name belongs to neither agent.
++        """
++        if name == self.seeder.name:
++            return self.seeder
++        if name == self.partner.name:
++            return self.partner
++        raise KeyError(name)
++
++    def _turn_for(self, name: str) -> AgentTurn:
++        """Return the tracker turn standing for an agent name.
++
++        Args:
++            name (str): Name of the agent.
++
++        Returns:
++            AgentTurn: SEEDER for the seeder, PARTNER otherwise.
++        """
++        return AgentTurn.SEEDER if name == self.seeder.name else AgentTurn.PARTNER
+ 
+     async def run(self, working_dir: str) -> Dataset:
+         """Execute the multi-turn conversation between agents.
+ 
+         This method manages the conversation flow between the seeder and partner agents,
+-        handling caching, response generation, and dataset creation.
++        handling caching, response generation, and dataset creation. The seed message is
++        a turn of the log like any other, so a resumed run picks up exactly where the log
++        left off and spends nothing on what it already has.
+ 
+         Args:
+             working_dir (str): Directory where conversation results will be stored.
+@@ -95,66 +190,78 @@ class MultiTurnAgenticProcessor:
+         Returns:
+             Dataset: A HuggingFace Dataset containing the conversation history.
+         """
+-        request_file = os.path.join(working_dir, "responses_0.jsonl")
+-        if os.path.exists(request_file):
+-            start_step = self.load_cache(working_dir)
+-            if start_step == self.max_length:
+-                self.status_tracker.stop_tracker()
+-                return Dataset.from_file(self.create_dataset_file(working_dir))
+-        else:
+-            self.conversation_history.append({"role": self.seeder.name, "content": self.seed_message})
+-            start_step = 0
++        request_file = os.path.join(working_dir, RESPONSES_FILENAME)
++        records = read_log(working_dir)
++        ledger = self.load_cache(working_dir)
++        self.status_tracker.adopt_ledger(cached_responses=ledger.responses)
++
++        if ledger.completed:
++            logger.info(f"Conversation already {ledger.completion_reason} after {ledger.responses} response(s).")
++            self.status_tracker.stop_tracker()
++            return Dataset.from_file(self.create_dataset_file(working_dir))
+ 
+         async with aiohttp.ClientSession() as session:
+             async with aiofiles.open(request_file, "a") as f:
+-                for step in range(start_step, self.max_length):
++                if not records:
++                    seed = build_seed_record(
++                        seeder_name=self.seeder.name,
++                        seed_message=self.seed_message,
++                        model_name=self.seeder.model_name,
++                        now=self.now_fn(),
++                    )
++                    ledger = await self._record(working_dir, f, self.seeder.name, seed, records)
++
++                while ledger.responses < self.max_length:
++                    name = ledger.next_speaker
++                    agent = self._agent_for(name)
+                     try:
+-                        if step % 2 == 0:
+-                            partener_request = self._transform_conversation_history(self.partner)
+-                            partener_request = APIRequest(
+-                                task_id=step,
+-                                generic_request=partener_request,
+-                                api_specific_request=self.partner._request_processor.create_api_specific_request_online(partener_request),
+-                                attempts_left=1,
+-                                prompt_formatter=self.partner.prompt_formatter,
+-                            )
+-                            partener_response = await self.partner._request_processor.call_single_request(partener_request, session, status_tracker=None)
+-                            await self.append_response(self.partner.name, f, partener_response)
+-                            self.conversation_history.append({"role": self.partner.name, "content": partener_response.response_message})
+-                            self.status_tracker.update_turn(AgentTurn.PARTNER, token_usage=partener_response.token_usage, cost=partener_response.response_cost)
+-                            if self._check_stop_condition(step, self.partner, partener_response.response_message):
+-                                break
+-                        else:
+-                            seeder_request = self._transform_conversation_history(self.seeder)
+-                            seeder_request = APIRequest(
+-                                task_id=step,
+-                                generic_request=seeder_request,
+-                                api_specific_request=self.seeder._request_processor.create_api_specific_request_online(seeder_request),
+-                                attempts_left=1,
+-                                prompt_formatter=self.seeder.prompt_formatter,
+-                            )
+-                            seeder_response = await self.seeder._request_processor.call_single_request(seeder_request, session, status_tracker=None)
+-                            await self.append_response(self.seeder.name, f, seeder_response)
+-                            self.conversation_history.append({"role": self.seeder.name, "content": seeder_response.response_message})
+-                            self.status_tracker.update_turn(AgentTurn.SEEDER, token_usage=seeder_response.token_usage, cost=seeder_response.response_cost)
+-                            if self._check_stop_condition(step, self.seeder, seeder_response.response_message):
+-                                break
++                        request = self._transform_conversation_history(agent)
++                        request = APIRequest(
++                            task_id=ledger.responses,
++                            generic_request=request,
++                            api_specific_request=agent._request_processor.create_api_specific_request_online(request),
++                            attempts_left=1,
++                            prompt_formatter=agent.prompt_formatter,
++                        )
++                        response = await agent._request_processor.call_single_request(request, session, status_tracker=None)
++                        ledger = await self._record(working_dir, f, agent.name, response, records)
++                        self.status_tracker.update_turn(self._turn_for(agent.name), token_usage=response.token_usage, cost=response.response_cost)
+                     except Exception as e:
+                         # Update status tracker with error
+-                        if step % 2 == 0:
+-                            self.status_tracker.update_turn(AgentTurn.PARTNER, response_success=False)
+-                        else:
+-                            self.status_tracker.update_turn(AgentTurn.SEEDER, response_success=False)
++                        self.status_tracker.update_turn(self._turn_for(name), response_success=False)
+                         raise e
+ 
++                    if ledger.completed:
++                        logger.info(f"Agent {agent.name} completed conversation at response {ledger.responses - 1} ({ledger.completion_reason}).")
++                        break
++
+         self.status_tracker.stop_tracker()
+         return Dataset.from_file(self.create_dataset_file(working_dir))
+ 
+-    def _check_stop_condition(self, step: int, agent: "Agent", response_message: str) -> bool:
+-        if agent.is_completed(response_message):
+-            logger.info(f"Agent {agent.name} completed conversation at step {step}.")
+-            return True
+-        return False
++    async def _record(self, working_dir: str, f, name: str, response: GenericResponse, records: list[AgentResponse]) -> TurnLedger:
++        """Append a turn to the log and re-derive the ledger from it.
++
++        The log is flushed so that a reader opening it sees the turn, and the
++        checkpoint beside it is refreshed so that a later run knows whose turn it
++        is without replaying the log.
++
++        Args:
++            working_dir (str): Directory where conversation results are stored.
++            f: The file object the log is being appended to.
++            name (str): The name of the agent generating the response.
++            response (GenericResponse): The response to append.
++            records (list[AgentResponse]): The conversation so far, in log order,
++                extended in place with the turn that was written.
++
++        Returns:
++            TurnLedger: The state the conversation has reached.
++        """
++        await self.append_response(name, f, response)
++        await f.flush()
++        records.append(AgentResponse.model_validate({**response.model_dump(), "name": name}))
++        ledger = self._rebuild_ledger(records)
++        write_sidecar(working_dir, ledger)
++        return ledger
+ 
+     async def append_response(self, name: str, f, response: GenericResponse) -> None:
+         """Append a response to the conversation history file.
+@@ -180,31 +287,32 @@ class MultiTurnAgenticProcessor:
+         Returns:
+             APIRequest: A request object containing the transformed conversation history.
+         """
+-        transformed_conversation_history = []
+-        if len(self.conversation_history) == 1:
+-            transformed_conversation_history.append({"role": "user", "content": self.conversation_history[0]["content"]})
+-        else:
+-            for message in self.conversation_history:
+-                if message["role"] == target_agent.name:
+-                    transformed_conversation_history.append({"role": "assistant", "content": message["content"]})
+-                else:
+-                    transformed_conversation_history.append({"role": "user", "content": message["content"]})
++        transformed_conversation_history = [
++            {"role": "assistant" if message["role"] == target_agent.name else "user", "content": message["content"]} for message in self.conversation_history
++        ]
+ 
+         request = target_agent.prompt_formatter.create_generic_request({"prompt": transformed_conversation_history[-1]["content"]}, 0)
+-        system_prompt = [msg for msg in request.messages if msg["role"] == "system"][0]
+-        request.messages = [msg for msg in request.messages if msg["role"] != "system"]
++        system_prompt = None
++        messages = []
++        for msg in request.messages:
++            if system_prompt is None and msg["role"] == "system":
++                system_prompt = msg
++            else:
++                messages.append(msg)
+ 
+         del transformed_conversation_history[-1]
+-        transformed_conversation_history += request.messages
++        transformed_conversation_history += messages
+         request.messages = transformed_conversation_history
+-        request.messages.insert(0, system_prompt)
++        if system_prompt is not None:
++            request.messages.insert(0, system_prompt)
+         return request
+ 
+     def create_dataset_file(self, working_dir: str) -> str:
+         """Create a dataset file from the conversation history.
+ 
+         This method converts the JSONL conversation history into an Arrow dataset file
+-        for efficient storage and processing.
++        for efficient storage and processing, one row per line of the log, the seed
++        turn included.
+ 
+         Args:
+             working_dir (str): Directory where the dataset file will be created.
+@@ -212,17 +320,21 @@ class MultiTurnAgenticProcessor:
+         Returns:
+             str: Path to the created dataset file.
+         """
+-        response_file = os.path.join(working_dir, "responses_0.jsonl")
+         dataset_file = os.path.join(working_dir, "dataset.arrow")
+ 
+         with ArrowWriter(path=dataset_file) as writer:
+-            with open(response_file, "r") as f_in:
+-                for line in f_in:
+-                    response = AgentResponse.model_validate_json(line)
+-                    row = response.model_dump()
+-                    response = {"content": row["response_message"], "role": row["name"]}
+-                    # Write the row to the arrow file
+-                    writer.write(response)
++            for turn, record in enumerate(read_log(working_dir)):
++                row = record.model_dump()
++                content = row["response_message"]
++                # Write the row to the arrow file
++                writer.write(
++                    {
++                        "role": row["name"],
++                        "content": content if isinstance(content, str) else str(content),
++                        "turn": turn,
++                        "source": "seed" if turn == 0 else "response",
++                    }
++                )
+ 
+             # Finalize the writer
+             writer.finalize()
+diff --git a/src/bespokelabs/curator/agent/turn_ledger.py b/src/bespokelabs/curator/agent/turn_ledger.py
+new file mode 100644
+index 0000000..17ba9b4
+--- /dev/null
++++ b/src/bespokelabs/curator/agent/turn_ledger.py
+@@ -0,0 +1,435 @@
++"""The durable record of a multi-turn agent conversation."""
++
++import dataclasses
++import datetime
++import json
++import os
++import typing as t
++from dataclasses import dataclass
++
++from bespokelabs.curator.agent.agent_response import AgentResponse
++from bespokelabs.curator.types.generic_request import GenericRequest
++
++RESPONSES_FILENAME: str = "responses_0.jsonl"
++TURN_LEDGER_FILENAME: str = "turn_ledger.json"
++TURN_LEDGER_VERSION: int = 2
++SEED_FINISH_REASON: str = "seed"
++COMPLETION_SENTINEL: str = "<<END_OF_CONVERSATION>>"
++COMPLETION_REASONS: tuple[str, ...] = ("open", "budget", "agent_signal")
++LEDGER_STATUSES: tuple[str, ...] = ("created", "adopted", "verified")
++
++
++class TurnLedgerError(RuntimeError):
++    """Base class for every turn ledger failure."""
++
++
++class TurnLedgerCorruptError(TurnLedgerError):
++    """Raised when a line of the response log cannot be read back.
++
++    Attributes:
++        path (str): Path of the response log that could not be read.
++        line_number (int): 1-based number of the offending physical line.
++        reason (str): Why the line could not be read.
++    """
++
++    def __init__(self, path: str, line_number: int, reason: str):
++        """Initialize a TurnLedgerCorruptError.
++
++        Args:
++            path (str): Path of the response log that could not be read.
++            line_number (int): 1-based number of the offending physical line.
++            reason (str): Why the line could not be read.
++        """
++        super().__init__(f"{path} line {line_number} {reason}")
++        self.path = path
++        self.line_number = line_number
++        self.reason = reason
++
++
++class TurnLedgerDesyncError(TurnLedgerError):
++    """Raised when a current-version checkpoint disagrees with the response log.
++
++    Attributes:
++        path (str): Path of the checkpoint that disagrees with the log.
++        recorded_responses (int): Response count held by the checkpoint.
++        recorded_last_author (Optional[str]): Last author held by the checkpoint.
++        log_responses (int): Response count rebuilt from the log.
++        log_last_author (Optional[str]): Last author rebuilt from the log.
++    """
++
++    def __init__(
++        self,
++        path: str,
++        recorded_responses: t.Any,
++        recorded_last_author: t.Any,
++        log_responses: int,
++        log_last_author: t.Optional[str],
++    ):
++        """Initialize a TurnLedgerDesyncError.
++
++        Args:
++            path (str): Path of the checkpoint that disagrees with the log.
++            recorded_responses (Any): Response count held by the checkpoint.
++            recorded_last_author (Any): Last author held by the checkpoint.
++            log_responses (int): Response count rebuilt from the log.
++            log_last_author (Optional[str]): Last author rebuilt from the log.
++        """
++        super().__init__(
++            f"{path} records {recorded_responses} response(s) last authored by {recorded_last_author!r}, "
++            f"the log holds {log_responses} last authored by {log_last_author!r}"
++        )
++        self.path = path
++        self.recorded_responses = recorded_responses
++        self.recorded_last_author = recorded_last_author
++        self.log_responses = log_responses
++        self.log_last_author = log_last_author
++
++
++@dataclass(frozen=True)
++class TurnEntry:
++    """A single line of the response log.
++
++    Attributes:
++        turn (int): 0-based index of the line in the log, the seed being 0.
++        author (str): Name of the agent the line was written under.
++        content (str): Textual content of the response message.
++        source (str): "seed" for the seed turn, "response" for a generated one.
++    """
++
++    turn: int
++    author: str
++    content: str
++    source: str
++
++
++@dataclass(frozen=True)
++class TurnLedger:
++    """The state of a conversation, derived from its response log.
++
++    Attributes:
++        entries (tuple[TurnEntry, ...]): The turns held by the log, in log order.
++        seeder_name (str): Name of the seeder agent.
++        partner_name (str): Name of the partner agent.
++        max_responses (int): Budget of generated responses, the seed excluded.
++        responses (int): Number of generated responses in the log.
++        turns (int): Number of lines in the log, the seed included.
++        next_speaker (Optional[str]): Agent that speaks next, None once completed.
++        last_author (Optional[str]): Agent that wrote the last line.
++        interleave_faults (int): Places where the log doubles back on an author.
++        completed (bool): Whether the conversation is finished.
++        completion_reason (str): One of COMPLETION_REASONS.
++        status (str): One of LEDGER_STATUSES.
++    """
++
++    entries: tuple[TurnEntry, ...]
++    seeder_name: str
++    partner_name: str
++    max_responses: int
++    responses: int
++    turns: int
++    next_speaker: t.Optional[str]
++    last_author: t.Optional[str]
++    interleave_faults: int
++    completed: bool
++    completion_reason: str
++    status: str
++
++    def messages(self) -> list[dict[str, str]]:
++        """Return the conversation as role/content messages, in log order.
++
++        Returns:
++            list[dict[str, str]]: One message per turn, keyed by agent name.
++        """
++        return [{"role": entry.author, "content": entry.content} for entry in self.entries]
++
++    def sidecar_state(self) -> dict[str, t.Any]:
++        """Return the checkpoint record describing this ledger.
++
++        Returns:
++            dict[str, Any]: The record written to the turn ledger checkpoint.
++        """
++        return {
++            "version": TURN_LEDGER_VERSION,
++            "responses": self.responses,
++            "turns": self.turns,
++            "last_author": self.last_author,
++            "next_speaker": self.next_speaker,
++            "interleave_faults": self.interleave_faults,
++            "completed": self.completed,
++            "completion_reason": self.completion_reason,
++        }
++
++
++def build_seed_record(*, seeder_name: str, seed_message: str, model_name: str, now: datetime.datetime) -> AgentResponse:
++    """Build the log line standing for the seed message.
++
++    Args:
++        seeder_name (str): Name of the agent the seed is written under.
++        seed_message (str): The message that starts the conversation.
++        model_name (str): Model name of the seeder agent.
++        now (datetime.datetime): Timestamp stamped on the record.
++
++    Returns:
++        AgentResponse: The seed turn, ready to be appended to the log.
++    """
++    generic_request = GenericRequest(
++        model=model_name,
++        messages=[{"role": "user", "content": seed_message}],
++        original_row={"prompt": seed_message},
++        original_row_idx=0,
++        response_format=None,
++        generation_params={},
++        is_multimodal_prompt=False,
++    )
++    return AgentResponse.model_validate(
++        {
++            "name": seeder_name,
++            "response_message": seed_message,
++            "parsed_response_message": None,
++            "response_errors": None,
++            "raw_response": None,
++            "raw_request": None,
++            "generic_request": generic_request,
++            "created_at": now,
++            "finished_at": now,
++            "token_usage": None,
++            "response_cost": 0.0,
++            "finish_reason": SEED_FINISH_REASON,
++        }
++    )
++
++
++def response_log_path(working_dir: str) -> str:
++    """Return the absolute path of the response log of a working directory.
++
++    Args:
++        working_dir (str): Directory holding the conversation.
++
++    Returns:
++        str: Absolute path of the response log.
++    """
++    return os.path.abspath(os.path.join(working_dir, RESPONSES_FILENAME))
++
++
++def sidecar_path(working_dir: str) -> str:
++    """Return the absolute path of the turn ledger checkpoint of a working directory.
++
++    Args:
++        working_dir (str): Directory holding the conversation.
++
++    Returns:
++        str: Absolute path of the turn ledger checkpoint.
++    """
++    return os.path.abspath(os.path.join(working_dir, TURN_LEDGER_FILENAME))
++
++
++def read_log(working_dir: str) -> list[AgentResponse]:
++    """Read every response held by the log of a working directory.
++
++    Blank lines are skipped, everything else has to parse.
++
++    Args:
++        working_dir (str): Directory holding the conversation.
++
++    Returns:
++        list[AgentResponse]: The records held by the log, in log order.
++
++    Raises:
++        TurnLedgerCorruptError: If a non-blank line cannot be parsed.
++    """
++    path = response_log_path(working_dir)
++    if not os.path.exists(path):
++        return []
++
++    records = []
++    with open(path, "r") as f:
++        for line_number, line in enumerate(f, start=1):
++            if not line.strip():
++                continue
++            try:
++                records.append(AgentResponse.model_validate_json(line))
++            except ValueError as e:
++                raise TurnLedgerCorruptError(path, line_number, "could not be parsed as an agent response") from e
++    return records
++
++
++def build_ledger(
++    records: t.Sequence[AgentResponse],
++    *,
++    seeder_name: str,
++    partner_name: str,
++    max_responses: int,
++    is_completed: t.Callable[[str, t.Any], bool],
++    status: str = "verified",
++) -> TurnLedger:
++    """Derive the state of a conversation from its records.
++
++    Args:
++        records (Sequence[AgentResponse]): The records held by the log, in log order.
++        seeder_name (str): Name of the seeder agent.
++        partner_name (str): Name of the partner agent.
++        max_responses (int): Budget of generated responses, the seed excluded.
++        is_completed (Callable[[str, Any], bool]): Tells whether the content an
++            agent wrote signals the end of the conversation.
++        status (str): The status the ledger is built with.
++
++    Returns:
++        TurnLedger: The state the records add up to.
++    """
++    entries = tuple(
++        TurnEntry(
++            turn=index,
++            author=record.name,
++            content=record.response_message if isinstance(record.response_message, str) else str(record.response_message),
++            source="seed" if index == 0 else "response",
++        )
++        for index, record in enumerate(records)
++    )
++
++    turns = len(entries)
++    responses = max(turns - 1, 0)
++    last_author = entries[-1].author if entries else None
++    interleave_faults = sum(1 for i in range(1, turns) if entries[i].author == entries[i - 1].author)
++
++    if not entries:
++        completion_reason = "open"
++    elif is_completed(entries[-1].author, entries[-1].content):
++        completion_reason = "agent_signal"
++    elif responses >= max_responses:
++        completion_reason = "budget"
++    else:
++        completion_reason = "open"
++
++    completed = completion_reason != "open"
++    if entries and not completed:
++        next_speaker = partner_name if last_author == seeder_name else seeder_name
++    else:
++        next_speaker = None
++
++    return TurnLedger(
++        entries=entries,
++        seeder_name=seeder_name,
++        partner_name=partner_name,
++        max_responses=max_responses,
++        responses=responses,
++        turns=turns,
++        next_speaker=next_speaker,
++        last_author=last_author,
++        interleave_faults=interleave_faults,
++        completed=completed,
++        completion_reason=completion_reason,
++        status=status,
++    )
++
++
++def read_sidecar(working_dir: str) -> t.Optional[dict]:
++    """Read the turn ledger checkpoint of a working directory.
++
++    A missing or unreadable checkpoint is not an error, it is simply nothing to
++    go on.
++
++    Args:
++        working_dir (str): Directory holding the conversation.
++
++    Returns:
++        Optional[dict]: The recorded state, or None if there is none to read.
++    """
++    path = sidecar_path(working_dir)
++    if not os.path.exists(path):
++        return None
++    try:
++        with open(path, "r") as f:
++            record = json.load(f)
++    except (OSError, ValueError):
++        return None
++    return record if isinstance(record, dict) else None
++
++
++def write_sidecar(working_dir: str, ledger: TurnLedger) -> str:
++    """Write the state of a ledger to the turn ledger checkpoint.
++
++    Args:
++        working_dir (str): Directory holding the conversation.
++        ledger (TurnLedger): The ledger whose state is recorded.
++
++    Returns:
++        str: Absolute path of the checkpoint that was written.
++    """
++    path = sidecar_path(working_dir)
++    with open(path, "w") as f:
++        f.write(json.dumps(ledger.sidecar_state(), sort_keys=True, indent=2) + "\n")
++    return path
++
++
++def verify_sidecar(working_dir: str, ledger: TurnLedger) -> TurnLedger:
++    """Check a rebuilt ledger against the turn ledger checkpoint.
++
++    A checkpoint that is missing, unreadable or older than the current version
++    is stale rather than wrong, and the log is adopted as it stands. A
++    current-version checkpoint is compared on its response count and its last
++    author, nothing else. Nothing is written.
++
++    Args:
++        working_dir (str): Directory holding the conversation.
++        ledger (TurnLedger): The ledger rebuilt from the log.
++
++    Returns:
++        TurnLedger: The ledger, adopted or verified.
++
++    Raises:
++        TurnLedgerDesyncError: If a current-version checkpoint disagrees with the log.
++    """
++    record = read_sidecar(working_dir)
++    if record is None or record.get("version") != TURN_LEDGER_VERSION:
++        return dataclasses.replace(ledger, status="adopted")
++
++    recorded_responses = record.get("responses")
++    recorded_last_author = record.get("last_author")
++    if recorded_responses != ledger.responses or recorded_last_author != ledger.last_author:
++        raise TurnLedgerDesyncError(
++            sidecar_path(working_dir),
++            recorded_responses,
++            recorded_last_author,
++            ledger.responses,
++            ledger.last_author,
++        )
++    return dataclasses.replace(ledger, status="verified")
++
++
++def load_ledger(
++    working_dir: str,
++    *,
++    seeder_name: str,
++    partner_name: str,
++    max_responses: int,
++    is_completed: t.Callable[[str, t.Any], bool],
++) -> TurnLedger:
++    """Load the ledger of a working directory, without writing anything.
++
++    Args:
++        working_dir (str): Directory holding the conversation.
++        seeder_name (str): Name of the seeder agent.
++        partner_name (str): Name of the partner agent.
++        max_responses (int): Budget of generated responses, the seed excluded.
++        is_completed (Callable[[str, Any], bool]): Tells whether the content an
++            agent wrote signals the end of the conversation.
++
++    Returns:
++        TurnLedger: The state of the conversation on disk.
++
++    Raises:
++        TurnLedgerCorruptError: If a non-blank line of the log cannot be parsed.
++        TurnLedgerDesyncError: If a current-version checkpoint disagrees with the log.
++    """
++    records = read_log(working_dir)
++    ledger = build_ledger(
++        records,
++        seeder_name=seeder_name,
++        partner_name=partner_name,
++        max_responses=max_responses,
++        is_completed=is_completed,
++        status="created",
++    )
++    if not records:
++        return ledger
++    return verify_sidecar(working_dir, ledger)
+diff --git a/src/bespokelabs/curator/status_tracker/agent_status_tracker.py b/src/bespokelabs/curator/status_tracker/agent_status_tracker.py
+index fd09df7..1480628 100644
+--- a/src/bespokelabs/curator/status_tracker/agent_status_tracker.py
++++ b/src/bespokelabs/curator/status_tracker/agent_status_tracker.py
+@@ -43,10 +43,12 @@ class AgentStatusTracker:
+         max_turns (int): Maximum number of turns in the conversation.
+         current_turn (int): Current turn number in the conversation.
+         current_agent (AgentTurn): Which agent's turn it currently is.
+-        num_responses (int): Total number of responses generated.
++        num_responses (int): Number of responses generated by this process.
+         num_errors (int): Number of errors encountered.
++        num_cached (int): Number of responses inherited from a previous run.
+         start_time (float): Time when the conversation started.
+         last_update_time (float): Time of the last status update.
++        time_fn (Callable[[], float]): Source of the tracker's timestamps.
+         pbar (Optional[tqdm.tqdm]): Progress bar for tracking progress.
+         total_tokens (_TokenUsage): Total tokens used in the conversation.
+         total_cost (float): Total cost of the conversation.
+@@ -59,8 +61,10 @@ class AgentStatusTracker:
+     current_agent: AgentTurn = AgentTurn.SEEDER
+     num_responses: int = 0
+     num_errors: int = 0
+-    start_time: float = field(default_factory=time.time)
+-    last_update_time: float = field(default_factory=time.time)
++    num_cached: int = 0
++    start_time: float = 0.0
++    last_update_time: float = 0.0
++    time_fn: t.Callable[[], float] = field(default=time.time, repr=False, compare=False)
+     pbar: t.Optional[tqdm.tqdm] = field(default=None, repr=False, compare=False)
+ 
+     # Token and cost tracking
+@@ -85,6 +89,9 @@ class AgentStatusTracker:
+ 
+     def __post_init__(self):
+         """Initialize the tracker."""
++        self.start_time = self.time_fn()
++        self.last_update_time = self.start_time
++
+         self.input_cost_per_million = self.input_cost_per_million or {"seeder": None, "partner": None}
+         self.output_cost_per_million = self.output_cost_per_million or {"seeder": None, "partner": None}
+ 
+@@ -240,16 +247,20 @@ class AgentStatusTracker:
+     def update_turn(self, agent: AgentTurn, response_success: bool = True, token_usage: t.Optional[_TokenUsage] = None, cost: t.Optional[float] = None):
+         """Update the tracker with a new turn.
+ 
++        A failed turn produced nothing that got written down, so it advances
++        neither the conversation nor the response count.
++
+         Args:
+             agent (AgentTurn): The agent that just took a turn.
+             response_success (bool): Whether the response was successful.
+             token_usage (Optional[_TokenUsage]): Token usage for this turn.
+             cost (Optional[float]): Cost for this turn.
+         """
+-        self.current_turn += 1
+         self.current_agent = agent
+-        self.num_responses += 1
+-        if not response_success:
++        if response_success:
++            self.current_turn += 1
++            self.num_responses += 1
++        else:
+             self.num_errors += 1
+ 
+         if token_usage:
+@@ -262,9 +273,27 @@ class AgentStatusTracker:
+ 
+         self.update_display()
+ 
++    def adopt_ledger(self, *, cached_responses: int) -> None:
++        """Take over a conversation resumed from its response log.
++
++        The counters describing this process start from nothing, while the
++        conversation carries on from where the log left off.
++
++        Args:
++            cached_responses (int): Number of responses already held by the log.
++        """
++        self.current_turn = cached_responses
++        self.num_cached = cached_responses
++        self.num_responses = 0
++        self.num_errors = 0
++        self.total_cost = 0.0
++        self.total_tokens.input = 0
++        self.total_tokens.output = 0
++        self.total_tokens.total = 0
++
+     def update_display(self):
+         """Update the display with current status."""
+-        current_time = time.time()
++        current_time = self.time_fn()
+ 
+         if USE_RICH_DISPLAY:
+             self._refresh_console()
+@@ -357,6 +386,7 @@ class AgentStatusTracker:
+         self.pbar = None
+         metadata = asdict(self)
+         metadata.pop("pbar", None)
++        metadata.pop("time_fn", None)
+         # Restore pbar if needed
+         self.pbar = temp_pbar
+ 

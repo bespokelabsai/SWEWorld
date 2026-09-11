@@ -11,22 +11,23 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
 
-Dermot, on your question: yes, the log side only. That was deliberate. The le=
-dger side is already in the string and, more to the point, anyone holding the=
- exception can go read /work/agent/turn_ledger.json themselves, since the pat=
-h is right there in the message. The log side is the part that took work to r=
-econstruct, so that is the part we hand back. .log_responses is the count and=
- .log_last_author is the name, and in the case I hit those were 2 and 'client=
-'.
+Dermot, on your question: no, both sides. The ledger side is in the string,=
+ but a caller that wants to branch on the numbers should not have to parse =
+the sentence back apart for either half, which is exactly the afternoon Dar=
+io lost. So the pair is on the object as well: .recorded_responses and .rec=
+orded_last_author are what the file claims, .log_responses and .log_last_au=
+thor are what we rebuilt from the log. In the case I hit those were 1 and '=
+client' against 2 and 'client'.
 
-Dario, right, and your reading of the matching authors is the correct one. Th=
-e comparison does not require them to match, it just reports both, and in the=
- tail-truncation case they come out the same.
+Dario, right, and your reading of the matching authors is the correct one. =
+The comparison does not require them to match, it just reports both, and in=
+ the tail-truncation case they come out the same.
 
-So the settled version is: TurnLedgerDesyncError out of verify_sidecar on res=
-ume, message reading "/work/agent/turn_ledger.json records 1 response(s) last=
- authored by 'client', the log holds 2 last authored by 'client'", with .log_=
-responses and .log_last_author on the exception carrying the log side. That i=
-s what is in the tree now and I am not touching the wording again.
+So the settled version is: TurnLedgerDesyncError out of verify_sidecar on r=
+esume, message reading "/work/agent/turn_ledger.json records 1 response(s) =
+last authored by 'client', the log holds 2 last authored by 'client'", with=
+ .recorded_responses and .recorded_last_author carrying the ledger side and=
+ .log_responses and .log_last_author the log side. That is what is in the t=
+ree now and I am not touching the wording again.
 
 Nikolai

@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P3",
+  "blind_alternative": "reports the first offending key only, or preserves the caller's insertion order, and computes `belongs_to` by trying `OtherClass.model_validate(params)` (value-sensitive) or by union rather than intersection"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P4",
+  "blind_alternative": "catches `ValidationError` and re-raises everything as one `BackendParamError` (or as the existing friendly `ValueError`) so callers have a single exception type"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P5",
+  "blind_alternative": "runs pydantic first and derives offenders from `extra_forbidden` entries (reporting both problems at once), and/or strips `None` after the scan or not at all, so `{\"batch_size\": None}` with `batch=False` still errors"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P3",
+  "blind_alternative": "asserts a single-string message or a differently-ordered/value-filtered `belongs_to`, e.g. `(\"BatchRequestProcessorConfig\",)` for the `batch_size=\"auto\"` case"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P10",
+  "blind_alternative": "renames the hook to `model_post_init` and raises `ValueError(f\"Generation parameter '{key}' is not supported for model '{self.model}'\")`, as the deleted body and its docstring plainly do \u2014 or stores the positive list under the existing name `supported_params`, or just logs a warning"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "inherits the base behaviour on the offline config (calling litellm for a locally-served model), or skips the computation entirely on every class"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P10",
+  "blind_alternative": "lets a litellm lookup failure propagate, treating an unknown model as a real problem worth surfacing at construction, and crashes on `None` when testing membership"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "no such attribute exists to assert on; a blind build exposes `supported_params` or nothing, includes the field in `model_dump()`, and rejects a caller-supplied `unsupported_generation_params` key under `extra=\"forbid\"`"
+ }
+]

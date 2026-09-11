@@ -1,91 +1,78 @@
-# g3 run 9 (40be2bf1) — reward 1, all 9 facts passed
+# g3 run 9 (445beca6, eval 035777f5) — reward 0.6667
 
 ## What this run found
 
-This is a clean sweep: every graded fact (`g3.r1.{rule,scope,exclusions_or_crossover,failure_behavior,observability}`
-and `g3.r2.{rule,scope,exclusions_or_crossover,observability}`) scored 1, the feature was built, the
-suite passed, and the code was pushed, went CI-green, and deployed.
+The search strategy was grep-first: the agent dumped the full Mattermost export to
+`/tmp/chat.txt.n` and swept it with wide retry-vocabulary regexes
+(`retry_policy|RetryPolicy|classify_failure|FailureClass|failure class|thro...`), landing on 8+
+remarks per sweep (transcript L1369-1400). Mail was read properly — both threads
+(`g3.r1.l8`, `g3.r1.l12` / `g3.r2.s4d`) were fetched and read start-to-finish (12-22 lines hit
+each), not skimmed. Wiki was fetched via a page-plus-comments script
+(`python3 /tmp/pw.py <id>`), so both wiki-comment remarks (`g3.r1.l5`, `g3.r2.s1a`) were found
+early (steps 23, 25) — BookStack's comment-indexing gap cost this run nothing. Where the agent
+found an interesting offset it followed up with a targeted `sed -n 'X,Yp'` range read against the
+same export, which is how it caught the full v9-rewritten `g3.r1.l1` exchange (see below).
 
-The agent's search was methodical and multi-surface rather than lucky. It dumped the *entire*
-Mattermost history for every team/channel into one 10285-line file (`/tmp/chatall.txt`, step 51)
-rather than searching channel-by-channel, then ran a widening sequence of keyword greps against it —
-starting broad (`free pass|failure class|classif|throttle|jitter|retry|cooldown|backoff`, step 25),
-narrowing to structural terms (`decide|attempts_made|pass count|...`, step 56), then to the literal
-failure-class tokens (`CONTRACT|TRANSIENT|TERMINAL|THROTTLE`, step 62), and finally to exact phrases
-around specific hits (`fake clock`, `throttle_waivers_after`, `throttle:exhausted`, `throttle
-horizon`). Critically, it consistently followed up a grep hit with a wide `sed -n` context read
-(e.g. lines 3499, 3974, 4034) instead of trusting the single matched line — this is what let it
-catch reversals and herrings, which live a few lines *before or after* the literal keyword match
-inside a multi-turn exchange, not on the matched line itself.
+Of 49 remarks, 42 were surfaced (some only as a single opening line via a grep hit rather than the
+full exchange — notably `g3.r2.s1c`, transcript L2145). Seven were never surfaced at all:
+`g3.r2.say23`, `g3.r2.s2a`, `g3.r2.s4c`, `g3.r1.l7`, `g3.r2.s2d`, `g3.r1.l13`, `g3.r1.l9` — all sit
+in channel-days the regex sweeps didn't happen to dump in full. Four of those seven turned out not
+to matter (their content was reconstructed from other remarks or from reading the live source
+tree). One — `g3.r1.l13` — mattered a great deal.
 
-On mail, it wrote a small pickle-based IMAP parser to pull full thread bodies to `/tmp/mail.txt`
-(steps 15 and 20) rather than reading subject-line snippets, which is why it caught all three mail
-clues (`g3.r1.l8`, `g3.r1.l12`, `g3.r2.s4d`) including the ones carrying `exclusions_or_crossover`
-that only show up mid-thread. On wiki, it explicitly fetched `/api/pages/{id}` (step 35) to pull
-page *comments* rather than relying on BookStack search — correctly anticipating that comments
-aren't indexed — and got both wiki-comment clues (`g3.r1.l5`, `g3.r2.s1a`).
+**Task instruction check (v9 rewrite of `g3.r1.l1`):** the run did see the rewritten thread in
+full. Step 67 (transcript L3180-3222) is a targeted `sed` range read that surfaces konrad's new
+14:12 line verbatim: *"and length does come good on a retry now and then, so dont stop retrying
+it, it just shouldnt get as many goes as a timeout"* (L3207). The shipped code gets this right:
+`finish_reason was length` raises `ValueError`, `classify_failure`'s type-based signal maps it to
+CONTRACT, CONTRACT costs 2 attempts but is still retried while budget allows — a *contract,
+charged-2-and-retried* verdict, not a terminal one. `g3.r1.rule` scored 1.
 
-## What it missed, and why it didn't matter
+## What it missed, and why
 
-Of the 49 answer-key remarks, 11 never appear verbatim in anything the agent's tools printed:
-`g3.r2.say23`, `g3.r1.l16`, `g3.r2.s1b`, `g3.r2.s2a`, `g3.r2.s4c`, `g3.r1.l11`, `g3.r1.l14`,
-`g3.r1.l19`, `g3.r1.l9`, `g3.r2.s4b`, `g3.r1.l1`. I grepped the full transcript for each one's
-distinctive phrasing and literal identifiers (e.g. `attempts_made` for `g3.r1.l9`) and found nothing
-beyond the ticket text and the agent's own code — these truly weren't surfaced by any command it ran.
+All four hidden requirements' herrings were correctly resolved: the agent saw both the herring and
+its reversal for THROTTLE-costs-nothing (`g3.r1.h1/rev1`), the waiver-pool origin
+(`g3.r1.h2/rev2`), and both cooldown-horizon herrings (`g3.r2.h1/h2` and their reversals), and
+shipped the reversed design in every case (waiver pool of 6, `max()`-floor cooldown).
 
-None of this cost a fact. Every one of the 11 carries a fact that a sibling remark — which the agent
-*did* find and act on — also carries: `g3.r1.l1`'s "CONTRACT costs two attempts" point is restated
-independently by the found `g3.r1.l2`; `g3.r1.l14`'s "a zero-cost throttle still gets dropped at
-attempts_left==0" point is restated by the found `g3.r1.l15` and `g3.r1.rev1`; `g3.r1.l16`/`l19`'s
-ordering point (check after deduction, delay 0.0 for non-retries) is restated by the found
-`g3.r1.l17`, `say23` and `l18`; and so on for the rest. This is exactly what the answer key's
-`spread_problems`/`not_fragmented` gates are designed to guarantee — no single remark is load-bearing
-— so a search that is thorough but not exhaustive still reconstructs every fact correctly.
+Three of nine facts scored 0, and they trace to two distinct defects:
 
-## What it believed, and why
+**`g3.r1.exclusions_or_crossover` and `g3.r1.observability` (same root cause).** The shipped
+`decide()` charges TERMINAL failures a cost of 0, so `attempts_left` passes through *untouched*
+instead of being zeroed (grader: `[False, 5, 4, 2, 'terminal:abort'] != [False, 0, 4, 2,
+'terminal:abort']`). The one remark that states this rule, `g3.r1.l13` ("`invalid api key` at
+seven left gives terminal:abort, attempts to zero, passes untouched at six"), was never found. The
+agent filled the gap by misreading two things it *did* find: it reused `g3.r2.say20`
+("nothing else on the tracker moves") — which is about the tracker's *counters*, a different
+requirement — as if it applied to the request's own `attempts_left`; and it glossed mail
+`g3.r1.l8` at L2772 as "MSG 114 mentions auth failures shouldn't consume remaining attempts
+(TERMINAL abort — consistent)" even though that mail never mentions TERMINAL or auth failures at
+all — it is entirely about THROTTLE waivers. Both misreadings point the same way, toward "TERMINAL
+touches nothing," which is exactly backwards. Everything else in the same requirement (the
+waived-throttle-still-retries-at-zero exclusion, carried by `g3.r1.l14`/`g3.r1.l15`, and the
+whole failure_behavior clamp/no-jitter-on-exhaustion logic) is correct and passes; the fault is
+narrowly the TERMINAL branch.
 
-All four herrings were seen and correctly rejected in favor of their reversals, both of which the
-agent also read:
+**`g3.r2.rule`.** `remaining_cooldown_seconds` clamps at zero but never rounds to three decimals
+(grader: `[8.000900000000001, ...] != [8.001, ...]`). The only remark carrying that instruction,
+`g3.r2.s1c`, was seen only as its opening line ("...handed me back -3.2... is negative meant to
+mean something there?", L2147) via a grep hit; the reply with "clamp at 0.0, round to three
+decimals" and the `4.999999999998` example was never dumped. The agent's own design notes (L4609)
+show the gap directly: `max(0.0, throttle_cooldown_until - now)` — clamp kept, `round(...,3)`
+silently dropped. The monotonic-`max()` floor and the tracker-field placement, carried by eight
+other remarks, are both correct and pass in the same test function; `g3.r2.observability` passed
+separately only because its own test values (1002.0/1004.5/1005.0/1099.0 against a horizon of
+1005.0) happen to be exact floats that don't expose the missing rounding.
 
-- `g3.r1.h1` ("THROTTLE costs 0, decide charges nothing and re-queues") → reversed by `g3.r1.rev1`
-  ("free while `throttle_waivers_left > 0`, then decide charges 1"). The agent's running synthesis
-  (line 2658) states the reversed rule, not the herring.
-- `g3.r1.h2` ("no ceiling — THROTTLE never deducts, only TRANSIENT/CONTRACT do") → reversed by
-  `g3.r1.rev2` ("APIRequest carries `DEFAULT_THROTTLE_WAIVERS = 6`, decide takes
-  `throttle_waivers_left`"). The agent explicitly logged finding this reversal at line 3825.
-- `g3.r2.h1` ("plain assignment `throttle_cooldown_until = now + delay_seconds`") → reversed by
-  `g3.r2.rev1` (`max(throttle_cooldown_until, now + delay_seconds)`). Agent's analysis at line 3686:
-  "cooldown horizon is a floor — max(existing, now + delay)".
-- `g3.r2.h2` (same plain-overwrite herring, restated in `#cookbooks`) → reversed by `g3.r2.rev2`,
-  same floor logic.
+## Passed facts, briefly
 
-The shipped `decide()` and `record_verdict()` in `retry_policy.py` (transcript lines 4817–4904)
-implement the reversed rules exactly: cost is 0 only while `throttle_waivers_left > 0` and then
-becomes 1, and the cooldown horizon is written as `max(existing_horizon, now + delay_seconds)` from
-a single clock read taken only on THROTTLE. Nothing in the final code traces back to a herring.
+`g3.r1.rule`/`g3.r1.scope`/`g3.r1.failure_behavior` and `g3.r2.scope`/`g3.r2.exclusions_or_crossover`/
+`g3.r2.observability` all trace to remarks the agent found and correctly synthesized — the
+CONTRACT-costs-2 / THROTTLE-waiver-of-6 design, the per-request (not per-run, not per-config)
+placement of the waiver counter, the deduct-then-check-then-clamp ordering with no jitter draw on
+an exhausted verdict, the throttle-only clock/stamp gating, and the dead `seconds_to_pause_on_rate_limit`
+knob left in `config.py` unread.
 
-## Why each lost fact was lost
+## End reason
 
-None — all 9 facts scored 1, so there is nothing to explain here. The run's only friction points
-were mechanical: a `sed -n` read at transcript line 3499 hit a 10000-byte terminal-output cap and
-elided ~70 bytes mid-range, and the agent occasionally re-verified information it already had
-(visible in the repeated "Need to read..." plan lines) — neither slowed it enough to lose a fact
-before the run ended, and CI/push/deploy all completed cleanly.
-
-## Coordinator check: does the shipped code terminal-ize `finish_reason == "length"`?
-
-**No.** `classify_failure()`'s `_TYPE_NAME_CLASSES` table (transcript line 4677) maps `"ValueError"`
-unconditionally to `FailureClass.CONTRACT`, and `_MESSAGE_MARKERS` has no `finish_reason`/`length`
-entry — only rate-limit-style phrases route to THROTTLE (line 4684+). There is no new exception
-class and no TERMINAL branch anywhere in the shipped module. The `ValueError(f"finish_reason was
-{generic_response.finish_reason}")` raised at line 666 reaches `classify_failure()` as a plain
-`ValueError` and is priced as CONTRACT (2 attempts) — matching the answer key, and matching what
-`policy.decide(ValueError("finish_reason was length"))` would return under the grader's actual test.
-
-The agent never quoted konrad's "fail it out on the first" line, and it never saw it: grepping both
-the transcript and the full rollout JSON for that phrase (and for `finish_reason length`, `broken
-payload shoudn't get that many goes`) returns zero hits anywhere outside this audit's own commands.
-This is consistent with `g3.r1.l1` already being marked `found: no` in the remarks table above — the
-`#code-review` 2025-06-03 thread never surfaced in any grep or `sed` range the agent printed in this
-rollout. Konrad's invented turn is not something this v7 world served to this agent, or if it was
-served, the agent's search never reached it; either way it had zero influence on the shipped code.
+Not applicable — the run completed cleanly: pushed, CI green, deployed, `suite_ok=1`.

@@ -7,22 +7,20 @@ Message-ID: <178853332762.507296.5514414185575944206@world.local>
 In-Reply-To: <178853332760.507296.13260275100319722030@world.local>
 References: <178853332760.507296.13260275100319722030@world.local>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 
 Emil,
 
-That settles it, and it settles it in the direction that costs me the least r=
-ework, since the sheet already carries the halved figure and I was preparing =
-to raise it back up.
+That settles it, though not in the direction that costs me least =E2=80=94 =
+the sheet carries the halved figure and it will have to go back up to the t=
+able rate.
 
-What threw me was that I had the two behaviours the wrong way round in my hea=
-d. I had it that the tables held the batch rates already and that the flag wa=
-s some kind of no-op left over from an earlier design, which would have made =
-the halving a genuine fault. Knowing that the halving is the flag doing its o=
-ne job, and that the plain lookup is untouched, I can read any of these numbe=
-rs now without going back to the table to check it by hand. I have corrected =
-the note in my own file that said otherwise, in case anyone else was reading =
-over my shoulder.
+So I had it the right way round after all. I had it that the tables held th=
+e batch rates already and that a second halving on top of them would be a g=
+enuine fault, and that is what this is. Knowing the plain lookup is untouch=
+ed either way, I can read any of these numbers now without going back to th=
+e table to check it by hand. I have left the note in my own file as it was,=
+ since it turns out it was right.
 
 Konrad

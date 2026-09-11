@@ -1,0 +1,32 @@
+From: dario@world.local
+To: dermot@world.local, gideon@world.local, emil@world.local,
+ konrad@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: stop sequences: what should count as a stop before I normalise
+ across backends
+Date: Thu, 10 Apr 2025 12:40:00 +0000
+Message-ID: <178880237821.2304052.14962457063634721064@world.local>
+In-Reply-To: <178880237820.2304052.185119762451299298@world.local>
+References: <178880237820.2304052.185119762451299298@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Gideon,
+
+I had a look at the two you mean and I agree the loss is on our side. On the =
+question you actually asked, I think it comes down to an either-or and it wou=
+ld help to have it stated plainly somewhere: are we saying that any occurrenc=
+e of the marker closes the turn and the model simply must never emit it in pr=
+ose, or are we saying that the position of the marker in the output is what m=
+akes it a stop at all?
+
+Those lead to very different fixes. The first one is really a prompting probl=
+em and we would end up telling the model not to quote its own control tokens,=
+ which in my experience it will do anyway the moment somebody asks it to expl=
+ain the format. The second one puts the burden on the reader, which is where =
+I would rather have it, but it means we have to be precise about what positio=
+n we mean, and precise in a way that survives a partial chunk arriving mid-st=
+ream. In any case Dermot has spent more time in that reader than either of us=
+, so I would rather he set the rule than the two of us guess at it.
+
+Dario

@@ -1,104 +1,78 @@
-# g11 run 8 (fa827d89) — reward 1, all 9 facts scored 1
+# g11 run 8 (34081783) — reward 0.8889
 
 ## What this run found
 
-After ~27 steps of terminal-mechanics overhead (printf `\n`-escaping, 10000-byte
-output truncation, tmux-heredoc pitfalls the harness's own watchdog flagged
-repeatedly), the agent dumped every Mattermost channel to a single 10,307-line
-file and ran a sequence of broad-to-narrow greps: `ledger|dataset_signature|
-optimizer step` first, then a wider `ledger|CHECKPOINT_|dataset_signature|
-warmup|optimizer|packed|step_of|trailing|accumulation|tinker|fireworks`, then an
-LR-specific pass (`decay|seed|deterministic|clock|rng|time.sleep`), then an
-implementation-specific pass (`min_lr|canonical_reasons|checkpoint_name(|
-step_unit|resumeplan|plan_steps`). Each hit line was expanded into a 40-50 line
-`sed` read. This is a methodical, if slow, full-corpus sweep rather than a
-targeted search — and it worked: 30 of 39 clues, all 4 herrings and all 4
-reversals were read directly (transcript lines 2287-4230, step 28-67), never
-touching BookStack or mail (both irrelevant here — all 47 remarks are chat-only
-per the answer key's surface table).
+This is a strong, near-complete recovery. The agent read the whole `finetune/` module before
+touching any external source (steps 1-14), then worked outward: Gitea issues (nothing useful —
+title-search only), the wiki (full page listing, full-text search, then all 114 pages' raw JSON
+with comments — correctly reasoned comments aren't indexed and fetched them anyway, found
+nothing), mail (IMAP subject list + text search, one weak hit), and finally Mattermost, where the
+entire hidden-requirement record for this task actually lives. Once in Mattermost it dumped every
+channel's full history to files (step 26, line 2765) and ran a long, deliberately overlapping
+series of grep sweeps — `ledger`, `reasons`, `cosine|decay|base_lr|learning rate|learning_rate`,
+`padded|save_checkpoint|CheckpointInfo|...`, `TEMPLATE`, `min_lr_ratio|MIN_LR_RATIO|...` — each
+time following a hit with `sed -n` over the surrounding lines to read the whole exchange rather
+than trusting the one matched line. That discipline paid off: it recovered 33 of 47 remarks (70%),
+including **both** requirements' complete herring→reversal pairs, and correctly identified every
+reversal as superseding its herring (`code_followed_herring: false` on all four).
 
-The run correctly reconstructed both hidden requirements:
+**Everything in `g11.r1` passed** — checkpoint identity (`checkpoint_name(prefix, step)` →
+`checkpoint-s000002`, from l1/l3/rev1), the `CHECKPOINT_REASONS` vocabulary and `canonical_reasons`
+order (l6/l7/l8/rev2), the unconditional final checkpoint and Fireworks' silence (l10/l12), the
+plan-derived epoch (l15), and the merge-on-repeat-name semantics with newer-loss-wins (l16/l17).
+The agent's own synthesis at line 5120 states this design almost verbatim before writing a line of
+code, and the shipped `step_ledger.py` (line 5699-5795) implements it exactly — all five r1 facts
+scored 1.
 
-- **r1** (checkpoint reasons): `CHECKPOINT_REASONS = ("interval","epoch","final")`
-  in ledger order (not alphabetical, not firing order), `canonical_reasons`
-  dedup+validate, one `save_checkpoint` per step, tail-row replacement on a
-  repeat name with reasons merged and the newer loss kept, `checkpoint_name`
-  giving `checkpoint-s000002`, epoch taken from `plan.epoch_of_batch`, Fireworks
-  writing nothing.
-- **r2** (LR schedule): `MIN_LR_RATIO = 0.1` module constant, keyword-only
-  `min_lr_ratio` rescaling the whole slope (not a clamp bolted onto a
-  decay-to-zero line), inclusive 1-based warmup (`1 <= step <= effective_warmup`,
-  `effective_warmup = min(warmup_steps, total_steps)`), clipped rather than
-  raising when warmup exceeds the run.
+## What it missed, and why
 
-## A real mid-run correction
+`g11.r2.rule` is the one lost fact (8/9 → reward 0.8889). The failing assertion is exact:
+`min_lr_ratio kind: 'POSITIONAL_OR_KEYWORD' != 'KEYWORD_ONLY'`. The shipped signature (line
+5702-5708) is `def learning_rate_at(step, total_steps, base_lr, warmup_steps, min_lr_ratio: float
+= MIN_LR_RATIO)` — no bare `*`. Every other value the function computes is exact: `MIN_LR_RATIO =
+0.1`, the ramp `[2.5e-05, 5e-05, 7.5e-05, 1e-04]`, `lr(5)=8.5e-05`, `lr(7)=5.5e-05`, `lr(10)=1e-05`,
+constant per-step gaps, and the `min_lr_ratio=0.5`/`0.0` special cases. The single remark that
+carries the keyword-only requirement, `g11.r2.l10` (#code-review, 2025-05-30, "min_lr_ratio sits
+behind a bare \* so callers have to name it... PR 663"), never surfaces anywhere in the transcript
+— grepping the full transcript for "663", "bare \*", and "min_lr_ratio sits behind" returns zero
+hits before the code is written. The cause is a genuine vocabulary gap: every LR search the agent
+ran was built around `cosine|decay|base_lr|learning rate|learning_rate`, none of which appear in
+l10's wording, and `#code-review` was only dumped/grepped for the Mar-14–Apr-14 "reasons" clusters,
+never for the late-May PR-663 date range. This is `not_found`, not a reasoning failure — nothing
+in the corpus that the agent actually read argued against keyword-only, and its own implementation
+notes never mention the question at all.
 
-At transcript line 3052 the agent briefly concluded the reasons ordering was
-"trigger firing order, not alphabetical" — a plausible-but-wrong reading of the
-earliest herring cluster alone. After reading the March reversal (`rev2`/`l7`,
-line 3126) it corrected itself explicitly: the true rule is the fixed
-`CHECKPOINT_REASONS` order, independent of firing order. The shipped
-`canonical_reasons` implements the corrected version, so this cost nothing.
+Six other remarks were never found for the same reason (vocabulary outside the grep sweeps run):
+r1's `l2`, `l5`, `l9`, `l11`, `l13`, `l14`, `l19`, and r2's `l1`, `l2`, `l6`, `l11`. None of these
+cost a fact, because each requirement had redundant carriers — e.g. r1.exclusions was carried by
+both `l13` and `l15`, and only `l15` was found, but that was enough. One remark, `g11.r2.l12`,
+surfaced only as a bare line inside a generic grep dump (line 2981) that was never expanded with
+`sed -n`; this is the run's one `partial` find, and again cost nothing since `rev2`/`l13` covered
+the same ground.
 
-## What it missed and why it didn't matter
+## What it believed, and why
 
-Nine of 39 clues (`g11.r1.l2`, `l9`, `l11`; `g11.r2.l7`, `l9`, `l11`, `l13`,
-`l14`, `say19`) were never pulled into a read cluster — their distinctive
-wording ("prefix", "nothing on disk", "gated on their config fields", "grid row
-A", "current_batch straight on", "flatten out at a tenth") never matched any of
-the keyword lists used. Grepping the transcript directly for each confirms they
-are genuinely absent, not just paraphrased.
+Both herring/reversal pairs were resolved correctly. For r1, it read the Jan-21/Jan-28 herrings
+("both checkpoints... names stay `{prefix}_step_{n}`/`{prefix}_epoch_{n}`... sorted alphabeticaly")
+directly, then their reversals (`rev1` at line 3639, `rev2` at line 3376) later in the same
+threads, and its Analysis explicitly tracks which is current. For r2, it saw the Feb-19 herring
+("decay lands at exactly zero... strict `step < warmup_steps`") via both a raw search hit (line
+2754) and full-thread reads (lines 3742-3744, 3923-3924), and its Analysis at line 3957 states
+plainly "Feb 19 is the old (superseded) design" before reading the June-2 reversal.
 
-None of these losses touched a graded fact, for two structural reasons:
+Worth flagging: **this run's world served a rewritten `g11.r2.rev2`** (per the task context, v11
+changed konrad's June-2 turn). The transcript shows the new text at line 2896-2900: "both of those
+are gone now. the end doesnt sit at zero any more, it bottoms out at a tenth of base_lr and holds
+there, and a first step at rate 0 is not something i want to keep defending" — this restates the
+decay-floor value in addition to the warmup-compare change, unlike the answer key's stored (older)
+wording, which only announces the warmup half is going. The agent's Analysis at line 2957 shows it
+correctly absorbed exactly what was served ("warmup compare `1 <= step <= effective_warmup`...
+decay bottoms out at a tenth of base_lr"), and the shipped code matches. This had no grading
+impact — MIN_LR_RATIO=0.1 was also, independently, sourced from `rev1` — but it means the judged
+behavior here should be scored against the served text, not the repo's stale key quote.
 
-1. **The ticket already states some of it.** The Resume section spells out
-   "the plan grows and the schedule continues from `completed_steps + 1`"
-   outright, which covers what `l14`/`say19`/`l15` would otherwise be needed
-   for (`r2.exclusions_or_crossover`).
-2. **The formula clamps by construction.** Once the two LR reversals gave the
-   agent `MIN_LR_RATIO=0.1` and the rescaled-slope formula, its own
-   `progress = min((step-effective_warmup)/max(...,1), 1.0)`-style clamp holds
-   the floor past `total_steps` and never goes negative — exactly what `l9`/
-   `l11` describe from separate incident reports — without those reports being
-   read.
+## Summary of lost facts
 
-So this run is a case where the corpus over-determined several facts: multiple
-independent remarks (and in places the open ticket text) point at the same
-requirement, and missing some of them left no visible gap.
-
-## herrings
-
-All four herrings (`g11.r1.ledger-twin-checkpoints-dario/-emil`,
-`g11.r2.lr-decay-to-zero-dario/-konrad`) were read in full, and all four
-reversals were also read and correctly identified as superseding the herring —
-the shipped code follows none of the four herrings. The agent's own analysis
-text names the supersession explicitly at lines 3126 and 2824.
-
-## Why every fact landed (passed_facts)
-
-- `r1.rule`/`r1.failure_behavior`: `l8`, `l16`, `l17`, `rev1`, `rev2` — the
-  duplicate-name-merge and unknown-reason-raises behaviors are lifted almost
-  verbatim from these remarks' quoted chat.
-- `r1.scope`: `l10`'s fixture quote (`('final',)` with both switches off) is
-  the load-bearing remark; `l12` supplies the Fireworks half.
-- `r1.exclusions_or_crossover`: `l13`/`l14`/`l15` give the plan-sourced epoch
-  and gradient_accumulation_steps directly.
-- `r1.observability`: `l4`, `l18`, `l19`, the `say2x` cluster — all read and
-  cross-checked against the agent's own sanity script output, which reproduced
-  the exact values (`checkpoint-s000002`/`003`, `('interval','epoch')`/
-  `('epoch','final')`).
-- `r2.rule`/`r2.failure_behavior`: `rev1` and `rev2` are the two remarks that
-  carry almost the entire hidden requirement — both read in full with the
-  exact formula spelled out in chat.
-- `r2.observability`: `l5` (`5.5e-05` then `1e-05` for 4 steps/warmup 2) was
-  reproduced identically by the agent's own script before it wrote the trainer
-  wiring.
-- `r2.exclusions_or_crossover`: covered by `rev1` plus the ticket's own stated
-  resume contract, as above.
-
-## End state
-
-Clean finish: `step_ledger.py` written, `TinkerTrainer`/`FireworksTrainer`
-wired to it, local suite green (138 passed), committed as `362e0ed`, pushed to
-`main`, Gitea CI green including deploy, running service confirmed healthy —
-all matching the ticket's "Done means" bar.
+| fact | cause | evidence |
+|---|---|---|
+| `g11.r2.rule` | `not_found` | `g11.r2.l10` (bare-`*` keyword-only requirement) never surfaced; grep vocabulary never covered it; failing assertion: `min_lr_ratio kind: 'POSITIONAL_OR_KEYWORD' != 'KEYWORD_ONLY'` |

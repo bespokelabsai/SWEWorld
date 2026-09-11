@@ -74,7 +74,7 @@
        ],
        "subconclusion": "g4.r1.sc-keys",
        "holder": "dario",
-       "text": "nit: IDENTITY_COMPONENT_KEYS is the one exported tuple and we're keeping it alphabetical \u2014 backend, backend_params, batch_mode \u2014 and batch_mode is sitting above backend here.",
+       "text": "nit: IDENTITY_COMPONENT_KEYS is the one exported tuple and we're keeping it alphabetical \u2014 backend, backend_params, batch_mode, then model_name further down \u2014 and batch_mode is sitting above backend here.",
        "drafted": "nit: `IDENTITY_COMPONENT_KEYS` isn't in alphabetical order, `batch_mode` is sitting above `backend` in the tuple.",
        "settles": "the team agrees the component keys live in one exported tuple, sorted alphabetically",
        "leaves_open": "How many entries the tuple is meant to have, and which components are in it.",
@@ -85,7 +85,8 @@
         "batch_mode",
         "return_completions_object",
         "run_id",
-        "system_prompt"
+        "system_prompt",
+        "model_name"
        ],
        "forbidden_terms": [
         "twelve",
@@ -701,7 +702,7 @@
          {
           "author": "dario",
           "minute": "16:04",
-          "text": "seperate thing while i'm in here - does system_prompt make it into the hash at all, or is it outside the key like model is"
+          "text": "seperate thing while i'm in here - does system_prompt make it into the hash at all, or is it one of the ones we leave out"
          },
          {
           "author": "dermot",
@@ -3830,12 +3831,12 @@
          {
           "author": "nikolai",
           "minute": "09:19",
-          "text": "model is in there i checked\n\npulled run_identity.json off the box after that rerun - response_format in there is one line no spaces, comes back a str when i json.load it thats what i wanted"
+          "text": "model_name is in there i checked, thats the key spelling\n\npulled run_identity.json off the box after that rerun - response_format in there is one line no spaces, comes back a str when i json.load it thats what i wanted"
          },
          {
           "author": "dermot",
           "minute": "09:24",
-          "text": "yeah ok. so if the serialization is stable the hash should have moved when i touched the model. unless the file i was looking at wasn't the one it read"
+          "text": "yeah ok. so if the serialization is stable the hash should have moved when i touched model_name. unless the file i was looking at wasn't the one it read"
          },
          {
           "author": "dario",

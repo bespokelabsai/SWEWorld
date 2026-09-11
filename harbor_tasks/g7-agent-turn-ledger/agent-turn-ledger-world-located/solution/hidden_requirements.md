@@ -955,9 +955,9 @@ As it appears, spread across the exchange:
 13:07  gideon    ya so basically on WS-050 i pointed verify_sidecar at a turn_ledger.json that json.loads chokes on
 13:08  gideon    status came back adopted. um. that was the whole point of the run tbh
 13:10  dermot    adopted as in it passed? so youre saying nothing surfaced at all, no exception, it just carried on
-13:12  dario     honestly i'd have expected a raise there too. thats a bad shape to be quiet about
-13:16  gideon    nothing thrown, no. i went through the module after - TurnLedgerDesyncError is the only raise in there, so theres literally no other exit for it to take. and that one is the wrong thing to reuse here, so the parse failure gets its own answer
-13:19  dermot    mhm. a file that wont load isnt a desync in any reading of the word
+13:12  dario     huh. i'd have guessed it bails on that
+13:16  gideon    nothing thrown, no. i went through the module after - TurnLedgerDesyncError is the only raise in there, so theres literally no other exit for it to take. and theres nothing for it to be in disagreement with when the file wont even parse
+13:19  dermot    mhm. a file that wont load isnt a desync in any reading of the word, and theres no other one in there to reach for
 ```
 
 #### `g7.r2.g7r2-l09`
@@ -1566,11 +1566,11 @@ Dario
 From: nikolai@world.local
 Sent: 16:15
 
-Dermot, on your question: yes, the log side only. That was deliberate. The ledger side is already in the string and, more to the point, anyone holding the exception can go read /work/agent/turn_ledger.json themselves, since the path is right there in the message. The log side is the part that took work to reconstruct, so that is the part we hand back. .log_responses is the count and .log_last_author is the name, and in the case I hit those were 2 and 'client'.
+Dermot, on your question: no, both sides. The ledger side is in the string, but a caller that wants to branch on the numbers should not have to parse the sentence back apart for either half, which is exactly the afternoon Dario lost. So the pair is on the object as well: .recorded_responses and .recorded_last_author are what the file claims, .log_responses and .log_last_author are what we rebuilt from the log. In the case I hit those were 1 and 'client' against 2 and 'client'.
 
 Dario, right, and your reading of the matching authors is the correct one. The comparison does not require them to match, it just reports both, and in the tail-truncation case they come out the same.
 
-So the settled version is: TurnLedgerDesyncError out of verify_sidecar on resume, message reading "/work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'", with .log_responses and .log_last_author on the exception carrying the log side. That is what is in the tree now and I am not touching the wording again.
+So the settled version is: TurnLedgerDesyncError out of verify_sidecar on resume, message reading "/work/agent/turn_ledger.json records 1 response(s) last authored by 'client', the log holds 2 last authored by 'client'", with .recorded_responses and .recorded_last_author carrying the ledger side and .log_responses and .log_last_author the log side. That is what is in the tree now and I am not touching the wording again.
 
 Nikolai
 ```

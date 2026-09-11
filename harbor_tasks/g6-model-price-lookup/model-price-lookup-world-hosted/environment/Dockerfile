@@ -47,6 +47,35 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  || echo "WARNING: tmux/asciinema unavailable -- the trial will grade but record nothing"
 
+# `$CURATOR_VENV` -- which this task's ticket tells the agent to use, by name.
+# It is an ENV on sweworld:repo-only-dev, and both world arms reach that virtualenv
+# through `COPY --from=...`, which copies FILES and not the source image's ENV.
+# So on the world arms the variable is empty and `$CURATOR_VENV/bin/python`
+# expands to `/bin/python`. Five of ten rollouts in one g6 evaluation noticed and
+# fell back to the literal path the ticket also prints; for the other five the
+# ticket was simply wrong. Declared here, in the shared body, rather than in each
+# of the two arms that lose it -- on the arms that inherit it this restates what
+# is already true and costs nothing.
+ENV CURATOR_VENV=/opt/curator-dev/venv
+
+# curator's own tests/conftest.py does `import vcr` at module scope, and the venv
+# holds curator's RUNTIME dependency closure plus pytest -- not its dev extras.
+# So `$CURATOR_VENV/bin/pytest tests/` dies at COLLECTION for the whole tree,
+# which the same ticket promises will "run the library and its tests". Nine of
+# ten rollouts in one g6 evaluation hit it, and one spent about fifteen turns
+# writing a fake `vcr` module and then re-running the suite on unmodified main to
+# convince itself the fallout was not its own. psutil is the same shape one file
+# further in (tests/unittests/test_online_vllm.py).
+#
+# Pinned, unlike the recorder above: this decides whether a test tree COLLECTS,
+# so a new major landing under a rebuild would break the agent's feedback loop
+# with no error that names the cause. Measured on the pristine tree with these
+# two present: tests/unittests is 47 passed, 17 skipped, 5 errors. The 5 are
+# test_caching.py against this vcrpy and are there before an agent touches
+# anything -- an honest baseline, not a green one.
+RUN /opt/curator-dev/venv/bin/pip install --no-cache-dir vcrpy==8.3.0 psutil==7.2.2 \
+ || echo "WARNING: vcrpy/psutil unavailable -- curator's own tests will not collect"
+
 # The world's services can boot slowly on a cold, shared host.
 ENV WAIT_TIMEOUT=600
 

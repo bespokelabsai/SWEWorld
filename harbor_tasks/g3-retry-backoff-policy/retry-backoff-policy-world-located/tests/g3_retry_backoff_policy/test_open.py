@@ -18,293 +18,56 @@ the dead config knob). Every `decide` call below is made with a budget so large
 that every plausible pricing rule agrees the request is retried, and the fake
 tracker carries the horizon fields only so that an implementation which does
 stamp them does not trip over a missing attribute.
+
+Graded out of process: `probe.py` (as `nobody`) reproduces these curator calls
+and records the values; `judge.py` (root) applies the assertions below. The
+answer-free helpers and the classification inputs live in `probe_support`, so
+the probe and this reference share ONE definition and cannot drift; the expected
+VALUES stay here (and in judge.py). `test_r1`/`test_r2` still import their shared
+helpers `from test_open import ...`, which re-exports them from `probe_support`.
 """
 from __future__ import annotations
 
 import ast
-import asyncio
 import dataclasses
 import inspect
 import pathlib
-from types import SimpleNamespace
 
 import pytest
 
-from harness import read_field
-
-# Imported defensively, and re-raised inside each test rather than at collection
-# time: a missing `retry_policy` module is one fact failing per requirement, not
-# three files that pytest refuses to collect and a scoreboard with no rows on it.
-IMPORT_ERROR = None
-try:
-    from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
-    from bespokelabs.curator.request_processor.online import retry_policy as rp
-    from bespokelabs.curator.request_processor.online.base_online_request_processor import (
-        APIRequest,
-        BaseOnlineRequestProcessor,
-        _TokenUsage,
-    )
-    from bespokelabs.curator.types.generic_request import GenericRequest
-except Exception as _exc:  # pragma: no cover - the shape of an unimplemented tree
-    IMPORT_ERROR = _exc
-    rp = OnlineRequestProcessorConfig = APIRequest = BaseOnlineRequestProcessor = None
-    _TokenUsage = GenericRequest = None
-
-
-def importable() -> None:
-    """Fail one test, not the whole module, when the new policy module is absent."""
-    if IMPORT_ERROR is not None:
-        pytest.fail(f"bespokelabs.curator.request_processor.online.retry_policy could not be imported: {IMPORT_ERROR!r}")
-
-
-# ---------------------------------------------------------------------------
-# Shared helpers, imported by test_r1.py and test_r2.py
-# ---------------------------------------------------------------------------
-def counting(value):
-    """A jitter/clock source returning `value` and counting its own calls."""
-    box = SimpleNamespace(calls=0)
-
-    def source():
-        box.calls += 1
-        return value
-
-    box.source = source
-    return box
-
-
-def policy_with(*, clock_value: float = 0.0, jitter_value: float = 0.25):
-    """A `RetryPolicy` plus the call counters of the two sources injected into it."""
-    clock = counting(clock_value)
-    jitter = counting(jitter_value)
-    return rp.RetryPolicy(clock=clock.source, jitter=jitter.source), clock, jitter
-
-
-def decide(policy, exc, *, attempts_made=0, attempts_left=10, throttle_waivers_left=6):
-    """`policy.decide(...)`, passing the waiver budget only if it is accepted.
-
-    The waiver keyword is r1's hidden fact; this file must still be able to ask
-    for a verdict from an implementation that only built the open feature.
-    """
-    kwargs = {"attempts_made": attempts_made, "attempts_left": attempts_left}
-    params = inspect.signature(policy.decide).parameters
-    takes_waivers = "throttle_waivers_left" in params or any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values())
-    if takes_waivers:
-        kwargs["throttle_waivers_left"] = throttle_waivers_left
-    return policy.decide(exc, **kwargs)
-
-
-# ---------------------------------------------------------------------------
-# Reading a verdict without assuming what its fields are called
-#
-# The ticket describes the verdict semantically -- "whether to re-queue, which
-# FailureClass it was, the 1-based index of the attempt that just failed, how
-# long to wait, and a two-part reason code" -- and never spells a field name or
-# the class's own name. Only `reason_code`'s VALUE grammar is fixed. So each
-# reader below offers the plausible spellings and `read_field` takes the first
-# that exists; the two names r1 fixes (`throttle_waivers_left`,
-# `DEFAULT_THROTTLE_WAIVERS`) are required verbatim, but only in test_r1.py.
-# ---------------------------------------------------------------------------
-def v_retry(verdict):
-    return read_field(verdict, "should_retry", "retry", "should_requeue", "requeue")
-
-
-def v_class(verdict):
-    return read_field(verdict, "failure_class", "failure", "klass")
-
-
-def v_attempt(verdict):
-    return read_field(verdict, "attempt_index", "attempt", "attempt_number", "attempt_no")
-
-
-_DELAY_NAMES = ("delay_seconds", "delay", "delay_s", "wait_seconds", "backoff_seconds")
-
-
-def v_delay(verdict):
-    return read_field(verdict, *_DELAY_NAMES)
-
-
-def delay_field_name(verdict) -> str:
-    """Whatever the verdict calls its delay, for `dataclasses.replace`."""
-    for name in _DELAY_NAMES:
-        if hasattr(verdict, name):
-            return name
-    raise AssertionError(f"the verdict carries no delay under any of {_DELAY_NAMES}")
-
-
-def v_budget(verdict):
-    return read_field(verdict, "attempts_left_after", "attempts_left", "attempts_remaining")
-
-
-def v_waivers(verdict):
-    # Five spellings, because the requirement fixes the NAME and the grader must
-    # not also fix the suffix: an implementation that read "the post-failure
-    # waiver count" and wrote `throttle_waivers_left_after` has satisfied it.
-    return read_field(verdict, "throttle_waivers_after", "throttle_waivers_left_after",
-                      "waivers_left_after", "throttle_waivers_left", "waivers_left",
-                      "waivers_after")
-
-
-def counter_moved(policy, verdict):
-    """Which tracker counter this verdict actually increments.
-
-    The requirement fixes that recording a verdict moves exactly one counter --
-    it never says the verdict must EXPOSE the counter's name. An earlier version
-    read a `tracker_field` attribute off the verdict and failed every r1 fact
-    against an implementation that routed the counter inside the recorder, which
-    is the reading the requirement actually licenses.
-    """
-    counters = ("num_rate_limit_errors", "num_api_errors", "num_other_errors")
-    tracker = fake_tracker()
-    record(policy, tracker, verdict)
-    moved = [c for c in counters if getattr(tracker, c, 0)]
-    assert len(moved) == 1, f"exactly one counter must move per failure; {moved} did"
-    return moved[0]
-
-
-def v_reason(verdict):
-    return read_field(verdict, "reason_code", "reason")
-
-
-_RECORDERS = ("apply_to_tracker", "apply_verdict", "record_verdict", "update_tracker", "record", "apply")
-
-
-def _invoke_recorder(fn, tracker, verdict):
-    """Call a recorder whichever way round it takes its two arguments.
-
-    The requirement says the policy records a verdict on a tracker. It does not
-    fix the PARAMETER ORDER, and both readings are natural -- the reference
-    implementation happens to take `(tracker, verdict)`, and a build given the
-    requirement alone wrote `(verdict, tracker)` and failed three r2 facts on
-    `AttributeError: 'SimpleNamespace' object has no attribute 'failure_class'`.
-    Grading argument order the requirement never states is the same error as
-    grading a field spelling it never states.
-
-    Read off the signature where the names say which is which, and tried both
-    ways where they do not.
-    """
-    try:
-        first = list(inspect.signature(fn).parameters)[0].lower()
-    except (TypeError, ValueError):
-        first = ""
-    order = ((verdict, tracker), (tracker, verdict)) if "verdict" in first \
-        else ((tracker, verdict), (verdict, tracker))
-    try:
-        return fn(*order[0])
-    except (AttributeError, TypeError):
-        return fn(*order[1])
-
-
-def record(policy, tracker, verdict):
-    """Call the policy's "write this verdict onto the tracker" method.
-
-    The ticket says the policy has such a method but does not name it, so the
-    plausible spellings are tried in turn before falling back to the only
-    public two-argument method the policy exposes.
-    """
-    for name in _RECORDERS:
-        fn = getattr(policy, name, None)
-        if callable(fn):
-            return _invoke_recorder(fn, tracker, verdict)
-    candidates = []
-    for name in dir(policy):
-        if name.startswith("_") or name in ("decide", "delay_for"):
-            continue
-        fn = getattr(policy, name)
-        if callable(fn) and len(inspect.signature(fn).parameters) == 2:
-            candidates.append(fn)
-    if len(candidates) == 1:
-        return _invoke_recorder(candidates[0], tracker, verdict)
-    pytest.fail(f"the policy has no method that records a verdict on a tracker; it exposes {sorted(n for n in dir(policy) if not n.startswith('_'))}")
-
-
-def fake_tracker(**overrides):
-    """A stand-in tracker with every field the policy is allowed to write."""
-    fields = {
-        "num_api_errors": 0,
-        "num_other_errors": 0,
-        "num_rate_limit_errors": 0,
-        "time_of_last_rate_limit_error": 0.0,
-        "throttle_cooldown_until": 0.0,
-        "last_update_time": 0.0,
-    }
-    fields.update(overrides)
-    return SimpleNamespace(**fields)
-
-
-def counters(tracker):
-    return (
-        read_field(tracker, "num_rate_limit_errors"),
-        read_field(tracker, "num_api_errors"),
-        read_field(tracker, "num_other_errors"),
-    )
-
-
-def make_processor(**config_kwargs):
-    """The smallest concrete `BaseOnlineRequestProcessor` the abstract base allows."""
-
-    class _Processor(BaseOnlineRequestProcessor):
-        def file_upload_limit_check(self, base64_image):
-            return None
-
-        def estimate_total_tokens(self, messages):
-            return _TokenUsage()
-
-        def estimate_output_tokens(self):
-            return 0
-
-        def create_api_specific_request_online(self, generic_request):
-            return {}
-
-        async def call_single_request(self, request, session, status_tracker):
-            raise AssertionError("the tests install their own call_single_request")
-
-    config_kwargs.setdefault("model", "gpt-4o-mini")
-    return _Processor(OnlineRequestProcessorConfig(**config_kwargs))
-
-
-def make_api_request(**overrides):
-    generic = GenericRequest(model="gpt-4o-mini", messages=[{"role": "user", "content": "hi"}], original_row={}, original_row_idx=0)
-    kwargs = {
-        "task_id": 7,
-        "generic_request": generic,
-        "api_specific_request": {},
-        "attempts_left": 3,
-    }
-    kwargs.update(overrides)
-    return APIRequest(**kwargs)
-
-
-def drive_one_failure(processor, request, tracker, exc):
-    """Run the processor's own try/except once over an attempt that raises."""
-
-    async def boom(request, session, status_tracker):
-        raise exc
-
-    processor.call_single_request = boom
-    queue = asyncio.Queue()
-
-    async def go():
-        await processor.handle_single_request_with_retries(
-            request=request,
-            session=None,
-            retry_queue=queue,
-            response_file="/dev/null",
-            status_tracker=tracker,
-            blocked_capacity=_TokenUsage(),
-        )
-
-    asyncio.run(go())
-    return queue
-
-
-E = type("E", (Exception,), {})
-
-
-def with_status(message, **attrs):
-    exc = E(message)
-    for name, value in attrs.items():
-        setattr(exc, name, value)
-    return exc
+from harness import read_field  # noqa: F401 - used in the wiring section below
+
+# The answer-free helpers and classification inputs live in probe_support so the
+# worker (probe.py) and this human reference share ONE definition. The expected
+# VALUES this test asserts stay here (and in judge.py); probe_support holds none.
+# Re-exported here so test_r1.py / test_r2.py keep `from test_open import ...`.
+from probe_support import (  # noqa: F401
+    APIRequest,
+    OnlineStatusTracker,
+    classify_marker_inputs,
+    classify_status_inputs,
+    classify_type_inputs,
+    counter_moved,
+    counters,
+    decide,
+    delay_field_name,
+    drive_one_failure,
+    drive_one_response,
+    fake_tracker,
+    importable,
+    make_api_request,
+    make_processor,
+    policy_with,
+    record,
+    rp,
+    v_attempt,
+    v_budget,
+    v_class,
+    v_delay,
+    v_reason,
+    v_retry,
+    v_waivers,
+)
 
 
 # =============================================================================
@@ -329,53 +92,25 @@ def test_open_feature__failures_are_classified_priced_and_summarised_by_the_poli
     assert imported.isdisjoint({"aiohttp", "time", "random"}), f"retry_policy.py imports {sorted(imported)}; it must not reach for aiohttp, time or random"
 
     # ---- P2: status first, and the table exactly as the ticket writes it --
-    assert rp.classify_failure(with_status("rate limit exceeded", status_code=503)) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(with_status("rate limit exceeded", status=429)) is rp.FailureClass.THROTTLE
-    assert rp.classify_failure(with_status("overloaded", status_code=529)) is rp.FailureClass.THROTTLE
-    assert rp.classify_failure(with_status("bad request", status_code=422)) is rp.FailureClass.CONTRACT
-    assert rp.classify_failure(with_status("bad request", status_code=413)) is rp.FailureClass.CONTRACT
-    assert rp.classify_failure(with_status("bad request", status_code=400)) is rp.FailureClass.CONTRACT
-    assert rp.classify_failure(with_status("nope", status_code=404)) is rp.FailureClass.TERMINAL
-    assert rp.classify_failure(with_status("nope", status_code=401)) is rp.FailureClass.TERMINAL
-    assert rp.classify_failure(with_status("nope", status_code=403)) is rp.FailureClass.TERMINAL
-    assert rp.classify_failure(with_status("wait", status_code=408)) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(with_status("wait", status_code=409)) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(with_status("wait", status_code=425)) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(with_status("boom", status_code=599)) is rp.FailureClass.TRANSIENT
-    # an int that is neither a key nor 5xx falls THROUGH to the type signal
-    unrecognised = ValueError("nope")
-    unrecognised.status_code = 418
-    assert rp.classify_failure(unrecognised) is rp.FailureClass.CONTRACT
-    # and a status that is not an int is ignored entirely
-    assert rp.classify_failure(with_status("boom", status_code="429")) is rp.FailureClass.TRANSIENT
-
     # ---- P3: the type signal walks the MRO, by name ----------------------
-    outranked = ValueError("rate limit exceeded")
-    outranked.status_code = 429
-    assert rp.classify_failure(outranked) is rp.FailureClass.THROTTLE, "status must outrank type"
-    assert rp.classify_failure(ValueError("finish_reason was length")) is rp.FailureClass.CONTRACT
-    assert rp.classify_failure(KeyError("choices")) is rp.FailureClass.CONTRACT
-    assert rp.classify_failure(TimeoutError("boom")) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(asyncio.TimeoutError()) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(ConnectionError("reset")) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(PermissionError("no")) is rp.FailureClass.TERMINAL
-    assert rp.classify_failure(NotImplementedError("no")) is rp.FailureClass.TERMINAL
-    assert rp.classify_failure(type("SchemaError", (ValueError,), {})("x")) is rp.FailureClass.CONTRACT
-    assert rp.classify_failure(ValueError("rate limit exceeded")) is rp.FailureClass.CONTRACT, "type must outrank the message"
-
     # ---- P4: marker order beats message position; the default is TRANSIENT
-    assert rp.classify_failure(Exception("Authentication failed: too many requests")) is rp.FailureClass.THROTTLE
-    assert rp.classify_failure(Exception("Quota exceeded for project")) is rp.FailureClass.THROTTLE
-    assert rp.classify_failure(Exception("RateLimitError")) is rp.FailureClass.THROTTLE
-    assert rp.classify_failure(Exception("Model is overloaded")) is rp.FailureClass.THROTTLE
-    assert rp.classify_failure(Exception("Response is empty")) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(Exception("connection reset by peer")) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(Exception("service temporarily unavailable")) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(Exception("Invalid API key provided")) is rp.FailureClass.TERMINAL
-    assert rp.classify_failure(Exception("permission denied")) is rp.FailureClass.TERMINAL
-    assert rp.classify_failure(Exception("API error: internal server error")) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(Exception("")) is rp.FailureClass.TRANSIENT
-    assert rp.classify_failure(Exception("rate limit exceeded")) is rp.FailureClass.THROTTLE
+    # The inputs live in probe_support (shared with the probe); the expected
+    # classes are the answers and stay here. `.name` rather than an identity
+    # compare because P1 above already pins the members and their order.
+    assert [rp.classify_failure(e).name for e in classify_status_inputs()] == [
+        "TRANSIENT", "THROTTLE", "THROTTLE", "CONTRACT", "CONTRACT", "CONTRACT",
+        "TERMINAL", "TERMINAL", "TERMINAL", "TRANSIENT", "TRANSIENT", "TRANSIENT",
+        "TRANSIENT", "CONTRACT", "TRANSIENT",
+    ]
+    assert [rp.classify_failure(e).name for e in classify_type_inputs()] == [
+        "THROTTLE", "CONTRACT", "CONTRACT", "TRANSIENT", "TRANSIENT",
+        "TRANSIENT", "TERMINAL", "TERMINAL", "CONTRACT", "CONTRACT",
+    ]
+    assert [rp.classify_failure(e).name for e in classify_marker_inputs()] == [
+        "THROTTLE", "THROTTLE", "THROTTLE", "THROTTLE", "TRANSIENT",
+        "TRANSIENT", "TRANSIENT", "TERMINAL", "TERMINAL", "TRANSIENT",
+        "TRANSIENT", "THROTTLE",
+    ]
 
     # ---- P5/P6: the schedule, the cap before the jitter, the draw count ---
     policy, clock, jitter = policy_with(jitter_value=0.25)
@@ -482,8 +217,6 @@ def test_open_feature__failures_are_classified_priced_and_summarised_by_the_poli
     processor = make_processor(max_retries=3)
     built = [value for value in vars(processor).values() if isinstance(value, rp.RetryPolicy)]
     assert built, f"__init__ built no RetryPolicy; the processor carries {sorted(vars(processor))}"
-
-    from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker
 
     tracker = OnlineStatusTracker()
     request = make_api_request()

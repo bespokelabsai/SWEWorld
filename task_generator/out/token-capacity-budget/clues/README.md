@@ -317,14 +317,13 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #pipeline on 2025-05-13:*
 
 ```
-15:18  dario: quick one on the minute budget — when a call blows past what we reserved for it, where does the extra actually go
-15:19  gideon: nowhere tbh. minute two opens fresh, every time
-15:21  emil: which is the part i dont love, honestly. if we burned more than we reserved that shouldnt just vanish at the top of the minute
-15:22  dario: shouldnt vanish as in we log it somewhere, or as in the next minute is actually smaller
-15:24  emil: the second one. minute two should open owing that much
-15:25  gideon: so basically it starts in the hole instead of at zero
-15:25  emil: yup
-15:27  dario: that tracks. nothing in there does that today though, i went reading it this morning
+15:36  gideon: whats supposed to happen when a minute goes over what it reserved?
+15:37  dario: today? nothing. the next minute opens fresh, every time
+15:38  gideon: fresh as in zero even if we overshot. um, that seems wrong
+15:40  emil: honestly i dont love it either. we burned more than we reserved on that run and the boundary just wiped it
+15:41  gideon: so basically what should minute two look like instead
+15:42  emil: it should open owing that much. not at zero
+15:44  dario: mhm, the deficit rides over the boundary. im going to want a window that opens in the red to not read the same as a fresh one
 ```
 
 ### g10.r1.g10.r1.s2 — The bound is computed per token axis against that axis's own effective per-minute limit, including a limit that came from the DEFAULT_* constants rather than the caller; an axis whose limit is None has no bound and stays None, and the request bucket is never bounded at all.
@@ -352,13 +351,13 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #code-review on 2025-03-14:*
 
 ```
-13:36  gideon: one from the overnight run — available_request_capacity ends at -50. what puts it under?
-13:39  dario: hm. we reserve exactly one slot per request, thats the only thing that touches it. -50 shouldnt be a state it can get to
-13:40  gideon: so basically the number is wrong and not the run? tbh i had it in my head as a thing that dips and catches back up
-13:42  emil: not that one i believe. let me think through that for a sec
-13:45  emil: one slot per request, thats the whole of it — nothing in that path can overspend. so it should never be under zero at all. -50 isnt a dip, its a bug
-13:46  gideon: ya ok
-13:47  dario: mhm. and its -50, not -1. thats not something drifting by a hair
+13:41  gideon: so basically the capacity dump off the run this morning has available_request_capacity at -50
+13:42  gideon: why is it sitting at -50 though, thats the part i dont get
+13:46  dario: we reserve exactly one slot per request, thats the whole of it on that path
+13:47  gideon: ya so it cant overspend. then by that logic it shouldnt ever be under zero at all no?
+13:51  emil: yup — one slot in, one slot back out, so nothing on the reserving path drives it under. which means the -50 got there some other way, and honestly thats the thing to go read
+13:52  emil: not the reserve accounting anyway, i'd leave that bit alone
+13:55  gideon: mm. i had it down as a rounding thing on the requst side and its clearly not that
 ```
 
 #### `g10.r1.g10.r1.s2.l1` — scope
@@ -508,13 +507,14 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #incidents on 2025-04-18:*
 
 ```
-15:07  nikolai: we sized that floor for the token side yesterday what happens on requests
-15:09  dermot: same shape on the request side. i dont think it wants its own handling
-15:11  nikolai: same shape how i mean the case where the limit isnt configrued at all
-15:13  dario: with no max_requests_per_minute set, available_request_capacity just reads back None. it never gets a number put in it to begin with
-15:14  nikolai: so the floor runs over it anyway
-15:16  dermot: no, thats the point. theres nothing there to floor either
-15:18  dario: mhm. i only came at it from the repro config, neither one was set in there, thats what had me looking
+15:07  nikolai: dermot the capacity dump off the stalled run has available_request_capacity None sitting in it
+15:08  nikolai: did we put that there or is something eating it
+15:12  dermot: neither. same shape on the request side as the one you were poking at yesterday
+15:13  nikolai: same shape how, None isnt a number, whats even reading it
+15:15  dermot: with no max_requests_per_minute set, available_request_capacity just reads back None. nothing ever gets put in it
+15:16  nikolai: ok so does the floor still land on it or does it skip
+15:17  dermot: so theres nothing there to floor either. no value sitting in it to clamp at all
+15:19  petar: that lines up with the box, no request limit configured on it
 ```
 
 ### g10.r1.g10.r1.s3 — The tracker carries an integer field num_capacity_debt_clamps, initialised to 0, which goes up by exactly one per call in which at least one axis was held at its lower bound.
@@ -544,14 +544,15 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #engineering on 2025-03-14:*
 
 ```
-13:06  dario: the clamp line on my run summary - is that one tick per settle, or can it move more than once
-13:09  dermot: it can move more than once. num_capacity_debt_clamps counts the halves, not the settle
-13:11  dario: ok. and when does that actually bite, is it common or
-13:13  dermot: yeah - on last nights run it went up by two on a single settle, both halves bottomed out together
-13:15  dario: ah. so my per-run figure is double what actually happened, that was the only clamp we got all night
-13:17  konrad: so the counter is wrong? or just the summary
-13:19  dermot: counter is fine, it counts what it says it counts. the per-run number dario wants is clamped settles and thats not in there yet
-13:21  dario: mhm. i had the summary reading one line per clamp, thats where the 2 came from
+13:04  dermot: konrad, the clamp count in your capacity notes - mine comes out higher and i cant reconcile the two
+13:06  konrad: what are you reading it off
+13:07  dermot: num_capacity_debt_clamps, delta over last nights run
+13:08  dermot: it moved by two there. i had that down as two separate clamped calls
+13:09  dario: two seperate calls or one call that got counted twice? because those look identical from the delta
+13:10  dermot: one. single settle, and both halves bottomed out on it
+13:12  konrad: right, so the settle behaved, the counter didnt
+13:13  dermot: mhm. one settle happened, so my per-run figure is double what actually happened - its the count thats wrong, not my arithmetic
+13:14  dario: then the weekly numbers i pulled are off the same way, im not going to touch that column till its counting straight
 ```
 
 #### `g10.r1.g10.r1.s3.l3` — observability
@@ -772,13 +773,13 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #code-review on 2025-03-20:*
 
 ```
-13:36  dario: quick one on the recovery counter — does it tick when the tracker comes back up at all, or only when its actually recovered
-13:38  emil: not all the way back, i believe. it just has to climb out of the dip
-13:41  konrad: look, a settle that leaves us at +100 on a 1000 tracker is not it either
-13:43  dario: so is the bar back where it started, or something softer than that
-13:45  konrad: it should only tick when we actaully stopped the fall
-13:46  emil: sounds right. climbing a bit and still sinking isnt stopping it
-13:48  dario: that tracks. the +100 one is exactly the case i was staring at when i asked
+13:41  dario: the counter - does every settle bump it, or only some of them
+13:42  emil: i had it as every settle honestly, thats how the ticket reads to me
+13:44  konrad: look, a settle that leaves us at +100 on a 1000 tracker is not it either
+13:45  dario: so whats the bar. +100 is still on the right side of zero
+13:46  konrad: it should only tick when we actaully stopped the fall. thats the whole test
+13:47  dario: ok so being in the black isnt the test at all
+13:49  emil: sounds right. the sheet i pasted monday counts all of them the same, that column isnt what the header says it is
 ```
 
 ### Herrings — believed at the time, overturned later
@@ -1045,14 +1046,14 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #engineering on 2025-03-19:*
 
 ```
-13:41  dermot: from the overnight run - a chunk came back empty and the minute budget never loosened up. leak or intended
-13:44  konrad: i assumed a failed one hands the slot back
-13:46  nils: let me think through that - if it actually reached the provider, its spent for that minute
-13:48  gideon: even the empty ones? nothing came back from those
-13:51  nils: whatever came back, yes. it doesnt un-happen
-13:53  konrad: and one that died before it ever went out
-13:54  nils: that one never reached them, so not the same case
-13:56  dermot: yeah. so they all went out, every one of them. explains the shape of last nights graph
+13:42  konrad: we had a minute where nearly all the calls came back errors. does that minute get its budget back?
+13:43  konrad: off the top of my head i had assumed failed ones dont count against you
+13:47  nils: let me think through that - a request that actually reached the provider is spent for that minute
+13:49  dermot: so an error response still counts, even with nothing usable in it
+13:50  nils: whatever came back, yes. it went out, it does not un-happen
+13:51  nils: the line is whether it left us, not what came back. one that never got sent never owed the minute anything
+13:53  konrad: right. not what the code does today though
+13:55  dermot: mhm, the late night run reads differently now. i was watching the wrong half of it
 ```
 
 #### `g10.r2.s1_l2` — rule
@@ -1177,14 +1178,13 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #engineering on 2025-03-20:*
 
 ```
-13:38  konrad: quick one on capacity accounting. when a call blows up mid flight, what do we hand back
-13:40  emil: error path calls refund_capacity on the way out, thats the hook at least
-13:41  konrad: right but how much. the whole thing we held, or only the part it never got round to spendng
-13:43  dermot: the whole thing. an attempt that errored bought us nothing, so theres no spent half worth holding on to
-13:44  emil: so not the unspent remainder
-13:46  dermot: no, remainder is the wrong frame entirely. refund_capacity gives back the entire token reservation, same number we took at the start
-13:47  emil: yup. not written that way yet, whoever ends up on the retry ticket inherits it
-13:49  konrad: mhm ok. then i dont need partial counts threaded through the error path at all, which is half of what i was dreading
+13:35  konrad: Quick one on capacity. when an attempt errors, what goes back? full reservation or just the part it didnt use
+13:38  emil: whole thing i believe. the attempt bought us nothing
+13:40  konrad: but it did burn tokens before it died. presumably that part is real
+13:43  dermot: not from our side. refund_capacity hands back the entire token reservation
+13:45  konrad: Right, so not whatever was left unspent
+13:46  dermot: no, the full reserved amount. it errored, theres nothing to net it against
+13:48  emil: sounds right. i couldnt think of a case where the partial version helps anybody anyway
 ```
 
 #### `g10.r2.s2_l3` — rule
@@ -1366,14 +1366,13 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #viewer on 2025-03-27:*
 
 ```
-14:22  nils: viewer capacity is sitting at about a third again and nothing is queued
-14:25  dermot: same as yesterday then. it walked down through the afternoon and stayed down
-14:27  nils: mhm. i drained the queue an hour ago and it didnt move at all
-14:29  gideon: so basically every retry cycle on that flaky endpoint eats anohter reservation
-14:31  dermot: so each retry pulls a fresh one and the dead one is still being counted against us?
-14:33  gideon: ya exactly. so capacity just walks down all afternoon and never comes back until we restart
-14:34  gideon: honestly though, the retry path has no business taking a new one. thats the piece somebody needs to go fix, i dunno who has time today
-14:36  nils: so the restart was never fixing anything, it just wipes the count
+14:12  konrad: viewer capacity has been sagging all week. by late afternoon its nowhere near where it starts
+14:18  dermot: mhm. i bounced it yesterday around 5 and it was back to full straight after
+14:23  gideon: so basically its the retries against that flaky endpoint. every cycle takes anohter reservation
+14:27  konrad: what happens to the one the failed attempt was already holding
+14:33  gideon: thats the thing, it never comes back. capacity just walks down all afternoon and stays down til we restart
+14:39  dermot: yeah ok. so the retry path is the one exit that doesnt let go of it
+14:45  gideon: ya. so it needs to hand it back there too, same as the other exits do. otherwise one endpoint flapping eats the whole day
 ```
 
 #### `g10.r2.s3_l2` — scope
@@ -1443,14 +1442,14 @@ No network, no real `asyncio.sleep` waits: construct `OnlineStatusTracker` direc
 *A new conversation in #general on 2025-04-07:*
 
 ```
-14:02  konrad: on a long run our headroom just keeps shrinking. by the end there is way less of it than we started with
-14:05  gideon: so basically a leak? something takes and never hands it back
-14:09  nils: let me think. we have _refund_capacity for precisely that, it's just not wired in everywhere it needs to be
-14:12  konrad: right. so which spot is missing it
-14:16  nils: the point where we give up on a request entirely. thats where it should be firing
-14:19  konrad: mhm, i went looking after you said that. nothing calls it there at all
-14:23  nils: fair enough, thats the gap then. nobody has written that yet
-14:25  gideon: ya. i had it filed in my head as a retry thing only, um, apparently not
+13:41  konrad: capacity budget never climbed back after the run i killed friday. still low this morning
+13:43  gideon: killed how? like you cancelled it, or it gave up on its own
+13:45  konrad: gave up. we stopped trying that request at all, thats where it flattened
+13:48  nils: let me think - _refund_capacity is what should be firing at that moment, the point we give up on a request entirely. i dont think we ever covered that one
+13:50  gideon: so what calls it there today
+13:52  konrad: nothing does. i grepped after standup, no caller at that spot at all. elsewhere it fires fine, just not there
+13:54  nils: yeah, thats the hole. the call site simply isnt written yet, and that's worth documenting somewhere
+13:56  konrad: anyway that matches friday, it sat flat for hours after
 ```
 
 ### g10.r2.s4 — The failure release is sized from the reservation that was made, not from any usage the discarded response reported.
@@ -1680,13 +1679,13 @@ STRUCTURED_OUTPUT_MODELS    <-- THE REMARK GOES HERE
 *A new conversation in #releases on 2025-04-24:*
 
 ```
-13:38  dermot: left the anthropic run going overnight and pulled the capacity numbers this morning. both counters flat
-13:39  dermot: burned the whole morning looking for where the increment got lost
-13:40  nikolai: flat meaning what exactly
-13:41  dermot: `num_capacity_settlements: int = 0`, `num_capacity_refunds: int = 0`. same values they ship with
-13:43  dario: either the run never got near the ceiling or there wasnt one set on it? worth checking that before you keep digging honestly
-13:45  dermot: not entirely sure there was one... yeah ok, i never set a token ceiling on that config
-13:47  nikolai: right thats your answer no ceiling means theres nothing to settle or refund so they sit where they started there was no bug in there to find
+14:07  dermot: the anthropic run from last night, did any of the capacity numbers move
+14:09  nikolai: no i ran it overnight with no token ceiling set at all and the counts never moved
+14:11  dario: flat on both counters or just the settlements one
+14:12  dermot: both. report came back with `num_capacity_settlements: int = 0` and the refunds one right under it
+14:14  nikolai: yep and `num_capacity_refunds: int = 0` is word for word what the field declares so what i got back and what it starts at are the same string i cant tell one from the other by looking
+14:16  dario: so broken or not, i cant tell from that either
+14:18  nikolai: thats the thing that run doesnt answer it i spent the morning hunting a bug that wasnt ther in anything i was reading were not calling it broken off a run with no ceiling on it someone sets one low enough to actually get hit and runs it again thats the only version of this thats worth anything
 ```
 
 > **Problems:** longer than one remark
@@ -1819,14 +1818,14 @@ STRUCTURED_OUTPUT_MODELS    <-- THE REMARK GOES HERE
 *A new conversation in #incidents on 2025-04-09:*
 
 ```
-13:21  gideon: ledger printed 240 tokens freed in a 200 minute again. thats the failure path right
-13:24  dario: yeah. and the thing we settled on months ago is what does it — one release call for both outcomes, _free_capacity(status_tracker, used_tokens, blocked_capacity), slot back on failure exactly like success. thats dead, it cant carry both cases without handing back tokens nobody spent
-13:26  dermot: not entirely sure i follow. if i had to guess you still owe the blocked estimate back when a request fails
-13:28  dario: you do, just not through that call. failure goes to refund_capacity(blocked) — the estimate and the 1.0 slot back, and nothing else, since nothing actually got used
-13:29  gideon: and success? still one call for that side
-13:31  dario: free_capacity(used, blocked) on success, and the slot stays spent there. it was a real request, we dont get it back
-13:34  dermot: mhm. neither of those exists yet though, the release path is still the single function
-13:35  gideon: ya so the 240 was used tokens coming back on a path where nothing was used, plus the estimate on top
+13:21  dermot: the 240 in a 200 minute last night - if i had to guess its the release path
+13:22  dermot: we settled this months ago, one _free_capacity(status_tracker, used_tokens, blocked_capacity) for both outcomes, and the request slot going back on failure exactly like it does on success
+13:24  dario: mhm, and thats the half thats gone. a request that actually landed spent its slot for that minute. handing it back is how you get 240 out of a 200 minute
+13:25  gideon: So two calls now instead of the one?
+13:26  dario: yeah. success side is free_capacity(used, blocked), and the slot stays spent
+13:27  dermot: and failure? not entirely sure what youre keeping there. the estimate comes back, but the slot too or no
+13:28  dario: refund_capacity(blocked) on that side, so the estimate plus the 1.0 slot back. nothing went out, so the minute never owed it in the first place
+13:30  gideon: Ya ok. the retry loop hits the release twice on a timeout today, that was fine when both outcomes went through the same call
 ```
 
 > **Problems:** longer than one remark
@@ -1848,14 +1847,14 @@ STRUCTURED_OUTPUT_MODELS    <-- THE REMARK GOES HERE
 *A new conversation in #viewer on 2025-04-03:*
 
 ```
-14:02  dario: viewer had a job showing 800 output tokens against a 100 booking. is that the estimator being off or the accounting
-14:05  konrad: not the estimator, presumably. we book the estimate up front and the refund settles it after
-14:09  dario: right, thats what i had in my head — the except branch has used_tokens built already so failure settles through the same _free_capacity(used, blocked) as success, slot back on every terminal path. we agreed that ages ago
-14:11  emil: thats gone, and honestly i dont think it was ever true. the except branch does build used_tokens, but the call it actually makes is refund_capacity(blocked). whole estimate goes back, used_tokens never gets looked at
-14:13  dario: ok. and the 800 against the 100?
-14:16  emil: other half of it. the slot only comes back on failure, success just exits without returning it. so the booking sits at the estimate and the real usage reports on top
-14:18  konrad: so both halves move. refund the used_tokens thats already sitting right there, and the release stops being a failure-only thing
-14:20  emil: yup. no shared settle for the two paths anymore, each one settles itself
-14:22  dario: mhm. explains why the failed ones were the only rows that ever looked sane
+13:38  dario: when a call raises, whats actually going back to the pool? i had failure and success settling the same way in my head
+13:41  emil: thats the old plan and its dead. we had it that the except branch has used_tokens built already, so failure settles through the same _free_capacity(used, blocked) as success, slot back on every terminal path. the code does neither half
+13:43  dario: ok so what does the except branch do
+13:44  emil: builds used_tokens, then calls refund_capacity(blocked). the whole estimate goes back and the used count just sits there
+13:46  konrad: Which is the right way round, imo. I pulled a failed one reporting 800 output against a 100 booking
+13:48  emil: yup. on failure the booking comes back whole, the reported usage doesnt enter into it. 800 or otherwise
+13:49  dario: mhm. and the slot? i genuinely thought that one came back everywhere
+13:51  emil: failure only. the release lives in the except branch and the success path just doesnt do it. thats the part that has to move
+13:53  konrad: Anyway, is the old version written down somewhere? id rather strike it before someone builds to it
 ```
 

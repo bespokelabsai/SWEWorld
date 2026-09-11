@@ -1,0 +1,107 @@
+{
+ "task": "g12",
+ "suite": "g12_backend_params_config",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g12.open_feature": 0.0,
+    "g12.r1.rule": 0.0,
+    "g12.r1.scope": 0.0,
+    "g12.r1.failure_behavior": 0.0,
+    "g12.r1.observability": 0.0,
+    "g12.r2.rule": 0.0,
+    "g12.r2.scope": 0.0,
+    "g12.r2.exclusions_or_crossover": 0.0,
+    "g12.r2.failure_behavior": 0.0,
+    "g12.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10
+   },
+   "collected": true,
+   "stdout_tail": "'Config', 'api_key', 'base_url', 'construct', 'copy', 'dict', 'from_orm', 'generation_params', 'in_mtok_cost', 'invalid_finish_reasons', 'json', 'max_concurrent_requests', 'max_input_tokens_per_minute', 'max_output_tokens_per_minute', 'max_requests_per_minute', 'max_retries', 'max_tokens_per_minute', 'model', 'model_computed_fields', 'model_config', 'model_construct', 'model_copy', 'model_dump', 'model_dump_json', 'model_extra', 'model_fields', 'model_fields_set', 'model_json_schema', 'model_parametrized_name', 'model_post_init', 'model_rebuild', 'model_validate', 'model_validate_json', 'model_validate_strings', 'out_mtok_cost', 'parse_file', 'parse_obj', 'parse_raw', 'request_timeout', 'require_all_responses', 'return_completions_object', 'schema', 'schema_json', 'seconds_to_pause_on_rate_limit', 'update_forward_refs', 'validate']\n\nharness.py:59: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g12_backend_params_config-4d0cfece/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g12_backend_params_config/test_open.py::test_open_feature__the_mode_picks_the_class_and_the_backend_gate_fires_first - Failed: no name '_MODE_CONFIGS' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r1.py::test_rule__a_wrong_mode_key_raises_backend_param_error_before_pydantic_runs - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r1.py::test_scope__membership_is_by_field_name_and_belongs_to_is_an_intersection - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r1.py::test_failure_behavior__all_keys_at_once_and_a_bad_value_stays_a_validation_error - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r1.py::test_observability__the_four_probes_the_requirement_spells_out - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r2.py::test_rule__the_hook_records_the_unsupported_generation_params_instead_of_raising - AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestProces...\nFAILED g12_backend_params_config/test_r2.py::test_scope__every_online_and_batch_config_gets_it_and_a_supplied_value_is_overwritten - Failed: _validate_backend_params does not accept (params, batch=..., backend=...): _...\nFAILED g12_backend_params_config/test_r2.py::test_exclusions__the_offline_config_sets_it_empty_and_never_asks_litellm - Failed: the base model_post_init that fills unsupported_generation_params from litellm is not imp...\nFAILED g12_backend_params_config/test_r2.py::test_failure_behavior__a_broken_or_empty_lookup_leaves_an_empty_tuple - AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestProcessorConfig; ...\nFAILED g12_backend_params_config/test_r2.py::test_observability__the_probes_the_requirement_spells_out - AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestProcessorConfig; it has ['Con...\n10 failed, 1 warning in 5.77s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g12.open_feature": 1.0,
+    "g12.r1.rule": 0.0,
+    "g12.r1.scope": 0.0,
+    "g12.r1.failure_behavior": 0.0,
+    "g12.r1.observability": 0.0,
+    "g12.r2.rule": 0.0,
+    "g12.r2.scope": 0.0,
+    "g12.r2.exclusions_or_crossover": 0.0,
+    "g12.r2.failure_behavior": 0.0,
+    "g12.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "        f\"expected one of {names} on {type(obj).__name__}; it has {surface(obj)}\")\nE       AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestProcessorConfig; it has ['Config', 'api_key', 'base_url', 'construct', 'copy', 'dict', 'from_orm', 'generation_params', 'in_mtok_cost', 'invalid_finish_reasons', 'json', 'max_concurrent_requests', 'max_input_tokens_per_minute', 'max_output_tokens_per_minute', 'max_requests_per_minute', 'max_retries', 'max_tokens_per_minute', 'model', 'model_computed_fields', 'model_config', 'model_construct', 'model_copy', 'model_dump', 'model_dump_json', 'model_extra', 'model_fields', 'model_fields_set', 'model_json_schema', 'model_parametrized_name', 'model_post_init', 'model_rebuild', 'model_validate', 'model_validate_json', 'model_validate_strings', 'out_mtok_cost', 'parse_file', 'parse_obj', 'parse_raw', 'request_timeout', 'require_all_responses', 'return_completions_object', 'schema', 'schema_json', 'seconds_to_pause_on_rate_limit', 'update_forward_refs', 'validate']\n\nharness.py:59: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:6\n  /tmp/tg/g12_backend_params_config-5ffa3d5e/tree/src/bespokelabs/curator/request_processor/config.py:6: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g12_backend_params_config/test_r1.py::test_rule__a_wrong_mode_key_raises_backend_param_error_before_pydantic_runs - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r1.py::test_scope__membership_is_by_field_name_and_belongs_to_is_an_intersection - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r1.py::test_failure_behavior__all_keys_at_once_and_a_bad_value_stays_a_validation_error - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r1.py::test_observability__the_four_probes_the_requirement_spells_out - Failed: no name 'BackendParamError' anywhere in bespokelabs.curator.request_processor\nFAILED g12_backend_params_config/test_r2.py::test_rule__the_hook_records_the_unsupported_generation_params_instead_of_raising - AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestProces...\nFAILED g12_backend_params_config/test_r2.py::test_scope__every_online_and_batch_config_gets_it_and_a_supplied_value_is_overwritten - AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestP...\nFAILED g12_backend_params_config/test_r2.py::test_exclusions__the_offline_config_sets_it_empty_and_never_asks_litellm - Failed: the base model_post_init that fills unsupported_generation_params from litellm is not imp...\nFAILED g12_backend_params_config/test_r2.py::test_failure_behavior__a_broken_or_empty_lookup_leaves_an_empty_tuple - AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestProcessorConfig; ...\nFAILED g12_backend_params_config/test_r2.py::test_observability__the_probes_the_requirement_spells_out - AssertionError: expected one of ('unsupported_generation_params',) on OnlineRequestProcessorConfig; it has ['Con...\n9 failed, 1 passed, 1 warning in 5.95s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g12.open_feature": 1.0,
+    "g12.r1.rule": 1.0,
+    "g12.r1.scope": 1.0,
+    "g12.r1.failure_behavior": 1.0,
+    "g12.r1.observability": 1.0,
+    "g12.r2.rule": 1.0,
+    "g12.r2.scope": 1.0,
+    "g12.r2.exclusions_or_crossover": 1.0,
+    "g12.r2.failure_behavior": 1.0,
+    "g12.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g12_backend_params_config-2f47cbb4/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 1 warning in 5.64s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g12.open_feature": 1.0,
+    "g12.r1.rule": 1.0,
+    "g12.r1.scope": 1.0,
+    "g12.r1.failure_behavior": 1.0,
+    "g12.r1.observability": 1.0,
+    "g12.r2.rule": 1.0,
+    "g12.r2.scope": 1.0,
+    "g12.r2.exclusions_or_crossover": 1.0,
+    "g12.r2.failure_behavior": 1.0,
+    "g12.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g12_backend_params_config-42b05b3e/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 1 warning in 5.75s\n"
+  }
+ },
+ "verdicts": {
+  "g12.open_feature": "open_feature",
+  "g12.r1.rule": "hidden",
+  "g12.r1.scope": "hidden",
+  "g12.r1.failure_behavior": "hidden",
+  "g12.r1.observability": "hidden",
+  "g12.r2.rule": "hidden",
+  "g12.r2.scope": "hidden",
+  "g12.r2.exclusions_or_crossover": "hidden",
+  "g12.r2.failure_behavior": "hidden",
+  "g12.r2.observability": "hidden"
+ }
+}

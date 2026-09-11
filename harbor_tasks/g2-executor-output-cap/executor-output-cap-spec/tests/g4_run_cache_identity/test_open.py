@@ -17,6 +17,12 @@ identity comes from (r2: the injected `run_id`, the `nocache-` infix, the
 refusals). The identities it builds are compared only against each other, and
 every stub it hands to `compute_run_identity` carries the full LLM-shaped
 surface so that an implementation reading any of it is served.
+
+The answer-free helpers, stubs and scenario INPUTS live in `probe_support` so the
+worker (`probe.py`) and this human reference share ONE definition and cannot
+drift; the expected VALUES this test asserts stay inline here (and in
+`judge.py`). `test_r1`/`test_r2` import the shared names from here, so they are
+re-exported below.
 """
 from __future__ import annotations
 
@@ -25,188 +31,34 @@ import inspect
 import json
 import os
 import sqlite3
-import sys
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from datasets import Dataset
 
-from harness import read_field, surface
-
-# Imported defensively and re-raised inside each test rather than at collection
-# time: a missing `run_identity` module is one fact failing per requirement, not
-# three files pytest refuses to collect and a scoreboard with no rows on it.
-IMPORT_ERROR = None
-try:
-    from bespokelabs.curator import run_identity as ri
-except Exception as _exc:  # pragma: no cover - the shape of an unimplemented tree
-    IMPORT_ERROR = _exc
-    ri = None
-
-try:
-    from bespokelabs.curator.llm.prompt_formatter import PromptFormatter
-except Exception:  # pragma: no cover
-    PromptFormatter = None
-
-
-NOW = "2025-01-02T03:04:05"
-LATER = "2025-01-02T04:00:00"
-
-
-def importable() -> None:
-    """Fail one test, not the whole module, when the new module is absent."""
-    if IMPORT_ERROR is not None:
-        pytest.fail(f"bespokelabs.curator.run_identity could not be imported: {IMPORT_ERROR!r}")
-
-
-# ---------------------------------------------------------------------------
-# Finding the names, wherever the implementation chose to keep them
-# ---------------------------------------------------------------------------
-_CANDIDATE_MODULES = (
-    "bespokelabs.curator.run_identity",
-    "bespokelabs.curator",
-    "bespokelabs.curator.llm.llm",
-    "bespokelabs.curator.db",
-    "bespokelabs.curator.types.curator_response",
+# Shared, answer-free names. Imported (not defined) here so there is a single
+# definition; re-exported for test_r1/test_r2, which do `from test_open import ...`.
+from probe_support import (  # noqa: F401
+    IMPORT_ERROR,
+    LATER,
+    METADATA,
+    NOW,
+    OLD_RUNS_COLUMNS,
+    Dataset,
+    PromptFormatter,
+    _Stop,
+    components_of,
+    identity_for,
+    importable,
+    make_old_db,
+    make_stub,
+    read_field,
+    ri,
+    run_hash_of,
+    stamp_dict,
+    surface,
+    sym,
+    write_stamp_file,
 )
-
-
-def sym(name: str):
-    """A name exported by the package, from whichever module holds it.
-
-    The ticket puts the identity rule in `run_identity.py`, but a constant is
-    graded on existing and on what it says, not on which file it was typed
-    into, so every already-imported curator module is searched before giving up.
-    """
-    for mod_name in _CANDIDATE_MODULES:
-        mod = sys.modules.get(mod_name)
-        if mod is None:
-            try:
-                __import__(mod_name)
-            except Exception:
-                continue
-            mod = sys.modules.get(mod_name)
-        if mod is not None and hasattr(mod, name):
-            return getattr(mod, name)
-    for mod_name, mod in sorted(sys.modules.items()):
-        if mod_name.startswith("bespokelabs.curator") and hasattr(mod, name):
-            return getattr(mod, name)
-    pytest.fail(f"the implementation exports no {name!r} anywhere in bespokelabs.curator")
-
-
-# ---------------------------------------------------------------------------
-# An LLM-shaped object, with no processor and no event loop behind it
-# ---------------------------------------------------------------------------
-_DEFAULT_BACKEND_PARAMS = {"base_url": "https://api.example.test/v1", "max_retries": 7, "api_key": "sk-secret"}
-
-
-def make_stub(**over):
-    """The stub the specification hands to `compute_run_identity`.
-
-    A real `PromptFormatter` rather than a namespace, so an implementation that
-    reads a method off it is served; `_request_processor` and `_backend_params`
-    mirror `backend` / `backend_params` so an implementation that reaches for
-    the private spelling gets the same answer as one that uses the property.
-    """
-    formatter_keys = ("model_name", "prompt_func", "parse_func", "response_format", "generation_params", "system_prompt")
-    formatter_kwargs = {
-        "model_name": "gpt-4o-mini",
-        "prompt_func": None,
-        "parse_func": None,
-        "response_format": None,
-        "generation_params": {"temperature": 0.7},
-        "system_prompt": None,
-    }
-    for key in formatter_keys:
-        if key in over:
-            formatter_kwargs[key] = over.pop(key)
-    backend = over.pop("backend", "openai")
-    backend_params = over.pop("backend_params", None)
-    if backend_params is None:
-        backend_params = dict(_DEFAULT_BACKEND_PARAMS)
-    formatter = PromptFormatter(**formatter_kwargs)
-    stub = SimpleNamespace(
-        prompt_formatter=formatter,
-        batch_mode=over.pop("batch_mode", False),
-        backend=backend,
-        backend_params=dict(backend_params),
-        return_completions_object=over.pop("return_completions_object", False),
-        _backend_params=dict(backend_params),
-        _request_processor=SimpleNamespace(backend=backend),
-    )
-    assert not over, f"make_stub got unexpected keyword(s) {sorted(over)}"
-    return stub
-
-
-def identity_for(stub, dataset_hash="9f1c8e2b7d4a6053", **kwargs):
-    return ri.compute_run_identity(stub, dataset_hash, **kwargs)
-
-
-def components_of(identity) -> dict:
-    return dict(read_field(identity, "components"))
-
-
-def run_hash_of(identity) -> str:
-    return read_field(identity, "run_hash")
-
-
-def stamp_dict(path) -> dict:
-    return json.loads((Path(path) / "run_identity.json").read_text())
-
-
-def write_stamp_file(path, payload) -> None:
-    path = Path(path)
-    path.mkdir(parents=True, exist_ok=True)
-    (path / "run_identity.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
-
-
-OLD_RUNS_COLUMNS = (
-    "run_hash",
-    "session_id",
-    "dataset_hash",
-    "prompt_func",
-    "model_name",
-    "response_format",
-    "batch_mode",
-    "created_time",
-    "last_edited_time",
-    "is_hosted_viewer_synced",
-    "total_cost_milli_dollars",
-    "total_requests",
-    "total_prompt_tokens",
-    "total_completion_tokens",
-)
-
-
-def make_old_db(path) -> None:
-    """A `runs` table exactly as the world shipped it, with one row in it."""
-    with sqlite3.connect(str(path)) as conn:
-        conn.execute("CREATE TABLE runs (" + ", ".join(f"{name} TEXT" for name in OLD_RUNS_COLUMNS) + ")")
-        conn.execute(
-            "INSERT INTO runs (run_hash, session_id, prompt_func, model_name, created_time) VALUES (?, ?, ?, ?, ?)",
-            ("old", "s0", "def p(): pass", "gpt-4o-mini", NOW),
-        )
-        conn.commit()
-
-
-METADATA = {
-    "run_hash": "r1",
-    "session_id": "s1",
-    "dataset_hash": "d",
-    "prompt_func": "def p(): pass",
-    "parse_func": "def q(): pass",
-    "model_name": "gpt-4o-mini",
-    "response_format": "text",
-    "batch_mode": False,
-    "timestamp": NOW,
-    "is_hosted_viewer_synced": False,
-    "identity_version": 3,
-}
-
-
-class _Stop(Exception):
-    """A sentinel that ends a call the moment the thing under test has happened."""
 
 
 # =============================================================================

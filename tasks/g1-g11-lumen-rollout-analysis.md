@@ -7,7 +7,7 @@ how it found it, what its `Analysis:`/`Plan:` said about it, and whether the shi
 followed it. Herrings and reversals got the same treatment. Scores are Horizon's own
 grades.
 
-Status: **complete**. **g7 and g9 were re-evaluated on 2026-09-11** (g7 v5, g9 v8), and their sections replace the earlier evals, whose results are dropped. 100 rollouts are read: 99 scored, plus g2's execution failure. The summary is directly below; the per-task sections and the defect register follow.
+Status: **complete**. **g3, g7, g9 and g11 were re-evaluated on 2026-09-11** (g3 v9, g7 v5, g9 v8, g11 v11), and their sections replace the earlier evals, whose results are dropped. 100 rollouts are read: 99 scored, plus g2's execution failure. The summary is directly below; the per-task sections and the defect register follow.
 
 ## How this was measured
 
@@ -26,10 +26,12 @@ Status: **complete**. **g7 and g9 were re-evaluated on 2026-09-11** (g7 v5, g9 v
    - `found_misread`
    - `herring_followed`
    - `overridden_by_other_corpus_text`, meaning other text in the world argued the graded
-     question the other way. This is a task defect.
+     question the other way. After review, no loss is left in this cause.
    - `implementation_slip`, meaning the agent's reasoning states the rule and its code does
      otherwise.
-   - `grader_overspecifies`
+   - `grader_overspecifies`; its only two cases (g7 runs 3 and 8, on `write_sidecar`'s
+     argument order) are left out of the cause figures, because the grader has since been
+     changed to accept either order
    - `infra`
 4. **Checks.** I aggregate the readers' rows. Pass and fail come from Horizon's grade, not
    the readers. Reader verdicts I overruled by hand are listed per task.
@@ -42,21 +44,21 @@ number of facts comes from the suite, not the key's "five facts" boilerplate.
 
 **Readers ran on Sonnet.** Opus 5 readers were refused 8 of 10 times by an API safeguard
 tagged `[reasoning_extraction]`, on both attempts. The one Opus reader that completed
-read the shortest transcript (a g7 run of the superseded v4 eval). The g7 and g9 reruns
+read the shortest transcript (a g7 run of the superseded v4 eval). The g3, g7, g9 and g11 reruns
 were read on Sonnet too.
 
 | task | version | eval(s) | lumen runs read |
 |---|---|---|---|
 | g1 batch-payload-plan | v14 | 8db49761 | 10 |
 | g2 executor-output-cap | v11 | 9f2db992 | 10 (1 execution failure) |
-| g3 retry-backoff-policy | v7 | ce846459 | 10 |
+| g3 retry-backoff-policy | **v9** | **035777f5** (rerun on the corpus and grader fix; replaces v7 ce846459) | 10 |
 | g4 run-cache-identity | v5 | 0ebb2b86 | 10 |
 | g6 model-price-lookup | v6 | 30b9f0dd | 10 |
 | g7 agent-turn-ledger | **v5** | **8deffce4** (rerun; replaces v4 94bf8242) | 10 |
 | g8 attachment-payload | v8 | 30c95df4 + 66eb8a20 + 48fe71f7, pooled on one version | 10 (+1 errored, not read) |
 | g9 example-encoding | **v8** | **3b0b259f** (rerun; replaces v7 fffbd350, which had only 2 scored runs) | 10 |
 | g10 token-capacity-budget | v5 | 5b468409 | 10 |
-| g11 training-step-ledger | v7 | 94bf8242 | 10 |
+| g11 training-step-ledger | **v11** | **a8572080** (rerun on the herring fix; replaces v7 94bf8242) | 10 |
 
 There is no g5 world-hosted task.
 
@@ -65,7 +67,49 @@ There is no g5 world-hosted task.
 ## Findings at a glance
 
 All rates are pooled over all ten tasks (g1–g4 and g6–g11), using **live runs** only: runs
-that shipped and were not zeroed by infra. g7 and g9 use their 2026-09-11 reruns.
+that shipped and were not zeroed by infra. g3, g7, g9 and g11 use their 2026-09-11 reruns.
+
+### Where the remarks live: chat only, or spread across chat, wiki and mail
+
+Four tasks keep every remark in Mattermost. Three put a handful in mail and wiki comments,
+and three spread them widely:
+
+| group | tasks | remarks in chat | mean reward (live) | found on chat | found off chat | knowledge points lost per live run | not-found points whose missing remark was off chat |
+|---|---|---|---|---|---|---|---|
+| **chat only** | g4, g8, g10, g11 | 100% | **0.89** | 74% | — | **0.95** | 0/19 |
+| mostly chat | g1, g2, g3 | 83–90% | 0.85 | 76% | 85% | 1.39 | 7/26 (27%) |
+| spread | g6, g7, g9 | 51–67% | 0.82 | 67% | 72% | 1.30 | **10/12 (83%)** |
+
+| task | remarks by surface | mean reward (live) | found on chat | found off chat |
+|---|---|---|---|---|
+| g4 | chat 48 | 0.94 | 70% | — |
+| g10 | chat 46 | 0.93 | 66% | — |
+| g8 | chat 51 | 0.86 | 79% | — |
+| g11 | chat 47 | 0.86 | 80% | — |
+| g3 | chat 44, mail 3, wiki comment 2 | 0.93 | 87% | 78% |
+| g2 | chat 38, mail 5, wiki comment 3 | 0.85 | 73% | 96% |
+| g1 | chat 44, mail 4, wiki comment 2 | 0.79 | 69% | 76% |
+| g9 | chat 29, wiki comment 15, mail 13 | 0.84 | 70% | 67% |
+| g6 | chat 19, wiki comment 7, mail 6, wiki page 1 | 0.84 | 62% | 78% |
+| g7 | chat 34, mail 8, wiki comment 8, wiki page 1 | 0.76 | 66% | 75% |
+
+Did it matter? Somewhat, and not in the obvious way:
+- **Chat-only tasks scored highest and lost the fewest points:** 0.89 against 0.85 and 0.82,
+  and under one knowledge point per live run against 1.3 to 1.4.
+- **Spreading does not hide remarks.** In both mixed groups the off-chat remarks were found
+  *more* often than the chat ones (85% against 76%, and 72% against 67%). Agents read mail
+  and wiki pages whole; chat is where the volume is, and a grep can pass a remark by.
+- **Wiki comments are the exception** (68% pooled, and 45% for a comment added to an
+  existing page). BookStack search does not index them, so a run finds one only by
+  fetching every page's comments.
+- **What spreading changes is where the misses land.** In the spread tasks, 10 of the 12
+  not-found points involved a remark off chat, 8 of them in g7, whose graded filename
+  constant lives only in a comment on an off-topic page. In the chat-only tasks it was 0 of
+  19. g9's six herring losses are the same effect under another cause: the reversal is in
+  wiki comments.
+- **Caveat:** ten tasks, and they differ in more than their surfaces (g10's reversals
+  restate the whole answer; g7 has a graded name with one home). Read this as a
+  correlation, not a measured effect.
 
 ### Difficulty ranking
 
@@ -77,23 +121,21 @@ that shipped and were not zeroed by infra. g7 and g9 use their 2026-09-11 reruns
 | g9 example-encoding | 0.84 | 1/10 | r2.failure_behavior 4/10 | its mail herring is the one that works: the 6 runs that never opened the comments on the "request builder" page, where the reversal is, believed it |
 | g2 executor-output-cap | 0.85 | 0/10 | r1.failure_behavior **1/9** | two graded names, each with one home, both in the quiet #cookbooks |
 | g8 attachment-payload | 0.86 | 1/10 | r1.scope 4/10 | only one remark says *where* the 45 MB total lives, and the ticket's "out of scope: the batch path" invites misfiling it |
-| g11 training-step-ledger | 0.86 | 2/10 | r1.failure_behavior, r2.rule 6/10 | the merge and the keyword-only rule each have a single carrier; a half-reversed herring (G11-H) |
-| g3 retry-backoff-policy | 0.92 | 5/10 | r2.rounding 6/10 | rounding is stated once; 3 of the 1.00s were false passes, since fixed (G3-A) |
+| g11 training-step-ledger | 0.86 | 2/10 | r1.failure_behavior, r2.rule 7/10 | the merge and the keyword-only rule each have a single carrier |
+| g3 retry-backoff-policy | 0.93 | **6/10** | r2.rule 6/9 | rounding to three decimals is stated once, and 3 runs missed it; everything else has several carriers |
 | g10 token-capacity-budget | 0.93 | **7/10** | r1.exclusions 7/9 | each reversal restates the whole design in one turn |
 | g4 run-cache-identity | 0.94 | 4/10 | r1.scope 5/8 | the copy rule is stated as an observation, not a rule |
 
 ### 1. Half of all losses are search misses, and nearly all of those are single-home remarks
 
-112 knowledge fact-points were lost in live runs:
+109 knowledge fact-points were lost in live runs:
 
 | cause | points | share |
 |---|---|---|
-| not found | 60 | **54%** |
-| implementation slip | 23 | 21% |
-| found but misread | 15 | 13% |
-| herring followed | 9 | 8% |
-| grader over-specifies | 3 | 3% |
-| the corpus argues against the grader | 2 | 2% |
+| not found | 57 | **52%** |
+| implementation slip | 27 | 25% |
+| found but misread | 18 | 17% |
+| herring followed | 7 | 6% |
 
 Almost every "not found" traces back to a **graded name, value or order that is stated in
 exactly one remark**. The single-home table in the Register lists them. Whether a run found
@@ -101,7 +143,7 @@ that one place decides the fact:
 
 | single-home remark | found → passed | not found → passed |
 |---|---|---|
-| g11 `l10` | 6/6 | 0/4 |
+| g11 `l10` | 7/7 | 0/3 |
 | g8 `s2-gideon` | 4/5 | 0/5 |
 | g2 `l-floor-konrad` | 1/1 | 0/8 |
 | g7 `TURN_LEDGER_FILENAME` | 2/4 (the other two lost r1.rule on `write_sidecar`'s argument order) | 0/5 |
@@ -113,10 +155,10 @@ that one place decides the fact:
 
 | quality | found | vs. | found |
 |---|---|---|---|
-| **carries an identifier** that must be typed literally | **79%** | plain English, no identifier | **58%** |
-| its own chat thread | 75% | **dropped into an existing conversation** | **63%** |
-| a new wiki page | 80% | **a comment on an existing page** | **50%** |
-| mail (new 81%, reply 93%) | 82% | wiki page bodies | 62% |
+| **carries an identifier** that must be typed literally | **79%** | plain English, no identifier | **60%** |
+| its own chat thread | 76% | **dropped into an existing conversation** | **64%** |
+| a new wiki page | 80% | **a comment on an existing page** | **45%** |
+| mail (new 80%, reply 93%) | 82% | wiki page bodies | 62% |
 
 Within a task, a quiet channel drops far lower: g7 #releases 0/10, g4 #help 1/10, g2
 #incidents 20%, g7 #viewer 25%.
@@ -136,11 +178,12 @@ Output truncation hides it too. g7 run 4 listed its mail subjects through `head 
 ### 3. Found is not the same as used
 
 93% of found clues were registered as requirements, and 95% were followed in code. The
-remaining few percent fall disproportionately on graded facts: **38 of the 112 lost points
-(34%) came from runs that had the remark**. The recurring shapes:
+remaining few percent fall disproportionately on graded facts: **45 of the 109 lost points
+(41%) came from runs that had the remark**. The recurring shapes:
 - a rule stated as an observation, which agents read without drawing the inference (g4
   `fix27`);
-- a rule read in full and then written backwards (g7 run 7, with g7's `fix27`);
+- a rule read in full and then written backwards (g7 run 7, with g7's `fix27`; g3 run 9, with
+  mail `l12`);
 - deciding a requirement is out of scope (g1 run 4: "a distractor"; g8: "the batch
   estimator");
 - naming slips (g1's `plan_id`);
@@ -151,68 +194,57 @@ g6's losses are 78% slips.
 
 ### 4. Herrings work only when the run never reaches the reversal
 
-| what the run saw (366 run–herring pairs) | believed the herring and shipped it |
+| what the run saw (362 run–herring pairs) | believed the herring and shipped it |
 |---|---|
-| the herring and its reversal | **1/271 (0.4%)** |
-| **the herring but not its reversal** | **6/13 (46%)** |
-| the reversal but not the herring | 0/68 |
-| neither | 1/14 |
-| **overall** | **8/366 (2%)** |
+| the herring and its reversal | **0/270 (0%)** |
+| **the herring but not its reversal** | **7/12 (58%)** |
+| the reversal but not the herring | 0/69 |
+| neither | 0/11 |
+| **overall** | **7/362 (2%)** |
 
-Reversals are the most-found kind of remark (94%). They quote the herring, call it dead,
+Reversals are the most-found kind of remark (95%). They quote the herring, call it dead,
 and share its keywords, so the grep that finds the herring usually finds the reversal too,
 and then the herring does nothing.
 
 It worked in two places:
 - **g9 `h-role-row`, 6 runs:** its reversal is a comment on the "request builder" wiki
   page, and those six runs never opened that page's comments.
-- **G11-H, 1 run:** the reversal retracts only half of its herring.
+- **g11's konrad herring, 1 run (run 7):** it never reached the reversal in #general.
 
 And many reversals *restate the full answer*, which makes their requirement cheap: g1 r2,
 g7 r2 and all of g10 are near-perfect for this reason.
 
-**Invented scaffolding is the other thing that misleads.** That is the conversation
-phase 4 writes around a correctly planted remark, which then argues the graded question the
-other way:
-- **G3-A:** 3 false passes in v7. Every run that saw konrad's invented line followed it.
-  **Fixed 2026-09-11 and pushed as g3 v9**; no eval on it yet.
-- **G8-A:** 2 points.
+**Invented lines can still mislead a run that misses the remark that settles the
+question.** Phase 4 writes conversation around each planted remark, and a few of its lines
+point the other way: nikolai's "auto ... it's not a detail level its a fallback" in g8 (runs
+3 and 4, neither of which found `l14`), and konrad's "sets it to none" in g3 (run 10, which
+never found `s1a`). In both, the right answer is stated elsewhere in the corpus, so these
+losses count as not found or misread, not as defects.
 
 ### 5. Hardest fact type
 
 | fact type | pass rate (live runs) |
 |---|---|
-| failure_behavior | 78% |
-| rule | 84% |
-| scope | 87% |
-| observability | 87% |
-| exclusions_or_crossover | 91% |
+| failure_behavior | 77% |
+| rule | 85% |
+| scope | 86% |
+| observability | 86% |
+| exclusions_or_crossover | 92% |
 
 ### 6. The measurement is noisier than the task
 
-55 fact-points were lost in dead runs:
-- **30 to infra.** The git remote reset after a green CI (g6 runs 1 and 3; g11 run 7
-  survived it), and stale terminals feeding false "pushed / merged / CI green" output (g4
-  run 9, g7 run 5).
-- **25 to runs that never shipped** (g2 run 8, g4 run 2, g10 run 8).
+64 fact-points were lost in dead runs:
+- **14 to infra**: g6 runs 1 and 3. After a green CI the whole sandbox rolled back to its
+  starting state, again and again: the agent's local clone, working tree and `/tmp` files as
+  well as the remote. Nothing in the world's own code can do this; it points at Horizon's sandbox being restored mid-run.
+- **50 to runs that never shipped** (g2 run 8, g3 run 3, g4 runs 2 and 9, g7 run 5, g10 run
+  8). Three of them believed things their terminal never showed. g3 run 3 claimed a commit,
+  a green CI and a deploy. g7 run 5 cited a commit hash and merged PRs that appear only in
+  its own reasoning. g4 run 9 decided its real output was stale and committed only at the very
+  end, never pushing.
 
 On top of that, g11's eval 3c71bf59 errored 10/10, and the world's CI "tests" step passes
 without pytest installed. Horizon's `extracted_score` also overstates the task reward.
-
-### 7. What to fix first, in order
-
-1. **G8-A:** rewrite the invented turns around `fix24`.
-2. **G11-H:** make g11's `rev2` retract konrad's whole herring.
-3. **Environment:** investigate the git remote resets and the stale terminals; they zeroed
-   4 runs.
-4. **Difficulty design:**
-   - Give each single-home graded name a second carrier that search can reach (or accept
-     either name, as for `plan_fingerprint`).
-   - Stop using synonyms for graded names.
-   - Write reversals that retract the herring **without restating the finished answer**.
-
-*Done: G3-A and G3-B are fixed and pushed as g3 v9 (2026-09-11), verified locally on the grading path; hosted validate oracle 1.0 / noop 0 on every fact;
-no opus eval on v9 yet.*
 
 ---
 
@@ -419,141 +451,112 @@ believed any of them.**
 
 ---
 
-## g3 — retry-backoff-policy (v7, eval ce846459)
+## g3 — retry-backoff-policy (v9, eval 035777f5)
 
-**Reward.** The mean is **0.92**, and **5/10 scored 1.00** (runs 1, 3, 4, 9 and 10). This is
-the easiest task so far, but **the score overstates it**: three runs passed a fact while
-shipping behaviour the answer key forbids (G3-A below, now fixed).
+*Rerun on 2026-09-11, on the corpus and grader fix. It replaces eval ce846459 (v7), whose
+results are dropped.*
 
-| run | rollout | reward | facts lost (cause) | note |
-|---|---|---|---|---|
-| 1 | ccc381f3 | 1.00 | — | code matches the key almost verbatim |
-| 2 | 63d214a1 | 0.667 | r1.exclusions_or_crossover, r1.observability (not found: `l13` "we empty the attempts", dropped by its own keyword filter, which kept the neighbouring line); r2.rule (not found: rounding) | it abandoned full-context reading of its chat dump after about 180 lines ("Much noise") |
-| 3 | dbcedd39 | 1.00 | — | **false pass**: `finish_reason=length` made TERMINAL through a new `InvalidFinishReasonError` |
-| 4 | 34a87e12 | 1.00 | — | |
-| 5 | 46cec654 | 0.889 | r2.rule (not found: rounding) | |
-| 6 | 3b3fcb93 | 0.889 | r2.exclusions_or_crossover (**grader defect**, G3-B) | |
-| 7 | 3111b210 | 0.889 | r2.rule (not found: rounding) | |
-| 8 | cd046ece | 0.889 | r2.rule (not found: rounding) | **false pass**: `attempts_left = 0` at the call site, shipped as its own PR #738, "invalid finish_reasons fail out on the first" |
-| 9 | 40be2bf1 | 1.00 | — | |
-| 10 | f6e50c9e | 1.00 | — | **false pass**: a new `NonRetryableResponseError`, classified TERMINAL |
+**Reward.** The mean is **0.93 over the 9 live runs**, or 0.83 across all 10. **6/10 scored
+1.00** (runs 1, 2, 4, 5, 7 and 8). Run 3 never shipped.
 
-**Pass rates:** r2.rule 6/10; r1.exclusions 9/10; r1.observability 9/10; r2.exclusions
-9/10. The other five facts are 10/10.
+| run | rollout | reward | facts lost (cause) |
+|---|---|---|---|
+| 1 | c77a4f1b | 1.00 | — |
+| 2 | c81e9802 | 1.00 | — |
+| 3 | 178c95a5 | 0 | all 9 (never shipped: its patch scripts never landed, it typed no `git commit` or `git push`, and its last turns claimed commit 2eaeb50a, a green CI and a deploy) |
+| 4 | 62797bad | 1.00 | — |
+| 5 | 3e70faf7 | 1.00 | — |
+| 6 | 0d78fdbb | 0.889 | r2.rule (not found: the rounding, `s1c`) |
+| 7 | d13866db | 1.00 | — |
+| 8 | 53fe95b3 | 1.00 | — |
+| 9 | 445beca6 | 0.667 | r1.exclusions_or_crossover, r1.observability (misread: it read mail `l12`, "once auth is the problem the attempts on the clock are worth nothing", then shipped a terminal failure that costs nothing and leaves the budget intact); r2.rule (not found: it saw only the opening question of `s1c`) |
+| 10 | 6880e992 | 0.778 | r2.rule, r2.observability (not found: `s1a`, the one remark that says the cooldown field is `0.0` on a fresh tracker; it shipped `None`) |
 
-**Why the 7 lost fact-points were lost:**
+**Pass rates over the 9 live runs:** r2.rule 6/9; r1.exclusions, r1.observability and
+r2.observability 8/9 each. The other five facts are 9/9.
 
-| cause | points | share |
+**Why the 6 lost fact-points were lost** (not counting run 3's 9):
+
+| cause | points |
+|---|---|
+| not found | 4 |
+| found but misread | 2 |
+
+### The fix held: no run made `length` terminal
+
+In v7, konrad's invented turn in the #code-review thread around `l1` said `length` "stops
+being retryable, fail it out on the first". Three runs followed it and the grader could not
+see it. In v9 the turn reads "length does come good on a retry now and then, so dont stop
+retrying it, it just shouldnt get as many goes as a timeout", and the grader also runs a
+real `length` response through the request path.
+
+| runs | saw the rewritten turn | shipped `length` as contract, charged 2, retried |
 |---|---|---|
-| not found | 6 | 86% |
-| grader over-specifies | 1 | 14% |
+| 2, 5, 6, 8, 9, 10 | yes | 6/6 |
+| 1, 4, 7 | no | 3/3, from the ticket's `ValueError` → CONTRACT row and `l2` |
 
-### The one hard fact: rounding, stated once
+Run 8's closing self-review ties its choice to the turn (transcript line 8921). The
+request-path check passed in all 8 live runs whose r1 observability test reached it; run
+9's stopped earlier, on the terminal row.
 
-`remaining_cooldown_seconds` must return `max(0.0, round(until - now, 3))`. The test
-(`test_r2.py:113`) expects 508.0009 to come back as `8.001`.
-- Only `g3.r2.s1c` (#pipeline, 2025-04-07) states the rounding.
-- The ticket rounds a *different* function to three places (`round(raw * (0.5 + 0.5 * j),
-  3)`, ticket line 137) but says nothing about rounding this one.
-- Runs 2, 5, 7 and 8 shipped it unrounded, and none of them had found `s1c`.
+### The hard fact is still rounding, stated once
 
-### G3-A (fixed): an invented turn outvoted the plant, and the grader could not see it
+`remaining_cooldown_seconds` must return `max(0.0, round(until - now, 3))`, and only
+`g3.r2.s1c` (#pipeline, 2025-04-07) says to round.
 
-`g3.r1.l1`'s plant record settles that "a contract failure should be charged more than one
-attempt": CONTRACT, costing 2. The #code-review thread phase 4 built around it
-(2025-06-03) ends with an **invented** turn from konrad at 14:12:
-
-> and length wont fix itself on a retry anyway, so it stops being retryable, **fail it out
-> on the first**
-
-That line means TERMINAL. It is the same failure as g7's defect: the scaffolding argues
-against the plant.
-
-**The effect is exactly predictable from who saw the line.** Konrad's line appears in the
-transcripts of runs 3, 8 and 10 and in no other transcript.
-
-| runs | saw konrad's line | shipped `length` as terminal / non-retryable |
+| runs | saw `s1c` | r2.rule |
 |---|---|---|
-| 3, 8, 10 | yes | **3/3** |
-| the other 7 | no | 0/7 (they got it right because they never read the thread, not because they weighed it) |
+| 1, 2, 4, 5, 7, 8 | yes | **passed, 6/6** |
+| 9 | its opening question only | lost |
+| 6, 10 | no | lost |
 
-**No point is lost, because the grader cannot see the bug.** `test_r1.py:221–224` tests
-only `policy.decide(ValueError("finish_reason was length"), ...)`. That call is classified
-by the exception type, which is CONTRACT. A reclassification added at the call site is
-never exercised. **These three 1.00s are false passes.**
+### An unretracted line points the cooldown at `None`
 
-The plant's own record confirms the turn is scaffolding, not the clue: `plant.json` lists
-konrad 14:12 under `invented`, and its `pieces` entry logged it as "the decision:
-length-truncated responses stop being retryable, fail on the first attempt", against
-`l1`'s `settles`.
+Herring `h2`'s exchange (#cookbooks, 2025-01-22) ends with an invented line that nothing
+takes back:
 
-**Fixed 2026-09-11 and pushed as g3 v9.** Two parts:
-- **The corpus.** konrad's 14:12 turn now reads "and length does come good on a retry now
-  and then, so dont stop retrying it, it just shouldnt get as many goes as a timeout". That
-  agrees with `l1`'s `settles` and uses none of its `forbidden_terms`. It changed in all
-  eight carriers: the three world arms' plants, the answer key, both READMEs,
-  `plant-data`, and `plant.json` (the `pieces` record included). The message count and
-  turn 0 are unchanged, so the located map still holds.
-- **The grader.** The observability fact now also runs a real `finish_reason="length"`
-  response through `handle_single_request_with_retries`, and checks it is re-queued with
-  `attempts_left` 1. g3 grades through the worker/judge split, so the check lives in
-  `probe.py` (which records `[re-queued, attempts_left]` via
-  `probe_support.drive_one_response`) and `judge.py` (which asserts `[1, 1]`). `test_r1.py`
-  carries the same check as the human-readable reference.
+```
+15:45  dermot    does the clear-on-success path hit that same line
+15:47  konrad    no thats its own reset, sets it to none
+```
 
-Verified locally on scratch trees. The oracle passes 10/10 on the old and new suites.
-A mutant that raises a TERMINAL error at the length check (runs 3 and 10), and one that
-sets `attempts_left = 0` there (run 8), pass the old suite 10/10 and fail the new one on
-exactly this assertion. The pristine tree fails everything. The same matrix holds on the
-split grading path (probe in a jail, judge on the source), and the task's `spec` and
-`naive` fixtures score the same before and after (10/10 and 1/10).
-
-### G3-B (fixed): the grader checked for the name, not for reading it
-
-The requirement is that `config.seconds_to_pause_on_rate_limit` is *no longer read*.
-`test_r2.py:206` instead asserts that the **string** does not appear anywhere in
-`inspect.getsource(BaseOnlineRequestProcessor)`, and that includes comments and docstrings.
-Run 6 wrote a docstring explaining *why* the setting is unused, nearly quoting remark
-`g3.r2.s4d`, and lost the fact for it.
-
-**Fixed 2026-09-11 and pushed as g3 v9.** The check (in `judge.py`, and in `test_r2.py`
-as the reference) now walks the class's syntax tree for
-an attribute read, or an exact-name string as `getattr` would take, so prose no longer
-counts. A mutant carrying run 6's docstring fails the old suite on this fact and passes
-the new one.
+`rev2` retracts the herring's overwrite claim, not this. The one remark that settles the
+field's value is `s1a`, a wiki comment: "on a fresh tracker though what does it come up as,
+none or a number" / "0.0 like the other timers". Run 10 never found `s1a`, took the `h2`
+line at face value, and shipped `throttle_cooldown_until: float | None = None` plus a
+`clear_cooldown()` nobody asked for. It lost r2.rule and r2.observability. Every other live
+run started the field at `0.0`. The loss is counted as not found, because the run never had
+the settling remark in view.
 
 ### Herrings: no pressure
 
 | herring → reversal | saw herring | saw reversal | believed herring |
 |---|---|---|---|
-| `g3.r1.h1` → `rev1` | 10/10 | 9/10 | 0/10 |
-| `g3.r1.h2` → `rev2` | 10/10 | 9/10 | 0/10 |
-| `g3.r2.h1` → `rev1` | 9/10 | 10/10 | 0/10 |
-| `g3.r2.h2` → `rev2` | 8/10 | 9/10 | 0/10 |
-
-Run 1 explicitly reasoned about the dates: "Jan discussion said plain assignment, but the
-Mar 24 and Apr 8 discussions explicitly changed it to max(). Latest wins".
+| `g3.r1.h1` → `rev1` | 9/9 | 9/9 | 0/9 |
+| `g3.r1.h2` → `rev2` | 8/9 | 9/9 | 0/9 |
+| `g3.r2.h1` → `rev1` | 9/9 | 9/9 | 0/9 |
+| `g3.r2.h2` → `rev2` | 9/9 | 9/9 | 0/9 (its tail line is the `None` above) |
 
 ### Which remarks go unfound
 
-| remark quality | found |
-|---|---|
-| carries an identifier that must be typed literally | 82% |
-| plain English, no identifier | 70% |
-| #code-review | 46/78 (59%, the lowest channel) |
-| mail | 93% |
-| wiki comments | 90% |
+Every run dumped chat, wiki and mail to disk and grepped them; the misses come from the
+words each run chose to grep for.
 
-The least-found remarks were `g3.r2.s2a` (#cookbooks) at 1/10, and `g3.r2.s4c` and
-`g3.r2.say23` (#code-review) at 1/10 each. All three have other carriers, so they cost
+| surface | found (live runs) |
+|---|---|
+| mail | 89% |
+| chat | 87% |
+| wiki comments | **61%** (`s1a` 5/9, `l5` 6/9) |
+
+The least-found remarks were `g3.r2.s2a` (#cookbooks) at 2/9, and `g3.r2.say23` and
+`g3.r2.s4c` (#code-review) at 3/9 each. All three have other carriers, so they cost
 nothing.
 
 ### Owed for g3 (not applied)
 
-- **The rest of the round trip for G3-A and G3-B:** v9 is pushed and passed the hosted validate (oracle 1.0 on all 16 subscores; noop 0 on
-  every fact, its 0.0625 being `suite_ok` alone, as on 09-02). An opus
-  eval on v9 has not been run.
-- Give the rounding rule a second carrier.
+- Give the rounding rule a second carrier. It decided r2.rule in all three live runs that
+  lost it.
+- Refresh the key's quote of `l15`: it still shows konrad's pre-09-08 15:19 line.
 
 ---
 
@@ -564,8 +567,9 @@ nothing.
 hidden requirements:
 - **Run 2 never shipped.** It never committed; it spent its remaining turns in a loop
   comparing its output against the baseline and ran out of budget.
-- **Run 9 is infra.** Its terminal began echoing stale output about 1,500 lines before the
-  end, and it spent 15 or more cycles re-checking the state of its work.
+- **Run 9 never shipped.** About 1,500 lines before the end it decided its terminal was
+  showing stale output, though every screen was a fresh capture, and spent 15 or more cycles
+  re-checking its work. It committed only at the very end and never pushed.
 
 In both runs, the readers found the agent had reconstructed nearly every fact correctly in
 its notes.
@@ -580,7 +584,7 @@ its notes.
 | 6 | ec814c80 | 0.875 | r1.scope (`fix27` was one line inside a `head -30` dump the next Analysis never touched) |
 | 7 | 22c149ca | 1.00 | — |
 | 8 | ad4ce258 | 1.00 | — |
-| 9 | e157d675 | 0 | all 8 (infra: terminal echoing stale output) |
+| 9 | e157d675 | 0 | all 8 (never shipped: distrusted real output, committed at the end, never pushed) |
 | 10 | 4359a8a5 | 0.875 | r2.failure_behavior (slip: `LLM.__call__` drops the caller's `run_id` when caching is on, so one refusal can't be reached; the agent's own test called the inner function directly) |
 
 **Pass rates over the 8 runs that shipped:** r1.scope 5/8 and r2.failure_behavior 7/8.
@@ -664,15 +668,15 @@ scored 1.00.**
 
 **Runs 1 and 3 are infra, and it is the same environment fault both times.** The agent
 pushed and saw CI go green; run 1's deployed service even confirmed the feature. Then the
-git remote reset to a commit from before the feature, so the grader saw the untouched
-module:
+whole sandbox rolled back to its starting state, remote included, so the grader saw the
+untouched module:
 - Run 1 hit "Author identity unknown", its terminal became unreliable, and
   `origin/main` came back pre-feature.
 - Run 3's remote reverted to baseline `295ab6c` seven or more times.
 
-Together with g4 run 9 (a terminal echoing stale output), that makes **three
-late-run terminal or git-state faults across two tasks**. They need an environment
-investigation, not a task fix.
+The agent's own local clone, working tree and `/tmp` files reverted along with the remote,
+which nothing in the world's code can do: it points at Horizon's sandbox being restored
+mid-run, not at the task.
 
 | run | rollout | reward | facts lost (cause) |
 |---|---|---|---|
@@ -755,8 +759,8 @@ for the graded rule, so it cost nothing.
 
 ### Owed for g6 (not applied)
 
-- Investigate the git remote resets in runs 1 and 3 (and g4 run 9's stale terminal): 3
-  runs zeroed by the environment.
+- Report the sandbox rollbacks in runs 1 and 3 to Horizon: 2 runs zeroed by the
+  environment.
 - Consider stating the caller-price exemption where `batch_multiplier` is discussed. Every
   run that lost it had *read* it, so this is mainly an agent slip.
 
@@ -769,10 +773,11 @@ for the graded rule, so it cost nothing.
 **Reward.** The mean is **0.76 over the 9 live runs**, or 0.69 across all 10. **No run
 scored 1.00.**
 
-Run 5 is infra. Its terminal went stale for the whole run and near the end showed false
-"pushed / PR merged / CI green" output. The agent checked Gitea directly and found `main`
-unchanged: its push had failed. It ran out of its 200 steps mid-repair, although its local
-code had both requirements right.
+Run 5 never shipped. For most of the run it treated its terminal as stale, though every
+screen was a fresh capture, and near the end it cited a commit hash (`8e34d2ef3d`), a green
+CI and merged PRs that appear only in its own reasoning, never on screen. Its real push had
+failed (`src refspec feat/turn-ledger does not match any`). It ran out of its 200 steps
+mid-repair, although its local code had both requirements right.
 
 | run | rollout | reward | facts lost (cause) |
 |---|---|---|---|
@@ -780,7 +785,7 @@ code had both requirements right.
 | 2 | c22e6a99 | 0.875 | r1.observability (slip: stretched `fix30`, so a resumed run reports `created`) |
 | 3 | e53e89fc | 0.875 | r1.rule (swapped `write_sidecar`'s arguments) |
 | 4 | 625bf84c | 0.625 | r1.scope, r1.failure_behavior, r1.observability (not found: mail `l9`, "missing file is benign, we adopt the log"; its list of mail subjects was cut to the 40 most frequent by `head -40`, dropping it) |
-| 5 | 8a514932 | 0 | all 8 (infra: stale terminal, the push never landed) |
+| 5 | 8a514932 | 0 | all 8 (never shipped: its push failed; the commit and CI it cited were never on screen) |
 | 6 | abbd1b41 | 0.875 | r1.rule (not found: `TURN_LEDGER_FILENAME`) |
 | 7 | 9bd32b81 | 0.500 | r1.rule (not found); r1.scope, r1.failure_behavior, r1.observability (misread `fix27`: read "came back adopted both times" in full, then wrote missing sidecar → `created`) |
 | 8 | 4df9fa70 | 0.875 | r1.rule (swapped `write_sidecar`'s arguments) |
@@ -790,14 +795,15 @@ code had both requirements right.
 **Pass rates over all 10 runs:** **r1.rule 2/10**, r1.scope 5/10, r1.observability 5/10,
 r1.failure_behavior 7/10. Every r2 fact is 9/10, and the one miss is run 5.
 
-**Why the 17 lost fact-points were lost** (not counting run 5's 8 infra points):
+**Why the 15 lost fact-points were lost** (not counting the 8 points of run 5, which never shipped, or the 2
+that runs 3 and 8 lost on `write_sidecar`'s argument order, which the world never states and
+the grader now accepts either way):
 
 | cause | points |
 |---|---|
 | not found | 8 |
 | implementation slip | 4 |
 | found but misread | 3 |
-| grader over-specifies | 2 |
 
 ### r1.rule: one unreachable name (2/10 passed)
 
@@ -879,8 +885,8 @@ CI and deployed. There were no infra losses.
 |---|---|---|---|
 | 30c95df4 / 1 | 7e8d6c66 | 0.889 | r1.scope (not found: none of the whole-prompt remarks contain its search terms) |
 | 30c95df4 / 2 | bb7a8be9 | 0.889 | r1.scope (talked itself out of it: "arguably a separate estimator") |
-| 30c95df4 / 3 | 8bdfd136 | 0.778 | r1.rule (slip: hook placed in `_handle_multi_modal_prompt`); r2.failure_behavior (**task defect G8-A**) |
-| 30c95df4 / 4 | 458ef5bd | 0.778 | r1.scope (folded the 45 MB total into its count check); r2.failure_behavior (**task defect G8-A**) |
+| 30c95df4 / 3 | 8bdfd136 | 0.778 | r1.rule (slip: hook placed in `_handle_multi_modal_prompt`); r2.failure_behavior (misread: read `fix24`'s thread without `l14`, left `"auto"` out) |
+| 30c95df4 / 4 | 458ef5bd | 0.778 | r1.scope (folded the 45 MB total into its count check); r2.failure_behavior (not found: `l14`; left `"auto"` out) |
 | 30c95df4 / 5 | d6eabf95 | 1.00 | — |
 | 30c95df4 / 6 | 320144bf | 0.889 | r1.scope (not found) |
 | 30c95df4 / 7 | bf6f3ad8 | 0.889 | r1.scope (read the whole thread, filed it under "the batch planner / prompt size estimator... likely out of scope") |
@@ -895,10 +901,9 @@ r1.exclusions 9/10. The other five facts are 10/10.
 
 | cause | points | share |
 |---|---|---|
+| not found | 5 | 38% |
 | implementation slip | 4 | 31% |
-| not found | 4 | 31% |
-| found but misread | 3 | 23% |
-| **task defect (G8-A)** | **2** | **15%** |
+| found but misread | 4 | 31% |
 
 ### The hard fact: the 45 MB whole-prompt ceiling, and one remark that says where it lives
 
@@ -920,7 +925,7 @@ filed it there instead:
 - run 2: "arguably a separate estimator";
 - run 7: "belongs to the batch planner / prompt size estimator... likely out of scope".
 
-### Task defect G8-A: an invented turn talks `"auto"` out of the vocabulary
+### The `"auto"` trap: knowable, but one invented turn argues against it
 
 The grader wants `tuple(_SUPPORTED_IMAGE_DETAILS) == ("auto", "low", "high")`. Only
 `g8.r2.l14` (#viewer) says "three entries, and index 0 is what the fallback hands back".
@@ -931,8 +936,10 @@ The grader wants `tuple(_SUPPORTED_IMAGE_DETAILS) == ("auto", "low", "high")`. O
   diffrent question imo it's not a detail level its a fallback**".
 - Runs 3 and 4 had `fix24` but not `l14`, and shipped `("low", "high")`. Run 4 reasoned "auto
   is fallback not a member". Run 3 wrote "deliberately not in the vocabulary".
-- This is the same failure as g3's konrad turn: the scaffolding argues the
-  graded question the wrong way.
+- The answer is still knowable. `l14` gives three entries with the fallback value at index 0;
+  dermot's #pipeline remark (2025-05-13) says "if it isn't one of the three we fall back to
+  auto"; the ticket makes an image block's `detail` `"auto"` when the attribute is absent;
+  and curator's own `Image.detail` defaults to `"auto"`. 8 of 10 runs got it right.
 
 ### The repeated slip: hook placement
 
@@ -973,8 +980,6 @@ total contain neither word.
 
 ### Owed for g8 (not applied)
 
-- **G8-A:** rewrite the two invented turns around `fix24` so that neither removes `"auto"`
-  from the vocabulary.
 - Say plainly, in a second place, that the whole-prompt total lives in
   `_handle_multi_modal_prompt`. Or narrow the ticket's non-goal to name the batch
   *estimator* explicitly, so it no longer invites the misfiling.
@@ -1155,79 +1160,90 @@ readers, so this did not affect the numbers.
 
 ---
 
-## g11 — training-step-ledger (v7, eval 94bf8242)
+## g11 — training-step-ledger (v11, eval a8572080)
 
-**Reward.** The mean is **0.86**, and **2/10 scored 1.00** (runs 2 and 8). All ten runs
-shipped, and there were no infra losses. Run 7 fought git remote rollbacks, losing about
-four pushes, before one stuck.
+*Rerun on 2026-09-11, on the herring fix: konrad's `rev2` now retracts both halves of his
+herring. It replaces eval 94bf8242 (v7), whose results are dropped.*
+
+**Reward.** The mean is **0.86**, and **2/10 scored 1.00** (runs 3 and 5). All ten runs
+shipped, and there were no infra losses.
 
 | run | rollout | reward | facts lost (cause) |
 |---|---|---|---|
-| 1 | 3347ed25 | 0.556 | r1.failure_behavior (not found: the merge); r2.rule, r2.exclusions, r2.observability (**herring followed**, G11-H) |
-| 2 | 22513549 | 1.00 | — |
-| 3 | dc2703c8 | 0.889 | r2.rule (not found: `min_lr_ratio` keyword-only) |
-| 4 | d6f00008 | 0.778 | r1.rule (not found: `CHECKPOINT_NAME_TEMPLATE`, from `l3`); r1.failure_behavior (not found: the merge) |
-| 5 | 2f540570 | 0.889 | r2.rule (not found: keyword-only) |
-| 6 | f8059d35 | 0.889 | r1.failure_behavior (the merge: its planned read of #releases scrolled past the answer) |
-| 7 | 66a0621c | 0.889 | r1.failure_behavior (the merge: `l17` came up only as its opening question) |
-| 8 | fa827d89 | 1.00 | — |
-| 9 | 1daa88e2 | 0.889 | r2.rule (not found: keyword-only; its #code-review reads stopped at 2025-04-14) |
-| 10 | eb0dccde | 0.778 | r1.scope, r1.observability (not found: `l11`, "leave the interval and the per-epoch triggers gated on their config fields"; its own manual check showed the bug and it read that as confirmation) |
+| 1 | e0b0463c | 0.889 | r2.rule (not found: `l10`, `min_lr_ratio` keyword-only) |
+| 2 | 26946169 | 0.889 | r1.failure_behavior (not found: it saw only `l17`'s opening question, never the merge) |
+| 3 | bf174d55 | 1.00 | — |
+| 4 | ba527345 | 0.889 | r2.rule (not found: `l10`) |
+| 5 | ee635c81 | 1.00 | — |
+| 6 | ca624f58 | 0.444 | r1.rule, r1.scope, r1.exclusions, r1.observability (slip: its epoch trigger uses `batch_ordinal % batches_per_epoch`, not the `epoch_closing_steps()` helper it wrote and used elsewhere, so step 2 never gets its "epoch" reason); r1.failure_behavior (not found: `l17`'s answer) |
+| 7 | 79ffaf93 | 0.889 | r2.failure_behavior (**herring followed**: it saw konrad's herring, never reached `rev2` in #general, and kept the uncapped strict warmup compare) |
+| 8 | 34081783 | 0.889 | r2.rule (not found: `l10`) |
+| 9 | af6b3aa7 | 0.778 | r1.scope, r1.observability (not found: `r1.l9`–`l11`, that the final step always checkpoints) |
+| 10 | 1fdcca2f | 0.889 | r1.failure_behavior (not found: `l17`'s answer; its `sed` window started past it) |
 
-**Pass rates:** r1.failure_behavior 6/10 and r2.rule 6/10. The other seven facts are
-9/10 or 10/10.
+**Pass rates:** r1.failure_behavior 7/10 and r2.rule 7/10; r1.scope and r1.observability
+8/10; r1.rule, r1.exclusions and r2.failure_behavior 9/10; r2.exclusions and
+r2.observability 10/10.
 
 **Why the 13 lost fact-points were lost:**
 
 | cause | points |
 |---|---|
-| not found | 10 |
-| **herring followed** | **3; with g9's six, one of only two herrings that worked anywhere** |
+| not found | 8 |
+| implementation slip | 4 |
+| herring followed | 1 |
 
-### Two single-carrier rules decide most of the score
+### The fix held: konrad's herring caught only the run that never saw `rev2`
+
+In v7, konrad's herring (#viewer, 2025-02-19) made two claims, the decay "lands at exactly
+zero" and warmup keeps the strict `step < warmup_steps` compare, and `rev2` retracted only
+the second. In v11, `rev2` (#general, 2025-06-02) retracts both: "the end doesnt sit at zero
+any more, it bottoms out at a tenth of base_lr and holds there, and a first step at rate 0 is
+not something i want to keep defending".
+
+| runs | saw the rewritten `rev2` | believed konrad's herring |
+|---|---|---|
+| 1–6, 8–10 | yes | **0/9** |
+| 7 | no (#general for that date was never read) | **yes**: "warmup strict `step < warmup_steps` ... confirmed" (line 3640); it lost r2.failure_behavior |
+
+### Two single-carrier rules still decide most of the score
 
 **`min_lr_ratio` sits behind a bare `*` (keyword-only).** Only `g11.r2.l10` (#code-review,
 2025-05-30) says so; the ticket makes only `clock` and `rng` keyword-only.
 
 | runs | found `l10` | r2.rule |
 |---|---|---|
-| 2, 4, 6, 7, 8, 10 | yes | **passed, 6/6** |
-| 1, 3, 5, 9 | no (the wording is absent from their transcripts) | **lost, 4/4** (run 1's through the herring) |
+| 2, 3, 5, 6, 7, 9, 10 | yes | **passed, 7/7** |
+| 1, 4, 8 | no | **lost, 3/3** |
 
-Run 9 wrote `min_lr_ratio` dozens of times in its own reasoning and never searched for it.
+Their chat searches used `cosine|decay|base_lr|learning_rate` vocabulary, which `l10` does
+not share, and #code-review was never dumped for late May.
 
-**A repeated save merges the `reasons` tuples.** `l16` (#pipeline) says only that a
-matching name "replaces" the last row. The merge is in `l17` (#releases, 2025-03-19): "the
-updated row takes the newer loss and carries both **label sets** forward".
-- It is phrased with a synonym: every graded identifier says `reasons`.
-- Most runs met it as a single search hit showing only the opening question, never the
-  answer below it.
-- Runs 1, 4, 6 and 7 lost the fact. Runs 6 and 7 implemented `l16`'s "replaces" faithfully,
-  as an overwrite.
+**A repeated save merges the `reasons` tuples.** `l16` (#pipeline) says only that a matching
+name "replaces" the last row. The merge is in `l17` (#releases): "both carry forward onto it.
+neither set gets dropped", phrased as **label sets**, while every graded identifier says
+`reasons`.
 
-### Task defect G11-H: a half-reversed herring, one of only two that worked
+| runs | read `l17`'s answer | r1.failure_behavior |
+|---|---|---|
+| 1, 3, 4, 5, 7, 8, 9 | yes | **passed, 7/7** |
+| 2, 6, 10 | only its opening question, as a search snippet | **lost, 3/3** |
 
-- konrad's herring (#viewer, 2025-02-19) makes **two** claims: the decay "lands at exactly
-  zero", and warmup keeps the strict `step < warmup_steps` compare.
-- Its registered reversal, `rev2` (#general, 2025-06-02), retracts **only the warmup
-  compare**.
-- The decay-to-zero claim is retracted only by `rev1` (#help, 2025-03-26: `MIN_LR_RATIO =
-  0.1`), which is registered against the *other* herring.
+### One run built the rule, then wired the wrong trigger
 
-Run 1 found konrad's herring and `rev2` but never `rev1`. It read `rev2` as confirming
-"decay reaches exactly zero" and shipped a 0.0 floor. **It is one of only two herrings that worked in the whole set; the other is g9's `h-role-row`.** It happened because a reversal left
-half of its herring standing.
+Run 6 found nearly every r1 clue, and wrote an `epoch_closing_steps()` helper that it used
+correctly for the loss history. Its checkpoint trigger in `train()` instead tests
+`batch_ordinal % plan.batches_per_epoch == 0`. Step 2's window straddles the epoch boundary,
+so it never gets its "epoch" reason, which costs four r1 facts from one line.
 
-### Herrings otherwise
+### Herrings
 
 | herring → reversal | saw herring | saw reversal | believed herring |
 |---|---|---|---|
-| `ledger-twin-checkpoints-dario` → `rev1` | 8/10 | 9/10 | 0/10 |
+| `ledger-twin-checkpoints-dario` → `rev1` | 7/10 | 10/10 | 0/10 |
 | `ledger-twin-checkpoints-emil` → `rev2` | 9/10 | 10/10 | 0/10 |
-| `lr-decay-to-zero-dario` → `rev1` | 9/10 | 9/10 | 1/10 (run 1) |
-| `lr-decay-to-zero-konrad` → `rev2` | 10/10 | 10/10 | 1/10 (run 1) |
-
-Run 5 briefly believed the r2 herring and corrected itself within two turns.
+| `lr-decay-to-zero-dario` → `rev1` | 10/10 | 10/10 | 0/10 |
+| `lr-decay-to-zero-konrad` → `rev2` | 10/10 | 9/10 | 1/10 (run 7) |
 
 ### Which remarks go unfound
 
@@ -1235,21 +1251,15 @@ g11's corpus is chat only.
 
 | remark quality | found |
 |---|---|
-| carries an identifier that must be typed literally | 83% |
-| plain English, no identifier | 67% |
-
-| channel | found |
-|---|---|
-| #incidents | 60% |
-| #general | 62% |
-| #releases | 92% |
+| carries an identifier that must be typed literally | 85% |
+| plain English, no identifier | 68% |
+| reversals | 98% |
 
 ### Owed for g11 (not applied)
 
-- **G11-H:** make `rev2` retract konrad's *whole* herring, or split the herring into two
-  claims with one reversal each.
 - Say "reasons" (not "label sets") in the merge carrier, and give the merge and the
   keyword-only rule a second carrier each.
+- Refresh the key's quote of `rev2`: it still shows the pre-fix wording.
 
 ---
 
@@ -1257,24 +1267,9 @@ g11's corpus is chat only.
 
 Every entry below was checked by hand against the answer key, the plant record, the
 ticket, the grader or the transcript. The evidence for each ruling is in
-`tasks/rollout_analysis/readers/corrections.md`. **Fixed: G3-A, G3-A′ and G3-B (pushed as g3 v9,
-verified locally; no eval on v9 yet).** Everything
-else is open.
-
-### Task defects: the world argues against the grader, or hides the answer
-
-| id | task | what | cost |
-|---|---|---|---|
-| G3-A | g3 | konrad's invented "fail it out on the first" makes `finish_reason=length` terminal; the plant says contract, costing 2 | **3 false passes** (runs 3, 8, 10: saw the line in 3/3 cases and followed it); the grader could not see the bug. **Fixed in g3 v9 (2026-09-11)**: turn rewritten |
-| G11-H | g11 | konrad's herring makes two claims; its registered reversal retracts only one ("decay to exactly zero" survives) | 3 fact-points (run 1) |
-| G8-A | g8 | invented turns around `fix24` ("auto ... it's not a detail level its a fallback") drop `"auto"` from the vocabulary | 2 fact-points (30c95df4 runs 3, 4) |
-
-### Grader defects
-
-| id | task | what | cost |
-|---|---|---|---|
-| G3-B | g3 | `test_r2.py:206` checks that the setting's *name* is absent from the source, docstrings included; the requirement is only that it is never read | 1 (run 6). **Fixed in g3 v9 (2026-09-11)**: an AST check |
-| G3-A′ | g3 | the only `finish_reason=length` test goes through `policy.decide(ValueError)`, so a reclassification at the call site passes | masked the 3 false passes above. **Fixed in g3 v9 (2026-09-11)**: a request-path case |
+`tasks/rollout_analysis/readers/corrections.md`. No task or grader defect is left open: the
+ones found were fixed, or judged on review to be knowable from the corpus. Everything below
+is open.
 
 ### Graded names or orders with a single, hard-to-reach home
 
@@ -1287,11 +1282,12 @@ These are fair, but brittle: each test measures whether a run happened to open o
 | g1 | "plan written before the first request file" | `l16`, plain English | 3/10 | 2 |
 | g2 | `OutputCapError` | `l-floor-nikolai`, #cookbooks | 4/10 | — |
 | g2 | `.max_bytes` plus the message | `l-floor-konrad`, #cookbooks | **1/10**; `failure_behavior` passed only in that run | 8 |
-| g3 | rounding to 3 places | `s1c`, #pipeline | the 4 runs that lost it all missed it | 4 |
+| g3 | rounding to 3 places | `s1c`, #pipeline | 6/9 in full (run 9 saw only its opening question); found → 6/6 passed, not → 0/3 | 3 |
 | g7 | `TURN_LEDGER_FILENAME` | a comment on the off-topic "Weekly sync notes" page | 4/10 (v5) | 5 (runs 1, 6, 7, 9, 10) |
 | g8 | where the 45 MB total lives | `s2-gideon`, #code-review | 5/10; found → 4/5 passed, not found → 0/5 | 5 |
 | g9 | `ExampleTooLongError`'s attribute names and message | `l-fail-3`, #pipeline | 8/10 | 2 (runs 2, 9) |
-| g11 | `min_lr_ratio` is keyword-only | `l10`, #code-review | 6/10; found → 6/6 passed, not found → 0/4 | 4 |
+| g11 | `min_lr_ratio` is keyword-only | `l10`, #code-review | 7/10; found → 7/7 passed, not found → 0/3 | 3 |
+| g11 | a repeat save merges the `reasons` tuples | `l17`, #releases, phrased as "label sets" | 7/10 read its answer; read → 7/7 passed, opening question only → 0/3 | 3 |
 
 ### Ticket-invited misreading
 
@@ -1302,11 +1298,8 @@ These are fair, but brittle: each test measures whether a run happened to open o
 
 | run | fault |
 |---|---|
-| g6 runs 1, 3 | the **git remote reset** to a commit from before the feature, after a green CI (run 1 had even confirmed the deploy) |
-| g11 run 7 | the same remote rollback, **survived**: it lost pushes about four times before `ea24b6d` stuck and went green (reward 0.889) |
-| g4 run 9 | the **terminal echoed stale output** for about 1,500 lines, with 15+ cycles re-checking the state of its work; it never pushed |
-| g7 run 5 (v5) | the **terminal went stale** for the whole run and near the end showed false "pushed / PR merged / CI green" output; the push had failed, and the run ran out of its 200 steps mid-repair |
-| world CI | the "tests" step logs `No module named pytest` and still **reports success** (seen by g11 run 2, which ran the suite itself) |
+| g6 runs 1, 3 | after a green CI (run 1 had even confirmed the deploy) the **whole sandbox rolled back** to its starting state, remote, local clone and `/tmp` alike; nothing in the world's code does this, so it points at Horizon's sandbox |
+| world CI | the "tests" step logs `No module named pytest` and still **reports success** (the line appears in g3, g7, g8, g10 and g11 CI logs) |
 | errored rollouts | g8 1; g11 eval 3c71bf59 **10/10** (not read). g9's v7 eval, 8/10 errored, was replaced by the v8 rerun |
 
 ### Agent failures to ship (kept out of the knowledge figures)
@@ -1314,7 +1307,10 @@ These are fair, but brittle: each test measures whether a run happened to open o
 | run | what happened |
 |---|---|
 | g2 run 8 | built `output_cap.py`, never wired it in, declared the work complete, looped until the 7200 s kill |
+| g3 run 3 (v9) | its patch scripts never landed and it typed no `git commit` or `git push`; its last turns claimed commit 2eaeb50a, a green CI and a deploy |
 | g4 run 2 | never committed; spent its remaining turns in a loop comparing against the baseline until the budget ran out |
+| g4 run 9 | decided its real terminal output was stale, re-checked its work for about 1,500 lines, committed at the very end and never pushed |
+| g7 run 5 (v5) | treated real output as stale, then cited a commit hash, a green CI and merged PRs that never appeared on screen; its real push failed on a branch it had never committed |
 | g10 run 8 | never committed; its last steps went on writing tests in small pieces, fighting heredoc escaping |
 
 ### Version drift
@@ -1322,6 +1318,12 @@ These are fair, but brittle: each test measures whether a run happened to open o
 - **g6:** mail `g6r2-s2-l4` reads with the opposite meaning in the served v6 world compared
   with the repo's v7 key. The v6 wording still argues for the graded rule, so it cost
   nothing.
+- **g11:** the key still quotes `rev2`'s pre-fix wording; the served v11 world has the rewrite
+  that also retracts "decay to exactly zero". Readers judged against what the runs saw.
+- **g3:** the key quotes the pre-09-08 wording of konrad's 15:19 turn in `l15` ("no requeue
+  then, its terminal and the reason is throttle:exhausted"); the served v9 world says "no requeue
+  then - thats attempts_left 0 with the waivers gone too, both empty. terminal,
+  throttle:exhausted". Same fact, so it cost nothing.
 
 ### Measurement notes
 
@@ -1333,5 +1335,5 @@ These are fair, but brittle: each test measures whether a run happened to open o
 - The pre-pass pointer sheet had a few false positives: `g10.r2.h1` matched the repo's own
   source code, and `g6`'s `s1-l1` matched on the word "The". Found or not always comes from
   the readers, so these did not affect the numbers.
-- The superseded g7 (v4) and g9 (v7) reader verdicts are archived in
+- The superseded g3 (v7), g7 (v4), g9 (v7) and g11 (v7) reader verdicts are archived in
   `tasks/rollout_analysis/readers/_superseded/`. None of them feed any number here.

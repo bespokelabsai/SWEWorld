@@ -25,6 +25,21 @@ RUN pip install --no-cache-dir --ignore-installed Pillow
 # hosted round trips before the ImportError above was found.
 RUN python3 -c "import datasets, pydantic, PIL, PIL._imaging, pytest; print('deps ok')"
 
+# The same switch CONFTEST and GRADER already set, extended to the AGENT's shell.
+#
+# Both of those set `CURATOR_DISABLE_RICH_DISPLAY` before curator is imported,
+# because `curator/log.py` reads it at import time -- but only for the grading
+# side. The agent inherited nothing, so constructing a status tracker started a
+# rich/tqdm live display in a non-TTY container and wedged its shell: it sends
+# `echo ok`, `pwd`, `ls`, gets nothing back for the rest of the rollout, and then
+# reports the task complete unverified. Three of twelve blind rollouts of g7 died
+# that way, both of its opus runs among them -- and an agent cannot avoid it when
+# the thing it is implementing IS a tracker.
+#
+# It conveys nothing about any requirement and every arm carries it identically,
+# so it cannot advantage one reading of a ticket over another.
+ENV CURATOR_DISABLE_RICH_DISPLAY=1
+
 # The tree the agent works in.
 COPY ./tests/curator-src.tar.gz /tmp/curator-src.tar.gz
 RUN mkdir -p /workdir/curator \

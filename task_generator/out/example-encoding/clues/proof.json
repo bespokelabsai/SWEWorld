@@ -1,0 +1,90 @@
+{
+ "slug": "example-encoding",
+ "task": "g9",
+ "runs": 3,
+ "source": "remarks",
+ "facts": {
+  "g9.open_feature": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g9.r1.exclusions_or_crossover": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g9.r1.failure_behavior": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g9.r1.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g9.r1.scope": {
+   "passed": false,
+   "per_run": [
+    true,
+    true,
+    false
+   ],
+   "rate": "2/3",
+   "why": "bespokelabs.curator.finetune.encoding.ExampleTooLongError: example of 91 tokens exceeds ..."
+  },
+  "g9.r2.failure_behavior": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g9.r2.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g9.r2.scope": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  }
+ },
+ "passed": 7,
+ "total": 8
+}

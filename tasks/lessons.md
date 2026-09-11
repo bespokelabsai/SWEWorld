@@ -986,6 +986,166 @@ Five of the ten requirements across g2/g3/g4/g6 have no `failure_behavior`, and
 g6.r1 has only three of the five. **Read the suite's test count, not the key's
 boilerplate, before reasoning about what a score means.**
 
+## A backtick guard that cannot see a fence parks healthy tasks
+
+`fleet/worker.py:reformat_ticket` protects a real invariant — a reformat must not
+drop a backticked span, because any of them may be a graded identifier. It checked
+it with `re.findall(r"`[^`]+`", text)`, which pairs backticks left to right and has
+no idea what a fenced code block is. A ticket containing ```` ```python ```` throws
+the pairing off by three, so every "span" after the fence is the PROSE BETWEEN two
+identifiers rather than an identifier.
+
+g13 parked on exactly this: six "dropped spans" reading `` ` does not read it. ` ``
+and `` `). Use ` ``. None was a name. The cut underneath was healthy — the judge had
+already said "No leak and no defect" — and the run stopped anyway.
+
+Measured before trusting the fix, which is this repo's rule for any detector: on the
+nine tickets with no fence, old and new span extraction are byte-identical (209/209,
+196/196, 74/74, …), so the change is a strict no-op on everything that shipped. On
+the three fenced tickets the junk collapses — 39→2, 33→6, 23→7.
+
+The fix strips fenced blocks before extracting inline spans, and then checks the
+fenced blocks in their own right, because their content is graded text too and
+excluding them from the first check must not make dropping one invisible.
+
+**The general form:** a guard that reports a violation nobody can act on is worse
+than no guard, because it stops good work. When a guard fires, read the thing it
+claims was lost. If it is prose, the guard is broken, not the artifact.
+
+## A tight bullet list is not a wall of text
+
+`steps.unstructured()` flags a ticket whose longest paragraph runs past 600
+characters, splitting on `\n\s*\n`. A markdown bullet list with no blank lines
+between items is ONE paragraph to that regex. g13's flagged "940-character
+paragraph" was four bullet lines; g12's "1463" was the same shape. Both tickets
+carried 33 and 28 heading/bullet lines respectively — they were already the
+structured markdown the message asks for.
+
+It is advisory feedback, not a gate, and g12's judge read it correctly and carried
+on. g13's judge acted on it, and the reformat it ordered is what tripped the broken
+guard above. Two false positives stacked into a park.
+
+Before acting on `unstructured()`, print the block it is complaining about. If it is
+bullets, there is nothing to fix.
+
+## A ticket that promises what the image does not deliver (2026-09-09)
+
+Triaging two 0.07 rollouts in a g6 evaluation of ten turned up three defects, and
+all three are the same defect: `instruction.md` states something the environment
+does not provide, and nothing checks the two against each other.
+
+- *"Nothing is checked out for you. Clone it."* — and `useradd -m ubuntu` leaves a
+  bare home, so the agent's first `git commit` is `Author identity unknown`.
+- *"installed in the virtualenv at `$CURATOR_VENV`"* — and both world arms reach
+  that virtualenv through `COPY --from=...`, which copies **files, not the source
+  image's ENV**. The variable is empty and `$CURATOR_VENV/bin/python` expands to
+  `/bin/python`.
+- *"`$CURATOR_VENV/bin/pytest` will run the library and its tests"* — and curator's
+  `tests/conftest.py` imports `vcr` at module scope, which the venv does not have,
+  so the whole tree dies at collection.
+
+Each is survivable and nine of ten runs did survive them. What makes them worth
+fixing is **where** the cost lands: the git one is spent at the END, because
+committing is the last thing an agent does. Run 1 wrote the entire change, 18
+passing tests included, and hit the identity error at message 389 of a 401-message
+cap. `run_suites.py` grades a clean clone of pushed `main`, so a commit that never
+happens scores zero on the requirements too, not just on provenance. **Friction near
+a turn limit is not a small tax on the score, it is a coin flip on the whole run.**
+
+The `COPY --from` one is the one to remember mechanically: it is invisible in the
+Dockerfile, invisible in the ticket, and the arms it breaks are exactly the arms it
+does not appear in.
+
+**Check the plant before blaming it, and check the controls before blaming the
+suite.** `r2.exclusions_or_crossover` failed 6 of 8 pushed runs, which looks exactly
+like an over-specified test — and it is 1.00 in `spec`, in both `clues` runs and in
+`located`. The fact is recoverable and the test is fair; the spread is the search,
+which is what a world arm exists to measure. The controls are already paid for and
+they answer this in one command.
+
+Corollary that cost nothing here and could have cost a lot: regenerating `setup.sh`
+from the template pulled in four leak fixes the pushed g6 arm predated — the
+Mattermost import zip, the maddy store, `/opt/task-plant`, the plant log. Before
+believing the earlier numbers, grep the transcripts for those paths. None of the ten
+runs touched them, so the evaluation stands. **An arm pushed before a fix keeps
+running without it, silently; the emitted directory is the artifact, not the
+template.**
+
+## Dropping root did not stop the forgery it was reported for (2026-09-09)
+
+The report was exact: `run_suites.py` put the submission first on `PYTHONPATH`
+and spawned pytest as root, so a pushed `src/sitecustomize.py` ran as uid 0,
+rewrote `/tests/score.py`, and returned `reward.json` all 1.0 from a pristine
+tree. Reproduced before touching anything, which is the only reason the rest of
+this is measurable.
+
+The fix — drop to `nobody`, open `/tests` to the drop group read-only, take the
+submission off `PYTHONPATH` — killed that payload outright and left the oracle at
+1.00. Then the same pristine tree scored **1.0 again**, by a different route:
+
+    # bespokelabs/curator/__init__.py, which the grader MUST import
+    args = Path("/proc/self/cmdline").read_bytes().decode().split("\0")
+    out  = [a.split("=",1)[1] for a in args if a.startswith("--junit-xml=")]
+    ...rewrite it from an atexit hook with the real node ids read out of /tests
+
+Nine forged `<testcase>` elements, `reward: 1.0`. **A uid cannot fix this**, and
+the first version of my own summary said the drop "closes the reported forgery",
+which was wrong and would have been believed. The process that imports agent code
+is the process that writes the report; no permission bit separates them.
+
+Three things worth keeping:
+
+- **Verify the fix against the original exploit, then against a variant.** The
+  first payload dying proves the patch does what it says, not that the hole is
+  shut. The second payload is the one that tells you what you actually bought.
+- **A naive probe failing is not evidence.** My first forgery scored 0.0 — but
+  only because its fake `name=` did not match `score.py`'s `FUNC` regex, and an
+  earlier one had a shell-escaping SyntaxError so it never ran at all. Both
+  looked exactly like "the harness defended itself". Read the payload's own
+  marker file before believing a zero.
+- **State the boundary as what an attacker gains, not as what you changed.**
+  "Runs unprivileged" is not a security property. What the drop actually bought:
+  no root execution, no reading the planted corpus at `/opt/world-state`, no
+  persistence past the run, and `provenance.py` still unforgeable because it is a
+  separate root process reading Gitea and an `svc`-owned symlink. What it did not
+  buy: the score.
+
+## The score forgery closes with a worker/judge split, and the bracket proves it did no harm (2026-09-10)
+
+The gap the drop left — a `junit.xml` forged by the process that imports the
+submission — closes only by separating the two: `probe.py` (worker, nobody,
+imports curator, writes VALUES to observations.json) and `judge.py` (root, stdlib
+only, never imports curator, applies the assertions and writes junit STRAIGHT to
+root-owned /logs). A forged atexit/junit then has nothing to rewrite in the
+reporting process. g11 done; opt-in in `run_suites.py` on the suite shipping both
+files, so every other task is byte-identical.
+
+Two things made this safe rather than a rewrite of the grader's meaning:
+
+- **The judge emits the same `classname`/`name` as the old tests**, so `score.fold`
+  maps to the identical fact keys and `score.py`/`test.sh` need no change. The
+  "task" is the set of verdicts, and the invariant to protect is those verdicts —
+  not the test bodies. Proven by re-running the bracket through the new path:
+  pristine 0/10, naive open=1 rest 0, oracle 10/10, every hidden fact still
+  `hidden`. Byte-for-byte the pytest baseline.
+
+- **The proof needs BOTH directions.** Invariance alone (bracket unchanged) does
+  not show the hole is shut; a forge fixture (pristine tree + sitecustomize +
+  atexit junit-rewrite, implementing nothing) is what does — 1.0 under the old
+  pytest grader, 0.0 under the split, same tree. Run it before believing the fix,
+  exactly as the drop lesson above says.
+
+**Rule for myself:** to close an in-process forgery, move the verdict to a process
+that never imports the code — a uid cannot do it. To prove a grading change is
+verdict-preserving, replay the whole bracket through it and diff per fact; to prove
+it closed the hole, keep the exploit fixture and watch it drop to zero. Floats
+cross the observations JSON exactly (json uses repr), so `approx(rel=1e-12)` still
+means what it meant in-process.
+
+Kept `test_*.py` (unused by the split) for the fact↔test bijection and as the
+assertions' source of truth; probe/judge travel together in `_suites/`, so a
+rebuild can't ship one without the other and silently reopen the pytest fallback.
+
 ## Rollout analysis is reading transcripts against the answer key (2026-09-11)
 
 Asked to analyze g1-g11 lumen rollouts, I planned per-fact subscore tables plus a

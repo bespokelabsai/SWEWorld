@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P11",
+  "blind_alternative": "keeps no ledger at all (no `stats` attribute, no `RaftDrawStats` name), since nothing in the file counts anything and the realised rate is derivable from the emitted `oracle_present` column"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P11",
+  "blind_alternative": "if it counts anything, increments inside `parse` so the counters follow emitted rows \u2014 `document_sets=4, with_oracle=3` on the fixture"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P9",
+  "blind_alternative": "leaves the two-argument memo key `(chunk_id, oracle_document)` at `raft.py:109` untouched, so the coin stays per chunk and the second question on chunk 0 replays the first document set"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P9",
+  "blind_alternative": "keeps `maxsize=128` from `raft.py:109` (or drops the cache entirely, leaving no `cache_info`)"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P10",
+  "blind_alternative": "adds no exception type and lets `random.sample`'s own `ValueError(\"Sample larger than population or is negative\")` surface, as the code does today"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "validates lazily against the count the call actually needs, so `p=1.0` with three available distractors returns a normal `DocumentSet` and only the absent branch fails"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P12",
+  "blind_alternative": "validates nothing (the file validates nothing today), so `p=1.5` and `distractors=0` construct happily and `backend=\"nope\"` always wins the ordering probe"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P14",
+  "blind_alternative": "keeps `enumerate(text)` from `raft.py:218` verbatim, giving five documents with ids `[0, 1, 2, 3, 4]` including the three blanks"
+ }
+]

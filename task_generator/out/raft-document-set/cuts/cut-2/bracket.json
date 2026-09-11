@@ -1,0 +1,107 @@
+{
+ "task": "g13",
+ "suite": "g13_raft_document_set",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g13.open_feature": 0.0,
+    "g13.r1.rule": 0.0,
+    "g13.r1.scope": 0.0,
+    "g13.r1.exclusions_or_crossover": 0.0,
+    "g13.r1.failure_behavior": 0.0,
+    "g13.r1.observability": 0.0,
+    "g13.r2.rule": 0.0,
+    "g13.r2.scope": 0.0,
+    "g13.r2.failure_behavior": 0.0,
+    "g13.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 10
+   },
+   "collected": true,
+   "stdout_tail": "           Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft exposes ['BaseModel', 'ChunkDict', 'ChunkId', 'Content', 'Dict', 'DocumentSet', 'Field', 'List', 'Optional', 'Protocol', 'Question', 'Raft', 'T', 'TypeVar', 'chunk_text', 'curator', 'dataclass', 'datasets', 'functools', 'namedtuple', 'random']\n\ng13_raft_document_set/test_open.py:76: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-62d10663/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_r1.py::test_failure_behavior__an_inconsistent_document_set_is_reported_unmasked\ng13_raft_document_set/test_r1.py::test_failure_behavior__an_inconsistent_document_set_is_reported_unmasked\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down - Failed: `RaftSampling` is not exported by the curator blocks package; blocks.raft exposes ['Ba...\nFAILED g13_raft_document_set/test_r1.py::test_rule__the_oracle_is_appended_last_and_its_slot_is_tracked_by_identity - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r1.py::test_scope__a_repeated_question_replays_the_draw_and_a_new_one_gets_its_own_coin - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r1.py::test_exclusions__the_oracle_absent_branch_samples_one_more_and_still_shuffles - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r1.py::test_failure_behavior__an_inconsistent_document_set_is_reported_unmasked - AssertionError: not masked back to -1\nFAILED g13_raft_document_set/test_r1.py::test_observability__the_question_enters_the_cache_key_at_maxsize_512 - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r2.py::test_rule__the_worst_case_is_checked_up_front_and_k_is_never_clamped - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft exposes...\nFAILED g13_raft_document_set/test_r2.py::test_scope__only_the_document_set_build_validates_and_it_does_so_every_time - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft ...\nFAILED g13_raft_document_set/test_r2.py::test_failure_behavior__insufficientdistractorserror_is_a_valueerror_with_three_fields - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; bl...\nFAILED g13_raft_document_set/test_r2.py::test_observability__the_refusal_carries_two_four_three_and_spends_no_randomness - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.r...\n10 failed, 3 warnings in 5.89s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g13.open_feature": 1.0,
+    "g13.r1.rule": 0.0,
+    "g13.r1.scope": 0.0,
+    "g13.r1.exclusions_or_crossover": 1.0,
+    "g13.r1.failure_behavior": 1.0,
+    "g13.r1.observability": 0.0,
+    "g13.r2.rule": 0.0,
+    "g13.r2.scope": 0.0,
+    "g13.r2.failure_behavior": 0.0,
+    "g13.r2.observability": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 7,
+    "passed": 3
+   },
+   "collected": true,
+   "stdout_tail": "abs.curator\"):\n            try:\n                holders.append(__import__(mod_path, fromlist=[\"_\"]))\n            except Exception:\n                pass\n        for holder in holders:\n            found = getattr(holder, name, None)\n            if found is not None:\n                return found\n        if required:\n>           pytest.fail(f\"`{name}` is not exported by the curator blocks package; \"\n                        f\"blocks.raft exposes {surface(raft_mod)}\")\nE           Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft exposes ['Any', 'BaseModel', 'ChunkDict', 'ChunkId', 'Content', 'Dict', 'DocumentSet', 'Field', 'List', 'Optional', 'Protocol', 'Question', 'Raft', 'RaftSampling', 'T', 'TypeVar', 'chunk_text', 'curator', 'dataclass', 'datasets', 'functools', 'namedtuple', 'random']\n\ng13_raft_document_set/test_open.py:76: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-eb5a0137/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g13_raft_document_set/test_r1.py::test_rule__the_oracle_is_appended_last_and_its_slot_is_tracked_by_identity - AssertionError: distractors first in sampler order, the oracle appended last\nFAILED g13_raft_document_set/test_r1.py::test_scope__a_repeated_question_replays_the_draw_and_a_new_one_gets_its_own_coin - AssertionError: a second question on the same chunk gets an independent oracle coin\nFAILED g13_raft_document_set/test_r1.py::test_observability__the_question_enters_the_cache_key_at_maxsize_512 - TypeError: _RaftAnswer._get_document_set() takes 3 positional arguments but 4 were given\nFAILED g13_raft_document_set/test_r2.py::test_rule__the_worst_case_is_checked_up_front_and_k_is_never_clamped - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft exposes...\nFAILED g13_raft_document_set/test_r2.py::test_scope__only_the_document_set_build_validates_and_it_does_so_every_time - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft ...\nFAILED g13_raft_document_set/test_r2.py::test_failure_behavior__insufficientdistractorserror_is_a_valueerror_with_three_fields - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; bl...\nFAILED g13_raft_document_set/test_r2.py::test_observability__the_refusal_carries_two_four_three_and_spends_no_randomness - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.r...\n7 failed, 3 passed, 3 warnings in 6.06s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g13.open_feature": 1.0,
+    "g13.r1.rule": 1.0,
+    "g13.r1.scope": 1.0,
+    "g13.r1.exclusions_or_crossover": 1.0,
+    "g13.r1.failure_behavior": 1.0,
+    "g13.r1.observability": 1.0,
+    "g13.r2.rule": 1.0,
+    "g13.r2.scope": 1.0,
+    "g13.r2.failure_behavior": 1.0,
+    "g13.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-3f231c7d/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 3 warnings in 5.76s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g13.open_feature": 1.0,
+    "g13.r1.rule": 1.0,
+    "g13.r1.scope": 1.0,
+    "g13.r1.exclusions_or_crossover": 1.0,
+    "g13.r1.failure_behavior": 1.0,
+    "g13.r1.observability": 1.0,
+    "g13.r2.rule": 1.0,
+    "g13.r2.scope": 1.0,
+    "g13.r2.failure_behavior": 1.0,
+    "g13.r2.observability": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 10
+   },
+   "collected": true,
+   "stdout_tail": "..........                                                                                                                                                                                                           [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-d61c676f/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 3 warnings in 5.59s\n"
+  }
+ },
+ "verdicts": {
+  "g13.open_feature": "open_feature",
+  "g13.r1.rule": "hidden",
+  "g13.r1.scope": "hidden",
+  "g13.r1.exclusions_or_crossover": "coincidence",
+  "g13.r1.failure_behavior": "coincidence",
+  "g13.r1.observability": "hidden",
+  "g13.r2.rule": "hidden",
+  "g13.r2.scope": "hidden",
+  "g13.r2.failure_behavior": "hidden",
+  "g13.r2.observability": "hidden"
+ }
+}

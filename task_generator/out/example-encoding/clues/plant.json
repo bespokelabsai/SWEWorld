@@ -6419,6 +6419,102 @@
        "uncarried": []
       },
       {
+       "clue_id": "g9.r2.h-role-row",
+       "kind": "herring",
+       "reverses": "",
+       "covers": [],
+       "subconclusion": "g9.r2.sc5",
+       "holder": "dario",
+       "text": "Length and role sequence are row problems \u2014 one bad row says nothing about the next row, so those get counted and skipped",
+       "drafted": "Length and role sequence are row problems \u2014 one bad row says nothing about the next row, so those get counted and skipped",
+       "settles": "a malformed role sequence is a row problem, counted and skipped like an over-long row",
+       "leaves_open": "Does not say what happens to a tokenizer that will not load.",
+       "verbatim": [],
+       "forbidden_terms": [
+        "for now",
+        "temporary",
+        "temporarily",
+        "until we",
+        "revisit",
+        "revisited",
+        "reverse",
+        "reversed",
+        "later",
+        "we'll change",
+        "provisional",
+        "interim",
+        "first pass"
+       ],
+       "source": "email",
+       "carrier": {
+        "key": "new|mail|g9.r2.say23",
+        "source": "email",
+        "date": "2025-05-28",
+        "channel": "",
+        "room": "thread:new|g9.r2.say23",
+        "index": null,
+        "class": "explicit",
+        "score": 4,
+        "forced": false,
+        "why": "Every candidate is status/release mail or a batch-API job-state design note; none is arguing about the fine-tuning conversion path's failure modes, so this decision would arrive from nowhere and draw no reply. The \"batch\" in the persistence thread is a provider batch job, not a training batch a datum gets binned into \u2014 same word, different subject. The thread that should exist is the one where Nikolai's finetuning client work (PR 653, in flight per the May 26 recap) forces the team to settle what each layer does when an example is unusable: over-long examples, bad role sequences, a tokenizer that won't load, and which call writes the report. Dario is the right person to draw the line at the single-datum boundary, since he owns the conversion side and is already the one being asked about path cleanliness in that recap.",
+        "kind": "mail_new",
+        "insert_after": "",
+        "anchor": "",
+        "title": "PR 653: which layer drops a bad row, and who counts it"
+       },
+       "placement": {
+        "choice": "none",
+        "why": "Already written. This entry records the remark that was minted around say23 rather than relocating it."
+       },
+       "problems": [],
+       "status": "planted",
+       "rendered_in": null,
+       "verified": true,
+       "uncarried": []
+      },
+      {
+       "clue_id": "g9.r2.rev3",
+       "kind": "reversal",
+       "reverses": "g9.r2.h-role-row",
+       "covers": [
+        "failure_behavior"
+       ],
+       "subconclusion": "g9.r2.sc5",
+       "holder": "dario",
+       "text": "and yes this is me contradicting myself - the split i gave on the 653 thread back in may, length and role sequence both being row problems, that half of it was wrong and im dropping it. only the over-long ones are row problems.",
+       "drafted": "and yes this is me contradicting myself - the split i gave on the 653 thread back in may, length and role sequence both being row problems, that half of it was wrong and im dropping it. only the over-long ones are row problems.",
+       "settles": "the team agrees the May row-problem split is dropped and only the over-long rejection is counted and skipped",
+       "leaves_open": "Does not restate what the unusable tokenizer does.",
+       "verbatim": [],
+       "forbidden_terms": [],
+       "source": "notion",
+       "carrier": {
+        "key": "new|engineering/request-builder-what-we-drop-and-what-we-raise-on.md",
+        "source": "notion",
+        "date": "2025-06-17",
+        "channel": "",
+        "room": "page:engineering/request-builder-what-we-drop-and-what-we-raise-on.md",
+        "index": null,
+        "class": "explicit",
+        "score": 4,
+        "forced": false,
+        "why": "None of the eight candidates is chewing on row-level input validation. The batch-persistence page is about which store knows what after a restart, not about rejecting malformed rows; the structured-output incident is about a provider capability gate, not dataset rows; the rest are release/CI/handover/status pages. The remark is a policy call on what the request builder does with a row whose chat role sequence is invalid versus one that is simply too long, and which of those is allowed to disappear into a skip counter \u2014 that is the request layer, #pipeline, where token accounting and per-row counts already live. It needs a doc where the skip-vs-raise policy is being written down (the sibling remark about the tally when a batch is cut short belongs to the same doc), which does not exist yet. Dario owns bulk-llm-inference and the counters the viewer surfaces, so he is the natural person to say a silent skip is unacceptable for anything but length.",
+        "kind": "doc_new",
+        "insert_after": "",
+        "anchor": "",
+        "title": "request builder: what we drop and what we raise on"
+       },
+       "placement": {
+        "choice": "none",
+        "why": "dario made the May call and wrote the June page; the retraction belongs in his own comment on it, which already argues the correct rule."
+       },
+       "problems": [],
+       "status": "planted",
+       "rendered_in": null,
+       "verified": true,
+       "uncarried": []
+      },
+      {
        "clue_id": "g9.r2.l18",
        "kind": "clue",
        "reverses": "",
@@ -7498,11 +7594,11 @@
          },
          {
           "heading": "rejections that get absorbed and counted",
-          "body": "these are the per-row cases. a single request in the batch is malformed or unusable in a way that doesn't say anything about the other rows, so it gets dropped, the counter goes up, and the pass carries on with the rest:\n\n- row is missing a field the provider requires (empty message list, no role on a message, that kind of thing)\n- row exceeds the model's context after templating\n- multimodal row referencing an attachment that didn't resolve\n- duplicate custom id inside the same batch, second one loses\n\nthe common property here is that the failure is a property of the row. the pass has no reason to believe row n+1 is affected by whatever was wrong with row n, so it keeps going and reports the total at the end. i think that's the right default and i don't want to relitigate it here.\n\nan aside worth stating: a drop count of zero is not the same as \"nothing went wrong\", it's \"nothing went wrong in a way that was per-row\"."
+          "body": "these are the per-row cases. a single request in the batch is malformed or unusable in a way that doesn't say anything about the other rows, so it gets dropped, the counter goes up, and the pass carries on with the rest:\n\n- row is missing a field the provider requires (no content on a message, a metadata payload past the provider's per-request limit, that kind of thing)\n- row exceeds the model's context after templating\n- multimodal row referencing an attachment that didn't resolve\n- duplicate custom id inside the same batch, second one loses\n\nthe common property here is that the failure is a property of the row. the pass has no reason to believe row n+1 is affected by whatever was wrong with row n, so it keeps going and reports the total at the end. i think that's the right default and i don't want to relitigate it here.\n\nan aside worth stating: a drop count of zero is not the same as \"nothing went wrong\", it's \"nothing went wrong in a way that was per-row\"."
          },
          {
           "heading": "failures that stop the pass",
-          "body": "the other category is failures that are properties of the configuration rather than of any individual row. these don't get binned, they abort.\n\nthe case from gideon's run is the clean example. the tokenizer he pointed at has no `apply_chat_template`, and `format_batch` raises `TokenizerCapabilityError` right there \u2014 the pass stops, and nothing gets binned as a drop. so the drop count he was staring at was from an earlier run, not from that one, which is why it didn't correspond to anything he could see in the input.\n\nsame shape applies to the other config-level failures: unknown provider name, credentials that don't load, an output path that isn't writable. there is no useful sense in which we could drop \"the rows affected\", because it's all of them. honestly the alternative \u2014 catching it per row and reporting a drop count equal to the batch size \u2014 would be worse, it would look like a data problem when it's a setup problem.\n\nnote that this means an aborted pass leaves whatever drop stats were on disk from before it untouched. that's not deliberate design so much as a consequence of when we write the summary, but it is the current behaviour and it's what bit gideon."
+          "body": "the other category is failures that say the thing handed to the pass was built wrong, rather than that one row happened not to fit. these don't get binned, they abort.\n\nthe case from gideon's run is the clean example. the tokenizer he pointed at has no `apply_chat_template`, and `format_batch` raises `TokenizerCapabilityError` right there \u2014 the pass stops, and nothing gets binned as a drop. so the drop count he was staring at was from an earlier run, not from that one, which is why it didn't correspond to anything he could see in the input.\n\nsame shape applies to the other config-level failures: unknown provider name, credentials that don't load, an output path that isn't writable. there is no useful sense in which we could drop \"the rows affected\", because it's all of them. honestly the alternative \u2014 catching it per row and reporting a drop count equal to the batch size \u2014 would be worse, it would look like a data problem when it's a setup problem.\n\nnote that this means an aborted pass leaves whatever drop stats were on disk from before it untouched. that's not deliberate design so much as a consequence of when we write the summary, but it is the current behaviour and it's what bit gideon."
          },
          {
           "heading": "reading the summary line",

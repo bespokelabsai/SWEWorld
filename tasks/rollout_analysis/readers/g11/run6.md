@@ -1,60 +1,76 @@
-# g11 run 6 (rollout f8059d35, eval 94bf8242, world-hosted v7) — reward 0.8889
+# g11 run 6 (ca624f58) — reward 0.4444
 
 ## What this run found
 
-The agent solved the open ticket cleanly (PR 730, CI green, merged to main after working
-around a Gitea merge-API 500) and, on top of it, reconstructed almost the entire hidden
-requirement tree from chat alone — no wiki, no mail were needed for g11 since all 47 remarks
-live in Mattermost. Its search had two phases: a keyword API search (`ledger`,
-`CHECKPOINT_REASONS`, `canonical_reasons`, `min_lr_ratio`, `current_batch`, `CheckpointInfo`,
-…) that dumps individual matching messages, followed by whole-channel dumps to `/tmp/c_*.txt`
-(~10k messages, step ~35-36) that it then grepped or printed by line range to recover full
-exchanges. The second technique is what actually won this run: it recovered both herrings and
-both reversals verbatim (lines 3968, 3813, 4017, 4204), the full `r2` LR-schedule rule/
-observability/failure_behavior set, and most of `r1`'s scope/exclusions/observability facts.
+The agent's search was almost entirely regex/keyword grep over a dumped Mattermost JSON, narrowing from
+broad terms to exact plant vocabulary (`CHECKPOINT_REASONS`, `CHECKPOINT_NAME_TEMPLATE`, `canonical_reasons`,
+`MIN_LR_RATIO`, `effective_warmup`, `dataset_signature`). Around step 31-34 it built a proper "±12 message"
+context-window tool and used it for most hits, recovering full multi-turn exchanges — including the full,
+**rewritten** `g11.r2.rev2` thread (#general, 2025-06-02 10:16, transcript line 3870): "we had it that decay
+lands at exactly zero at total_steps and warmup keeps the strict `step < warmup_steps` compare... both of
+those are gone now. the end doesnt sit at zero any more, it bottoms out at a tenth of base_lr and holds
+there, and a first step at rate 0 is not something i want to keep defending." This is a v11 edit: the answer
+key file on disk still shows the OLD wording (retracting only the warmup half). Judged against what the world
+actually served, the agent read the new, fuller retraction correctly and implemented both halves
+(`effective_warmup = min(warmup_steps, total_steps)`, clipped not raising, and a `min_lr_ratio`-scaled floor)
+— consistent with all four r2 facts passing. It also saw and correctly disbelieved konrad's r2 herring
+(line 2691) and both r1 herrings/reversals, never shipping herring behavior anywhere.
 
-## What it believed, and why
+No wiki or mail search appears in the transcript; the plant record confirms all 47 remarks for g11 are chat-only
+(9 channels), so that omission cost nothing.
 
-All four herrings (twin-checkpoint naming + alphabetical sort; decay-to-zero + strict
-`step<warmup_steps`) were correctly identified as reversed and the reversals were followed
-in the shipped code — `CHECKPOINT_REASONS=(interval,epoch,final)` order, `checkpoint_name`
-identity, `effective_warmup=min(warmup_steps,total_steps)`, and the `MIN_LR_RATIO=0.1` floor
-all match the reversal remarks exactly. No herring-following occurred anywhere in this run.
+## What it missed and why
 
-## What it missed, and why (the one lost fact)
+Eleven of 47 remarks never surfaced at all (verified by direct grep, not just the pointer sheet): the search
+vocabulary was built around identifier tokens, so free-text-only remarks (typo'd "epoch_end"/"end_of_epoch",
+"grid row A", "current_batch straight on", "sitting at the bottom about a third") were never caught. None of
+these losses mattered for the graded facts, because the same underlying rules were independently recovered from
+other, better-worded remarks that were found.
 
-`g11.r1.failure_behavior` scored 0 because the shipped `save_checkpoint` fully **overwrites**
-a matching-name row (`self._checkpoints[-1] = checkpoint`) instead of **merging** the old and
-new `reasons` tuples through `canonical_reasons`. The test expects a second save under the
-last row's name to end with `reasons == ("interval", "final")`; the agent's code produces only
-`("final",)`.
+One remark's *absence of full context* is directly responsible for a lost fact: `g11.r1.l17` (#releases,
+2025-03-19 13:41 — "the updated row takes the newer loss and carries both label sets forward") appears in the
+transcript only as its opening question line, a bare grep hit at line 2703. The context-window tool the agent
+used for dozens of other threads was never re-run on this one, so the reply chain — "labels too? ... both carry
+forward onto it. neither set gets dropped" — was never seen. The agent generalized instead from a different,
+fully-read thread (`l16`, #pipeline) that only establishes *replace*, never *merge*.
 
-This is a genuine near-miss, not carelessness. The remark that states the merge — g11.r1.l17,
-"the updated row takes the newer loss and carries both label sets forward" — was never actually
-read. The keyword search only surfaced dario's opening question ("ledger q — same checkpoint
-name got logged twice and i only got one row back. intended?", line 4165); the agent explicitly
-planned a follow-up ("Print releases 505-600 and 300-345" / "Read releases 300-345 and 515-560",
-line 4162) to pull the rest of that #releases exchange, but the terminal screen shown for that
-turn ends on the 300-345 (herring) range — the 515-560 range containing dermot's merge answer
-is never visible anywhere in the transcript (confirmed by exhaustive grep: "both label sets",
-"newer loss", "carries both", "updated row" all return zero hits). What the agent *did* fully
-read — l16 ("the new save takes that row's place instead of adding one") and rev1 ("one
-save_checkpoint per step ... that's all there is on disk") — both use replace/overwrite
-language, and its final Analysis (line 9035) states exactly that belief: "dedupe against the
-last row only." The implementation is a faithful reconstruction of what it actually saw; the
-one piece of information that would have corrected it fell off the edge of a scrolled terminal.
+## What it believed and why
 
-The identical pattern (keyword search hits only the question, not the reply) also cost the
-agent `g11.r2.say19`'s payload, but that fact (`r2.exclusions_or_crossover`) survived because
-`r2.l14`/`r2.l15` independently carried the same "resume reschedules off the new total_steps"
-content.
+For r2, the agent correctly believed every reversal over every herring: it implemented `MIN_LR_RATIO = 0.1`
+with a `min_lr_ratio`-scaled floor (not zero), `1 <= step <= effective_warmup` with clipping (not the strict
+`step < warmup_steps`), matching rev1 and the rewritten rev2 verbatim. It briefly mis-derived the decay shape
+as **cosine** (Analysis, line 3523: "midpoint value confirms standard cosine formula") — an artifact of
+`g11.r2.say20`'s `min_lr_ratio=0.5` midpoint value (7.5e-05) being numerically identical under linear and
+cosine decay exactly at the halfway point — but self-corrected before implementing, once `g11.r2.l6` ("the
+drops after warmup are all the same size") was read. This near-miss cost nothing.
 
-## Notable
+For r1, the agent believed the reversals too (one checkpoint per step, ledger-owned naming, ledger-order not
+alphabetical reasons) and never shipped the herrings' twin-checkpoint or alphabetical-sort behavior.
 
-- 8 of 9 declared facts scored 1; the lost one is isolated to the reason-merge half of
-  `r1.failure_behavior` — the unknown-reason-raises half of the same fact (l8) was fully found
-  and correctly implemented.
-- Gitea's PR merge API returned HTTP 500 citing an unrelated branch for all three merge
-  methods; the agent worked around it with a local `--no-ff` merge + push, documented on the
-  closed PR (lines 8578-8873) — unrelated to grading but worth flagging for other g11 runs on
-  this world version.
+## Why every r1 fact was lost despite near-complete coverage
+
+This is the headline finding: r1's failure is **not** a search/coverage failure. Nearly every r1 rule/scope/
+observability remark shows `registered: requirement` and the agent's own final design summary states the
+correct rules in prose. All five r1 facts still scored 0, from exactly two implementation bugs:
+
+1. **The "epoch" checkpoint trigger fires on the wrong condition.** The agent wrote the *correct* primitive —
+   `epoch_closing_steps()` in `step_ledger.py` ("Return, for each epoch, the step closing the window that
+   holds its last batch") — and used it correctly for the sibling `loss_history_steps` method (which the
+   open ticket itself specifies with the same wording). But the checkpoint-writing code in `train()` uses a
+   different, wrong check instead: `batch_ordinal % plan.batches_per_epoch == 0`, i.e. "is this window's
+   closing batch itself an exact multiple of `batches_per_epoch`" rather than "does this window contain an
+   epoch's last batch." With `batches_per_epoch=4` and step windows closing at batches 3, 6, 8, only batch 8
+   (a multiple of 4) satisfies the naive check — so step 2, whose window (batches 4-6) genuinely contains
+   epoch 1's last batch (4), never gets the `"epoch"` reason. This single bug is what fails `r1.rule`,
+   `r1.scope`, `r1.exclusions_or_crossover`, and `r1.observability` — all four tests assert on which steps get
+   checkpointed and what reasons they carry.
+2. **Duplicate-name save doesn't merge reasons.** `save_checkpoint`'s replace-on-matching-name path computes
+   `recorded_reasons` from only the *new* call's `reasons` argument and overwrites the stored row entirely,
+   instead of merging the old row's reasons with the new ones through `canonical_reasons` as the spec (and
+   `g11.r1.l17`) require. This fails `r1.failure_behavior` alone. As above, this traces to `l17` never being
+   read in full — the agent's own docstring for `save_checkpoint` only ever says the row "replaces," never
+   "merges."
+
+Final state was legitimately shipped and verified: `main` = `8bae540`, CI green, a fresh clone confirmed all
+129 of the agent's *own* `tests/finetune` pass — but the grader's independent `test_r1.py` (never seen by the
+agent) catches exactly the epoch-trigger and reasons-merge bugs above.

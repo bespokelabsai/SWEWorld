@@ -1,54 +1,67 @@
-# g11 run 3 (dc2703c8, eval 94bf8242) — reward 0.8889
+# g11 run 3 (bf174d55) — reward 1, all 9 facts carried
 
 ## What this run found
 
-This is a strong, methodical run. The agent's search strategy was bulk-download-then-grep: it
-enumerated every Mattermost channel, dumped each one's full post history to local files (fixing a
-literal-`\n` bug along the way), then ran repeated targeted `grep -n` passes for domain vocabulary
-(`ledger`, `reason`, `checkpoint`, `warmup`, `total_steps`, `dataset_signature`,
-`CHECKPOINT_NAME_TEMPLATE`) and read the surrounding 15-40 lines of every hit to recover full
-multi-turn exchanges rather than single lines. It never touched BookStack or IMAP mail in the
-sampled regions, but that's not a gap here — all 47 g11 remarks live in chat only, per the answer
-key's spread table.
+The agent went straight to Mattermost (correctly — all 47 g11 remarks live in chat, none in
+wiki/mail), pulled the entire ~10k-post corpus to disk, and then iterated its own search tooling
+three times (`s.py` exact-substring → `filt.py`/`filt2.py` broad keyword → `filt3.py` word-boundary
+regex) until it stopped catching false positives like "lr" inside "already". It supplemented
+keyword search with full-range channel reads of #engineering, #code-review and #help via `c.py`,
+and separately confirmed the wiki (228 pages, fetched whole so BookStack's unindexed comments were
+covered) and all 107 mail messages held nothing finetune-related — a correct negative, not a search
+failure, since the plant record puts 100% of g11's remarks in chat.
 
-Of 43 non-herring clues, the agent surfaced roughly 35 (verified against the pointer sheet and
-independently by grepping each "not found" remark's distinctive phrases myself — none appear
-anywhere else in the transcript). Both r1 herrings (twin-checkpoint writes, alphabetical sort) and
-both r2 herrings (decay-to-zero, strict `step < warmup_steps`) were found, correctly recognized as
-superseded ("Jan decisions superseded by March/April", line 4157; "(later revision)", line 3503),
-and never followed in the shipped code.
+This reconstructed both hidden requirements essentially completely. For **g11.r1** (one checkpoint
+per step, carrying every firing reason) it recovered `CHECKPOINT_REASONS`/`canonical_reasons`
+ordering and error-raising (l8, l6, l7), the six-digit `checkpoint_name` template (l2, l3), the
+`reasons` field default and position (l4, say23), the replace-last-row merge semantics (l16, l17),
+the epoch-of-the-closing-batch rule (l15), and the worked example values `checkpoint-s000002` /
+`checkpoint-s000003` with `('interval','epoch')`/`('epoch','final')` (l18) — plus both reversals
+(rev1, rev2), read in full, correctly recognized as superseding the two-checkpoint herring. For
+**g11.r2** (warmup then decay to a floor) it recovered the exact schedule shape from a dense cluster
+of #cookbooks/#viewer/#incidents/#help/#general remarks (l1, l2, l5, l6, l7, l8, l10, say20) and,
+critically, both herrings AND both reversals in full context.
 
 ## What it missed, and why
 
-Only one fact scored zero: `g11.r2.rule`, because the shipped `learning_rate_at` signature has
-`min_lr_ratio: float = MIN_LR_RATIO` as an ordinary defaulted parameter (line 6159), not
-keyword-only — `test_r2.py` asserts `inspect.Parameter.KEYWORD_ONLY` and gets
-`POSITIONAL_OR_KEYWORD`. The cause is a clean `not_found`: exactly one remark in the whole 47-item
-set states this requirement, `g11.r2.l10` ("min_lr_ratio sits behind a bare `*` so callers have to
-name it... also did a pass on 663"). The agent never opened that code-review.txt thread — "663"
-appears twice elsewhere in the transcript (an unrelated closed-PR title at line 304, and an
-unrelated release-timing ping at line 3564), so none of its grep passes for concept words like
-"reason" or "warmup" happened to land on it. Every other detail of the r2 rule — `MIN_LR_RATIO =
-0.1`, the floor formula, the inclusive 1-based warmup, the exact rate vectors — was correctly
-reconstructed and cross-validated against the corpus's own numeric fixtures before the agent wrote
-any code (lines 3654, 3704), which is why the remaining r2 facts (exclusions, failure_behavior,
-observability) all scored 1 despite several other individual r2 clues (`l9`, `say20`, `l11`,
-`say19`, `l14`) also going unfound — those were all redundant with clues the agent did find.
+Ten clue-only remarks (r1: l9, l11, l13, l14, l19; r2: l9, l11, l14, l15, say19) were never located.
+All ten sit in #pipeline, #incidents, #general, #viewer or #releases, channels that never got a full
+sequential `c.py` read — only #engineering, #code-review and #help did. None of the ten cost a fact:
+each had a same-fact sibling the agent did find (e.g. r1.l13's "epoch off by two batches" is also
+carried by l15, which the agent found in full), or the ticket itself already states the content
+(r2.l15's "resume recomputes off the trainer's current total_steps" is also literally in the
+ticket's Resume section). r2.l3's settling half (dario's "sitting on base_lr... not one step later")
+was generated into a dump but sat past the terminal-screen truncation point and was never actually
+read — only Konrad's opening question surfaced. Neither r1 herring's own turns were ever read
+directly; their content reached the agent only secondhand, restated inside their own reversal
+threads (rev1 at transcript line 4036, rev2 at line 3729) — sufficient, since the reversal turns
+state the final rule completely on their own.
 
 ## What it believed, and why
 
-The agent treated both pairs of herrings correctly. For r1, it read the Jan 21/28 "twin checkpoint,
-alphabetical sort" decisions, then separately found the March 21/31 reversals stating one
-`save_checkpoint` per step with `canonical_reasons` ordering by `CHECKPOINT_REASONS`, and explicitly
-noted the Jan record was superseded before writing `_record_checkpoint`. For r2, it found the Jan
-30/Feb 19 "decay to exactly 0.0, strict `step < warmup_steps`" herrings, then the March 26/June 2
-reversals ("negative lr at step 99... dropping it", "the first step trained at rate 0... it's
-`1 <= step <= effective_warmup` now"), and shipped the reversed rule (`effective_warmup =
-min(warmup_steps, total_steps)`, inclusive 1-based ramp, floor instead of zero).
+For both r2 herrings the agent saw the herring AND its reversal in full multi-turn context (herring:
+lines 2542/3383-3392 and 2550/3401-3414; reversals: lines 2736/2760-2776 and 2599/2637-2648) and
+explicitly reasoned from the later, reversed state — "the LR schedule evolved through several
+decisions ending June 2... decay bottoming at a fraction of base_lr" (line 2622). Nothing in the
+shipped code follows either r1 or r2 herring.
 
-## Why each lost fact was lost
+## The rev2 rewording — this run saw the NEW text
 
-`g11.r2.rule` — the sole failing assertion is the keyword-only-ness of `min_lr_ratio`. No herring,
-no other clue, and no ticket text pins this; it lives only in `g11.r2.l10`, which the agent's grep
-vocabulary never intersected. This is not a corpus contradiction or an implementation slip against
-its own stated reasoning — the agent never encountered the requirement at all.
+v11 rewrote r2's second reversal (konrad, #general, 2025-06-02 10:16) to add the decay-floor half.
+This run's world served the rewritten text verbatim — "the end doesnt sit at zero any more, it
+bottoms out at a tenth of base_lr and holds there, and a first step at rate 0 is not something i
+want to keep defending" — twice (transcript lines 2599-2602 and 2637-2640), not the stale
+warmup-only wording still in the answer key on disk. The agent's shipped LR code (`MIN_LR_RATIO =
+0.1`, `effective_warmup = min(warmup_steps, total_steps)`, `1 <= step <= effective_warmup`, clipped
+rather than raising) matches the rewritten rev2 exactly, so judging this run against what the world
+actually served — not the stale key — is the right call and changes nothing about the score.
+
+## Why nothing was lost
+
+No fact scored 0. `g11.r1.scope` (the thinnest-evidenced fact, since l9 and l11 were both missed)
+still carried on l10 (the `test_trainer.py` fixture giving `('final',)`) and l12 (Fireworks writes
+no `reasons` key), both found. The run's search strategy was broad enough, and the plant's
+redundancy (each requirement carried by 15-26 remarks with multiple remarks per fact) forgiving
+enough, that ten missed clues and two unread herrings still left every fact independently
+reconstructable. Final verification: 145/145 tests passing, ruff clean, PR #737 merged to `main`,
+CI green on the merge commit — confirmed by the agent before declaring done.

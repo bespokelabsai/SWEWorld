@@ -19,9 +19,9 @@
  },
  "g3": {
   "tid": "dba9d0a7-e6ce-47d1-8ff5-11040eb8ea05",
-  "v": 7,
+  "v": 9,
   "evals": [
-   "ce846459"
+   "035777f5"
   ],
   "arm": "harbor_tasks/g3-retry-backoff-policy/retry-backoff-policy-world-hosted",
   "slug": "retry-backoff-policy"
@@ -84,9 +84,9 @@
  },
  "g11": {
   "tid": "aa5d35bc-601a-4449-b842-150094c6ff22",
-  "v": 7,
+  "v": 11,
   "evals": [
-   "94bf8242"
+   "a8572080"
   ],
   "arm": "harbor_tasks/g11-training-step-ledger/training-step-ledger-world-hosted",
   "slug": "training-step-ledger"

@@ -1,0 +1,13 @@
+{
+  "id": "d23f480a-b9a7-4e9c-a790-2bc6dec87071",
+  "evaluation_id": "f9d3ab00-8754-4c0e-a47e-99c70a48f203",
+  "run_number": 10,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": 0,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g13.r1.rule\": 0.0,\n    \"g13.r1.scope\": 0.0,\n    \"g13.r1.exclusions_or_crossover\": 0.0,\n    \"g13.r1.observability\": 0.0,\n    \"g13.r2.rule\": 0.0,\n    \"g13.r2.scope\": 0.0,\n    \"g13.r2.exclusions_or_crossover\": 0.0,\n    \"g13.r2.failure_behavior\": 0.0,\n    \"g13.open_feature\": 1.0\n  },\n  \"weights\": {\n    \"g13.r1.rule\": 0.125,\n    \"g13.r1.scope\": 0.125,\n    \"g13.r1.exclusions_or_crossover\": 0.125,\n    \"g13.r1.observability\": 0.125,\n    \"g13.r2.rule\": 0.125,\n    \"g13.r2.scope\": 0.125,\n    \"g13.r2.exclusions_or_crossover\": 0.125,\n    \"g13.r2.failure_behavior\": 0.125,\n    \"g13.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"0 of 8 hidden requirements satisfied. Open feature: yes. Missed: g13.r1.rule, g13.r1.scope, g13.r1.exclusions_or_crossover, g13.r1.observability, g13.r2.rule, g13.r2.scope, g13.r2.exclusions_or_crossover, g13.r2.failure_behavior.  [pytest rc=1 nodes=9] _generator - Failed: `RaftDrawStats` is not exported by the curator blocks package; blocks.raft exposes ['Any', 'BaseModel', 'ChunkDi... | FAILED test_r1.py::test_scope__the_ledger_counts_document_set_builds_not_parse_calls - AssertionError: expected one of ('document_sets', 'n_document_sets', 'document_set_count', 'builds') on _RaftAnswer; it has ['batc... | FAILED test_r1.py::test_exclusions__the_question_joins_the_memo_key_so_each_one_gets_its_own_coin - AssertionError: one coin per distinct (chunk_id, question): keying on the chunk alone draws 2, no memoisation at all ... | FAILED test_r1.py::test_observability__the_builder_is_memoised_with_maxsize_512 - AssertionError: lru_cache(maxsize=512); got maxsize=128 | FAILED test_r2.py::test_rule__insufficient_distractors_error_names_the_chunk_and_the_shortfall - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft exposes ['Any', 'BaseM... | FAILED test_r2.py::test_scope__the_worst_case_is_checked_before_the_coin_is_flipped - Failed: DID NOT RAISE ValueError | FAILED test_r2.py::test_failure_behavior__the_numeric_knobs_are_rejected_before_the_base_class_runs - Failed: DID NOT RAISE ValueError | FAILED test_r2.py::test_exclusions__a_list_corpus_drops_blank_documents_and_renumbers_from_zero - AssertionError: three wholly blank entries dropped | 8 failed, 1 passed, 3 warnings in 26.05s | \"\n  },\n  \"score\": 0.0\n}",
+  "created_at": "2026-09-08T21:00:15.118Z",
+  "completed_at": "2026-09-08T21:03:33.445Z"
+}

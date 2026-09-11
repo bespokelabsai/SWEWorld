@@ -1,0 +1,184 @@
+diff --git a/src/bespokelabs/curator/blocks/raft.py b/src/bespokelabs/curator/blocks/raft.py
+index ad51c75..c461c5f 100644
+--- a/src/bespokelabs/curator/blocks/raft.py
++++ b/src/bespokelabs/curator/blocks/raft.py
+@@ -9,7 +9,7 @@ import functools
+ import random
+ from collections import namedtuple
+ from dataclasses import dataclass
+-from typing import Dict, List, Optional, Protocol, TypeVar
++from typing import Any, Dict, List, Optional, Protocol, TypeVar
+ 
+ import datasets
+ from pydantic import BaseModel, Field
+@@ -73,6 +73,19 @@ class _SamplingStrategy(Protocol):
+ DocumentSet = namedtuple("DocumentSet", ["documents", "oracle_index", "oracle_present"])
+ 
+ 
++@dataclass(frozen=True)
++class RaftSampling:
++    """Sampling knobs used to build the document set of each example.
++
++    Args:
++        sampler: Custom sampling strategy (defaults to the draw method of ``rng``)
++        rng: Random number generator used for every draw (defaults to a fresh ``random.Random``)
++    """
++
++    sampler: Optional[_SamplingStrategy] = None
++    rng: Optional[random.Random] = None
++
++
+ @dataclass
+ class _ContextFormatter:
+     document_tag: str = "DOCUMENT"
+@@ -85,8 +98,16 @@ class _RaftAnswer(curator.LLM):
+     """Enhanced answer generator component for RAFT."""
+ 
+     def __init__(
+-        self, chunks: datasets.Dataset, *args, n: int = 5, distractors: int = 5, p: float = 0.8, sampler: Optional[_SamplingStrategy] = None, **kwargs
+-    ):
++        self,
++        chunks: datasets.Dataset,
++        *args,
++        n: int = 5,
++        distractors: int = 5,
++        p: float = 0.8,
++        sampler: Optional[_SamplingStrategy] = None,
++        rng: Optional[random.Random] = None,
++        **kwargs,
++    ) -> None:
+         """Initialize the RaftAnswer generator.
+ 
+         Args:
+@@ -94,7 +115,8 @@ class _RaftAnswer(curator.LLM):
+             n: Number of examples to generate
+             distractors: Number of distractor documents
+             p: Probability of including oracle document
+-            sampler: Custom sampling strategy (defaults to random.sample)
++            sampler: Custom sampling strategy (defaults to the draw method of ``rng``)
++            rng: Random number generator used for every draw (defaults to a fresh ``random.Random``)
+             *args: Additional arguments
+             **kwargs: Additional keyword arguments
+         """
+@@ -103,7 +125,8 @@ class _RaftAnswer(curator.LLM):
+         self.distractors = distractors
+         self.p = p
+         self.chunks = chunks
+-        self.sampler = sampler or random.sample
++        self.rng = rng if rng is not None else random.Random()
++        self.sampler = sampler if sampler is not None else self.rng.sample
+         self.formatter = _ContextFormatter()
+ 
+         self._get_document_set = functools.lru_cache(maxsize=128)(self._get_document_set)
+@@ -113,7 +136,7 @@ class _RaftAnswer(curator.LLM):
+         content = self.chunks[input["chunk_id"]]["content"]
+         return _DEFAULT_ANSWER_PROMPT.format(question=input["question"], context=content)
+ 
+-    def parse(self, input: dict, response: str) -> Dict[str, str]:
++    def parse(self, input: dict, response: str) -> Dict[str, Any]:
+         """Parse response and generate dataset with context."""
+         chunk_id = input["chunk_id"]
+         oracle_document = self.chunks[chunk_id]["content"]
+@@ -136,7 +159,7 @@ class _RaftAnswer(curator.LLM):
+             "context": metadata,
+             "instruction": instruction,
+             "oracle_present": doc_set.oracle_present,
+-            "oracle_index": doc_set.oracle_index if doc_set.oracle_present else -1,
++            "oracle_index": doc_set.oracle_index,
+         }
+ 
+     def _get_document_set(self, chunk_id: ChunkId, oracle_document: Content) -> DocumentSet:
+@@ -149,30 +172,25 @@ class _RaftAnswer(curator.LLM):
+         available_indices = [i for i in range(chunk_count) if i != chunk_id]
+ 
+         # Determine if oracle should be included
+-        oracle_present = random.random() < self.p
++        oracle_present = self.rng.random() < self.p
+ 
+         if oracle_present:
+-            # Include oracle document with distractors
+-            documents = [oracle_document]
++            # Include oracle document with distractors, marking the oracle's slot
+             distractor_indices = self.sampler(available_indices, self.distractors)
+-
+-            for idx in distractor_indices:
+-                documents.append(self.chunks[idx]["content"])
++            slots = [(self.chunks[idx]["content"], False) for idx in distractor_indices]
++            slots.append((oracle_document, True))
+ 
+             # Shuffle documents to randomize oracle position
+-            indices = list(range(len(documents)))
+-            pairs = list(zip(documents, indices))
+-            random.shuffle(pairs)
+-            documents, shuffled_indices = zip(*pairs) if pairs else ([], [])
+-            documents, shuffled_indices = list(documents), list(shuffled_indices)
++            self.rng.shuffle(slots)
+ 
+-            oracle_index = shuffled_indices[0]  # Track where oracle ended up
++            documents = [document for document, _ in slots]
++            oracle_index = next(i for i, (_, is_oracle) in enumerate(slots) if is_oracle)
+ 
+         else:
+-            # Select distractors only (oracle + 1 to replace oracle)
++            # Select distractors only (distractors + 1 to replace oracle)
+             distractor_indices = self.sampler(available_indices, self.distractors + 1)
+             documents = [self.chunks[idx]["content"] for idx in distractor_indices]
+-            random.shuffle(documents)
++            self.rng.shuffle(documents)
+             oracle_index = -1  # No oracle present
+ 
+         return DocumentSet(documents=documents, oracle_index=oracle_index, oracle_present=oracle_present)
+@@ -199,6 +217,9 @@ class Raft:
+         backend: Backend to use for question and answer generation
+         backend_params: Backend specific parameters
+         generation_params: Generation specific parameters
++        answer_generator_cls: Answer generator class to use (defaults to _RaftAnswer)
++        question_generator_cls: Question generator class to use (defaults to _RaftQuestion)
++        sampling: Sampling knobs used to build the document set of each example
+     """
+ 
+     model: str
+@@ -210,6 +231,8 @@ class Raft:
+     backend_params: dict | None = None
+     generation_params: dict | None = None
+     answer_generator_cls: _RaftAnswer | None = None
++    question_generator_cls: type | None = None
++    sampling: RaftSampling | None = None
+ 
+     def __call__(self, text: str | List[str]) -> datasets.Dataset:
+         """Processes text into structured HF dataset."""
+@@ -218,12 +241,30 @@ class Raft:
+         else:
+             chunks = datasets.Dataset.from_list([{"chunk_id": i, "content": t} for i, t in enumerate(text)])
+ 
+-        question_gen = _RaftQuestion(model_name=self.model, backend=self.backend, backend_params=self.backend_params, generation_params=self.generation_params)
++        question_cls = self.question_generator_cls or _RaftQuestion
++        answer_cls = self.answer_generator_cls or _RaftAnswer
++        sampling = self.sampling if self.sampling is not None else RaftSampling()
++
++        question_gen = question_cls(
++            model_name=self.model,
++            backend=self.backend,
++            backend_params=self.backend_params,
++            generation_params=self.generation_params,
++            n=self.n_questions,
++        )
+         questions = question_gen(chunks).dataset
+ 
+-        generator = self.answer_generator_cls or _RaftAnswer
+-        answer_gen = generator(
+-            chunks=chunks, model_name=self.model, backend=self.backend, backend_params=self.backend_params, generation_params=self.generation_params
++        answer_gen = answer_cls(
++            chunks=chunks,
++            model_name=self.model,
++            backend=self.backend,
++            backend_params=self.backend_params,
++            generation_params=self.generation_params,
++            n=self.n_questions,
++            distractors=self.distractors,
++            p=self.p,
++            sampler=sampling.sampler,
++            rng=sampling.rng,
+         )
+         qas = answer_gen(questions)
+         return qas

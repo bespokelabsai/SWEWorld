@@ -70,11 +70,33 @@ def junit_outcomes(path: pathlib.Path) -> dict[str, str]:
     is one more thing that can fail to load in an environment the agent may have
     disturbed, and this file's whole job is to keep working when something else
     did not.
+
+    That principle now has teeth, because this file is written by the pytest
+    process and that process imports agent-authored code. An absent junit
+    already scored a clean zero. A MALFORMED one did not: `ET.parse` raised,
+    `main()` died, and no reward.json was written at all — which Harbor reports
+    as a broken harness rather than as a failed task. One stray byte in a file
+    the submission can reach was a way out of a bad score. So: bounded size, no
+    DTD (`xml.etree` expands internal entities, and a few hundred bytes of
+    nested ones will sit in the verifier's CPU until Harbor kills it), and every
+    parse failure folded to "no outcomes", which is the honest zero.
     """
     if not path.exists():
         return {}
+    try:
+        if path.stat().st_size > 8 * 1024 * 1024:
+            return {}
+        raw = path.read_bytes()
+    except OSError:
+        return {}
+    if b"<!DOCTYPE" in raw or b"<!ENTITY" in raw:
+        return {}
+    try:
+        root = ET.fromstring(raw)
+    except (ET.ParseError, ValueError):
+        return {}
     out: dict[str, str] = {}
-    for case in ET.parse(path).getroot().iter("testcase"):
+    for case in root.iter("testcase"):
         node = f"{case.get('classname', '')}::{case.get('name', '')}"
         state = "passed"
         for child in case:

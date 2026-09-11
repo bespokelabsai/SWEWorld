@@ -250,6 +250,10 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 **2025-05-28 · mail: PR 653: which layer drops a bad row, and who counts it · dario**
 
+> length and role sequence are row problems - one bad row says nothing about the next row, so those get counted and skipped
+
+**2025-05-28 · mail: PR 653: which layer drops a bad row, and who counts it · dario**
+
 > and to_tinker_datum just raises ExampleTooLongError outright — the binning is format_batch's job, honestly a single datum has no batch to be counted into.
 
 **2025-06-03 · wiki: viewer dataset download: export format notes (PR 652) · dario**
@@ -292,6 +296,10 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > honestly if the role sequence is bad thats my data being broken, not a row to quietly skip - only the over-long ones should get binned and counted
 
+**2025-06-17 · wiki: request builder: what we drop and what we raise on · dario**
+
+> and yes this is me contradicting myself - the split i gave on the 653 thread back in may, length and role sequence both being row problems, that half of it was wrong and im dropping it. only the over-long ones are row problems.
+
 **2025-06-24 · wiki: Per-example stats from the windowed export (review notes, 653 follow-on) · konrad**
 
 > nit: docstring says skipped but the attribute is dropped. also the field order is kept, dropped, windowed, dropped_indices, supervised_tokens, your exmaple builds it the other way round.
@@ -307,7 +315,6 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 **2025-07-10 · #pipeline · konrad**
 
 > Reran both over the same input list now that the renumber landed — format_batch and to_jsonl_lines come back with identcial dropped_indices. anyway, no more guessing which one I'm reading.
-
 
 ## Getting around
 

@@ -1,73 +1,72 @@
-# g11 run 9 (rollout 1daa88e2, eval 94bf8242) — reward 0.8889
+# g11 run 9 (af6b3aa7) — eval a8572080 — reward 0.7778
 
 ## What this run found
 
-This is a near-clean run: `open_feature`, all five `g11.r1` facts, and three of the
-four declared `g11.r2` facts scored 1. The agent built a two-tool local search
-index early (a full JSON dump of Mattermost plus two helper scripts, `/tmp/gc.py`
-for cross-channel keyword grep and `/tmp/cc.py` for a single channel/date-range
-window read) and drove nearly the whole investigation through keyword-sweep-then-
-window-read cycles. That strategy surfaced 44 of the 47 answer-key remarks,
-including every clue behind `g11.r1` and eight of `g11.r2`'s nine sub-facts.
+The agent worked the world methodically: it pulled every Mattermost channel's full history via
+the API into `/tmp/mm/*.txt`, fetched all ~228 BookStack pages, and listed matching mail subjects
+via IMAP — none of the hidden requirements turned out to live in wiki or mail, only chat. Its
+first and only full-corpus keyword grep (`ledger|plan_steps|dataset_signature|step_plan|tinker|
+finetune`, line 2670) anchored almost the entire checkpoint-reasons thread: `CHECKPOINT_REASONS`,
+`canonical_reasons`, the `checkpoint-s000002` name template, the replace-last-row-on-repeat-name
+rule, and the `dataset_signature` field all came out of that one grep and the channel-context reads
+that followed (lines 2703–3600). It then broadened to `cosine|decay|warmup|base_lr` (line 2807),
+which pulled in essentially the whole `g11.r2` learning-rate story in one pass, including **both**
+LR herrings and **both** of their reversals, read at their own original dates, not just as recaps.
 
-It also handled the herrings correctly in every case: for `g11.r1` it recovered
-both the twin-checkpoint/alphabetical-sort decision (`ledger-twin-checkpoints-
-dario`/`-emil`) and both reversals (`rev1`/`rev2`, lines 3007/2729), and its
-shipped `canonical_reasons` docstring names the herring it is avoiding almost
-verbatim ("rather than alphabetical, which used to put final ahead of interval
-and read as though the run had ended before it looped"). For `g11.r2` it found
-both decay-to-zero herrings and both reversals (line 2560-2588, 2510-2523) and
-shipped the `MIN_LR_RATIO`/`effective_warmup` design, not the zero-decay/strict-
-compare one. No herring was followed into the shipped code.
+Both LR herrings were caught cleanly: the Jan-30 `#incidents` "decay to 0.0, strict `step <
+warmup_steps`" belief (line 2824–2828) and the Feb-19 `#viewer` "zero, exactly, strict compare"
+belief (line 2719–2725) were both read directly, and so were their reversals — `#help` Mar-26
+(`min_lr_ratio`, `MIN_LR_RATIO = 0.1`, line 2816–2823) and `#general` Jun-02 (line 2771–2782).
+This run's `#general` turn had been rewritten for v11 to add "the end doesnt sit at zero any
+more, it bottoms out at a tenth of base_lr and holds there, and a first step at rate 0 is not
+something i want to keep defending" — the world served that new wording, and the agent's own
+Analysis (line 2756, 2806) quotes and reasons from exactly that text, correctly dropping the
+herring's zero-floor and strict-less-than design. Both `g11.r2.rule` and `g11.r2.failure_behavior`
+scored 1 as a result, along with `g11.r2.exclusions_or_crossover` and `g11.r2.observability`.
+
+The `g11.r1` checkpoint-reasons herrings (`{prefix}_step_{n}`/`{prefix}_epoch_{n}` twin writes,
+alphabetical sort) were never independently opened at their own Jan-21/Jan-28 `#releases`
+locations — no phrase from either original thread appears anywhere in the transcript. The agent
+only ever encountered them as already-reversed history, recapped inside `g11.r1.rev1` (line
+3634–3644: "a step trips both triggers so we write both... no more `{prefix}_step_{n}` plus
+`{prefix}_epoch_{n}`") and `g11.r1.rev2` (line 3240: "the alphabetcal thing... `('epoch', 'final',
+'interval')`"). It still shipped the reversed design correctly in both cases, so this gap cost
+nothing.
 
 ## What it missed, and why
 
-The one lost fact is `g11.r2.rule`, and it fails on a single narrow assertion:
-`test_r2.py` checks `inspect.signature(learning_rate_at).parameters["min_lr_ratio"]
-.kind is inspect.Parameter.KEYWORD_ONLY` before it checks any numeric value, and
-the agent shipped `min_lr_ratio: float = MIN_LR_RATIO` with no bare `*` in front
-of it — an ordinary keyword-with-default, not keyword-only. Its own new tests
-call the function both positionally and with `min_lr_ratio=` as a keyword,
-showing the distinction was never on its radar.
+The two lost facts, `g11.r1.scope` and `g11.r1.observability`, trace to a **single** missing rule:
+a step that trips no configured trigger must still write one checkpoint at the run's last step,
+`reasons == ("final",)`. The grader trace is explicit: `test_scope` failed with `bare steps: []
+!= [3]`, and `test_observability` failed on its very first check, `fixture checkpoints: 0 != 1` —
+the same "default-config fixture yields exactly one `('final',)` checkpoint" fact from the answer
+key. The three remarks that state this rule — `g11.r1.l9` ("a run that finishes clean and leaves
+no checkpoint behind is a bug"), `g11.r1.l10` ("the fixture at the top of test_trainer.py has
+neither switch on... its last step still gets checkpointed... reasons come back exactly
+`('final',)`"), and `g11.r1.l11` ("leave the interval and per-epoch triggers gated on their config
+fields... plenty of runs have both off on purpose") — share no keyword with the agent's only
+full-corpus grep, and its later 329-line domain sweep (`ft_lines.txt`, line 3668) was abandoned
+after two chunks ("Too much unrelated batch-resume noise. I'll filter on distinctly finetune
+terms.", line 3863) before reaching the `#pipeline`/`#code-review` region where they sit. Tellingly,
+the agent *did* read the actual pre-existing `trainer`/`config` pytest fixtures (line 4933–4945,
+`epochs=1, batch_size=2`, no checkpoint triggers configured) but its analysis was just "Fixtures
+fine." (line 4971) — with no chat clue naming the rule, it had no reason to add an unconditional
+`step == plan.total_steps` trigger, and left the save-checkpoint call fully gated behind
+`checkpoint_every_n_steps`/`checkpoint_every_epoch`. This is a clean `not_found` cause, not a
+misread: the Fireworks half of the same scope fact (`g11.r1.l12`, "it never writes checkpoints...
+no reasons key") *was* found and correctly implemented (`checkpoints=[]`, no `reasons` metadata
+key on the Fireworks side), but that alone couldn't save the fact once the Tinker-side final-step
+assertion failed.
 
-The reason is a clean, provable search gap. The single remark that carries this
-fact, `g11.r2.l10` ("also did a pass on 663 - min_lr_ratio sits behind a bare *
-so callers have to name it, MIN_LR_RATIO stays the module-level default"),
-sits in `#code-review` on 2025-05-30 and never surfaces anywhere in the
-transcript or the raw rollout JSON — a grep for "663", "bare", "spellings
-drift", "keyword-only" and the date itself all come back empty. The agent's
-`#code-review` reads stop at 2025-04-14; its LR keyword sweeps used
-`'learning_rate_at' 'effective_warmup' 'cosine'` and a broad `'accumulation'
-'warmup' 'loss_history' 'signature' 'trailing'` pass, but never the literal
-string `min_lr_ratio` or `MIN_LR_RATIO` — despite typing both dozens of times
-in its own analysis while discussing the *semantics* of the ratio (recovered
-correctly from `g11.r2.rev1` and `g11.r2.say20`). It declared the LR design
-"fully determined" (line 3536) and "complete" (lines 4093, 4907, 5008) once
-the schedule shape and the rescaling behavior checked out numerically, and
-moved on to writing code without a final sweep on the identifier itself. Two
-other remarks (`g11.r2.l7`, `g11.r2.l11`) also never surfaced, for the same
-reason (their wording shares no vocabulary with any swept term and their
-channels/dates were never dumped), but those facts still scored 1 because
-other found remarks independently carried the same information.
+All seven other facts passed cleanly, generally with redundant remark coverage even where one or
+two individual clues were missed (e.g. `g11.r1.l13`, `g11.r2.l7/l11/l14/say19` were never
+surfaced, but their facts were independently recovered from sibling remarks or the ticket's own
+language about `ResumePlan`).
 
-## Why the passing facts passed
+## Notable
 
-Every `g11.r1` fact and three of `g11.r2`'s rested on remarks the agent did
-find and correctly reason about — `canonical_reasons` ordering/dedup/error
-behavior, the six-digit padded name template, scope (final unconditional,
-Fireworks writes nothing), epoch-from-plan, dedupe-on-repeat-name, and the
-full numeric LR schedule including the floor/clamp and the clipped-warmup
-failure case. The agent cross-checked essentially every quoted number against
-its own implementation before committing (lines 5420, 5571), which is why
-`observability` on both requirements passed cleanly even though a couple of
-their individual carrier remarks were never separately surfaced.
-
-## Bottom line
-
-One lost fact, one clean cause: `g11.r2.rule` failed because the sole remark
-carrying "min_lr_ratio is keyword-only" (`g11.r2.l10`, #code-review, 2025-05-30)
-was never found — a keyword-sweep gap (the agent never grepped for the
-identifier itself) compounded by the agent's `#code-review` reads stopping
-six weeks before that remark's date. This is `not_found`, not a reasoning or
-implementation slip: everything the agent did find about the LR schedule, it
-implemented correctly.
+The agent's own worked reproduction of the 10-example run briefly used the wrong config (`bs=4,
+epochs=2, ga=2` → `batches_completed` 4,6, line 5647) before self-correcting to the
+record-matching `ga=3` config (`batches_completed` 6,8, line 5697) — a near-miss on `say24`'s
+`batch_size=3` detail that didn't end up mattering, since the grader evaluates its own config
+independent of the agent's test fixture.

@@ -17,10 +17,10 @@
 
 - **konrad** (2025-05-06, thread:new|g9.r1.l-scope-1): right, but look — the formatter tests all pass with no tokenizer, becuase that path just hands back all ones, so none of them would notice a masking bug.
 - **nikolai** (2025-04-25, #code-review): ran the cookbook token weight snippet with no tokenizer and 'Hello' / 'Hi there!' comes back every weight 1.0 i'd expect the first few dark since thats the question
-- **dermot** (2025-06-17, page:engineering/chat-formatting-and-assistant-span-masking-in-the-finetuning-client.md): on the no-tokenizer path leave the `<|role|>` text and the `len // 4` count exactly as they are; an assistant span is the text length before and after that message, each `// 4`.
-- **emil** (2025-05-13, thread:new|g9.r1.l-scope-4): let me think through that — with train_on_assistant_only off both paths should hand back a flat vector of ones, and supervised_tokens counts tokens in the span, not weight slots.
+- **dermot** (2025-06-17, page:engineering/chat-formatting-and-assistant-span-masking-in-the-finetuning-client.md): on the no-tokenizer path leave the `<|role|>` text and `len(chat_text) // 4` as they are; a span's ends are that count over messages[:i], then over messages[:i+1].
+- **emil** (2025-05-13, thread:new|g9.r1.l-scope-4): let me think through that — with train_on_assistant_only off both paths hand back a flat vector of ones, and the span is the whole example rather than the answer, so supervised_tokens is the token count itself. on the Hello / Hi there! pair thats 9, against 8 weight slots — its the span's end minus its start, never the number of weights.
 - **konrad** (2025-05-07, thread:new|g9.r1.say23): look, on your Hello / Hi there! pair the weights come back one shorter than the tokens - eight of them, [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-- **gideon** (2025-06-26, page:engineering/local-offline-inference-what-the-encode-step-returns-when-no-tokenizer-is-loaded.md): so basically on the mock path the ids are just range over the count, 0 through 8 for the Hello pair, and model_input is the first eight of those.
+- **gideon** (2025-06-26, page:engineering/local-offline-inference-what-the-encode-step-returns-when-no-tokenizer-is-loaded.md): so basically on the mock path the encoding reads token_count 9 for the Hello pair, the whole chat_text in one go, ids 0 through 8, model_input the first eight.
 - **dario** (2025-04-24, thread:new|g9.r1.say25): honestly the fallback emits the same encoding block as the tokenizer path, window_start and all, and it comes back 0 on any run where we never had to trim
 - **nikolai** (2025-06-12, page:engineering/trimming-over-length-rows-for-finetuning-pr-653.md): yep checked the fallback path too window_start is token_count minus max_seq_length either way floored at 0 when it fits so that 129 token row at cap 40 reads 89
 
@@ -39,8 +39,8 @@
 *The leap nobody states:* an example that fits under the limit was never cut, so there is nothing to refuse; the floor only bites on examples the cut actually reached.
 
 - **gideon** (2025-03-24, #cookbooks): so basically the rows that get cut hardest arive as an answer with none of its question left in front of it, and we happily train on those.
-- **konrad** (2025-03-19, #releases): look, on the stability item - nightly died on ExampleTooLongError, 129 tokens agianst a cap of 40 and not one prompt token left standing
-- **nils** (2025-03-19, #pipeline): let me think — the refusal line reads exactly: example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16. num_messages rides along as an attribute, it isn't printed.
+- **konrad** (2025-03-19, #releases): look, on the stability item - nightly died on `ExampleTooLongError: example of 129 tokens exceeds max_seq_length=40: 0 prompt tokens would survive, minimum is 16`, traceback right after.
+- **nils** (2025-03-19, #pipeline): let me think — the line is `example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16`, and num_messages rides along as an attribute, not printed.
 - **dermot** (2025-03-17, #pipeline): yeah, that's my read as well — one row we won't take shouldn't take the other forty thousand down with it, and anything that fits under the cap goes through however short its question is.
 - **emil** (2025-03-14, #code-review): one more on the error shape - EncodingError subclasses ValueError, so anything already catching ValueError around the encoder still catches it. keeping it that way.
 - **dermot** (2025-06-12, page:engineering/what-the-finetuning-encoder-emits-per-datum-and-how-it-behaves-at-the-length-cap.md): yeah ok — at max_seq_length=40 the four-message near-miss does come back a datum: encoding reads window_start 51, and the weights come back 39 long, one short of the max_seq_length window we keep.
@@ -75,9 +75,9 @@
 
 *The leap nobody states:* a position is only useful to the person holding the input if it is numbered against the input they handed over.
 
-- **gideon** (2025-04-28, #viewer): tbh i chased dropped_indices back to my input file and row 7 was fine, so basically those numbers only count among the ones we skipped.
-- **nikolai** (2025-05-13, #pipeline): yep same on the fireworks pass the drop positions lined up with the rows we wrote out not the list i submitted so i greped the wrong lines
-- **nils** (2025-04-02, page:meetings/weekly-notes-week-of-mar-31.md): on 615 — let me think, simplest is numbering them against the list i passed in, in the order i passed it, then i index straight into my own data.
+- **gideon** (2025-04-28, #viewer): tbh i chased dropped_indices back to my input file — came back (0, 1) when the rows i binned were 3 and 7. numbered among the ones we skipped.
+- **nikolai** (2025-05-13, #pipeline): yep same on the fireworks pass — to_jsonl_lines numbered dropped_indices against the rows we wrote out, not the list i submitted, so i greped the wrong lines.
+- **nils** (2025-04-02, page:meetings/weekly-notes-week-of-mar-31.md): on 615 — let me think, simplest is dropped_indices numbered against the list i handed in, in that order, so i index straight back into my own examples.
 
 ### g9.r2.sc4 — windowed and supervised_tokens describe only the examples that survived the batch, and both stay at zero on the Fireworks jsonl path where nothing is tokenised.
 

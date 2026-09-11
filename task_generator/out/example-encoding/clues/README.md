@@ -1,6 +1,6 @@
 # Clues for g9 — One encoding policy for chat examples
 
-53 remarks across 2 hidden requirements, to be planted in `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/runs/corpus`.
+55 remarks across 2 hidden requirements, to be planted in `/home/nidhi_bespokelabs_ai/SWEWorld/data_gen/build/phase4/runs/corpus`.
 
 Clue window `2025-03-14` to `2026-01-27`; herrings before `2025-03-13`.
 
@@ -100,15 +100,15 @@ Add to the imports and `__all__`: `"EncodingError"`, `"InvalidRoleSequenceError"
 | 2025-03-17 | #pipeline *(new)* | dermot | yeah, that's my read as well — one row we won't take shouldn't take the other forty thousand down with it, and anything that fits under the cap goes through however short its question is. | `failure_behavior` |
 | 2025-03-17 | #code-review *(new)* | nikolai | yep re-checked the accented row at max_seq_length=33 the budget lands at 99 and the line measures 100 so to_jsonl_lines gives back an empty list no trimmed verison | `exclusions_or_crossover` |
 | 2025-03-19 | #engineering *(new)* | konrad | look, counting characters was the mistake - it's json.dumps(ensure_ascii=False) with default separators, then len(line.encode('utf-8')), so UTF-8 bytes. the 'qqq'/'ok' pair is 90, and the row landing exactly on the number was fine | `exclusions_or_crossover` |
-| 2025-03-19 | #releases | konrad | look, on the stability item - nightly died on ExampleTooLongError, 129 tokens agianst a cap of 40 and not one prompt token left standing | `failure_behavior` |
-| 2025-03-19 | #pipeline *(new)* | nils | let me think — the refusal line reads exactly: example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16. num_messages rides along as an attribute, it isn't printed. | `failure_behavior` |
+| 2025-03-19 | #releases | konrad | look, on the stability item - nightly died on `ExampleTooLongError: example of 129 tokens exceeds max_seq_length=40: 0 prompt tokens would survive, minimum is 16`, traceback right after. | `failure_behavior` |
+| 2025-03-19 | #pipeline *(new)* | nils | let me think — the line is `example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16`, and num_messages rides along as an attribute, not printed. | `failure_behavior` |
 | 2025-03-19 | #releases *(new)* | dario | reverting the (data, report) tuple from format_batch, it broke the hand-off at tinker_trainer.py:250 - plain list of datums again and the counts sit on self.last_report as an EncodingReport | `rule` |
 | 2025-03-20 | #cookbooks *(new)* | emil | honestly i think the cap and the check are in different units - fireworks bounced the entire upload over one long sample, so to_jsonl_lines now works out max_seq_length * FIREWORKS_BYTES_PER_TOKEN and measures each line against that budget in bytes. | `exclusions_or_crossover` |
 | 2025-03-21 | #pipeline *(new)* | emil | pushed one example through to_tinker_datum in the repl to debug it and self.last_report came back untouched, same when the call raised, so it leaves it alone either way | `scope` |
 | 2025-03-21 | #cookbooks *(new)* | konrad | Look, the signautre I signed off on, format_batch(examples, tokenizer) -> Tuple[List[Any], EncodingReport], is dropped - the unpack at tinker_trainer.py:250 broke forwarding. Return is List[Any], and format_batch and to_jsonl_lines both reassign self.last_report. | `rule` |
 | 2025-03-24 | #cookbooks *(new)* | gideon | so basically the rows that get cut hardest arive as an answer with none of its question left in front of it, and we happily train on those. | `failure_behavior` |
 | 2025-03-24 | #pipeline *(new)* | nikolai | the tool role example got swallowd into the drop count last night run carried on and we shipped a file missing the rows i needed thats not a drop | `failure_behavior` |
-| 2025-04-02 | page:meetings/weekly-notes-week-of-mar-31.md | nils | on 615 — let me think, simplest is numbering them against the list i passed in, in the order i passed it, then i index straight into my own data. | `rule` |
+| 2025-04-02 | page:meetings/weekly-notes-week-of-mar-31.md | nils | on 615 — let me think, simplest is dropped_indices numbered against the list i handed in, in that order, so i index straight back into my own examples. | `rule` |
 | 2025-04-03 | #cookbooks *(new)* | gideon | so basically even after a skip i can still tell what came back — every datum's metadata block carries num_messages, and the four-message row was sitting right there | `failure_behavior` |
 | 2025-04-11 | #cookbooks *(new)* | nils | windowed came back as nine on a batch that wrote six lines. each datum's encoding reads windowed True fine, the total just shouldnt count rows we dropped. | `rule` |
 | 2025-04-14 | thread:<178769930038.2250839.2605881431154859866@world.local> | dermot | One review note on 632: when the batch aborted halfway, self.last_report had already been half updated — it should still read whatever the last good run left. | `failure_behavior` |
@@ -119,14 +119,14 @@ Add to the imports and `__all__`: `"EncodingError"`, `"InvalidRoleSequenceError"
 | 2025-04-24 | #engineering *(new)* | dario | dropped the windowing floor — window_start > 0 on its own refuses nothing now, it was binning fine long conversations. to_tinker_datum raises ExampleTooLongError only if the final assistant span starts under 16 tokens past window_start | `failure_behavior` |
 | 2025-04-24 | thread:new|g9.r1.say25 *(new)* | dario | honestly the fallback emits the same encoding block as the tokenizer path, window_start and all, and it comes back 0 on any run where we never had to trim | `scope` |
 | 2025-04-25 | #code-review *(new)* | nikolai | ran the cookbook token weight snippet with no tokenizer and 'Hello' / 'Hi there!' comes back every weight 1.0 i'd expect the first few dark since thats the question | `scope` |
-| 2025-04-28 | #viewer *(new)* | gideon | tbh i chased dropped_indices back to my input file and row 7 was fine, so basically those numbers only count among the ones we skipped. | `rule` |
+| 2025-04-28 | #viewer *(new)* | gideon | tbh i chased dropped_indices back to my input file — came back (0, 1) when the rows i binned were 3 and 7. numbered among the ones we skipped. | `rule` |
 | 2025-05-06 | thread:new|g9.r1.l-scope-1 *(new)* | konrad | right, but look — the formatter tests all pass with no tokenizer, becuase that path just hands back all ones, so none of them would notice a masking bug. | `scope` |
 | 2025-05-07 | thread:new|g9.r1.l-rule-2 *(new)* | dario | honestly i pulled one row out and its encoding carries token_count 52 for everything, supervised_tokens 40 — and twelve of that forty are the tail of an answer we chopped the front off. | `rule` |
 | 2025-05-07 | thread:new|g9.r1.say23 *(new)* | konrad | look, on your Hello / Hi there! pair the weights come back one shorter than the tokens - eight of them, [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] | `scope` |
-| 2025-05-13 | thread:new|g9.r1.l-scope-4 *(new)* | emil | let me think through that — with train_on_assistant_only off both paths should hand back a flat vector of ones, and supervised_tokens counts tokens in the span, not weight slots. | `scope` |
+| 2025-05-13 | thread:new|g9.r1.l-scope-4 *(new)* | emil | let me think through that — with train_on_assistant_only off both paths hand back a flat vector of ones, and the span is the whole example rather than the answer, so supervised_tokens is the token count itself. on the Hello / Hi there! pair thats 9, against 8 weight slots — its the span's end minus its start, never the number of weights. | `scope` |
 | 2025-05-13 | thread:new|g9.r2.l1 *(new)* | dario | the surface is small, honestly: encoding.py is ALLOWED_ROLES, InvalidRoleSequenceError, TokenizerCapabilityError, validate_role_sequence and EncodingReport, all re-exported from finetune/__init__ so notebooks just import from finetune. | `rule` |
 | 2025-05-13 | thread:new|g9.r2.l6 *(new)* | konrad | stats passed on your branch? self.last_report is set in format_batch but not to_jsonl_lines, after my fireworks run it still had the previous batch numbers. both should set it. | `rule` |
-| 2025-05-13 | #pipeline *(new)* | nikolai | yep same on the fireworks pass the drop positions lined up with the rows we wrote out not the list i submitted so i greped the wrong lines | `rule` |
+| 2025-05-13 | #pipeline *(new)* | nikolai | yep same on the fireworks pass — to_jsonl_lines numbered dropped_indices against the rows we wrote out, not the list i submitted, so i greped the wrong lines. | `rule` |
 | 2025-05-14 | page:engineering/end-of-run-summary-tables-how-the-formatters-are-wired.md *(new)* | gideon | so basically i constructed a formatter, asked it for its report, got None back, so all my callers have null checks now. fresh one should already hold an empty report tbh. | `scope` |
 | 2025-05-14 | thread:new|g9.r2.l15 *(new)* | dario | honestly the fireworks jsonl path never loads a tokenizer, so a token total and a trim count coming back off it are just noise — both read zero there. | `rule` |
 | 2025-05-20 | page:engineering/finetuning-export-what-the-end-of-run-summary-counts.md *(new)* | emil | yup - if a row never made it into the output it shouldnt land in the trim count or the token total either, both summed over kept examples only. | `rule` |
@@ -134,15 +134,17 @@ Add to the imports and `__all__`: `"EncodingError"`, `"InvalidRoleSequenceError"
 | 2025-06-03 | page:engineering/viewer-dataset-download-export-format-notes-pr-652.md *(new)* | dario | honestly i'd sooner drop an example than ship a conversation with its opening sawn off - nothing gets shortened, so a row under budget comes back whole, 'héllo wörld' intact. | `exclusions_or_crossover` |
 | 2025-06-10 | page:engineering/overnight-finetune-off-the-curated-export-jun-9-10-run-what-the-training-rows-actually-contained.md *(new)* | gideon | so basically the checkpoint from last night starts its answers mid-sentence, and every row i pulled had the question cut off but the reply still weighted. | `rule` |
 | 2025-06-10 | page:engineering/reading-a-capped-executor-log-how-to-count-turns-in-it.md *(new)* | nils | let me think through that, what settles whether a turn is in or out is whether the opening token of its answer survived the cut, the tail end of it is in there either way | `rule` |
+| 2025-06-11 | #engineering *(new)* | konrad | look, I measured the Hello / Hi there! case by hand - 15 charcters up to where the assistant header starts, 39 with that whole turn on the end. | `scope` |
 | 2025-06-11 | page:engineering/what-format-batch-counts-as-a-drop-and-what-stops-the-pass-instead.md *(new)* | dario | re gideon's tokenizer - no apply_chat_template on it, so format_batch raises TokenizerCapabilityError right there, pass stops, nothing gets binned as a drop | `failure_behavior` |
 | 2025-06-12 | page:engineering/what-the-finetuning-encoder-emits-per-datum-and-how-it-behaves-at-the-length-cap.md *(new)* | dermot | yeah ok — at max_seq_length=40 the four-message near-miss does come back a datum: encoding reads window_start 51, and the weights come back 39 long, one short of the max_seq_length window we keep. | `failure_behavior` |
 | 2025-06-12 | page:engineering/trimming-over-length-rows-for-finetuning-pr-653.md *(new)* | nikolai | yep checked the fallback path too window_start is token_count minus max_seq_length either way floored at 0 when it fits so that 129 token row at cap 40 reads 89 | `rule` |
 | 2025-06-16 | thread:<178771578160.2500381.12817086076544913041@world.local> | nikolai | on 653 whats in encoding.py so far the role set FIREWORKS_BYTES_PER_TOKEN still 3 ExampleTooLongError off EncodingError and the encoding blocks tokenizer flag False when we ran without one | `exclusions_or_crossover` |
-| 2025-06-17 | page:engineering/chat-formatting-and-assistant-span-masking-in-the-finetuning-client.md *(new)* | dermot | on the no-tokenizer path leave the `<\|role\|>` text and the `len // 4` count exactly as they are; an assistant span is the text length before and after that message, each `// 4`. | `scope` |
+| 2025-06-17 | page:engineering/chat-formatting-and-assistant-span-masking-in-the-finetuning-client.md *(new)* | dermot | on the no-tokenizer path leave the `<\|role\|>` text and `len(chat_text) // 4` as they are; a span's ends are that count over messages[:i], then over messages[:i+1]. | `scope` |
 | 2025-06-17 | page:engineering/request-builder-what-we-drop-and-what-we-raise-on.md *(new)* | dario | honestly if the role sequence is bad thats my data being broken, not a row to quietly skip - only the over-long ones should get binned and counted | `failure_behavior` |
 | 2025-06-24 | page:engineering/per-example-stats-from-the-windowed-export-review-notes-653-follow-on.md *(new)* | konrad | nit: docstring says skipped but the attribute is dropped. also the field order is kept, dropped, windowed, dropped_indices, supervised_tokens, your exmaple builds it the other way round. | `rule` |
-| 2025-06-26 | page:engineering/local-offline-inference-what-the-encode-step-returns-when-no-tokenizer-is-loaded.md *(new)* | gideon | so basically on the mock path the ids are just range over the count, 0 through 8 for the Hello pair, and model_input is the first eight of those. | `scope` |
+| 2025-06-26 | page:engineering/local-offline-inference-what-the-encode-step-returns-when-no-tokenizer-is-loaded.md *(new)* | gideon | so basically on the mock path the encoding reads token_count 9 for the Hello pair, the whole chat_text in one go, ids 0 through 8, model_input the first eight. | `scope` |
 | 2025-06-26 | page:meetings/weekly-sync-notes-week-of-jun-23-batch-mode.md | dermot | yeah — counted binned rows by hand off the upload log again, so the summary comes off the formatter afterwards. that said, format_batch still hands back a plain list. | `rule` |
+| 2025-07-10 | #pipeline *(new)* | konrad | Reran both over the same input list now that the renumber landed — format_batch and to_jsonl_lines come back with identcial dropped_indices. anyway, no more guessing which one I'm reading. | `rule` |
 
 ## g9.r1
 
@@ -402,27 +404,14 @@ From: None  To:
 *A new thread — **user question: does a local run without the tokenizer extra still report encoding stats**, 2025-04-24:*
 
 ```
-From: emil  To: dario, nikolai, gideon
-Passing this along becuase it's landing right in the middle of the WS-054 work and I don't want to answer it wrong.
+From: None  To: 
 
-We have a user running a local model, vllm behind the openai-compatible endpoint, and they don't have the tokenizer extra installed in that env. Their question, as best i can restate it: do they still get encoding and truncation numbers back on each run, or do those fields just quietly go missing when the tokenizer isn't importable? They said they're building some dashboarding on 
 
-From: nikolai  To: emil, dario, gideon
-missing keys are the worse failure here i'd say
+From: None  To: 
 
-dashboard code that does a lookup and gets nothing back tends to just render a blank and nobody notices for a month
 
-dario would know what the fallback actually emits off the top of my head i only remember there being two paths
+From: None  To: 
 
-From: dario  To: emil, nikolai, gideon
-they're fine, nothing goes missing. we don't gate the block on the import, the import only decides which of the two counters we use — real tokenizer if it's there, character heuristic if it isn't, and the heuristic is deliberately conservative so it over-counts rather than under-counts.
-
-honestly the fallback reports the same encoding block as the tokenizer path, window_start included, and it comes back 0 on any run we never had to trim. so their dashboard gets a stable set of keys either way, i
-
-From: gideon  To: dario, emil, nikolai
-ya ok that answers it. i will write back to them today and mention the estimate thing explicitly so they dont read the numbers as exact.
-
-honestly though the docs page for local models says nothing about this at all right now, i checked. tbh i can add two lines there while im in it.
 
 ```
 
@@ -447,19 +436,14 @@ honestly though the docs page for local models says nothing about this at all ri
 *A new conversation in #code-review on 2025-04-25:*
 
 ```
-14:32  dermot: ran the token weight snippet off the cookbook page this morning, no tokenizer passed in
-14:34  dermot: every weight comes back 1.0. that said i only tried the one pair
-14:36  nikolai: which pair
-14:37  dermot: 'Hello' / 'Hi there!'
-14:38  gideon: and 1.0 is not what you wanted there? honestly though i would have to look at what it does with no tokenizer
-14:39  dermot: no. not entirely sure what it should be, but not that, flat across the whole thing
-14:42  nikolai: i'd expect the first few dark since thats the question
-
-so yeah thats broken not you
-14:44  nikolai: fix goes on the cookbook page not in your script
-
-nobodys picked it up yet
-14:46  gideon: ya i copied that same snippet into my notes last week, going to go mark it
+14:12  gideon: ran the cookbook token weight snippet with no tokenizer and the vector came back flat
+14:15  dermot: flat as in every weight 1.0? on what pair
+14:17  gideon: ya, every one 1.0. 'Hello' then 'Hi there!'
+14:21  gideon: i'd expect the first few dark since thats the question, no?
+14:26  nikolai: right thats the bug that branch just hands back ones it isnt masking anything today
+14:30  dermot: so if i'm following, the fix goes in the no-tokenizer branch itself, not a note on the page
+14:33  nikolai: yep in the branch it should come out the same shape the tokenizer path gives you question dark answer weighted nobodys written it yet
+14:36  gideon: honestly though i had been reading that flat vector as the tokenizer just being optional
 ```
 
 #### `g9.r1.l-scope-1` — scope
@@ -481,6 +465,9 @@ nobodys picked it up yet
 *A new thread — **PR 653: formatter still takes tokenizer=None**, 2025-05-06:*
 
 ```
+From: None  To: 
+
+
 From: None  To: 
 
 
@@ -545,9 +532,9 @@ So, restating so I have it right: nothing lands until Nikolai confirms tomorrow,
 
 **emil**, 2025-05-13, thread:new|g9.r1.l-scope-4
 
-> let me think through that — with train_on_assistant_only off both paths should hand back a flat vector of ones, and supervised_tokens counts tokens in the span, not weight slots.
+> let me think through that — with train_on_assistant_only off both paths hand back a flat vector of ones, and the span is the whole example rather than the answer, so supervised_tokens is the token count itself. on the Hello / Hi there! pair thats 9, against 8 weight slots — its the span's end minus its start, never the number of weights.
 
-*What a reader should take from it:* the team agrees assistant-only off yields all ones on both paths
+*What a reader should take from it:* the team agrees that with train_on_assistant_only off the span covers the whole example, so supervised_tokens equals token_count — 9 on the Hello / Hi there! pair, one more than the 8 weight slots
 
 *Step it builds toward:* `g9.r1.sc-scope` — The branch that runs without a tokenizer keeps its existing text and its existing character-derived token count, but goes through the same cut and the same assistant-only masking as the real path, including returning a flat vector of ones when assistant-only is off.
 
@@ -562,31 +549,21 @@ So, restating so I have it right: nothing lands until Nikolai confirms tomorrow,
 *A new thread — **sft export — fast tokenizer and manual fallback return different label weights**, 2025-05-13:*
 
 ```
-From: nikolai  To: emil, dario
-ran the sft export over the same 200 conversations twice today once with the fast tokenizer and once forcing the manual fallback and the label weight vectors dont match
+From: None  To: 
 
-fast path gives me weights aligned to the offset mapping so one entry per token the fallback builds them per message segment and pads out so the lengths differ before you even look at the values
 
-i'd say one of these is wrong but i dont actually know which behaviour we promised anyone so before i delete a code path can someone t
+From: None  To: 
 
-From: emil  To: nikolai, dario
-let me think through that — the two paths grew at different times and i dont think either one was ever written down properly, which is on me.
 
-the intent, as best i can reconstruct it: the fast path is the one that matches what the trainer consumes. one float per token id in the encoded sequence, same length as input_ids, no padding logic of its own. the manual fallback was written for tokenizers that dont give us offsets, and honestly it was written to be correct on the assistant spans and nobo
+From: None  To: 
 
-From: dario  To: emil, nikolai
-that tracks. i think the slow tokenizer question is answerable — we can look at what's actually coming through the export in the last month or so and i'd guess it's near zero, but i'd rather check than guess.
 
-in any case nikolai if you want to fix the count without touching the code path question that seems separable to me. either you land that on its own or you wait and do both together, your call, i dont have a strong view.
+From: None  To: 
 
-From: nikolai  To: dario, emil
-yep separable
-
-i'll do the count first and leave both paths in place
-
-will dig up the slow tokenizer numbers when i'm in there anyway
 
 ```
+
+> **Problems:** longer than one remark
 
 #### `g9.r1.say27` — rule
 
@@ -659,7 +636,7 @@ will dig up the slow tokenizer numbers when i'm in there anyway
 
 **dermot**, 2025-06-17, page:engineering/chat-formatting-and-assistant-span-masking-in-the-finetuning-client.md
 
-> on the no-tokenizer path leave the `<|role|>` text and the `len // 4` count exactly as they are; an assistant span is the text length before and after that message, each `// 4`.
+> on the no-tokenizer path leave the `<|role|>` text and `len(chat_text) // 4` as they are; a span's ends are that count over messages[:i], then over messages[:i+1].
 
 *What a reader should take from it:* the team agrees the no-tokenizer path keeps its existing text and count but gains the real cut and masking
 
@@ -671,7 +648,7 @@ will dig up the slow tokenizer numbers when i'm in there anyway
 
 *Still leaves open:* does not say what the masking does when training on everything rather than assistant turns only
 
-*Must appear literally:* `<|role|>`, `len // 4`
+*Must appear literally:* `<|role|>`, `len // 4`, `len(chat_text) // 4`, `messages[:i+1]`, `messages[:i]`
 
 *A new page — **chat formatting and assistant span masking in the finetuning client** in `engineering`, 2025-06-17:*
 
@@ -720,13 +697,13 @@ will dig up the slow tokenizer numbers when i'm in there anyway
 > 
 > none of these are new, i have just been checking them from memory during late night review passes and would rather they were written down.
 
-> **Problems:** longer than one remark
+> **Problems:** claims verbatim 'len // 4' but does not contain it
 
 #### `g9.r1.say24` — scope
 
 **gideon**, 2025-06-26, page:engineering/local-offline-inference-what-the-encode-step-returns-when-no-tokenizer-is-loaded.md
 
-> so basically on the mock path the ids are just range over the count, 0 through 8 for the Hello pair, and model_input is the first eight of those.
+> so basically on the mock path the encoding reads token_count 9 for the Hello pair, the whole chat_text in one go, ids 0 through 8, model_input the first eight.
 
 *What a reader should take from it:* the team agrees the no-tokenizer path's token ids are range over the count and model_input drops the last one
 
@@ -738,7 +715,7 @@ will dig up the slow tokenizer numbers when i'm in there anyway
 
 *Still leaves open:* says nothing about which of those positions get weighted, how the count itself is arrived at, or what the encoding block reports.
 
-*Must appear literally:* `model_input`
+*Must appear literally:* `Hello`, `chat_text`, `model_input`, `token_count`
 
 *A new page — **Local offline inference: what the encode step returns when no tokenizer is loaded** in `engineering`, 2025-06-26:*
 
@@ -1054,7 +1031,7 @@ One thing I want an answer on: PR 653, the finetuning client Shreyas originally 
 
 **konrad**, 2025-03-19, #releases
 
-> look, on the stability item - nightly died on ExampleTooLongError, 129 tokens agianst a cap of 40 and not one prompt token left standing
+> look, on the stability item - nightly died on `ExampleTooLongError: example of 129 tokens exceeds max_seq_length=40: 0 prompt tokens would survive, minimum is 16`, traceback right after.
 
 *What a reader should take from it:* the team has a dedicated error for an example the cut leaves unusable
 
@@ -1066,7 +1043,7 @@ One thing I want an answer on: PR 653, the finetuning client Shreyas originally 
 
 *Still leaves open:* does not say how much surviving prompt would have been enough, nor whether one bad row should take the run with it
 
-*Must appear literally:* `ExampleTooLongError`
+*Must appear literally:* `ExampleTooLongError`, `example of 129 tokens exceeds max_seq_length=40: 0 prompt tokens would survive, minimum is 16`
 
 *Goes into the real conversation in #releases on 2025-03-19, after 11:49 dermot:*
 
@@ -1088,7 +1065,7 @@ One thing I want an answer on: PR 653, the finetuning client Shreyas originally 
 
 **nils**, 2025-03-19, #pipeline
 
-> let me think — the refusal line reads exactly: example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16. num_messages rides along as an attribute, it isn't printed.
+> let me think — the line is `example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16`, and num_messages rides along as an attribute, not printed.
 
 *What a reader should take from it:* the team sets the floor at sixteen surviving prompt tokens and records the counts on refusal
 
@@ -1115,8 +1092,6 @@ One thing I want an answer on: PR 653, the finetuning client Shreyas originally 
 14:16  nils: not yet, someone still has to write it. maybe it goes on the batch ticket, i don't much mind which
 14:17  gideon: so my alert is matching the old wording then. explains the silence
 ```
-
-> **Problems:** longer than one remark
 
 #### `g9.r1.l-fail-1` — failure_behavior
 
@@ -1291,14 +1266,15 @@ One thing I want an answer on: PR 653, the finetuning client Shreyas originally 
 *A new conversation in #code-review on 2025-01-22:*
 
 ```
-15:04  emil: quick one on the refusal flag - if we only windowed part of an example, is that a partial refusal or does it count as the whole thing
-15:06  konrad: the whole thing. its binary, windowed at all means refused. there is no half state
-15:08  emil: ok. so what happens to it downstream, does it still go out with some marker on it
-15:10  konrad: no. format_batch just skips that example and carrys on
-
-nobody has written that yet though, off the top of my head its two lines
-15:13  dermot: so if i'm restating that right, the examples we never cut still carry the window fields anyway
-15:15  konrad: mhm. one we never cut still shows window_start 0 in its encoding, thats just the default sitting there
+15:11  dermot: quick one on the windowing while i have it open — if an example gets cut at all, is that a partial refusal or is the whole thing refused
+15:14  nikolai: binary
+windowed at all means refused theres no half state
+15:17  dermot: yeah ok. so the refused one just never lands in the batch, or does something downstream have to look at a flag
+15:20  konrad: no flag. format_batch skips that example and carrys on
+15:22  dermot: that leaves the bit i keep tripping over then. an example we never cut still shows window_start 0 in its encoding
+15:25  konrad: right but thats a measured 0, not an empty field. the windowing runs either way, so it comes back saying the window starts at the front. nothing is being left unset there
+15:28  nikolai: huh
+yep thats not how i had it in my head i had that 0 down as nobody having filled the field in
 ```
 
 #### `g9.r1.rev1` — failure_behavior
@@ -1348,16 +1324,46 @@ nobody has written that yet though, off the top of my head its two lines
 *A new conversation in #engineering on 2025-04-15:*
 
 ```
-15:02  nikolai: konrad whats the refusal rule on length now
-
-a run today kept two chats i was sure we would drop
-15:04  konrad: right, that one is gone. it was binary before — windowed at all meant refused, and format_batch just skips that example and carrys on. we were droping legit long chats that way
-15:08  emil: so if i'm reading that right nothing refuses on length at all anymore? that doesn't sound like what we'd want
-15:10  konrad: no, ExampleTooLongError still fires. just only under 16 retained prompt tokens now
-15:13  nikolai: and when it does fire what happens downstream
-15:15  konrad: same as it was, format_batch skips it and carrys on. that part nobody touched
-15:19  emil: yup ok. i was going to count how many we lost under the old rule by grepping encodings for window_start, but every example comes back 0 there, even ones we never cut
+14:31  nikolai: whats the refusal rule on long prompts now i lost track
+14:34  konrad: not the old one anyway. we had it as refusal is binary, windowed at all means refused, and format_batch just skips that example and carrys on
+14:36  nikolai: right thats the one i remember plus an example we never cut still shows window_start 0 in its encoding
+14:38  gideon: ya and honestly that was droping legit long chats. anything a bit chatty came back refused
+14:41  konrad: so we stopped refusing on windowed-at-all. look, it is ExampleTooLongError now and only under 16 retained prompt tokens
+14:43  nikolai: and the skip behaviour
+14:46  konrad: skip stays. format_batch skips it and carrys on, same as before. nobody has written it yet, presumably it goes on whatever ticket dermot has open
+14:49  gideon: so basically the window_start 0 thing stops meaning anything to us
 ```
+
+### scope — *(no such subconclusion)*
+
+#### `g9.r1.fix28` — scope
+
+**konrad**, 2025-06-11, #engineering
+
+> look, I measured the Hello / Hi there! case by hand - 15 charcters up to where the assistant header starts, 39 with that whole turn on the end.
+
+*What a reader should take from it:* the team sees the Hello / Hi there! chat text running 15 characters before the assistant turn and 39 with it appended
+
+*Drafted as:* look, i measured the Hello / Hi there! text by hand - 15 characters up to where the assistant header starts, 39 with that whole turn on the end.
+
+*Why there:* This is a training-code detail: hand-checking rendered chat-template character offsets to derive the assistant span for loss masking on the finetuning path. None of the candidate days is anywhere near it. The two #code-review days and both #releases days are PR-queue and tag coordination; #viewer 2025-03-27 is local-vs-hosted viewer; #cookbooks 2026-01-02 is whether the code-execution verifiers run in CI and who owns the handoff doc; #engineering 2025-05-22 is agentic curation and factory-cleanup scope; #engineering 2026-01-22 is README coverage of code-execution examples. Dropping a character count for a two-message Hello/Hi there! render into any of those changes the subject and would get no reaction. Finetuning is Konrad's territory and he owns it in every room, so the remark is his — it just needs the day where he's actually building the assistant-span extraction, which belongs in #engineering, the room for arguing about training code, and lines up with him moving "the next piece" forward once PR 653 landed and 0.1.26 was tagged.
+
+*Still leaves open:* what those two character counts get divided by, and which of them is the start of the assistant span and which the end - that only lands with the page's rule about messages[:i] and messages[:i+1]
+
+*Must appear literally:* `Hello`, `Hi there!`
+
+*A new conversation in #engineering on 2025-06-11:*
+
+```
+10:07  nikolai: for the finetuning masking are you pulling the assistant spans out of the tokenizer or computing them yourself
+10:09  konrad: computing them. the tokenizer offsets did not line up with what the chat template actually renders so i went back to charcter offsets on the rendered string
+10:10  konrad: look, i measured the Hello / Hi there! text by hand - 15 characters up to where the assistant header starts, 39 with that whole turn on the end. right now the test just asserts those two numbers
+10:14  emil: let me think through that... the thing that worries me a little is the template can shift under you on a tokenizer bump and then your 15 and 39 are quietly wrong, nothing fails loudly. not entirely sure what the catch for that looks like honestly
+10:16  konrad: mhm, presumably we derive them from the template in the test instead of hardcoding. anyway that is after i get the masking itself correct
+10:18  nikolai: solid enough for now i'd say gotta think through that one properly when the other template lands
+```
+
+> **Problems:** contains its own forbidden term '3'; contains its own forbidden term '9'; names no known subconclusion
 
 
 ## g9.r2
@@ -1800,7 +1806,7 @@ Local offline inference, same ownership. Didnt get deep into it this sync but it
 
 **nils**, 2025-04-02, page:meetings/weekly-notes-week-of-mar-31.md
 
-> on 615 — let me think, simplest is numbering them against the list i passed in, in the order i passed it, then i index straight into my own data.
+> on 615 — let me think, simplest is dropped_indices numbered against the list i handed in, in that order, so i index straight back into my own examples.
 
 *What a reader should take from it:* the team agrees drop positions are the caller's own input positions, in input order
 
@@ -1811,6 +1817,8 @@ Local offline inference, same ownership. Didnt get deep into it this sync but it
 *Why there:* The page's batch-mode section is already chewing on exactly this: PR 614 dropping requests silently and PR 615 adding output for failed requests so we can see "where batch requests are actually breaking". What the page leaves open is how a caller is supposed to identify which of their rows went missing — the failed-request output is useless to a cookbook author unless the positions map back onto what they submitted. Nils is the natural person to answer that here: he is the one on this page who hit a batch bug himself running a cookbook and had to wipe a run directory by hand, so he is writing as the caller consuming the report, and a comment on emil's notes is where he'd pin down the indexing convention without redrafting someone else's section. It doesn't collide with anything on the page — nobody has said how the failed-request output is keyed — and it deliberately stops short of naming the field or describing the rest of the report.
 
 *Still leaves open:* which field this is and what the rest of the report holds
+
+*Must appear literally:* `dropped_indices`
 
 *Goes as a comment on the real page `meetings/weekly-notes-week-of-mar-31.md`, at: PR 615 adds output for failed requests, which finally gives us visibility into where batch requests are actually breaking.:*
 
@@ -1841,7 +1849,7 @@ The pending job ID is keyed off the dataset only, with no backend identifier in 
 
 **gideon**, 2025-04-28, #viewer
 
-> tbh i chased dropped_indices back to my input file and row 7 was fine, so basically those numbers only count among the ones we skipped.
+> tbh i chased dropped_indices back to my input file — came back (0, 1) when the rows i binned were 3 and 7. numbered among the ones we skipped.
 
 *What a reader should take from it:* the team agrees the drop positions as numbered today do not line up with the caller's input
 
@@ -1858,22 +1866,20 @@ The pending job ID is keyed off the dataset only, with no backend identifier in 
 *A new conversation in #viewer on 2025-04-28:*
 
 ```
-14:22  konrad: viewer is showing dropped_indices with a 7 in it and row 7 of my input looks completely fine. what is that list counting
-14:24  gideon: ya i hit this last week, tbh i chased it back to my input file
-14:24  gideon: row 7 in the file is fine, nothing wrong with it
-14:26  konrad: so the number is just wrong
-14:28  gideon: no honestly, so basically those numbers only count among the ones we skipped. not positions in the file
-14:29  emil: so 7th of the skipped ones, not line 7 of the input. thats the read?
-14:30  gideon: exactly
-14:31  konrad: right. mine reads like file rows, presumably the label is doing that
-14:33  gideon: ya thats the thing that changes, i dunno the wording yet
+14:12  gideon: viewer handed me a dropped_indices tuple this morning, so i went and pulled row 7 out of my input file and tbh it was fine. clean row, nothing wrong with it
+14:13  gideon: so what is that number even pointing at
+14:19  dario: i think you counted entries. nothing gets written in there for the rows that came through ok
+14:23  gideon: ok but the values themselves. um, are they positions in my file or just an ordering
+14:27  emil: the input row each skip landed on, i believe. ascending. one drop at row 1 gives you 1, not 0
+14:33  gideon: ya, exactly. so basically those numbers only count among the ones we skipped, 7 was never listed at all, i chased it back off the count
+14:38  dario: honestly the panel copy is what misled you there, it reads like one slot per row. needs a pass
 ```
 
 #### `g9.r2.l10` — rule
 
 **nikolai**, 2025-05-13, #pipeline
 
-> yep same on the fireworks pass the drop positions lined up with the rows we wrote out not the list i submitted so i greped the wrong lines
+> yep same on the fireworks pass — to_jsonl_lines numbered dropped_indices against the rows we wrote out, not the list i submitted, so i greped the wrong lines.
 
 *What a reader should take from it:* the team agrees the drop positions on the jsonl path are likewise numbered against the output rather than the input
 
@@ -1885,17 +1891,18 @@ The pending job ID is keyed off the dataset only, with no backend identifier in 
 
 *Still leaves open:* what the positions should be numbered against instead, and what the field is called
 
+*Must appear literally:* `dropped_indices`, `to_jsonl_lines`
+
 *A new conversation in #pipeline on 2025-05-13:*
 
 ```
-15:21  gideon: quick one before i lose the thread. the drop positions on the pass i checked yesterday were nowhere near what i expected. did fireworks come out the same or is it just my run
-15:24  nikolai: yep same on the fireworks pass
-15:25  gideon: same how though, what lined up with what
-15:27  nikolai: the drop positions lined up with the rows we wrote out
-15:29  dermot: mhm. so not the list you sent through, if i'm reading that right
-15:31  nikolai: right not the list i submitted
-15:32  dermot: then what does that do to the lines you pulled last night
-15:34  nikolai: so i greped the wrong lines redo is off the rows the ones in the pad from tuesday are still good
+15:12  gideon: pulled the rows dropped_indices pointed me at and none of them are the ones that blew up. so basically i greped the wrong lines
+15:15  nikolai: those arent offsets into the list you submitted to_jsonl_lines numbers them against the rows we wrote out
+15:17  gideon: wait so anything dropped before that point just shifts everything after it? um then my whole triage doc is off
+15:19  nikolai: right off by however many never made it into the file
+15:23  dermot: yep same on the fireworks pass. i read them as my submitted list, lined up for the first handful then went sideways
+15:26  nikolai: they should be numbered against what went in not what came out thats the list people are actually holding nobody has written it yet though
+15:29  gideon: ya ok. redoing the grep off my submitted list, the counts were junk either way
 ```
 
 ### g9.r2.sc4 — windowed and supervised_tokens describe only the examples that survived the batch, and both stay at zero on the Fireworks jsonl path where nothing is tokenised.
@@ -2286,7 +2293,7 @@ ya the old ones are there, i think under the utils module? i dunno if they are a
 
 > these are the per-row cases. a single request in the batch is malformed or unusable in a way that doesn't say anything about the other rows, so it gets dropped, the counter goes up, and the pass carries on with the rest:
 > 
-> - row is missing a field the provider requires (empty message list, no role on a message, that kind of thing)
+> - row is missing a field the provider requires (no content on a message, a metadata payload past the provider's per-request limit, that kind of thing)
 > - row exceeds the model's context after templating
 > - multimodal row referencing an attachment that didn't resolve
 > - duplicate custom id inside the same batch, second one loses
@@ -2295,7 +2302,7 @@ ya the old ones are there, i think under the utils module? i dunno if they are a
 
 > **failures that stop the pass**
 
-> the other category is failures that are properties of the configuration rather than of any individual row. these don't get binned, they abort.
+> the other category is failures that say the thing handed to the pass was built wrong, rather than that one row happened not to fit. these don't get binned, they abort.
 > 
 > the case from gideon's run is the clean example. the tokenizer he pointed at has no `apply_chat_template`, and `format_batch` raises `TokenizerCapabilityError` right there — the pass stops, and nothing gets binned as a drop. so the drop count he was staring at was from an earlier run, not from that one, which is why it didn't correspond to anything he could see in the input.
 > 
@@ -2526,4 +2533,37 @@ for future in as_completed(future
 ```
 
 > **Problems:** longer than one remark
+
+### dropped_indices is numbered identically on the format_batch and to_jsonl_lines paths — *(no such subconclusion)*
+
+#### `g9.r2.fix25` — rule
+
+**konrad**, 2025-07-10, #pipeline
+
+> Reran both over the same input list now that the renumber landed — format_batch and to_jsonl_lines come back with identcial dropped_indices. anyway, no more guessing which one I'm reading.
+
+*What a reader should take from it:* the team agrees to_jsonl_lines numbers dropped_indices exactly the way format_batch does
+
+*Drafted as:* Reran both paths over the same input list after the renumber landed — format_batch and to_jsonl_lines came back with identical dropped_indices. No more guessing which one I was reading.
+
+*Why there:* None of the candidates is chewing on batch payload serialization or dropped-row bookkeeping. The closest by vocabulary is #code-review 2025-04-01 (PR 612, "batch-mode"), but that thread is specifically about gemini's missing `parts` key in batch *status* responses and whether the examples-cookbooks fix blocks the merge — a report that two payload-building paths now agree on `dropped_indices` numbering would change the subject and draw no reaction. #releases 2025-04-11 mentions a "jsonl handling fix" only as a changelog line; that room is deciding what the announce email names, not verifying code paths. The remark belongs in #pipeline, which owns async batch submission and payload construction: `format_batch` and `to_jsonl_lines` are the two ways a request list becomes a provider payload, and disagreeing drop accounting between them is exactly the kind of thing that room tracks. It needs a prior thread where the renumber was agreed to, so this lands as the confirmation after the fix.
+
+*Still leaves open:* which list the positions are counted against, and in what order — on its own this only says the two paths agree, not what they agree on
+
+*Must appear literally:* `format_batch`, `to_jsonl_lines`, `dropped_indices`
+
+*A new conversation in #pipeline on 2025-07-10:*
+
+```
+13:02  gideon: the drop list coming out of format_batch — is that the same thing to_jsonl_lines reports back, or not? i had both open yesterday and they did not agree
+13:05  dario: yesterday, probably not. the renumber only went in after that
+13:07  gideon: ok so basically nothing from before is worth comparing. did anyone push the same thing through both since
+13:10  konrad: yes. i took the same input list and reran both, now that the renumber landed
+13:11  gideon: and?
+13:13  konrad: dropped_indices comes back identcial. same out of format_batch, same out of to_jsonl_lines
+13:14  konrad: anyway, no more guessing which one i am reading
+13:17  gideon: ya thats the bit that kept biting me, i was reading whichever one came up first and assuming
+```
+
+> **Problems:** names no known subconclusion
 

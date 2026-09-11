@@ -4,16 +4,16 @@
 
 | fact | passed | lost causes |
 |---|---|---|
-| g7.r1.failure_behavior | 7/10 (70%) | {'not_found': 1, 'infra': 1, 'found_misread': 1} |
-| g7.r1.observability | 5/10 (50%) | {'implementation_slip': 2, 'not_found': 1, 'infra': 1, 'found_misread': 1} |
-| g7.r1.rule | 2/10 (20%) | {'not_found': 5, 'grader_overspecifies': 2, 'infra': 1} |
-| g7.r1.scope | 5/10 (50%) | {'implementation_slip': 2, 'not_found': 1, 'infra': 1, 'found_misread': 1} |
-| g7.r2.failure_behavior | 9/10 (90%) | {'infra': 1} |
-| g7.r2.observability | 9/10 (90%) | {'infra': 1} |
-| g7.r2.rule | 9/10 (90%) | {'infra': 1} |
-| g7.r2.scope | 9/10 (90%) | {'infra': 1} |
+| g7.r1.failure_behavior | 7/10 (70%) | {'not_found': 1, 'never_shipped': 1, 'found_misread': 1} |
+| g7.r1.observability | 5/10 (50%) | {'implementation_slip': 2, 'not_found': 1, 'never_shipped': 1, 'found_misread': 1} |
+| g7.r1.rule | 2/10 (20%) | {'not_found': 5, 'grader_since_fixed': 2, 'never_shipped': 1} |
+| g7.r1.scope | 5/10 (50%) | {'implementation_slip': 2, 'not_found': 1, 'never_shipped': 1, 'found_misread': 1} |
+| g7.r2.failure_behavior | 9/10 (90%) | {'never_shipped': 1} |
+| g7.r2.observability | 9/10 (90%) | {'never_shipped': 1} |
+| g7.r2.rule | 9/10 (90%) | {'never_shipped': 1} |
+| g7.r2.scope | 9/10 (90%) | {'never_shipped': 1} |
 
-**lost fact-points by cause:** {'not_found': 8, 'implementation_slip': 4, 'grader_overspecifies': 2, 'infra': 8, 'found_misread': 3}
+**lost fact-points by cause:** {'not_found': 8, 'implementation_slip': 4, 'grader_since_fixed': 2, 'never_shipped': 8, 'found_misread': 3}
 **graded losses:** 25; reader-recorded losses: 25
 **reader fact values replaced by Horizon's grade (run, fact, reader, horizon):** none
 

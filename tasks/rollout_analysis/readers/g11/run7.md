@@ -1,79 +1,63 @@
-# g11 run 7 (66a0621c) — reward 0.8889 (8/9 facts)
+# g11 run 7 (79ffaf93) — reward 0.8889
 
-## What it found
+## What this run found
 
-This run read the finetune module and its tests cover to cover, then worked outward
-through the sources roughly in the order the corpus actually holds them: Gitea
-issues/PRs (nothing world-specific), the BookStack wiki (nothing on fine-tuning —
-correct, g11 has zero wiki remarks), IMAP mail (nothing — correct, zero mail
-remarks), and finally Mattermost, where all 47 of this task's remarks in fact live.
-Its first chat pass was the built-in search API for terms like `ledger` and
-`dataset_signature`, which returns single-message snippets; this is where three
-remarks were only ever glimpsed as a thread's opening line (see "What it missed"
-below). Recognizing the limits of that, the agent switched to dumping all nine
-channels to local files and running a custom context-extraction script over a
-hand-tuned finetune vocabulary, reading the results in ~80-line chunks across
-dozens of turns. That second method is what actually recovered the design record:
-full multi-turn threads for the checkpoint-reason taxonomy (`CHECKPOINT_REASONS`,
-`canonical_reasons` in ledger order not alphabetical), the name template
-(`checkpoint_name(prefix, step)` → `checkpoint-s000002`), the always-checkpointed
-final step and Tinker-only scope, the plan-derived `epoch`/`gradient_accumulation_steps`,
-the replace-last-row-on-repeat-name rule, and the full learning-rate schedule
-(`effective_warmup = min(warmup_steps, total_steps)`, ramp to `base_lr` at the last
-warmup step, `min_lr_ratio`-rescaled decay holding at the floor past the end,
-module constant `MIN_LR_RATIO = 0.1`, keyword-only). All four herrings (two per
-requirement) were seen alongside their reversals and correctly resolved in favour
-of the later, reversing message — the run explicitly reasons "the January
-discussion is the superseded era" and drops the two-checkpoints / alphabetical /
-decay-to-zero / strict-`<` designs entirely. Every one of these facts shipped
-correctly: `g11.r1.rule`, `.scope`, `.exclusions_or_crossover`, `.observability`,
-and all four of `g11.r2`.
+This is a strong, thorough run: it cloned the repo, read every Gitea issue/PR comment (738,
+paginated), fetched **both** copies of every BookStack page plus their comments (correctly
+diagnosing that search doesn't index comments and going after the raw pages instead), dumped the
+entire admin IMAP mailbox (index and full bodies), and then dumped all ~10k Mattermost posts to
+local files it could grep repeatedly. Wiki and mail turned out to hold nothing on the ledger; the
+whole hidden record lived in chat, and the agent found the overwhelming majority of it: 38 of 43
+non-herring remarks (all 26 of `g11.r1`'s clues/reversals, 17 of 21 of `g11.r2`'s), plus both
+herrings for each requirement. Its running self-summaries (e.g. transcript line 5476) show it
+correctly assembling the full parked design — `CHECKPOINT_REASONS`, `canonical_reasons`,
+`CHECKPOINT_NAME_TEMPLATE`, the same-name-replaces-last-row merge rule, `epoch_of_batch` for the
+checkpoint epoch, and the `min_lr_ratio`/`MIN_LR_RATIO` decay floor — and it shipped essentially
+all of it. `g11.r1` scored 5/5 and `g11.r2` scored 3/4.
 
 ## What it missed, and why
 
-Six clues (`g11.r1.l5`, `.l9`, `.l11`, `.l13`, `g11.r2.l11`, `g11.r2.l14`) never
-surfaced in any search the agent ran — a genuine gap, though a harmless one here,
-since every fact they carried was independently recovered from a sibling remark
-(e.g. `l9`/`l11`'s scope content came back through `l10`/`l12`). Three more
-(`g11.r1.l17`, `g11.r1.say24`, `g11.r2.say19`) were only ever seen as the single
-opening question of their thread, via a Mattermost keyword-search snippet — the
-agent never fetched those three channels in full, so the substantive replies never
-reached the transcript. Two of those three (`say24`, `say19`) didn't matter either;
-their facts (`r1.observability`, `r2.exclusions_or_crossover`) were carried by
-other, fully-read remarks.
+The one lost fact is `g11.r2.failure_behavior` (warmup longer than the run must be *clipped* to
+the run length, not left uncapped). The failing assertion shows exactly what happened: for
+`warmup_steps=10, total_steps=3` the shipped code returns `[1e-05, 2e-05, 3e-05]` — i.e.
+`base_lr * step / warmup_steps` using the *uncapped* `warmup_steps=10` — instead of the required
+`[3.33e-05, 6.67e-05, 1e-04]`, which needs `effective_warmup = min(warmup_steps, total_steps)`.
 
-`g11.r1.l17` is the one that did matter. It carries half of `r1.failure_behavior`
-— specifically, that a repeat `save_checkpoint` under the ledger's last name must
-*merge* the old and new reason tuples through `canonical_reasons`, not just take
-the newer call's own reasons. The agent found `g11.r1.l16` in full (a complete
-`#pipeline` thread, "replace it... takes that row's place instead of adding one" /
-"if A isn't the last one... it appends") and implemented exactly that: `if
-self._checkpoints[-1].name == checkpoint.name: self._checkpoints[-1] = checkpoint`.
-Its own docstring — "Put a checkpoint on the ledger, replacing the last row if the
-name repeats" — is a near-verbatim echo of `l16` and nothing more, which is honest
-evidence that the code reflects exactly what was read. `l17`'s three answer
-messages (newer loss wins, both label sets carry forward) never appeared anywhere
-in the transcript, so a plain overwrite — correct on `loss` by construction, wrong
-on `reasons` — is what shipped. The failing test,
-`test_failure_behavior__an_unknown_reason_is_refused_and_a_repeat_name_merges`,
-fails on exactly this: `assert sorted(reasons) == ['final', 'interval']` gets back
-`['final']` — the old `interval` reason was overwritten, not merged.
+That fix is stated in exactly one place: `g11.r2.rev2` (#general, 2025-06-02, konrad: "...that's
+the bit thats going... `1 <= step <= effective_warmup`... `effective_warmup = min(warmup_steps,
+total_steps)`... clipped, not raising"). Two other remarks also carry this fact — `g11.r2.l12`
+(#general, 04-29, "crept along all three and never got near base_lr") and `g11.r2.l13` (#viewer,
+06-02, the explicit `warmup=10/total=3` and `warmup=99/total=1` test cases). None of the three was
+ever surfaced: a grep of the whole transcript for their distinctive phrases (`effective_warmup`,
+`1 <= step <=`, `crept along all three`, `warmup 99`, `no exeption`) returns nothing. `#general`
+(273 lines) was touched exactly once, by a narrow `grep -n '2025-04-07T13:[45]' /tmp/chat2/general.txt`
+(line 4798/4826) anchored to an already-found, unrelated clue — never dumped whole, never searched
+for later dates. `#viewer`'s June content was likewise never opened. One broad grep
+(`floor|min_lr|10%|tenth|never goes below|bottom`, line 3951) could plausibly have caught rev2's
+"bottoms out at a tenth of base_lr" phrasing, but it was piped through `head -20` and returned only
+`help.txt`/`incidents.txt`/`code-review.txt` hits before truncating — general.txt's position in the
+recursive listing meant it was never reached.
 
-## Infra noise, not a corpus problem
+## What it believed, and why
 
-A large share of this run's length (turns ~130–187) went to fighting an unstable
-environment that repeatedly rolled back file writes and even pushed git commits
-mid-run — the agent's own analysis calls this out explicitly at least eight times
-("the environment is being snapshot-restored, wiping my pushes") and eventually
-resorts to chaining patch+test+commit+push into single atomic commands, verified
-independently against the Gitea API rather than trusting the terminal screen. This
-cost turns but not facts: the final push (`ea24b6d`) landed with CI green,
-confirmed by an independent API read at the very end of the run.
+The agent saw both `g11.r2` herrings early (line 3547–3586, 3619–3626) and recorded them as
+"confirmed" (line 3640: "LR schedule confirmed: warmup strict `step < warmup_steps`; linear decay
+to exactly 0.0 at total_steps"). It later found `g11.r2.rev1` and correctly revised the *decay*
+half — dropping decay-to-zero for the `min_lr_ratio` floor (line 4048). It never revised the
+*warmup-compare* half, because that correction lives only in `g11.r2.rev2`, which it never saw.
+The shipped `learning_rate_at` (transcript lines 5894–5930) still uses the strict, uncapped
+`if warmup_steps > 0 and step < warmup_steps` — verbatim herring behavior — while the floor logic
+right below it is fully correct. This split outcome (one half of a herring pair reversed, the
+other shipped as-is) is the direct cause of the lost fact, and it is invisible everywhere except
+the one test that pins `warmup_steps > total_steps`: for every in-range case, `step==warmup_steps`
+lands on `base_lr` under both the strict-decay-branch and the inclusive-ramp-branch formulas, so
+`g11.r2.rule`/`observability`/`exclusions_or_crossover` all still scored 1 despite the wrong
+condition underneath.
 
-## Summary
+## Notable
 
-8 of 9 facts passed. The only loss, `g11.r1.failure_behavior`, is a clean
-not-found: the one remark carrying the merge behaviour was reduced to a
-one-line search snippet and never re-surfaced, while its sibling remark (replace
-semantics) was read in full and correctly implemented — leaving the shipped code
-half right by construction.
+The world this run played against was v11, which rewrote `g11.r2.rev2`'s wording (adding "...the
+end doesnt sit at zero any more, it bottoms out at a tenth of base_lr and holds there, and a first
+step at rate 0 is not something i want to keep defending"); the checked-in answer key still shows
+the older text. This is moot for grading this run, since the transcript shows `#general` was never
+read for any 2025-06-02 content under either wording.

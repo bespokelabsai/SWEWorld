@@ -1,0 +1,16 @@
+{
+ "task_id": "g8",
+ "arm": "clues",
+ "fact_keys": [
+  "g8.r1.rule",
+  "g8.r1.scope",
+  "g8.r1.exclusions_or_crossover",
+  "g8.r1.failure_behavior",
+  "g8.r1.observability",
+  "g8.r2.rule",
+  "g8.r2.scope",
+  "g8.r2.exclusions_or_crossover",
+  "g8.r2.failure_behavior"
+ ],
+ "open_key": "g8.open_feature"
+}

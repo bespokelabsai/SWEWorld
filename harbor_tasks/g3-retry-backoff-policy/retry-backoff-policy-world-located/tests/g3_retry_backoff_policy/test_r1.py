@@ -31,7 +31,7 @@ import re
 
 from harness import read_field, require_feature
 
-from test_open import importable, make_api_request, policy_with, v_budget, v_delay, v_reason, v_retry, v_waivers
+from test_open import drive_one_response, importable, make_api_request, make_processor, policy_with, v_budget, v_delay, v_reason, v_retry, v_waivers
 
 try:
     from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
@@ -230,3 +230,13 @@ def test_observability__the_stated_budget_and_waiver_table_holds_exactly():
     assert v_reason(bad_key) == "terminal:abort"
     assert v_budget(bad_key) == 0
     assert v_waivers(bad_key) == 6
+
+    # The `length` row again, through the request path, where curator raises exactly
+    # that ValueError on an invalid finish_reason. `decide` above never sees a call
+    # site that reclassifies `length` on its way in: three v7 runs made it terminal
+    # there (a new TERMINAL error, or `attempts_left = 0` before pricing) and each
+    # still passed this fact.
+    truncated = make_api_request(attempts_left=3)
+    queue = drive_one_response(make_processor(max_retries=3), truncated, OnlineStatusTracker(), finish_reason="length")
+    assert queue.qsize() == 1, "a length-truncated response with attempts to spare was not re-queued"
+    assert read_field(truncated, "attempts_left") == 1, "on the request path a length-truncated response must be charged like any contract failure, two attempts"

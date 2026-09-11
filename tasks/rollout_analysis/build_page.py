@@ -359,7 +359,7 @@ pre code {{ background: none; padding: 0; font-size: 13px; line-height: 1.5; }}
 <header class="masthead">
   <p class="eyebrow">SWEWorld · lumen (Opus 5) · world-hosted blind arm · g1–g11</p>
   <h1>What 100 rollouts reveal about the hidden requirements</h1>
-  <p class="dek">Every transcript read against its task's answer key, remark by remark: what made each task hard, which clues go unfound, when a red herring actually works, and what to fix first.</p>
+  <p class="dek">Every transcript read against its task's answer key, remark by remark: what made each task hard, which clues go unfound, and when a red herring actually works.</p>
   <div class="stats">{stats}</div>
   <p class="status">{status}</p>
 </header>

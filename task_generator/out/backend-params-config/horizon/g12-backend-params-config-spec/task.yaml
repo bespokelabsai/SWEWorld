@@ -1,0 +1,104 @@
+prompt: |
+    You are an engineer on the team that maintains `bespokelabs/curator`.
+
+    The repository is checked out at `/workdir/curator` — a normal working tree, yours
+    to edit. It is a `src` layout: the package lives at
+    `/workdir/curator/src/bespokelabs/curator/`.
+
+    To run anything against it, put the source tree on the path:
+
+        cd /workdir/curator && PYTHONPATH=/workdir/curator/src python3 -c '...'
+
+    curator's dependencies are installed; curator itself deliberately is not, so your
+    tree is what gets imported. There is no network.
+
+    Your work is graded from the tree at `/workdir/curator`. Nothing needs to be
+    committed or pushed.
+
+    ---
+
+    ## The ticket
+
+    Make backend-param validation know which mode it is validating for, so a param lands in exactly one config class and a backend that cannot serve the requested mode fails before anything else happens.
+
+    ### `config.py` — mode tables and helpers (all new names live here)
+    - `_MODE_CONFIGS: dict[str, type[RequestProcessorConfig]] = {"batch": BatchRequestProcessorConfig, "online": OnlineRequestProcessorConfig, "offline": OfflineRequestProcessorConfig}`.
+    - `_BACKEND_MODES: dict[str, frozenset[str]]` with exactly these nine entries: `"openai"`, `"anthropic"`, `"klusterai"`, `"inference.net"` → `frozenset({"online", "batch"})`; `"gemini"`, `"mistral"`, `"azure"` → `frozenset({"batch"})`; `"litellm"` → `frozenset({"online"})`; `"vllm"` → `frozenset({"offline"})`.
+    - `def _resolve_mode(batch: bool, backend: str | None) -> str` — `"offline"` if `backend == "vllm"`, else `"batch"` if `batch` is truthy, else `"online"`. Backend `"vllm"` beats `batch=True`.
+    - `def _remove_none_values(d: dict) -> dict` — the existing body from `_factory.py` line 22, moved into `config.py` verbatim.
+    - `def _validate_backend_params(params: BackendParamsType, batch: bool = False, backend: str | None = None) -> RequestProcessorConfig` — validates `params` against `_MODE_CONFIGS[_resolve_mode(batch, backend)]` **only** and returns an instance of that class. No other config class is constructed or consulted for acceptance; the first-match-wins loop at lines 197-203 and the `ValueError` at line 204 are gone.
+
+    ### `config.py` — `BackendModeError`
+    ```python
+    class BackendModeError(ValueError):
+        """Raised when a backend cannot serve the requested mode."""
+
+        backend: str                 # e.g. "litellm"
+        mode: str                    # one of "batch", "online", "offline"
+        supported: tuple[str, ...]   # modes the backend does support, sorted ascending by str
+
+        def __init__(self, backend: str, mode: str, supported: tuple[str, ...]) -> None: ...
+    ```
+    - `str(...)` is exactly `f"backend {backend!r} does not support {mode} mode; supported modes: {', '.join(supported)}"`.
+
+    ### `config.py` — the three dead `__post_init__` hooks
+    - Delete `RequestProcessorConfig.__post_init__` (line 43), `BatchRequestProcessorConfig.__post_init__` (line 86) and `OfflineRequestProcessorConfig.__post_init__` (line 138). A pydantic v2 `BaseModel` never calls them, so all three are dead today.
+    - Re-express the batch-size rule as a `field_validator("batch_size")` on `BatchRequestProcessorConfig` that runs on every construction: an `int` passes; the exact string `"auto"` passes; every other `str` — including `"AUTO"`, `"Auto"`, `""` and numeric strings like `"10"`, which are **not** coerced to `int` — raises `ValueError('batch_size must be either an integer or "auto"')`, which pydantic surfaces as a `ValidationError` with one error at `loc == ("batch_size",)` and `type == "value_error"`. The annotation stays `t.Union[int, str]` and the default stays `10_000`.
+    - `OfflineRequestProcessorConfig.batch_size` keeps its plain `int` annotation and gets no validator.
+
+    ### `_factory.py` — `_determine_backend`
+    ```python
+    @staticmethod
+    def _determine_backend(model_name: str, config_params: BackendParamsType,
+                           response_format: t.Type["BaseModel"] | None = None,
+                           batch: bool = False) -> str: ...
+    ```
+    - Start reading the `batch` argument. Rules, in this order: (1) `provider == "openai"` → `"openai"`; (2) `"claude"` in the lowercased model name → `"anthropic"`; (3) `provider in {"gemini", "vertex_ai"}` → `"gemini"` when `batch` is true, else `"litellm"`; (4) any of `codestral`, `mistral`, `ministral`, `pixtral` in the lowercased model name → `"mistral"` when `batch` is true, else `"litellm"`; (5) otherwise `"litellm"`.
+    - The provider still comes from `litellm.litellm_core_utils.get_llm_provider_logic.get_llm_provider(model_name)[1]`, imported lazily exactly where it is imported today.
+    - Return value is one of `"openai" | "anthropic" | "gemini" | "mistral" | "litellm"`.
+
+    ### `_factory.py` — `create()` and `_create_config`
+    - `create()` does, in this order: (1) `params = dict(params) if params else {}` — a shallow copy, so the caller's dict is never mutated (line 83 mutates it today); (2) set `"model"`, `"generation_params"` and `"return_completions_object"` on the copy; (3) resolve `backend` via `_determine_backend` when it is `None`; (4) the mode check; (5) `config = cls._create_config(params, batch, backend)`.
+    - Mode check: compute `mode = _resolve_mode(batch, backend)` and, if `backend` is in `_BACKEND_MODES` and `mode` is not in `_BACKEND_MODES[backend]`, raise `BackendModeError(backend, mode, tuple(sorted(_BACKEND_MODES[backend])))` — before any config is built, before any API key is read from the environment, and before any processor is imported.
+    - Delete the three inline mode raises at lines 158, 175 and 185. Keep the final `raise ValueError(f"Unknown backend: {backend}")` (line 190) verbatim for backends absent from the table, so an unknown backend still raises a plain `ValueError`.
+    - `_create_config(cls, params, batch, backend)` becomes exactly `return _validate_backend_params(params, batch, backend)`. The separate pre-flight validation at line 84 and the rebuild at line 94 collapse into this one call: the object `_validate_backend_params` returns is the object `create()` dispatches with.
+    - `_remove_none_values = _config_remove_none_values` — a re-export in `_factory.py`, same name, same behaviour.
+
+    ### Scope and constraints
+    - Only `config.py` and `_factory.py` change. `llm/llm.py` keeps its own private `_remove_none_values` (line 385) and is untouched.
+    - Reuse as-is: the four pydantic config classes, their `class Config: extra = "forbid"` (lines 38-41), `BackendParamsType` and the four `TypedDict`s (lines 146-188), the `create()` dispatch table (lines 96-190) and every processor class it names. The nine `base_url`/`api_key` assignments stay inline; this task does not de-duplicate them.
+    - Out of scope: the meanings of `max_retries` and `seconds_to_pause_on_rate_limit`, and what `"auto"` resolves to numerically. No numeric constraint is added to or removed from any existing field.
+    - Python 3.10, pydantic `>=2.9.2` (2.13.4 here), litellm 1.83.7. No new dependency. Pure and in-process: no network, no clock, no randomness, no threads.
+
+    ---
+
+    ## Requirements settled earlier
+
+    These were agreed before the ticket was written. They are not optional.
+
+    ### r1
+
+    - **rule** — When a key of `params` is not a field of the config class for the resolved mode, `_validate_backend_params` raises `BackendParamError(ValueError)` — a class defined in `config.py` with `def __init__(self, params: tuple[str, ...], expected: str, belongs_to: tuple[str, ...]) -> None` storing those three as instance attributes. It is raised before pydantic runs, so no `ValidationError` is produced.
+    - **scope** — The offending keys are decided by name only, against `_MODE_CONFIGS[mode].model_fields`. `expected` is that class's `__name__`. `belongs_to` lists the `__name__` of each *other* config class, iterated in the fixed order `BatchRequestProcessorConfig`, `OnlineRequestProcessorConfig`, `OfflineRequestProcessorConfig`, whose `model_fields` contain **every** offending key.
+    - **failure_behavior** — All offending keys are reported together, sorted ascending by `str`. `str(e)` is exactly `f"backend_params {', '.join(params)} not accepted by {expected}; accepted by {' or '.join(belongs_to)}"`, and when `belongs_to` is empty the tail is exactly `"; accepted by no request processor config"`. If every key is a field of the mode's class but a value is invalid, the `pydantic.ValidationError` propagates unchanged. A call carrying both an unknown key and an invalid value raises `BackendParamError` naming only the unknown key.
+    - **observability** — `_validate_backend_params({"model": "gpt-4o", "batch_size": "auto"}, batch=False)` raises with `e.params == ("batch_size",)`, `e.expected == "OnlineRequestProcessorConfig"`, `e.belongs_to == ("BatchRequestProcessorConfig", "OfflineRequestProcessorConfig")`, and `str(e) == "backend_params batch_size not accepted by OnlineRequestProcessorConfig; accepted by BatchRequestProcessorConfig or OfflineRequestProcessorConfig"`; `isinstance(e, ValueError)` is `True`. `_validate_backend_params({"model": "gpt-4o", "tensor_parallel_size": 2, "batch_size": "auto", "nope": 1}, batch=False)` gives `e.params == ("batch_size", "nope", "tensor_parallel_size")` and `e.belongs_to == ()`. `_validate_backend_params({"model": "gpt-4o", "batch_size": 8, "max_retries": -1}, batch=False)` gives `e.params == ("batch_size",)`, while `_validate_backend_params({"model": "gpt-4o", "max_retries": -1}, batch=True)` raises a `ValidationError` that is not a `BackendParamError`, with one error at `loc == ("max_retries",)`.
+
+    ### r2
+
+    - **rule** — `RequestProcessorConfig` gains the field `unsupported_generation_params: tuple[str, ...] = Field(default=(), exclude=True)` and a pydantic `model_post_init`: it looks the model's supported params up through litellm and assigns `self.unsupported_generation_params = tuple(sorted(k for k in self.generation_params if k not in supported))`.
+    - **scope** — The base hook applies to every config built through `_validate_backend_params` in online and batch mode. A caller-supplied `unsupported_generation_params` in `backend_params` is accepted and then overwritten by the hook; `exclude=True` keeps it out of `model_dump()`.
+    - **exclusions_or_crossover** — `OfflineRequestProcessorConfig` overrides `model_post_init` to set `()` unconditionally and performs no litellm lookup.
+    - **failure_behavior** — The hook does not raise. If the litellm lookup returns `None`, or raises any `Exception`, the value is `()`.
+    - **observability** — With the supported-params lookup patched to return `["temperature", "max_tokens"]`, `OnlineRequestProcessorConfig(model="gpt-4o", generation_params={"top_k": 1, "temperature": 0.5, "frobnicate": 2})` has `unsupported_generation_params == ("frobnicate", "top_k")`, while `"unsupported_generation_params" not in c.model_dump()`. The same arguments to `OfflineRequestProcessorConfig` give `()`. With the lookup patched to raise `RuntimeError("boom")`, or to return `None`, the online config gives `()`. `_validate_backend_params({"model": "gpt-4o", "unsupported_generation_params": ("x",)}, batch=True)` returns a config with `unsupported_generation_params == ()`.
+metadata:
+    category: "Software Engineering"
+    difficulty: "Medium"
+    tags:
+        - "curator"
+        - "python"
+        - "hidden-requirements"
+        - "spec"
+        - "g12"
+        - "task_generator"
+    memory_limit: 8192
+    time_limit: 3600

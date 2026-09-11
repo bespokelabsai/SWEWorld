@@ -3,5 +3,5 @@
   "task_name": "model-price-lookup-world-located-hosted",
   "format": "harbor",
   "mini_batch_id": "b52ead5c-6e16-4552-ab96-250541fdfba2",
-  "version": 2
+  "version": 3
 }

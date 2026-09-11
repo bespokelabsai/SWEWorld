@@ -7,38 +7,37 @@ Message-ID: <178853332760.507296.13260275100319722030@world.local>
 In-Reply-To: <178853332759.507296.8420293667083652161@world.local>
 References: <178853332759.507296.8420293667083652161@world.local>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 
 Konrad,
 
-On your cost question =E2=80=94 both of those are working as intended, and I =
-can tell you exactly where each number comes from, because I went through the=
- resolution path this morning to be sure I was not repeating something I half=
- remembered.
+On your cost question =E2=80=94 one of those is working as intended and one=
+ is not, and I can tell you exactly where each number comes from, because I=
+ went through the resolution path this morning to be sure I was not repeati=
+ng something I half remembered.
 
-The klusterai case first. What you called is resolve_model_price with provide=
-r=3Dklusterai and batch=3DTrue, and the half-of-table figure it returned is t=
-he correct answer, not a lost digit. Batch pricing for that provider is a fif=
-ty percent reduction against the listed rate, and rather than carry a second =
-set of numbers that would drift out of date the moment the provider republish=
-es, the helper takes the listed rate and halves it at lookup time. So the rou=
-nd factor you noticed is the whole of the batch behaviour, and you can put th=
-e halved number on the sheet with a clear conscience. If it had come back at =
-anything other than exactly half the table rate, that would have been the thi=
-ng worth mailing about.
+The klusterai case first. What you called is resolve_model_price with provi=
+der=3Dklusterai and batch=3DTrue, and the half-of-table figure it returned =
+is the bug, not the answer. Klusterai's published per-million already is th=
+e batch rate =E2=80=94 that is what their table is =E2=80=94 so halving it =
+a second time on the way out invents a discount the provider never offered.=
+ The lookup has no business applying a factor to a number it read straight =
+out of a provider table. Put the table figure on the sheet, not the halved =
+one; I will raise it.
 
-On your second point, your assumption was the right one. Anything we read out=
- of those provider tables comes back exactly as listed =E2=80=94 no rounding,=
- no markup, no unit conversion, nothing applied on the way out. The table is =
-the source of truth for the non-batch path, and if the helper and the table e=
-ver disagree there, we have a bug rather than a policy. I say this with some =
-emphasis because we need to be intentional here about not accumulating quiet =
-adjustments in the lookup layer; the moment a number changes shape between th=
-e table and the caller, nobody can reconcile an invoice again. Batch halving =
-is the one transformation, and it only applies when you ask for it.
+On your second point, your assumption was the right one. Anything we read o=
+ut of those provider tables comes back exactly as listed =E2=80=94 no round=
+ing, no markup, no unit conversion, nothing applied on the way out. The tab=
+le is the source of truth for the non-batch path, and if the helper and the=
+ table ever disagree there, we have a bug rather than a policy. I say this =
+with some emphasis because we need to be intentional here about not accumul=
+ating quiet adjustments in the lookup layer; the moment a number changes sh=
+ape between the table and the caller, nobody can reconcile an invoice again=
+. Batch halving is the one transformation, and it only applies when you ask=
+ for it.
 
-So, concretely: halved for the klusterai batch line, as listed everywhere els=
-e.
+So, concretely: exactly as listed, klusterai included =E2=80=94 the halving=
+ on that line is the thing to fix.
 
 Emil

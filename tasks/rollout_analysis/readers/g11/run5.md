@@ -1,86 +1,72 @@
-# g11 run 5 (rollout 2f540570, eval 94bf8242) — reward 0.8889
+# g11 run 5 (ee635c81, eval a8572080) — reward 1
 
 ## What this run found
 
-The agent abandoned Mattermost's search UI almost immediately and instead wrote a
-python/urllib script against `http://chat.world.local/api/v4` to dump entire channels
-(`engineering.txt`, `pipeline.txt`, `code-review.txt`, `releases.txt`, `viewer.txt`,
-`help.txt`, `cookbooks.txt`, `general.txt`, `incidents.txt`) to local files, then
-grep-filtered those dumps by a keyword regex before reading the survivors in
-sequential `sed` chunks. It also checked BookStack (aware comments aren't
-search-indexed) and IMAP mail, correctly finding nothing there — all 47 g11 remarks
-are chat-only. This brute-force-dump-then-filter approach recovered 42 of 47 remarks
-(89%), including all four herrings and all four reversals, and correctly resolved the
-timeline on both requirements: for `g11.r1` it converged on "one `save_checkpoint`
-call per step, `reasons` keyword-only, ordered by `CHECKPOINT_REASONS`, epoch taken
-from the plan not the loop variable, repeat-name dedupe merges reasons and keeps the
-newer loss"; for `g11.r2` it converged on "warmup ramps in even ticks to `base_lr` at
-`effective_warmup`, decay is linear to `base_lr * min_lr_ratio` (not zero), clipped
-warmup rather than raised errors, resume re-derives from the trainer's current
-`total_steps`." Both are exactly the answer key's post-reversal state, and both
-correctly avoided the herrings (see below).
+This is a clean, fully-successful run: all nine graded facts scored 1. The agent ran a
+disciplined, multi-pass keyword search across Mattermost — starting narrow
+(`step_ledger|dataset_signature|StepPlan|ResumePlan|plan_steps`), widening once the LR
+schedule surfaced (`min_lr_ratio|learning_rate_at|warmup`), then narrowing again around
+`CHECKPOINT_REASONS|canonical_reasons` once the checkpoint-reasons design appeared. Crucially,
+for nearly every grep hit it followed up with a full-context channel read (`sed -n` ranges,
+narrow `cat`) rather than trusting the single-line snippet, which is why it recovered complete,
+multi-turn exchanges for both requirements' herrings, reversals, and the great majority of
+clues (transcript lines 2424-2438, 2588-2597, 2649-2656, 2701-2712 for the four
+herring/reversal pairs; 3020-3466, 4300-4650 for r1's checkpoint-reasons design).
 
-## What it missed and why
+**All four herrings were seen with full context, and all four reversals too** — the agent never
+shipped twin `{prefix}_step_{n}`/`{prefix}_epoch_{n}` checkpoints, never sorted reasons
+alphabetically, never used the strict `step < warmup_steps` compare, and never decayed to exact
+zero. Its own running analysis (lines 3089, 3140, 3240, 2516, 2737) correctly tracks each
+herring as superseded the moment it reads the reversal.
 
-Five remarks (11%) never appear anywhere in the transcript's dumps or grep passes:
-`g11.r1.l5` (#engineering, 03-24), `g11.r1.l18` (#releases, 03-24), `g11.r2.l10`
-(#code-review, 05-30), `g11.r2.l11` (#general, 04-21), `g11.r2.say19` (#pipeline,
-05-01). These are scattered across five channels and five dates with no obvious
-common cause — they read as plain coverage gaps in which line-ranges got `sed`'d
-per channel, not a systematic blind spot. One remark, `g11.r1.l11` (#code-review,
-03-18), was only *half*-surfaced: the agent's own keyword filter
-(`step|epoch|checkpoint|loss|lr|warmup|resume|batch|train|ledger|signature|seed|plan`)
-kept dario's question ("ok and the per-epoch one?") but silently dropped dermot's
-actual answer ("leave it gated on its own field, plenty of runs have both off on
-purpose") because that line contains none of the filtered keywords — a clean example
-of the filter amputating the fact-carrying half of a two-line exchange.
+**Notable corpus fact**: this rerun's world serves a *rewritten* `g11.r2.rev2` (v11 changed
+konrad's #general 2025-06-02 line). The agent read the new wording in full at transcript lines
+2701-2704 — "the end doesnt sit at zero any more, it bottoms out at a tenth of base_lr and holds
+there, and a first step at rate 0 is not something i want to keep defending" — which differs from
+the answer key's still-stale quote of the old wording, but carries the same underlying facts
+(0.1 floor, `1 <= step <= effective_warmup`, clipped not raised). The rewrite changed phrasing,
+not substance, so it did not affect what the agent had to build or how it scored.
 
-Of these six gaps, only one was load-bearing. `g11.r2.l10` is the *sole* carrier in
-the entire 47-remark corpus of the detail that `min_lr_ratio` sits behind a bare `*`
-(keyword-only). The agent's #code-review reads for 2025-05-30 caught only an
-unrelated 09:11 PR-status ping ("Both 653 and 663 are ready on my end") pulled in
-incidentally via a `sed -n '440,478p' /tmp/ft.txt` range anchored on 06-03; the actual
-11:06–11:24 exchange in the same channel and day, where emil states "min_lr_ratio
-sits behind a bare *... MIN_LR_RATIO stays the module-level default", is absent from
-every dump. The shipped signature reflects this gap exactly: `def
-learning_rate_at(step, total_steps, base_lr, warmup_steps, min_lr_ratio: float =
-MIN_LR_RATIO)` — a plain defaulted parameter, not keyword-only — which is precisely
-what `test_r2.py::test_rule__inclusive_warmup_then_a_linear_decay_to_a_tenth_of_the_base_rate`
-asserts on and fails: `parameter.kind is inspect.Parameter.KEYWORD_ONLY` returns
-`POSITIONAL_OR_KEYWORD`. The rest of `g11.r2.rule` (the schedule formula itself) was
-correctly derived from many other remarks (l1–l9, say20, rev1, rev2), so this is a
-narrow, single-detail miss rather than a broader misunderstanding of the requirement.
-The other five coverage gaps were not load-bearing — every fact they carried had at
-least one other surfaced remark backing it.
+## What it missed, and why it didn't matter
 
-## What it believed and why
+Roughly 19 of the 39 clue remarks were never surfaced by any grep or channel read the agent ran
+(r1: `l2`, `l9`, `l11`, `l12`, `l13`, `l5`; r2: `l4`, `l7`, `l9`, `l11`, `l14`, `say19`), and four
+more (r2 `l2`, `l6`, `l8`, `l12`) surfaced only as a single truncated line inside a broad grep
+dump and were never re-opened. These gaps cluster in `#incidents`, `#general` and specific
+date-windows within `#pipeline`/`#engineering`/`#code-review` whose distinctive wording never
+matched the agent's evolving keyword vocabulary (e.g. "grid row A", "current_batch", "bumped
+epochs from 1 to 6" contain none of the searched terms). None of this cost a fact: the plant's
+`spread()` requirement guarantees at least two independent carriers per fact, and for every one
+of the nine facts the agent found and fully read at least one complete carrier — often several.
 
-The agent's own Analysis lines catch it holding the herring's position transiently
-before correcting: at line 3355 (step 44), right after reading `g11.r2.lr-decay-to-zero-dario`
-and before reading the reversal, it writes "decay reaches exactly zero at
-total_steps; warmup strict `step < warmup_steps`" — the herring, verbatim in spirit.
-Two turns later (line 3410, step 45), having read the reversal in `help.txt`, it
-reports the `min_lr_ratio` find but the same line still echoes "decay reaching
-exactly zero at total_steps," a brief transitional muddle. By step 47–48 (lines
-3539, 3619) it has fully converged on the reversal: `1 <= step <= effective_warmup`,
-decay to `base_lr * min_lr_ratio`, clipped not raised — and the shipped code and
-tests reflect only this corrected version throughout. For `g11.r1`'s two herrings
-(twin checkpoints, alphabetical sort), the transcript shows no comparable transient
-belief — by the time the agent's dump-then-filter pipeline surfaced the herrings it
-had already, moments earlier in its own reading order (out of chronological order),
-seen the reversals, and its first synthesis (line 4472, step 63: "early Jan design ...
-superseded by later decisions") already states the corrected position.
+## What it believed, and why
 
-## Why each lost fact was lost
+The agent's Analysis blocks show correct belief-tracking throughout: after reading each
+herring/reversal pair it explicitly states the *current* (reversed) design as settled
+("Older decisions (two records, alphabetical) were superseded in March by...", line 3240; "LR
+design is clear-ish: warmup `1 <= step <= effective_warmup`...", line 2737). It cross-checked its
+derived LR formula against every quoted numeric example in chat (5.5e-05/1e-05 for 4-step/warmup-2,
+7.5e-05 for min_lr_ratio=0.5 halfway) before writing code, and independently corroborated the
+"final always checkpoints" scope rule by reading `tests/finetune/test_trainer.py` directly rather
+than relying on the chat remark alone.
 
-Only `g11.r2.rule` scored 0, for the single reason above: its one exclusive-carrier
-remark (`g11.r2.l10`) was never read. This is a `not_found` cause, not a
-misunderstanding or a grader defect — the agent's own final code and its own
-reasoning trail (never mentions a bare `*` for `min_lr_ratio` anywhere) confirm it
-simply never encountered the requirement. Notably the agent's own Gitea issue-list
-pull (line ~5225) shows the real PR #663 in curator's genuine history is "fix error
-when torch isn't installed" (closed) — an unrelated real PR sharing a number with the
-fictional #code-review thread that carries `g11.r2.l10`. There's no evidence this
-caused active confusion (the agent never got as far as reading the chat thread at
-all), but it's a latent numbering collision worth flagging if PR-number literals are
-ever graded directly.
+## Why lost_facts is empty
+
+All nine facts scored 1; there is nothing to explain here. The shipped `step_ledger.py`
+(transcript lines 5440-5750) reproduces `MIN_LR_RATIO = 0.1`, `CHECKPOINT_REASONS = ("interval",
+"epoch", "final")`, `CHECKPOINT_NAME_TEMPLATE = "{prefix}-s{step:06d}"`, `canonical_reasons`
+(dedup + canonical order + raise on unknown), `checkpoint_name`, and `learning_rate_at`
+(warmup ramp to `base_lr` on the last warmup step, decay rescaled onto
+`[base_lr*min_lr_ratio, base_lr]`, clipped `effective_warmup`) verbatim against what was read
+from chat. 167 finetune tests pass (89 pre-existing behavior + 78 new), the commit is merged to
+`main`, CI (`build-test-deploy`) is green, and the deploy-daemon's live release was verified
+directly (line 8903) to reproduce the settled numbers end-to-end.
+
+## Search strategy summary
+
+Chat-only: no wiki or mail access appears anywhere in this transcript, and none was needed since
+all 47 g11 remarks are chat-planted. The search was iterative-keyword rather than
+channel-by-channel enumeration, which is efficient but leaves blind spots wherever a remark's
+wording doesn't share vocabulary with the agent's current search terms — the four "partial"
+remarks and nineteen "not found" remarks above are exactly that blind spot, offset entirely by
+the plant's deliberate redundancy.

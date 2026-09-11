@@ -113,7 +113,7 @@ Today `TinkerTrainer` counts `total_steps` in batches while it only takes an opt
 | 2025-03-20 | #cookbooks *(new)* | konrad | Look, with ten examples that run only gets three optimizer steps, and step 2 is where the interval trips and epoch 1's window closes. | `observability` |
 | 2025-03-21 | #pipeline *(new)* | dermot | the epoch on a checkpoint comes off the plan for the batch we actually stopped on, not the enclosing loop variable — and we stamp that plan's gradient_accumulation_steps onto the row too. | `exclusions_or_crossover` |
 | 2025-03-21 | #cookbooks *(new)* | emil | stopped writing two records - one save_checkpoint per step, reasons keyword-only, coming back from canonical_reasons in CHECKPOINT_REASONS order. alphabetical put final ahead of interval, read like the run ended before it looped. | `rule` |
-| 2025-03-24 | #engineering *(new)* | konrad | Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels and no repeats within a record. | `rule` |
+| 2025-03-24 | #engineering *(new)* | konrad | Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels, and the double epoch row goes too - not by refusing the write, the record just carries the label once and a second mention folds into the first. | `rule` |
 | 2025-03-24 | #pipeline *(new)* | nils | The end of epoch 1 row reads step 2, epoch 2, batches_completed 6, and the last one 3, 2, 8 — looked wrong until i checked that window's last batch, both are correct. | `exclusions_or_crossover`, `observability` |
 | 2025-03-24 | #releases *(new)* | emil | ran the ten example finetune this morning - [c.name for c in result.checkpoints] comes back ['checkpoint-s000002', 'checkpoint-s000003'] with reasons ('interval', 'epoch') then ('epoch', 'final'), one row each. | `observability` |
 | 2025-03-24 | #cookbooks *(new)* | nikolai | right so i ran the eight step job with warmup 2 and it never logged 1e-4 once biggest sampel in the whole run was 5e-05 | `rule`, `observability` |
@@ -125,7 +125,7 @@ Today `TinkerTrainer` counts `total_steps` in batches while it only takes an opt
 | 2025-04-03 | #cookbooks *(new)* | konrad | Look, when I set 4 warmup steps I'm asking for four even ticks up, not a crawl that eases in from nothing. | `rule` |
 | 2025-04-03 | #viewer *(new)* | gideon | After warmup it does come down fine, ya, but the tail of a long run is training at basically nothing and the loss just stops moving. | `rule` |
 | 2025-04-07 | #general *(new)* | nils | i ended up pinning all eight rates from that run in a single approx with rel=1e-12, the exact compares kept flaking. the drops after warmup are all the same size. | `observability`, `rule` |
-| 2025-04-09 | #code-review *(new)* | gideon | so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise. | `rule` |
+| 2025-04-09 | #code-review *(new)* | gideon | so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise - nor does handing it epoch twice, that comes back as one epoch. | `rule` |
 | 2025-04-09 | #incidents *(new)* | dermot | bumped epochs from 1 to 6 on the same config and the first ten steps logged the same rates as the short run, the helper isn't looking at run length at all | `rule` |
 | 2025-04-11 | #cookbooks *(new)* | dario | i think the top of the ramp belongs to the last warmup step itself, it should already be sitting on base_lr there and not one step later | `rule` |
 | 2025-04-11 | #incidents *(new)* | dario | i think the three step mock run should report 5e-05 then 1e-04 then 1e-05, and each batch gets its own stats row carrying current_step and that step's rate | `observability` |
@@ -300,15 +300,13 @@ Today `TinkerTrainer` counts `total_steps` in batches while it only takes an opt
 *A new conversation in #engineering on 2025-03-20:*
 
 ```
-10:22  konrad: quick one, im appending to CheckpointInfo today. does anything downstream read the fields by position
-10:25  nikolai: i mean [f.name for f in dataclasses.fields(CheckpointInfo)] still opens name path step epoch loss so nothing at the front moves
-10:27  konrad: right so its f.name order that matters, not the count
-and the ones i add, do they break older checkpoints
-10:30  nikolai: no they go on the end and carry a default ten now
-10:34  dermot: and reasons, a save with no particular cause comes back empty i assume?
-10:37  nikolai: nope a save that doesnt say why still records reasons ('interval',)
-10:39  dermot: yeah ok, so nothng downstream has to guard the empty case
-10:41  nikolai: right theres no save that lands with nothing in there
+13:38  konrad: quick one before I forget, with the extra fields going onto CheckpointInfo does anything downstream still read them by position
+13:41  dermot: so you're asking whether the ordering is load bearing. resume was, last i looked
+13:44  nikolai: i mean [f.name for f in dataclasses.fields(CheckpointInfo)] still opens name path step epoch loss so anything reading the front is fine
+13:47  konrad: right. and the new ones, do the callers have to pass them
+13:49  nikolai: no the appended ones carry a default ten now off the top of my head
+13:52  dermot: and a save that doesn't say why, plain interval one. does that come back with reasons empty or is it just absent
+13:55  nikolai: no its still recorded ('interval',) for those
 ```
 
 > **Problems:** longer than one remark
@@ -354,7 +352,7 @@ and the ones i add, do they break older checkpoints
 
 **konrad**, 2025-03-24, #engineering
 
-> Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels and no repeats within a record.
+> Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels, and the double epoch row goes too - not by refusing the write, the record just carries the label once and a second mention folds into the first.
 
 *What a reader should take from it:* the team agrees the labels must come from a fixed set and must not repeat within a record
 
@@ -376,7 +374,7 @@ and the ones i add, do they break older checkpoints
 14:12  emil: honestly that reads like every writer picked its own wording and nothing ever pushed back on it
 14:14  konrad: right. anyway there should be a fixed set of labels, not whatever the caller feels like typing that day
 14:15  nikolai: and the double epoch row
-14:16  konrad: that goes too, a label shows up once in a record or the record is not accepted
+14:16  konrad: that goes too. not by refusing the write though - the record just carries the label once, a second mention folds into the first
 14:18  nikolai: ok ill pull a first list out of whats already in there minus the junk ones
 ```
 
@@ -386,7 +384,7 @@ and the ones i add, do they break older checkpoints
 
 **gideon**, 2025-04-09, #code-review
 
-> so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise.
+> so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise - nor does handing it epoch twice, that comes back as one epoch.
 
 *What a reader should take from it:* the team agrees the labels are ordered by the ledger's own listed order, interval then epoch then final
 
@@ -403,13 +401,15 @@ and the ones i add, do they break older checkpoints
 *A new conversation in #code-review on 2025-04-09:*
 
 ```
-13:22  nikolai: gideon quick one on canonical_reasons does it sort what it gives back or not
-13:24  gideon: so basically the review comment on my PR says no, it hands them back in the order the tuple is written
-13:25  nikolai: written where i mean thats the order i hand them in right
-13:26  gideon: ya exactly. interval then epoch then final, same order back out
-13:28  emil: what about when there's nothing in it, i had assumed that path throws
-13:29  gideon: nope, canonical_reasons(()) just comes back (), it doesnt raise. so no guard needed at the call site tbh
-13:31  emil: yup ok. not entirely sure the empty one is covered in the tests though, i didnt spot it when i read through
+13:22  nikolai: gideon whats the review comment on your PR actually asking for
+13:24  gideon: so basically canonical_reasons hands them back in the order the tuple is written. no sorting, nothing clever
+13:26  nikolai: written meaning interval epoch final
+13:27  gideon: ya. interval then epoch then final, exactly that
+13:29  emil: and if theres nothing in it? i had that as an error case honestly
+13:31  gideon: no, canonical_reasons(()) just comes back (). it doesnt raise
+13:33  emil: yup ok, thats me remembering it wrong then
+13:34  nikolai: so the comment is just asking you to say so somewhere
+13:36  gideon: pretty much, um, a line in the docstring. nobodys been in the function yet
 ```
 
 > **Problems:** longer than one remark
@@ -644,14 +644,15 @@ cost_inp
 *A new conversation in #pipeline on 2025-03-21:*
 
 ```
-13:14  gideon: the epoch on the checkpoint row from last nights run is off by one vs where it actually died. is that us or the trainer?
-13:17  dermot: us. we were writing whatever the enclosing loop variable happened to be at save time
-13:18  theo: which ticks over before the batch is done, so of course it drifts
-13:20  gideon: ok so where does the right number come from then
-13:23  dermot: the plan for the batch we actually stopped on. it carries its own epoch and thats the one that goes on the row
-13:24  gideon: ya that tracks
-13:26  dermot: and while were in there, that same plans gradient_accumulation_steps gets stamped onto the row too. resume was inferring it otherwise
-13:28  theo: mhm, and the inference was wrong the one time someone bumped accum halfway through
+13:08  gideon: the checkpoint we resumed off last night has epoch 1 on it but that run was way past 1. where does that number even come from
+13:10  dermot: the enclosing loop variable. so its whatever the loop happened to be sitting on, not the batch we stopped at
+13:12  gideon: and instead? plain what should it read
+13:14  dermot: the plan for the batch we actually stopped on. that plan already knows its epoch, take it from there
+13:15  gideon: on a clean epoch end those two agree though right
+13:16  dermot: no, thats precisely where they come apart. the plan for the batch we stopped on has rolled into the next epoch, the loop var is still on the one closing out
+13:17  dermot: that same plan should also put its gradient_accumulation_steps on the row while were in there, we dont record it anywhere today
+13:19  gideon: um, the plans value not the config one? those two drift on us
+13:20  dermot: the plans. same plan the epoch comes off
 ```
 
 > **Problems:** longer than one remark
@@ -820,13 +821,13 @@ cost_inp
 *A new conversation in #releases on 2025-03-19:*
 
 ```
-14:02  dario: quick one on the step ledger, what happens if the same checkpoint name comes round again. second row or do we touch the first one
-14:05  dermot: the first one. if the name comes round again its the same weights, so theres no second thing to record
-14:07  dario: sure but the two passes dont agree on loss. whichever one i saw yesterday had a different number the second time
-14:09  dermot: then the row updates and takes the newer loss. the older one just goes
-14:11  dario: and the labels though, second pass came in with a diffrent set attached. one of them wins or
-14:13  dermot: neither, both sets carry forward on the updated row. losing the earlier labels is the thing i actually dont want
-14:16  konrad: right. off the top of my head nothing downstream even looks at that row twice, so no complaints from me
+13:41  dario: ledger q — same checkpoint name got logged twice and i only got one row back. intended?
+13:43  dermot: mhm. when it comes round again like that its the same weights, so it updates the row instead of adding one
+13:44  konrad: and the loss? the second call had a diffrent number on it
+13:46  dermot: newer one wins, the updated row takes the later loss
+13:47  dario: labels too? both calls came with their own set
+13:49  dermot: both carry forward onto it. neither set gets dropped
+13:51  dario: mhm, that explains my count this morning. i was sat there expecting two rows to diff
 ```
 
 #### `g11.r1.l19` — observability
@@ -848,15 +849,13 @@ cost_inp
 *A new conversation in #cookbooks on 2025-03-20:*
 
 ```
-13:31  dermot: ran the finetune cookbook against the sample set last night and almost nothing fires where i expected it to. data or config, if i had to guess?
-13:34  konrad: data. look, with ten examples that run only gets three optimizer steps
-13:35  dermot: mhm ok so the whole thing is over before anything can happen twice
-13:37  dario: and the one that does fire — thats the interval, or is it just the epoch rolling over
-13:38  konrad: interval. step 2 is where it trips
-13:39  dario: huh. epoch 1 closing anywhere near there too or am i inventing that
-13:41  konrad: no youre right, epoch 1's window closes on step 2 as well. so its two things on the same step and it reads like one
-13:42  konrad: anyway that belongs in the notebook text, nobody has writen it down yet
-13:44  dermot: yeah. on anything realistic those two are nowhere near each other, which is the confusing part
+13:11  dermot: on the finetune cookbook, in the tiny run at the top the interval and the epoch thing fire on the same step. expected, or did i misconfigure the cell
+13:13  konrad: expected. look, with ten examples that run only gets three optimizer steps
+13:14  dermot: three total. so theres basically no room for them to land apart
+13:16  konrad: right. step 2 is where the interval trips, and epoch 1's window closes there too. so you see the one
+13:17  dario: mhm, that tracks. so nothing to fix in the config, its just the example count being small
+13:19  konrad: yes. and we keep it at ten, its a demo. a sentence under that cell so nobody goes hunting, i havent written it yet
+13:21  dermot: yeah ok. ten is the whole reason it runs in under a minute
 ```
 
 #### `g11.r1.l18` — observability
@@ -914,13 +913,14 @@ cost_inp
 *A new conversation in #pipeline on 2025-03-25:*
 
 ```
-11:04  gideon: saved under the same name twice this morning, both `A`, and trainer.get_checkpoints() gives me two rows for the one step
-11:06  nils: its appending. theres no check on the name before the write at the moment
-11:08  dario: so which one does resume take then, newest or first
-11:10  nils: thats the bit we settled - if the name matches the most recent row, that row gets replaced instead of a new one going on the end
-11:12  gideon: only the most recent? so `A` sitting further back just stays where it is
-11:13  nils: yep. appends in that case
-11:15  gideon: ya ok. i was reading the two rows as a step numbering bug, its not that
+11:12  gideon: quick one - I saved a checkpoint named A, then saved A again for the same step and it just appended. trainer.get_checkpoints() hands me two rows back
+11:17  nils: yeah every save is a fresh entry right now, the name isnt consulted at all. two rows for one step is wrong though
+11:19  gideon: so what should the second save do, overwrite the earlier A or
+11:24  nils: replace it. if the name coming in matches the row sitting at the end of the ledger, the new save takes that row's place instead of adding one
+11:26  gideon: and if A isnt the last one, like i saved something else in between?
+11:29  nils: then it appends, same as today. its only ever the most recent entry we compare the name against, we're not going hunting further back
+11:33  emil: yup, thats the case i had in mind too. mine were back to back so it'd collapse
+11:36  nils: nobodys been in the save path yet so youll keep seeing the pair until someone is
 ```
 
 > **Problems:** longer than one remark
@@ -1093,15 +1093,15 @@ cost_inp
 *A new conversation in #cookbooks on 2025-03-24:*
 
 ```
-15:07  konrad: On the short runs, does the lr actually reach 1e-4 or are we just assuming it does
-15:09  nikolai: it doesnt i ran the eight step job earlier and it never logged 1e-4 once
-15:10  konrad: eight steps with what warmup set
-15:11  nikolai: 2
-15:13  emil: so how close did it get in the end, or nowhere near
-15:15  nikolai: biggest sampel in the whole run was 5e-05
-15:16  konrad: Half. ok. and thats not landing on anyone today i take it
-15:18  nikolai: no but the short job check goes against what it actually samples then not the top value
-15:20  emil: yup. honestly i'd been reading that log as a flake all week
+15:04  konrad: look, did anyone actually read the rates that warmup run prints out
+15:05  konrad: not entirely sure the top one is even showing up
+15:06  nikolai: right so i ran the eight step job with warmup 2 and it never logged 1e-4 once
+15:07  emil: never as in not at the peak, or never anywhere in the run
+15:09  nikolai: anywhere biggest sampel in the whole run was 5e-05
+15:11  emil: honestly is that just eight steps being too short to get there
+15:11  nikolai: no 1e-4 is the value we asked for it should turn up in that run somewhere so thats a bug not the run being short
+15:12  konrad: right, so we fix our side then. anyway nobody has been in that file yet presumably
+15:14  nikolai: nope and its eight lines of log total i read all of them 5e-05 was the highest thing in there
 ```
 
 #### `g11.r2.l2` — rule
@@ -1282,13 +1282,13 @@ cost_inp
 *A new conversation in #incidents on 2025-04-11:*
 
 ```
-13:32  gideon: the three step mock run, what are we expecting it to report across those steps? plain-what question, i couldnt tell from the log
-13:34  dario: 5e-05 then 1e-04 then 1e-05 i think. thats the shape we want coming out of it
-13:35  dermot: reported where though, one row at the end or one per batch?
-13:37  dario: per batch. each batch gets its own stats row
-13:38  gideon: ok but then the row has to say which step it belongs to no? otherwise ordering them is guesswork
-13:40  dario: mhm, it carries current_step and that step's rate. so the row stands on its own, you dont have to line it up against anything else
-13:41  dermot: yeah ok. i'd read the middle one as a bug before you said that
+13:38  gideon: whats the mock run meant to report for the three steps? i keep guesing at the fixture
+13:39  dario: i think 5e-05 then 1e-04 then 1e-05, in that order
+13:40  gideon: and thats one row at the end?
+13:41  dario: no, per batch. each one gets its own stats row
+13:42  petar: carrying the step number, or do we count position
+13:43  dario: current_step on the row, with the rate that step ran at. self contained, nothing to count
+13:44  gideon: ya ok. i had it as one row with the three of them in a list, thats where i went wrong
 ```
 
 ### g11.r2.sc3-floor — The descent stops at a tenth of the base rate, that fraction living as a module-level default a caller can pass over, and nothing ever reports below it, including steps past the planned end.

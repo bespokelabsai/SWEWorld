@@ -20,28 +20,53 @@ OVERRIDES = {
     # clause pinning it ("you hand it the work dir and the ledger", g7.r1.say20) exists in the
     # plant's gist and was dropped when phase 4 rendered the exchange (0 hits in the served
     # plant/messages.jsonl, 0 in all 10 v5 transcripts). Run 3's reader already said so.
-    ("g7", 8, "g7.r1.rule"): "grader_overspecifies",
+    # The grader now accepts either order (probe_support.call_write_sidecar, 2026-09-11), so both
+    # losses are set aside as a grader artefact since fixed: outside KNOWLEDGE, like dead-run
+    # causes. They stay in Horizon's grades, so no reward or pass rate moves.
+    ("g7", 3, "g7.r1.rule"): "grader_since_fixed",
+    ("g7", 8, "g7.r1.rule"): "grader_since_fixed",
     # reader said implementation_slip, yet also that TURN_LEDGER_FILENAME never appears in the
     # transcript (grep agrees: only runs 2, 3, 4, 8 show it); run 10 repeated the VALUE
     # turn_ledger.json, never the name — the single-home constant was not found
     ("g7", 10, "g7.r1.rule"): "not_found",
     ("g2", 3, "g2.r1.observability"): "not_found",
-    # g8 fix24's invented closing turn ("auto ... not a detail level its a fallback") argues the
-    # graded vocabulary the wrong way; both runs shipped ("low","high") on that reasoning
-    ("g8", 3, "g8.r2.failure_behavior"): "overridden_by_other_corpus_text",
-    ("g8", 4, "g8.r2.failure_behavior"): "overridden_by_other_corpus_text",
-    # g11 run1 believed konrad's "decay lands at exactly zero" herring: its registered reversal
-    # (rev2) retracts only the warmup half, and the decay half's retraction (rev1, #help) was
-    # never found. The reader's "not_found" hides the only herring capture in the set.
-    ("g11", 1, "g11.r2.rule"): "herring_followed",
-    ("g11", 1, "g11.r2.exclusions_or_crossover"): "herring_followed",
-    ("g11", 1, "g11.r2.observability"): "herring_followed",
+    # g8 runs 3 and 4 (30c95df4) were overridden to overridden_by_other_corpus_text for fix24's
+    # invented closing turn ("auto ... not a detail level its a fallback"). Withdrawn 2026-09-11:
+    # the answer is knowable (l14 "three entries, index 0 is what the fallback hands back",
+    # dermot's "one of the three", the ticket's detail="auto", Image.detail's default), and
+    # neither run had l14 in view. The readers' own verdicts stand (found_misread, not_found).
+    # g11's three run-1 overrides (herring_followed, the half-reversed konrad herring) belonged to
+    # eval 94bf8242 (v7), superseded 2026-09-11 by the rerun on the G11-H fix, which reuses the
+    # same run numbers; they were removed so they cannot land on the new run 1. The old verdicts
+    # are archived in readers/_superseded/g11_v7_eval94bf8242/.
+    # g11 v11 run 7: reader said not_found, yet its own herring row has konrad's herring seen,
+    # rev2 never seen, "believed: herring", code followed — Analysis L3640 "warmup strict
+    # `step < warmup_steps` ... confirmed", shipped with no effective_warmup clamp.
+    ("g11", 7, "g11.r2.failure_behavior"): "herring_followed",
+    # g11 v11 run 6: reader said found_misread for the merge, but l17 reached it only as its
+    # opening question (reader: "only ever seen as its opening line — the reply thread was never
+    # fetched"); runs 2 and 10, identical, are not_found.
+    ("g11", 6, "g11.r1.failure_behavior"): "not_found",
+    # g3 v9 run 10 shipped throttle_cooldown_until defaulting to None. Reader said
+    # implementation_slip, but its reasoning never states the field's default — the "0.0" it
+    # wrote is remaining_cooldown_seconds' return (s1d) — and the ticket never names the field.
+    # The one remark that does, s1a ("0.0 on a fresh tracker", a wiki comment), was never
+    # surfaced. The None came from h2's unretracted tail "sets it to none" (the reset path).
+    ("g3", 10, "g3.r2.rule"): "not_found",
+    ("g3", 10, "g3.r2.observability"): "not_found",
 }
 # A run that never shipped (never committed, or built the module and never wired it in, then
 # looped until the budget or the 7200s trial limit) says nothing about which clues were found.
-# Readers called these "infra" (g4 run2) or "implementation_slip" (g2 run8); neither is a
-# harness fault, and neither is a knowledge loss.
-NEVER_SHIPPED = {("g2", 8), ("g4", 2), ("g10", 8)}
+# Readers called these "infra" (g4 run2, g3 v9 run3) or "implementation_slip" (g2 run8); none
+# is a harness fault, and none is a knowledge loss. g3 run3 typed no git commit or push at
+# all, its patch scripts never landed, and it closed claiming a commit and a green CI.
+# g4 run9 and g7 (v5) run5 were read as "infra: stale terminal". Withdrawn 2026-09-11: no pager,
+# editor or stuck process was ever opened, no two consecutive screens are identical, and the
+# "pushed / merged / CI green" readings they reacted to never appear in any tool turn (g7's
+# "HEAD=8e34d2ef3d ... ci/test success" and "PR 737/738" exist only in its own reasoning; g4's one
+# commit confirmation is at transcript line 11139, near the end, and it never pushed). The agents
+# distrusted real output and failed to ship.
+NEVER_SHIPPED = {("g2", 8), ("g4", 2), ("g10", 8), ("g3", 3), ("g4", 9), ("g7", 5)}
 
 
 def yes(v):

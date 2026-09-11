@@ -1,80 +1,66 @@
-# g11 run 4 (d6f00008, eval 94bf8242) — reward 0.7778
+# g11 run 4 (ba527345) — reward 0.8889
 
 ## What this run found
 
-The agent dumped the entire Mattermost history for all 12 channels to local files
-early on and then grepped that corpus repeatedly for the ticket's own vocabulary
-(`step_ledger`, `dataset_signature`, `min_lr_ratio`, `learning_rate_at`,
-`CHECKPOINT_REASONS`, `warmup`, `checkpoint name`, etc.), reading full threads with
-`sed` whenever a hit landed. This strategy worked almost perfectly for **g11.r2**
-(the learning-rate schedule): every clue, both herrings, and both reversals were
-found, because the ticket already uses the same words the plant used
-(`min_lr_ratio`, `warmup_steps`, `total_steps`). All four r2 facts (rule,
-exclusions_or_crossover, failure_behavior, observability) scored 1 — the agent
-correctly reconstructed the inclusive `1 <= step <= effective_warmup` ramp,
-`effective_warmup = min(warmup_steps, total_steps)`, decay to `MIN_LR_RATIO = 0.1`
-as a keyword-only parameter, the clamp-past-the-end behavior, and the
-resume-continues-on-the-new-length-from-`completed_steps+1` behavior, all directly
-from remarks it found and read in full (line 3126 for the key reversal, line 2997
-for the other).
+This is a near-perfect run: 8 of 9 hidden facts scored, CI green, pushed and deployed
+(transcript lines 9100-9159). The agent never read any single channel top-to-bottom; instead
+it grepped the whole chat corpus for finetune vocabulary (`checkpoint`, `reason`, `template`,
+`warmup`, `decay`, `tenth`/`floor`, `current_batch`, …), dumped the hits plus surrounding
+context into `/tmp/ftctx.txt` (539 lines), and paged through that file in ~40-line chunks
+(lines 3080-5950). It also checked BookStack in full — `/api/pages?count=500` plus each
+page's own comments (lines 2101-2588) — and IMAP mail (lines 2631-2658), correctly finding
+nothing there since every one of g11's 47 remarks lives in Mattermost chat.
 
-**g11.r1** (checkpoint identity) coverage was much patchier despite the same
-channels being locally available. The agent found the `reasons`/
-`CHECKPOINT_REASONS`/`canonical_reasons` thread (the ticket also uses "reasons"),
-the coincident-step behavior, the scope (final-always, Fireworks-never) and one of
-the two exclusions_or_crossover carriers (l15, the epoch-of-batch-not-loop-variable
-remark, read in full at line 4992). But it never queried for the literal string
-`CHECKPOINT_NAME_TEMPLATE`, `get_checkpoints`, or `epoch_end`/`end_of_epoch`, and
-never read engineering.txt or pipeline.txt as exhaustively as it read
-viewer.txt/general.txt/help.txt for r2. Nine r1 remarks (l1, l3, l5, l9, l11, l13,
-l14, l16, l17) were never surfaced — confirmed by grepping the full transcript for
-each remark's distinctive text and getting zero hits.
+Both `r1` herrings (twin checkpoints named `{prefix}_step_{n}`/`{prefix}_epoch_{n}`,
+alphabetical reason order) and both `r2` herrings (decay to exact zero, strict
+`step < warmup_steps`) were surfaced, along with all four reversals (lines 3817/3850,
+4603/4019, 3188/4151, 5017/3240). The agent believed every reversal and shipped none of the
+herring behavior — `acted: contradicted` for all four herring rows.
 
-## What it missed and why
-
-Two of nine facts scored 0, both `not_found` — not a task defect, not a herring
-followed, not an implementation slip against something the agent understood.
-
-- **g11.r1.rule** (0): the grader's `test_rule` fails at
-  `sym("CHECKPOINT_NAME_TEMPLATE").format(...)` because the module exports no such
-  constant. The agent reconstructed the *shape* of checkpoint names correctly —
-  `checkpoint_name(prefix, step)` returning `f"{prefix}-s{int(step):06d}"` — but
-  entirely from the reversal remark `g11.r1.rev1` ("checkpoint_name(prefix, step),
-  nothing else feeds it. so step 2 gets you checkpoint-s000002", line 4029). The
-  one remark that names the actual constant, `g11.r1.l3` ("the format goes through
-  CHECKPOINT_NAME_TEMPLATE in the ledger"), was never found. Everything else this
-  fact also covers — ledger-order `CHECKPOINT_REASONS`, `canonical_reasons`
-  dedupe/order, and one `save_checkpoint` call per coincident-trigger step — is
-  genuinely correct in the shipped code (the train loop accumulates all firing
-  reasons into one list before a single call, verified directly in the diff), but
-  the test never reaches those assertions because it fails on the second line.
-
-- **g11.r1.failure_behavior** (0): `test_failure_behavior` fails on
-  `assert len(stored) == 1` after two `save_checkpoint` calls under the same name —
-  got 2, not 1. The unknown-reason-raises half of this fact is correctly
-  implemented (from `g11.r1.l8`, found early at step 31). But the
-  merge-on-repeat-name half was never implemented at all: the original
-  `save_checkpoint` unconditionally appends to `self._checkpoints`, and the
-  agent's patch only added shape/reasons keyword arguments to the `CheckpointInfo`
-  constructor — no branch was ever added to check whether an incoming name
-  matches the ledger's last entry. The two remarks carrying this behavior
-  (`g11.r1.l16`, `g11.r1.l17`) were never surfaced, and the agent's own
-  Analysis/Plan text never once mentions "merge" or "replace" in connection with
-  checkpoints — it never knew this requirement existed.
+The agent also did real reconstruction rather than transcription: from `g11.r1.l15`'s raw
+numbers ("batches_completed 6" / "3, 2, 8") it algebraically derived the exact `StepPlan`
+shape (`batches_per_epoch=4`, `gradient_accumulation_steps=3`, lines 4945-4953) before the
+ticket's own worked example confirmed it, and it independently re-derived the LR decay
+formula from the 3-step/warmup-2 mock numbers (line 4291).
 
 ## What it believed, and why
 
-All four herrings were correctly *not* followed. Interestingly, the agent barely
-read the r1 herrings' own posts (one grep-hit line each, at step 88/75) — its
-belief that the twin-checkpoint/alphabetical-sort design was obsolete came
-entirely from the two reversal remarks' retrospective descriptions ("we stopped
-writing two records", "alphabetical put final ahead of interval ... thats gone"),
-not from encountering the herring and then updating. For r2, both herrings and
-both reversals were read as full threads, and the agent explicitly reasoned in its
-Analysis text: "Feb 19 is the older LR design; June 2 supersedes it" — a clean,
-correct resolution.
+Its own mid-run synthesis (lines 5955-5964) lists all ten settled-but-parked decisions it
+had assembled from chat — `CHECKPOINT_REASONS` order, `canonical_reasons` semantics,
+`checkpoint_name(prefix, step)` format, replace-on-repeat-name semantics, epoch-from-plan,
+and the full `learning_rate_at` formula with `MIN_LR_RATIO=0.1`, `effective_warmup =
+min(warmup_steps, total_steps)`, and the inclusive `1 <= step <= effective_warmup` compare.
+Every one of those matches the answer key and passed its grader test.
 
-## Provenance
+**Notable — the rewritten reversal.** v11 rewrote `g11.r2.rev2`'s wording, and the world this
+run actually played against served the new text: "the end doesnt sit at zero any more, it
+bottoms out at a tenth of base_lr and holds there, and a first step at rate 0 is not
+something i want to keep defending" (transcript lines 3242-3243). The agent read and relied
+on exactly this text (Analysis at line 3281); the answer key document's own "As it appears"
+quote block still shows the pre-rewrite wording without that sentence, which is a staleness
+in the key, not an agent error.
 
-Merged to main (`11c556d`), CI green, service healthy at the final check; 142/142
-finetune tests passed locally (89 existing + 53 new). No infra issues.
+## Why the one lost fact (`g11.r2.rule`) was lost
+
+`test_rule__inclusive_warmup_then_a_linear_decay_to_a_tenth_of_the_base_rate` failed on
+exactly one assertion: `inspect.signature(learning_rate_at).parameters['min_lr_ratio'].kind
+is inspect.Parameter.KEYWORD_ONLY`, reported as `'POSITIONAL_OR_KEYWORD' != 'KEYWORD_ONLY'`.
+The shipped signature is `def learning_rate_at(step, total_steps, base_lr, warmup_steps,
+min_lr_ratio: float = MIN_LR_RATIO) -> float:` — a normal defaulted parameter, no bare `*`
+before it.
+
+Cause: **not_found**. `g11.r2.l10` (nikolai, #code-review, 2025-05-30 — "also did a pass on
+663 - min_lr_ratio sits behind a bare * so callers have to name it, MIN_LR_RATIO stays the
+module-level default") is the *only* remark among all 47 that states this constraint, and it
+never appears anywhere in the ~9,200-line transcript, in any of the agent's grep passes or
+`ftctx.txt` pages. The agent did find and correctly apply the *sibling* keyword-only
+requirement — `save_checkpoint`'s `reasons` kwarg (line 3000: "keyword only... it comes back
+from canonical_reasons") — but that thread never touched `min_lr_ratio`, and its own
+requirements list (line 5955-5964, item 10) never mentions keyword-only for `min_lr_ratio`.
+Every other part of `test_rule` — `MIN_LR_RATIO == 0.1`, the ramp/decay values, the
+`min_lr_ratio=0.5`/`0.0` rescale behavior — passed cleanly.
+
+Two further remarks (`g11.r1.l5`, `g11.r2.l11`) also never surfaced, but their facts still
+scored 1: other remarks (`l1`/`l3`/`l6`/`l7`/`rev1`/`rev2` for `r1.rule`;
+`l9`/`l14`/`rev1`/`l1`/`l5`/`l6`/`l7` for `r2` exclusions/observability) carried the same
+content redundantly, which is exactly the spread-redundancy the plant is designed to have.

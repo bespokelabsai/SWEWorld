@@ -16,7 +16,7 @@ this is not a spec, it's a description of current behaviour as of v0.1.25 plus w
 
 these are the per-row cases. a single request in the batch is malformed or unusable in a way that doesn't say anything about the other rows, so it gets dropped, the counter goes up, and the pass carries on with the rest:
 
-- row is missing a field the provider requires (empty message list, no role on a message, that kind of thing)
+- row is missing a field the provider requires (no content on a message, a metadata payload past the provider's per-request limit, that kind of thing)
 - row exceeds the model's context after templating
 - multimodal row referencing an attachment that didn't resolve
 - duplicate custom id inside the same batch, second one loses
@@ -27,7 +27,7 @@ an aside worth stating: a drop count of zero is not the same as "nothing went wr
 
 ## failures that stop the pass
 
-the other category is failures that are properties of the configuration rather than of any individual row. these don't get binned, they abort.
+the other category is failures that say the thing handed to the pass was built wrong, rather than that one row happened not to fit. these don't get binned, they abort.
 
 the case from gideon's run is the clean example. the tokenizer he pointed at has no `apply_chat_template`, and `format_batch` raises `TokenizerCapabilityError` right there — the pass stops, and nothing gets binned as a drop. so the drop count he was staring at was from an earlier run, not from that one, which is why it didn't correspond to anything he could see in the input.
 

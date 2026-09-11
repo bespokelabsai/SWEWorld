@@ -1,613 +1,247 @@
-# Todo — make the generator repeatable, and put g1's clues in the world
+# g11: close the score-forgery without changing the task
 
-Plan: ~/.claude/plans/buzzing-shimmying-pelican.md
+## Problem
+Grading pytest imports the agent's pushed code in the same process that writes the
+report score.py reads. Even after the privilege drop (uncommitted, in the working
+tree), an `atexit` hook in `bespokelabs/curator/__init__.py` forges junit.xml →
+`reward` 1.0 from a pristine tree. A uid cannot fix this (lessons.md 2026-09-09).
+Only fix: the process that IMPORTS agent code must stop being the process that
+DECIDES pass/fail.
 
-## Half 2 — the clues into the world
+## Invariant (must not change) — captured baseline
+- pristine: 10 fail (reward 0.0)
+- naive: only `g11.open_feature` passes (reward 0.0)
+- oracle: 10 pass (reward 1.0)
+- every hidden fact verdict = `hidden`; Ships: yes
+- Baseline JSON: scratchpad/baseline_g11.json
 
-- [x] Back up `clues/` as `clues.pre-inject`
-- [x] `prompts/clue_reknit.md` + `clues.reknit()` (in clues.py, beside the other passes) — the holder's turn IS the proven
-      sentence; only the turns around it are regenerated
-- [x] Guard in code: `anchor()` splices when the rewrite paraphrased (6 of 35 needed it) that does not contain `clue["text"]` verbatim
-- [x] `tg/inject.py` — 7 carrier kinds -> ingest-shaped writes into a COPY of the run
-- [x] GATE: all 50 remarks + identifiers read back — 0 blocking + verbatim identifiers out of the
-      written corpus
-- [x] Read back the 8 threads appended to days that already had traffic
-- [~] install done (9,791 messages, 5 comments); bake TAG=0.4.2 running
-- [ ] `batch-payload-plan-world/` arm, cloned from blind, FROM sweworld:0.4.2
-- [x] Teach `build_tasks.py::emit()` the `world` variant (`--world`)
-- [ ] Confirm chat + wiki search surface the new remarks in the booted image
-- [ ] Measure n=3 against clues 1.00 / blind 0.00
+## Design: worker (probe) + judge, both driven by run_suites
+- WORKER: runs as `nobody`, imports the submission, executes a fixed ordered list
+  of probes; each returns a JSON-serializable observation (or an error marker).
+  Its atexit hooks / lingering forks are killed with the process group and can
+  only touch files it owns — never the judge's output.
+- JUDGE: runs as root, NEVER imports the submission. Reads the worker's
+  observations (harvested O_NOFOLLOW, size-capped, like junit today) and the
+  cloned source text, runs the assertions currently in test_*.py, emits
+  {fact_key: passed|failed}. Source checks (ast "no import time/random",
+  TYPE_CHECKING) read the clone's text directly.
+- score.py reads hidden-fact outcomes from the judge (unforgeable), not junit.
+- Floats cross JSON exactly (repr round-trip), so pytest.approx(rel=1e-12) holds.
 
-## Half 1 — the pipeline
+## Steps
+- [x] Capture baseline verdicts (pristine/naive/oracle)
+- [ ] Build a forge fixture (sitecustomize + atexit junit-rewrite) → prove it
+      scores reward 1.0 under the current grader, 0.0 under the new one
+- [ ] Worker/judge scaffold + local invariant harness (mirrors the bracket)
+- [ ] r1 (5 facts) probe+judge → bracket matches baseline on all trees
+- [ ] r2 (4 facts) probe+judge → bracket matches
+- [ ] open_feature probe+judge → bracket matches
+- [ ] Wire run_suites.py + score.py + test.sh; keep score.py key semantics
+- [ ] Full local bracket == baseline, forge == 0.0
+- [ ] Propagate to all 7 g11 arms (shared _suites); note hosted revalidation
 
-- [x] `prove --runs 3`, per-fact grid across runs
-- [ ] Prove the sampling change on `clues.v4-hosted-0.70` BEFORE building on it
-- [x] `finish()` runs `unreversed`, `out_of_order`, `unknit`, `unstated`
-- [x] `coverage()` -> `gaps_claimed`; `uncarried()` added and MEASURED USELESS; `unstated()` is the one that fires
-- [x] `tg/recipe.py` + `cli.py make [--dry-run|--from|--optional]`
-- [ ] `cli.py snap`
-- [x] README as the recipe
+## Verify
+- Local: `scratchpad/baseline_g11.py` re-run through the new path == baseline.
+- Forge fixture: reward 0.0 after, 1.0 before.
+- Hosted: oracle 1.00 / noop 0.00 validation, then eval — separate round trip.
 
-## Small fixes while there
-
-- [x] `_loop/run.sh` counts every job dir
-- [x] CLAUDE.md corrected
-
-## Round two — the corpus reads as people
-
-- [x] `prompts/clue_thread.md` — the exchange exists BECAUSE they were working it out
-- [x] Guard inverted: a turn holding the whole remark is now a finding
-- [x] `check_carriage` — claim by claim, shown the remark and the thread, `carried`
-      computed in code
-- [x] `chat_insert` becomes a seeded exchange, not one dropped message
-- [x] Page comments become a comment and its replies
-- [x] `inject.absent` is claim-level; the answer key renders the exchange
-- [x] Recipe + README: `reknit` is the step that makes a plant into a corpus
-- [ ] Rewrite all 48 chat/mail exchanges (running, ~96 calls)
-- [ ] Run the 2 page comments
-- [ ] Re-inject, re-bake 0.4.3, regenerate the answer key
-- [ ] Re-measure world n=3 against the 0.50 baseline
-
-## Measured
-
-| arm | n | result |
-|---|---|---|
-| blind | 1 | 0.00 |
-| spec | 2 | 1.00 |
-| clues (quoted in the ticket) | 4 | 1.00 |
-| world (in the corpus), round one | 3 | 0.80 / 0.10 / 0.60 = **0.50** |
-
-`g1.r1.rule` and `g1.r1.scope` failed 3/3 deterministically on the `PLAN_FILE_NAME`
-naming issue, not on retrieval. All five `g1.r2` facts move together, so that is one
-engagement variable rather than five failures.
+## Steps — DONE
+- [x] Capture baseline verdicts (pristine/naive/oracle)
+- [x] Forge fixture (sitecustomize + atexit junit-rewrite): 1.0 under old grader, 0.0 under new
+- [x] Worker/judge scaffold + local invariant harness (mirrors the bracket)
+- [x] r1, r2, open_feature probe+judge → bracket matches baseline on all trees
+- [x] Wire run_suites.py (opt-in branch; score.py + test.sh untouched)
+- [x] Propagate probe.py/judge.py/run_suites.py to all 7 g11 arms (verified in sync)
 
 ## Review
+**What shipped** (only `_suites/` + g11 arms touched; every other task byte-identical):
+- `_suites/g11_training_step_ledger/probe.py` — worker; runs as nobody, imports the
+  submission, writes observations (values, never verdicts) to observations.json.
+- `_suites/g11_training_step_ledger/judge.py` — judge; root, stdlib only, never imports
+  the submission. Applies the suite's assertions to the observations + the cloned source,
+  writes junit.xml with the SAME classname/name as the old tests so score.fold is unchanged.
+- `_suites/run_suites.py` — `spawn()` (kills the process group after wait, so a forged
+  atexit daemon can't outlive the worker) + `run_split()` + an opt-in branch that fires
+  only when the suite ships probe.py+judge.py. Purely additive.
+- test_*.py, score.py, test.sh, conftest.py, harness.py: UNCHANGED. test_*.py kept for the
+  fact↔test bijection and as the assertions' source of truth.
 
-_(filled in as work lands)_
+**Proven locally (devbox):**
+- Invariance: pristine 0/10, naive open_feature=1 rest 0, oracle 10/10 — identical to the
+  pytest baseline, every hidden fact still `hidden`, Ships: yes.
+- Closure: the forge tree scores 1.0 under the old pytest grader and 0.0 under the split.
 
----
+**Why it holds:** the process that imports agent code (worker) no longer writes the report;
+the judge decides pass/fail in a process that never imports it, writing junit straight to
+root-owned /logs. A forged junit/atexit has nothing to rewrite there.
 
-# g4 — run-cache-identity
+**NOT done (handed off, per the plan):** hosted validate (oracle 1.00 / noop 0.00) + gating
+round trip on the g11 arms. That is the remaining proof and spends hosted budget.
 
-Area: run cache identity in curator — four layers disagree about what makes two
-runs "the same run" (`llm.py:_hash_fingerprint`, `<parse_func_hash>.arrow`,
-`MetadataDB`, `CuratorResponse.save/load`). Plan:
-`~/.claude/plans/hi-im-waiting-to-reactive-rivest.md`.
-
-Stop point: the hosted **blind** and **spec** arms. Not `clues` ($48).
-
-## Stages
-
-- [x] 0a  `task_generator/README.md` — add `## Running it stage by stage`
-- [x] 0b  `cli make run-cache-identity --dry-run`
-- [x] 1   `cli new run-cache-identity --brief …`          → brief.md, task.json
-- [x] 2   `cli author run-cache-identity`  $3.14, 31 turns  → whole.md, 11 parts, 10 arbitrary
-- [ ] 3   `cli build run-cache-identity --role oracle`    → fixtures/oracle.patch
-- [x] 4   `cli split`  $1.81, exited 1 — overridden on evidence (0 of 15 hidden values in ticket)
-- [x] 5   `cli tests run-cache-identity`  $6.25  → 4/4/1 tests, green on oracle
-- [x] 6   `cli build --role naive`  $2.76 + $2.91 rebuild → 962 lines
-- [x] 7   `cli build --role spec`   $3.53 + $2.69 rebuild → 1017 lines
-- [x] 8   `cli bracket`  **Ships: yes** — pristine 0/9, naive 1/9 (open_feature only), oracle 9/9, spec 9/9
-- [x] 9   `cli audit` — SKIPPED by decision (bracket was clean)
-- [x] 10  `cli trim` 451->347 words; broke r2.failure_behavior, fixed by stating the refusal's reach
-- [x] 11  `cli emit` — tasks.generated.json now ['g1','g2','g3','g4']
-- [x] 12  `cli horizon --arms blind,spec` (needed test_open '/c' -> 'cache-dir-c' for unhosted_paths)
-- [x] 13  pushed both arms; hosted validation oracle 1 / noop 0 on BOTH
-- [x] 14  **VERDICT: spec 1.00 / blind 0.00, open_feature 1.0 on both** (opus 4.7 = biggie-max, meteor, n=1)
-- [ ] 15  README kept current with anything g4 hit that it did not predict
-
-Not touching `out/retry-backoff-policy/` — g3 is the user's call.
-
-## Review
-
-- `split` exited 1 predicting `coincidence` on all 8 facts; overridden after checking
-  the ticket for all 15 load-bearing hidden values (0 present). Every fact then
-  measured `hidden`. `leak.py` false-negatives when a fact's `observability` is
-  written as a test expression: the API names used to express the assertion are
-  counted as required identifiers, and those are legitimately in the ticket.
-- `open_feature` failed on naive AND spec, same assertion. Cause: `test_open` graded
-  `RunDirectoryCheck.previous_version`, stated in `whole.md` and in no arm. Fixed by
-  amending the shipping description; `hidden_requirements` asserted byte-identical
-  across the edit. Recorded in README and lessons.md.
-
-## RESUME HERE (g4, 2026-09-03)
-
-**VERDICT ALREADY BANKED: spec 1.00 / blind 0.00, open_feature 1.0 on both**
-(opus 4.7 = biggie-max, agent-type meteor, n=1 each). g4 is a good task.
-
-Clues chain, all green:
-- [x] `clues --sources slack`  41 clues, 8 rooms, $10.19  (SLACK ONLY, per request)
-- [x] `reorder`   5 remarks moved after the problems they answer
-- [x] `settle`    16 rewritten, 4 added -> 45 clues; missing_identifiers: []
-- [x] `reverse` + `reorder` again (settle's say19 landed before its own question)
-- [x] `reknit`    45 of 45 written, 0 findings
-- [ ] `prove --runs 3`   RUNNING
-- [ ] `cli horizon run-cache-identity --arms blind,spec,clues`
-- [ ] `inject` (optional, in-world arm)
-
-Spend $57.89 local.
-
-Known soft spots, none blocking:
-- ~20 advisory `unstated` findings, clustered on g4.r2 (the run_id rule) and
-  g4.r1.rule. Predicts a clues arm below the spec arm; `prove`'s per-fact grid in
-  clues/proof.md is what says whether it costs anything.
-- ONE `absent`: nothing in the corpus mentions `dataset_hash`. Probably harmless —
-  it is already one of the five things `_hash_fingerprint` hashes, so a reader
-  keeps it from the code, not the corpus.
-- Cosmetic: 4 `stock_phrasing` (say22/23/24 all end "had it in my head as"),
-  2 `too_wordy` exchanges at ~5x the remark. Fix with `cli replace --only <ids>`
-  only if wanted; do NOT run while prove is reading the plant.
-
-TOOLING FIXED THIS SESSION (uncommitted):
-- tg/bracket.py    two new open_feature gates (naive must pass it; no longer
-                   exempt from the spec-reachability check). Measured against all
-                   four tasks' brackets: fires only on g4's bad cut.
-- tg/clues.py      prompt() now delegates to steps.prompt() instead of being a
-                   second, unfixed copy. It flagged an f-string `{{}}` in a real
-                   assertion as an unfilled template hole and killed `settle`.
-- task_generator/README.md  stage-by-stage walkthrough, hosted-arms section,
-                   open_feature finding, stage-table drift fixes.
-- tasks/lessons.md two new lessons.
-
-Horizon: blind 0919a0fe-aa5f-4b9c-a651-1dd939184f4a, spec 5427f01a-a9b4-453d-9b7d-5e21cdd02314,
-mini_batch b52ead5c-6e16-4552-ab96-250541fdfba2. `horizon` is at ~/horizon_env/bin
-(NOT on PATH). Use --agent-type meteor and --model biggie-max. Read scores with
-`horizon rollouts pull <task-id>`, never `evaluations status`.
+**Residual, worth stating as gains not changes:** the worker still runs agent code as nobody
+(disposable, killpg'd, writes nothing score.py reads); overfitting to the exact probe vectors
+is still possible (the accepted per-test risk, same as any suite) — universal forgery is what
+is closed. Scratchpad harnesses: baseline_g11.py, harness_new.py, demo_forge.py.
 
 ---
 
-# g5 — response-ledger — **measured, not shipped**
+# The split left one channel open: observations-forge (2026-09-10)
 
-Area: what counts as a recorded response in `responses_*.jsonl`. Kept as evidence
-in `task_generator/out/response-ledger/`; the `g5.*` fact keys are baked into its
-tests, fixtures and bracket, so the id stays g5. It never emitted — nothing in
-`harbor_tasks/` or `tasks.generated.json` refers to it. Total **$17.92**.
+The review above tested the JUNIT forge (which the judge overwrites) and concluded
+"universal forgery is closed". It is not, with test.sh unchanged. The judge holds the
+expected VALUES as literals and lives in /tests, which test.sh opens `g+rX` to the
+worker's group. So the worker (nobody, running agent code) can READ judge.py, and an
+atexit payload can write `observations.json` with exactly the values the judge checks
+for — a forged PASS through the observations channel, which the junit-only forge fixture
+never exercised.
 
-**Bracket: Ships no.** `naive: {'failed': 1, 'passed': 8}` — the inverse of the
-healthy shape. 7 of 8 facts `coincidence`. Cause in `tasks/lessons.md`: `ships()`
-requires `open_feature` to pass on `naive`, so the ticket was obliged to state
-everything `test_open` graded, and the hidden pair were left holding a residue the
-ticket entails. No re-cut could have fixed it. `split` had exited 1 naming the
-leak; overriding it is what the last $10 bought.
+**Reproduced on a g10 world twin, end-to-end through the real test.sh + Gitea clone:**
+a pristine tree + an atexit payload that reads judge.py and writes matching observations
+scored **reward 1.0** with the unchanged test.sh.
 
-**Also found:** `claude -p --json-schema` + opus fails 6/6 with `[reasoning_extraction]`
-at every effort level. Sonnet with the schema works; `cli.py split` gained `--model`.
+**Fix (one line in `build_tasks.TEST_SH`):** after the `g+rX` open, `find /tests -name
+judge.py -exec chmod 0600` — lock every judge to root. The worker never needs judge.py
+(only root runs it), so this costs nothing and removes the answer key from the process
+that runs agent code. Non-split tasks ship no judge.py, so the find matches nothing.
 
-# g6 — model-price-lookup
+**Proven, both tasks, through test.sh:**
+- oracle 1.0, noop 0.0, junit-forge 0.0, obs-forge 0.0 (PermissionError reading judge.py).
+- Control: with the lock removed, obs-forge is back to 1.0 — the lock is load-bearing.
 
-**Full record: `task_generator/out/model-price-lookup/PROGRESS.md`** — kept there
-because this file has two writers and the g5/g6 sections were lost once already to
-a concurrent rewrite.
+## g10 got the same split (2026-09-10)
+Built `_suites/g10_token_capacity_budget/probe.py` + `judge.py` to match g11's shape
+(judge writes junit with the current node ids; open + r1 + r2 all ported). The judge's
+expected values were generated from the oracle observations, then cross-checked against
+the original test_*.py inline constants — all matched. Propagated tests/ (only) to all 7
+g10 arms and re-propagated all 7 g11 arms so they carry the locked test.sh; every arm's
+probe.py/judge.py/test.sh verified byte-identical to _suites / build_tasks.TEST_SH.
 
-Area: what a token costs. Chosen against g5's lesson — the graded surface is a cost
-number, so the ticket can name every symbol and still leave the behaviour
-unguessable. Stop point: through `bracket`, then `trim`/`emit`/`horizon`. Not `clues`.
-
-- [x] 0-3  brief / `new` / `author` $2.16 / `build --role oracle` $3.64
-- [x] 4  `cli split --model sonnet` $0.67 — **exit 1, 0 of 8** → re-cut BY HAND → **8 of 8**
-       The cut was bad, not the area: it hid P2/P5's policies and left every invented
-       name in the ticket. Re-cut onto P3's three reason spellings and P5's
-       `batch_multiplier`. $0 — the oracle implements all of P1-P9. Old cut: `cuts/cut-2`.
-- [x] 5  `cli tests` $4.52 — the free read caught `test_open` requiring
-       `reason="unknown_model"` to be accepted, which naive need not spell that way.
-       Fixed free. naive later proved it: it wrote `unknown_completion_window`.
-- [x] 6  `cli build --role naive` $2.52    - [x] 7  `cli build --role spec` $3.35
-- [x] 8  `cli bracket` — **SHIPS: YES.** pristine 8 failed, naive 7 failed / 1 passed
-       (`open_feature`), oracle 8/8, spec 8/8. **All 7 facts `hidden`.** Total $20.88.
-       Four bracket runs. One paid fix (spec rebuild $4.02 — `_wrap(model=None)`
-       TypeError at `cost.py:303`); the rest free: relaxed `test_open`'s rich-markup
-       marker position (ticket silent on it); dropped `r1.scope` (the ticket must keep
-       curator's `external_model_cost(..., completion_window="*")`, so the wildcard
-       default is unhideable); made `discount_flag_name()` polarity-agnostic (spec wrote
-       `_prices_are_batch_rates`, the same flag sign-reversed); removed inference.net
-       from r2.rule (pricing it needs P7, which only `oracle` is told about, so a correct
-       spec degrades it to 0.0 per r1's own failure contract).
-- [x] 9   `cli audit` — SKIPPED by decision, as g4 did on a clean bracket
-- [x] 10  `cli trim` $1.11 — 472->347 words, 13 assertions dropped; post-trim bracket
-       **still Ships: yes**, all 7 `hidden`, spec 8/8. Needed THREE passes:
-       `error_max_structured_output_retries` on a different fact each run. Only the
-       per-prompt cache made resuming cheap. `trim` should get `split`'s `--model` flag.
-- [x] 11  `cli emit` — tasks.generated.json now ['g1','g2','g3','g4','g6']
-- [x] 12  `cli horizon --arms blind,spec` — both arms written, both emit gates passed
-- [x] 13  **PUSHED to nidhi-test**, mini-batch b52ead5c (same as g1-g4).
-       blind 6ff92bf3-3a22-4c72-a89f-2459b57061e7 / spec a745885a-847e-42a4-a583-aa6f6752656d
-       `horizon tasks push` prompts for the task name even with MINI_BATCH_ID set —
-       `EOF when reading a line` non-interactively. Pipe the name in. Not in the README.
-       `horizon tasks list` is broken (`Error fetching tasks: 0`) and nothing lists
-       mini-batches; `.horizon/metadata.json` files are the only on-box record.
-- [x] 14  **hosted validation: ALL FOUR PASSED** — blind oracle 1.00 / noop 0.00,
-       spec oracle 1.00 / noop 0.00. `validate` is async; poll `validate-logs -a <agent>`.
-       **g6 COMPLETE. Built for $21.99; push and validation free.**
-- [ ] 15  **eval BLOCKED: account budget is $0.00** (total_spend $1040.18). Three evals,
-       nine rollouts, all errored, $0 spent, 0 model requests, zero agent turns. Not the
-       task — hosted validation passes 1.00/0.00 because it spends no model budget.
-       Ruled out: `--machine-type` (control errored without it) and agent type (meteor
-       AND typhoon both errored). No error_message is surfaced anywhere — **check
-       `horizon whoami` first when rollouts error with zero spend.**
-       biggie-max is 403-gated: "run 10+ cipher-omni rollouts below a 0.4 pass rate".
-       NB `horizon whoami --json` prints the API key in plaintext.
-       (superseded) eval 9eb67aaa-6390-40bc-b715-26cd93eb7b21 — cipher-omni, meteor,
-       3 runs x 2 arms, machine `e2-custom-8-16384`. cipher first as the gate.
-       `--machine-type` takes ONLY e2-custom-{2-4096,4-8192,8-16384,16-32768}; the CLI
-       documents none of them, the 400's ZodError names them. Task ids are ONE
-       comma-separated positional, not repeated args.
-       Read `rollouts.errored`/`rollouts.total`, never the per-run status column
-       (that misreading cost ~$40 on g4). Scores via `rollouts pull`.
-- [x] 16  **LOCAL TRIALS: VERDICT spec 1.00 / blind 0.00.** Every one of the 7 facts
-       spec 1.0 / blind 0.0 — maximum separation. blind $13.56, spec $11.79.
-       **Total g6 $47.34** (authoring $21.99). g4 was $44.70.
-       CAVEAT (FIXED): `open_feature` was 1.0 on spec but 0.0 on blind — the ticket said
-       what `register_price_with_litellm` WRITES, never what it RETURNS, and across five
-       builds it was a coin flip. Added the return-contract clause to `task.json` +
-       `ticket.md`; re-`bracket` (still ships, all 7 facts hidden), re-`emit`, re-`build_tasks`,
-       re-`horizon --arms blind,spec`, re-pushed — both arms now version 2 under the same
-       task ids (`6ff92bf3…`/`a745885a…`), same mini-batch `b52ead5c…`. No paid stage repeated.
-       Fixed `tg/report.py`: `trial.rewards()` returns one dict PER TRIAL; two sites
-       did `.get` on the list and killed `report` after both paid arms had run.
-- [x] 17  Horizon budget restored ($400). Resubmitted cipher-omni eval:
-       `1a8f685c-17e9-4466-a2ca-472080e191b2`, 2 tasks x 3 runs, running, 0 errored
-       at first poll. `horizon evaluations status 1a8f685c... --json`, then
-       `rollouts pull` once `rollouts.total` hits 6.
-- [ ] 18  biggie-max (agent-type typhoon, per g4's rollouts) after cipher clears.
+Scratchpad: driver.sh (push-to-Gitea + test.sh), payload_junit.py, payload_obs.py.
 
 ---
 
-# fleet — five tasks at once (v1: through the spec/blind proof)
+# The judge.py lock was ALSO insufficient: test_r*.py leaks the same answers (2026-09-10)
 
-`task_generator/fleet/`, untracked, additive. Drives `cli.py` as a subprocess;
-**edits no file outside its own directory**. Cut losses with `rm -rf
-task_generator/fleet` + `git checkout task_generator/tasks.generated.json`.
+The section above claimed locking judge.py closed the obs-forge. It did NOT, and QC
+caught it. The expected r1/r2 values live in judge.py AND — identically — in the
+sibling `test_r1.py`/`test_r2.py`, which the suite keeps as its source of truth and
+which test.sh left group-readable (only judge.py was re-locked). So the worker just
+reads `test_r1.py` instead of judge.py and forges matching observations. My earlier
+"proof" missed this because the forge fixture only read judge.py, never the test
+files that carry the same constants.
 
-## Scope
+**Why the lock is nonetheless the right shape (not "judge recomputes"):** the worker
+runs agent code, so any value it produces is forgeable; QC's "recompute from source"
+can't get a *behavioral* value (what free_capacity returns) from AST. The only defense
+is keeping the expected values unreadable by the worker — which means locking EVERY
+file that carries them, not just one.
 
-- [x] **Phase A** — the cut, `new` → `emit`. ~$19/task.
-- [x] **Phase B** — spec and blind proven on Horizon. ~$30/task. **The fleet halts here.**
-- [x] **Phase C** — the plant. Written, gated behind `--through C`. Not run in v1.
-- [ ] **Phase D** — the in-world arm. Not built; `plan.phase_d()` raises with the seam it plugs into.
+**Complete fix (`build_tasks.TEST_SH`):** for each split suite (a dir shipping judge.py),
+`chmod 0600` judge.py AND that dir's test_r*.py. probe.py + test_open.py stay readable
+(the worker imports them; test_open holds only the weight-0 open-feature constants).
+Scoped to split suites so non-split tasks — which run pytest over their own test_r*.py
+as the same nobody uid — are untouched. Invariant to preserve: reward-bearing answers
+live ONLY in test_r*.py/judge.py, never in test_open.py or probe.py.
 
-Dry run: **$47.42/task, $237.10 for five.**
+**Re-proven on a g10 twin with the REALISTIC forge (payload reads test_r1.py), both tasks:**
+- g10: oracle 1.0, noop 0.0, obs-forge(read test_r1) 0.0 (PermissionError).
+- g11: oracle 1.0, noop 0.0, obs-forge(read test_r1) 0.0 (PermissionError).
+- Control (old judge-only lock, same forge): 1.0 — reproduces QC exactly.
+Re-propagated the corrected test.sh to all 14 g10+g11 arms.
 
-## Built
-
-- [x] `plan.py` — phase graph, importing `tg.recipe.STAGES` rather than copying it
-- [x] `locks.py` — flock on `emit` (tasks.generated.json) and local trials; a 2-slot semaphore on devbox
-- [x] `gates.py` — the reader for detectors that already existed and had none
-- [x] `judge.py` + `prompts/judge.md` — the between-stage decisions, closed action enum
-- [x] `hosted.py` — the `horizon` CLI, every documented edge handled where it is handled
-- [x] `state.py` / `worker.py` / `orchestrate.py`
-- [x] Five briefs under `fleet/briefs/`, every file:line reference checked against `curator/`
-
-## Verified (spent $0.25, all of it one judge call)
-
-- [x] **Gate calibration** (`orchestrate.py verify`) reproduces **every bracket decision on
-      record**: ships g1/g2/g3/g4/g6, refuses g5 on 7 coincidences, and catches every
-      archived bad cut — g1 cut-1, g2's three wasted re-cuts, g4's pre-amendment cut with
-      the `open_feature`-fails-on-naive message.
-- [x] **Five concurrent `new`**: unique ids, no lost state field, every attempt and history row kept.
-- [x] **flock** holds across threads *and* across processes.
-- [x] **The judge**, given g5's real bracket and real `naive.patch`, answered `author_extend`
-      and ruled out `resplit` — the call that cost g2 $6.
-- [x] **Cut-losses drill**: `cli.py make model-price-lookup --dry-run` behaves as before;
-      `find -newermt` confirms nothing outside `fleet/` was touched.
-
-## Bugs found and fixed while building
-
-1. **`hosted.affordable()` was inverted.** `whoami`'s `budget` is the *remaining*
-   balance, not an allowance to subtract `total_spend` from. It reported `-750 left`
-   on an account with $344.86 — every task would have parked before spending anything.
-2. **Lost update in `state.save()`.** Five threads doing load → mutate → save lost one
-   task's `status`. Replaced with `state.update()`, one locked read-modify-write.
-   The field most at risk was `hosted[arm].task_id` — a pushed Horizon task whose uuid
-   nothing on this box would then record.
-3. **Attempt and rewind counters never persisted**, so `MAX_ATTEMPTS` and `MAX_REWINDS`
-   could not trip. Now written before the step runs.
-4. **`SystemExit` escaped the crash handler.** It is a `BaseException`, and it is what
-   most of `tg/` raises for "this went wrong" — a thread would have died with the task
-   still reading `running`.
-
-## Open, needs a decision
-
-- **Horizon budget is $344.86.** Phase B for five tasks is ~$150 hosted. Phase C would
-  be ~$150 more. Enough for v1 and one retry; not enough for v1 + phase C without a top-up.
-
-## fleet v1 — results (five tasks, one afternoon)
-
-**Every task shipped its bracket with the healthy shape: `naive` passes `open_feature`
-and nothing else. Every blind arm measured 0.000 hosted.**
-
-| | area | local $ | hidden facts | blind (cipher, n=3-10) | spec |
-|---|---|---|---|---|---|
-| g7 | agent-turn-ledger | 23.97 | 8/8 | 0.000, of 0.10 | 0.525 cipher |
-| g8 | attachment-payload | 35.68 | 9/9 | 0.000, of 0.00 | 0.148 cipher |
-| g9 | example-encoding | 17.98 | 7/7 | **0.000, of 1.0 (opus)** | **1.000 (opus)** |
-| g10 | token-capacity-budget | 30.20 | 8/8 | 0.000, of 0.30 | 0.512 cipher |
-| g11 | training-step-ledger | 39.18 | 9/9 | 0.000, of 0.70 | 0.765 cipher |
-
-Local total **$147.01**; Horizon spend ~$280 (validations + 100+ rollouts).
-
-**g9 is the complete v1 verdict: spec 1.000 / blind 0.000 with `open_feature` 1.0 on
-both arms.** The other four are cut, bracketed, emitted, pushed and hosted-validated
-(oracle 1.00 / noop 0.00), awaiting opus rollouts only.
-
-### What the run proved about the method
-
-- **41 of 41 declared facts came back `hidden`** across five independent areas.
-- **Both automated repairs fired correctly and unattended**: `author --extend` on g8's
-  single coincidence, `amend_ticket` on g11's unreachable `open_feature` — the two
-  decisions the README says a person has to make.
-- **The gating model cannot measure a spec ceiling.** g6 and g9 both: cipher-omni ~0.51
-  on a spec arm that biggie-max scores 1.00. Verdicts are read on biggie-max only.
-- **A blind arm is readable on the cheap model only when it builds the open feature
-  every time.** g9 yes; g7 (0.10) and g8 (0.00) no. Difficulty for the weak model tracks
-  the size of the open feature: pure functions (g9) → one trainer file (g11) → a whole
-  new module (g7, g8).
-
-### Bugs the run found, all in fleet code, none in `tg/`
-
-1. `hosted.affordable()` inverted — `whoami.budget` is the remaining balance, not an
-   allowance to subtract spend from. Would have parked every task before spending.
-2. Lost update in `state.save()` — five threads racing lost a task's `status`; the field
-   most at risk was a pushed Horizon `task_id`. Fixed with a locked read-modify-write,
-   later extended to a `flock` when a stray `resume` gave one run two processes.
-3. Attempt/rewind counters never persisted, so the retry caps could not trip.
-4. `SystemExit` escaped the crash handler — and it is what most of `tg/` raises.
-5. `split_gate` called `leak.render(rows)` against `render(task, rows)` — crashed the
-   pilot at $7.35 on a stage that had already succeeded.
-6. `clue_gate` read `unstated` as dicts; it is a list of strings. Would have hit after
-   ~$45 of plant in phase C.
-7. `_subscores` assumed `grade_result` is an object; it is a JSON string on some
-   rollouts. Crashed the verdict gate after the evaluation was paid for.
-8. `status()` accepted `{"error": ...}` as a real payload — a bad eval id would have
-   spun the poll loop for four hours.
-
-Bugs 5-8 are one lesson: **assuming a field's type instead of reading the artifact.**
-`orchestrate.py verify` now calls every gate against every task on disk, which is the
-free version of finding them.
-
-### Cost model, measured
-
-| stage | per task |
-|---|---|
-| phase A (incl. `audit`, first ever measured at ~$5) | ~$28 |
-| hosted validation (4 per task) | ~$25 |
-| cipher-omni gating, 10 runs x 2 arms | ~$16 |
-| biggie-max verdict, **1 run** per arm | ~$6/arm |
-
-`recipe.py` budgets `audit` at $0.00 meaning *unmeasured*; it is ~$5.
-
-### Open
-
-- g7, g8, g10, g11 need 1 biggie-max run per arm to complete. g7 is cheapest (both arms
-  already past the 10-rollout gate); g8 needs +7 per arm first.
-- Phase C (clues) not started — v1 stops at the spec/blind proof by design.
-
-### fleet v1 — FINAL: all five verdicts pass
-
-| task | verdict | spec best | blind built/n | blind mean when built |
-|---|---|---|---|---|
-| g7 agent-turn-ledger | PASS | 1.000 (opus) | 2/11 | 0.063 |
-| g8 attachment-payload | PASS | 1.000 | 3/12 | 0.000 |
-| g9 example-encoding | PASS | 1.000 (opus) | 8/11 | 0.000 |
-| g10 token-capacity-budget | PASS | 1.000 (opus, local) | 3/10 | 0.000 |
-| g11 training-step-ledger | PASS | 1.000 x6 | 7/10 | 0.000 |
-
-Caveats stated rather than buried: g7's blind rests on 2 feature-building rollouts
-and one of them passed `r2.observability` (a coincidence at n=1, hence 0.063).
-g8's and g10's rest on 3. Only g9 and g11 have a broad blind base.
-
-**How the verdict is read** (`fleet/gates.verdict_ab`), corrected twice during the run:
-- **spec is an EXISTENCE claim** — one rollout at 1.000 proves the requirements are
-  sufficient. A mean asks how reliably a given model solves it, which is a fact about
-  the model: g11 proved sufficiency six times while its mean of 0.689 sat under any
-  sensible floor.
-- **blind is CONDITIONAL** — a zero means "hidden" only for a rollout that built the
-  open feature. Scored over that subset alone.
-
-### Four task defects found, and where each came from
-
-| task | defect | class |
-|---|---|---|
-| g8 | one coincidence | repaired unattended by `author --extend` |
-| g11 | `open_feature` unreachable — suite graded `gradient_accumulation_steps`, no arm stated it | repaired unattended by `amend_ticket` |
-| g9 | `r1.exclusions` unreachable — requirement never said WHERE `FIREWORKS_BYTES_PER_TOKEN` lives | fixed by hand |
-| g10 | `r1.exclusions` ambiguous — "limit" meant both the upper bound and the floor | fixed by hand |
-
-Both hand-fixed defects were in `exclusions_or_crossover`, which asks "what this rule
-does NOT cover" and so leans on terms defined loosely elsewhere. **Worth a post-`split`
-check: every term the exclusions field reuses should have exactly one meaning.**
-Both were found by the HOSTED spec arm and were invisible to the local bracket, which
-builds `spec` once and happened to read the prose the intended way.
-
-### Harness defects, which cost more than the task defects
-
-1. **Rich display wedges the agent shell.** Curator's trackers start a rich/tqdm live
-   display on construction; in a non-TTY container the agent loses its terminal. Three
-   of twelve g7 blind rollouts died this way. `CONFTEST` and `GRADER` already set
-   `CURATOR_DISABLE_RICH_DISPLAY` — the agent side never inherited it. **Fixed in
-   `tg/horizon.py`'s DOCKERFILE template** (the one change made to shared code).
-2. **Turn starvation reads as incapacity.** g8's opus rollouts stopped at 9-10 turns
-   mid-heredoc; the cipher run that scored 1.000 took 44. Fixed by
-   `hosted.MAX_TURNS = 120`; with it, g8 built the feature in 69 turns.
-3. **A thin test fixture silently constrains implementations.** g7's fake processor had
-   no `.config`, so any build using `_request_processor.config.max_retries` instead of a
-   literal died on `AttributeError` before one graded behaviour ran.
-4. **`cli.py horizon` rmtrees the arm directory**, deleting pulled `.rollouts/` and any
-   hand-added Dockerfile line. Cost three manual restores and one spurious BLOCKED
-   verdict. Only `.horizon/metadata.json` is preserved — **`.rollouts/` and
-   `.validation/` should be too.**
-
-### Cost, measured
-phase A ~$28/task (incl. `audit`, first ever measured at ~$5 — `recipe.py` budgets $0.00
-meaning *unmeasured*). Hosted: validation ~$25/task, cipher gating 10x2 ~$16, opus
-verdict ~$6/arm at 1 run. Local trial on OAuth: 23 min, free against the subscription.
+**Hosted status:** g10 v6 / g11 v8 were pushed with the INCOMPLETE (judge-only) lock and
+are still forgeable — must be re-pushed with the corrected test.sh. NOT re-pushed yet.
+Lesson: a forgery fixture must read EVERY file that carries the answer (test_r*.py, not
+just judge.py), or it proves nothing.
 
 ---
 
-## g1 `world-located` — does the search cost the score, or the inference?
+# Duplicates out of the corpus (2026-09-10)
 
-**2026-09-04.** The world arm reports one number for two questions: could the agent
-FIND the fifty remarks in nine months of chat, a wiki and a mailbox, and could it work
-out what they add up to. `clues` answers the second (1.00) but takes the corpus away,
-so nothing measured what the search itself costs. `world-located` removes the search
-and nothing else.
+Days were simulated more than once across phase-4 processes; chat for a re-run day
+was replaced (`merge_days`), mail and pages were not. Separately, personas repeated
+themselves in chat.
 
-- [x] `harbor_tasks/build_located_arm.py` — copies the world arm, rewrites only
-      `instruction.md` and `task.toml`, and adds a table of where each remark sits.
-      Location only: no quotes, no clue ids (grouped `r1`/`r2`, they would leak that
-      there are two requirements), no `kind` (the four herrings stay unmarked), no
-      `covers`. `clue_digest.WITHHELD`, one step further.
-- [x] Locations read back out of the corpus through `tg.inject.located`, not out of the
-      plant — the carrier names the day and the room, the corpus names the minute.
-- [x] **The live plant is not the planted plant.** g1's `clues/plant.json` was re-knit
-      after `sweworld:0.4.4` was baked and nothing re-injected it: `located()` finds
-      none of its fifty remarks. `clues.hedged-v1` matches all fifty, in `data/` and in
-      the corpus baked into the image alike. The script picks by which snapshot
-      locates, never by name.
-- [x] Verified against the booted world, not the files: 44 chat rows (channel, start,
-      end, opener) against Mattermost's `posts`; 2 wiki rows against the BookStack API;
-      4 mail rows over IMAP as `worldadmin`.
-      - 9 of 44 chat windows hold extra interleaved traffic, because a `chat_insert`
-        remark sits INSIDE the conversation it answers. One sentence under the table,
-        not a caveat on fifty rows.
-      - The IMAP check caught a real error: remark 49 is six replies inside a recap
-        thread **nikolai** started that morning, not "a thread of six started by emil".
-        The corpus alone could not have said so — `located()` anchors on the first turn,
-        which is a `Re:` at 13:24.
-- [x] Mail is reachable: every persona's thread is ALSO delivered to `worldadmin`, whose
-      INBOX holds 107 messages in 0.4.4. `data/emails/` has no worldadmin mailbox at
-      all, so a row derived from the corpus alone would name a mailbox the agent has no
-      password for.
-- [x] Measure. `located-g1-1` scored **1.00** — every one of the ten facts, plus
-      `open_feature`, `suite_ok`, `pushed`, `ci_green`, `deployed`. 15.5 min, $8.17.
-      Baseline: the world arm at **0.333** over six rollouts (0.8, 0.1, 0.6, 0.0, 0.0,
-      0.5); `spec` and `clues` at 1.00.
-      The transcript says how: it turned the table into code — a `slice.py` holding the
-      44 `(channel, date, start, end)` tuples verbatim — dumped Mattermost once, cut
-      those windows out of it, then read the two pages over the BookStack API and the
-      four threads over `imaplib`. It searched for nothing.
-      **So the world arm's 0.333 was a retrieval score, not a reasoning one.**
-      (n=1. The world arm's own spread was 0.0–0.8, so this is a strong signal, not a
-      measured mean.)
+- [x] Generator: `worldapps.Store.drop_day(date)` (Wiki: pages + comments, Mail: every
+      copy + index lines); mail numbering continues from disk. Called per day in
+      `phase4_run._run`, not under `--channels`. 13/13 scratch checks.
+- [x] `data_gen/input/superseded.json`: 14 mails, 6 pages, 95 chat lines, each naming
+      the copy it gives way to. `install_corpus.py` applies it after the copy (only
+      while the kept copy is present; never a page with comments or a chat root with
+      replies), fails on one page name in two books, and `--prune` applies it to
+      `data/` in place. A re-install would lose g1's hand-reworked mail.
+- [x] Chat repeats: 157 same-author look-alike clusters judged by 6 agents with
+      context; 107 proposed drops, 21 overridden where the author's own next line
+      leans on the dropped one, 6 dependent follow-up lines added -> 92, plus 3
+      exact repeats. No dropped line carries any task's planted text.
+- [x] Pruned `data/`: mail 763 -> 613 files, pages 114 -> 108, chat 9897 -> 9802.
+      Fresh installs from `corpus` and `latest-g1` bring none of it back.
+- [x] Rebaked as `sweworld:0.4.9` (local, `latest` moved): Aug 17 `sweworld:dev` — the
+      base 0.4.8 sits on — + pruned `data/` + both Roundcube fixes applied in the bake
+      container (a from-scratch base rebuild did not fit ~6GB free disk; the
+      Dockerfile carries the fixes for next time). world-verify 33/33: 108 pages,
+      9814 chat (0.4.8: 9909, minus exactly 95), 706 mail (870), 736 issues/PRs,
+      commits/branches/tags 1608/38/28 unchanged. Roundcube scripts served as JS;
+      THREAD reads 69 threads / 93 msgs. Browsing container now on 0.4.9.
+      Every task image tag (repo-only-dev, 0.3.1-forge, 0.4.4, 0.4.8, 0.4.1, 0.4.6,
+      dev) verified unchanged by image id; devbox untouched; nothing pushed.
+- [ ] Publish 0.4.9 + repin `WORLD_REGISTRY` for g2-g13 (~7GB push, hosted round
+      trip) — not approved. g1 stays on 0.4.8 (FROZEN).
+- Left on purpose: ~50 look-alike chat pairs that are answered, depended on, or
+  contradict rather than repeat; two v0.1.9.post1 chat links now point at a dropped
+  page.
+- Not fixed, root causes: persona wiki/inbox tools only see the current process's
+  writes (`Wiki.find`, `list_pages`, `Mail.check_inbox`), so earlier pages read as
+  missing (149 chat lines); cross-room openers and re-landing live in `bespoke_user`.
 
-      python3 harbor_tasks/build_located_arm.py batch-payload-plan
-      bash harbor_tasks/_loop/run.sh g1-batch-payload-plan \
-        batch-payload-plan-world-located located-g1-1
+# g1-g11 lumen rollout analysis (2026-09-11)
+Plan: ~/.claude/plans/can-you-look-at-inherited-russell.md
+- [x] pull target versions + full ctrf traces to scratchpad (101 rollouts; extracted_score = mean of ALL subscores, report `reward`)
+- [x] prepass: answer-key remark tables, transcript turn parse, hit pointers (reproduces g7 l2 = runs 1,4,6,7)
+- [x] g7 wave (10 readers; Opus refused 8/10 on [reasoning_extraction], rerun on Sonnet) -> matches g7-g11-eval-audit.md on every hand-verified count -> CHECKPOINT with Nidhi (approved)
+- [x] remaining 9 tasks (Sonnet readers; shared prompt scratchpad/reader_instructions.md; 20-concurrent cap)
+- [x] aggregate + cross-task synthesis -> tasks/g1-g11-lumen-rollout-analysis.md
 
-      `run_cap` in `_loop/state.json` gates this — it was raised 112 → 113 for the first
-      rollout and has to be raised again for each one after.
+## Review (2026-09-11)
+- 92 rollouts read against the answer key (91 scored + g2's execution failure); 92 reader JSONs,
+  all validated (one normalized: g6 run9 had clue rows under 'clues').
+- Every reader claim about the ticket, "only carrier", or cause that fed a finding was checked by
+  hand; overrules and confirmations are in scratchpad readers/corrections.md and applied as named
+  OVERRIDES / NEVER_SHIPPED in aggregate.py (never by editing a reader's JSON).
+- Output: tasks/g1-g11-lumen-rollout-analysis.md — findings at a glance, per-task sections, and a
+  defect register (G7-A, G3-A, G3-B, G8-A, G11-H + single-home names + env faults). Nothing fixed.
+- Opus 5 readers were refused by the [reasoning_extraction] safeguard (8/10, twice); readers ran
+  on Sonnet at the user's direction.
 
-### `data/` is not the world any more
+## Done: swapped in the g7 rerun and the new g9 rollouts (2026-09-11)
+- [x] when told the evals are done: find the new eval ids (HorizonClient().tasks.rollouts for g7 035a0274, g9 149947c5)
+- [x] (tooling: tasks/rollout_analysis/, see its README) pull + full records, prepass, one Sonnet reader per rollout (tasks/rollout_analysis/reader_instructions.md), aggregate, synth
+- [x] REPLACE the g7 and g9 sections of tasks/g1-g11-lumen-rollout-analysis.md (drop the old eval 94bf8242 / fffbd350 results entirely),
+      move g9 into the pooled rates if it has ~10 scored runs, then refresh the summary, ranking, register and pooled numbers
+- [x] re-check G7-A (the nikolai fix) against the new g7 rollouts if the rerun is on the pushed fix
+- Result: g7 v5 (8deffce4) and g9 v8 (3b0b259f), 20 new readers. G7-A verified fixed (0 points, was 8);
+  new G9-H (herring whose only reversal is an unindexed wiki comment: 6/10 captured); G7-D upgraded
+  to a grader defect (arg-order clause dropped in rendering). Old verdicts in readers/_superseded/.
 
-Building g1's map out of `data/` gave three chat exchanges one message short and both
-wiki remarks as a single comment. Built out of the corpus baked into `sweworld:0.4.4`
-— which every world image carries at `/opt/world-state/data` — all fifty rows match
-what the running services return. `data/` still *locates* all fifty; it has just moved
-on since the bake, and a map that miscounts is worse than no map.
+## Done: g9 withdrawn from the defects, g3 fixed in the repo (2026-09-11)
+- [x] G9-H removed from the report everywhere (user: g9 is fine; its herring works as designed)
+- [x] G3-A corpus: konrad 14:12 "fail it out on the first" rewritten in all 8 carriers (3 world-arm
+      plants, answer key, both READMEs, plant-data, plant.json incl. its `pieces` record)
+- [x] G3-A′ grader: test_r1 observability drives a real finish_reason="length" response through the
+      request path; G3-B: test_r2 knob check is an AST read-check (docstrings no longer count)
+- [x] verified locally: oracle 10/10 old+new; run-3/10 and run-8 mutants 10/10 old -> fail new on
+      r1.observability; run-6 docstring mutant fails old -> passes new; pristine fails all
+- [x] tests copied into all six g3 arms; report + shareable page updated; port session told to
+      mirror both into probe.py/judge.py
+- [x] mirrored into the graded path myself (probe_support.drive_one_response, probe.py, judge.py);
+      split-path verified (same matrix; spec/naive unchanged at 10/10 and 1/10); arms tests/ copied
+- [x] pushed g3 world-hosted v9; hosted validate: oracle 1.0 (16/16), noop 0 on every fact (0.0625 = suite_ok)
+- [ ] opus eval on v9 (user's call)
 
-Hence `--corpus image:<tag>`, which pulls that directory out of the image and caches it
-under `harbor_tasks/.located-corpora/` (gitignored). The right root per task:
-
-| task | plant reaches the world by | corpus to read |
-|---|---|---|
-| g1 | baked into `sweworld:0.4.4` | `--corpus image:sweworld:0.4.4` |
-| g2 | ingested at container start by `task-setup.sh` | `--corpus <arm>/environment/plant` |
-
-### The count has to come off the corpus, not the plant
-
-Both wiki remarks in g1 are seven *turns* in the plant. g1 wrote them as ONE comment
-thread each — a root plus six replies, which BookStack's API returns nested under
-`children`, so the first look at it said "2 comments" and was wrong twice over. g2
-writes its three as seven separate comments under a page the plant itself creates.
-`landed()` counts records in the corpus and sidesteps the whole question.
-
-### g2 — same treatment, 46 remarks
-
-- [x] `executor-output-cap-world-located`, built from the arm's own `environment/plant`
-      (38 chat, 5 mail, 3 wiki-comment threads). `data/` does not hold this plant at
-      all — g2's corpus was rewritten on 2026-09-02 and only the delta was kept.
-- [x] Verified against a booted `g2located:probe` with the plant ingested: all 38 chat
-      rows correct on window and opener, 11 windows carrying extra traffic.
-- [x] All five mail carriers are `mail_new`, so g1's reply-anchoring trap does not
-      apply here — every "started by" is the thread's real opener.
-- [x] Measure. `located-g2-1` scored **0.778** — 7 of 9 facts, missing
-      `r1.failure_behavior` and `r1.observability`. $7.35, ~22 min.
-      Baseline: world **0.444** (n=1), clues **0.933** (n=5), spec 1.00, blind 0.00.
-
-### What g2 says that g1 could not
-
-g1's whole gap was search: given the locations it recovered every fact. g2's mostly
-was — 0.444 → 0.778 — and the rest is not.
-
-Both missed facts were IN the agent's context. Every remark carrying them appears in
-the transcript, 6–8 turns of each, verbatim: it read the conversations and built
-neither the `MIN_MAX_OUTPUT_BYTES` rejection nor `TRUNCATION_LOG_TEMPLATE`. It worked
-g1's way, wider — dumped all ten Mattermost channels in full, then sliced the named
-windows out of the dump, plus two BookStack pages and six imaplib calls.
-
-`r1.observability` is hard for everyone: 3 of 5 `clues` rollouts miss it too, with the
-remarks quoted in the prompt. `r1.failure_behavior` is the interesting one — `clues`
-gets it 5/5 and `located` dropped it. The difference between the arms there is
-DILUTION: `clues` reads 46 short remarks, `located` reads 46 conversations in full,
-which is thousands of lines of chat with the load-bearing sentence somewhere in it.
-
-**Worth a second g2 rollout** to tell that apart from noise on one fact.
-
-### The re-run, and what g2 actually supports
-
-The arity fix landed and the arms were re-run (`clues` 5/5 and `spec` passed that fact
-already, so only these two could move):
-
-| rollout | grader | score | missed |
-|---|---|---|---|
-| `world-g2-1` | old | 0.444 | r1.rule, r1.failure_behavior, r1.observability, r2.rule, r2.observability |
-| `world-g2-2` | fixed | **0.778** | r1.failure_behavior, r1.observability |
-| `located-g2-1` | old | 0.778 | r1.failure_behavior *(the arity defect)*, r1.observability |
-| `located-g2-2` | fixed | 0.778 | r1.observability, r2.exclusions_or_crossover |
-
-world 0.611 (n=2), located 0.778 (n=2) — **overlapping**. The world arm's second
-rollout matched located outright, so **g2 does not separate the two arms at this
-sample size**. The g1 result (0.333 over six vs 1.00) is the one that carries weight
-so far.
-
-Neither re-run miss is a grader defect. `world-g2-2` never added the up-front
-`@field_validator`, so its failure_behavior is a real half-miss ("DID NOT RAISE
-ValidationError") — and `world-g2-1`'s was `'OutputCapError' object has no attribute
-'max_bytes'`, i.e. it never stored the value at all, so its 0.444 stands unchanged
-under the fixed grader. `located-g2-2` invented an extra public field `output_capped`
-on `CodeExecutionOutput`, and that fact's own requirement states the exact field set.
-
-**`r1.observability` has never been recovered in a world arm** — 0 for 4 here, and 3
-of 5 `clues` rollouts miss it with every remark quoted in the prompt. It is the
-task's ceiling-limiter, not a retrieval problem.
-
-- [ ] If g2 is worth separating, it needs 3-4 more rollouts per arm; the per-fact
-      noise is ~1 fact per run, which is 0.111 on a 9-fact task.
-
-### located-g2-3 (not launched from this session)
-
-**0.889** — 8 of 9, missing only `r1.failure_behavior`, and for the same real reason
-`world-g2-2` missed it: the request-time rejection is there, the up-front
-`CodeExecutionBackendConfig` validator is not. The corpus settles that one too
-(emil: "the config should have refused it when i built the executor"), so it is a
-miss, not an artifact.
-
-| arm | g2 rollouts | mean |
-|---|---|---|
-| `world` | 0.444, 0.778 | 0.611 (n=2) |
-| `world-located` | 0.778, 0.778, 0.889 | **0.815** (n=3) |
-| `clues` | 5 runs | 0.933 |
-| `spec` | 1 run | 1.00 |
-
-Located is trending above world and below clues, which is the shape g1 predicted —
-but the ranges still touch (world's 0.778 sits inside located's spread), so this is
-a trend, not a separation.
-
-**Correction to the note above: `r1.observability` HAS now been recovered in a world
-arm** — located-g2-3 got it. It is 1 for 5 rather than 0 for 4, so it is very hard
-rather than unreachable.
-
-`r1.failure_behavior` is a compound fact and rollouts drop different halves of it:
-never storing `.max_bytes` (world-g2-1), a constructor arity the corpus never stated
-(located-g2-1, since fixed), and no config-construction validator (world-g2-2,
-located-g2-3). Worth watching — a fact with four independent parts scores like one
-fact and fails like four.
+## Done: G7-D fixed in the repo, not pushed (2026-09-11)
+- [x] probe_support.call_write_sidecar: stated order (working_dir, ledger) first, reversed only if it
+      raises; probe.py:280 and test_r1 use it; judge unchanged
+- [x] verified: swapped-signature mutant (v5 runs 3 and 8) 8/9 -> 9/9 on the split path; oracle and spec
+      9/9, naive 1/9, pristine 0/9 before and after; pytest reference agrees
+- [x] copied to all seven g7 arms' tests/ (byte-identical to _suites); report and page updated
+- [ ] push g7 world-hosted + hosted validate, when an eval can follow (user's call)

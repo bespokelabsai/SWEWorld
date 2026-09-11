@@ -10,11 +10,11 @@
 | g8.r1.rule | 7/10 (70%) | {'implementation_slip': 3} |
 | g8.r1.scope | 4/10 (40%) | {'not_found': 3, 'implementation_slip': 1, 'found_misread': 2} |
 | g8.r2.exclusions_or_crossover | 10/10 (100%) | {} |
-| g8.r2.failure_behavior | 7/10 (70%) | {'not_found': 1, 'overridden_by_other_corpus_text': 2} |
+| g8.r2.failure_behavior | 7/10 (70%) | {'not_found': 2, 'found_misread': 1} |
 | g8.r2.rule | 10/10 (100%) | {} |
 | g8.r2.scope | 10/10 (100%) | {} |
 
-**lost fact-points by cause:** {'implementation_slip': 4, 'not_found': 4, 'found_misread': 3, 'overridden_by_other_corpus_text': 2}
+**lost fact-points by cause:** {'implementation_slip': 4, 'not_found': 5, 'found_misread': 4}
 **graded losses:** 13; reader-recorded losses: 13
 **reader fact values replaced by Horizon's grade (run, fact, reader, horizon):** none
 

@@ -1,0 +1,683 @@
+[
+ {
+  "key": "g13.r1.rule",
+  "req": 1,
+  "field": "rule",
+  "verdict": "narrow",
+  "divergent_action": "The informed agent writes, at module level in `raft.py`, a class the ticket never mentions and no other requirement needs:\n\n```python\n@dataclasses.dataclass\nclass RaftDrawStats:\n    document_sets: int = 0\n    with_oracle: int = 0\n\n    def oracle_rate(self) -> float:\n        if not self.document_sets:\n            return 0.0\n        return self.with_oracle / self.document_sets\n```\n\nand, in `_RaftAnswer.__init__`, the line `self.stats = RaftDrawStats()`. The blind agent writes neither: the open ticket enumerates the post-`__init__` attributes exhaustively \u2014 \"Attributes after `__init__`: `n`, `distractors`, `p`, `chunks`, `rng`, `sampler`, `formatter`\" \u2014 so a ticket-only agent that adds an eighth attribute is contradicting an explicit closed list. That is a real, specific, named divergence.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Nothing in the described `raft.py` has any counter or ledger; the ticket's attribute list for `_RaftAnswer` is closed at seven names ending in `formatter: _ContextFormatter`. There is no existing `stats` to inherit."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "The rule carries the clause 'Nothing in the block reads `stats`; it exists so a finished run can be asked what oracle rate it actually realised.' No assertion anywhere in the hidden test checks that nothing reads it, and no agent was going to wire an unused counter into `parse` or the builder's return value anyway. That clause is free for everyone, graded for no one \u2014 it is motivation prose masquerading as a requirement clause."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention that a RAFT block exposes a `RaftDrawStats(document_sets, with_oracle)` ledger. The one sub-clause a model does know by instinct is the zero-denominator guard ('0.0 when document_sets == 0') \u2014 any competent engineer writes `if not self.document_sets: return 0.0`. But that only matters to an agent who already decided to write the class, which is the part priors do not supply."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket mentions `p` as the oracle coin and says 'both branches consume the same shape of rng stream', but never mentions counting, realised rates, or telemetry of any kind. It actively points the other way with its exhaustive attribute list."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is fully implementable \u2014 `oracle_present`, `oracle_index`, the single shuffle, `parse`'s seven keys \u2014 with no counter present at all. `stats` is inert by the rule's own admission ('Nothing in the block reads `stats`'), so it cannot be entailed by anything."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The obvious implementation of the ticket has no ledger. Sub-clause caveat only: given the class exists, `oracle_rate`'s zero guard and the `document_sets`-then-`with_oracle` field order are what anyone would write, so the discriminating power sits almost entirely in the three transcribed names `RaftDrawStats` / `document_sets` / `with_oracle` / `stats`."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`make_answer(FIVE, n=2, distractors=2, p=0.5, sampler=head_sampler)` constructs cleanly under every sibling: r2.failure_behavior's guards pass (`p=0.5`, `distractors=2`) and r2.scope's corpus check lives in the builder, which `rule` never calls. The state is trivially reachable."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "r2.failure_behavior pins the validators as `__init__`'s *first* statements, before `super().__init__`; r1.rule pins `self.stats` *after* `self.formatter`, i.e. last. The two orderings compose without conflict, and no sibling needs `stats` to be absent."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": true,
+    "why": "Two ways. (a) The placement clause '`_RaftAnswer.__init__` sets `self.stats = RaftDrawStats()` after `self.formatter`' has no observable at all \u2014 both are bare attribute assignments with no side effects, and no assertion in the test distinguishes an agent who assigns it first. Contrast r2.failure_behavior, which earned its ordering clause an observable ('Placement is visible through the base class: ... raises ValueError(\"Unknown backend: nope\")'). r1.rule's ordering clause has no such lever and is ungradeable. (b) The feature as a whole is declared inert; its only consequence is the existence of the attribute, which the test asserts directly rather than through any behaviour."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "The separation here is unusually careful and holds up. `scope`'s reader is deliberately blind to the type \u2014 `holder = read_field(gen, \"stats\", \"draw_stats\", default=None); if holder is None: holder = gen` and it accepts `document_sets`/`n_document_sets`/`document_set_count`/`builds` \u2014 so an agent with bare integer counters passes `scope` and fails `rule`. `rule` runs no draw, so an agent with the right type and no incrementing passes `rule` and fails `scope`. Both directions are independently failable."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "Near-miss but survives, for the reason above: the type and the counting are separately failable. Worth noting the seam is asymmetric \u2014 `rule` demands the attribute be spelled exactly `stats` (`read_field(gen, \"stats\")`, no aliases) while `scope` tolerates `draw_stats` or no holder at all. That is a deliberate leniency, not a leak."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "'Nothing in the block reads `stats`' is a never-shaped phrase, but it is a static-scope claim about one module, not a temporal one, and no test watches a window for it. It is ungraded (see prohibition_satisfied_by_inaction) rather than unbounded."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Pure in-process dataclass introspection plus two constructions with `backend`-safe helpers from `test_open`; no network (the ticket's `OpenAIOnlineRequestProcessor` live `requests.post` hazard is avoided by `make_answer`), no subprocess, no restart."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`head_sampler` and `SpyRng` are not used by the `rule` test at all beyond construction \u2014 'rule never runs a draw'. Nothing fake decides the condition under test; the condition is the class's own shape."
+   }
+  ],
+  "the_assertion": "`assert fields == [\"document_sets\", \"with_oracle\"], (f\"exactly two fields, document_sets then with_oracle; got {fields}\")` \u2014 preceded by the lookup `RaftDrawStats = raft_name(\"RaftDrawStats\")`, which is what actually decides pass/fail for any agent who did not read the clue.\n\nDoes it depend on anything but this requirement? The field-order assertion, no \u2014 it is pure module introspection and touches no sibling. But the second half of the same test does: `isinstance(read_field(gen, \"stats\"), RaftDrawStats)` routes through `make_answer(FIVE, n=2, distractors=2, p=0.5, sampler=head_sampler)`, which requires the *open* ticket's `_RaftAnswer.__init__(..., sampler=..., rng=...)` signature and r2.failure_behavior's validators to accept `p=0.5, distractors=2`. An agent who nailed the ledger but botched the open signature fails `rule` for a reason that is not r1. That is ordinary shared-substrate coupling, not a sibling-observable leak, but it means the test is not purely r1 end to end.",
+  "blind_pass": null,
+  "correct_fail": null,
+  "recommendation": "Narrow the rule text to exactly what the test grades, and close the coupling in the second half of the test.\n\n1. **Delete the placement clause.** Strike \"`_RaftAnswer.__init__` sets `self.stats = RaftDrawStats()` after `self.formatter`\" down to \"`_RaftAnswer.__init__` sets `self.stats = RaftDrawStats()`\". The \"after `self.formatter`\" half is unobservable and ungraded; compare r2.failure_behavior, which only earns its ordering clause because the base class makes placement visible (`raises ValueError(\"Unknown backend: nope\")`). Either give r1.rule a comparable lever or drop the ordering \u2014 as written it invites an agent to be marked wrong by a human reader for something the suite scores as right.\n\n2. **Demote the prohibition to prose.** \"Nothing in the block reads `stats`\" is satisfied by doing nothing and is checked nowhere. Keep it as the stated motivation (\"it exists so a finished run can be asked what oracle rate it actually realised\") and stop phrasing it as a rule clause, or add the assertion that makes it real \u2014 e.g. that `parse`'s returned dict still has exactly the seven ticket keys and no eighth stats key.\n\n3. **Decouple the per-instance half from the open signature.** In `test_rule__...`, construct the two generators with the minimum the ticket guarantees (`make_answer(FIVE)`) instead of `n=2, distractors=2, p=0.5, sampler=head_sampler`. The freshness/identity check needs only two instances; passing `sampler=` makes an r1 assertion fail on an r2/open-ticket defect.\n\n4. **Optional, cheap:** harmonize the attribute spelling. `rule` requires exactly `stats`; `scope`'s `counts_of` accepts `stats`, `draw_stats`, or none. Since the requirement pins `self.stats`, that is defensible, but state in the rule that `stats` is the *required* spelling and that `scope`'s leniency is intentional, so a reviewer does not read the mismatch as a bug.\n\nAfter these, the fact is sound: the divergent action is concrete and real, both Catalog-A escape routes and the type/counting seam hold, and I could construct neither a blind pass nor a correct-implementation failure."
+ },
+ {
+  "key": "g13.r1.scope",
+  "req": 1,
+  "field": "scope",
+  "verdict": "ship",
+  "divergent_action": "Two statements placed inside the body of the `functools.lru_cache`-wrapped `_get_document_set`, after the coin: `self.stats.document_sets += 1` and `if oracle_present: self.stats.with_oracle += 1`. The clue-blind agent writes neither (no counter of any name exists on `_RaftAnswer`); an agent who has the ledger but misreads the unit writes the same two lines in `parse` instead, next to `doc_set.oracle_present`, which counts the 4 parse calls rather than the 3 builds.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Nothing in the described `raft.py` keeps counters. The ticket enumerates every attribute set by `__init__` \u2014 `n`, `distractors`, `p`, `chunks`, `rng`, `sampler`, `formatter` \u2014 and no ledger appears; `DocumentSet` is `documents`/`oracle_index`/`oracle_present` only."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The fact is affirmative and requires code to be written. The negative half ('A memoised replay increments nothing') is not satisfied by inaction \u2014 it is satisfied only once increments exist and are sited inside the cached callee; doing nothing fails `counts_of` with an AttributeError."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention that a RAFT block should carry a build ledger, nor that the counter should follow builds rather than emitted rows. `document_sets`/`with_oracle`/`oracle_rate` are invented names local to this task."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The visible ticket enumerates `parse`'s return keys exhaustively ('returns exactly these keys') and the builder's three ordered steps, and mentions no counting whatsoever. There is no wording from which a ledger, let alone its unit, could be inferred."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is fully buildable with zero counters \u2014 the ticket's own acceptance surface (`oracle_index` agreement, kwarg wiring, one shuffle) is complete without `stats`. Nothing about correct A forces B."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "Qualified no. Against the blind condition the pattern plainly does not apply. Against an agent who already has the sibling `rule` (same clue), incrementing inside the builder is the natural site \u2014 and because the ticket mandates 'its `functools.lru_cache` wrapping of the bound method', 'a memoised replay increments nothing' then comes free. So scope's marginal content over `rule` is the single choice builder-vs-`parse`. The ticket's own text concedes that `parse` is the live alternative ('Counting `parse` calls instead gives RaftDrawStats(document_sets=4, with_oracle=3)'), and a field literally named `document_sets` does not make `parse` obviously wrong to a hurried implementer, so the choice is real rather than forced."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The state is exercised directly: four `parse` calls, `CALLS[3] == CALLS[0]`, on a 5-chunk corpus with `distractors=2` (available 4 >= requested 3, so r2's guard never fires). The replay is reachable and the test asserts it happened via `assert builds < len(CALLS)`."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling needs a replay NOT to happen. r2's failure branches (InsufficientDistractorsError, `p`/`distractors` validation) are on disjoint fixtures; `exclusions` and `observability` both need the same replay this fact needs, so they reinforce rather than contradict."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Miscounting is not fatal one layer down \u2014 it silently yields a wrong `oracle_rate()` (0.75 instead of 0.6666666666666666 on the fixture) while the run completes. The wrong and right implementations produce different observable end states."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "Borderline but no. The counters object is `rule`'s and the coin stream is the open ticket's, but the pairing `counted_builds == builds` is an assertion neither `rule` (which 'never runs a draw') nor `exclusions` (which asserts `rng.calls.count(\"random\") == 3`) makes. `counts_of` deliberately accepts six alias names and falls back to bare attributes on the generator, so a correct scope implementation that parks its counters elsewhere is not failed for `rule`'s reason."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "Asymmetric dependence, not restatement. `rule` passes without any increment ever running; scope fails an implementation that has a perfect `RaftDrawStats` and increments it in `parse`. There exists an implementation that passes `rule` and fails scope, which is what independent content means."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Everything is finite and bounded: four `parse` calls, one seed (`random.Random(7)`), exact integers (3, 2) and an exact float 0.6666666666666666. No 'always'/'never'/'forever' phrasing that a finite window cannot decide."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, stdlib only, no network \u2014 and the open ticket explicitly routes construction around the live `requests.post` in `OpenAIOnlineRequestProcessor.__init__` via `backend=\"litellm\"`, a stub subclass, or `__new__`, which `make_answer` presumably uses."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`SpyRng` observes, it does not decide. The number of builds is decided by the implementation's own cache key; the fake only logs the coins. It is however the yardstick \u2014 `builds = len(coins)` defines 'a build' as 'a coin' \u2014 so the assertion is jointly on counting semantics and on the open ticket's 'one `self.rng.random()` per build'. Since that clause is in the visible ticket, this is measurement, not the fake authoring the answer."
+   }
+  ],
+  "the_assertion": "`assert counted_builds == builds, (f\"document_sets should count the {builds} builds that ran, not the {len(CALLS)} parse calls; got {counted_builds}\")` \u2014 with `assert counted_oracle == with_oracle` as its twin. Yes, it depends on more than r1.scope: it needs r1.rule's `self.stats` to exist at all (otherwise `read_field` raises rather than mismatching), and its expectation `builds = len(rng.drawn)` is only a faithful count of builds because the OPEN ticket mandates exactly one `self.rng.random()` per build. The preceding guard `assert builds < len(CALLS)` depends on the open ticket's mandated `functools.lru_cache` and on nothing in r1.scope: an agent who counts builds correctly but dropped memoisation would satisfy both equality assertions and fail only this guard.",
+  "blind_pass": null,
+  "correct_fail": null,
+  "recommendation": "Ship. The fact has a concrete divergent action (the two `+= 1` lines inside the cached builder rather than in `parse`), a plausible wrong alternative the ticket itself names, and a reader (`counts_of`, six aliases plus a bare-attribute fallback) that is tolerant of everything except the semantics being graded. I could not write a blind pass and could not write a correct implementation the test rejects.\n\nTwo things to check before it goes out, neither of which I could verify because Bash and the file tools were unavailable in this session:\n\n1. Confirm in `test_open.py` that `SpyRng.drawn` records only the values returned by `random()` and is not also fed by `shuffle`/`sample`. The whole test hangs on `builds = len(rng.drawn)` being exactly the coin count; if `shuffle` leaks into `drawn`, every correct implementation fails, since the ticket mandates a shuffle in both branches.\n\n2. Confirm `read_field(holder, \"document_sets\", ...)` with no `default` raises rather than returning `None`. If it returns `None`, a blind implementation reaches `assert None == 3` and still fails \u2014 fine \u2014 but `rate_of` and the `pytest.approx` line would error confusingly; prefer the raise.\n\nOptional hardening, low priority: `assert builds < len(CALLS)` currently imports its precondition from the open ticket's `lru_cache` clause. If you want the fact graded in isolation, demote it to a `pytest.skip` (or an explicit message naming it as an open-ticket precondition, e.g. \"the builder must be lru_cache-wrapped per the ticket before this fact can be measured\") so a build-counting-correct agent who broke memoisation fails `test_open` and not r1.scope. Keep the assertion in some form \u2014 without a replay actually occurring, \"a memoised replay increments nothing\" is untested."
+ },
+ {
+  "key": "g13.r1.exclusions_or_crossover",
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "verdict": "retest",
+  "divergent_action": "In `_RaftAnswer`, the memoised builder grows a third parameter that is never referenced in its body, and `parse` feeds it the question positionally:\n\n```python\ndef _get_document_set(self, chunk_id: int, oracle_document: str, question: str) -> DocumentSet:\n    # `question` is unused: it is here only to widen the lru_cache key so that\n    # each question on a chunk draws its own oracle coin.\n    ...\n\n# in parse:\ndoc_set = self._get_document_set(input[\"chunk_id\"], oracle_document, input[\"question\"])\n```\n\nA ticket-only agent writes `self._get_document_set(input[\"chunk_id\"], oracle_document)` against the existing two-parameter signature, because the ticket enumerates the builder's three steps (coin, sample, shuffle) and its invariants (name, `DocumentSet` return, `lru_cache` wrapping) without ever mentioning the question. That gives 2 coins over the four-call fixture instead of 3.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "The fact itself states the change: \"the document-set builder takes a third positional parameter `question: Question`\" \u2014 i.e. today it takes two (`chunk_id`, `oracle_document`), and the ticket's references (`raft.py:109` lru_cache wrap, `raft.py:156` prepend, `raft.py:169` pre-shuffle index) describe a builder with no question in it. The bracket confirms an untouched checkout fails."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "This is a positive obligation requiring two edits (add a parameter, pass an argument). Inaction yields the per-chunk coin (2 `random` calls) and fails `rng.calls.count(\"random\") == 3`."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "This is the strongest hit. RAFT (Zhang et al., 2024) defines P as the fraction of *questions/training examples* that retain the oracle document; the published reference implementation draws `random.uniform(0, 1) < p` once per QA pair, not once per chunk. The hidden fact is literally 'the unit the oracle coin is drawn per is the question, not the chunk' \u2014 a documented convention of the very paper this block implements, and the block is named `raft.py` with `_DEFAULT_QUESTION_PROMPT`/`n_questions=2`. A blind agent with RAFT priors can notice that the existing per-chunk memo collapses `n_questions` examples onto one coin, and since the ticket forbids removing the cache (\"keeps ... its `functools.lru_cache` wrapping of the bound method\"), the only repair available is exactly the hidden fact: widen the key with the question."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket never mentions the question in connection with the builder or the cache; `input[\"question\"]` appears only in `parse`'s `question` and `instruction` outputs. One nudge exists \u2014 \"`n` is passed to the answer generator too, even though `_RaftAnswer` does not read it\" plants the per-chunk question count in the answer generator \u2014 but it explicitly denies that `n` is used, so it does not hand over the memo key."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "Every visible clause (one `self.rng.random()`, one `self.sampler(available_indices, k)`, one `self.rng.shuffle(...)`, oracle appended not prepended, marker-carried `oracle_index`, `parse` re-deciding nothing) is fully satisfiable with the existing two-argument key. Nothing in A forces the question into the key."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The most natural reading of \"the builder keeps its name, its `DocumentSet` return type ... and its `functools.lru_cache` wrapping\" is that its signature is untouched too; adding an argument a function never reads is an unnatural act that a literal ticket-follower does not perform. (The non-obvious-but-plausible RAFT-driven path is scored under `model_already_knows_it` rather than double-counted here.)"
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "The state is the ordinary one: `CALLS` contains `(0,\"Who?\")`, `(0,\"What?\")`, `(2,\"Who?\")`, `(0,\"Who?\")` \u2014 two questions on one chunk plus a repeat, exactly what `n_questions=2` produces in production."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "r2's failure fixtures are a separate corpus (`[\"a\",\"b\",\"c\",\"d\"]`, `distractors=3`) and r2.scope's `rng.calls == []` precondition concerns a raise before any draw; the five-chunk `FIVE` fixture with `distractors=2` never trips `available < requested` (4 >= 3), so all four calls build normally."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Violating it changes emitted rows: under a chunk-only key `rows[1]` would carry `oracle_present=True` and the same `documents`/`instruction`/`oracle_index` as `rows[0]`. That is a different dataset, not a cosmetic difference."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "The graded channel is the spy rng's coin log, which is this fact's own channel; the sibling `observability` reads `cache_info()` and `scope` reads the counters against the coins. Worth flagging as a coupling rather than the pattern: `rng.calls.count(\"random\") == 3` silently assumes the cache is big enough to hold three entries, which is `observability`'s fact (`lru_cache(maxsize=512)`). A correct-key implementation with `maxsize=2` evicts `(0,\"Who?\")` on the third call and draws 4 coins, failing `exclusions` for `observability`'s reason. Low severity (any default or generous maxsize is fine), but it is a real cross-dependency."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "The siblings are deliberately blinded to the key: `scope` reads `coins = list(rng.drawn)` off the run and only asserts `builds < len(CALLS)`, which a chunk-only key (2 builds) satisfies; `observability` asserts `hits + misses == 4` and `hits >= 1`, which a chunk-only key (hits=2, misses=2) also satisfies. So the memo key is graded here and nowhere else."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "All claims are finite and single-process: exactly three `\"random\"` entries across four `parse` calls, plus one direct builder call."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Pure in-process: `make_answer` builds `_RaftAnswer` off a five-row `datasets.Dataset` with an injected sampler and rng, and the ticket already routes around the live `requests.post` in `OpenAIOnlineRequestProcessor.__init__` via `backend=\"litellm\"`/stub/`__new__`."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger \u2014 a repeated `(chunk_id, question)` and a second question on chunk 0 \u2014 is authored by the `CALLS` fixture, not by a double; `SpyRng` only observes and supplies the stream. Flag, not a hit: `assert read_field(rows[1], \"oracle_present\") is False` is an artifact of seed 7 and of the shuffle's consumption between coins, not of the requirement, which only demands *independent* coins. It is deterministic here because the ticket forces both branches to shuffle a 3-element list, but it grades a seed outcome rather than the property."
+   }
+  ],
+  "the_assertion": "`assert rng.calls.count(\"random\") == 3, \"one coin per distinct (chunk_id, question): keying on the chunk alone draws 2, no memoisation at all draws 4; the log was f{rng.calls}\"`\n\nDependence: it also rides on two things outside this requirement. (1) The visible ticket's \"one `self.rng.random()` per build\" \u2014 an agent who drew the coin in `parse` instead of inside the builder gets 4 and fails here for a visible-ticket reason. (2) The sibling `observability` fact: the count assumes the cache holds all three entries, so `lru_cache(maxsize=2)` with a *correct* key also yields 4. Otherwise it isolates this fact cleanly \u2014 blind implementations land on 2 (chunk-only key) or 4 (no memoisation), never 3.",
+  "blind_pass": "Yes \u2014 a RAFT-faithful ticket-only implementation passes every assertion in the test:\n\n```python\ndef parse(self, input: dict, response: str) -> Dict[str, Any]:\n    chunk_id = input[\"chunk_id\"]\n    oracle_document = self.chunks[chunk_id][\"content\"]\n    # RAFT draws the oracle coin per training example, and n_questions examples\n    # share a chunk, so the document set is memoised per (chunk, question) --\n    # keying on the chunk alone would give every question the same coin.\n    doc_set = self._get_document_set(chunk_id, oracle_document, input[\"question\"])\n    docs = doc_set.documents\n    return {\n        \"question\": input[\"question\"],\n        \"cot_answer\": response,\n        \"oracle_document\": oracle_document,\n        \"context\": {\"title\": [[\"placeholder_title\"] * len(docs)], \"sentences\": [docs]},\n        \"instruction\": self.formatter(docs) + \"\\n\" + input[\"question\"],\n        \"oracle_present\": doc_set.oracle_present,\n        \"oracle_index\": doc_set.oracle_index,\n    }\n\ndef _get_document_set(self, chunk_id: int, oracle_document: str, question: str) -> DocumentSet:\n    # `question` widens the memo key only; the document set does not depend on it.\n    oracle_present = self.rng.random() < self.p\n    available_indices = [i for i in range(len(self.chunks)) if i != chunk_id]\n    k = self.distractors if oracle_present else self.distractors + 1\n    picked = self.sampler(available_indices, k)\n    slots = [(self.chunks[i][\"content\"], False) for i in picked]\n    if oracle_present:\n        slots.append((oracle_document, True))\n    self.rng.shuffle(slots)\n    documents = [text for text, _ in slots]\n    oracle_index = next((i for i, (_, is_oracle) in enumerate(slots) if is_oracle), -1)\n    return DocumentSet(documents=documents, oracle_index=oracle_index, oracle_present=oracle_present)\n```\n\nNothing in this was read off a clue: the justification is the RAFT paper's own definition of P plus the ticket's instruction to keep the `lru_cache`, and appending the extra key component is the natural argument position, which happens to be the `(chunk_id, oracle_document, question)` order the test calls positionally. Coins = 3, `rows[3] == rows[0]`, `rows[0]` present / `rows[1]` absent, and `gen._get_document_set(0, \"alpha\", \"Who?\")` replays. Full pass, blind.",
+  "correct_fail": "Yes \u2014 two legitimate readings of \"the question participates in the memoisation key and in nothing else\" that the test rejects.\n\n(a) Keyword-only question. `lru_cache` keys on kwargs, so this gives per-question coins, the 3-coin log, and the replay:\n\n```python\ndef _get_document_set(self, chunk_id: int, oracle_document: str, *, question: str) -> DocumentSet: ...\n# parse:\ndoc_set = self._get_document_set(chunk_id, oracle_document, question=input[\"question\"])\n```\n\n(b) Dropping the redundant `oracle_document`, which the builder can derive itself \u2014 the ticket only promises the builder \"keeps its name, its `DocumentSet` return type ... and its `functools.lru_cache` wrapping\", never its parameter list:\n\n```python\ndef _get_document_set(self, chunk_id: int, question: str) -> DocumentSet:\n    oracle_document = self.chunks[chunk_id][\"content\"]\n    ...\n# parse:\ndoc_set = self._get_document_set(chunk_id, input[\"question\"])\n```\n\nBoth satisfy every behavioural claim of the fact \u2014 three coins across four parses, `rows[3] == rows[0]`, two questions on chunk 0 disagreeing \u2014 and both die with `TypeError` on the test's last block:\n\n```python\nreplay = gen._get_document_set(0, \"alpha\", \"Who?\")\n```\n\nThat block grades a calling convention, not the requirement, and the test's own comment concedes it is redundant (\"the memo key is only visible on the builder the ticket names\") when in fact the key is already fully visible in the coin log three assertions earlier.",
+  "recommendation": "Retest, with two changes, then re-run the blind condition.\n\n1. Fix the overshoot. Delete the direct positional probe\n\n```python\nreplay = gen._get_document_set(0, \"alpha\", \"Who?\")\nassert list(read_field(replay, \"documents\")) == documents_of(rows[0])\nassert rng.calls.count(\"random\") == 3, \"the replay drew no new coin\"\n```\n\nand replace it with a signature-agnostic replay through the public entry point, which measures the same thing:\n\n```python\ngen.parse({\"chunk_id\": 0, \"question\": \"Who?\"}, \"a different response\")\nassert rng.calls.count(\"random\") == 3, \"the replay drew no new coin\"\n```\n\nIf the third-positional calling convention is genuinely part of the contract, grade it by introspection rather than by invocation \u2014 `inspect.signature` on the underlying function, asserting the parameter names/order are `(chunk_id, oracle_document, question)` and that `question.kind` is positional-or-keyword \u2014 so keyword-only and two-argument variants fail for a stated reason instead of a `TypeError`.\n\n2. Loosen the seed artifact. `assert read_field(rows[1], \"oracle_present\") is False` grades seed 7, not the requirement. Assert the property instead: the two coins are distinct draws (`coins[0] != coins[1]`) and `documents_of(rows[1]) != documents_of(rows[0])`, keeping the `is True`/`is False` pair only if the golden's rng consumption is pinned by the visible ticket (it is, since both branches shuffle a 3-element list \u2014 but say so in the test).\n\n3. Re-run the blind condition before shipping, with several samples and at least one prompt that primes RAFT domain knowledge. The blind implementation quoted above passes this test on RAFT priors alone \u2014 \"P is the fraction of *questions* that keep the oracle\" is published, and since the ticket forbids dropping the `lru_cache`, widening the key is the only repair a RAFT-aware agent has. If more than an occasional blind sample lands there, this becomes a Catalog A coincidence and should be cut or re-pointed at something the paper does not supply (e.g. make the arbitrary part the thing that is graded \u2014 the memo bound, the counter semantics \u2014 rather than the unit the coin is drawn per).\n\nAlso note for the task owner: the fact annotates the parameter `question: Question` while `parse` supplies `input[\"question\"]`, a `str`. Either `Question` is a type the ticket never names or it is a slip; make it `str` so the clue and the fact agree."
+ },
+ {
+  "key": "g13.r1.observability",
+  "req": 1,
+  "field": "observability",
+  "verdict": "cut",
+  "divergent_action": "Editing the existing memoisation line (`raft.py:109`) to read `self._get_document_set = functools.lru_cache(maxsize=512)(self._get_document_set)` \u2014 i.e. writing the literal `512` \u2014 where a ticket-only agent leaves that line exactly as it found it (the ticket says the builder \"keeps ... its `functools.lru_cache` wrapping of the bound method (`raft.py:109`)\") or, if rewriting, writes `maxsize=None` / bare `@functools.lru_cache` / the documented default 128. That is a nameable divergence, but its whole content is one integer literal, and whether it diverges at all depends entirely on what that line currently says \u2014 which I could not read (no Bash/Read/Glob in this session).",
+  "the_assertion": "`assert info.maxsize == 512, f\"lru_cache(maxsize=512); got maxsize={info.maxsize}\"` \u2014 this is the only assertion in the test that this requirement uniquely decides. Passing it depends on nothing but this requirement. But the other four assertions in the same test do NOT: `info.hits >= 1`, `info.hits + info.misses == len(CALLS)` and `info.currsize == info.misses` are all decided by r1.exclusions' cache-key choice and by the ticket's own \"keeps its `functools.lru_cache` wrapping\", not by the bound. Strip those and the fact is a single memorised constant.",
+  "blind_pass": "Contingent but decisive: if `raft.py:109` currently reads `self._get_document_set = functools.lru_cache(maxsize=512)(self._get_document_set)`, then the passing blind implementation is *the ticket followed literally* \u2014 the agent never touches line 109, because the ticket instructs \"The private document-set builder keeps its name, its `DocumentSet` return type ... and its `functools.lru_cache` wrapping of the bound method (`raft.py:109`)\". Zero lines of code, guaranteed pass. Independently of that, a blind agent who does rewrite the wrapper picks from a five-element space of round, idiomatic values \u2014 `functools.lru_cache(maxsize=None)`, bare `@functools.lru_cache`, 128, 256, `functools.lru_cache(maxsize=512)`, 1024 \u2014 e.g. `self._get_document_set = functools.lru_cache(maxsize=512)(self._get_document_set)  # bounded so a long run cannot grow the cache without limit`. That is a ~1-in-5 lottery, not an unguessable token; one blind sample failing it is weak evidence.",
+  "correct_fail": "An informed agent who reconciles the clue with the open ticket and treats the clue as *descriptive of existing state* rather than as an instruction to edit:\n\n```python\n    # raft.py:109, untouched per the ticket: \"the private document-set builder\n    # keeps ... its functools.lru_cache wrapping of the bound method\".\n    # The clue states the bound *is* 512; nothing here needs to move.\n    self._get_document_set = functools.lru_cache(maxsize=None)(self._get_document_set)\n```\n\nThe requirement is written in the present tense \u2014 \"The memoisation bound **is** `functools.lru_cache(maxsize=512)`\" \u2014 and the ticket's verb is \"keeps\". Under that joint reading, not editing the line is the ticket-compliant action, and the test rejects it. This failure mode only exists because the fact was phrased as a description of the checkout instead of as a change to make.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": true,
+    "why": "The ticket asserts the memoisation already exists and is preserved: \"keeps its name, its `DocumentSet` return type ... and its `functools.lru_cache` wrapping of the bound method (`raft.py:109`)\". The requirement adds exactly one integer to a line the ticket forbids changing, and phrases it as existing state: \"The memoisation bound *is* `functools.lru_cache(maxsize=512)`\". I could not open raft.py (no file tools in this session) to confirm the current literal. If it already reads 512, every blind agent passes by inaction. The bracket's \"untouched checkout fails\" does not rule this out: an untouched checkout raises TypeError inside `make_answer(FIVE, n=2, distractors=2, p=0.5, sampler=head_sampler, rng=SpyRng(7))` because the old `_RaftAnswer.__init__` takes no `sampler`/`rng`, so it never reaches `cache_info()`. This is the single highest-value thing for the owner to check."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The requirement is a positive constraint on a value, not a \"must not do X\". The inaction hazard is real but is the codebase_already_does_it entry above, not this pattern."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "512 is arbitrary. The documented `functools.lru_cache` default is 128 and `functools.cache` is `maxsize=None`; prior knowledge points away from 512, not toward it. This is the one pattern that clearly does not apply."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "The ticket names `functools.lru_cache`, the bound-method wrapping, the builder's preserved name and even the line number. That hands the blind agent `info.maxsize is not None`, `(hits, misses, currsize) == (0, 0, 0)` before any build, `hits + misses == len(CALLS)` (one lookup per parse) and `currsize == info.misses`. Four of the test's five assertions come free from the ticket; only `maxsize == 512` does not."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "512 specifically is not entailed \u2014 any bound produces identical behaviour here. (The rest of the test's assertions are entailed, which is the ticket_gives_it_away entry.)"
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The obvious implementation keeps whatever is at raft.py:109, or writes `maxsize=None`. It only \"happens to do it\" if the checkout literal is already 512 \u2014 which is the codebase_already_does_it branch, not this one."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": true,
+    "why": "The state the bound governs \u2014 eviction at 512 live entries \u2014 is unreachable. The fixture is five chunks and three distinct `(chunk_id, question)` keys; `assert info.currsize == info.misses, \"every miss stored an entry; none was evicted\"` concedes that nothing is ever evicted. No run in this task, or any realistic run of the block, distinguishes 512 from 128, 1024 or None."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "No sibling needs an unbounded or differently-bounded cache. r1.scope and r1.exclusions both work under any maxsize >= 3."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": true,
+    "why": "This is the headline. Violating the fact (writing 1024) changes no emitted row, no rng draw, no `RaftDrawStats` count, no exception, no `oracle_index`. The run is byte-identical. The \u00a76 checklist box \"the behavior this requirement describes has an observable consequence if violated\" is unchecked: the only observable is the introspected constant itself. Its three siblings all have genuine consequences (counters, coin log, differing `oracle_present` rows); this one is a shibboleth measuring whether the agent copied a number out of a clue."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The fact as stated demands `cache_info() == CacheInfo(hits=1, misses=3, maxsize=512, currsize=3)`. That hit/miss split is decided entirely by r1.exclusions' cache key (\"the question ... is the third positional argument of the memoised builder and part of its key\"). The test itself admits this and backs off \u2014 its docstring says observability reads \"never the exact hit/miss split that the cache key decides\" \u2014 relaxing to `hits >= 1` and `hits + misses == 4`, which are exclusions' and scope's observables. So the stated fact borrows exclusions' channel, and the graded test is looser than the stated fact: an agent that writes 512 but keys on `(chunk_id, oracle_document)` alone gets hits=2, misses=2 and passes observability while failing exclusions outright."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": true,
+    "why": "Remove `maxsize == 512` and nothing is left that scope and exclusions do not already assert. `hits >= 1` restates \"a repeated (chunk_id, question) replays its document set\" from test_exclusions; `hits + misses == 4` and `builds < len(CALLS)` are the same observation from test_scope. The fact is one constant plus a re-run of its neighbours."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Bounded: four parse calls, one process, exact integer assertions."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, stdlib `functools`, no network \u2014 the test correctly routes around the live `requests.post` in `OpenAIOnlineRequestProcessor.__init__` via `make_answer`."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "`SpyRng(7)` and `head_sampler` control only the reaction side (which coins fall, which distractors are drawn). The observability test does not read the spy at all; it reads `cache_info()` on the real `functools.lru_cache` object."
+   }
+  ],
+  "recommendation": "Cut r1.observability. It is one arbitrary integer on a line the open ticket explicitly tells every agent to keep (\"the private document-set builder keeps ... its `functools.lru_cache` wrapping of the bound method (`raft.py:109`)\"), it has no behavioural consequence anywhere in the task, and everything else its test asserts already belongs to r1.scope and r1.exclusions.\n\nBefore doing anything else, read `raft.py:109`. If it already says `maxsize=512`, the fact is dead on arrival \u2014 a blind agent passes by touching nothing, and the free bracket's blind sample almost certainly failed at `make_answer(..., sampler=..., rng=...)` raising TypeError on the old `__init__` signature rather than on the bound.\n\nIf you want to keep an observability fact for r1, replace it with one that has a consequence \u2014 make the bound small enough that eviction is visible: `lru_cache(maxsize=2)` over a three-distinct-key fixture, asserting that the evicted `(chunk_id, question)` is rebuilt and draws a *fourth* coin from the spy rng (`rng.calls.count(\"random\") == 4` and `rows[3] != rows[0]`). That is a behavioural claim an agent can only satisfy by understanding the bound, and it cannot be reached by inaction. Whichever you choose, also amend the ticket's \"keeps ... its `functools.lru_cache` wrapping\" to \"stays memoised, wrapping the bound method\" so the hidden fact is not contradicted by the visible one, and rephrase the requirement imperatively (\"set the bound to N\") rather than in the present tense (\"the bound *is* N\"), which currently reads as a description of the checkout and invites a correct agent to leave the line alone."
+ },
+ {
+  "key": "g13.r2.rule",
+  "req": 2,
+  "field": "rule",
+  "verdict": "ship",
+  "divergent_action": "A module-level class definition that does not exist anywhere in the ticket's scope: `class InsufficientDistractorsError(ValueError): def __init__(self, chunk_id, requested, available): super().__init__(f\"chunk {chunk_id}: requested {requested} distractors, only {available} available\"); self.chunk_id = chunk_id; self.requested = requested; self.available = available` \u2014 plus the `raise InsufficientDistractorsError(chunk_id=chunk_id, requested=requested, available=available)` at the top of the document-set builder guarded by `available < requested`. The blind agent writes neither: the ticket never mentions an error path, and the blind builder reaches `self.sampler(available_indices, self.distractors + 1)` and lets whatever the sampler does happen (with the default `self.rng.sample` that is a bare `ValueError(\"Sample larger than population or is negative\")`; with an injected sampler, nothing at all).",
+  "divergent_action_note": "",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Partially, and only in the weakest sense: the ticket's own design (`one self.sampler(available_indices, k)`, `k = self.distractors + 1` when the oracle is absent) means the stock `self.rng.sample` raises `ValueError(\"Sample larger than population or is negative\")` on a short corpus, so `isinstance(exc, ValueError)` comes free. But the test resolves the class by name \u2014 `error_cls = raft_name(\"InsufficientDistractorsError\")` \u2014 and then requires `(chunk_id, requested, available)` and the exact message. Nothing in the existing code supplies a named class, three attributes, or that string."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The rule is purely constructive \u2014 define a class, carry three attributes, emit an exact message, raise it. Doing nothing yields `raft_name(\"InsufficientDistractorsError\")` failing to resolve."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention for this. The name `InsufficientDistractorsError`, the kwargs-only construction, and the wording/punctuation of `\"chunk 2: requested 4 distractors, only 3 available\"` are project-local inventions. A model's prior would sooner produce `ValueError(f\"Not enough chunks...\")` with no attributes."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The visible ticket has no error section at all. Its only near-miss is the builder spec \u2014 'k = self.distractors when the oracle is present, self.distractors + 1 when it is absent' \u2014 which supplies the arithmetic behind `requested=4` but says nothing about checking it, naming a failure, or reporting it. The words 'insufficient', 'available', 'raise' and 'error' do not appear in the ticket outside the unrelated `OpenAIOnlineRequestProcessor` warning."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The opposite: the open feature is fully implementable, and passes every open test, with no size check whatsoever \u2014 the short corpus is simply never exercised by the visible ticket. And when it is exercised, the natural outcome is the sampler's own complaint, not a typed error. There are many ways to build the visible feature that omit this fact entirely."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The most natural blind code is to trust `self.rng.sample` to complain. That produces a `ValueError` whose `str()` is `\"Sample larger than population or is negative\"` and which has no `.chunk_id`. Under the test's injected `head_sampler` (`list(pop)[:k]`) it does not even raise \u2014 it silently returns 3 documents and `parse` returns a row, so `pytest.raises` fails outright."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`SMALL = [\"a\",\"b\",\"c\",\"d\"]` with `distractors=3` is an ordinary, constructible corpus \u2014 `make_answer(SMALL, n=2, distractors=3, p=0.0, ...)` builds fine (`distractors=3 >= 1` and `p=0.0` are both legal per the `failure_behavior` sibling), and `parse({\"chunk_id\": 2, ...})` reaches the builder. The state is reached in-process with no fixtures beyond a 4-element list."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The three siblings are disjoint preconditions. `failure_behavior` reserves plain `ValueError` for the knobs and explicitly says `InsufficientDistractorsError` is 'reserved for the corpus-size failure' \u2014 and its test enforces the separation from the other side (`assert not isinstance(caught.value, error_cls)`) while using `THREE` with default `distractors=5`, a corpus that would trip r2.rule if it ever built a document set, which it never does. `exclusions` never constructs a `_RaftAnswer`. No sibling guarantees a corpus large enough to make this branch dead."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The outcomes genuinely differ one layer down. Correct: a typed error naming the chunk and the shortfall. Incorrect with the default sampler: an untyped `ValueError` about population size. Incorrect with any injected sampler: no error and a silently short document set whose `oracle_index` still claims a slot. Those are three distinct end states, and the middle and last are exactly what the test distinguishes."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "The deciding block is self-contained \u2014 `built = error_cls(chunk_id=2, requested=4, available=3)` and its two assertions never call the builder, the facade, or the rng. The second block shares a raise-on-`SMALL` shape with `scope`, but the fixtures differ deliberately (`p=0.0` here, `p=1.0` there) and the docstring's claim holds: at `p=0.0` the oracle-absent branch honestly needs `distractors + 1 = 4` distractors under either check policy, so `rule` reads only the class and the triple while `scope` reads only the timing (`rng.calls == []`)."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "I confirmed both directions of failure. `rule` fails while `scope` passes: an agent with the up-front worst-case check who raises a bare `ValueError(f\"...\")` \u2014 `scope`'s `pytest.raises(ValueError)` and `rng.calls == []` both hold, `raft_name(\"InsufficientDistractorsError\")` does not. `scope` fails while `rule` passes: an agent with the correct class but the check placed after the coin against actual need \u2014 at `p=0.0` it still raises `(2, 4, 3)` so `rule` passes, at `p=1.0` it needs 3 of 3 available and never raises so `scope` fails."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "No temporal quantifier anywhere in the fact. Every clause is a single synchronous construction or a single `parse` call; the assertions are equality on three ints and one string."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, no network, no restart, no concurrency. The only boundary risk the ticket names \u2014 `backend=None` reaching `OpenAIOnlineRequestProcessor.__init__` and its live `requests.post` \u2014 is avoided by `make_answer`/`build` pinning `backend=\"litellm\"`."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "Two fakes are present but neither authors the trigger. The trigger is corpus size, fixed by the real literal `SMALL = [\"a\",\"b\",\"c\",\"d\"]` against `distractors=3`; `SpyRng(7)` only records. `head_sampler` does suppress the competing `random.sample` error, which is what makes the assertion measure the agent's own check rather than the stdlib's \u2014 that isolates the reaction, it does not decide when the shortfall occurs."
+   }
+  ],
+  "the_assertion": "`assert str(built) == \"chunk 2: requested 4 distractors, only 3 available\"` (immediately preceded by `built = error_cls(chunk_id=2, requested=4, available=3)` and `assert (built.chunk_id, built.requested, built.available) == (2, 4, 3)`). Passing or failing it depends on nothing but this requirement: no builder runs, no rng is touched, no facade is constructed, no sibling's behaviour is read. Its only external dependency is `raft_name` resolving a module-level name in `raft.py`, which is this fact's own subject.",
+  "blind_pass": null,
+  "correct_fail": null,
+  "recommendation": "Ship as written. Two things to confirm before it goes out, neither of which changes the test:\n\n1. Verify the clue quotes the message verbatim. Discrimination here rests on an unguessable string, `f\"chunk {chunk_id}: requested {requested} distractors, only {available} available\"`, and on the exact class name. That is fine for condition 1 (blind fails, as the bracket found), but condition 3 (ticket + clues) only lands if the clue material reproduces the name and the message character-for-character rather than paraphrasing them (\"it should tell you which chunk and how short we were\"). An agent who correctly derives the class, the three attributes and the up-front worst-case check and still fails on wording would be a solvability failure, not a discrimination success. I could not open the clue files in this session to check.\n\n2. Note a cosmetic grading edge. An agent who puts the corpus-size check in `_RaftAnswer.__init__` instead of the builder \u2014 a plausible over-extension of the sibling `failure_behavior`, though contrary to both `rule` (\"raised by the document-set builder\") and `scope` (\"the builder's first statement\") \u2014 makes `make_answer(SMALL, n=2, distractors=3, ...)` throw outside the `pytest.raises` block, so the test ERRORs rather than failing with a readable message. It is a correct rejection of an incorrect implementation; if you want the failure to read better, move the `make_answer(...)` line inside the `with pytest.raises(error_cls)` block, since the requirement is indifferent to which of the two calls raises."
+ },
+ {
+  "key": "g13.r2.scope",
+  "req": 2,
+  "field": "scope",
+  "verdict": "ship",
+  "divergent_action": "The clued agent writes a pre-coin, worst-case guard as the builder's first statement:\n\n    def _get_document_set(self, chunk_id, oracle_document, question):\n        available = len(self.chunks) - 1\n        requested = self.distractors + 1\n        if available < requested:\n            raise InsufficientDistractorsError(\n                chunk_id=chunk_id, requested=requested, available=available)\n        oracle_present = self.rng.random() < self.p\n        ...\n\nThree things here are the clue's fingerprint and none of them follow from the ticket: (1) the guard exists at all \u2014 the ticket never mentions a corpus-size failure; (2) `requested = self.distractors + 1` unconditionally, i.e. the oracle-ABSENT k even on runs where the coin will say present; (3) it sits above `self.rng.random()`, whereas the ticket enumerates the build as \"in this order: 1. one `self.rng.random()`\", making the coin the first statement. The blind agent writes the three numbered steps and computes k inside the branch: `k = self.distractors if oracle_present else self.distractors + 1`, with no guard anywhere.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Today's code has no corpus-size guard at all; the requirement says the builder's draws are at `raft.py:152, 165, 175` with `k` derived per branch. The only incidental protection is `random.Random.sample` raising `ValueError: Sample larger than population`, and (a) that is a different message/class, (b) the test injects `sampler=head_sampler`, a slicing lambda that never raises, and (c) at p=1.0 with 3 of 3 available even the real `rng.sample` succeeds \u2014 so nothing in the stdlib or the existing file produces the raise this fact wants."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "The fact demands positive work (a computed comparison and a raise) plus a placement constraint. Inaction produces a successful 4-document build at p=1.0, which is exactly what the test rejects: `with pytest.raises(ValueError): gen.parse({\"chunk_id\": 2, ...})`. The `rng.calls == []` half is prohibition-shaped, but it is only reachable after the raise exists, so it cannot be satisfied by doing nothing."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published convention that a RAFT distractor sampler must validate against the oracle-absent worst case. If anything the widely-copied RAFT reference implementations sample per-branch and let `random.sample` blow up. The specific policy 'fail deterministically on every chunk rather than only on the chunks that draw the absent branch' is a design decision local to this task, not a prior."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket specifies the build as 'Each build performs, in this order: 1. one `self.rng.random()`, compared `< self.p` ... 2. one `self.sampler(available_indices, k)` ... where `k = self.distractors` when the oracle is present, `self.distractors + 1` when it is absent.' That wording puts the coin first and binds k to the branch \u2014 it points away from a pre-coin worst-case check. The ticket never mentions insufficient corpora, small chunk sets, or any error path from the builder."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is fully implementable with no guard: on the SMALL corpus at p=1.0 the present branch legitimately needs only 3 of the 3 available indices and returns a valid 4-document set. A correct implementation of A therefore *succeeds* exactly where this fact requires a raise, so the fact is not entailed \u2014 it overrides A's happy path."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "This is the one live risk, and it is partial. A defensively-minded engineer might add a friendly guard after seeing `random.sample` fail on a small fixture while writing the ticket-mandated tests. But passing requires three coincidences simultaneously: writing a guard at all (the ticket gives no prompt to), remembering the oracle exclusion (`len(self.chunks) - 1`, not `len(self.chunks)` \u2014 the latter gives `4 < 4 == False` and fails on SMALL), and choosing the worst case above the coin rather than the branch-local k that is already being computed one line down. The ticket's explicit 'in this order: 1. one `self.rng.random()`' actively discourages the third. I estimate this path in the low tens of percent at worst, not the majority case."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "A four-chunk corpus with `distractors=3` is trivially constructible and the test constructs it: `SMALL = [\"a\", \"b\", \"c\", \"d\"]`, `make_answer(SMALL, n=2, distractors=3, p=1.0, ...)`. Nothing raises earlier \u2014 `failure_behavior` explicitly requires that `__init__` validate only `p` and `distractors` (`distractors=3` and `p=1.0` both construct), so the builder is genuinely reached with an under-sized corpus."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The opposite: siblings are mutually reinforcing. `failure_behavior` builds `cls(chunks=make_chunks(THREE), ...)` with the default `distractors=5` and asserts `build(p=0.0).p == 0.0` \u2014 a 3-chunk corpus that could never serve 6 documents must still *construct*. That is only consistent if the corpus check lives in the builder, exactly where `scope` puts it. And `rule`'s corpus is short under either policy (at `p=0.0`, `requested=4` whether you check the worst case or the branch), so `rule` does not presuppose `scope`."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "The end states differ observably. Without the fact, `parse({\"chunk_id\": 2, ...})` at p=1.0 returns a well-formed row with 4 documents; with it, the call raises. Not fatal-either-way \u2014 the guard *converts a working configuration into a failing one*, which is the whole point of the 'regardless of how the coin would land' clause. The consequence is a row versus an exception, directly asserted."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "`scope` deliberately reads neither the class nor the message: it uses bare `pytest.raises(ValueError)` and never touches `.chunk_id`/`.requested`/`.available` or `str(exc)` \u2014 those are `rule`'s channel. Its own two observables are the raise at p=1.0 (which `rule` cannot see, since `rule` runs at p=0.0 where both policies raise) and `rng.calls == []` (which no sibling asserts). One caveat: the negative control's `assert len(documents_of(row)) == 4` reads the open feature's `context` shape via a helper shared with `test_open`, so a scope-correct agent with a broken `parse` fails here. That routes through A, not through another hidden fact, and `documents_of` is a shared open-suite helper by design."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "`rule` is satisfied by a branch-local check (`p=0.0` needs `distractors + 1 = 4` anyway, so `requested=4` and `available=3` come out identical under either policy). `scope` is the only fact that can fail a branch-local checker, via the p=1.0 raise and `rng.calls == []`. The two facts are independently failable in both directions: plain-`ValueError` guard passes scope and fails rule; post-coin worst-case guard passes rule and fails scope."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "Every claim is a single synchronous call. 'regardless of how the coin would land' is not a temporal universal \u2014 it is pinned to one finite witness, `p=1.0`, where the coin's landing is determined. `rng.calls == []` is a finite list compared after one `parse` returns."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, no network. `backend=\"litellm\"` is used precisely to avoid `OpenAIOnlineRequestProcessor.__init__`'s live `requests.post`; the corpus is an in-memory `datasets.Dataset` from `make_chunks`; rng and sampler are injected recorders."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger is corpus size versus `distractors`, both real constructor inputs, not fake-controlled. `head_sampler` and `SpyRng` only observe/avoid masking the reaction: with the real `rng.sample`, the p=1.0 case (k=3 from 3) succeeds anyway, so the fake sampler is not what creates the raise. `SpyRng` is a pure recorder for the `calls == []` assertion \u2014 it watches the reaction, it does not decide when the shortfall occurs."
+   }
+  ],
+  "the_assertion": "\"rng = SpyRng(7); gen = make_answer(SMALL, n=2, distractors=3, p=1.0, sampler=head_sampler, rng=rng); with pytest.raises(ValueError): gen.parse({\\\"chunk_id\\\": 2, \\\"question\\\": \\\"Q\\\"}, RESPONSE)\" \u2014 together with its immediate partner \"assert rng.calls == []\". The raise-at-p=1.0 kills any branch-local check (k=3 of 3 available succeeds); `calls == []` kills any check placed after the coin. Neither depends on another hidden fact: not on `rule` (bare ValueError, no class/attribute/message read), not on `failure_behavior` (p=1.0 and distractors=3 are both legal knobs), not on r1 (no stats, no memoisation, no `question` positional \u2014 only the public `parse` is called). The only outside dependency is on the open feature: `make_answer` must accept the ticket's `sampler`/`rng` kwargs, and the negative control's `len(documents_of(row)) == 4` reads A's `context` shape.",
+  "blind_pass": "A defensive ticket-only implementation that happens to satisfy this fact (fails `rule`, passes `scope`):\n\n    def _document_set(self, chunk_id, oracle_document):\n        # A set needs `distractors` other chunks, plus one more standing in for\n        # the oracle when the coin leaves it out. Check the larger of the two so\n        # a corpus either works on every chunk or on none of them.\n        available = len(self.chunks) - 1\n        requested = self.distractors + 1\n        if available < requested:\n            raise ValueError(\n                f\"chunk {chunk_id}: requested {requested} distractors, \"\n                f\"only {available} available\")\n        oracle_present = self.rng.random() < self.p\n        ...\n\nI want to be honest about how much weight this carries: it is not the naive blind implementation the rubric asks you to test against. The naive one transcribes the ticket's numbered steps and has no guard. This variant needs a guard the ticket never asks for, the `- 1` oracle exclusion (writing `len(self.chunks) < requested` gives `4 < 4 == False` and fails SMALL), and worst-case-before-coin in the face of the ticket's \"in this order: 1. one `self.rng.random()`\". Three coincidences, so a real but minority path \u2014 worth a second blind sample rather than a cut.",
+  "correct_fail": null,
+  "recommendation": "Ship. I could not construct a legitimate reading the test rejects: the guard can live in `parse`, in a `_check_corpus` helper called first, compare `len(available_indices) < requested` or `len(self.chunks) <= self.distractors + 1`, and raise `InsufficientDistractorsError` or a plain `ValueError` \u2014 all pass. The test reads no message and no class, and it carries its own negative control (FIVE, exactly `distractors + 1` others, builds with one coin), so it cannot be passed by a guard that simply fires everywhere.\n\nNote this is a deliberate override of \"ship only if you found nothing in 5\": I did write a blind pass, and I judge it too improbable to disqualify the fact. Two cheap hardenings if you want them, neither blocking:\n\n1. Re-run the blind bracket once more with a defensiveness-primed prompt (e.g. an agent told to make the block robust to odd inputs). That is the sample that would actually catch the residual coincidence; no test edit can, since the coincidence is in the agent's instinct, not in the assertion.\n2. Optionally drop `assert len(documents_of(row)) == 4` from the negative control and keep only `assert ok_rng.calls.count(\"random\") == 1` plus \"the call returns without raising\". As written, that one line makes a scope-correct agent with a malformed `parse` context fail scope. It routes through the OPEN feature rather than a sibling hidden fact, and `documents_of` is shared with `test_open` on purpose, so this is defensible as-is \u2014 cut it only if you want scope readable in total isolation from A."
+ },
+ {
+  "key": "g13.r2.exclusions_or_crossover",
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "verdict": "retest",
+  "divergent_action": "In `Raft.__call__`'s list branch, before the chunk dataset is built: `chunks = [c for c in input if c.strip()]` (equivalently `filter(str.strip, input)`), with chunk ids then assigned by `enumerate`/`range(len(chunks))` over the survivors rather than over `input`. A blind agent writes `chunks = input` (or `list(input)`) and numbers every entry, so `[\"alpha\", \"\", \"  \", \"\\n\", \" bravo \"]` yields 5 rows with chunk_ids 0..4 instead of 2 rows with chunk_ids 0,1.",
+  "the_assertion": "`assert list(chunks[\"content\"]) == [\"alpha\", \" bravo \"], \"survivors are stored verbatim, surrounding whitespace kept\"` (with `assert list(chunks[\"chunk_id\"]) == [0, 1]` as its inseparable partner \u2014 filtering without renumbering is not a reachable variant once you filter the list before `range(len(...))`). Passing it depends on more than this requirement: it reads the chunk dataset through `chunks_handed_to(StubA)`, which first asserts `len(stub_cls.instances) == 1` and then indexes `instances[0].kwargs[\"chunks\"]` \u2014 i.e. it presupposes the OPEN ticket's `answer_generator_cls` seam and the exact `chunks=` keyword wiring. The `question_generator_cls` half of that seam is gated by `require_feature`, but the one-instance / `kwargs[\"chunks\"]` contract is not; an agent who wired the facade differently fails this hidden fact for an r0 reason.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Nothing in the ticket or the fact suggests the current list branch filters; the fact is written against today's behaviour (\"entries ... are dropped before chunk ids are assigned\" is presented as new). An untouched checkout failing the bracket confirms the existing branch stores every entry and numbers all of them."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": false,
+    "why": "This is affirmative work, not restraint. Doing nothing yields `len(chunks) == 5` and `chunk_id == [0,1,2,3,4]`, which fails. The one preservation-shaped clause (\"The str branch is untouched\") is inaction-satisfied, but the test author already noticed that and gated it: `require_feature(... \"the facade's question_generator_cls seam\")` with the comment \"A preservation-shaped clause ... only counts once the list branch really filters.\""
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": false,
+    "why": "There is no published RAFT/curator convention that blank documents are dropped and survivors renumbered; the upstream block has no such rule. The nearest thing is generic hygiene instinct, which I score under obvious_implementation_does_it rather than here."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": true,
+    "why": "Location, not content, is given away: \"The `str` input branch keeps its behaviour: `chunk_text` (`raft.py:181`) and the `chunk_size` knob are out of scope.\" Explicitly freezing one branch of a two-branch `if` invites the reader to infer the other branch is where a change lands. The ticket otherwise never mentions the list branch, so this is the only sentence in the whole ticket that draws attention to it. It does not say *what* to change, so it is a partial giveaway \u2014 but it materially raises the odds a blind agent touches exactly the right three lines."
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The open feature is knob/rng ownership and oracle_index fidelity. A facade that hands 5 chunks (three of them blank) to the answer stage satisfies every visible clause of the ticket, including `answer_cls(chunks=chunks, ...)`. Filtering is not entailed."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": true,
+    "why": "The entire hidden behaviour reduces to one comprehension, `[c for c in input if c.strip()]`, which is a common defensive move when turning a user-supplied list into a retrieval corpus (a blank document is useless as an oracle and as a distractor). The 'renumber contiguously from 0' half is then free \u2014 any `enumerate`/`range(len(...))` over the filtered list does it automatically, so an agent gets two of the three assertions for the price of one instinct, and 'stored verbatim' is free too because nobody strips the survivor they kept. This is a narrow fact resting on a single line a tidy engineer plausibly writes unprompted."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "Both states are constructed directly by the test: `Raft(...)([\"alpha\", \"\", \"  \", \"\\n\", \" bravo \"])` and `([\"\", \"   \", \"\\t\\n\"])`. Nothing raises before the facade builds the dataset."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The siblings (`rule`, `scope`, `failure_behavior`) all go through `make_answer`/`_RaftAnswer` directly on fixed fixtures `SMALL`/`THREE`/`FIVE`, never through the facade, so the list-branch filter cannot shrink a corpus a sibling's failure test depends on."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": true,
+    "why": "For the all-blank sub-clause only. \"raises nothing here\" is true only because a stub absorbs the empty dataset. In a real run both policies are fatal one layer down: 0 chunks gives an empty question stage, while 3 blank chunks with the default `distractors=3` gives `available = 2 < requested = 4` and the sibling's `InsufficientDistractorsError` on every chunk. The `assert len(empty) == 0` / `column_names == []` pair therefore grades a distinction with no downstream consequence, and it is exactly the pair that produces the false negative in question 6."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": false,
+    "why": "The observable \u2014 the `chunks` kwarg captured by the answer stub \u2014 is the open ticket's seam, not another hidden fact's, and the field's existence is gated by `require_feature(\"question_generator_cls\" in ... __dataclass_fields__)`. I note the ungated coupling (`assert len(stub_cls.instances) == 1`, `kwargs[\"chunks\"]`) under 'the one assertion' rather than scoring it here, since r0 is visible."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "The opposite problem: it has too much independent content for the field it occupies. r2's `rule`/`scope`/`failure_behavior` are all about `InsufficientDistractorsError` and the numeric knobs; blank-filtering in the facade is a different behaviour in a different method, sharing only an unexercised causal link (filtering shrinks `len(self.chunks)`, which feeds `available = len(self.chunks) - 1`). The test never exercises that crossover, so this is a second requirement wearing r2's `exclusions_or_crossover` badge."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "No 'always'/'never'/'forever'. Every claim is a finite single-call assertion on three concrete inputs."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "Single process, stdlib plus `datasets`; the stubs avoid the live `requests.post` in `OpenAIOnlineRequestProcessor.__init__` the ticket warns about. No network, no restart, no concurrency."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger is the literal list the test passes in; `stub_pair()` only records `kwargs` and does not decide which entries are blank. The fake controls the reaction surface, not the condition being graded."
+   }
+  ],
+  "blind_pass": "Ticket-only, no clue \u2014 an agent tidying the corpus while it is already editing this branch to thread the new seams:\n\n```python\ndef __call__(self, input: str | list[str]) -> datasets.Dataset:\n    if isinstance(input, str):\n        docs = chunk_text(input, self.chunk_size)\n    else:\n        # a blank document is useless as an oracle and as a distractor\n        docs = [doc for doc in input if doc.strip()]\n    chunks = datasets.Dataset.from_list(\n        [{\"content\": doc, \"chunk_id\": i} for i, doc in enumerate(docs)]\n    )\n    ...\n```\n\nThis passes every assertion in the exclusions test. It needs two things to line up: the `if doc.strip()` instinct (which the ticket nudges toward by freezing only the `str` branch), and `from_list` rather than `from_dict` (free if that is what `raft.py` already does \u2014 I could not read the file to check). Note the asymmetry: `from_dict` is the construction that makes a *correct* agent fail, and `from_list` is the construction that makes a *blind* agent pass. The `column_names` assertion is grading the construction call, not the requirement.",
+  "correct_fail": "A clue-informed agent that filters and renumbers exactly as specified, but keeps the columnar construction:\n\n```python\nelse:\n    docs = [doc for doc in input if doc.strip()]     # blanks dropped, verbatim survivors\nchunks = datasets.Dataset.from_dict(\n    {\"content\": docs, \"chunk_id\": list(range(len(docs)))}   # unchanged from today\n)\n```\n\n`[\"alpha\", \"\", \"  \", \"\\n\", \" bravo \"]` \u2192 `content == [\"alpha\", \" bravo \"]`, `chunk_id == [0, 1]`: correct. `[\"\", \"   \", \"\\t\\n\"]` \u2192 `len(...) == 0`: correct. But `datasets.Dataset.from_dict({\"content\": [], \"chunk_id\": []})` keeps both null-typed columns, so `column_names == [\"content\", \"chunk_id\"]` and `assert list(empty.column_names) == []` fails. Nothing in \"drops blank entries before chunk ids are assigned and renumbers the survivors from 0, keeping their text verbatim\" \u2014 the test's own statement of the fact \u2014 implies the empty dataset must also lose its schema, and no clue that teaches blank-filtering would plausibly teach `from_list`.",
+  "recommendation": "Retest, with two edits, then re-run the bracket.\n\n1. Delete `assert list(empty.column_names) == []` from `test_exclusions__a_list_corpus_drops_blank_documents_and_renumbers_from_zero`, and delete \"with `column_names == []`\" from the fact text. Keep `assert len(empty) == 0` (that one is genuinely about filtering). If you want any schema assertion at all, make it construction-agnostic: `assert set(empty.column_names) <= {\"content\", \"chunk_id\"}`. As written the assertion grades `from_list` vs `from_dict`, which is not the hidden fact and which a correct agent has no way to guess.\n\n2. Blunt the ticket's location hint. \"The `str` input branch keeps its behaviour: `chunk_text` and the `chunk_size` knob are out of scope\" is the only sentence pointing at the branch pair; rephrase so the str branch is not singled out for preservation (e.g. fold `chunk_text`/`chunk_size` into a general out-of-scope list that does not contrast the two branches). Then re-run the blind condition \u2014 the fact's whole weight is one `if doc.strip()` comprehension, so it needs more than one blind sample before you trust the `hidden` label.\n\nIf a re-run of blind still passes after edit 2, cut the fact rather than narrow it: there is no smaller version of \"filter one list\" left to hide."
+ },
+ {
+  "key": "g13.r2.failure_behavior",
+  "req": 2,
+  "field": "failure_behavior",
+  "verdict": "narrow",
+  "divergent_action": "Two guard clauses as the first statements of `_RaftAnswer.__init__`, above `super().__init__(*args, **kwargs)`, in p-then-distractors order \u2014 which is the reverse of the order the ticket's own signature declares them (`n, distractors, p, ...`):\n\n```python\ndef __init__(self, chunks, *args, n=5, distractors=5, p=0.8, sampler=None, rng=None, **kwargs):\n    if not 0.0 <= p <= 1.0:\n        raise ValueError(f\"p must be in [0.0, 1.0], got {p}\")\n    if distractors < 1:\n        raise ValueError(f\"distractors must be >= 1, got {distractors}\")\n    super().__init__(*args, **kwargs)\n```\n\nThe informed agent writes the p guard first and puts both above `super()`; the blind agent either writes no guard (the ticket enumerates `__init__`'s post-conditions exhaustively and never mentions validation) or writes them in declaration order, distractors first, and answers `(p=1.5, distractors=0)` with the distractors message.",
+  "catalog_a": [
+   {
+    "pattern": "codebase_already_does_it",
+    "applies": false,
+    "why": "Today's `_RaftAnswer` stores the knobs raw and uses `p` unguarded at the draw (`raft.py:152`); the ticket's own restatement of `__init__` lists only attribute assignment (\"Attributes after `__init__`: `n`, `distractors`, `p`, `chunks`, `rng`, `sampler`, `formatter`\"). Nothing in `curator.LLM.__init__` sees `p` or `distractors` at all \u2014 they are consumed before `**kwargs` passthrough."
+   },
+   {
+    "pattern": "prohibition_satisfied_by_inaction",
+    "applies": true,
+    "why": "Two clauses are pure inaction. \"`Raft` itself does not re-check, so `Raft(model=\"m\", p=1.5)` constructs\" is graded by `assert Raft(model=\"m\", p=1.5).p == 1.5` \u2014 true of every implementation that simply doesn't add a `__post_init__`, blind ones included. Likewise \"never `InsufficientDistractorsError`\", graded by `assert not isinstance(caught.value, error_cls)`: you have to go out of your way to fail it. Neither clause can distinguish clue-reader from non-reader; the second can only punish."
+   },
+   {
+    "pattern": "model_already_knows_it",
+    "applies": true,
+    "why": "`f\"p must be in [0.0, 1.0], got {p}\"` and `f\"distractors must be >= 1, got {distractors}\"` are near the modal phrasing an LLM produces for a range guard (`\"<name> must be <constraint>, got <value>\"`). They are not arbitrary sentinels like the sibling's `\"chunk 2: requested 4 distractors, only 3 available\"`. Conditional on the agent writing a guard at all, exact-string agreement is plausible; the discrimination here comes from the ordering inversion and the pre-`super()` placement, not from the text."
+   },
+   {
+    "pattern": "ticket_gives_it_away",
+    "applies": false,
+    "why": "The ticket specifies the `__init__` signature and its resulting attributes and never asks for validation; `p: float = 0.8` and `distractors: int = 5` appear only as defaults. It does not name the messages, the order, or the placement. (It does bias the *facade* clause the other way \u2014 see catalog_b / correct_fail.)"
+   },
+   {
+    "pattern": "entailed_by_the_open_feature",
+    "applies": false,
+    "why": "The visible feature \u2014 owned knobs, injected rng/sampler, one oracle index \u2014 is fully buildable with no guard at all. `p=1.5` silently forces `random() < 1.5` always true; `distractors=0` yields `self.sampler(available, 0)` and an empty-but-legal document set. Nothing downstream forces a raise."
+   },
+   {
+    "pattern": "obvious_implementation_does_it",
+    "applies": false,
+    "why": "The obvious implementation is the one the ticket dictates: assign the seven attributes and pass `**kwargs` up. Where an agent does add guards by instinct, the natural site is after `super().__init__` (validate once you're a working object) or in declaration order \u2014 `distractors` first \u2014 which the combined case `(dict(p=1.5, distractors=0), \"p must be in [0.0, 1.0], got 1.5\")` rejects."
+   }
+  ],
+  "catalog_b": [
+   {
+    "pattern": "state_is_unreachable",
+    "applies": false,
+    "why": "`_RaftAnswer(chunks=..., model_name=MODEL, backend=\"litellm\", p=1.5)` is an ordinary constructor call the harness makes directly; nothing upstream prevents a bad knob from arriving."
+   },
+   {
+    "pattern": "contradicts_a_sibling",
+    "applies": false,
+    "why": "The closed interval is chosen precisely so siblings survive: `rule` constructs with `p=0.0` (`make_answer(SMALL, n=2, distractors=3, p=0.0, ...)`) and `scope` with `p=1.0` (`make_answer(SMALL, n=2, distractors=3, p=1.0, ...)`). `distractors >= 1` is compatible with every sibling's `distractors=2` or `3`. No sibling failure branch is closed off."
+   },
+   {
+    "pattern": "behaviour_has_no_consequence",
+    "applies": false,
+    "why": "Both violations are silent, not fatal one layer down: unvalidated `p=1.5` produces a run that is 100% oracle-present while reporting `p=1.5`, and `distractors=0` produces document sets of one document. The guard converts a silently wrong corpus into an error, which is a real differentiating outcome."
+   },
+   {
+    "pattern": "observable_belongs_to_another_fact",
+    "applies": true,
+    "why": "The success-path builds use `chunks=make_chunks(THREE)` with `distractors` at its default `5`: `assert build(p=0.0).p == 0.0`. Under an implementation that puts the corpus-size check in `__init__` rather than in the builder, `available = 3 - 1 = 2 < requested = 6` and these three constructions raise `InsufficientDistractorsError` \u2014 so a violation of the sibling `scope` (\"the check is the builder's first statement\") fails *this* fact. `scope`'s observable is doing work inside `failure_behavior`. The `not isinstance(caught.value, error_cls)` clause also reads the sibling's class, though `required=False` softens it."
+   },
+   {
+    "pattern": "no_independent_content",
+    "applies": false,
+    "why": "The knob guards live in `__init__`; the sibling `rule`/`scope` live in the document-set builder. No sibling test constructs with a bad `p` or a bad `distractors`, and this test builds no document set (`make_answer` is not used here). The overlap is thematic (\"which ValueError\"), not observational."
+   },
+   {
+    "pattern": "unbounded_in_time",
+    "applies": false,
+    "why": "\"never `InsufficientDistractorsError`\" reads as an absolute but is a per-call type check on a single constructor invocation \u2014 finite and directly observable via `isinstance`. No waiting, no horizon."
+   },
+   {
+    "pattern": "environment_cannot_be_built",
+    "applies": false,
+    "why": "The test builds five real `_RaftAnswer` objects through `curator.LLM.__init__` with `backend=\"litellm\"`, which the ticket documents as network-free (`litellm_online_request_processor.py:54-63` \"touches no network and defers rate limits\"). Single process, no restart, no concurrency."
+   },
+   {
+    "pattern": "fake_defines_the_trigger",
+    "applies": false,
+    "why": "The trigger is a literal constructor argument (`p=1.5`), not a stub's decision. `head_sampler` is passed but never consulted \u2014 the guard fires before any sampling. The only fake-adjacent element is `backend=\"nope\"`, and that probes the real base class, not a double."
+   }
+  ],
+  "the_assertion": "The deciding pair is inside the table loop plus the placement probe:\n\n```python\n(dict(p=1.5, distractors=0), \"p must be in [0.0, 1.0], got 1.5\"),\n...\nassert str(caught.value) == message, f\"for {kwargs}\"\n```\nand\n```python\nwith pytest.raises(ValueError) as ours_first:\n    cls(chunks=make_chunks(THREE), model_name=MODEL, backend=\"nope\", p=1.5)\nassert str(ours_first.value) == \"p must be in [0.0, 1.0], got 1.5\", (\n    \"the knob check runs before super().__init__\")\n```\n\nDoes passing depend on anything but this requirement? Yes, in three places. (a) The placement probe depends on the base class raising a `ValueError` whose text contains `\"Unknown backend\"` for `backend=\"nope\"` \u2014 repo/library behaviour outside this requirement; if curator's backend dispatch ever raises a different type or wording, a correct implementation fails. (b) The success-path builds (`build(p=0.0)`, `build(p=1.0)`, `build(distractors=1)`) depend on the sibling `scope`'s decision to keep the corpus check out of `__init__`, since `THREE` + default `distractors=5` is an under-supplied corpus. (c) `assert Raft(model=\"m\", p=1.5).p == 1.5` depends on the agent's reading of the open ticket's \"authoritative owner of the sampling knobs\", not on `_RaftAnswer.__init__` at all.",
+  "blind_pass": "A defensive engineer with the ticket only, who guards the probability knob and happens to land the conventional phrasing and the non-obvious order:\n\n```python\nclass _RaftAnswer(curator.LLM):\n    def __init__(self, chunks: datasets.Dataset, *args, n: int = 5, distractors: int = 5,\n                 p: float = 0.8, sampler: Optional[_SamplingStrategy] = None,\n                 rng: Optional[random.Random] = None, **kwargs) -> None:\n        # p is a probability; distractors is a count. Fail loudly at construction\n        # rather than producing quietly wrong document sets.\n        if not 0.0 <= p <= 1.0:\n            raise ValueError(f\"p must be in [0.0, 1.0], got {p}\")\n        if distractors < 1:\n            raise ValueError(f\"distractors must be >= 1, got {distractors}\")\n        super().__init__(*args, **kwargs)\n        self.n = n\n        self.distractors = distractors\n        self.p = p\n        self.chunks = chunks\n        self.rng = rng if rng is not None else random.Random()\n        self.sampler = sampler if sampler is not None else self.rng.sample\n        self.formatter = _ContextFormatter()\n```\n\nThis passes every assertion. I rate it unlikely rather than impossible: it needs three independent coincidences \u2014 writing a guard the ticket never asks for (the ticket enumerates `__init__`'s post-state exhaustively), phrasing both messages verbatim, and checking `p` before `distractors` against the declared parameter order `n, distractors, p`. The third is the real barrier; guards written top-to-bottom answer `(p=1.5, distractors=0)` with the distractors message. The bracket's one blind sample missing this is consistent with it being a low-probability branch, not an unreachable one.",
+  "correct_fail": "An agent who read the clue, implemented `_RaftAnswer.__init__` exactly as specified, and then took the open ticket's opening sentence \u2014 *\"Make the `Raft` facade the authoritative owner of the sampling knobs\"* \u2014 to mean the facade should also reject a knob it owns:\n\n```python\n@dataclass\nclass Raft:\n    model: str\n    distractors: int = 3\n    chunk_size: int = 1000\n    n_questions: int = 2\n    p: float = 0.8\n    ...\n    def __post_init__(self) -> None:\n        # the facade owns the knobs, so it is the first place a bad one is caught\n        if not 0.0 <= self.p <= 1.0:\n            raise ValueError(f\"p must be in [0.0, 1.0], got {self.p}\")\n        if self.distractors < 1:\n            raise ValueError(f\"distractors must be >= 1, got {self.distractors}\")\n```\n\n`_RaftAnswer` still validates first, still p-before-distractors, still above `super()`, still plain `ValueError`, still the documented messages \u2014 every clause of the fact that is about the answer generator holds \u2014 but `assert Raft(model=\"m\", p=1.5).p == 1.5` raises and the fact is scored failed. The ticket's own \"authoritative owner\" wording invites exactly this reading, so the test is punishing a defensible interpretation of the visible ask.\n\nSecond, weaker one: an agent who correctly puts the corpus check in the builder passes, but one who reasonably reports the corpus problem early \u2014 at construction, where `chunks` and `distractors` are both already known \u2014 fails `assert build(p=0.0).p == 0.0` on the 3-chunk fixture. That is a `scope` mistake being charged to `failure_behavior`.",
+  "recommendation": "Keep the fact \u2014 the p-before-distractors inversion and the pre-`super()` placement probe are a real, nameable divergence. Narrow it in three ways:\n\n1. **Delete the facade clause.** Drop `assert Raft(model=\"m\", p=1.5).p == 1.5` from the test and strike \"`Raft` itself does not re-check, so `Raft(model=\\\"m\\\", p=1.5)` constructs and fails only when `__call__` builds the answer generator\" from the fact. It is prohibition-satisfied-by-inaction (free for every blind agent) and it fails a correct agent who reads the ticket's \"authoritative owner of the sampling knobs\" as licence to guard at the facade. If the non-re-checking is genuinely wanted, move it to the open ticket as an explicit \"`Raft` performs no validation\" line so it stops being a hidden trap.\n\n2. **Decouple the success path from the sibling.** Change the `build` helper's corpus so it is large enough under the default `distractors=5` \u2014 `make_chunks(FIVE + [\"foxtrot\", \"golf\"])`, or pass `distractors=1` alongside `p=0.0`/`p=1.0`. As written, `THREE` + default `distractors=5` means an agent who puts the corpus check in `__init__` (a `scope` violation) also fails `failure_behavior`.\n\n3. **Close the undershoot.** Nothing currently checks that the *distractors* guard precedes `super()`; `backend=\"litellm\"` constructs fine, so a distractors-check-after-super implementation passes. Add the mirror of the existing probe: `cls(chunks=..., model_name=MODEL, backend=\"nope\", distractors=0)` must give `\"distractors must be >= 1, got 0\"`.\n\nAlso worth noting for the clue: the two message strings are close to modal LLM validator phrasing and should not be treated as the discriminator. Make sure the clue states the order (`p` first) and the placement (above `super()`) explicitly, since that is where the actual signal lives."
+ }
+]

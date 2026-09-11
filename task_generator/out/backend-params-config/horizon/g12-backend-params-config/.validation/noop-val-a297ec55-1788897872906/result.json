@@ -1,0 +1,9 @@
+{
+  "build_id": "noop-val-a297ec55-1788897872906",
+  "type": "noop",
+  "status": "passed",
+  "score": 0,
+  "passed": true,
+  "feedback": "0 of 9 hidden requirements satisfied. Open feature: no. Missed: g12.r1.rule, \ng12.r1.scope, g12.r1.failure_behavior, g12.r1.observability, g12.r2.rule, \ng12.r2.scope, g12.r2.exclusions_or_crossover, g12.r2.failure_behavior, \ng12.r2.observability.   no name 'BackendParamError' anywhere in \nbespokelabs.curator.request_processor | FAILED \ntest_r1.py::test_observability__the_four_probes_the_requirement_spells_out - \nFailed: no name 'BackendParamError' anywhere in \nbespokelabs.curator.request_processor | FAILED \ntest_r2.py::test_rule__the_hook_records_the_unsupported_generation_params_instea\nd_of_raising - AssertionError: expected one of \n('unsupported_generation_params',) on OnlineRequestProcessorConfig; it has \n['Config... | FAILED \ntest_r2.py::test_scope__every_online_and_batch_config_gets_it_and_a_supplied_val\nue_is_overwritten - Failed: _validate_backend_params does not accept (params, \nbatch=..., backend=...): _validate_backend_params() ... | FAILED \ntest_r2.py::test_exclusions__the_offline_config_sets_it_empty_and_never_asks_lit\nellm - Failed: the base model_post_init that fills unsupported_generation_params\nfrom litellm is not implemented, so the constrain... | FAILED \ntest_r2.py::test_failure_behavior__a_broken_or_empty_lookup_leaves_an_empty_tupl\ne - AssertionError: expected one of ('unsupported_generation_params',) on \nOnlineRequestProcessorConfig; it has ['Config', 'api_key... | FAILED \ntest_r2.py::test_observability__the_probes_the_requirement_spells_out - \nAssertionError: expected one of ('unsupported_generation_params',) on \nOnlineRequestProcessorConfig; it has ['Config', 'api_key', 'base_url... | 10 \nfailed, 1 warning in 25.20s |",
+  "updated_at": "2026-09-08T20:09:13.874Z"
+}

@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P6 + P7",
+  "blind_alternative": "keeps the oracle prepended as `raft.py:156-160` does today and, if they fix the index at all, recover it with `documents.index(oracle_document)` after the shuffle \u2014 correct-looking, and correct except on duplicate chunk content"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P9",
+  "blind_alternative": "either deletes the `lru_cache` wrapper outright to make `p` a genuine per-example coin, or leaves the two-argument key at `maxsize=128` untouched"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P5",
+  "blind_alternative": "drops the shuffle in the oracle-absent branch as a statistical no-op over a sampled subset, or draws `distractors + 1` indices once and flips the coin afterwards so the sampler `k` is 3 in both branches"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P8",
+  "blind_alternative": "leaves the `doc_set.oracle_index if doc_set.oracle_present else -1` guard at `raft.py:139` in place (the default outcome of not touching the line), or asserts consistency and raises `ValueError`"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P6 + P7 + P9",
+  "blind_alternative": "produces `[\"same\", \"same\", \"other\"]` with `oracle_index == 0`, a sampler `k` of 3 in both branches or no shuffle entry in the absent branch, and `CacheInfo(hits=1, misses=2, maxsize=128, ...)`"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P10",
+  "blind_alternative": "does nothing and lets `random.sample` raise its own `ValueError(\"Sample larger than population or is negative\")`, or clamps `k = min(k, len(available_indices))` so small corpora keep working"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "validates the corpus once in `Raft.__call__` after chunking (or in `_RaftAnswer.__init__`) so the run dies before any row is parsed"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P10",
+  "blind_alternative": "raises a bare `ValueError` with an ad-hoc message and no attributes, or names it `NotEnoughDistractorsError`/`InsufficientChunksError` carrying only a message string"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "returns a normal 4-document set at `p=1.0` (checking lazily against the 3 distractors the present branch actually needs) and only fails, with a plain `ValueError`, when the coin lands absent"
+ }
+]

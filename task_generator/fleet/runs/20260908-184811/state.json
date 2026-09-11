@@ -1,0 +1,588 @@
+{
+ "run_id": "20260908-184811",
+ "started": "2026-09-08T18:48:11Z",
+ "through": "B",
+ "budget_usd": 200.0,
+ "tasks": {
+  "backend-params-config": {
+   "id": "g12",
+   "slug": "backend-params-config",
+   "brief": "task_generator/fleet/briefs2/backend-params-config.md",
+   "phase": "B",
+   "step": "evaluate",
+   "status": "parked",
+   "attempts": {
+    "new": 1,
+    "author": 1,
+    "build.oracle": 1,
+    "split": 1,
+    "tests": 1,
+    "build.naive": 1,
+    "build.spec": 1,
+    "bracket": 1,
+    "audit": 1,
+    "trim": 1,
+    "bracket.retrim": 1,
+    "emit": 1,
+    "horizon.ab": 1,
+    "push": 1,
+    "validate": 1,
+    "evaluate": 2
+   },
+   "history": [
+    {
+     "at": "2026-09-08T18:48:11Z",
+     "step": "new",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T18:54:59Z",
+     "step": "author",
+     "rc": 0,
+     "seconds": 408.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T18:59:01Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 242.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:03:51Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 289.6,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "2/9 facts rest on no invented name",
+      "9 facts quote an identifier the ticket already prints",
+      "9 facts quote an identifier already in curator/src"
+     ]
+    },
+    {
+     "at": "2026-09-08T19:04:39Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The split table shows 7 of 9 facts anchored on names the ticket never prints and curator does not contain (`BackendParamError`, `model_fields`, `unsupported_generation_params`); the two unanchored facts rest on chosen policy the code is silent about, and ticket.md is already the structured markdown the log asked for.",
+     "action": "proceed",
+     "reason": "No blocking findings. There is no leak: the ticket names `BackendModeError`, `_validate_backend_params`, `ValidationError`, `params` \u2014 never the invented anchors the hidden facts require, so rule 2 rules out a second `resplit`; split already self-recut once (\"4 of 8 facts rested on a name the ticket printed\"). The two facts with no invented name are the exempted case: `g12.r2.exclusions_or_crossover` (offline `model_post_init` sets `()` with no litellm lookup or import) and `g12.r2.failure_behavior` (hook never raises; `None` or any `Exception` yields `()`) are policy the source is silent about, not coincidences. `reformat_ticket` is moot \u2014 the 1463-char paragraph is gone; the file is a one-line goal plus `### ` sections of bullets, longest line under 500 chars, none \u2265900. Next: `cli.py tests backend-params-config`."
+    },
+    {
+     "at": "2026-09-08T19:14:48Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 609.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:17:34Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 165.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:22:02Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 268.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:22:35Z",
+     "step": "bracket",
+     "rc": 0,
+     "seconds": 33.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:53:55Z",
+     "step": "audit",
+     "rc": 1,
+     "seconds": 1880.2,
+     "ok": false,
+     "hard": [
+      "audit exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:54:30Z",
+     "step": "audit",
+     "rc": 1,
+     "judged": true,
+     "action": "proceed",
+     "reason": "None of the stopping conditions apply. Not `broken` (oracle 10/10) and not `unreachable` (spec 10/10); naive is 1/10 passing exactly `open_feature`, so there is no coincidence and no leak. The audit's blocking-looking verdicts are all about facts double-counting each other (`r1.observability` and `r2.scope` add no bits over siblings) plus test-hardening suggestions \u2014 these degrade how finely the suite attributes credit, not whether the task grades something real. Its two sharpest worries are self-caveated as unverified because the auditor had no file access, and the bracket answers them empirically: the `max_retries`/`request_timeout` ValidationError probes and `patch_lookup`'s reach must both work, or the oracle could not have passed 10/10. What remains \u2014 the alias-import and lru_cache holes in `patch_lookup` \u2014 would only penalize alternative correct builds, a ceiling concern worth logging for a later test-hardening pass, not a defect that spends the stage. Parking a task that brackets clean would cost more than it saves.",
+     "verdict": "The audit found no defect: every one of the nine hidden facts is real and discriminating, and its verdicts are narrow/cut/retest \u2014 redundancy trimming and test-hardening advice \u2014 while the bracket shows the textbook healthy shape (naive passes open_feature only, oracle 10/10, spec 10/10, Ships: yes)."
+    },
+    {
+     "at": "2026-09-08T19:59:35Z",
+     "step": "trim",
+     "rc": 0,
+     "seconds": 305.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:00:09Z",
+     "step": "bracket.retrim",
+     "rc": 0,
+     "seconds": 34.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:00:09Z",
+     "step": "emit",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:00:10Z",
+     "step": "horizon.ab",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:00:19Z",
+     "step": "push",
+     "rc": 0,
+     "seconds": 9.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:19:29Z",
+     "step": "validate",
+     "rc": 0,
+     "seconds": 1150.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T21:00:38Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 2469.7,
+     "ok": false,
+     "hard": [
+      "biggie-max refused the submission (submit produced no evaluation id.\n{\"error\": \"403 Forbidden: This task is gated to cipher-omni (GLM 5.2) or cheaper: run 10+ cipher-omni rollouts below a 0.4 pass rate to unlock pricier models.\"}\n\n); the model gate needs 10+ rollouts per arm first"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T21:01:05Z",
+     "step": "evaluate",
+     "rc": 0,
+     "judged": true,
+     "action": "retry",
+     "verdict": "The cipher-omni evaluation completed cleanly \u2014 20/20 rollouts successful, 0 errored, 6 passed (0.30 pass rate, avg 0.344) across 10 runs on each of the two arms \u2014 and the only block is that the biggie-max submission was refused by a model gate that this very run satisfies.",
+     "reason": "The refusal is an ordering problem, not a defect: the gate demands \"10+ cipher-omni rollouts below a 0.4 pass rate\", and the artifact shows exactly that now on record (10 rollout files each under horizon/g12-backend-params-config/.rollouts/v1 and .../-spec/.rollouts/v1; status \"completed\", errored 0, passed 6/20 = 0.30 < 0.4). biggie-max was submitted before that gate registered. The task itself is textbook healthy \u2014 bracket.json:27-48 has naive scoring 1.00 on g12.open_feature and 0.00 on all ten hidden facts, oracle and spec both 10/10 (bracket.json:50-93), no coincidences, no unmeasured or untested facts. None of the defect rules apply: nothing is broken, unreachable, leaking, or blind-zero. Re-running evaluate unchanged should now clear the gate; stopping would park a task whose only obstacle has already dissolved."
+    },
+    {
+     "at": "2026-09-08T21:57:34Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 3388.3,
+     "ok": false,
+     "hard": [
+      "biggie-max refused the submission (submit produced no evaluation id.\n{\"error\": \"403 Forbidden: This task is gated to cipher-omni (GLM 5.2) or cheaper: run 10+ cipher-omni rollouts below a 0.4 pass rate to unlock pricier models.\"}\n\n); the model gate needs 10+ rollouts per arm first"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T21:59:32Z",
+     "step": "evaluate",
+     "rc": 0,
+     "judged": true,
+     "verdict": "The cipher-omni evaluation is clean and discriminative (20/20 graded, 0 errored; blind arm 0.00 on all 20 pulled rollouts, spec arm ~11/20 exact passes), but the biggie-max stage is blocked by a per-task gate the spec arm cannot clear: unlocking needs 10+ cipher-omni rollouts BELOW a 0.4 pass rate and the spec arm sits at ~0.55.",
+     "action": "stop",
+     "reason": "This exact block was already judged `retry` at 21:01 (state.json:203-211, \"a model gate that this very run satisfies\"); that retry ran 3388s, burned a second 20-rollout gating stage, and returned the byte-identical 403 (state.json:212-222). The cause is visible in the pulled rollouts: worker.py:421-430 submits both arm ids in one call, and while the blind arm clears the gate (all 20 files under horizon/g12-backend-params-config/.rollouts/v1 score 0), the spec arm does not \u2014 ~11 of 20 files under .../-spec/.rollouts/v1 score exactly 1.0, ~0.55 against a threshold requiring below 0.4. A third retry buys the same wall for the same money; this is the recorded batch-payload-plan outcome verbatim (horizon/results.json:348). No defect rule fires \u2014 nothing broken, unreachable, leaking, or blind-zero-including-open_feature (bracket.json has naive 1.00 on g12.open_feature) \u2014 so no repair applies either. Park and report: the A/B in hand is usable, and clearing the verdict arm needs a human call, e.g. submitting arms separately so the blind arm, which does satisfy the gate, can run on biggie-max."
+    }
+   ],
+   "blocked": {
+    "step": "evaluate",
+    "why": "This exact block was already judged `retry` at 21:01 (state.json:203-211, \"a model gate that this very run satisfies\"); that retry ran 3388s, burned a second 20-rollout gating stage, and returned the byte-identical 403 (state.json:212-222). The cause is visible in the pulled rollouts: worker.py:421-430 submits both arm ids in one call, and while the blind arm clears the gate (all 20 files under horizon/g12-backend-params-config/.rollouts/v1 score 0), the spec arm does not \u2014 ~11 of 20 files under .../-spec/.rollouts/v1 score exactly 1.0, ~0.55 against a threshold requiring below 0.4. A third retry buys the same wall for the same money; this is the recorded batch-payload-plan outcome verbatim (horizon/results.json:348). No defect rule fires \u2014 nothing broken, unreachable, leaking, or blind-zero-including-open_feature (bracket.json has naive 1.00 on g12.open_feature) \u2014 so no repair applies either. Park and report: the A/B in hand is usable, and clearing the verdict arm needs a human call, e.g. submitting arms separately so the blind arm, which does satisfy the gate, can run on biggie-max."
+   },
+   "hosted": {
+    "blind": {
+     "task_id": "a297ec55-53e1-4df3-8d0b-f8e99a257c47",
+     "version": 1
+    },
+    "spec": {
+     "task_id": "035d1264-eab2-4f89-b5d8-bf26100a5e8c",
+     "version": 1
+    }
+   },
+   "evaluations": [
+    {
+     "id": "2f844ea1-75b8-49af-b08c-edc8b15f0e0a",
+     "model": "cipher-omni",
+     "runs": 10,
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    },
+    {
+     "id": "0186ccb6-6817-404e-ae5b-136a08155ae7",
+     "model": "cipher-omni",
+     "runs": 10,
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    }
+   ]
+  },
+  "raft-document-set": {
+   "id": "g13",
+   "slug": "raft-document-set",
+   "brief": "task_generator/fleet/briefs2/raft-document-set.md",
+   "phase": "B",
+   "step": "evaluate",
+   "status": "parked",
+   "attempts": {
+    "new": 1,
+    "author": 1,
+    "build.oracle": 2,
+    "split": 2,
+    "tests": 2,
+    "build.naive": 2,
+    "build.spec": 2,
+    "bracket": 2,
+    "audit": 1,
+    "trim": 1,
+    "bracket.retrim": 1,
+    "emit": 1,
+    "horizon.ab": 1,
+    "push": 1,
+    "validate": 1,
+    "evaluate": 1
+   },
+   "history": [
+    {
+     "at": "2026-09-08T18:51:11Z",
+     "step": "new",
+     "rc": 0,
+     "seconds": 0.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:01:49Z",
+     "step": "author",
+     "rc": 0,
+     "seconds": 637.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:04:20Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 151.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:09:35Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 314.7,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "5/9 facts rest on no invented name",
+      "9 facts quote an identifier the ticket already prints",
+      "9 facts quote an identifier already in curator/src"
+     ]
+    },
+    {
+     "at": "2026-09-08T19:10:57Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "No leak and no defect: the ticket never prints `InsufficientDistractorsError`, `CacheInfo`/`cache_info`, `maxsize=512`, append-last ordering, or the k=distractors+1 rng order, so every hidden fact still rests on a chosen value or a silence. The one concrete complaint the log makes is layout \u2014 the `### Document set and parse` bullet block (ticket.md:52-55) runs ~940 characters with no break.",
+     "action": "reformat_ticket",
+     "reason": "Exit 1 came from the name-coverage heuristic, and the gate's own exemption applies: r1.rule rests on APPEND-LAST + marker-carried index + deleting the `-1` guard, r1.scope on the question joining the lru_cache key at maxsize=512, r1.exclusions on coin\u2192sampler(k=distractors+1)\u2192shuffle ordering, r1.failure_behavior on pass-through of an inconsistent DocumentSet \u2014 all chosen values or policies raft.py is silent about, each with a documented blind_alternative in fact_sources.json. So `resplit` is wrong (rule 2: no leak, and split already self-re-cut once from 7/8), and coincidence would call for author --extend, not a re-cut (rule 1). Nothing is `broken` or `unreachable` and there is no small specific mis-cut to fix by hand, so `hand_cut`/`stop` would park a healthy task. What remains is the artifact's own stated requirement \u2014 \"The visible ticket has to be readable and it is not\" \u2014 which the re-cut did not fix: ticket.md:52-55 is one unbroken ~940-char run in the section carrying DocumentSet, oracle_index and the parse contract. Reformat preserves wording, touches neither hidden.md nor the oracle, and `tests` will not fix it."
+    },
+    {
+     "at": "2026-09-08T19:27:15Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 520.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:28:54Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 98.7,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:32:30Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 216.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:33:05Z",
+     "step": "bracket",
+     "rc": 1,
+     "seconds": 34.0,
+     "ok": false,
+     "hard": [
+      "g13.r1.exclusions_or_crossover: coincidence",
+      "g13.r1.failure_behavior: coincidence",
+      "g13.r1.exclusions_or_crossover: naive scores 1.0 \u2014 not hidden from a ticket-only build",
+      "g13.r1.failure_behavior: naive scores 1.0 \u2014 not hidden from a ticket-only build"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:33:44Z",
+     "step": "bracket",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The bracket is structurally healthy \u2014 pristine 0/10, oracle 10/10, spec 10/10 \u2014 but two of r1's parts are not hidden from a ticket-only build: `failure_behavior` (parse copies `oracle_index`/`oracle_present` through) is stated outright by the ticket's parse table, and `exclusions_or_crossover` (coin \u2192 sampler with k=distractors+1 when absent \u2192 shuffle) is already the pristine code's own behaviour.",
+     "action": "author_extend",
+     "reason": "Both blocking findings are `coincidence`, and rule 1 is measured: a coincidence is a fact about the specification, not the cut, so `author_extend` and never a re-cut. The naive.patch confirms neither fact could be hidden by re-cutting: `\"oracle_index\": doc_set.oracle_index` follows directly from ticket.md:65 (\"from the document set\"), and the `self.sampler(available_indices, self.distractors + 1)` + shuffle in the oracle-absent branch appears as unchanged context in the patch \u2014 it is existing source, so any faithful rng migration reproduces it. No `broken`/`unreachable` (oracle and spec are 10/10), so rule 3's stop does not apply; naive passes `open_feature` and fails 7, so this is not the rule 4 `amend_ticket` shape \u2014 the ticket says too much here, not too little, and adding detail would make it worse. `hand_cut` is out because the repair is not in the cut at all: no choice of which parts to hide makes ticket-stated or source-resident content unrecoverable. Extend keeps the parts and the oracle and adds parts carrying content the codebase cannot supply, which is exactly the deficit these two facts show."
+    },
+    {
+     "at": "2026-09-08T19:39:45Z",
+     "step": "author --extend",
+     "rc": 0
+    },
+    {
+     "at": "2026-09-08T19:41:51Z",
+     "step": "build.oracle",
+     "rc": 0,
+     "seconds": 125.3,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T19:51:37Z",
+     "step": "split",
+     "rc": 1,
+     "seconds": 586.4,
+     "ok": true,
+     "hard": [],
+     "soft": [
+      "3/8 facts rest on no invented name",
+      "8 facts quote an identifier the ticket already prints",
+      "8 facts quote an identifier already in curator/src"
+     ]
+    },
+    {
+     "at": "2026-09-08T19:52:30Z",
+     "step": "split",
+     "rc": 1,
+     "judged": true,
+     "verdict": "The exit-1 is the split heuristic firing on generic shared vocabulary (`class`, `self`, `parse`, `chunk_id`, `True`), not a leak: no graded name appears in ticket.md, and the ticket on disk is already the structured rewrite the log demanded.",
+     "action": "proceed",
+     "reason": "No blocking findings. Every invented name checked against ticket.md: `RaftDrawStats`/`document_sets`/`with_oracle`/`oracle_rate`, `stats`, `cache_info`/`maxsize`, `InsufficientDistractorsError` appear nowhere \u2014 the ticket prints only the unrelated `RaftSampling`. So rule 2's LEAK condition is unmet, and split already self-re-cut once (\"4 of 8 facts rested on a name the ticket printed\"); a second resplit has nothing to distinguish it. The three facts with no invented name are not coincidences: fact_sources.json gives each a concrete blind alternative that is exactly what the code does today \u2014 the two-arg memo key `(chunk_id, oracle_document)` at raft.py:109 (r1.exclusions), lazy per-branch validation so `p=1.0` succeeds (r2.scope), and `enumerate(text)` at raft.py:218 keeping the three blanks (r2.exclusions). Each rests on a chosen policy the source is silent about, the exemption the gate itself names. reformat_ticket is already satisfied: ticket.md is one goal line plus eight `### ` sections of bullets, longest line ~490 chars, not the 1545 the log quoted from the pre-rewrite draft. Nothing here is `broken` or `unreachable`, so stop/hand_cut would park a healthy task."
+    },
+    {
+     "at": "2026-09-08T19:59:41Z",
+     "step": "tests",
+     "rc": 0,
+     "seconds": 430.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:01:27Z",
+     "step": "build.naive",
+     "rc": 0,
+     "seconds": 106.0,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:03:45Z",
+     "step": "build.spec",
+     "rc": 0,
+     "seconds": 137.9,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:04:18Z",
+     "step": "bracket",
+     "rc": 0,
+     "seconds": 33.1,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:31:57Z",
+     "step": "audit",
+     "rc": 1,
+     "seconds": 1658.8,
+     "ok": false,
+     "hard": [
+      "audit exited 1"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:32:23Z",
+     "step": "audit",
+     "rc": 1,
+     "judged": true,
+     "action": "proceed",
+     "reason": "Exit 1 here is the heuristic \"not every fact came back ship\", not a defect. Every escalation in audit.md is speculative and self-flagged as unverifiable: the r1.observability cut rests on \"if raft.py:109 already reads 512\", which the auditor could not open, and the bracket measures naive FAILING that fact. The two `retest` items and the r2.scope blind pass are hypothetical builds the auditor itself rates \"three coincidences\", \"a minority path\", \"weak evidence\" \u2014 and the measured naive run contradicts them 8-for-8. No coincidence was observed, so rule 1 does not fire; no leak, so no resplit; naive passes `open_feature` and fails everything else, so rule 4 is satisfied and no amend_ticket is owed. What is left is prose narrowing (drop an unobservable placement clause, decouple a test from the open signature, drop `column_names == []`) \u2014 refinements, not spending into a defect.",
+     "verdict": "The audit is an advisory quality review written without file access (it says so repeatedly): 3 ship, 2 narrow, 2 retest, 1 cut, all wording/tightening suggestions with no `broken` or `unreachable` defect. The measured bracket is the healthy shape \u2014 naive passes `open_feature` and fails all 8 hidden facts, oracle and spec 9/9, Ships: yes."
+    },
+    {
+     "at": "2026-09-08T20:39:08Z",
+     "step": "trim",
+     "rc": 0,
+     "seconds": 404.5,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:39:41Z",
+     "step": "bracket.retrim",
+     "rc": 0,
+     "seconds": 33.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:39:42Z",
+     "step": "emit",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:39:42Z",
+     "step": "horizon.ab",
+     "rc": 0,
+     "seconds": 0.2,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:39:50Z",
+     "step": "push",
+     "rc": 0,
+     "seconds": 8.4,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T20:56:29Z",
+     "step": "validate",
+     "rc": 0,
+     "seconds": 998.6,
+     "ok": true,
+     "hard": [],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T21:18:10Z",
+     "step": "evaluate",
+     "rc": 0,
+     "seconds": 1301.5,
+     "ok": false,
+     "hard": [
+      "biggie-max refused the submission (submit produced no evaluation id.\n{\"error\": \"403 Forbidden: This task is gated to cipher-omni (GLM 5.2) or cheaper: run 10+ cipher-omni rollouts below a 0.4 pass rate to unlock pricier models.\"}\n\n); the model gate needs 10+ rollouts per arm first"
+     ],
+     "soft": []
+    },
+    {
+     "at": "2026-09-08T21:18:47Z",
+     "step": "evaluate",
+     "rc": 0,
+     "judged": true,
+     "verdict": "The cipher-omni arm completed cleanly (20/20 graded, 0 errored, 10 passed, avg_score 0.50); biggie-max was refused because the gate only unlocks pricier models at a cipher-omni pass rate below 0.4, and this task sits at 0.50.",
+     "action": "stop",
+     "reason": "Not transient. The eval succeeded (status completed, job_state SUCCEEDED, 0 errored, 20 graded, 10 runs/task), so the \"10+ rollouts\" half of the gate is already met; the blocking half is the measured rate \u2014 the 403 needs <0.4 and the artifact reports 10/20 passed, avg_score 0.5. Re-running evaluate unchanged feeds the gate identical input and earns the same refusal at the cost of another 20 rollouts. No repairable defect is visible either: no broken oracle, no unreachable requirement, no correlated assertion text to trace; the shown rollout_statuses are one local_task_id failing throughout while the other arm carries the passes, i.e. the ordinary two-arm split. The real next move is a difficulty decision (harden until cipher-omni falls under 0.4, or accept a cipher-omni-only task), which belongs to the fleet owner, not to a re-run. Rule 7 applies."
+    }
+   ],
+   "blocked": {
+    "step": "evaluate",
+    "why": "Not transient. The eval succeeded (status completed, job_state SUCCEEDED, 0 errored, 20 graded, 10 runs/task), so the \"10+ rollouts\" half of the gate is already met; the blocking half is the measured rate \u2014 the 403 needs <0.4 and the artifact reports 10/20 passed, avg_score 0.5. Re-running evaluate unchanged feeds the gate identical input and earns the same refusal at the cost of another 20 rollouts. No repairable defect is visible either: no broken oracle, no unreachable requirement, no correlated assertion text to trace; the shown rollout_statuses are one local_task_id failing throughout while the other arm carries the passes, i.e. the ordinary two-arm split. The real next move is a difficulty decision (harden until cipher-omni falls under 0.4, or accept a cipher-omni-only task), which belongs to the fleet owner, not to a re-run. Rule 7 applies."
+   },
+   "hosted": {
+    "blind": {
+     "task_id": "d8c542fc-f467-400d-9abc-18d9d20f1952",
+     "version": 1
+    },
+    "spec": {
+     "task_id": "e903afa1-530f-40e4-8c81-bab14739557f",
+     "version": 1
+    }
+   },
+   "rewinds": 2,
+   "evaluations": [
+    {
+     "id": "f9d3ab00-8754-4c0e-a47e-99c70a48f203",
+     "model": "cipher-omni",
+     "runs": 10,
+     "arms": [
+      "blind",
+      "spec"
+     ]
+    }
+   ]
+  }
+ }
+}

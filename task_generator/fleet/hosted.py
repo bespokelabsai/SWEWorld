@@ -224,7 +224,16 @@ _EVAL_ID = re.compile(r"\b([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 # transcripts end part-way through writing a file: they were cut off, not
 # defeated. A task whose change spans several files needs the headroom said out
 # loud, because the failure looks exactly like the model being unable to do it.
-MAX_TURNS = 120
+#
+# 180, not 120, and the extra sixty are for the LAST step rather than the work.
+# g7's two biggie-max rollouts both stopped at exactly 120. One had pushed and
+# deployed at turn 115 and scored 0.667; the other had 40 of its own tests
+# passing and ran out one command after `git commit`, so nothing reached CI, the
+# grader read an untouched checkout, and a rollout that did the whole task scored
+# 0.067 -- the same number a rollout that did nothing would get. Turns spent on a
+# world arm are not spent evenly: research took 36 of them before a line was
+# written, and the test loop took another 44-63.
+MAX_TURNS = 180
 
 
 def submit(task_ids: list[str], *, runs: int, model: str = MODEL,

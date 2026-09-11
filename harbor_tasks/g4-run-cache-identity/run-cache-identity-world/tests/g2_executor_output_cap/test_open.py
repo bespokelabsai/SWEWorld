@@ -10,9 +10,12 @@ stderr handed to an otherwise untouched `_format_exit_code_error`; and a
 `truncated_streams: list[str] = []` on both `CodeExecutionResult` and
 `CodeExecutionOutput` that survives `CodeExecutionResponse(...).model_dump()`.
 
-This file also holds the fake-`bespokelabs.sandbox` seam the r1/r2 suites import
-— the same seam `tests/code_executor/test_sandbox_backend.py` already uses, so no
-container, no subprocess and no clock is involved anywhere in this suite.
+The fake-`bespokelabs.sandbox` seam the r1/r2 suites import — the same seam
+`tests/code_executor/test_sandbox_backend.py` already uses — now lives in
+`probe_support.py`, so no container, no subprocess and no clock is involved
+anywhere in this suite, and the worker (`probe.py`) and this human reference
+share ONE definition of the seam and cannot drift. The names are re-exported
+below so `from test_open import install_sandbox, run` keeps working.
 
 Nothing here asserts *where* the budget cuts, how the elision reads, what a
 sub-floor budget does, what gets logged, or whether `error` is capped: those are
@@ -22,93 +25,27 @@ wrong still passes below as long as an over-budget stream comes back shortened.
 from __future__ import annotations
 
 import inspect
-import sys
-from types import ModuleType, SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
 
 from harness import read_field, surface
 
-from bespokelabs.curator.code_executor.code_execution_backend import sandbox_backend
-from bespokelabs.curator.code_executor.code_execution_backend._factory import _CodeExecutionBackendFactory
-from bespokelabs.curator.code_executor.types import (
+# The answer-free seam/inputs live in probe_support so the worker (probe.py) and
+# this human reference share ONE definition and cannot drift. The expected
+# VALUES this test asserts stay here (and in judge.py); probe_support holds none.
+from probe_support import (  # noqa: F401 - install_sandbox/run are re-exported for test_r1/test_r2
+    FILES,
     CodeExecutionBackendConfig,
     CodeExecutionOutput,
     CodeExecutionResponse,
     CodeExecutionResult,
+    _CodeExecutionBackendFactory,
+    execute,
+    install_sandbox,
+    run,
+    sandbox_backend,
 )
-
-FILES = "files-archive"
-
-
-# ---------------------------------------------------------------------------
-# The fake sandbox seam, shared with test_r1.py and test_r2.py
-# ---------------------------------------------------------------------------
-def install_sandbox(
-    monkeypatch,
-    *,
-    exit_code: int = 0,
-    stdout: str = "",
-    stderr: str = "",
-    files: str = FILES,
-    command_error: BaseException | None = None,
-    exit_error: BaseException | None = None,
-):
-    """Install a fake `bespokelabs.sandbox` that returns exactly what it is given.
-
-    `command_error` makes `execute_command` raise (so the backend's `except`
-    branch sees `result is None`); `exit_error` makes `Sandbox.__exit__` raise
-    (so that branch sees a fully populated result).
-    """
-
-    class FakeSandbox:
-        def __init__(self, backend_name, **kwargs):
-            self.backend_name = backend_name
-            self.kwargs = kwargs
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, exc_type, exc, tb):
-            if exit_error is not None:
-                raise exit_error
-            return False
-
-        def write_file(self, path, content):
-            pass
-
-        def execute_command(self, command, args=None):
-            if command_error is not None:
-                raise command_error
-            return SimpleNamespace(exit_code=exit_code, stdout=stdout, stderr=stderr)
-
-    module = ModuleType("bespokelabs.sandbox")
-    module.Sandbox = FakeSandbox
-    monkeypatch.setitem(sys.modules, "bespokelabs.sandbox", module)
-    monkeypatch.setattr(sandbox_backend, "_collect_sandbox_files", lambda sandbox: files)
-    # every run in this suite is judged on the budget it was handed, never on an
-    # ambient one; nothing here sets this variable, so nothing may inherit it
-    monkeypatch.delenv("CURATOR_MAX_OUTPUT_BYTES", raising=False)
-
-
-def execute(*, timeout: int = 10, max_output_bytes=None):
-    """Call `_execute_in_sandbox` directly; omit the budget entirely when None."""
-    kwargs = {} if max_output_bytes is None else {"max_output_bytes": max_output_bytes}
-    return sandbox_backend._execute_in_sandbox(
-        code="print('hi')",
-        code_input="",
-        timeout=timeout,
-        backend_name="local",
-        sandbox_kwargs={},
-        **kwargs,
-    )
-
-
-def run(monkeypatch, *, timeout: int = 10, max_output_bytes=None, **sandbox):
-    """Install the fake sandbox and run one execution through it."""
-    install_sandbox(monkeypatch, **sandbox)
-    return execute(timeout=timeout, max_output_bytes=max_output_bytes)
 
 
 # =============================================================================

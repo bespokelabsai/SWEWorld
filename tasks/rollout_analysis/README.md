@@ -48,6 +48,15 @@ work is (transcript × answer-key remark), and **the readers decide; the scripts
 
 ## Swap done 2026-09-11: g7 → v5 eval 8deffce4, g9 → v8 eval 3b0b259f (old verdicts in `readers/_superseded/`)
 
+Later the same day g3 went the same way: v9 eval 035777f5, the rerun on the corpus and
+grader fix. Its v7 verdicts, pre-pass and pulled records are in `_superseded/g3_v7_evalce846459`
+under `readers/`, `prepass/`, `full/` and `rollouts/`. `synth.py` also gained a corpus-spread
+section (chat only / mostly chat / spread), which the report's top section reads from.
+
+g11 followed: v11 eval a8572080, the rerun on the G11-H fix (konrad's `rev2` now retracts both
+halves of his herring). Its v7 (eval 94bf8242) material is in `_superseded/g11_v7_eval94bf8242`,
+and the three run-1 overrides that belonged to that eval were removed from `aggregate.py`.
+
 The checklist that was followed, kept for the next rerun:
 
 Nidhi is rerunning **g7** and running **10 new g9 rollouts**. When they are done:

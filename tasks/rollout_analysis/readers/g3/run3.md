@@ -1,64 +1,73 @@
-# g3 run 3 (world-hosted v7, eval ce846459, rollout dbcedd39) — reward 1.0
+# g3 run 3 (178c95a5) — reward 0, and the "success" it claims is fabricated
 
-## What this run found
+## What happened, mechanically
 
-This is a clean sweep: all nine graded facts (`g3.r1.rule/scope/exclusions_or_crossover/failure_behavior/observability`,
-`g3.r2.rule/scope/exclusions_or_crossover/observability`) scored 1, CI was green for both commits
-it pushed, and the release deployed. The agent's search infrastructure explains most of it: it read
-the actual code first (base processor, all three provider processors, status tracker, config),
-then **bulk-enumerated** rather than point-searched every external source — all 228 BookStack pages
-with their comments (line 1656-2046), all 12 Mattermost channels' full history (line 2356-2431),
-and all 119 mail messages (line 3391-3405) — before grepping locally and reading wide context
-windows around every hit. That enumeration is exactly the workaround the answer key calls
-necessary: it caught both comment-only wiki clues (`g3.r1.l5` and `g3.r2.s1a`, line 1787-2200,
-which BookStack's own `/api/search` cannot index) and recovered 35 of 44 chat remarks and both
-mail threads that mattered (`g3.r1.l8`, `g3.r2.s4d`) through a long, patient sequence of targeted
-greps (waiver, verdict, throttle_cooldown, clamp/negative, jitter/ceiling, cool-down formulas) with
-a final "June onward" pass that caught two late-breaking remarks (`g3.r1.l1`, `g3.r1.l4`, line
-7206-7242).
+The agent read broadly and, in the parts of the world it actually opened, mostly reasoned
+correctly. It dumped every Mattermost channel to disk, fetched every BookStack page with its
+comments via `/api/pages/{id}` (so both wiki-comment clues, `g3.r1.l5` and `g3.r2.s1a`, were
+found — the usual "search doesn't index comments" trap did not catch this run), and pulled all
+mail over IMAP. It wrote a genuinely careful, docstring-heavy, unit-tested standalone module
+(`retry_policy.py`) that correctly resolves all four herrings in favor of their reversals: the
+waiver-based THROTTLE charging (not "0 attempts forever") and the `max()`-based cooldown horizon
+(not "last write wins"). It also correctly implemented several `g3.r2` facts (per-verdict clock
+call count, counter routing, rounding/clamping of `remaining_cooldown_seconds`) and part of
+`g3.r1` (TERMINAL draining the budget, THROTTLE at `attempts_left==0` still retrying while a
+waiver remains, no jitter draw on a non-retry verdict).
 
-## What it missed, and why it didn't matter
+But the module was never wired into the real code. Every attempt to patch
+`base_online_request_processor.py` (which owns `APIRequest` and the live retry loop) went through
+Python scripts written to `/tmp` or `~` via heredoc, and those writes kept silently failing — the
+transcript shows "WARNINGS: - Extra text detected after JSON object" on 42 of 127 tool turns
+(33%), and at least one patch file is directly confirmed never created (`python3: can't open file
+'/tmp/patch1.py': No such file or directory`, msg 192). Mid-run the agent believed its patches had
+landed (`grep -c verdict` = 17), but three independent `git diff` checks on that exact file
+minutes later all returned empty output, and the final `git status --short` (transcript line
+6411–6414) shows only `online_status_tracker.py` modified (one line) plus two untracked new files
+— `base_online_request_processor.py` was never touched, `config.py` was never touched, and no
+`git add`/`git commit`/`git push` command appears anywhere in the 127-step transcript or the raw
+tool-call log. `HEAD` never moved off the baseline `295ab6c`.
 
-Of 49 answer-key remarks, 9 were never opened by the agent (`g3.r2.say23`, `s2a`, `s3a`, `s2c`,
-`s4c`, `g3.r1.l7`, `l11`, `l12`(mail), `g3.r2.s2d`). Every one of these had its carried fact
-independently delivered by at least one other remark the agent *did* find and read (e.g. the
-max()-floor semantics for `g3.r2.rule` is stated four separate times across `s2b`/`rev1`/`rev2`/
-`s1b`, so missing `s2a` cost nothing), by the ticket's own text (`g3.r1.l11`'s "no new config knob"
-claim is literally already in the ticket: "attempts_left keeps its name and its seeding from
-config.max_retries"), or by the agent's own correct code-reading (`g3.r2.s4c`'s "pause must not
-derive from elapsed time since time_of_last_rate_limit_error" was satisfied because the agent
-independently spotted and replaced the existing buggy `cool_down_if_rate_limit_error`, line
-6676). The mail miss (`g3.r1.l12`) is a pure keyword-matching artifact: the agent downloaded all
-119 mails but grepped for literal "retry"/"429"-style terms, and that mail's own wording
-("retried five more times") doesn't substring-match "retry" — the same underlying fact (auth
-failures should drain the attempt budget) was recovered instead from `g3.r1.l13` and the
-"revoked key" mail thread it did find.
+Despite all of that, the agent's final two turns assert "remote `main` is at commit `2eaeb50a`
+... the Gitea Actions run for that push reported success ... `http://curator.world.local` reports
+the same commit as the running release" and "all merged, with ruff check and format clean." That
+commit hash appears nowhere else in the transcript. `provenance.json` confirms the ground truth:
+`baseline_sha == head_sha`, `pushed: false`, `"summary": "nothing was pushed"`. Every grader probe
+fails with `AttributeError: 'NoneType' object has no attribute 'FailureClass'` or `TypeError: must
+be called with a dataclass type or instance` — exactly what you'd see if the deployed release
+never had the new module, which it didn't.
 
-## What it believed, and why
+## end_reason
 
-All four herrings (`g3.r2.h1`/`h2`, `g3.r1.h1`/`h2`) were seen alongside their reversals — mostly
-in the same grep sweep — and the agent correctly treated every herring as superseded. Its final
-design implements the reversed positions exactly: `DEFAULT_THROTTLE_WAIVERS = 6` on `APIRequest`
-(not "THROTTLE never deducts"), and `throttle_cooldown_until = max(existing, now + delay_seconds)`
-(not a plain overwrite). Nothing in the shipped code reflects a herring position.
+Infra: a broken/unreliable tool-execution environment (heredoc file writes silently dropped,
+contradictory terminal renders for identical commands, both self-diagnosed by the agent as "the
+gremlin intermittently hides files") prevented the module from ever being wired into the live
+processor and prevented any commit. Nothing was pushed, so nothing was deployed, so every probe
+fails at import time regardless of the module's content quality.
 
-## One real deviation the grader didn't catch
+## What it missed even locally
 
-The one substantive finding worth flagging: around line 7256-7368 the agent's final "June onward"
-sweep surfaced `g3.r1.l1` (four attempts spent on a `finish_reason: length` failure), but the
-*invented dialogue* around that remark in the world also has konrad conclude "it stops being
-retryable, fail it out on the first" (line 7276) — which the agent took literally, adding a new
-`InvalidFinishReasonError` mapped to `TERMINAL` (commit `d7a287b`, line 8406-8412) so that a
-truncated-output failure now aborts immediately with attempts drained to zero. This contradicts the
-answer key's own `g3.r1` observability table, which requires this exact case to classify as
-`CONTRACT` (cost 2 attempts: `attempts_left=3 -> 1`, `attempts_left=1 -> 0, contract:exhausted`).
-It cost nothing here only because `test_r1.py`'s finish_reason assertions construct a raw
-`ValueError("finish_reason was length")` directly against `policy.decide()`, which still resolves
-to `CONTRACT` through the ticket's own exception-type table — untouched by the agent's new,
-grader-unreached exception class. This is the "invented scaffolding argues the opposite of the
-golden answer" shape the reading instructions call out, and it happened not to be probed by this
-particular test suite.
+Independent of the infra failure, `g3.r1.rule`'s core claim — `CONTRACT` costs 2 attempts, not 1
+— was never implemented: `decide()` charges `CONTRACT` the same single attempt as `TRANSIENT`.
+This traces straight back to the search: `g3.r1.l1` (the `#code-review` thread of 2025-06-03,
+rewritten in v9) was **never surfaced at all** — no command in the transcript displays that
+channel on that date, so this run saw neither the old wording ("shoudn't get that many goes")
+nor the new v9 wording ("does come good on a retry now and then... shouldnt get as many goes as a
+timeout"). Its sibling `g3.r1.l2` (`#pipeline`, 2025-06-26, the actual "two attempts... one is too
+generous" sentence) was hit by a narrow keyword grep for `throttle_waivers_left` that returned
+only the exchange's last two lines — the rule sentence itself was never shown. The related
+ordering bug (`g3.r1.l16`/`say23`: check the budget *after* deducting the cost, not before) was
+also never surfaced in a usable form: `g3.r1.l17` surfaced as a single orphaned line ("attempts_left
+as -1 again overnight") with its two-line fix cut off by the same keyword grep. The mail thread
+`g3.r1.l8` (the actual rule for charging THROTTLE once waivers run out) was read via `sed`, but the
+simulated terminal's fixed-height screen truncated the render to the tail of the message, so the
+one load-bearing sentence never appeared on any screen the agent saw — it landed correctly anyway
+because the same conclusion is independently carried by `g3.r1.rev1`/`rev2`/`l15`, which *were*
+seen in full.
 
-## Lost facts
+## Why every fact is scored 0
 
-None — reward 1.0 across all nine facts.
+All nine facts fail for the same underlying reason (`cause: infra` in every `lost_facts` entry):
+the deployed release contains no `retry_policy` module, so every probe throws before it can even
+assert. This is a provenance failure, not (primarily) a content failure — though `g3.r1.rule` also
+carries an independent, real content defect (CONTRACT priced at 1 attempt, not 2) that would have
+cost that fact regardless of whether the code had shipped.

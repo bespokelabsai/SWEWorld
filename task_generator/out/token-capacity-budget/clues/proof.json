@@ -1,0 +1,100 @@
+{
+ "slug": "token-capacity-budget",
+ "task": "g10",
+ "runs": 3,
+ "source": "remarks",
+ "facts": {
+  "g10.open_feature": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r1.exclusions_or_crossover": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r1.observability": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r1.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r1.scope": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r2.exclusions_or_crossover": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r2.observability": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r2.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g10.r2.scope": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  }
+ },
+ "passed": 9,
+ "total": 9
+}

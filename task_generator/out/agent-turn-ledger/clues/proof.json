@@ -1,0 +1,100 @@
+{
+ "slug": "agent-turn-ledger",
+ "task": "g7",
+ "runs": 3,
+ "source": "remarks",
+ "facts": {
+  "g7.open_feature": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g7.r1.failure_behavior": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g7.r1.observability": {
+   "passed": false,
+   "per_run": [
+    true,
+    true,
+    false
+   ],
+   "rate": "2/3",
+   "why": "AssertionError: assert 'created' == 'adopted'"
+  },
+  "g7.r1.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g7.r1.scope": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g7.r2.failure_behavior": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g7.r2.observability": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g7.r2.rule": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  },
+  "g7.r2.scope": {
+   "passed": true,
+   "per_run": [
+    true,
+    true,
+    true
+   ],
+   "rate": "3/3",
+   "why": ""
+  }
+ },
+ "passed": 8,
+ "total": 9
+}

@@ -1,102 +1,878 @@
 {
   "task": "g11",
   "run": 10,
-  "eval": "94bf8242",
-  "rollout_id": "eb0dccde",
-  "reward": 0.7778,
+  "eval": "a8572080",
+  "rollout_id": "1fdcca2f-cef6-4e46-844c-093541fbcc55",
+  "reward": 0.8889,
   "facts": {
     "g11.r1.rule": 1,
-    "g11.r1.scope": 0,
+    "g11.r1.scope": 1,
     "g11.r1.exclusions_or_crossover": 1,
-    "g11.r1.failure_behavior": 1,
-    "g11.r1.observability": 0,
+    "g11.r1.failure_behavior": 0,
+    "g11.r1.observability": 1,
     "g11.r2.rule": 1,
     "g11.r2.exclusions_or_crossover": 1,
     "g11.r2.failure_behavior": 1,
     "g11.r2.observability": 1
   },
   "remarks": [
-    {"id":"g11.r1.l8","kind":"clue","carries":"rule,failure_behavior","found":"yes","step":30,"line":2391,"how":"Mattermost search 'ledger' + grep CHECKPOINT_NAME_TEMPLATE; full thread read at line 2925 (code-review 2020-2060)","near_miss":"","registered":"requirement","agent_quote":"Big find: `CheckpointInfo` also grows a `reason` field ... there's a validation requirement ('what stops a typo'd reason from landing in there', 'should be the ledger's own error not some generic one')","quote_line":2916,"acted":"followed","note":"CHECKPOINT_REASONS validation + raise implemented; StepLedgerError raised on unknown reason."},
-    {"id":"g11.r1.l1","kind":"clue","carries":"rule","found":"yes","step":30,"line":2389,"how":"mm.py search 'ledger'","near_miss":"","registered":"requirement","agent_quote":"one step should write one checkpoint","quote_line":2970,"acted":"followed","note":"One save_checkpoint per step implemented (tail-collapse), matching l1/rev1/rev2."},
-    {"id":"g11.r1.l10","kind":"clue","carries":"scope,observability","found":"no","step":null,"line":null,"how":"","near_miss":"code-review #17 13:12-13:27 thread ('the fixture at the top of test_trainer.py has neither switch on ... reasons ... exactly (\"final\",)') was never surfaced by any grep the agent ran; the agent's vocab greps ('ledger','CHECKPOINT_NAME_TEMPLATE','reasons') never hit this specific exchange, and no channel-wide unfiltered read of code-review around 2025-03-17 13:xx was done","registered":"n/a","agent_quote":"","quote_line":null,"acted":"n/a","note":"This is the exact fact the grader failed on -- the fixture case with neither switch on -- and it was never found."},
-    {"id":"g11.r1.l2","kind":"clue","carries":"rule","found":"no","step":null,"line":null,"how":"","near_miss":"engineering #17 14:02 thread on file/prefix ordering never grepped for (no 'prefix' or 'sorting checkpoint files' search term used)","registered":"n/a","agent_quote":"","quote_line":null,"acted":"n/a","note":""},
-    {"id":"g11.r1.l9","kind":"clue","carries":"scope","found":"no","step":null,"line":null,"how":"","near_miss":"pipeline #17 14:02 ('a run that finishes clean and leaves no checkpoint behind is a bug') never surfaced; agent's pipeline greps targeted later identifier terms (trailing window/loss_history/plan_resume) not this earlier plain-English thread","registered":"n/a","agent_quote":"","quote_line":null,"acted":"partly","note":"Final-step-always-checkpoints behavior was implemented anyway (from the ticket's own resume/checkpoint language and l18/rev2 examples), so the rule half of scope landed by other means even though this specific clue was missed."},
-    {"id":"g11.r1.l11","kind":"clue","carries":"scope","found":"no","step":null,"line":null,"how":"","near_miss":"code-review #18 14:02 ('leave the interval and the per-epoch triggers gated on their config fields exactly as they are, plenty of runs have both off on purpose') -- the single clue that states the gating rule explicitly -- was never surfaced by any grep run","registered":"n/a","agent_quote":"","quote_line":null,"acted":"contradicted","note":"THE missing clue. Its absence is the direct cause of the scope/observability failures: the agent invented the opposite rule (epoch fires even with the switch off) at line 3696/4841 and verified it against its own manual test run at line 4997-5039, where checkpoint_every_epoch was left at its False default and still produced an 'epoch' reason."},
-    {"id":"g11.r1.l13","kind":"clue","carries":"exclusions_or_crossover","found":"no","step":null,"line":null,"how":"","near_miss":"pipeline #19 13:04 thread never grepped directly; superseded by l15 which was found and carries the same fact","registered":"n/a","agent_quote":"","quote_line":null,"acted":"n/a","note":"Redundant with l15 (found) for this fact, so its absence did not cost the fact."},
-    {"id":"g11.r1.l12","kind":"clue","carries":"scope","found":"yes","step":39,"line":2927,"how":"grep 'CHECKPOINT_NAME_TEMPLATE|step_unit|dataset_signature|plan_steps|StepPlan' -> code-review.txt:2122 single line surfaced, not full 13:41-13:53 thread","near_miss":"partial -- only emil's one-line answer ('no, theres no \"reasons\" key in it at all...') surfaced; the full exchange establishing 'fireworks never writes checkpoints, one packed step per epoch' was not read in full","registered":"noted","agent_quote":"Big find: `CheckpointInfo` also grows a `reason` field that stays **last**...","quote_line":2916,"acted":"followed","note":"Ticket already states Fireworks gets no 'reasons' key and writes no checkpoints, so the agent's Fireworks implementation matched regardless of only seeing this fragment."},
-    {"id":"g11.r1.l17","kind":"clue","carries":"failure_behavior","found":"yes","step":30,"line":2388,"how":"mm.py search 'ledger'","near_miss":"","registered":"requirement","agent_quote":"same name as the *last* row collapses onto it (later loss wins, reasons union in canonical order)","quote_line":3695,"acted":"followed","note":"Tail-collapse (replace-in-place on repeat name) implemented per l16/l17/rev1."},
-    {"id":"g11.r1.l3","kind":"clue","carries":"rule","found":"yes","step":30,"line":2387,"how":"mm.py search 'ledger'; grep CHECKPOINT_NAME_TEMPLATE|step_unit|...","near_miss":"","registered":"requirement","agent_quote":"names come from `CHECKPOINT_NAME_TEMPLATE` giving e.g. `checkpoint-s000003`","quote_line":2970,"acted":"followed","note":"CHECKPOINT_NAME_TEMPLATE = \"{prefix}-s{step:06d}\" implemented."},
-    {"id":"g11.r1.l19","kind":"clue","carries":"observability","found":"yes","step":48,"line":3394,"how":"later grep pass (cookbooks context, 10-example/3-step walkthrough)","near_miss":"","registered":"noted","agent_quote":"For 10 examples/batch 4/3 epochs/accum 4 ... 3 optimizer steps","quote_line":4941,"acted":"followed","note":"Confirmed 10-example run -> 3 optimizer steps matches the e2e observability numbers, though the agent's own scratch config used different batch/epoch numbers than the graded e2e_config."},
-    {"id":"g11.r1.l4","kind":"clue","carries":"observability","found":"yes","step":39,"line":2939,"how":"code-review/engineering context dump around 'reason' near checkpoint/ledger","near_miss":"","registered":"requirement","agent_quote":"a save that doesn't say why still records reasons ('interval',)","quote_line":3696,"acted":"followed","note":"save_checkpoint(reasons=('interval',)) default implemented; CheckpointInfo field order (ends dataset_signature, reasons) implemented per l4/say23."},
-    {"id":"g11.r1.l14","kind":"clue","carries":"exclusions_or_crossover","found":"no","step":null,"line":null,"how":"","near_miss":"pipeline #21 13:08 thread (gradient_accumulation_steps stamped from the plan) not directly grepped; 'gradient_accumulation_steps' as a literal was covered via the ticket's own metadata spec instead","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":"batch_size/gradient_accumulation_steps on CheckpointInfo implemented per the ticket's own save_checkpoint signature, independent of this clue."},
-    {"id":"g11.r1.rev2","kind":"reversal of g11.r1.ledger-twin-checkpoints-emil","carries":"rule","found":"yes","step":39,"line":2932,"how":"code-review/cookbooks context dump; read in full at cookbooks 545-575","near_miss":"","registered":"requirement","agent_quote":"the Jan 28 'two rows / alphabetical' answer was explicitly superseded in March","quote_line":3130,"acted":"followed","note":"Central remark for r1.rule -- canonical_reasons() in CHECKPOINT_REASONS order, one save_checkpoint per step, keyword-only reasons, all implemented and manually verified (line 5036-5039)."},
-    {"id":"g11.r1.l18","kind":"clue","carries":"observability","found":"yes","step":39,"line":2942,"how":"grep 'reason' near checkpoint/ledger -> releases.txt 575-600 read in full","near_miss":"","registered":"requirement","agent_quote":"walkthrough asserts rows `checkpoint-s000002`=('interval','epoch') and `checkpoint-s000003`=('epoch','final')","quote_line":2970,"acted":"partly","note":"The two-row/two-name-order fact was matched exactly by the manual verification run (line 5035-5038), but only because that particular manual config happened to have both triggers 'on' in effect; the underlying gating rule (l11) was still missing, so the general case (fixture with epoch switch off) is wrong even though this specific observable matched."},
-    {"id":"g11.r1.l5","kind":"clue","carries":"rule","found":"no","step":null,"line":null,"how":"","near_miss":"engineering #24 14:06 thread (fixed label vocabulary, double-epoch-row folds into one) not directly grepped; redundant with l7/l6/rev2 which were found and cover the same ground","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":"canonical_reasons dedup behavior implemented anyway via l7/rev2."},
-    {"id":"g11.r2.l1","kind":"clue","carries":"rule,observability","found":"no","step":null,"line":null,"how":"","near_miss":"cookbooks #24 15:04 (8-step/warmup-2 run never logged 1e-4, peak 5e-05) not directly grepped by name; superseded by l5/l8 (found) and rev2 which cover the same warmup-ramp fact","registered":"n/a","agent_quote":"","quote_line":null,"acted":"n/a","note":""},
-    {"id":"g11.r1.l15","kind":"clue","carries":"exclusions_or_crossover,observability","found":"yes","step":30,"line":2385,"how":"mm.py search 'ledger'","near_miss":"","registered":"requirement","agent_quote":"the checkpoint `epoch` field following konrad's rule (the epoch of the batch that closed the step, hence 3 and 3)","quote_line":5045,"acted":"followed","note":"epoch=plan.epoch_of_batch(batches_completed) implemented, not the loop variable -- verified in manual test output steps/epochs [(2,3,8),(3,3,9)]."},
-    {"id":"g11.r1.l16","kind":"clue","carries":"failure_behavior","found":"yes","step":30,"line":2383,"how":"mm.py search 'ledger'","near_miss":"","registered":"requirement","agent_quote":"a save that doesn't say why still records reasons ('interval',)","quote_line":3696,"acted":"followed","note":"Same-name-as-last-row replace-in-place rule implemented per l16/l17/rev1."},
-    {"id":"g11.r2.rev1","kind":"reversal of g11.r2.lr-decay-to-zero-dario","carries":"rule,exclusions_or_crossover,observability","found":"yes","step":34,"line":2613,"how":"grep 'min_lr_ratio|decay|cosine|linear.*lr|lr_schedule|learning_rate_at' /tmp/chat/","near_miss":"","registered":"requirement","agent_quote":"the decay-to-zero endpoint was explicitly dropped in favour of a `min_lr_ratio` argument on `learning_rate_at` with module default `MIN_LR_RATIO = 0.1`, keyword-only behind a bare `*`, and it rescales the slope rather than clamping it","quote_line":2641,"acted":"followed","note":"MIN_LR_RATIO=0.1 module constant, learning_rate_at(..., *, min_lr_ratio=MIN_LR_RATIO) all implemented and matched the graded values exactly (r2.observability=1)."},
-    {"id":"g11.r2.l5","kind":"clue","carries":"rule,observability","found":"yes","step":34,"line":2628,"how":"grep 'min_lr_ratio|decay|cosine|...' /tmp/chat/","near_miss":"","registered":"requirement","agent_quote":"the size of each drop is set by how many steps are left after warmup","quote_line":3693,"acted":"followed","note":""},
-    {"id":"g11.r1.say25","kind":"clue","carries":"observability","found":"yes","step":32,"line":2542,"how":"grep 'CHECKPOINT_NAME_TEMPLATE|step_unit|dataset_signature|...'","near_miss":"","registered":"requirement","agent_quote":"every checkpoint out of the one run carries the same dataset_signature ... its a fingerprint of the data the plan was cut from","quote_line":2916,"acted":"followed","note":"dataset_signature plumbed through save_checkpoint and appears in metadata (meta output line 5039)."},
-    {"id":"g11.r1.rev1","kind":"reversal of g11.r1.ledger-twin-checkpoints-dario","carries":"rule","found":"no","step":null,"line":null,"how":"","near_miss":"releases #31 16:04 thread never surfaced; redundant with rev2 which carries the same substantive content (one save_checkpoint per step, checkpoint_name(prefix, step))","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":"Content fully recovered via rev2 instead."},
-    {"id":"g11.r2.l8","kind":"clue","carries":"rule","found":"yes","step":34,"line":2629,"how":"grep 'min_lr_ratio|decay|cosine|...' /tmp/chat/","near_miss":"","registered":"requirement","agent_quote":"the tail of a long run is training at basically nothing and the loss just stops moving","quote_line":2614,"acted":"followed","note":""},
-    {"id":"g11.r2.l2","kind":"clue","carries":"rule","found":"no","step":null,"line":null,"how":"","near_miss":"cookbooks #4 15:31 not directly grepped; redundant with l3 (top of ramp = base_lr, not one step later) which the rev1/rev2 formula already encodes","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r2.l6","kind":"clue","carries":"observability,rule","found":"no","step":null,"line":null,"how":"","near_miss":"general #7 13:41 (rel=1e-12 single approx) not directly grepped; the agent used rel=1e-12 anyway per the ticket's own e2e assertion style","registered":"n/a","agent_quote":"","quote_line":null,"acted":"n/a","note":""},
-    {"id":"g11.r2.l4","kind":"clue","carries":"rule","found":"no","step":null,"line":null,"how":"","near_miss":"incidents #9 13:21 (helper ignores run length) not directly grepped; redundant with the ticket text itself ('learning_rate_at ... actually depends on total_steps')","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r1.l7","kind":"clue","carries":"rule","found":"yes","step":39,"line":2928,"how":"grep 'CHECKPOINT_NAME_TEMPLATE|step_unit|dataset_signature|...' -> code-review.txt hit near 2482-2485, read in full","near_miss":"","registered":"requirement","agent_quote":"canonical_reasons hands them back in the order the tuple is written ... canonical_reasons(()) just comes back (), it doesn't raise ... hand it epoch twice and you get one epoch back","quote_line":2970,"acted":"followed","note":"canonical_reasons dedup/order/empty-ok/error-only-on-unknown all implemented and verified."},
-    {"id":"g11.r2.l3","kind":"clue","carries":"rule","found":"no","step":null,"line":null,"how":"","near_miss":"cookbooks #11 13:31 (peak sits on the last warmup step, not one step later) not directly grepped; redundant with rev2's formula which the agent implemented correctly","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r2.l7","kind":"clue","carries":"observability","found":"no","step":null,"line":null,"how":"","near_miss":"incidents #11 13:38 (3-step mock: 5e-05,1e-04,1e-05, current_step per batch) not directly grepped; the graded e2e values were matched via the ticket's own TrainingStats spec (current_step) plus rev1/rev2 formulas","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r1.l6","kind":"clue","carries":"rule","found":"yes","step":39,"line":2930,"how":"grep 'CHECKPOINT_NAME_TEMPLATE|...' -> code-review 2550-2580 read in full","near_miss":"","registered":"requirement","agent_quote":"sorted a to z puts final ahead of interval ... the CheckpointInfo field defaults to (), save_checkpoint's reasons kwarg to ('interval',)","quote_line":2990,"acted":"followed","note":""},
-    {"id":"g11.r2.l9","kind":"clue","carries":"rule,exclusions_or_crossover","found":"no","step":null,"line":null,"how":"","near_miss":"incidents #18 15:22 (flatten at a tenth of base_lr, hold past planned end) not directly grepped by name; fully redundant with rev1 which carries the same exclusions_or_crossover fact and was found","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r2.say20","kind":"clue","carries":"rule","found":"yes","step":33,"line":2583,"how":"grep 'min_lr_ratio|decay|cosine|...' /tmp/chat/ -> help.txt 138-141 read in full","near_miss":"","registered":"requirement","agent_quote":"its not a floor bolted onto a decay-to-zero line, it rescales the whole slope ... with min_lr_ratio=0.5, half way down the decay you read 7.5e-05, not 5e-05","quote_line":2624,"acted":"followed","note":"Rescale-the-whole-slope formula implemented, matching the exact observability numbers."},
-    {"id":"g11.r2.l11","kind":"clue","carries":"exclusions_or_crossover,observability","found":"no","step":null,"line":null,"how":"","near_miss":"general #21 14:03 (grid row A, step 99 went negative) not directly grepped; redundant with rev1's negative-value story and the ticket's own clamp requirement","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r1.say24","kind":"clue","carries":"observability","found":"yes","step":30,"line":2382,"how":"mm.py search 'ledger'","near_miss":"","registered":"requirement","agent_quote":"the row pins the batch_size it ran under","quote_line":2385,"acted":"followed","note":"batch_size field on CheckpointInfo implemented."},
-    {"id":"g11.r2.l12","kind":"clue","carries":"failure_behavior","found":"no","step":null,"line":null,"how":"","near_miss":"general #29 14:21 (default warmup 10 on 3-step smoke run never nears base_lr) not directly grepped; redundant with rev2/l13/say20's clipping story which the agent did find and implement","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r2.say19","kind":"clue","carries":"exclusions_or_crossover","found":"yes","step":46,"line":3327,"how":"grep 'trailing window|loss_history|mismatched|plan_resume|ste...' /tmp/chat/","near_miss":"","registered":"requirement","agent_quote":"on the resume the stats keep counting current_batch straight on from the finished ones, no reset to 1","quote_line":3327,"acted":"followed","note":"Resume continues counting rather than resetting, matching plan_resume design."},
-    {"id":"g11.r2.l14","kind":"clue","carries":"exclusions_or_crossover","found":"no","step":null,"line":null,"how":"","near_miss":"incidents #6 14:02 (resumed run with grown epochs kept old-length rates) not directly grepped; redundant with 'Raising epochs alone is a legal resume' in the ticket itself plus rev1/l15","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r2.l10","kind":"clue","carries":"rule","found":"yes","step":34,"line":2630,"how":"grep 'min_lr_ratio|decay|cosine|...' -> code-review.txt:3127-3130","near_miss":"","registered":"requirement","agent_quote":"min_lr_ratio sits behind a bare * now, so callers have to name it ... MIN_LR_RATIO stays as the module level default","quote_line":2632,"acted":"followed","note":"Keyword-only min_lr_ratio with MIN_LR_RATIO default implemented exactly."},
-    {"id":"g11.r2.rev2","kind":"reversal of g11.r2.lr-decay-to-zero-konrad","carries":"rule,failure_behavior","found":"yes","step":30,"line":2441,"how":"mm.py search 'tinker finetune fireworks'","near_miss":"","registered":"requirement","agent_quote":"warmup uses `1 <= step <= effective_warmup` with `effective_warmup = min(warmup_steps, total_steps)` (clipped, not raising)","quote_line":3693,"acted":"followed","note":"Formula and clip-not-raise behavior implemented and matched the graded observability/failure_behavior values exactly."},
-    {"id":"g11.r2.l13","kind":"clue","carries":"failure_behavior","found":"no","step":null,"line":null,"how":"","near_miss":"viewer #2 11:12 (keep warmup-10/3-step test at rel=1e-12, plus 1-step/warmup-99 case) not directly grepped; redundant with rev2's clip rule which the agent found and implemented","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r2.l15","kind":"clue","carries":"exclusions_or_crossover","found":"no","step":null,"line":null,"how":"","near_miss":"viewer #3 14:02 (resume recomputes with the trainer's current total_steps, not the saved one) not directly grepped; redundant with say19/rev1 and the ticket's own resume language","registered":"n/a","agent_quote":"","quote_line":null,"acted":"followed","note":""},
-    {"id":"g11.r1.say23","kind":"clue","carries":"observability","found":"yes","step":32,"line":2543,"how":"grep 'CHECKPOINT_NAME_TEMPLATE|step_unit|dataset_signature|...'","near_miss":"","registered":"requirement","agent_quote":"[f.name for f in dataclasses.fields(CheckpointInfo)] still opens name path step epoch loss, appended fields carry a default -- ten now","quote_line":3696,"acted":"followed","note":"CheckpointInfo field order (ends dataset_signature, reasons) implemented per say23/l4."}
+    {
+      "id": "g11.r1.ledger-twin-checkpoints-dario",
+      "kind": "herring",
+      "carries": [],
+      "found": "partial",
+      "step": 44,
+      "line": 3429,
+      "how": "channel dump (sed range read)",
+      "near_miss": "the sed read of releases.txt 320-370 (line 3430) returned a bounded terminal view that starts at konrad's trailing 'mhm ok, so it does not matter which trigger we test first' -- the actual herring claims ('both of them...we dont collapse it into something clever', 'no, they stay as they are - {prefix}_step_{n}...', 'sorted alphabeticaly actually') were scrolled off above the visible window and never seen. The agent still got the right final design because the SECOND herring (ledger-twin-checkpoints-emil) and both reversals were seen in full.",
+      "registered": "dismissed",
+      "agent_quote": "Analysis: There's an evolving design: early Jan decisions (two rows, alphabetical reasons) superseded by March decisions (one row per save with a reasons tuple, canonical_reasons in CHECKPOINT_REASONS order interval, epoch, final; name template 'checkpoint-s000003'). I must read the later threads ca...",
+      "quote_line": 3492,
+      "acted": "contradicted"
+    },
+    {
+      "id": "g11.r1.ledger-twin-checkpoints-emil",
+      "kind": "herring",
+      "carries": [],
+      "found": "yes",
+      "step": 43,
+      "line": 3412,
+      "how": "grep -n -i 'reason' pipeline.txt engineering.txt releases.txt | grep -i 'checkpoint\\|ledge",
+      "registered": "dismissed",
+      "agent_quote": "Analysis: There's an evolving design: early Jan decisions (two rows, alphabetical reasons) superseded by March decisions (one row per save with a reasons tuple, canonical_reasons in CHECKPOINT_REASONS order interval, epoch, final; name template 'checkpoint-s000003'). I must read the later threads ca...",
+      "quote_line": 3492,
+      "acted": "contradicted"
+    },
+    {
+      "id": "g11.r2.lr-decay-to-zero-dario",
+      "kind": "herring",
+      "carries": [],
+      "found": "yes",
+      "step": 33,
+      "line": 2868,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "dismissed",
+      "agent_quote": "Analysis: Found LR design: decay hits exactly zero at total_steps, warmup strict `step < warmup_steps`. Need the decay shape (linear vs cosine).",
+      "quote_line": 2844,
+      "acted": "contradicted"
+    },
+    {
+      "id": "g11.r2.lr-decay-to-zero-konrad",
+      "kind": "herring",
+      "carries": [],
+      "found": "yes",
+      "step": 27,
+      "line": 2633,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "dismissed",
+      "agent_quote": "Analysis: The LR schedule design has evolved substantially in chat: an older settled design (linear warmup while step<warmup_steps, linear decay to 0.0 at total_steps) was later revised (min_lr_ratio rescaling the slope, warmup compare `1 <= step <= effective_warmup`, `effective_warmup = min(warmup_...",
+      "quote_line": 2918,
+      "acted": "contradicted"
+    },
+    {
+      "id": "g11.r1.l8",
+      "kind": "clue",
+      "carries": [
+        "rule",
+        "failure_behavior"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2631,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints: one save per optimizer step; `reasons` tuple appended LAST on CheckpointInfo (default `()`); save_checkpoint keyword-only `reasons=(\"interval\",)`; CHECKPOINT_REASONS=(\"interval\",\"epoch\",\"final\") order via `canonical_reasons`, unknown reason raises the ledger's own error at the call; CHE...",
+      "quote_line": 4797,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l1",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2629,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints: one save per optimizer step; `reasons` tuple appended LAST on CheckpointInfo (default `()`); save_checkpoint keyword-only `reasons=(\"interval\",)`; CHECKPOINT_REASONS=(\"interval\",\"epoch\",\"final\") order via `canonical_reasons`, unknown reason raises the ledger's own error at the call; CHE...",
+      "quote_line": 4797,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l10",
+      "kind": "clue",
+      "carries": [
+        "scope",
+        "observability"
+      ],
+      "found": "yes",
+      "step": 56,
+      "line": 4182,
+      "how": "channel dump (sed range read)",
+      "registered": "requirement",
+      "agent_quote": "Analysis: LR design is coming together... Checkpoint design: one row per step, `reasons` tuple last on CheckpointInfo, canonical_reasons in CHECKPOINT_REASONS order (interval, epoch, final), CHECKPOINT_NAME_TEMPLATE with 6-digit padded step. I need to pin down whether a 'final' checkpoint is always ...",
+      "quote_line": 4176,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l2",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 46,
+      "line": 3602,
+      "how": "sed -n '1540,1600p' engineering.txt",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints get one identity: one save_checkpoint per optimizer step, named by checkpoint_name(prefix, step) off CHECKPOINT_NAME_TEMPLATE with the step padded to six digits, carrying the reasons it was written for in CHECKPOINT_REASONS order (interval, epoch, final) via canonical_reasons -- not alph...",
+      "quote_line": 7293,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l9",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "the one apparent hit ('mhm, that tracks') is a false positive from a different exchange (l19's cookbooks conversation); this remark's actual content ('nothing on disk to pick up', 'a bug I think') was never shown. The scope fact (final always checkpoints) was recovered from l10/l11/l12 instead.",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a"
+    },
+    {
+      "id": "g11.r1.l11",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "yes",
+      "step": 41,
+      "line": 3283,
+      "how": "channel dump (sed range read)",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints: one save per optimizer step; `reasons` tuple appended LAST on CheckpointInfo (default `()`); save_checkpoint keyword-only `reasons=(\"interval\",)`; CHECKPOINT_REASONS=(\"interval\",\"epoch\",\"final\") order via `canonical_reasons`, unknown reason raises the ledger's own error at the call; CHE...",
+      "quote_line": 4797,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l13",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "grep/keyword searches never hit this exchange's wording ('lost an hour', 'two past where epoch 1 ends'); the exclusions_or_crossover fact was recovered instead from l14/l15.",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a"
+    },
+    {
+      "id": "g11.r1.l12",
+      "kind": "clue",
+      "carries": [
+        "scope"
+      ],
+      "found": "yes",
+      "step": 41,
+      "line": 3303,
+      "how": "sed -n '1975,2005p' code-review.txt > /tmp/x.txt; cat /tmp/x.txt",
+      "registered": "requirement",
+      "agent_quote": "Analysis: FireworksTrainer builds plan_packed_steps -- one packed step per epoch -- instead of reporting total_steps=0.",
+      "quote_line": 7314,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l17",
+      "kind": "clue",
+      "carries": [
+        "failure_behavior"
+      ],
+      "found": "partial",
+      "step": 27,
+      "line": 2628,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "near_miss": "surfaced ONLY as a Mattermost search snippet -- the opening question ('ledger q - same checkpoint name got logged twice...') truncated to ~90 chars, first line 2627/2630. The agent later issued `sed -n '515,570p' releases.txt` (msg 89) specifically aimed at this window, but the returned 'Current Terminal Screen' (a bounded-height view, confirmed against the raw tool_result in the full rollout JSON) starts mid-file at ts 1742816512000 -- past the entire 7-line l17 exchange (ts ~1742391660000-1742392260000). The reply that actually carries the fact ('both carry forward onto it. neither set gets dropped') was never rendered to the agent anywhere in the run (verified: zero hits for 'carry forward', 'labels too', 'neither set gets dropped' anywhere in the transcript).",
+      "registered": "missed_point",
+      "agent_quote": "Analysis: There's an evolving design... I must read the later threads carefully. [Plan: Read releases.txt 515-570 -- the bounded terminal view returned by this command started past the l17 exchange, so its answer (\"both carry forward onto it. neither set gets dropped\") was never rendered]",
+      "quote_line": 3493,
+      "acted": "contradicted"
+    },
+    {
+      "id": "g11.r1.l3",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2627,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints get one identity: one save_checkpoint per optimizer step, named by checkpoint_name(prefix, step) off CHECKPOINT_NAME_TEMPLATE with the step padded to six digits, carrying the reasons it was written for in CHECKPOINT_REASONS order (interval, epoch, final) via canonical_reasons -- not alph...",
+      "quote_line": 7293,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l19",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 68,
+      "line": 4634,
+      "how": "channel dump (sed range read)",
+      "registered": "noted",
+      "agent_quote": "Analysis: LR formula is now fully determined by the examples... Checkpoint design: one row per step, `reasons` tuple last on CheckpointInfo, canonical_reasons in CHECKPOINT_REASONS order (interval, epoch, final)...",
+      "quote_line": 4176,
+      "acted": "n/a"
+    },
+    {
+      "id": "g11.r1.l4",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 43,
+      "line": 3411,
+      "how": "grep -n -i 'reason' pipeline.txt engineering.txt releases.txt | grep -i 'checkpoint\\|ledge",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints: one save per optimizer step; `reasons` tuple appended LAST on CheckpointInfo (default `()`); save_checkpoint keyword-only `reasons=(\"interval\",)`; CHECKPOINT_REASONS=(\"interval\",\"epoch\",\"final\") order via `canonical_reasons`, unknown reason raises the ledger's own error at the call; CHE...",
+      "quote_line": 4797,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l14",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 72,
+      "line": 4888,
+      "how": "cd /tmp/mm; grep -n -i 'resume' *.txt | grep -i 'checkpoint\\|epoch\\|batch_size\\|step\\|mism",
+      "registered": "requirement",
+      "agent_quote": "CheckpointInfo records the shape it was taken in (batch_size, gradient_accumulation_steps, batches_completed, dataset_signature, reasons), all appended with defaults, and the epoch and accumulation window come off the plan for the batch the run stopped on rather than the enclosing loop variable.",
+      "quote_line": 7303,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.rev2",
+      "kind": "reversal of g11.r1.ledger-twin-checkpoints-emil",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 43,
+      "line": 3405,
+      "how": "grep -n -i 'CHECKPOINT_REASONS\\|reason=' *.txt | head -30",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints get one identity: one save_checkpoint per optimizer step, named by checkpoint_name(prefix, step) off CHECKPOINT_NAME_TEMPLATE with the step padded to six digits, carrying the reasons it was written for in CHECKPOINT_REASONS order (interval, epoch, final) via canonical_reasons -- not alph...",
+      "quote_line": 7293,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l18",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 43,
+      "line": 3413,
+      "how": "grep -n -i 'reason' pipeline.txt engineering.txt releases.txt | grep -i 'checkpoint\\|ledge",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints: one save per optimizer step; `reasons` tuple appended LAST on CheckpointInfo (default `()`); save_checkpoint keyword-only `reasons=(\"interval\",)`; CHECKPOINT_REASONS=(\"interval\",\"epoch\",\"final\") order via `canonical_reasons`, unknown reason raises the ledger's own error at the call; CHE...",
+      "quote_line": 4797,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l5",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "never surfaced by any keyword search run (ledger/reason/CHECKPOINT_REASONS); the fixed-vocabulary+dedup fact was recovered from l8/l7(not found either)/l12 instead.",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a"
+    },
+    {
+      "id": "g11.r2.l1",
+      "kind": "clue",
+      "carries": [
+        "rule",
+        "observability"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2850,
+      "how": "channel dump (sed range read)",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l15",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover",
+        "observability"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2626,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "CheckpointInfo records the shape it was taken in (batch_size, gradient_accumulation_steps, batches_completed, dataset_signature, reasons), all appended with defaults, and the epoch and accumulation window come off the plan for the batch the run stopped on rather than the enclosing loop variable.",
+      "quote_line": 7303,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l16",
+      "kind": "clue",
+      "carries": [
+        "failure_behavior"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2625,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints get one identity: one save_checkpoint per optimizer step, named by checkpoint_name(prefix, step) off CHECKPOINT_NAME_TEMPLATE with the step padded to six digits, carrying the reasons it was written for in CHECKPOINT_REASONS order (interval, epoch, final) via canonical_reasons -- not alph...",
+      "quote_line": 7293,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.rev1",
+      "kind": "reversal of g11.r2.lr-decay-to-zero-dario",
+      "carries": [
+        "rule",
+        "exclusions_or_crossover",
+        "observability"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2867,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "learning_rate_at() actually depends on total_steps. Warmup ramps while 1 <= step <= min(warmup_steps, total_steps), so the first step is never trained at rate 0 and a warmup longer than the run is clipped rather than raising; the peak belongs to the last warmup step itself. After warmup the decay is...",
+      "quote_line": 7285,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l5",
+      "kind": "clue",
+      "carries": [
+        "rule",
+        "observability"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2882,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.say25",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2638,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "CheckpointInfo records the shape it was taken in (batch_size, gradient_accumulation_steps, batches_completed, dataset_signature, reasons), all appended with defaults, and the epoch and accumulation window come off the plan for the batch the run stopped on rather than the enclosing loop variable.",
+      "quote_line": 7303,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.rev1",
+      "kind": "reversal of g11.r1.ledger-twin-checkpoints-dario",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 45,
+      "line": 3534,
+      "how": "channel dump (sed range read)",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints get one identity: one save_checkpoint per optimizer step, named by checkpoint_name(prefix, step) off CHECKPOINT_NAME_TEMPLATE with the step padded to six digits, carrying the reasons it was written for in CHECKPOINT_REASONS order (interval, epoch, final) via canonical_reasons -- not alph...",
+      "quote_line": 7293,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l8",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2886,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l2",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "partial",
+      "step": 33,
+      "line": 2852,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "near_miss": "only the opening two lines of the exchange surfaced via the cookbooks.txt dump (line ~2854-2855); the reinforcing line 'not a crawl that eases in from nothing' never appeared, though the rule fact was already secured via l1/l3/l5/l6/l8.",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l6",
+      "kind": "clue",
+      "carries": [
+        "observability",
+        "rule"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2855,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l4",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2876,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l7",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "never surfaced; canonical_reasons(()) not raising and the docstring-only nature of the PR comment were never seen directly, though the final canonical_reasons implementation happens to get this right anyway.",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a"
+    },
+    {
+      "id": "g11.r2.l3",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2854,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l7",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 53,
+      "line": 4029,
+      "how": "sed -n '190,255p' incidents.txt",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.l6",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 56,
+      "line": 4184,
+      "how": "grep -n \"'final'\\|final checkpoint\\|last step\\|final step\\|save_checkpoint\" *.txt | head -",
+      "registered": "requirement",
+      "agent_quote": "Checkpoints: one save per optimizer step; `reasons` tuple appended LAST on CheckpointInfo (default `()`); save_checkpoint keyword-only `reasons=(\"interval\",)`; CHECKPOINT_REASONS=(\"interval\",\"epoch\",\"final\") order via `canonical_reasons`, unknown reason raises the ledger's own error at the call; CHE...",
+      "quote_line": 4797,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l9",
+      "kind": "clue",
+      "carries": [
+        "rule",
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 53,
+      "line": 4078,
+      "how": "sed -n '190,255p' incidents.txt",
+      "registered": "requirement",
+      "agent_quote": "learning_rate_at() actually depends on total_steps. Warmup ramps while 1 <= step <= min(warmup_steps, total_steps), so the first step is never trained at rate 0 and a warmup longer than the run is clipped rather than raising; the peak belongs to the last warmup step itself. After warmup the decay is...",
+      "quote_line": 7285,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.say20",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2870,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "LR: `learning_rate_at(step, total_steps, base_lr, warmup_steps, *, min_lr_ratio=MIN_LR_RATIO)`, MIN_LR_RATIO=0.1, warmup compare `1 <= step <= effective_warmup` with `effective_warmup=min(warmup_steps,total_steps)`, peak base_lr on the last warmup step, then linear decay over remaining steps rescale...",
+      "quote_line": 4796,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l11",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover",
+        "observability"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "never surfaced ('grid row A', 'wrecked the weights', step 99); the negative-past-total_steps failure case was instead recovered from r2.rev1's 'negative lr at step 99' discussion.",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a"
+    },
+    {
+      "id": "g11.r1.say24",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2624,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "CheckpointInfo records the shape it was taken in (batch_size, gradient_accumulation_steps, batches_completed, dataset_signature, reasons), all appended with defaults, and the epoch and accumulation window come off the plan for the batch the run stopped on rather than the enclosing loop variable.",
+      "quote_line": 7303,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l12",
+      "kind": "clue",
+      "carries": [
+        "failure_behavior"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2857,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "learning_rate_at() actually depends on total_steps. Warmup ramps while 1 <= step <= min(warmup_steps, total_steps), so the first step is never trained at rate 0 and a warmup longer than the run is clipped rather than raising; the peak belongs to the last warmup step itself. After warmup the decay is...",
+      "quote_line": 7285,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.say19",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 63,
+      "line": 4499,
+      "how": "grep -n 'loss_history\\|TrainingStats\\|current_batch\\|total_batches\\|batches_completed\\|pla",
+      "registered": "requirement",
+      "agent_quote": "Analysis: Research complete. Design decisions to implement, beyond the ticket: ... current_batch continuing after resume, LR recomputed from current plan.",
+      "quote_line": 5061,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l14",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "no",
+      "step": null,
+      "line": null,
+      "how": null,
+      "near_miss": "never surfaced ('epochs raised', 'old length', 'third of the way through'); the resume-reschedules-off-new-length fact was recovered from l15/say19 instead.",
+      "registered": "n/a",
+      "agent_quote": null,
+      "quote_line": null,
+      "acted": "n/a"
+    },
+    {
+      "id": "g11.r2.l10",
+      "kind": "clue",
+      "carries": [
+        "rule"
+      ],
+      "found": "yes",
+      "step": 38,
+      "line": 3127,
+      "how": "grep -n 'CHECKPOINT_NAME_TEMPLATE\\|min_lr_ratio\\|MIN_LR_RATIO\\|mismatched\\|packed\\|signatu",
+      "registered": "requirement",
+      "agent_quote": "Analysis: min_lr_ratio sits behind a bare * so callers have to name it, MIN_LR_RATIO stays the module-level default.",
+      "quote_line": 3142,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.rev2",
+      "kind": "reversal of g11.r2.lr-decay-to-zero-konrad",
+      "carries": [
+        "rule",
+        "failure_behavior"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2643,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "learning_rate_at() actually depends on total_steps. Warmup ramps while 1 <= step <= min(warmup_steps, total_steps), so the first step is never trained at rate 0 and a warmup longer than the run is clipped rather than raising; the peak belongs to the last warmup step itself. After warmup the decay is...",
+      "quote_line": 7285,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l13",
+      "kind": "clue",
+      "carries": [
+        "failure_behavior"
+      ],
+      "found": "yes",
+      "step": 33,
+      "line": 2888,
+      "how": "grep -n -i 'cosine\\|decay\\|warmup' *.txt | head -50",
+      "registered": "requirement",
+      "agent_quote": "learning_rate_at() actually depends on total_steps. Warmup ramps while 1 <= step <= min(warmup_steps, total_steps), so the first step is never trained at rate 0 and a warmup longer than the run is clipped rather than raising; the peak belongs to the last warmup step itself. After warmup the decay is...",
+      "quote_line": 7285,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r2.l15",
+      "kind": "clue",
+      "carries": [
+        "exclusions_or_crossover"
+      ],
+      "found": "yes",
+      "step": 72,
+      "line": 4908,
+      "how": "cd /tmp/mm; grep -n -i 'resume' *.txt | grep -i 'checkpoint\\|epoch\\|batch_size\\|step\\|mism",
+      "registered": "requirement",
+      "agent_quote": "Analysis: Research complete... a resumed run whose epochs grew continues down the new, longer schedule from completed_steps+1 using the same helper.",
+      "quote_line": 5159,
+      "acted": "followed"
+    },
+    {
+      "id": "g11.r1.say23",
+      "kind": "clue",
+      "carries": [
+        "observability"
+      ],
+      "found": "yes",
+      "step": 27,
+      "line": 2637,
+      "how": "MM=$(cat /tmp/mmtoken); TEAM=xzenmrnisp8m8d4qtpp1t88s9y; for q in ledger dataset_signature",
+      "registered": "requirement",
+      "agent_quote": "Analysis: types.py updated correctly.\nPlan: Add `seed` to both configs in config.py, with docstring mentions.",
+      "quote_line": 5592,
+      "acted": "followed"
+    }
   ],
   "herrings": [
-    {"herring":"g11.r1.ledger-twin-checkpoints-dario","reversal":"g11.r1.rev1","saw_herring":"no","saw_reversal":"no","believed":"neither","quote":"","code_followed_herring":false},
-    {"herring":"g11.r1.ledger-twin-checkpoints-emil","reversal":"g11.r1.rev2","saw_herring":"yes (line 2941)","saw_reversal":"yes (line 2932)","believed":"reversal","quote":"the Jan 28 'two rows / alphabetical' answer was explicitly superseded in March (line 3130)","code_followed_herring":false},
-    {"herring":"g11.r2.lr-decay-to-zero-dario","reversal":"g11.r2.rev1","saw_herring":"yes (line 2614)","saw_reversal":"yes (line 2613)","believed":"reversal","quote":"the decay-to-zero endpoint was explicitly dropped in favour of a min_lr_ratio argument ... MIN_LR_RATIO = 0.1 (line 2641)","code_followed_herring":false},
-    {"herring":"g11.r2.lr-decay-to-zero-konrad","reversal":"g11.r2.rev2","saw_herring":"yes (line 2393)","saw_reversal":"yes (line 2441)","believed":"reversal","quote":"warmup uses 1 <= step <= effective_warmup ... (clipped, not raising) (line 3693)","code_followed_herring":false}
+    {
+      "herring": "g11.r1.ledger-twin-checkpoints-dario",
+      "reversal": "g11.r1.rev1",
+      "saw_herring": "partial (line 3430) -- only a contentless trailing acknowledgment ('mhm ok, so it does not matter which trigger we test first') was in the bounded terminal view; the substantive claims ('both of them...we dont collapse it into something clever', 'no, they stay as they are - {prefix}_step_{n}...', 'sorted alphabeticaly actually') scrolled off above what sed -n '320,370p' releases.txt actually rendered.",
+      "saw_reversal": "yes (line 3536, and again 4306) -- 'the rerun that lost a whole window on friday - that was the two-checkpoint thing we settled in review wasnt it' / 'dropped the twin write...one save_checkpoint per step'.",
+      "believed": "reversal",
+      "quote": "Analysis: There's an evolving design: early Jan decisions (two rows, alphabetical reasons) superseded by March decisions (one row per save with a reasons tuple, canonical_reasons in CHECKPOINT_REASONS order interval, epoch, final; name template 'checkpoint-s000003'). (line 3492)",
+      "code_followed_herring": false
+    },
+    {
+      "herring": "g11.r1.ledger-twin-checkpoints-emil",
+      "reversal": "g11.r1.rev2",
+      "saw_herring": "yes (line 3450-3459, full 10-turn exchange) -- 'two. one for each, and both go under the step/epoch names...' / 'fixed. theyre sorted alphabetcally, so its (epoch, final, interval)'.",
+      "saw_reversal": "yes (line 3823, cookbooks.txt:506) -- 'right, thats gone. we stopped writing two records, its one save_checkpoint per step now and the reasons ride along on it'.",
+      "believed": "reversal",
+      "quote": "Analysis: Rich detail found: ledger rows (step, epoch, batches_completed)...name replacement rule when the incoming name matches the last ledger row; reasons tuple in CHECKPOINT_REASONS order (interval, epoch, final) with canonical_reasons helper; CHECKPOINT_NAME_TEMPLATE with 6-digit zero-padded step. (line 3804)",
+      "code_followed_herring": false
+    },
+    {
+      "herring": "g11.r2.lr-decay-to-zero-dario",
+      "reversal": "g11.r2.rev1",
+      "saw_herring": "yes (line 2874-2877, substantive lines) -- 'settled i think. linear warmup while step < warmup_steps' / 'straight linear decay to 0.0 at total_steps. no plateau or anything in between'.",
+      "saw_reversal": "yes (line 2994-3001) -- 'the eight step run came back with a negative lr at step 99...thats us. the decay hard-codes 0.0 at total_steps and then just keeps walking downward past it...min_lr_ratio, default MIN_LR_RATIO = 0.1'.",
+      "believed": "reversal",
+      "quote": "Analysis: Found LR design: decay hits exactly zero at total_steps, warmup strict `step < warmup_steps`. Need the decay shape (linear vs cosine). (line 2844)",
+      "code_followed_herring": false
+    },
+    {
+      "herring": "g11.r2.lr-decay-to-zero-konrad",
+      "reversal": "g11.r2.rev2",
+      "saw_herring": "yes (line 2645-2646, 2812, 2882) -- 'zero. exactly zero at total_steps, i checked it against the ledger' / 'right, strict. step < warmup_steps, which is what tinker_trainer already does'.",
+      "saw_reversal": "yes (line 2940-2947, 3937-3939) -- and this run's world served a REWRITTEN rev2 (see notable): 'both of those are gone now. the end doesnt sit at zero any more, it bottoms out at a tenth of base_lr and holds there, and a first step at rate 0 is not something i want to keep defending' / `1 <= step <= effective_warmup` / `effective_warmup = min(warmup_steps, total_steps)`.",
+      "believed": "reversal",
+      "quote": "Analysis: The LR schedule design has evolved substantially in chat...I need to read these conversations fully to determine the final settled design. (line 2918); later: 'decay no longer lands at zero but bottoms out at a tenth of base_lr, and min_lr_ratio rescales the whole slope' (line 2975)",
+      "code_followed_herring": false
+    }
   ],
   "lost_facts": [
     {
-      "fact": "g11.r1.scope",
-      "assertion": "test_scope__the_final_step_is_checkpointed_whatever_the_configuration: assert reasons_of(bare) == [('final',)] -- got [('epoch', 'final')] with checkpoint_every_n_steps=0, checkpoint_every_epoch=False",
+      "fact": "g11.r1.failure_behavior",
+      "assertion": "judge.py test_r1_failure_behavior: eq(o['stored_reasons_sorted'], ['final','interval'], 'stored reasons') -- junit failure message: \"stored reasons: ['final'] != ['final', 'interval']\"",
       "cause": "not_found",
-      "evidence": "The one clue that states the gating rule outright -- g11.r1.l11 (code-review, 2025-03-18: 'leave the interval and the per-epoch triggers gated on their config fields exactly as they are, plenty of runs have both off on purpose') -- was never surfaced by any grep the agent ran (confirmed: zero hits for its distinctive phrases anywhere in the transcript). Absent that clue, the agent explicitly reasoned the opposite rule at line 3696/4841: 'reasons name the shape of the step: epoch whenever the step closes an epoch even if checkpoint_every_epoch is off'. It then verified this against its own manual test at line 4997-5039, using a TinkerTrainerConfig that never set checkpoint_every_epoch (default False per config.py:1226) and got reasons ('interval','epoch') / ('epoch','final') -- and read that as confirmation rather than a red flag, because it matched the *observability* example (l18, from a run where checkpoint_every_epoch happened to be True) that it had over-generalized from.",
-      "remarks": ["g11.r1.l11", "g11.r1.l9", "g11.r1.l10", "g11.r1.l18"]
-    },
-    {
-      "fact": "g11.r1.observability",
-      "assertion": "test_observability__the_two_checkpoints_of_the_end_to_end_run_read_back: assert tuple(read_field(fixture_result.checkpoints[0], 'reasons')) == ('final',) -- got ('epoch', 'final') on the tests/finetune/test_trainer.py default fixture (neither checkpoint switch set)",
-      "cause": "not_found",
-      "evidence": "Same root cause as the scope failure -- the fixture-config assertion in the observability test is the same 'epoch fires without the switch' bug. The e2e-run half of the same test (lines 58-69 of the test, checkpoint_every_epoch=True) passed, because in that configuration epoch-firing-unconditionally happens to coincide with the correct behavior. Only the fixture case (switch off) exposes the missing gate. g11.r1.l10 (code-review, 'the fixture at the top of test_trainer.py has neither switch on ... reasons come back exactly (\"final\",). thats settled') is the clue that states this exact test case and was never found.",
-      "remarks": ["g11.r1.l10", "g11.r1.l11"]
+      "evidence": "The oracle behavior (probe.py probe_r1_failure_behavior) is exactly the rule-section example: save_checkpoint('checkpoint-s000002', ..., reasons=('interval',)) then save_checkpoint('checkpoint-s000002', ..., reasons=('final',)) must MERGE to reasons==('interval','final'). The only remark that states this ('both carry forward onto it. neither set gets dropped', g11.r1.l17, dario/dermot #releases 2025-03-19) was never actually rendered to the agent: it surfaced only as a 90-char Mattermost search snippet showing dario's opening question (transcript line 2627/2630, 'ledger q - same checkpoint name got logged twice and i only got one row back. intended?'). The agent then targeted `sed -n '515,570p' releases.txt` (full rollout JSON msg 89) specifically to read that window, but the returned 'Current Terminal Screen' (msg 90) starts at timestamp 1742816512000 -- well past the whole l17 exchange (ts 1742391660000-1742392260000, i.e. line ~525-531 of releases.txt) -- so the reply half of the conversation with the merge instruction never appeared anywhere in the transcript (grepped for 'carry forward', 'labels too', 'neither set gets dropped': zero hits in the whole 7569-line transcript). The agent's own final design statements (lines 4797, 7293-7302, 7541) describe only 'a save whose name matches the row at the end of the ledger takes that row's place instead of adding one' -- replace semantics from g11.r1.l16, which WAS fully seen -- with no mention of merging reason tuples. The shipped code (full rollout JSON msg 171, save_checkpoint) confirms this belief was implemented literally: `if self._checkpoints and self._checkpoints[-1].name == name: self._checkpoints[-1] = checkpoint` replaces the CheckpointInfo wholesale with the new call's own `recorded_reasons`, discarding the prior call's reasons rather than folding both through canonical_reasons.",
+      "remarks": [
+        "g11.r1.l17",
+        "g11.r1.l16"
+      ]
     }
   ],
   "passed_facts": [
-    {"fact":"g11.r1.rule","relied_on":["g11.r1.rev2","g11.r1.l7","g11.r1.l6","g11.r1.l1","g11.r1.l3","g11.r1.l8"],"quote":"canonical_reasons gives them back in CHECKPOINT_REASONS order instead - interval, epoch, final (line 3049); manually verified reasons [('interval','epoch'),('epoch','final')] at line 5036"},
-    {"fact":"g11.r1.exclusions_or_crossover","relied_on":["g11.r1.l15"],"quote":"the checkpoint `epoch` field following konrad's rule (the epoch of the batch that closed the step, hence 3 and 3) (line 5045)"},
-    {"fact":"g11.r1.failure_behavior","relied_on":["g11.r1.l16","g11.r1.l17","g11.r1.rev1-equivalent(g11.r1.rev2)"],"quote":"same name as the *last* row collapses onto it (later loss wins, reasons union in canonical order) (line 3695)"},
-    {"fact":"g11.r2.rule","relied_on":["g11.r2.rev1","g11.r2.rev2","g11.r2.l5","g11.r2.l8","g11.r2.l10"],"quote":"warmup uses `1 <= step <= effective_warmup` ... lr = base*step/effective_warmup ... after warmup, linear decay rescaled by min_lr_ratio (line 3693)"},
-    {"fact":"g11.r2.exclusions_or_crossover","relied_on":["g11.r2.rev1"],"quote":"g11.r2.rev1 carries rule, exclusions_or_crossover and observability together; agent's design summary at line 3693 captures the clamp-at-floor behavior in full"},
-    {"fact":"g11.r2.failure_behavior","relied_on":["g11.r2.rev2","g11.r2.say20"],"quote":"clipped, not raising (line 3693/3426 region); min_lr_ratio rescales the whole slope, with min_lr_ratio=0.5, half way down the decay you read 7.5e-05, not 5e-05 (line 2624)"},
-    {"fact":"g11.r2.observability","relied_on":["g11.r2.rev1","g11.r2.say19","g11.r2.l5"],"quote":"exact numeric formula reconstructed from rev1+rev2+l5/l8/l10 and confirmed against ticket's own worked numbers"}
+    {
+      "fact": "g11.r1.rule",
+      "relied_on": [
+        "g11.r1.l1",
+        "g11.r1.l2",
+        "g11.r1.l3",
+        "g11.r1.l8",
+        "g11.r1.rev1",
+        "g11.r1.rev2"
+      ],
+      "quote": "a save whose name matches the row at the end of the ledger takes that row's place instead of adding a second row for the same weights. (line 7300-7301); CHECKPOINT_REASONS=(\"interval\",\"epoch\",\"final\") order via canonical_reasons (line 4797)"
+    },
+    {
+      "fact": "g11.r1.scope",
+      "relied_on": [
+        "g11.r1.l10",
+        "g11.r1.l11",
+        "g11.r1.l12"
+      ],
+      "quote": "last step always checkpointed with ('final',) even with both switches off...FireworksTrainer builds plan_packed_steps -- one packed step per epoch -- instead of reporting total_steps=0. (lines 4797, 7314-7315)"
+    },
+    {
+      "fact": "g11.r1.exclusions_or_crossover",
+      "relied_on": [
+        "g11.r1.l14",
+        "g11.r1.l15"
+      ],
+      "quote": "the epoch and accumulation window come off the plan for the batch the run stopped on rather than the enclosing loop variable. (line 7303-7307)"
+    },
+    {
+      "fact": "g11.r1.observability",
+      "relied_on": [
+        "g11.r1.l4",
+        "g11.r1.l18",
+        "g11.r1.say23",
+        "g11.r1.say24",
+        "g11.r1.say25"
+      ],
+      "quote": "reasons tuple appended LAST on CheckpointInfo (default ()); CheckpointInfo records the shape it was taken in (batch_size, gradient_accumulation_steps, batches_completed, dataset_signature, reasons). (lines 4797, 7303-7305)"
+    },
+    {
+      "fact": "g11.r2.rule",
+      "relied_on": [
+        "g11.r2.l1",
+        "g11.r2.l3",
+        "g11.r2.l4",
+        "g11.r2.l6",
+        "g11.r2.l8",
+        "g11.r2.say20"
+      ],
+      "quote": "warmup compare 1 <= step <= effective_warmup with effective_warmup=min(warmup_steps,total_steps), peak base_lr on the last warmup step, then linear decay over remaining steps rescaled to min_lr_ratio floor, holding past the end (verified against 4 worked examples). (line 4796)"
+    },
+    {
+      "fact": "g11.r2.exclusions_or_crossover",
+      "relied_on": [
+        "g11.r2.l9",
+        "g11.r2.l15",
+        "g11.r2.say19",
+        "g11.r2.rev1"
+      ],
+      "quote": "a resumed run whose epochs grew continues down the new, longer schedule from completed_steps+1 using the same helper; min_lr_ratio=0.0 lands on exactly 0.0 at the last step. (lines 5159, 7292)"
+    },
+    {
+      "fact": "g11.r2.failure_behavior",
+      "relied_on": [
+        "g11.r2.l12",
+        "g11.r2.l13",
+        "g11.r2.rev2"
+      ],
+      "quote": "a warmup longer than the run is clipped rather than raising; the peak belongs to the last warmup step itself. (line 7286-7288)"
+    },
+    {
+      "fact": "g11.r2.observability",
+      "relied_on": [
+        "g11.r2.l1",
+        "g11.r2.l5",
+        "g11.r2.l7"
+      ],
+      "quote": "LR formula verified against all four worked examples from chat (4 steps/warmup 2 -> 5.5e-05, 1e-05; 3-step mock -> 5e-05, 1e-04, 1e-05; single step warmup 99 -> base_lr; 3-step warmup 10 -> reaches base_lr). (line 5542)"
+    }
   ],
-  "search_strategy": "Methodical but grep-vocabulary-limited. The agent correctly ruled out wiki (enumerated all 228 BookStack pages and searched, found nothing finetune-related) and mail (dumped and grepped all 107 IMAP messages, found nothing) before committing to Mattermost as the sole carrier -- which matches the plant record (all 47 remarks are chat-only). It then dumped every channel to /tmp/chat/*.txt (11 channels, ~1300 posts) rather than relying on live search, which is the right move. From there it ran a sequence of targeted greps keyed to distinctive vocabulary already known from the ticket or from earlier hits: 'ledger', 'CHECKPOINT_NAME_TEMPLATE|step_unit|dataset_signature|plan_steps|StepPlan|ResumePlan|packed_epoch', 'min_lr_ratio|decay|cosine|linear.*lr|lr_schedule|learning_rate_at', 'seed|determinis|time.sleep|clock', 'trailing window|loss_history|mismatched|plan_resume|ste...'. This surfaced every remark whose text contained one of those literal tokens (all of r2's high-value rule/failure/observability remarks are dense with exact literals like MIN_LR_RATIO, min_lr_ratio=0.5, 7.5e-05, so they were caught easily) but systematically missed remarks phrased in plain English with no matching identifier -- almost the entire scope cluster for r1 (l9, l10, l11, l12-full-thread, l2, l5) fell through this gap because 'gated on their config fields', 'neither switch on', 'plenty of runs have both off' contain none of the grepped tokens. The agent never did a broad unfiltered read of #pipeline or #code-review around the 2025-03-14 to 2025-03-19 date range where those scope remarks sit, even though it dumped the full channel text and had the means to.",
-  "end_reason": "Completed normally. Provenance facts all 1 (pushed, CI green, deployed) -- committed as 529ac73 (line 6271), pushed to main, task_complete accepted at line 6795-6804. The reward loss is entirely attributable to the two lost facts above, not to any infra or push failure.",
+  "search_strategy": "Logged into Mattermost via the REST API (POST /users/login), obtained a token and team id, and ran short keyword searches (ledger, dataset_signature, step_plan, tinker, ResumePlan; then cosine/decay/warmup; then reason, CHECKPOINT_REASONS, CHECKPOINT_NAME_TEMPLATE, resume) via /posts/search, printing only the first ~90 characters of each hit (step 27, line 2620-2649). These snippet-only searches recovered l1/l3/l8/l14/l15/l16 in full by luck (the informative half happened to be within 90 chars) but only the QUESTION half of g11.r1.l17 and the herring g11.r1.ledger-twin-checkpoints-dario's opening line -- both of which needed the reply that followed. The agent then dumped every channel to a per-channel .txt file under /tmp/mm (step ~30) and ran targeted grep -n (reason, CHECKPOINT_REASONS, resume, final) plus sed -n 'A,Bp' <channel>.txt reads on the resulting line ranges to read full threads. Most of these sed reads rendered as 'New Terminal Output' (cumulative, complete) but two -- releases.txt 320-370 (msg 89-90, line 3493) and releases.txt 515-570 (msg 89-90, line 3493 is actually the SECOND one; see lost_facts) -- rendered as a height-bounded 'Current Terminal Screen' that started partway through the requested range, silently dropping the TOP of both windows -- which happened to be exactly where g11.r1.l17's answer and the informative half of g11.r1.ledger-twin-checkpoints-dario sat. The agent also checked BookStack (wiki search, step ~22) and IMAP mail (step ~40) for finetuning/ledger/checkpoint/resume terms; both came back empty, correctly, since the plant record places all 47 g11 remarks in Mattermost chat only. Six remarks (l5(r1), l7(r1), l9(r1), l13(r1), l11(r2), l14(r2)) were never surfaced by any of these searches; all six facts they carry were nonetheless recovered because each requirement has multiple carriers (the spread invariant held).",
+  "end_reason": "Not applicable in the 'nothing happened' sense -- the run finished normally. git log/status confirm main was pushed at c83e813 (line 7317-7318, 7525-7530), CI run 14 (build-test-deploy) completed with conclusion 'success' including the deploy step (line 7495-7501), 162 finetune tests passed locally (line 7529), and the agent explicitly verified provenance before marking complete (line 7535, 7561). provenance.pushed/ci_green/deployed all scored 1. The single lost point (g11.r1.failure_behavior) is a genuine requirement-recovery miss, not an infra or provenance failure: see lost_facts.",
   "notable": [
-    "The agent's own manual verification run (lines 4997-5039) used a TinkerTrainerConfig that never set checkpoint_every_epoch, so it defaulted to False (config.py:1226) -- and still produced an 'epoch' reason. The agent read this as the ledger 'reproducing the record exactly' (line 5045) rather than as a live demonstration of the exact bug the grader later caught.",
-    "The single missing clue g11.r1.l11 ('leave the interval and the per-epoch triggers gated on their config fields exactly as they are, plenty of runs have both off on purpose', code-review 2025-03-18) is the whole difference between reward 0.7778 and a clean sweep on g11.r1 -- it is the only remark in the answer key that states the gating rule the fixture test checks.",
-    "r2 was fully recovered (4/4 facts) almost entirely from the two reversal remarks (rev1, rev2), which happen to be extremely literal-dense (MIN_LR_RATIO=0.1, effective_warmup=min(warmup_steps,total_steps), 1<=step<=effective_warmup, 7.5e-05) and therefore easy to hit with identifier greps -- in contrast to r1's scope cluster, which is phrased in plain prose with no literal identifiers to grep for.",
-    "The agent correctly identified and adopted the reversal over the herring in all three herring/reversal pairs it saw (r1 emil/rev2, r2 dario/rev1, r2 konrad/rev2); it never encountered the fourth pair (r1 dario herring / rev1) at all, but recovered the same content via the emil/rev2 pair, so no fact was lost to herring-following in this run."
+    "This run's world served a REWRITTEN g11.r2.rev2 (#general, konrad, 2025-06-02 10:16) that differs from the answer key file on disk. The key still quotes the old wording ('thats the bit thats going' referring only to the warmup compare). What the transcript actually shows (lines 2645-2646, 2861-2863, 2940-2943, 3937-3939, all matching) is: 'right. we had it that decay lands at exactly zero at total_steps and warmup keeps the strict step < warmup_steps compare tinker_trainer already uses. both of those are gone now. the end doesnt sit at zero any more, it bottoms out at a tenth of base_lr and holds there, and a first step at rate 0 is not something i want to keep defending' -- i.e. this rev2 now ALSO explicitly retracts the decay-to-zero half of the herring, not only the warmup-compare half. This is graded against what the world actually served, so no discrepancy with the grader here (r2.rule/failure_behavior/exclusions/observability all pass).",
+    "This run DID see konrad's herring g11.r2.lr-decay-to-zero-konrad in full (lines 2645-2646/2812/2882: 'zero. exactly zero at total_steps, i checked it against the ledger' / 'right, strict. step < warmup_steps...') and its rewritten rev2 in full (see above). It also saw both r1 twin-checkpoint herrings, though g11.r1.ledger-twin-checkpoints-dario (2025-01-21) only as a contentless trailing line -- see herrings[0].saw_herring. Both r1 reversals (rev1 dermot #releases 03-31, rev2 konrad #cookbooks 03-21) and the r2 rev1 (emil #help 03-26) were seen in full. Shipped code: decay floor = min_lr_ratio*base_lr with MIN_LR_RATIO=0.1 (not zero); warmup compare = 1 <= step <= effective_warmup with effective_warmup=min(warmup_steps,total_steps) (not the strict herring compare). Both reversals correctly followed, not the herrings.",
+    "The single lost fact (g11.r1.failure_behavior) traces to a single root cause: a bounded-height 'Current Terminal Screen' render of `sed -n '515,570p' releases.txt` (full rollout JSON msg 90) that silently dropped the top of the requested range -- exactly the 7-turn g11.r1.l17 exchange that states checkpoints merge their reason tuples on a repeat-name save ('both carry forward onto it. neither set gets dropped'). The agent only ever saw dario's opening question via an unrelated 90-char search snippet (line 2627/2630) and consequently implemented pure replace-on-repeat-name (correct, from l16, seen in full) without the merge (never seen). Verified with a line-by-line coverage check of every one of the 47 remarks' exact exchange text against the full transcript (script in scratchpad): l17 is 1/7 lines present, and the one present line is the contentless opener.",
+    "A second, less consequential truncation of the same kind affected the herring g11.r1.ledger-twin-checkpoints-dario (sed -n '320,370p' releases.txt, line 3430): only the trailing 'mhm ok, so it does not matter which trigger we test first' rendered; the actual herring claims never appeared anywhere in the transcript. This did not cost a fact because the sibling herring (ledger-twin-checkpoints-emil) and both r1 reversals were seen in full and independently pinned the correct design.",
+    "Six remarks were never surfaced by any search this run issued (grep'd the transcript directly to confirm, zero hits each): g11.r1.l5, g11.r1.l7, g11.r1.l9, g11.r1.l13, g11.r2.l11, g11.r2.l14. None of these cost a fact -- each requirement had enough independent carriers that the spread invariant (>=2 sources/channels per requirement) absorbed the misses."
   ]
 }

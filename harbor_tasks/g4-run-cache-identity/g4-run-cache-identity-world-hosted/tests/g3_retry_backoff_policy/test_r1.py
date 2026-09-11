@@ -25,13 +25,15 @@ one that brackets the cost-2 boundary at `attempts_left` 2 and 1 — the pair th
 """
 from __future__ import annotations
 
+import asyncio
 import dataclasses
+import datetime
 import inspect
 import re
 
 from harness import read_field, require_feature
 
-from test_open import importable, make_api_request, policy_with, v_budget, v_delay, v_reason, v_retry, v_waivers
+from test_open import importable, make_api_request, make_processor, policy_with, v_budget, v_delay, v_reason, v_retry, v_waivers
 
 try:
     from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
@@ -39,10 +41,13 @@ try:
     from bespokelabs.curator.request_processor.online.base_online_request_processor import (
         APIRequest,
         BaseOnlineRequestProcessor,
+        _TokenUsage,
     )
     from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker
+    from bespokelabs.curator.types.generic_response import GenericResponse
 except Exception:  # pragma: no cover - reported by importable(), per test
     rp = OnlineRequestProcessorConfig = APIRequest = BaseOnlineRequestProcessor = OnlineStatusTracker = None
+    _TokenUsage = GenericResponse = None
 
 
 def outcome(verdict):
@@ -193,6 +198,43 @@ def test_failure_behavior__exhaustion_is_tested_after_the_cost_is_charged_and_th
     assert jitter.calls == drawn, "an exhausted transient must not consume the jitter source either"
 
 
+def drive_one_response(processor, request, tracker, *, finish_reason):
+    """Run the processor's own request path once over a response that came back.
+
+    `drive_one_failure` hands the except block an exception it made up; this hands
+    the try block a response, so curator's own `invalid_finish_reasons` check does
+    the raising and whatever the submission did at that call site is exercised.
+    """
+
+    async def answer(request, session, status_tracker):
+        now = datetime.datetime.now()
+        return GenericResponse(
+            response_message=None,
+            raw_response={},
+            raw_request={},
+            generic_request=request.generic_request,
+            created_at=now,
+            finished_at=now,
+            finish_reason=finish_reason,
+        )
+
+    processor.call_single_request = answer
+    queue = asyncio.Queue()
+
+    async def go():
+        await processor.handle_single_request_with_retries(
+            request=request,
+            session=None,
+            retry_queue=queue,
+            response_file="/dev/null",
+            status_tracker=tracker,
+            blocked_capacity=_TokenUsage(),
+        )
+
+    asyncio.run(go())
+    return queue
+
+
 # =============================================================================
 # observability — the requirement's own table, as literals
 # =============================================================================
@@ -230,3 +272,13 @@ def test_observability__the_stated_budget_and_waiver_table_holds_exactly():
     assert v_reason(bad_key) == "terminal:abort"
     assert v_budget(bad_key) == 0
     assert v_waivers(bad_key) == 6
+
+    # The `length` row again, through the request path, where curator raises exactly
+    # that ValueError on an invalid finish_reason. `decide` above never sees a call
+    # site that reclassifies `length` on its way in: three v7 runs made it terminal
+    # there (a new TERMINAL error, or `attempts_left = 0` before pricing) and each
+    # still passed this fact.
+    truncated = make_api_request(attempts_left=3)
+    queue = drive_one_response(make_processor(max_retries=3), truncated, OnlineStatusTracker(), finish_reason="length")
+    assert queue.qsize() == 1, "a length-truncated response with attempts to spare was not re-queued"
+    assert read_field(truncated, "attempts_left") == 1, "on the request path a length-truncated response must be charged like any contract failure, two attempts"

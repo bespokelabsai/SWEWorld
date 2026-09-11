@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P11",
+  "blind_alternative": "keeps no ledger at all (nothing in raft.py counts anything today), leaving `gen.stats` an AttributeError, or at most two plain int attributes with no `RaftDrawStats` type"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P9",
+  "blind_alternative": "leaves the existing two-argument `(chunk_id, oracle_document)` key at `maxsize=128`, or deletes the lru_cache wrapper outright to make `p` per-example, either way giving different `cache_info()` and a different number of coins"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P10",
+  "blind_alternative": "adds no check and lets `random.sample` surface its own `ValueError(\"Sample larger than population\")` only in the oracle-absent branch, or clamps `k` to the population size"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P11",
+  "blind_alternative": "no `RaftDrawStats` name to introspect; any ad-hoc counters divide unguarded (ZeroDivisionError on an unused generator) and expose no `oracle_rate()` helper"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P13",
+  "blind_alternative": "no constructor at all \u2014 callers write `RaftSampling(rng=random.Random(7))` \u2014 so `RaftSampling.seeded` raises AttributeError; or a `seed` field/`from_seed` spelling instead"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P14",
+  "blind_alternative": "enumerates the caller's list as-is (`raft.py:218`), giving five chunks with ids [0,1,2,3,4]; or filters while keeping the original positions, giving ids [0,4]; or strips the survivors' whitespace"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P12",
+  "blind_alternative": "validates nothing (the file validates nothing today), so `p=1.5` and `distractors=0` construct fine; or validates on the `Raft` facade / after `super().__init__`, so `backend=\"nope\", p=1.5` reports the backend error first"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P15",
+  "blind_alternative": "no `__post_init__`, so a bad rng raises AttributeError at the first draw; or an `isinstance(rng, random.Random)` check matching the annotation, which rejects the duck-typed recorders; or validating the sampler too"
+ }
+]

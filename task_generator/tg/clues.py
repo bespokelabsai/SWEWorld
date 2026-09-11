@@ -1014,6 +1014,8 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
     entry["too_wordy"] = too_wordy(entry, corpus)
     entry["contradictions"] = contradictions(entry)
     entry["finished_claims"] = finished_claims(entry)
+    entry["filed_elsewhere"] = filed_elsewhere(task, entry)
+    entry["foreign_carrier"] = foreign_carrier(task, entry)
     entry["unstated"] = unstated(verdicts)
     entry["unreversed"] = unreversed(entry)
     entry["out_of_order"] = out_of_order(entry)
@@ -1068,7 +1070,8 @@ def finish(task: Task, corpus: Corpus, ledger: dict, stamp: str) -> dict:
 # the artifact a reader will see; soft ones are worth printing and not worth
 # failing a paid pass over.
 HARD = ("unknit", "unreversed", "out_of_order", "voice_problems",
-        "double_booked", "fact_conflicts", "stale_delta")
+        "double_booked", "fact_conflicts", "stale_delta", "filed_elsewhere",
+        "foreign_carrier")
 # `unclashed` is SOFT rather than absent. `finish()` has always written it and
 # nothing has ever read it -- not `HARD`, not `SOFT`, not the README, not
 # `cli.py` -- which is precisely the disease this split exists to cure. The
@@ -2348,6 +2351,177 @@ def finished_claims(entry: dict) -> list[str]:
     return out
 
 
+# A THIRD kind of hedge, and the one that costs a requirement.
+#
+# The comment above UNSETTLED separates hedging the SCHEDULE, which is the truth
+# of this corpus, from hedging the SUBSTANCE, which destroys it. "somebody will
+# pick it up", "not this sprint", "when we get to it" all leave the work unowned
+# in a world where the agent is the somebody, and they stay allowed.
+#
+# Naming a DIFFERENT work item does not. It does not say when the work happens,
+# it says whose it is, and the reader holding a ticket concludes it is not theirs.
+# Measured on g10, biggie-max, the world-hosted arm: emil's remark carrying
+# `num_capacity_debt_clamps` ended "none of it is written yet, im putting it on
+# the batch ticket tonight". The rollout searched Mattermost for 'batch ticket',
+# 'its own ticket', 'parked', 'not this ticket' and 'later ticket' -- it went
+# looking for exactly this sentence -- then wrote off the counters and every
+# other r2 identifier it had already retrieved as out of scope, and scored 0.0 on
+# all eight hidden facts while shipping the open feature.
+FILED_ELSEWHERE = re.compile(
+    r"\b(?:put(?:ting)?|fold(?:ing)?|roll(?:ing)?|mov(?:e|ing)|park(?:ing|ed)?|"
+    r"add(?:ing)?|writ(?:e|ing)) it\b[^.]{0,20}?\b(?:on|onto|into|to|under)\b"
+    r"[^.]{0,40}?\b(ticket|issue|epic|card|backlog)\b", re.I)
+
+
+def filed_elsewhere(task: Task, entry: dict) -> list[str]:
+    """Remarks that hand their own decision to a named other work item.
+
+    Not the schedule hedge UNSETTLED deliberately permits: this is ownership. A
+    reader who meets "im putting it on the batch ticket" has been told, by the
+    person who made the decision, that the decision belongs to a ticket that is
+    not the one in front of them -- and the arms are graded on a reader acting on
+    it in THIS ticket.
+
+    The qualifier is what decides it, which the first version of this check got
+    wrong and three plants proved: g1's "put it on the batch plan ticket" and
+    g3's "park it on the retry ticket" both name the ticket the agent is holding,
+    and bare "put it on the ticket" names no other one. So a match needs a word
+    in front of `ticket` that is NOT this task's own vocabulary. Measured over all
+    ten plants and 476 remarks: three hits before that condition, none after --
+    and, run against g10's plant as it shipped, exactly the two remarks that cost
+    it a requirement.
+
+    Herrings are exempt. A herring is a decision the team really made and later
+    reversed, and one being parked is part of how it died.
+    """
+    mine = _task_words(task)
+    out = []
+    for req in entry["requirements"]:
+        for clue in req["clues"]:
+            if clue.get("kind") == "herring":
+                continue
+            for msg in turns_of(clue):
+                hit = FILED_ELSEWHERE.search(said(msg))
+                if not hit:
+                    continue
+                named = _words(hit.group(0)) - _words(hit.group(1)) - {"put", "putting",
+                        "fold", "folding", "roll", "rolling", "move", "moving", "park",
+                        "parked", "parking", "add", "adding", "write", "writing"}
+                if not named or any(_akin(w, mine) for w in named):
+                    continue                  # this ticket, or no other one named
+                out.append(
+                    f"{clue['clue_id']}: {who(msg)} files this on another work "
+                    f"item — {hit.group(0)!r}. A reader holding the ticket reads "
+                    "that as somebody else's scope and stops")
+                break
+    return out
+
+
+# The carrier's own SUBJECT, which is a different question from whether the room
+# is plausible.
+#
+# `clue_place.md` asks whether a reader would believe the remark was always
+# there, and a page about a neighbouring feature answers yes -- the words match,
+# the author is right, the argument is live. What it does not ask is what a
+# reader will conclude the remark is ABOUT, and a remark in a document about
+# another feature is read as that feature's business.
+#
+# Measured on g7, biggie-max, the world-hosted arm. Three of r1's four wiki
+# carriers are batch-mode documents, one of them a page the plant invented called
+# "payload plan file: what the tests hold on to" -- g1's feature, carrying g7's
+# rule about how `turn_ledger.json` is serialized. The rollout found them and
+# wrote, in as many words: "the ticket for turn_ledger.py says to derive from log
+# (no sidecar), so this discussion is a different path (auto batch mode with a
+# sidecar json). Not directly related to the ticket." It scored 4/4 on r2, whose
+# carriers are pages about the turn loop, and 0/4 on r1.
+#
+# Deterministic on purpose, and it only fires where the evidence says it should:
+# a chat carrier's title is a room and a date, so nothing matches and nothing is
+# flagged. Documents and mail subjects are where a foreign subject can hide.
+_CARRIER_STOP = {"the", "a", "an", "and", "or", "of", "for", "to", "in", "on",
+                 "what", "how", "when", "why", "we", "it", "its", "this", "that",
+                 "file", "files", "page", "notes", "design", "doc", "docs", "md",
+                 "new", "re", "week", "weekly", "sync", "engineering", "meetings"}
+# Words every task in this corpus could claim. They are what made the first cut of
+# `foreign_carrier` report 14 findings of which 8 were noise -- a mail thread
+# titled "support: run on a revoked key retried all night" is not g4's
+# `run-cache-identity` because both say "run".
+_GENERIC = {"run", "runs", "job", "jobs", "status", "output", "outputs", "data",
+            "test", "tests", "mode", "summary", "report", "reports"}
+
+
+def _words(text: str) -> set[str]:
+    return {w for w in re.split(r"[^a-z0-9]+", (text or "").lower())
+            if len(w) > 2 and w not in _CARRIER_STOP}
+
+
+def _akin(word: str, vocabulary: set[str]) -> bool:
+    """Same word, allowing for how people type it: retry/retried, encode/encoding.
+
+    Four characters of shared prefix, because three matches run/rung/runs and the
+    generic list already handles that family.
+    """
+    def prefix(a: str, b: str) -> int:
+        n = 0
+        for x, y in zip(a, b):
+            if x != y:
+                break
+            n += 1
+        return n
+
+    return any(w == word or prefix(w, word) >= 4 for w in vocabulary)
+
+
+def _task_words(task: Task) -> set[str]:
+    mine = _words(task.slug) | _words(task.title)
+    for need in surface.required(task).values():
+        for name in getattr(need, "all_names", []) or []:
+            mine |= _words(name)
+    return mine
+
+
+def foreign_carrier(task: Task, entry: dict) -> list[str]:
+    """Carriers whose subject is a DIFFERENT task's feature.
+
+    Two conditions, and both were needed to separate the six real findings from
+    the noise. The carrier says nothing this task is about -- no word of its slug,
+    its title or a graded identifier, allowing for word endings -- AND it says
+    something a different generated task IS about, in a word generic enough
+    corpora do not all share. Chat carriers are skipped: a title there is a room
+    and a date, so the question does not arise.
+    """
+    registry = REPO / "task_generator" / "tasks.generated.json"
+    if not registry.is_file():
+        return []
+    others = {t["id"]: (_words(t["slug"]) | _words(t.get("suite", ""))) - _GENERIC
+              for t in json.loads(registry.read_text()) if t["id"] != task.id}
+    mine = _task_words(task)
+    out = []
+    for req in entry["requirements"]:
+        for clue in req["clues"]:
+            carrier = clue.get("carrier") or {}
+            if (carrier.get("kind") or "").startswith("chat"):
+                continue
+            words = _words(carrier.get("title") or "") | _words(carrier.get("key") or "")
+            # `- _GENERIC` on this side too, and it is not symmetry for its own
+            # sake: "Batch job status persistence across process restarts" was
+            # cleared as g7's own subject because `status` and `state` share four
+            # characters. A word too generic to prove another task's feature is
+            # too generic to prove this one's.
+            if any(_akin(w, mine) for w in words - _GENERIC):
+                continue                      # it names this task's own subject
+            shared = {i: words & w for i, w in others.items() if words & w}
+            if not shared:
+                continue                      # about nothing in particular, which is fine
+            rival, hit = max(shared.items(), key=lambda kv: len(kv[1]))
+            out.append(
+                f"{clue['clue_id']}: its carrier is "
+                f"{carrier.get('title') or carrier.get('key')!r}, which names "
+                f"{rival}'s feature ({', '.join(sorted(hit))}) and nothing of "
+                f"{task.id}'s. A reader files the remark under that feature")
+    return out
+
+
 def stock_phrasing(entry: dict) -> list[str]:
     """Closing wording that repeats across exchanges — a tell only at corpus scale.
 
@@ -2892,6 +3066,29 @@ def check_carriage(task: Task, clue: dict, budget: float) -> list[str]:
             if not row.get("present")]
 
 
+def conflicts_by_clue(entry: dict) -> dict[str, list[str]]:
+    """What `consistency` objected to in each clue's exchange, keyed by clue id.
+
+    `consistency` reads the woven exchanges, and what it finds is almost always a
+    turn the exchange INVENTED around a sound remark -- a closing line that
+    over-reaches into the state of the world the requirement contradicts. The
+    repair for that is `reknit --only <ids> --redo`, which until now re-rolled:
+    same prompt, different sample, no reason to come out better. g9 spent six
+    rounds and ~$9 rewriting the same three exchanges (13 -> 11 -> 7 -> 9 -> 4 ->
+    6 conflicts) because every round aimed at nothing. `stage_thread` has taken a
+    `defect` since it was written; this is what fills it on a redo.
+    """
+    ids = {c["clue_id"] for req in entry.get("requirements", [])
+           for c in req.get("clues", [])}
+    out: dict[str, list[str]] = {}
+    for row in entry.get("fact_conflicts") or []:
+        text = str(row)
+        for cid in set(re.findall(r"\b([A-Za-z0-9]+\.r\d+\.[A-Za-z0-9_.-]+)", text)):
+            if cid in ids:
+                out.setdefault(cid, []).append(text[:1400])
+    return out
+
+
 def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
            only: list[str] | None = None, redo: bool = False) -> dict:
     """Give every remark the conversation it would really have been made in."""
@@ -2933,11 +3130,16 @@ def reknit(slug: str, *, run: str | None = None, budget: float = 3.0,
         return finish(task, corpus, ledger, "reknit_at")
 
     print(f"  {len(todo)} exchange(s) to write\n")
+    objections = conflicts_by_clue(entry)
     failed = []
     for clue in todo:
-        # What the last attempt got wrong, handed to the next one. Empty on the
-        # first pass; `thread_problems()`' own rows after that.
-        told: list[str] = []
+        # What the last attempt got wrong, handed to the next one. On the first
+        # pass it is whatever `consistency` said about THIS exchange, so a redo
+        # is aimed rather than resampled; `thread_problems()`' own rows after that.
+        told: list[str] = list(objections.get(clue["clue_id"], []))
+        if told:
+            print(f"  ..  {clue['clue_id']:14} redo aimed at "
+                  f"{len(told)} consistency finding(s)")
         # Attempt 1's exchange, kept so a worse attempt 2 can be discarded rather
         # than shipped. `stage_tree` guards its re-ask the same way: "a second
         # attempt that fixes the names and loses something else cannot make

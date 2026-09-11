@@ -1,0 +1,56 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P2",
+  "blind_alternative": "lets pydantic's `extra=\"forbid\"` raise its own `ValidationError` with `type == \"extra_forbidden\"`, or keeps the line-204 `ValueError(\"Backend params are not valid, please refer ... for more info\")`, so no new class, no `params`/`expected`/`belongs_to` attributes exist at all"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P3",
+  "blind_alternative": "if they invent an error class at all, decides where a key belongs by calling `OtherClass.model_validate(params)` and listing the classes that succeed (value-sensitive, drops `OfflineRequestProcessorConfig` for `batch_size=\"auto\"`), or lists any class accepting *any* offending key rather than all of them"
+ },
+ {
+  "req": 1,
+  "field": "failure_behavior",
+  "part": "P4",
+  "blind_alternative": "reports only the first offending key in caller insertion order, and/or runs pydantic first and derives offending keys from the `extra_forbidden` entries in `.errors()` \u2014 which reverses precedence and reports the unknown key and the bad value together in one `ValidationError` with two entries"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P2",
+  "blind_alternative": "surfaces a pydantic `ValidationError` whose `str()` is the standard `1 validation error for OnlineRequestProcessorConfig / batch_size / Extra inputs are not permitted` block, with no `params`, `expected` or `belongs_to` attributes to assert on"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P10",
+  "blind_alternative": "deletes the dead base `__post_init__` outright and adds nothing, or renames it to `model_post_init` and keeps the line-58 raise, so no `unsupported_generation_params` field exists; if they store anything they store `self.supported_params`, the name the file already uses at line 54, with the opposite polarity"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "declares any such field as an ordinary non-excluded list that appears in `model_dump()`, and treats a caller-supplied `unsupported_generation_params` in `backend_params` as an unknown key rather than a legal field that is overwritten"
+ },
+ {
+  "req": 2,
+  "field": "exclusions_or_crossover",
+  "part": "P10",
+  "blind_alternative": "leaves the offline config inheriting the base hook, so it performs the litellm lookup for a local vLLM model and reports non-empty unsupported params"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P10",
+  "blind_alternative": "raises `ValueError(f\"Generation parameter '{key}' is not supported for model '{self.model}'\")` per unsupported key \u2014 the faithful repair of the existing bug \u2014 and lets a litellm lookup failure or `None` return propagate, since an unknown model looks like a real problem worth surfacing early"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P10",
+  "blind_alternative": "constructing with `generation_params={\"top_k\": 1, \"frobnicate\": 2}` either raises or produces a config with no such attribute, and the patched-to-raise and patched-to-`None` lookups propagate instead of yielding `()`"
+ }
+]

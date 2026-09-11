@@ -327,7 +327,6 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > honestly two attempts off for a malformed-output failure sounds right to me, one is too generous. doesn't spend a throttle_waivers_left pass though, thats for 429s.
 
-
 ## Getting around
 
 - The repository is in Gitea at <http://git.world.local/worldadmin/curator.git>. Your account is `worldadmin`, password `worldadmin`; a token is readable at `/etc/sweworld/gitea-token` if you prefer.

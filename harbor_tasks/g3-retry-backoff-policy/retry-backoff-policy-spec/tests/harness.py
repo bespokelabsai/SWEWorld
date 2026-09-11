@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import functools
 import io
+import os
 import pathlib
 import tarfile
 import tokenize
@@ -15,7 +16,17 @@ import tokenize
 import pytest
 
 # The tree the world shipped. Anything that differs from it is the agent's.
-BASELINE = pathlib.Path("/opt/world-state/input/curator/src/bespokelabs/curator")
+#
+# Resolved through the environment because the suites no longer run as root:
+# `/opt/world-state` is 0700, so the drop uid cannot read this path and
+# `Path.exists()` answers False on PermissionError rather than raising.
+# `changed_source()` would then report the WHOLE library as changed and fail
+# quietly in both directions at once — some facts passing on untouched curator,
+# others failing on a correct one. `run_suites.py` stages a readable copy and
+# names it here; the default keeps the local bracket and the devbox working.
+BASELINE = pathlib.Path(os.environ.get(
+    "CURATOR_BASELINE_DIR",
+    "/opt/world-state/input/curator/src/bespokelabs/curator"))
 
 # The same tree, where a Horizon image keeps it. `/opt/world-state` is
 # SWEWorld's pristine checkout and exists in no apex_arena image, so a suite

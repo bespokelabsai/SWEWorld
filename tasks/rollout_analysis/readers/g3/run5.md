@@ -1,55 +1,52 @@
-# g3 run 5 (rollout 46cec654, eval ce846459) — reward 0.8889
+# g3 run 5 (3e70faf7) — reward 1, all 9 facts scored
 
-## What this run found
+This run solved retry-backoff-policy cleanly: reward 1, all nine declared facts (`g3.r1.rule/scope/
+exclusions_or_crossover/failure_behavior/observability`, `g3.r2.rule/scope/exclusions_or_crossover/
+observability`) scored 1, CI green on main at `0c715a7` (plus a small later `RetryVerdict`-alias
+commit), and the deployed service verified up. There are no lost facts to explain.
 
-This is a clean, successful run: PR #737 merged to `main`, CI green, service redeployed and
-healthy, 70 new passing unit tests, ruff clean. It is not an infra failure and not a herring
-failure — every one of `g3.r1`'s five facts and three of `g3.r2`'s four facts scored 1. The
-agent's search was exhaustive-by-export: it pulled the *entire* corpus into local files first
-(IMAP dump of all 119 mails, a Mattermost API dump of all 12 channels/10285 lines, a BookStack
-export) and grepped each. Mail and wiki were covered thoroughly — it correctly used
-`/api/pages/{id}` to pull wiki *comments* rather than trusting BookStack search, catching both
-comment-only clues (`g3.r1.l5`, `g3.r2.s1a`, lines 2372 and 4785). Both requirements' herrings
-were correctly identified as reversed: `g3.r1.h1`/`h2` were read in full and their reversals
-(`rev1`/`rev2`) correctly overrode them (lines 2848→2757, 3078→2897); `g3.r2.h1`/`h2` were only
-ever glimpsed as single isolated lines inside a grep dump, never read in full context, but the
-agent still landed on the correct `max()` semantics from the (fully-read) reversals and other
-clues, so the shallow herring exposure caused no damage.
+## What it found and how
 
-## What it missed, and why
+The agent ran a textbook four-surface sweep rather than isolated searches: Gitea issues dumped and
+grepped (no world-specific issue found — PR numbers like 585/565/566 turned out to be cross-references
+inside chat, not tracker items); wiki pages fetched **whole** via `/api/pages/{id}` rather than
+`/api/search` (recognizing early, at transcript line 1225, that comments carry content search won't
+index) — this is exactly how both wiki remarks (`g3.r1.l5` on page 184, `g3.r2.s1a` on page 207) were
+recovered from their comment threads; all 119 mail messages dumped over IMAP and both relevant threads
+read in full (`g3.r1.l8`, `g3.r1.l12`, `g3.r2.s4d`); and all 10,262 Mattermost posts dumped and searched
+with ten increasingly specific keyword greps, interleaved with direct index-range reads of whole
+exchanges once a thread's location was known. That combination recovered 41 of 49 remarks (84%),
+including all four herring/reversal pairs — each herring (`g3.r1.h1/h2`, `g3.r2.h1/h2`) was read, but
+the agent explicitly flagged it as superseded by its reversal before writing any code (e.g. line 2788:
+"superseded by 6698-6710 max() decision"), so no herring reached the shipped implementation.
 
-The one lost fact is `g3.r2.rule`, on a single narrow assertion:
-`remaining_cooldown_seconds` must round to three decimals
-(`round(until - now, 3)`), and the agent shipped an unrounded `max(0.0, until - now)` (its own
-words, transcript line 3861). The root cause traces to exactly one remark never surfacing:
-`g3.r2.s1c` (#pipeline, gideon, 2025-04-07: "handed back -3.2... and 4.999999999998... clamp at
-0.0, round to three decimals") is the *only* remark that states rounding at all. It was invisible
-for two compounding reasons. First, a keyword gap: the agent's one consolidated chat grep used
-terms built around `g3.r1`'s vocabulary (`failure class|failureclass|classif|throttle|transient|
-free pass|jitter`), and s1c's exchange uses none of them. Second, a coverage gap: even the
-agent's manual, cross-reference-driven line-range reads of `#pipeline` jumped directly from a
-window dated 2025-03-25 to one dated 2025-04-08, skipping the ~230 lines in between — exactly
-where s1c (04-07) sits. The remark the agent *did* find and lean on for this fact, `g3.r2.s1d`
-(#general, read in full at lines 3816-3831), gives exact boundary values (3.0/0.5/0.0) that are
-already round to three decimals by construction, so nothing the agent actually saw could have
-prompted the rounding rule. Seven other remarks were also never found (`g3.r2.say23`, `s2a`,
-`s3a`, `s4c`, `s2d`, `s1b`, `g3.r1.l1`), all via the same keyword-gap mechanism or, for `#pipeline`
-remarks specifically, because the single big chat grep was piped through `head -60` and chat.txt
-lists channels in a fixed order that puts the largest channel (`#pipeline`, 2026 posts) last — its
-hits were cut off entirely. None of these losses cost a fact, since redundant clues elsewhere
-carried the same facts — except s1c, which was uniquely load-bearing.
+Notably, this v9 rerun rewrote `g3.r1.l1` (konrad's 2025-06-03 #code-review line) to say a
+`finish_reason=="length"` failure should *stay* retryable but cost more than a timeout, rather than
+becoming terminal. The transcript confirms the run was served the new wording (line 2037, index 9596),
+and the agent's immediate next analysis correctly read it as "CONTRACT-class ... should still retry but
+get fewer goes than a timeout" — the shipped code prices `finish_reason=="length"` as CONTRACT (2
+attempts, still retried unless the budget can't pay), matching the answer key exactly.
 
-## The coordinator's finish_reason check
+## What it missed, and why it didn't matter
 
-The shipped code does **not** treat `finish_reason == "length"` as terminal. The pre-existing call
-site that raises `ValueError(f"finish_reason was {reason}")` (read unchanged, lines 823-831/
-914-922) was left untouched, and the final except block (lines 5886-5908) classifies every
-exception generically through `classify_failure` → `decide`, with no finish_reason-specific branch
-or new exception class anywhere in the diff. `classify_failure`'s type-based MRO rule (from the
-open ticket, not hidden) matches plain `ValueError` to `CONTRACT` before any message-marker check
-runs, so a length failure prices at cost 2 and stays retryable — matching the answer key exactly,
-confirmed by the passing `r1.rule`/`observability` tests. The misleading closing line in
-`g3.r1.l1` ("length wont fix itself on a retry anyway, so it stops being retryable, fail it out on
-the first") never reached the agent — `g3.r1.l1` is one of the eight remarks confirmed not found —
-so it built the correct behavior from `g3.r1.l2` (found) and the ticket's own type-MRO spec
-instead.
+Eight remarks (`g3.r2.s2b/s1b/s2a/s4c/s2d/say20/s4b`, `g3.r1.say23`) never appear anywhere in the
+6,957-line transcript, confirmed by exhaustive full-text search for their distinctive phrasing. None
+of these is a blind spot in coverage — every surrounding exchange in the same thread was read in
+full — but each falls outside the literal keyword vocabulary the agent's ten grep passes actually used:
+no pattern ever searched for a bare `retry`, `backoff`, `rate_limit`/`time_of_last_rate_limit_error`,
+or a bare `TERMINAL`. Two of the eight (`g3.r2.s1b`, `g3.r1.say23`) plausibly *did* match a broader
+pattern (`throttl`, `attempts_left`) but the agent's terminal only exposes the tail of a long piped
+grep as a screen snapshot, so an earlier match inside a 40-70-line result could scroll off before being
+seen — the agent never redirected a long grep to a file to page through it fully. Because
+`spread_problems()` guarantees every requirement at least two sources, three weeks and two channels of
+redundant carriers, every one of the nine facts still had a surviving carrier the agent did find, so
+none of these eight misses cost a fact.
+
+## One corpus/key divergence worth flagging
+
+`g3.r1.l15`'s answer-key quote ("no requeue then, its terminal and the reason is throttle:exhausted. so
+at 0 thats what we tag") does not match what the world actually served in this run (transcript line
+1744, index 7332: "no requeue then - thats attempts_left 0 with the waivers gone too, both empty.
+terminal, throttle:exhausted. if theres still attempts on the clock it just spend[s one]"). The
+underlying fact (zero waivers → `throttle:exhausted`) is unchanged, and the run graded it correctly
+either way — recorded per instructions as a task-defect note, not an agent failure.

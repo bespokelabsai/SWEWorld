@@ -26,9 +26,11 @@ requirement and not the other one must still be able to score it.
 """
 from __future__ import annotations
 
+import ast
 import asyncio
 import dataclasses
 import inspect
+import textwrap
 import time
 from types import SimpleNamespace
 
@@ -202,8 +204,19 @@ def test_exclusions__the_seconds_to_pause_knob_survives_in_config_and_is_never_r
     finally:
         asyncio.sleep = real_sleep
 
-    # ... and the knob is not merely outvoted, it is not consulted at all.
-    assert "seconds_to_pause_on_rate_limit" not in inspect.getsource(BaseOnlineRequestProcessor), "the online processor still reads the dead pause knob"
+    # ... and the knob is not merely outvoted, it is not consulted at all. Asked of
+    # the syntax tree, not the source text: a v7 run wrote a docstring explaining
+    # why the knob is dead, near-quoting the remark that says so, and lost this fact
+    # for naming it. An attribute read or an exact-name string (getattr) is a read;
+    # prose that mentions it is not.
+    tree = ast.parse(textwrap.dedent(inspect.getsource(BaseOnlineRequestProcessor)))
+    reads = [
+        node.lineno
+        for node in ast.walk(tree)
+        if (isinstance(node, ast.Attribute) and node.attr == "seconds_to_pause_on_rate_limit")
+        or (isinstance(node, ast.Constant) and node.value == "seconds_to_pause_on_rate_limit")
+    ]
+    assert not reads, f"the online processor still reads the dead pause knob (class-relative lines {reads})"
 
 
 # =============================================================================

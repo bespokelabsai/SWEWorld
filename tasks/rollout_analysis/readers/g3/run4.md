@@ -1,84 +1,82 @@
-# g3 run 4 (34a87e12, eval ce846459) — reward 1, all 9 facts scored 1
+# g3 run 4 (rollout 62797bad, eval 035777f5, v9) — reward 1
 
 ## What this run found
 
-The agent built a comprehensive model of both hidden requirements *before* writing any code.
-After cloning the repo and reading `base_online_request_processor.py`, it dumped the full
-Mattermost corpus twice (`/tmp/chat.txt`, 11019 lines, all channels, no timestamps; then
-`/tmp/chat_ts.txt`, timestamped), read all three mail threads over IMAP, and correctly fetched
-both wiki pages via `/api/pages/{id}` — pulling the `comments` field rather than relying on
-`/api/search` (which the ticket itself warns does not index comments). That got it both
-comment-only clues (`g3.r1.l5`, `g3.r2.s1a`) cleanly (transcript lines 2435, 2445).
+This run cleared all nine graded facts. It cloned the repo, then ran a brute-force
+dump-and-grep pass across every surface before writing a line of code: all 8 Mattermost
+channels, all 228 BookStack wiki pages (fetched whole via `/api/pages/{id}`, comments
+included — the correct technique given the ticket's own warning that search does not
+index comments), and all 119 mailbox messages (over IMAP). It never wrote a single
+narrowly-targeted lookup; instead it iterated through four progressively different chat
+keyword passes (a broad identifier grep at L2150, an abandoned 1281-line context sweep
+into `/tmp/ctx.txt` at L2374, a narrow `jitter|cooldown` grep at L1979, and a narrow
+`throttle_waivers|THROTTLE_WAIVERS` grep into `/tmp/w.txt` at L2458), plus several
+manually targeted channel/date-range reads. That combination surfaced 33 of 41 clues and
+all 8 herrings/reversals. It found all 3 of the mail remarks it needed (`l8`, `s4d`, and
+correctly missed `l12` — see below) and, despite doing the wiki dump correctly, missed
+both wiki-comment remarks (`l5`, `s1a`).
 
-For chat it ran three successive keyword-grep passes rather than reading any channel start to
-finish: `waiver|throttle_cooldown|retry_policy|...`, then `verdict|delay_seconds|should_retry|
-attempts_made|reason_code|DEFAULT_THROTTLE`, then a broad case-sensitive sweep (`THROTTLE|
-TRANSIENT|CONTRACT|TERMINAL|waiver|classif|verdict|decide|delay|jitter|exhaust|attempts_|
-retry_polic|cooldown|...`) funneled into a 223-line `/tmp/design.txt` that it read almost
-end-to-end. This caught 39 of the 49 planted remarks, including all four herrings and all four
-reversals, both wiki comments, and all three mail threads (line 5275 is the agent's own
-consolidated design summary, written before it touched `retry_policy.py`, and it is a
-near-verbatim restatement of the full rule/scope/exclusions/failure_behavior/observability set
-for both requirements).
+The design was assembled into one consolidated synthesis at L5129 ("Design fully
+gathered. Settled decisions to implement beyond the ticket...") rather than
+remark-by-remark commentary — the agent read broadly, then wrote its understanding once,
+correctly. That synthesis states, and the shipped `retry_policy.py` implements exactly:
+a per-request `throttle_waivers_left` pool seeded from `DEFAULT_THROTTLE_WAIVERS = 6`
+(free while waivers remain, then costs 1 like any other failure), `CONTRACT` costing 2
+attempts, `TERMINAL` draining attempts but leaving waivers untouched, a verdict that
+carries both `attempts_left` and `throttle_waivers_after` for the caller to write back,
+`throttle_cooldown_until` on the tracker updated via `max()` from a single clock read
+(never plain assignment), `remaining_cooldown_seconds` clamped to 0.0 and rounded to
+three decimals, no jitter draw or schedule read on non-retry verdicts, and
+`seconds_to_pause_on_rate_limit` left declared but unread. All four herrings (`g3.r1.h1`,
+`g3.r1.h2`, `g3.r2.h1`, `g3.r2.h2`) were seen and correctly rejected in favour of their
+reversals — verified directly against the shipped `_ATTEMPT_COST`/`record_on_tracker`
+code, which follows none of the herrings' unconditional-zero or plain-overwrite
+semantics.
 
-## What it missed, and why it didn't matter
+## What it missed and why
 
-Ten clues never surfaced: `g3.r2.say23`, `g3.r1.l16`, `g3.r2.s2b`, `g3.r2.s1b`, `g3.r2.s2a`,
-`g3.r2.s3a`, `g3.r2.s4c`, `g3.r1.l14`, `g3.r1.l7`, `g3.r2.s4b`. Nine of these are genuine
-keyword-list misses — their wording ("budget"/"deduct", "shared counter", "a new wait lands
-earlier", "fake clock", "retry_after to 45", lowercase "throttle" against a case-sensitive
-`THROTTLE` grep) matches none of the three searched term lists, so no amount of re-reading the
-same greps would have caught them; the agent simply never read those channel windows in full.
-The tenth, `g3.r1.l14`, plausibly *would* have matched the design.txt filter (it contains
-`attempts_left`) but sits chronologically inside a genuinely truncated tool result — the
-design.txt read at step 57 was cut mid-stream by the harness itself
-(`[... output limited to 10000 bytes; 626 interior bytes omitted ...]`, right after `g3.r2.rev1`
-and before the next #pipeline entry, spanning exactly the 04-08→04-24 window that `l14` (04-10)
-falls in).
+Ten of the 49 remarks never surfaced, but none of them cost a fact — every requirement
+is carried redundantly across enough sources that this run's gaps were always covered by
+a substitute. The misses cluster into three real search-strategy weaknesses:
 
-None of the ten misses cost a fact. Each carries a fact that at least one other, found, remark
-also carries — `g3.r2.exclusions_or_crossover` alone is carried by four remarks (`say23`, `s4c`,
-`s4a`, `s4b`, `s4d`), and the agent found two of them (`s4a`, `s4d`, including the mail thread).
-This is exactly what `spread_problems()`'s ≥2-source/≥3-week/≥2-channel gate is for.
+1. **Keyword-list gaps in chat** (`say23`, `l16`, `s2b`, `s2a`, `s4c`, `s4b`, and
+   crucially `l1`): none of these six exchanges contain a literal hit in any of the
+   agent's keyword lists (no bare `retry`, no `finish_reason`, no `pause`/`config` terms).
+   `g3.r2.s2a` is a striking case — it contains "429" three times and should have been
+   swept into the abandoned `/tmp/ctx.txt`, but the agent judged that file "too noisy"
+   after reading only its first ~45 lines and never returned to it.
+2. **Wiki dump correct, wiki keyword grep incomplete** (`l5`, `s1a`): the agent did the
+   right thing — whole-page fetch of all 228 pages with comments — but the subsequent
+   `throttle|jitter|backoff|cool_down|cooldown` grep over the dump returned only 8
+   candidate pages, and neither meeting-notes page (whose comments, per the answer key,
+   contain "backoff" and "throttle") was among them. Neither page was ever opened by ID.
+3. **Verb-tense miss in mail** (`l12`): the mail grep looked for `retry|retries`, but the
+   one relevant thread only uses "retried" — a form that literally does not contain
+   either substring.
 
-## Herrings: all four seen, all four correctly superseded
+## The special check: g3.r1.l1 and the v9 rewrite
 
-The agent read every herring in the same grep passes that found its reversal, generally within
-a few transcript lines of each other (e.g. `g3.r1.h2` at line 3116 and its reversal `g3.r1.rev2`
-at line 2718, both from the same `waiver|throttle_cooldown|...` grep). Its running design notes
-never adopted a herring's claim: the shipped `decide()` charges a THROTTLE failure once
-`throttle_waivers_left` reaches 0 (not "never," per `g3.r1.h1`), and `record_verdict` writes
-`throttle_cooldown_until = max(current, horizon)` (not a plain overwrite, per `g3.r2.h1`/`h2`).
-`believed = "reversal"` for all four, and shipped code contradicts all four herrings.
+This rerun asked specifically whether the run saw the v9-rewritten #code-review
+2025-06-03 14:12 thread (konrad's turn now reads "length does come good on a retry now
+and then, so dont stop retrying it, it just shouldnt get as many goes as a timeout"
+instead of the old terminal-sounding wording). **It did not.** A transcript-wide grep
+confirms `world_code-review.txt` was only ever read through 2025-04-24 (L2717); no
+command anywhere touches its May/June content. The thread's distinctive phrases
+("finish_reason length", "spent four attempts", "shoudn't get that many goes") never
+appear in the transcript.
 
-## The coordinator's finish_reason check
+Despite never seeing it, the run shipped the **correct post-v9 behaviour**: a
+`ValueError("finish_reason was length")` is classified `CONTRACT` (cost 2, still
+retryable, never made terminal). This happened for two independent reasons that made the
+missing remark moot: (a) the ticket's own `classify_failure` signal-2 table maps
+`ValueError` to `CONTRACT` by exception type alone, regardless of message text; and (b)
+`g3.r1.l2` (#pipeline, 2025-06-26, found and explicitly dated in the design summary as
+"CONTRACT costs two attempts (settled Jun 26)") plus `rev2`/`l13`/`l15`/`l17` (all found)
+independently pin CONTRACT at cost-2-and-retryable from other sources. `g3.r1.l1` turned
+out to be fully redundant for this run.
 
-**No** — the shipped code does not treat `finish_reason == "length"` as terminal. The
-`raise ValueError(f"finish_reason was {generic_response.finish_reason}")` call site is byte-for-
-byte unchanged from the original (transcript line 878 pre-edit, line 6147 post-edit sanity
-check) — no new exception class, no call-site reclassification. In `classify_failure`,
-`ValueError` is matched by the exception-type signal (2), which returns `CONTRACT`
-*before* the message-marker signal (3) is ever consulted — so this is structurally guaranteed
-CONTRACT, not an accident of what the message string happens to say. `_ATTEMPT_COSTS[CONTRACT]
-= 2` and CONTRACT stays retryable, matching the answer key.
+## Lost facts
 
-Konrad's misleading 2025-06-03 turn — "and length wont fix itself on a retry anyway, so it stops
-being retryable, fail it out on the first" — was **never shown to the agent**. Its only view of
-that `#code-review` thread came from a `grep` on the bare substring `reason`, which matched only
-the exchange's opening line (nikolai, "finish_reason length every time...") and closing line
-(nikolai, "log line should say which reason it was too") — the three turns in between, including
-Konrad's line, contain no occurrence of "reason" and were skipped entirely. A direct substring
-search across the whole transcript for "fail it out", "wont fix itself on a retry", and
-"shoudn't get that many goes" confirms none of that text ever appears. The agent's correct
-CONTRACT/two-attempts conclusion instead came from the companion remark `g3.r1.l2` (2025-06-26,
-found and read in full at line 3711: "two attempts off for a malformed-output failure ...
-doesn't spend a throttle_waivers_left pass though, thats for 429s").
-
-## End state
-
-Normal, complete run. Module written to spec, wired into the base processor exactly as the
-ticket and the record required, double-counting removed from the three provider processors, 59
-new unit tests passing, commit `beb7d6d` pushed to `main`, CI green (`ci / build-test-deploy —
-Successful`), deploy confirmed live at `curator.world.local`, and a final import check confirms
-both the tracker's `throttle_cooldown_until` field and `APIRequest`'s new fields exist exactly as
-specified.
+None — `reward` is 1 and all nine facts scored 1. The run merged to `main` at `4b6bd68`,
+CI (`build-test-deploy`) reported `success`, and the deployed service was confirmed
+healthy and serving the pushed commit.

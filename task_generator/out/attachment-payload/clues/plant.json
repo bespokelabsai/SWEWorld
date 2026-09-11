@@ -221,7 +221,7 @@
        ],
        "subconclusion": "g8.r1.s1",
        "holder": "dario",
-       "text": "we already have the base64 string in hand when the block gets built, so i'd weigh that rather than decoding, and hang size_mb off the block as a plain float.",
+       "text": "we already have the base64 string in hand when the block gets built, so i'd weigh that rather than decoding, and hang size_mb off the block itself rather than nesting it.",
        "drafted": "we already hold the base64 text when the block gets built, so weigh that string right there and hang size_mb off the block instead of decoding anything back.",
        "settles": "the team agrees the size is derived from the base64 text at block-build time and stored on the block",
        "leaves_open": "Does not give any threshold, any error, or the fact that images and documents are held to different numbers.",
@@ -324,7 +324,7 @@
          {
           "author": "dario",
           "minute": "10:33",
-          "text": "no, nothing nested. just hang it off the block itself, size_mb, plain float"
+          "text": "no, nothing nested. just hang it off the block itself, size_mb, right there beside the rest"
          },
          {
           "author": "nils",
@@ -1014,51 +1014,59 @@
          {
           "author": "nikolai",
           "minute": "14:02",
-          "text": "where does the count for the multimodal case actually get checked"
+          "text": "whos actually counting the images on the multimodal path"
          },
          {
           "author": "gideon",
           "minute": "14:04",
-          "text": "so basically that total lives only in _handle_multi_modal_prompt. nothing above it counts anything"
+          "text": "so basically that total lives only in _handle_multi_modal_prompt. nothing else is keeping a count"
          },
          {
           "author": "nikolai",
-          "minute": "14:06",
+          "minute": "14:05",
           "text": "so _format_multimodal is clean then"
          },
          {
           "author": "gideon",
-          "minute": "14:08",
-          "text": "no thats the part that bit us. it still hands back both blocks for an over-45 set, it just doesnt look"
+          "minute": "14:06",
+          "text": "no um, it still hands back both blocks for an over-45 set. it just doesnt care one way or other"
          },
          {
           "author": "konrad",
-          "minute": "14:10",
-          "text": "ok. so what do we throw at the check, a new error type?"
+          "minute": "14:08",
+          "text": "right, so the check sits where the total already is. does that need its own error type"
          },
          {
           "author": "gideon",
-          "minute": "14:12",
-          "text": "honestly though reusing the exception with kind prompt reads fine, no need for a second one"
+          "minute": "14:10",
+          "text": "honestly though i think reusing the exception with kind prompt reads fine"
          },
          {
           "author": "konrad",
-          "minute": "14:14",
-          "text": "mhm. i had half of a seperate one written yesterday, glad i stopped"
+          "minute": "14:12",
+          "text": "mhm ok. i had penciled in a new one, glad not to"
          }
         ],
         "pieces": [
          {
-          "piece": "the total lives only in _handle_multi_modal_prompt",
+          "piece": "the image total lives only in _handle_multi_modal_prompt (and nowhere else)",
           "carried_by": "gideon 14:04"
          },
          {
           "piece": "_format_multimodal still hands back both blocks for an over-45 set",
-          "carried_by": "gideon 14:08"
+          "carried_by": "gideon 14:06"
          },
          {
-          "piece": "reusing the exception with kind prompt reads fine (no new error type)",
-          "carried_by": "gideon 14:12"
+          "piece": "reusing the exception with kind prompt reads fine (rather than a new error type)",
+          "carried_by": "gideon 14:10"
+         },
+         {
+          "piece": "the question that forces the point - who counts, and does it need its own error type",
+          "carried_by": "nikolai 14:02 and konrad 14:08"
+         },
+         {
+          "piece": "push on the still-unclear half - whether _format_multimodal is clean",
+          "carried_by": "nikolai 14:05"
          }
         ]
        },
@@ -1151,60 +1159,52 @@
         "messages": [
          {
           "author": "gideon",
+          "minute": "14:02",
+          "text": "size gates question \u2014 if a prompt is already over 45, do we still run the per file checks or bail right there?"
+         },
+         {
+          "author": "emil",
+          "minute": "14:04",
+          "text": "we run them i believe. each attachment we measure still gets its own file_upload_limit_check call first"
+         },
+         {
+          "author": "gideon",
+          "minute": "14:05",
+          "text": "ok so where does the whole prompt number land then. folded in as we go?"
+         },
+         {
+          "author": "gideon",
+          "minute": "14:06",
+          "text": "like does it trip mid loop the second the running total crosses"
+         },
+         {
+          "author": "dario",
+          "minute": "14:09",
+          "text": "after, not woven in between them. all the per file calls go out first, the whole-prompt number comes after all of them"
+         },
+         {
+          "author": "dario",
+          "minute": "14:10",
+          "text": "so busting 45 doesnt skip any of those, to be honest its just the one pass and then the other"
+         },
+         {
+          "author": "emil",
           "minute": "14:12",
-          "text": "quick one on the upload path - if a prompt is already busting 45, do we even bother checking the attachments one by one?"
-         },
-         {
-          "author": "emil",
-          "minute": "14:15",
-          "text": "we do, yeah. every attachment still gets its own file_upload_limit_check call, no short circuit anywhere in there"
-         },
-         {
-          "author": "gideon",
-          "minute": "14:16",
-          "text": "ok but then where does the whole-prompt one land? the trace i read looked like it was interleaved with them"
-         },
-         {
-          "author": "dario",
-          "minute": "14:19",
-          "text": "its after. all the per attachment calls go first, then the whole prompt number gets looked at once at the end"
-         },
-         {
-          "author": "dario",
-          "minute": "14:20",
-          "text": "nothing woven in between them, honestly i think thats just how the log lines flush"
-         },
-         {
-          "author": "emil",
-          "minute": "14:22",
-          "text": "yup, that lines up with what i saw when i stepped through it"
-         },
-         {
-          "author": "gideon",
-          "minute": "14:23",
-          "text": "ya ok. i was reading the trace as the order of operations, my bad"
+          "text": "yup. it reads like a running tally in there, thats the bit that keeps catching me"
          }
         ],
         "pieces": [
          {
-          "piece": "even for a prompt that busts 45 (the whole-prompt limit is not a short-circuit)",
-          "carried_by": "gideon 14:12 (raises it) / emil 14:15 (\"no short circuit anywhere in there\")"
+          "piece": "a prompt that busts 45 does not short-circuit the per-attachment checks",
+          "carried_by": "gideon 14:02 (raises it), dario 14:10 (settles it)"
          },
          {
-          "piece": "every attachment still gets its own file_upload_limit_check call",
-          "carried_by": "emil 14:15"
+          "piece": "every attachment that gets measured still gets its own file_upload_limit_check call, and it happens first",
+          "carried_by": "emil 14:04"
          },
          {
-          "piece": "those per-attachment calls all happen first",
-          "carried_by": "dario 14:19"
-         },
-         {
-          "piece": "the whole-prompt number comes after all of them",
-          "carried_by": "dario 14:19"
-         },
-         {
-          "piece": "it is not woven in between the per-attachment calls",
-          "carried_by": "dario 14:20 (pushed for by gideon 14:16)"
+          "piece": "the whole-prompt number is not interleaved with the per-file pass \u2014 it comes after all of the per-file calls",
+          "carried_by": "gideon 14:05 / 14:06 (pushes on it), dario 14:09 (completes it)"
          }
         ]
        },
@@ -1295,61 +1295,62 @@
         "title": "sizing attachment payloads in the request layer",
         "messages": [
          {
-          "author": "dario",
-          "minute": "13:39",
-          "text": "has anyone actually pulled that branch down and run it, or are we all just reading the diff"
+          "author": "nikolai",
+          "minute": "14:02",
+          "text": "pulled the branch down and ran the tests locally and the unit ones sat there for ages"
+         },
+         {
+          "author": "gideon",
+          "minute": "14:03",
+          "text": "sat there as in hanging, or just slow?"
          },
          {
           "author": "nikolai",
-          "minute": "13:41",
-          "text": "i ran the branch locally last night"
-         },
-         {
-          "author": "konrad",
-          "minute": "13:42",
-          "text": "and? what did you see"
-         },
-         {
-          "author": "nikolai",
-          "minute": "13:44",
-          "text": "it goes and pulls the remote images down just to weigh them thats all it wants from them"
+          "minute": "14:05",
+          "text": "slow theyre going out to the network now which they didnt used to"
          },
          {
           "author": "dario",
-          "minute": "13:45",
-          "text": "wait, weigh them as in the size? it downloads the whole thing for that"
-         },
-         {
-          "author": "konrad",
-          "minute": "13:46",
-          "text": "mhm that would explain why my run sat there"
+          "minute": "14:06",
+          "text": "network from a unit test? what in there even wants a socket"
          },
          {
           "author": "nikolai",
-          "minute": "13:47",
-          "text": "yep and the knock on is my unit tests started reaching for the network which i'd rather they didnt"
+          "minute": "14:08",
+          "text": "the size pass  if the image is remote it pulls the whole thing down just to weigh it"
+         },
+         {
+          "author": "dario",
+          "minute": "14:09",
+          "text": "mhm so any fixture with a url in it does a real fetch, that tracks with the slowness"
+         },
+         {
+          "author": "gideon",
+          "minute": "14:10",
+          "text": "honestly though a unit test should not be doing that, ever"
+         },
+         {
+          "author": "nikolai",
+          "minute": "14:12",
+          "text": "yep thats settled then its not going out for bytes  what we end up counting for the remote ones is seperate gotta think through that one"
          }
         ],
         "pieces": [
          {
           "piece": "ran the branch locally",
-          "carried_by": "nikolai 13:41"
+          "carried_by": "nikolai 14:02"
          },
          {
           "piece": "it's pulling down remote images just to weigh them",
-          "carried_by": "nikolai 13:44"
-         },
-         {
-          "piece": "weighing = only wants the size, yet fetches the whole image",
-          "carried_by": "dario 13:45"
+          "carried_by": "nikolai 14:08"
          },
          {
           "piece": "so my unit tests started reaching for the network",
-          "carried_by": "nikolai 13:47"
+          "carried_by": "nikolai 14:05 (with dario 14:09 restating it as a real fetch per url fixture)"
          },
          {
-          "piece": "which i'd rather they didn't",
-          "carried_by": "nikolai 13:47"
+          "piece": "which i'd rather they didnt",
+          "carried_by": "nikolai 14:12 (gideon 14:10 agreeing)"
          }
         ]
        },
@@ -1859,67 +1860,61 @@
         "date": "2025-03-14",
         "messages": [
          {
-          "author": "konrad",
-          "minute": "16:02",
-          "text": "what actually tripped the size guard on the notebook run? i assumed we gave up long before that"
+          "author": "dario",
+          "minute": "13:41",
+          "text": "the notebook run yesterday, was it hanging on the encode or on the send?"
          },
          {
           "author": "gideon",
-          "minute": "16:04",
-          "text": "nope. the notebook handed us sixty images and every one of them went the whole way through"
+          "minute": "13:43",
+          "text": "encode. the notebook handed us sixty images and we base64'd every one of them on the way in"
          },
          {
-          "author": "konrad",
-          "minute": "16:05",
-          "text": "sixty, and nothing droped them earlier?"
-         },
-         {
-          "author": "dario",
-          "minute": "16:07",
-          "text": "no, we base64'd each one first. thats the part i keep forgetting"
-         },
-         {
-          "author": "konrad",
-          "minute": "16:08",
-          "text": "base64 of the image and then what, we hand over a path?"
-         },
-         {
-          "author": "dario",
-          "minute": "16:09",
-          "text": "the string. we pass that encoded string itself into file_upload_limit_check"
-         },
-         {
-          "author": "konrad",
-          "minute": "16:10",
-          "text": "mhm. so the ordering is settled then"
+          "author": "emil",
+          "minute": "13:45",
+          "text": "so all sixty converted before anything complained?"
          },
          {
           "author": "gideon",
-          "minute": "16:12",
-          "text": "ya, and all of that happened before anything gave up. so basically the guard runs ahead of all that, nothing downstream ever got its turn to complain"
+          "minute": "13:46",
+          "text": "worse honestly though, we passed that base64 string itself into file_upload_limit_check. only after all of that did anything give up"
          },
          {
-          "author": "konrad",
-          "minute": "16:14",
-          "text": "right. explains why the log had sixty lines and not one"
+          "author": "emil",
+          "minute": "13:48",
+          "text": "so the guard sits ahead of the encode then, thats the read? i believe so but not entirely sure"
+         },
+         {
+          "author": "gideon",
+          "minute": "13:50",
+          "text": "ya, ahead. so basically the guard runs ahead of all that, the sixty never get encoded and file_upload_limit_check never sees a thing. nobodys moved the call yet"
+         },
+         {
+          "author": "dario",
+          "minute": "13:52",
+          "text": "makes sense. explains why it churned that long before dying, all of it was encode"
          }
         ],
         "pieces": [
          {
           "piece": "notebook handed us sixty images",
-          "carried_by": "gideon 16:04"
+          "carried_by": "gideon 13:43 (question set up by dario 13:41)"
          },
          {
           "piece": "we base64'd each one",
-          "carried_by": "dario 16:07"
+          "carried_by": "gideon 13:43"
          },
          {
           "piece": "passed that string itself into file_upload_limit_check",
-          "carried_by": "dario 16:09"
+          "carried_by": "gideon 13:46"
          },
          {
-          "piece": "before anything gave up / the guard runs ahead of all that",
-          "carried_by": "gideon 16:12"
+          "piece": "before anything gave up",
+          "carried_by": "gideon 13:46"
+         },
+         {
+          "piece": "so basically the guard runs ahead of all that",
+          "carried_by": "gideon 13:50 (pushed for by emil 13:48)"
          }
         ],
         "seed_after": "12:46 gideon"
@@ -2304,62 +2299,62 @@
         "prompted_by": "gideon's run dies on a provider 413 after the client has already base64'd every attachment into the payload \u2014 he asks whether we should be catching this before we build the request at all, and what the client-side ceiling ought to be",
         "messages": [
          {
+          "author": "gideon",
+          "minute": "14:02",
+          "text": "what do we raise when someone hands us more attachments than we take? right now it sails through and blows up later in the serializer"
+         },
+         {
           "author": "nikolai",
-          "minute": "14:12",
-          "text": "whats the error when someone hands us more attachments than we allow"
+          "minute": "14:04",
+          "text": "needs its own thing i'd say TooManyAttachments or close to it"
          },
          {
           "author": "dario",
+          "minute": "14:07",
+          "text": "ya TooManyAttachments. and i think it should carry the count they sent along with the ceiling it broke, otherwise the message tells you nothing usefull"
+         },
+         {
+          "author": "gideon",
+          "minute": "14:08",
+          "text": "new base for it or does it hang off something existing"
+         },
+         {
+          "author": "dario",
+          "minute": "14:10",
+          "text": "no new base, another AttachmentError subclass. same as AttachmentTooLarge is"
+         },
+         {
+          "author": "gideon",
+          "minute": "14:11",
+          "text": "ok. and it fires where, after we build the list out?"
+         },
+         {
+          "author": "dario",
+          "minute": "14:13",
+          "text": "before we serialize a single one of them. no sense encoding things we are about to throw away"
+         },
+         {
+          "author": "nikolai",
           "minute": "14:14",
-          "text": "TooManyAttachments i think. it carries the count they sent plus the ceiling it broke, so nobody has to go count them by hand off a stack trace"
-         },
-         {
-          "author": "nikolai",
-          "minute": "14:15",
-          "text": "brand new exception or does it hang off something"
-         },
-         {
-          "author": "dario",
-          "minute": "14:16",
-          "text": "another AttachmentError subclass, same shelf as AttachmentTooLarge"
-         },
-         {
-          "author": "gideon",
-          "minute": "14:18",
-          "text": "ok but when does it fire tho, after we built the payload?"
-         },
-         {
-          "author": "dario",
-          "minute": "14:20",
-          "text": "no, before we serialize a single one of them. honestly no point encoding a pile we are going to reject anyway"
-         },
-         {
-          "author": "gideon",
-          "minute": "14:21",
-          "text": "ya ok, and we know how many there are before any of that so its cheap"
-         },
-         {
-          "author": "nikolai",
-          "minute": "14:22",
-          "text": "right and the test doesnt need real bytes then just a long enough list"
+          "text": "right so the bytes never get touched at all"
          }
         ],
         "pieces": [
          {
-          "piece": "the exception is called TooManyAttachments",
-          "carried_by": "dario 14:14"
+          "piece": "the error is named TooManyAttachments",
+          "carried_by": "nikolai 14:04 (proposes it), dario 14:07 (confirms)"
          },
          {
-          "piece": "it carries the count that was sent and the ceiling that was broken",
-          "carried_by": "dario 14:14"
+          "piece": "it carries the count that was sent and the ceiling it broke",
+          "carried_by": "dario 14:07"
          },
          {
-          "piece": "it is another AttachmentError subclass, alongside AttachmentTooLarge",
-          "carried_by": "dario 14:16"
+          "piece": "it is another AttachmentError subclass, like AttachmentTooLarge",
+          "carried_by": "dario 14:10"
          },
          {
-          "piece": "it fires before any of the attachments are serialized",
-          "carried_by": "dario 14:20"
+          "piece": "it fires before any attachment is serialized",
+          "carried_by": "dario 14:13"
          }
         ]
        },
@@ -3388,13 +3383,14 @@
        ],
        "subconclusion": "g8.r1.s1",
        "holder": "nils",
-       "text": "let me think - the base64 text is what actually goes over the wire, so size_mb is just the length of that string over 1024*1024. no decoding first, and not 1000-based megabytes.",
+       "text": "let me think - the base64 text is what actually goes over the wire, so size_mb is what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically instead of decoding, and the divisor in there is 1024*1024, not a 1000-based megabyte.",
        "drafted": "the base64 text is what the wire carries, so size_mb is just len of that string over 1024*1024 - no decoding first, and not 1000-based megabytes.",
-       "settles": "the team agrees size_mb is the base64 character count divided by 1024*1024",
+       "settles": "the team agrees size_mb comes from get_base64_size on the base64 string, which yields the payload's byte count over 1024*1024 without decoding it",
        "leaves_open": "what the ceilings are, which kinds they differ by, what happens when one is exceeded, and where the check runs relative to the provider hook",
        "verbatim": [
-        "size_mb",
-        "1024*1024"
+        "1024*1024",
+        "get_base64_size",
+        "size_mb"
        ],
        "forbidden_terms": [
         "float",
@@ -3452,64 +3448,64 @@
          "emil"
         ],
         "prompted_by": "First image/file attachments land in the request layer and a run dies on a provider-side payload rejection instead of failing locally, so dario asks what we actually measure and where the guard sits relative to the provider hook.",
-        "messages": [
-         {
-          "author": "konrad",
-          "minute": "11:18",
-          "text": "quick one, size_mb on an attachment - is that the raw file or the encoded blob? off the top of my head i assumed raw"
-         },
-         {
-          "author": "nikolai",
-          "minute": "11:20",
-          "text": "the base64 text is what actually goes over the wire not the file on disk so that one"
-         },
-         {
-          "author": "konrad",
-          "minute": "11:22",
-          "text": "ok so do i decode it back and measure that, or just measure the string. and which megabyte"
-         },
-         {
-          "author": "nils",
-          "minute": "11:24",
-          "text": "let me think through that. just the string - size_mb is its length over 1024*1024, theres no decode step in front of it"
-         },
-         {
-          "author": "konrad",
-          "minute": "11:25",
-          "text": "so 1024 and not 1000"
-         },
-         {
-          "author": "nils",
-          "minute": "11:27",
-          "text": "1024*1024, yes. the 1000-based megabyte reads smaller for the same payload and thats not the number we want to be carrying around"
-         },
-         {
-          "author": "nikolai",
-          "minute": "11:28",
-          "text": "yep thats the one i'd expect"
-         },
-         {
-          "author": "konrad",
-          "minute": "11:29",
-          "text": "right. my branch has 1e6 sitting in it, that part is coming back out"
-         }
-        ],
         "pieces": [
          {
-          "piece": "the base64 text is what actually goes over the wire, so that is what gets measured (not the file/raw bytes)",
-          "carried_by": "nikolai 11:20"
+          "piece": "size_mb is measured on the base64 text, because that is what actually goes over the wire (not the file bytes on disk)",
+          "carried_by": "nils 11:05"
          },
          {
-          "piece": "size_mb is the length of that base64 string divided by 1024*1024",
-          "carried_by": "nils 11:24"
+          "piece": "size_mb is the value get_base64_size returns for that base64 string",
+          "carried_by": "nils 11:10"
          },
          {
-          "piece": "no decoding first - the string is measured as-is",
-          "carried_by": "nils 11:24"
+          "piece": "get_base64_size derives the real byte count arithmetically from the string length rather than decoding it",
+          "carried_by": "nils 11:10"
          },
          {
-          "piece": "not 1000-based megabytes - 1024*1024, not 1e6",
-          "carried_by": "nils 11:27"
+          "piece": "the divisor used is 1024*1024, not a 1000-based megabyte",
+          "carried_by": "nils 11:16"
+         }
+        ],
+        "messages": [
+         {
+          "author": "dermot",
+          "minute": "11:02",
+          "text": "quick one on attachments \u2014 size_mb, is that the file we read off disk or the encoded thing"
+         },
+         {
+          "author": "nils",
+          "minute": "11:05",
+          "text": "let me think. the base64 text is what actually goes over the wire, so it's measured on that string, not the file bytes"
+         },
+         {
+          "author": "dermot",
+          "minute": "11:07",
+          "text": "so we encode and then measure the encoded blob. feels like a lot of work just to learn a number"
+         },
+         {
+          "author": "nils",
+          "minute": "11:10",
+          "text": "not really \u2014 size_mb is just what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically, it doesn't decode anything to find out"
+         },
+         {
+          "author": "dermot",
+          "minute": "11:11",
+          "text": "ah ok. thats cheap then"
+         },
+         {
+          "author": "petar",
+          "minute": "11:13",
+          "text": "and mb is which mb here, the honest one or the disk-vendor one"
+         },
+         {
+          "author": "nils",
+          "minute": "11:16",
+          "text": "the divisor in there is 1024*1024. a 1000-based megabyte would quietly shift the boundary and i'd rather not have that argument later"
+         },
+         {
+          "author": "petar",
+          "minute": "11:18",
+          "text": "right, that lines up with the totals looking a touch smaller than i kept expecting"
          }
         ]
        },
@@ -4495,66 +4491,57 @@
         "title": "derived basenames are eating the attachment payload",
         "messages": [
          {
-          "author": "konrad",
-          "minute": "13:31",
-          "text": "These finance exports, what is actually in the file name? They run very long and i want to know if thats normal"
+          "author": "dario",
+          "minute": "13:11",
+          "text": "the finance exports, are those file names long because of the title or is there stuff appended to it"
          },
          {
           "author": "nikolai",
-          "minute": "13:33",
-          "text": "normal yep thats just what they emit"
+          "minute": "13:13",
+          "text": "both, its the full title then the two dates then a final -"
+         },
+         {
+          "author": "nikolai",
+          "minute": "13:14",
+          "text": "comes out to 73 characters for the basename on the ones i pulled"
          },
          {
           "author": "dario",
-          "minute": "13:35",
-          "text": "its the full title, then the two dates, then a trailing - on the end. nothing gets shortened anywhere"
-         },
-         {
-          "author": "konrad",
-          "minute": "13:37",
-          "text": "long how, roughly"
+          "minute": "13:17",
+          "text": "ok thats the name. how much is the block sitting around it, or is that the whole weight"
          },
          {
           "author": "nikolai",
-          "minute": "13:39",
-          "text": "73 characters on the basename for the batch i pulled this morning"
+          "minute": "13:21",
+          "text": "barely anything, its just {\"type\": \"file\", \"file\": {\"filename\": ..., \"file_url\": ...}} and nothign else in there"
          },
          {
           "author": "konrad",
-          "minute": "13:40",
-          "text": "so in the block we send, the name is most of it? presumably the url part is small"
+          "minute": "13:23",
+          "text": "mhm so when we count one of these, presumably we are mostly counting the filename"
          },
          {
           "author": "nikolai",
-          "minute": "13:42",
-          "text": "right the block is just {\"type\": \"file\", \"file\": {\"filename\": ..., \"file_url\": ...}} so its mostly filename, anything we plan around the block we plan around the name"
-         },
-         {
-          "author": "dario",
-          "minute": "13:44",
-          "text": "that tracks. the export i had open monday was exactly that shape, title dates dash, i just never counted it"
+          "minute": "13:24",
+          "text": "yep mostly filename"
          }
         ],
         "pieces": [
          {
-          "piece": "these finance exports land with long basenames and that is the normal shape for them",
-          "carried_by": "nikolai 13:33"
+          "piece": "finance exports land with 73-character basenames",
+          "carried_by": "nikolai 13:14"
          },
          {
-          "piece": "the basename is the full title plus two dates plus a final -",
-          "carried_by": "dario 13:35"
-         },
-         {
-          "piece": "73-character basenames",
-          "carried_by": "nikolai 13:39"
+          "piece": "the basename is full title plus two dates plus a final -",
+          "carried_by": "nikolai 13:13"
          },
          {
           "piece": "the block is just {\"type\": \"file\", \"file\": {\"filename\": ..., \"file_url\": ...}}",
-          "carried_by": "nikolai 13:42"
+          "carried_by": "nikolai 13:21"
          },
          {
-          "piece": "so its mostly filename (the url part being small)",
-          "carried_by": "konrad 13:40"
+          "piece": "so it's mostly filename",
+          "carried_by": "konrad 13:23 (raised) and nikolai 13:24 (settled)"
          }
         ]
        },
@@ -5096,58 +5083,61 @@
         "prompted_by": "Gideon runs a dedupe pass over a multimodal set before a batch submission and every remote-url image row survives it, which sends him into the request fingerprinting code he owns from caching-and-resume",
         "messages": [
          {
-          "author": "gideon",
+          "author": "konrad",
           "minute": "13:12",
-          "text": "dedupe pass ran over the viewer images last night and dropped exactly nothing. every remote one still sitting in the list"
+          "text": "the dedupe pass on last nights viewer run dropped nothing. not one image. is that expected"
+         },
+         {
+          "author": "gideon",
+          "minute": "13:15",
+          "text": "um, which ones did it keep? so basically the fingerprint comes back empty anytime theres an http url on it"
          },
          {
           "author": "konrad",
-          "minute": "13:14",
-          "text": "local files collapse fine though?"
-         },
-         {
-          "author": "gideon",
-          "minute": "13:16",
-          "text": "ya those are fine. the fingerprint comes back empty for anythng with an http url"
-         },
-         {
-          "author": "emil",
           "minute": "13:17",
-          "text": "so empty just gets kept instead of compared? small slice presumably"
+          "text": "so anything remote just sails through untouched. how much of the run is that"
          },
          {
           "author": "gideon",
           "minute": "13:19",
-          "text": "half the run is remote tbh. so basically empty cant keep meaning keep"
+          "text": "half the run is remote tbh. so the pass is sitting idle on most of what it sees"
          },
          {
-          "author": "gideon",
+          "author": "dario",
           "minute": "13:21",
-          "text": "we fingerprint the remote ones off what the local path already fingerprints, then dedupe once over the lot. no seperate branch for them"
-         },
-         {
-          "author": "konrad",
-          "minute": "13:23",
-          "text": "right, so the dropped count in yesterdays summary was only ever the local ones"
+          "text": "so the fingerprint has to cover the remote ones too, or is it something further up"
          },
          {
           "author": "gideon",
           "minute": "13:24",
-          "text": "exactly"
+          "text": "ya, it needs to come back with something for remote images as well, url or not. nobodys written that yet"
+         },
+         {
+          "author": "konrad",
+          "minute": "13:26",
+          "text": "right, and the run looked green the whole time. that is the annoying part"
          }
         ],
         "pieces": [
          {
-          "piece": "the dedupe pass kept every remote image (nothing was dropped)",
-          "carried_by": "gideon 13:12"
+          "piece": "the dedupe pass dropped nothing / kept them all",
+          "carried_by": "konrad 13:12"
          },
          {
           "piece": "the fingerprint comes back empty for anything with an http url",
-          "carried_by": "gideon 13:16"
+          "carried_by": "gideon 13:15"
+         },
+         {
+          "piece": "the ones kept are the remote images (remote ones pass through undeduped)",
+          "carried_by": "konrad 13:17"
          },
          {
           "piece": "half the run is remote",
           "carried_by": "gideon 13:19"
+         },
+         {
+          "piece": "settled: the fingerprint has to come back with something for remote images too, not go empty on the url",
+          "carried_by": "gideon 13:24"
          }
         ]
        },
@@ -5762,7 +5752,7 @@
        ],
        "subconclusion": "g8.r2.sc4",
        "holder": "emil",
-       "text": "for the module bullet - `_SUPPORTED_IMAGE_DETAILS` is auto, low and high, nothing else, and `normalize_detail` is the only reader - hand it None and you get \"auto\" back.",
+       "text": "for the module bullet - `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`, three entries, and index 0 is what the fallback hands back. `normalize_detail` is the only reader - give it None and you get \"auto\".",
        "drafted": "for the module bullet: `_SUPPORTED_IMAGE_DETAILS` is auto, low, high and nothing else, and `normalize_detail` is the only thing that reads it.",
        "settles": "the team agrees the accepted vocabulary is three fixed values behind a named constant, checked in one named place",
        "leaves_open": "what happens on a value outside those three, and whether the caller's own attribute is touched",
@@ -5770,7 +5760,8 @@
         "None",
         "_SUPPORTED_IMAGE_DETAILS",
         "auto",
-        "normalize_detail"
+        "normalize_detail",
+        "tuple[str, ...]"
        ],
        "forbidden_terms": [
         "fallback",
@@ -5837,66 +5828,79 @@
         "messages": [
          {
           "author": "konrad",
-          "minute": "14:11",
-          "text": "for the module bullet on image detail - what do i list as the accepted values? off the top of my head its auto and low, i think there is a third"
+          "minute": "14:21",
+          "text": "for the module bullet on image detail - do we list the constant with the type or just the name"
          },
          {
           "author": "emil",
-          "minute": "14:14",
-          "text": "`_SUPPORTED_IMAGE_DETAILS` is auto, low and high. thats the whole set, nothing else goes in it"
+          "minute": "14:24",
+          "text": "with the type. `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`. three entries, and the order isnt cosmetic - index 0 is what gets handed back when we cant match"
          },
          {
           "author": "konrad",
-          "minute": "14:15",
-          "text": "right. anything reading that set apart from the validator?"
+          "minute": "14:25",
+          "text": "mhm. anything else reading it or is it just the one place"
          },
          {
           "author": "emil",
-          "minute": "14:17",
-          "text": "`normalize_detail` is the only reader. i went looking yesterday and nothing else touches it"
+          "minute": "14:26",
+          "text": "just `normalize_detail`, thats the only reader. worth saying so in the bullet i think"
          },
          {
           "author": "dario",
-          "minute": "14:20",
-          "text": "what about when nobody passes detail at all though. does that raise or does it just land on something"
+          "minute": "14:28",
+          "text": "and if nothing comes in at all? or does it never actually see that case"
          },
          {
           "author": "emil",
-          "minute": "14:22",
-          "text": "hand `normalize_detail` None and you get \"auto\" back. worth putting in the bullet plainly, people keep guessing at it"
+          "minute": "14:30",
+          "text": "it does, honestly more often than youd expect. give it None and you get \"auto\" back"
          },
          {
           "author": "konrad",
-          "minute": "14:24",
-          "text": "mhm. i had it down as raising, so thats one line less than i was going to write"
+          "minute": "14:31",
+          "text": "ok. thats one line then, i had penciled in three"
          }
         ],
         "pieces": [
          {
-          "piece": "`_SUPPORTED_IMAGE_DETAILS` contains auto, low and high, and nothing else",
-          "carried_by": "emil 14:14"
+          "piece": "the module bullet lists the constant as `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`",
+          "carried_by": "emil 14:24"
          },
          {
-          "piece": "`normalize_detail` is the only reader of that set",
-          "carried_by": "emil 14:17"
+          "piece": "it has three entries",
+          "carried_by": "emil 14:24"
          },
          {
-          "piece": "passing None to `normalize_detail` returns \"auto\"",
-          "carried_by": "emil 14:22"
+          "piece": "index 0 is what gets handed back when nothing matches",
+          "carried_by": "emil 14:24"
          },
          {
-          "piece": "the context: this is for the module bullet on image detail",
-          "carried_by": "konrad 14:11"
+          "piece": "`normalize_detail` is the only reader of it",
+          "carried_by": "emil 14:26"
+         },
+         {
+          "piece": "the no-input case exists and is asked about",
+          "carried_by": "dario 14:28"
+         },
+         {
+          "piece": "passing None yields \"auto\"",
+          "carried_by": "emil 14:30"
          }
         ]
        },
-       "problems": [],
+       "problems": [
+        "longer than one remark",
+        "contains its own forbidden term 'fallback'"
+       ],
        "status": "planned",
        "rendered_in": null,
        "verified": false,
        "settled_from": "for the module bullet - `_SUPPORTED_IMAGE_DETAILS` is auto, low and high, nothing else, and `normalize_detail` is the only thing that reads it.",
        "settle_note": "States failure_behavior#13: normalize_detail(None) == \"auto\", which nobody said - l16 only covered the silence, not the value.",
-       "uncarried": []
+       "uncarried": [],
+       "repaired_from": "for the module bullet - `_SUPPORTED_IMAGE_DETAILS` is auto, low and high, nothing else, and `normalize_detail` is the only reader - hand it None and you get \"auto\" back.",
+       "repair_note": "The old wording listed the members as prose, which reads as an unordered set - the engineer was free to permute it. This types the constant as a tuple and fixes \"auto\" at index 0 by the boring middle step nobody said: the fallback returns the element at position 0. It still leaves the positions of the other two entries open."
       },
       {
        "clue_id": "g8.r2.l15",
@@ -5970,65 +5974,70 @@
         "prompted_by": "nils ran an overnight 40k-image batch on top of the newly merged detail validation and woke up to a warning on every single image plus a fixture diff, so he brings it back to the PR thread",
         "messages": [
          {
+          "author": "gideon",
+          "minute": "14:04",
+          "text": "My image fixtures are diffing this morning and I didnt touch them. detail comes out different than what went in"
+         },
+         {
           "author": "dermot",
-          "minute": "14:12",
-          "text": "the overnight job logged the detail warning on every single image. all 40k of them"
+          "minute": "14:06",
+          "text": "yeah thats the new warning path. it rewrote Image.detail in place on last nights run, if i had to guess thats your diff"
+         },
+         {
+          "author": "gideon",
+          "minute": "14:07",
+          "text": "ok but why is it writing to it at all"
          },
          {
           "author": "nils",
+          "minute": "14:09",
+          "text": "it shouldn't be. Resolving something for the request is fine, writing it back onto the source object is not \u2014 we shouldn't be mutating what the caller handed us"
+         },
+         {
+          "author": "dermot",
+          "minute": "14:11",
+          "text": "mhm. that said the warning itself fired on every image in that run too, all 40k of them"
+         },
+         {
+          "author": "nils",
+          "minute": "14:13",
+          "text": "on all of them? most of that set never set one at all. so that's just noise, i think \u2014 nobody needs telling about a thing they didn't do"
+         },
+         {
+          "author": "dermot",
+          "minute": "14:14",
+          "text": "yeah ok. two changes then, neither of them written yet. i can take it once WS-050 is off my plate"
+         },
+         {
+          "author": "gideon",
           "minute": "14:15",
-          "text": "all of them? most of that set never set one in the first place, i think"
-         },
-         {
-          "author": "dermot",
-          "minute": "14:17",
-          "text": "mhm. so we're warning people about something they didnt ask for, thats just noise in the log"
-         },
-         {
-          "author": "nils",
-          "minute": "14:20",
-          "text": "fair enough, it should only be saying anything where somebody actually made a choice. the part that got me though is it rewrote Image.detail under me"
-         },
-         {
-          "author": "dermot",
-          "minute": "14:22",
-          "text": "rewrote as in on the object we handed it? if i had to guess you mean in place"
-         },
-         {
-          "author": "nils",
-          "minute": "14:25",
-          "text": "in place, yes. my fixtures diff now, which is how i noticed. we shouldn't be mutating the source like that"
-         },
-         {
-          "author": "nikolai",
-          "minute": "14:28",
-          "text": "yep mine came back dirty friday too im leaving them till thats sorted"
+          "text": "ya honestly the mutation one is what got me, I spent all morning digging around in the encoder for it"
          }
         ],
         "pieces": [
          {
-          "piece": "detail warning fired on all 40k images last night",
-          "carried_by": "dermot 14:12"
+          "piece": "the detail warning fired on all 40k images in last night's run",
+          "carried_by": "dermot 14:11 (with \"last night\" established by dermot 14:06)"
          },
          {
-          "piece": "most of which never set one",
-          "carried_by": "nils 14:15"
+          "piece": "most of those images never set a detail, so the warning is noise",
+          "carried_by": "nils 14:13"
          },
          {
-          "piece": "that's noise",
-          "carried_by": "dermot 14:17"
+          "piece": "it rewrote Image.detail under the caller (literal name typed)",
+          "carried_by": "dermot 14:06"
          },
          {
-          "piece": "it rewrote Image.detail under me",
-          "carried_by": "nils 14:20"
+          "piece": "we shouldn't mutate the source object \u2014 the settled decision",
+          "carried_by": "nils 14:09"
          },
          {
-          "piece": "we shouldn't mutate the source",
-          "carried_by": "nils 14:25"
+          "piece": "fixtures now diff because of the mutation",
+          "carried_by": "gideon 14:04, confirmed as caused by the rewrite in dermot 14:06"
          },
          {
-          "piece": "my fixtures diff now",
-          "carried_by": "nils 14:25"
+          "piece": "decision settled, code not yet written",
+          "carried_by": "dermot 14:14"
          }
         ]
        },
@@ -6062,7 +6071,7 @@
        "carrier": {
         "key": "new|pipeline|2025-05-14",
         "source": "slack",
-        "date": "2025-05-14",
+        "date": "2025-05-13",
         "channel": "pipeline",
         "room": "#pipeline",
         "index": null,
@@ -6104,7 +6113,7 @@
        },
        "invented": {
         "channel": "pipeline",
-        "date": "2025-05-14",
+        "date": "2025-05-13",
         "kind": "chat_thread",
         "participants": [
          "dermot",
@@ -6113,62 +6122,67 @@
         ],
         "prompted_by": "a week after the multimodal workstream landed, emil finds the image blocks we build are going out with no detail field at all, and a config that sets it isn't being honoured - so the thread works out which values we accept, what normalisation happens before the comparison, and what we do with anything else",
         "title": "image detail on the attachment payload blocks",
-        "messages": [
-         {
-          "author": "gideon",
-          "minute": "09:41",
-          "text": "what do we do when the detail value isnt one of the three we accept? someone typo'd it in a config yesterday and i honestly could not tell what it ended up doing"
-         },
-         {
-          "author": "dermot",
-          "minute": "09:43",
-          "text": "falls back to auto. thats what we'd want anyway"
-         },
-         {
-          "author": "dario",
-          "minute": "09:44",
-          "text": "quietly though? nothing warns on it today, i'd want to know it happened"
-         },
-         {
-          "author": "dermot",
-          "minute": "09:46",
-          "text": "no we log it. once, not per call"
-         },
-         {
-          "author": "gideon",
-          "minute": "09:47",
-          "text": "and um, when its not set at all? same log or no"
-         },
-         {
-          "author": "dermot",
-          "minute": "09:50",
-          "text": "yeah ok - nothing set at all logs nothing. block still goes out with detail \"auto\" either way"
-         }
-        ],
         "pieces": [
          {
-          "piece": "a value that isn't one of the three accepted ones is the case in question",
-          "carried_by": "gideon 09:41"
+          "piece": "a value that isn't one of the three falls back to auto",
+          "carried_by": "dermot 15:24"
          },
          {
-          "piece": "unrecognised value falls back to auto",
-          "carried_by": "dermot 09:43"
-         },
-         {
-          "piece": "the fallback is logged rather than silent",
-          "carried_by": "dermot 09:46"
-         },
-         {
-          "piece": "logged once, not on every call",
-          "carried_by": "dermot 09:46"
+          "piece": "that fallback is logged once, not per block",
+          "carried_by": "dermot 15:24 (stated) and dermot 15:26 (confirmed as once, not per block)"
          },
          {
           "piece": "nothing set at all logs nothing",
-          "carried_by": "dermot 09:50"
+          "carried_by": "dermot 15:29"
          },
          {
-          "piece": "the block still goes out, with detail \"auto\"",
-          "carried_by": "dermot 09:50"
+          "piece": "the block still goes out with detail \"auto\"",
+          "carried_by": "dermot 15:29"
+         },
+         {
+          "piece": "the question that forces the fallback answer (bad value: fail or carry on)",
+          "carried_by": "gideon 15:22"
+         },
+         {
+          "piece": "the push on the unclear part (the nothing-set case)",
+          "carried_by": "dario 15:27"
+         }
+        ],
+        "messages": [
+         {
+          "author": "gideon",
+          "minute": "15:22",
+          "text": "what happens if the value someone sets isnt one of the three? do we hard fail on it"
+         },
+         {
+          "author": "dermot",
+          "minute": "15:24",
+          "text": "no. we fall back to auto and log that once"
+         },
+         {
+          "author": "gideon",
+          "minute": "15:25",
+          "text": "is that one line per bad value, or one for the whole run"
+         },
+         {
+          "author": "dermot",
+          "minute": "15:26",
+          "text": "one each time we fall back. we dont track what weve already said - a run that trips it twice says it twice"
+         },
+         {
+          "author": "dario",
+          "minute": "15:27",
+          "text": "and if nothing is set at all, does that warn too, or is that just the default and we stay quiet"
+         },
+         {
+          "author": "dermot",
+          "minute": "15:29",
+          "text": "yeah ok - nothing set at all logs nothing. and the block still goes out with detail \"auto\" either way"
+         },
+         {
+          "author": "dario",
+          "minute": "15:31",
+          "text": "so a blank one and a typo'd one look identical downstream. fine by me"
          }
         ]
        },
@@ -7339,65 +7353,69 @@
         "messages": [
          {
           "author": "nikolai",
-          "minute": "13:21",
-          "text": "same image comes in twice, once as a link once pasted inline. two rows or one"
+          "minute": "14:11",
+          "text": "quick one on the attachment digest  for a url block is it hashed over the string we actually got or some tidied up version"
          },
          {
           "author": "emil",
-          "minute": "13:23",
-          "text": "fwiw i ran it, attachment_fingerprint(\"https://cdn.example.com/photos/cat.jpeg?size=large\") comes back sha256:80ce7facd006"
+          "minute": "14:13",
+          "text": "the string we got, i believe. fwiw i ran it \u2014 attachment_fingerprint(\"https://cdn.example.com/photos/cat.jpeg?size=large\") comes back sha256:80ce7facd006"
+         },
+         {
+          "author": "petar",
+          "minute": "14:14",
+          "text": "query string and all? nothing trimmed off the end"
+         },
+         {
+          "author": "emil",
+          "minute": "14:14",
+          "text": "yup, exactly as sent"
          },
          {
           "author": "nikolai",
-          "minute": "13:24",
-          "text": "thats the link one. the pasted one is what im asking"
-         },
-         {
-          "author": "gideon",
-          "minute": "13:25",
-          "text": "ya same, thats the bit the ticket doesnt say"
+          "minute": "14:16",
+          "text": "ok so whats it do if someone hands you that same text but as a base64 block"
          },
          {
           "author": "emil",
-          "minute": "13:27",
-          "text": "a base64 block whose text is that same string lands on the same digest. 80ce7facd006 both times, i checked"
+          "minute": "14:18",
+          "text": "let me think through that. same digest \u2014 i tried a base64 block whose text is that same string and it landed on sha256:80ce7facd006 too. what goes in is the text the block is carrying"
          },
          {
           "author": "nikolai",
-          "minute": "13:28",
-          "text": "right. one row then"
-         },
-         {
-          "author": "gideon",
-          "minute": "13:29",
-          "text": "honestly though nobody has run this outside your repl yet has it"
+          "minute": "14:19",
+          "text": "so the picture itself never enters into it"
          },
          {
           "author": "emil",
-          "minute": "13:30",
-          "text": "nope, just the repl"
+          "minute": "14:20",
+          "text": "no. identical text, identical digest, thats the whole of it. two different renderings of one photo share nothing to hash"
          }
         ],
         "pieces": [
          {
-          "piece": "somebody actually ran it (\"fwiw i ran it\") rather than reading it off a spec",
-          "carried_by": "emil 13:23"
+          "piece": "somebody ran it \u2014 attachment_fingerprint called on the literal url https://cdn.example.com/photos/cat.jpeg?size=large",
+          "carried_by": "emil 14:13"
          },
          {
-          "piece": "the helper name attachment_fingerprint, called on https://cdn.example.com/photos/cat.jpeg?size=large",
-          "carried_by": "emil 13:23"
+          "piece": "that call comes back sha256:80ce7facd006",
+          "carried_by": "emil 14:13"
          },
          {
-          "piece": "that call returns sha256:80ce7facd006",
-          "carried_by": "emil 13:23"
+          "piece": "the digest is taken over the payload string as received, query included",
+          "carried_by": "petar 14:14 (asks) / emil 14:14 (confirms)"
          },
          {
-          "piece": "the open question about the other form \u2014 a base64/pasted attachment rather than the url",
-          "carried_by": "nikolai 13:24"
+          "piece": "the case of a base64 block whose text is that same string is raised",
+          "carried_by": "nikolai 14:16"
          },
          {
-          "piece": "a base64 block whose text is that same string lands on the same digest (80ce7facd006 both times)",
-          "carried_by": "emil 13:27"
+          "piece": "that base64 block lands on the same digest, sha256:80ce7facd006",
+          "carried_by": "emil 14:18"
+         },
+         {
+          "piece": "it holds because the block's text is what gets hashed \u2014 not the depicted image",
+          "carried_by": "emil 14:18, reinforced at emil 14:20"
          }
         ]
        },
@@ -7408,6 +7426,115 @@
        "rendered_in": null,
        "verified": false,
        "uncarried": []
+      },
+      {
+       "clue_id": "g8.r2.fix24",
+       "kind": "clue",
+       "reverses": "",
+       "covers": [
+        "failure_behavior"
+       ],
+       "subconclusion": "the team agrees the vocabulary constant keeps low before high, in provider-doc order rather than any sorted order",
+       "holder": "nikolai",
+       "text": "checked the ordering thing low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lsits them in",
+       "drafted": "checked the ordering nit - low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS`, cheapest first, same order their docs table lists them in.",
+       "settles": "the team agrees low precedes high in the vocabulary constant",
+       "leaves_open": "where \"auto\" sits relative to those two, and that the fallback reads position 0 - without emil's module bullet a reader still cannot write the tuple out.",
+       "verbatim": [
+        "_SUPPORTED_IMAGE_DETAILS",
+        "low",
+        "high"
+       ],
+       "forbidden_terms": [
+        "auto, low and high",
+        "(\"auto\", \"low\", \"high\")",
+        "first element",
+        "index 0",
+        "auto goes first",
+        "three values"
+       ],
+       "source": "slack",
+       "carrier": {
+        "key": "new|pipeline|2025-05-13",
+        "source": "slack",
+        "date": "2025-05-13",
+        "channel": "pipeline",
+        "room": "#pipeline",
+        "index": null,
+        "class": "explicit",
+        "score": 4,
+        "forced": false,
+        "why": "None of the eight candidates is chewing on multimodal request vocabulary. The 2025-04-04 and 2025-04-14 code-review days are about PR merge state and review ordering; 2025-06-16 and 2025-05-08 are review-queue triage (the closest thread, Emil taking the model support table action item, is about per-model capability ownership, not the values inside an image-detail constant); the two #cookbooks days are the SimpleStrat taxonomy and the verifier path; #engineering 2026-01-23 is PR 704 and the plan doc; #random 2025-04-25 is about model-name lists disagreeing, which is adjacent vocabulary-wise but is a support-ticket thread with no constant under construction and no Emil in it. A remark confirming the element order of `_SUPPORTED_IMAGE_DETAILS` only lands where someone is actually writing that constant out, alongside Emil's module bullet placing \"auto\" and the position-0 fallback. That is the provider request layer, so #pipeline, in the weeks after Emil claimed the support table work on 2025-05-08 and the stalled multimodal cookbook PRs surfaced.",
+        "kind": "chat_thread",
+        "insert_after": "",
+        "anchor": "",
+        "title": "image detail vocabulary and the default when nothing is passed"
+       },
+       "placement": {
+        "choice": "none",
+        "why": "None of the eight candidates is chewing on multimodal request vocabulary. The 2025-04-04 and 2025-04-14 code-review days are about PR merge state and review ordering; 2025-06-16 and 2025-05-08 are review-queue triage (the closest thread, Emil taking the model support table action item, is about per-model capability ownership, not the values inside an image-detail constant); the two #cookbooks days are the SimpleStrat taxonomy and the verifier path; #engineering 2026-01-23 is PR 704 and the plan doc; #random 2025-04-25 is about model-name lists disagreeing, which is adjacent vocabulary-wise but is a support-ticket thread with no constant under construction and no Emil in it. A remark confirming the element order of `_SUPPORTED_IMAGE_DETAILS` only lands where someone is actually writing that constant out, alongside Emil's module bullet placing \"auto\" and the position-0 fallback. That is the provider request layer, so #pipeline, in the weeks after Emil claimed the support table work on 2025-05-08 and the stalled multimodal cookbook PRs surfaced.",
+        "realism": 4,
+        "adapted": "checked the ordering thing low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lsits them in",
+        "invent": {
+         "channel": "pipeline",
+         "date": "2025-05-13",
+         "kind": "chat_thread",
+         "participants": [
+          "emil",
+          "nikolai",
+          "dario"
+         ],
+         "prompted_by": "Emil, having taken the model support table action item on 2025-05-08, starts pinning down the image detail parameter for multimodal requests and asks where the constant should live and what values it holds before the stalled multimodal cookbook PRs can move",
+         "title": "image detail vocabulary and the default when nothing is passed"
+        },
+        "candidates": [
+         "chat|code-review|2025-04-04",
+         "chat|code-review|2025-05-08",
+         "chat|random|2025-04-25",
+         "chat|code-review|2025-06-16",
+         "chat|code-review|2025-04-14",
+         "chat|cookbooks|2025-03-21",
+         "chat|cookbooks|2025-06-04",
+         "chat|engineering|2026-01-23"
+        ]
+       },
+       "invented": {
+        "channel": "pipeline",
+        "date": "2025-05-13",
+        "messages": [
+         {
+          "author": "emil",
+          "minute": "10:14",
+          "text": "picking up the model support table action item from thursday \u2014 the image detail param for multimodal requests is the bit i keep stalling on. where does the constant actually live, request layer or the provider shim? and it's just the two values plus auto, i believe"
+         },
+         {
+          "author": "nikolai",
+          "minute": "10:21",
+          "text": "checked the ordering nit low sits ahead of high in `_SUPPORTED_IMAGE_DETAILS` cheapest first same order their docs table lists them in"
+         },
+         {
+          "author": "dario",
+          "minute": "10:26",
+          "text": "mhm, that tracks. honestly i'd leave it wherever it is right now, the cookbook PRs are blocked on the table existing not on where the tuple sits"
+         },
+         {
+          "author": "emil",
+          "minute": "10:33",
+          "text": "yup. i'll write the table rows against that ordering then so we're not churning it in two weeks, we need to be intentional here. still not entirely sure auto belongs in the same"
+         },
+         {
+          "author": "nikolai",
+          "minute": "10:35",
+          "text": "auto is a diffrent question imo it's not a detail level its a fallback"
+         }
+        ]
+       },
+       "problems": [
+        "names no known subconclusion"
+       ],
+       "status": "planned",
+       "rendered_in": null,
+       "verified": false
       }
      ],
      "gaps": [],
@@ -7438,13 +7565,11 @@
    ],
    "stock_phrasing": [],
    "voice_problems": [],
-   "unclashed": [
-    "g8.r1.s3-konrad: konrad 13:13 -> 13:14",
-    "g8.r2.l6: dario 14:04 -> 14:05"
-   ],
+   "unclashed": [],
    "double_booked": [],
    "too_wordy": [
-    "g8.r1.s1-dario: the exchange is 5.0x the remark (157 chars over 9 turns) \u2014 inflated rather than spread"
+    "g8.r1.s1-dario: the exchange is 5.0x the remark (157 chars over 9 turns) \u2014 inflated rather than spread",
+    "g8.r2.fix24: the exchange is 5.8x the remark (136 chars over 5 turns) \u2014 inflated rather than spread"
    ],
    "contradictions": [],
    "finished_claims": [],
@@ -7482,9 +7607,12 @@
    "unreversed": [],
    "out_of_order": [],
    "unknit": [],
-   "stale_delta": [],
+   "stale_delta": [
+    "g8.r2.l16: 7 of 7 turn(s) are not in plant-data (task_generator/out/attachment-payload/clues/plant-data) \u2014 the plant has moved since it was written. Re-run `cli.py inject`, then `build_tasks.py --world --hosted`, then `cli.py answers`"
+   ],
    "fact_conflicts": [
-    "never run \u2014 `cli.py consistency <slug>` is the check for a remark that states a fact wrongly and is the last word on it, and nothing here has asked it"
+    "g8.r1.exclusions_or_crossover: g8.r1.s3-nikolai says 'yep thats settled then its not going out for bytes  what we end up counting for the remote ones is seperate gotta think through that one' \u2014 Presented as the thread's settled outcome: remote (url) blocks still get counted, just by some separate method to be worked out later. The reader concludes a url block does have a measured size that lands somewhere. The decision is that a url block is never measured at all -- size_mb is None, no per-kind ceiling is applied, and it adds nothing to the 45.0 MB prompt sum. The preceding line at 14:08 ('if the image is remote it pulls the whole thing down just to weigh it') is retracted in-thread only as to the network fetch; the claim that something gets counted for remote blocks survives the retraction and is left open rather than answered. \u2014 and nothing later overturns it",
+    "stale \u2014 last checked 2026-09-05T14:04:44+00:00, and the plant has been rewritten since (2026-09-05T15:12:18+00:00). Re-run `cli.py consistency <slug>`"
    ]
   }
  ],
@@ -7492,5 +7620,8 @@
  "settled_at": "2026-09-04T21:33:45+00:00",
  "reversed_at": "2026-09-04T21:34:47+00:00",
  "reordered_at": "2026-09-04T21:40:13+00:00",
- "reknit_at": "2026-09-04T22:24:29+00:00"
+ "reknit_at": "2026-09-05T15:18:18+00:00",
+ "fact_conflicts_at": "2026-09-05T14:04:44+00:00",
+ "consistency_at": "2026-09-05T14:04:44+00:00",
+ "repaired_at": "2026-09-05T14:32:06+00:00"
 }

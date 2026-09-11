@@ -1,76 +1,71 @@
-# g3 (retry-backoff-policy) — world-hosted v7, eval ce846459, run 2, rollout 63d214a1
+# g3 run 2 (c81e9802) — reward 1, all 9 facts passed
 
-**reward 0.6667** (6 of 9 facts). Not a broken run: PR #737 merged, CI green, deployed.
+## What this run did
 
-## What it found
+Given only the ticket, the agent cloned `curator`, read the four target files and the
+`OnlineStatusTracker`, then systematically exhausted every source the world offers: Gitea
+issues (dumped all 736 with comments and grepped locally after the search API returned
+nothing), BookStack wiki pages, Mattermost chat across all 12 channels, and IMAP mail. It hit
+and recovered from the world's two deliberate traps on its own: (1) the admin account isn't a
+channel member, so `/users/me/teams/.../channels` came back empty — it switched to the
+system/team-wide channel-listing endpoint; (2) its first BookStack dump serialized comments as
+bare `"active"`/`"archived"` strings, silently losing their content — it noticed, and re-ran a
+dedicated `/api/pages/{id}` pass to recover the real comment bodies. That second catch is what
+surfaced both wiki-comment remarks (`g3.r1.l5`, `g3.r2.s1a`), which BookStack's `/api/search`
+does not index at all.
 
-The agent built the strongest part of its process on chat: it bulk-dumped every Mattermost
-channel and every wiki page's comments to local files, then built a deduped, chronologically
-sorted context file (`ctx2.txt`, 541 lines) and read the first ~180 lines of it in full 40-line
-chunks (transcript lines 2182–2338). That pass alone recovered the whole herring/reversal
-timeline for both requirements — Jan/Feb "no ceiling on THROTTLE" and "plain assignment for
-the cooldown" correctly identified as superseded by the Mar/Apr waiver-pool and `max()`-horizon
-decisions (lines 2182, 2282, 2584) — and the shipped code implements the reversed (correct)
-version in both cases: `throttle_cooldown_until = max(current, now + delay)` and a per-request
-`throttle_waivers_left` that a THROTTLE decrements before ever touching `attempts_left`. It also
-opened both wiki-comment carriers (`g3.r1.l5`, `g3.r2.s1a`, via `cat /tmp/wiki2/<id>.txt`) and
-two of the three mail threads (`g3.r1.l8`, `g3.r2.s4d`) in full. This got it six of nine facts:
-`g3.r1.rule`, `g3.r1.scope`, `g3.r1.failure_behavior`, `g3.r2.scope`, `g3.r2.exclusions_or_crossover`,
-`g3.r2.observability`.
+From there the strategy was grep-and-read: an escalating series of targeted greps over the
+normalized chat dump (`retry_policy|waiver|throttle|classif|verdict|failure_class|cooldown`,
+then `retry.after|retry_after`, `time_of_last_rate_limit_error|cool_down|pause`,
+`attempts_made|pass count`, `attempts_left`, `reset`), each followed by reading the full
+surrounding exchange rather than trusting the single matched line. It consolidated everything
+into `/tmp/retry_chat.txt` and read that end to end before writing code. This is why the run
+found essentially the entire plant: all 41 clues, all 4 herrings and all 4 reversals surface in
+the transcript, most of them read in their full multi-turn context rather than as an isolated
+line.
 
-## What it missed, and why
+## What it believed, and why
 
-At transcript line 2433 the agent judged `ctx2.txt` "much noise" and abandoned full-context
-reading — it had reached only about a third of the way through (line 180/541, into March) —
-and switched to `ctx3.txt`, a single-line keyword-filtered dump with **no surrounding turns**,
-for everything from April onward. That switch is the proximate cause of every one of the 15
-not-found remarks and both of the two real losses:
+For every herring/reversal pair (`g3.r1.h1`/`rev1`, `g3.r1.h2`/`rev2`, `g3.r2.h1`/`rev1`,
+`g3.r2.h2`/`rev2`) the agent read both the original decision and its later reversal in the same
+grep pass or the same wide `sed` read, and its synthesis (transcript line 5021) states only the
+reversed positions: waivers on `APIRequest` (not a flat ban), and `max()` cooldown-floor
+semantics (not plain overwrite). Nothing in the shipped code reflects a herring.
 
-- **`g3.r1.exclusions_or_crossover` and `g3.r1.observability`** both fail on the same bug: the
-  shipped `decide()` never zeroes `attempts_left` on a `TERMINAL` verdict (`assert (False, 0, 4,
-  2, 'terminal:abort') == (False, 5, 4, 2, 'terminal:abort')` — the budget survives untouched).
-  The *only* remark in the entire plant that states this — `g3.r1.l13`, dermot at 14:18 on
-  2025-04-24 ("we empty the attempts, so your seven lands at zero. passes we dont touch, still
-  six") — was cut by exactly this switch: `ctx3.txt` kept only the neighbouring line at 14:15
-  ("`invalid api key` classifies as terminal:abort. theres nothing to retry into so we stop
-  there", transcript line 2502) because that was the line the keyword grep matched; the reply
-  two turns later that actually states the zeroing behavior was never captured anywhere. The
-  agent's own follow-up reading plan (line 2534) lists five threads to re-expand in full and
-  never names this one. The redundant carrier, mail thread `g3.r1.l12`, was independently lost
-  to a different gap: the mail triage (line 3495) filtered the mailbox to ~15 files by
-  retry-keyword subject match, and this thread's subject ("smoke run timings on the wiki before
-  we cut 0.1.26") didn't match despite its body restating the same fact.
+## The rewritten thread (v9)
 
-- **`g3.r2.rule`** fails on one assertion in an otherwise-fully-passing test:
-  `remaining_cooldown_seconds(horizoned, 500.0) == 8.001` for a horizon of `508.0009`, but the
-  shipped function is `max(0.0, cooldown_until - now)` with no `round()` call, returning
-  `8.000900000000001`. The tracker-field placement, the 0.0 default, and all three monotonic-max
-  cases in the same test passed — this is purely a missing three-decimal round. The one remark
-  that states rounding is required, `g3.r2.s1c` ("clamp at 0.0, round to three decimals ...
-  4.999999999998 comes out 5.0"), sits past the abandoned line and was never surfaced —
-  confirmed by a zero-hit grep across the full transcript for `-3.2`, `4.999999999998`, and
-  `round to three`. Notably `g3.r2.observability`, which exercises the same function, still
-  passed, because its test values (1002.0/1004.5/1005.0 against a 1005.0 horizon) are exact
-  under plain subtraction and never expose the missing round().
+v9 rewrote konrad's 14:12 turn in the `g3.r1.l1` thread (2025-06-03, #code-review) from "length
+stops being retryable, fail it out on the first" to "length does come good on a retry now and
+then, so dont stop retrying it, it just shouldnt get as many goes as a timeout." The agent read
+this exact exchange in full at chat.txt:2975–2995 (pulled up via "Line 2983 ... interesting,
+let's read 2975,2995" — transcript line 3919). It never separately re-quotes konrad's 14:12 line
+in its own Analysis, but the fact it needed from the thread — that a truncated-output failure is
+still retried, just pricier than a timeout — is exactly what shipped: `classify_failure` sorts
+`ValueError` into `CONTRACT` per the ticket's own table, and `_ATTEMPT_COST[CONTRACT] = 2` (set
+from the independently-read `g3.r1.l2`, dario 2025-06-26: "a CONTRACT/malformed-output failure
+costs TWO attempts off the budget," transcript line 4346). A `finish_reason == "length"` failure
+is therefore charged 2 attempts and remains retryable until the budget can't cover another 2 —
+never made terminal or non-retryable. This matches the rewritten remark, not the old wording, and
+is corroborated by the answer key's own observability table (`attempts_left=3 → 1` on a length
+failure).
 
-## Herrings
+## Why every fact scored 1
 
-All four resisted correctly (`believed: reversal` in every case) — the agent explicitly narrated
-the Jan/Feb positions as superseded before writing any code, and the shipped implementation
-matches the reversed versions, not the herrings.
+Each of the nine facts traces to multiple independently-read remarks rather than one lucky hit:
+`r1.rule` to the waiver-mechanism reversal chain plus the cost-table remarks (l1/l2/l3/l4/l9/l10);
+`r1.scope` to l11/l7/l6/l10 (no new config knob, per-request not per-run, lives on `APIRequest`);
+`r1.exclusions_or_crossover` to l13/l14/l15/l12 (terminal drains attempts but not waivers; a
+zero-cost throttle at `attempts_left==0` still re-queues); `r1.failure_behavior` to
+l16/l17/say23/l18/l19/say24/rev1 (charge-then-test ordering, clamp at 0 not negative, no
+delay/jitter on non-retry); `r1.observability` to l1/l5/l13/l15/l17 (the wiki comment giving
+`DEFAULT_THROTTLE_WAIVERS = 6` literally); `r2.rule` to s1a/s2a/s2b/s2c/say19/s2d/rev1/rev2 (the
+other wiki comment giving the exact field name and default, plus the `max()` formula literal);
+`r2.scope` to s3a/s3b/s3c/say20/say21/say22 (which counter each class touches, and that only
+THROTTLE reads the clock); `r2.exclusions_or_crossover` to say23/s4a/s4b/s4c/s4d (the config knob
+stays but goes unread, the wait must come from the failure's own backoff); `r2.observability` to
+s1c/s1d/s2c (the exact clamp/round and worked numeric examples). The agent's own mid-run sanity
+script reproduced several of these worked examples verbatim (`delay_for(THROTTLE,1)==5.0` at
+clock=1000/jitter=0.25; `remaining_cooldown_seconds` giving 3.0/0.0) before wiring the module in,
+which is strong evidence it understood the numbers rather than pattern-matching field names.
 
-## Coordinator follow-up: is `finish_reason == "length"` treated as terminal?
-
-**No.** `classify_failure` implements exactly the ticket's own four ordered signals with no
-message marker or special case for `"length"`/`"finish_reason"` anywhere in the shipped code
-(grepped every assistant-authored message: zero matches). The pre-existing call site (lines
-516–524, 4715–4723 — code the agent read, not code it wrote) already raises a plain
-`ValueError(f"finish_reason was {generic_response.finish_reason}")`, which the type-MRO table
-maps to `CONTRACT` — costing 2 attempts via `g3.r1.rule`, not a fail-on-first abort. No new
-exception class, no `TERMINAL` branch, no "fail it out on the first" logic exists anywhere. The
-agent never quoted or saw konrad's line — `g3.r1.l1` is one of the 15 not-found remarks (zero
-hits for "finish_reason length four times" / "shoudn't get that many goes" across the whole
-transcript), consistent with it sitting in the #code-review 2025-06-03 window past the point
-the agent stopped reading `ctx2.txt` in full. The agent got the CONTRACT-costs-2 rule right
-anyway, via `g3.r1.l2`/`l3`/`rev2` — but by the generic classification table lining up, not by
-reasoning about konrad's specific complaint.
+No facts were lost. `lost_facts` is empty.

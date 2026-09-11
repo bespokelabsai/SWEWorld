@@ -200,6 +200,10 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 
 > On pricing: azure's batch_multiplier() keeps drifting from the base processor's; we agreed identical in and out of batch mode, with cost() just scaling the resolved price by self.batch_multiplier().
 
+**2025-06-26 · wiki: Price Lookup Errors: What Each Bad Argument Actually Raises · emil**
+
+> circling back on the paragraph above — the window case does have a name after all, its `unknown_window`. chased it down in #code-review yesterday: if the map has no row for the window you asked for, thats what comes back, it does not quietly borrow the `"*"` tier. so this page can stop calling it folklore; someone fold it into the table next time theyre in here.
+
 **2025-06-26 · #pipeline · nils**
 
 > while you're in there - there's no 24h row for that model so the lookup fell through to the star entry, and my batch report came out with online prices again
@@ -207,7 +211,6 @@ Chat, the wiki and internal mail, over the months this area was being worked on,
 **2025-07-02 · wiki: model price lookup: what a miss returns · dermot**
 
 > a row in the pricing table with a null input price is no more use to us than no row at all, it should come back exactly the way a missing key does.
-
 
 ## Getting around
 

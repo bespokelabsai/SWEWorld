@@ -6,14 +6,36 @@ parent package the tests directory does not have.
 """
 from __future__ import annotations
 
+import functools
 import io
+import os
 import pathlib
+import tarfile
 import tokenize
 
 import pytest
 
 # The tree the world shipped. Anything that differs from it is the agent's.
-BASELINE = pathlib.Path("/opt/world-state/input/curator/src/bespokelabs/curator")
+#
+# Resolved through the environment because the suites no longer run as root:
+# `/opt/world-state` is 0700, so the drop uid cannot read this path and
+# `Path.exists()` answers False on PermissionError rather than raising.
+# `changed_source()` would then report the WHOLE library as changed and fail
+# quietly in both directions at once — some facts passing on untouched curator,
+# others failing on a correct one. `run_suites.py` stages a readable copy and
+# names it here; the default keeps the local bracket and the devbox working.
+BASELINE = pathlib.Path(os.environ.get(
+    "CURATOR_BASELINE_DIR",
+    "/opt/world-state/input/curator/src/bespokelabs/curator"))
+
+# The same tree, where a Horizon image keeps it. `/opt/world-state` is
+# SWEWorld's pristine checkout and exists in no apex_arena image, so a suite
+# that reached for BASELINE directly passed the local bracket 10 of 10 and then
+# failed hosted validation at 0.89 on a bare FileNotFoundError. The Dockerfile
+# copies the vendored tarball into /tests, which apex_arena creates root-owned
+# and 0700 — so it is a baseline the grader can read and the agent cannot.
+BASELINE_ARCHIVE = pathlib.Path("/tests/curator-src.tar.gz")
+_ARCHIVE_PREFIX = "./src/bespokelabs/curator/"
 
 
 # ---------------------------------------------------------------------------
@@ -139,6 +161,48 @@ def code_only(src: str) -> str:
     return " ".join(out)
 
 
+@functools.lru_cache(maxsize=1)
+def _archived_baseline() -> dict[str, str]:
+    """The whole baseline out of the tarball, read once.
+
+    Once, because `changed_source()` asks per file and curator is several
+    hundred of them; reopening the archive each time turned a millisecond check
+    into a visible pause in every suite that calls it.
+    """
+    if not BASELINE_ARCHIVE.exists():
+        return {}
+    out: dict[str, str] = {}
+    try:
+        with tarfile.open(BASELINE_ARCHIVE) as tar:
+            for member in tar.getmembers():
+                if not member.isfile() or not member.name.startswith(_ARCHIVE_PREFIX):
+                    continue
+                handle = tar.extractfile(member)
+                if handle is None:
+                    continue
+                out[member.name[len(_ARCHIVE_PREFIX):]] = handle.read().decode(
+                    "utf-8", errors="replace")
+    except (OSError, tarfile.TarError):
+        return {}
+    return out
+
+
+def baseline_text(rel) -> str | None:
+    """The file as the world shipped it, or None where no baseline exists.
+
+    Never raises. A test that reads the baseline to prove the agent ADDED
+    something must degrade rather than error when there is nothing to diff
+    against — an environment without a baseline is not a failed requirement.
+    """
+    direct = BASELINE / rel
+    if direct.exists():
+        try:
+            return direct.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            pass
+    return _archived_baseline().get(str(rel))
+
+
 def changed_source() -> dict[str, str]:
     """Every curator file the agent added or edited, comments stripped.
 
@@ -159,12 +223,7 @@ def changed_source() -> dict[str, str]:
             body = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        base = BASELINE / rel
-        if base.exists():
-            try:
-                if base.read_text(encoding="utf-8", errors="replace") == body:
-                    continue                      # untouched
-            except OSError:
-                pass
+        if baseline_text(rel) == body:
+            continue                              # untouched
         out[str(rel)] = code_only(body)
     return out

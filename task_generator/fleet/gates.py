@@ -23,6 +23,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import pathlib
+import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -345,7 +346,62 @@ def verdict_ab(task: Task, spec_dir: pathlib.Path, blind_dir: pathlib.Path) -> V
 PROMOTED = ("contradictions",)
 
 
-def clue_gate(task: Task) -> Verdict:
+def _spoken(entry: dict) -> str:
+    """Every word anybody actually says: remarks, woven turns, page and mail bodies.
+
+    `missing_identifiers` and `unstated` are both computed against the remark
+    TEXTS. After `reknit` that is not the corpus a reader sees -- the exchange
+    written around a remark is, and it is usually where a name gets typed. So a
+    finding out of those fields is checked against this before it is called hard.
+    """
+    out = []
+    for req in entry.get("requirements", []):
+        for clue in req.get("clues", []):
+            out.append(clue.get("text") or "")
+            invented = clue.get("invented") or {}
+            out.append(str(invented.get("body") or ""))
+            out.append(str(invented.get("subject") or ""))
+            for msg in invented.get("messages") or []:
+                out.append(str(msg.get("text") or ""))
+    return " ".join(out).lower()
+
+
+def named_clues(rows) -> set[str]:
+    """The clue ids a `fact_conflicts` list points at."""
+    return {m for row in rows or ()
+            for m in re.findall(r"\b([A-Za-z0-9]+\.r\d+\.[A-Za-z0-9_.-]+)\s+says", str(row))}
+
+
+def unreachable_names(task: Task, entry: dict) -> list[str]:
+    """Names the SUITE requires that an agent can learn from nowhere.
+
+    `missing_identifiers` reads `required_names`, which `surface.required()` parses
+    out of the requirement prose -- and it misses things. g7's list held `A`, `No`
+    and `exists` but not `verify_sidecar`, which `test_r1.py` demands by name
+    through `sym()`. Nothing else looked, so the plant passed every gate and then
+    `prove` returned 0/3 on `r1.rule` with "no module exports 'verify_sidecar'",
+    taking the three status assertions down with it -- one defect, four correlated
+    failures.
+
+    A name is only OWED to the corpus when the ticket does not print it. g11's suite
+    names 18 symbols and 11 are absent from its corpus; every one of those 11 is in
+    the ticket, and g11 proved 10/10. So the set that matters is
+    `suite - ticket - corpus`, and for g7 that is exactly one name.
+    """
+    suite = (pathlib.Path(__file__).resolve().parents[2]
+             / "harbor_tasks" / "_suites" / task.suite)
+    if not suite.is_dir():
+        return []
+    want: set[str] = set()
+    for path in suite.glob("test_*.py"):
+        want |= set(re.findall(r"sym\(\s*[\"']([A-Za-z_][A-Za-z0-9_]*)[\"']", path.read_text()))
+    ticket = task.description or ""
+    said = _spoken(entry)
+    return sorted(n for n in want
+                  if n not in ticket and n.lower() not in said)
+
+
+def clue_gate(task: Task, previous: set[str] | None = None) -> Verdict:
     """Everything the plant says about itself, read after EVERY pass that writes it.
 
     `settle`, `reverse`, `reorder`, `reknit` and `consistency` all mutate
@@ -363,6 +419,36 @@ def clue_gate(task: Task) -> Verdict:
     hard, soft = tg_clues.problems(entry)
     hard, soft = list(hard), list(soft)
     owed = []
+
+    # `consistency` IS A SAMPLE, NOT A MEASUREMENT.
+    #
+    # Measured over 26 rounds across these five tasks: an exchange NOTHING
+    # touched between two runs is routinely clean in one and a hard conflict in
+    # the next. g10's `s3_l1`, `s3_l2` and `s3_l3` were rewritten once, came back
+    # clean, were not touched again, and all three were flagged on the next pass.
+    # g11's `l14` and `r2.l1` did the same, and so did g9's `l-scope-2`. Over the
+    # last three rounds per task there are 11 conflicts that repeat and 15 that
+    # appear once and never again -- so more than half of what the fleet was
+    # paying to repair was resampling, and the counts never converged:
+    # g7 9->9->14->12->11->11, g10 8->10->8->9->8.
+    #
+    # So a conflict earns `hard` by SURVIVING a re-read. The first run has
+    # nothing to compare against and every row stands; after that a row is hard
+    # only if the previous run named the same clue. A real defect is still there
+    # next pass -- the aimed redo is what fixes it -- and noise costs a soft row
+    # instead of a $3.25 round.
+    if previous is not None:
+        kept, unconfirmed = [], []
+        for row in hard:
+            if not row.startswith("fact_conflicts"):
+                kept.append(row)
+            elif named_clues([row]) & previous:
+                kept.append(row)
+            else:
+                unconfirmed.append(row)
+        hard = kept
+        for row in unconfirmed:
+            soft.append("first sighting, not yet confirmed by a second read — " + row[:200])
 
     # A FRESH PLANT IS NOT A BROKEN ONE.
     #
@@ -384,10 +470,34 @@ def clue_gate(task: Task) -> Verdict:
         if rows:
             hard.append(f"{name}: {len(rows)} finding(s) — promoted from advisory by the fleet")
 
+    # `unstated` IS THE REMARKS, AND A READER SEES THE EXCHANGES.
+    #
+    # It comes out of `claims.json`, the settle judge's reading of each remark
+    # TEXT. `reknit` then writes the conversation around every remark, and that is
+    # where a name usually gets typed -- so after reknit the finding is evidence
+    # about a corpus nobody reads. Measured on all five plants here: every term an
+    # `absent` row says appears "nowhere in the corpus in any spelling" is in the
+    # exchanges, `dataset_signature` 4 times, `AttachmentError` 7, `CheckpointInfo`
+    # 7, `ValueError` 5. Promoting it was handing the judge a false hard finding
+    # every round, on every task, and the judge overrode it every time.
+    #
+    # Before reknit it is the only reader of settle's per-assertion verdicts and
+    # stays hard, which is the pass where it can still be acted on cheaply.
     absent = [r for r in (entry.get("unstated") or [])
               if isinstance(r, str) and r.split(": ", 1)[-1].startswith("absent")]
-    if absent:
+    woven = bool(json.loads(ledger.read_text()).get("reknit_at"))
+    spoken = _spoken(entry) if woven else ""
+    if absent and not woven:
         hard.append(f"unstated: {len(absent)} graded assertion(s) nothing in the corpus bears on")
+    elif absent:
+        soft.append(f"unstated: {len(absent)} assertion(s) absent from the REMARKS — "
+                    "read against claims.json, which predates the exchanges")
+
+    # HARD, and the only reader of it: a name in the suite, absent from the ticket
+    # and absent from the corpus, cannot be reached by any amount of reading.
+    for name in unreachable_names(task, entry):
+        hard.append(f"unreachable: the suite requires `{name}` by name, the ticket never "
+                    f"prints it and no remark says it — that fact cannot pass")
 
     for req in entry.get("requirements", []):
         rid = req.get("req_id", "?")
@@ -396,7 +506,10 @@ def clue_gate(task: Task) -> Verdict:
         # types scores zero however well the corpus reads, and no amount of
         # reasoning recovers it. Printed by `cmd_clues` today and in neither
         # HARD nor SOFT, which is why it is hard here.
-        missing = req.get("missing_identifiers") or []
+        # ... and read against the exchanges, not only the remarks: g8 was held
+        # hard on the word `calls`, which four of its woven turns type.
+        missing = [n for n in (req.get("missing_identifiers") or [])
+                   if not woven or n.split()[0].strip("`,.").lower() not in spoken]
         if missing:
             hard.append(f"{rid}: no remark says {', '.join(missing)} — the tests reach "
                         "for those by name, so those facts cannot pass")

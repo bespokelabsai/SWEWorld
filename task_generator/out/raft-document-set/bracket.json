@@ -1,0 +1,102 @@
+{
+ "task": "g13",
+ "suite": "g13_raft_document_set",
+ "trees": {
+  "pristine": {
+   "rewards": {
+    "g13.open_feature": 0.0,
+    "g13.r1.rule": 0.0,
+    "g13.r1.scope": 0.0,
+    "g13.r1.exclusions_or_crossover": 0.0,
+    "g13.r1.observability": 0.0,
+    "g13.r2.rule": 0.0,
+    "g13.r2.scope": 0.0,
+    "g13.r2.exclusions_or_crossover": 0.0,
+    "g13.r2.failure_behavior": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 9
+   },
+   "collected": true,
+   "stdout_tail": "hat only checks the negative scores full marks for an agent who wrote\n        nothing. Three of t4's exclusion tests did exactly that on the pristine\n        tree.\n        \"\"\"\n        if not is_present:\n>           pytest.fail(\n                f\"{what} is not implemented, so the constraint that goes with it \"\n                \"cannot be credited: an untouched checkout satisfies it by doing \"\n                \"nothing.\")\nE           Failed: the facade's question_generator_cls seam is not implemented, so the constraint that goes with it cannot be credited: an untouched checkout satisfies it by doing nothing.\n\nharness.py:83: Failed\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-000cf00c/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_r2.py::test_failure_behavior__the_numeric_knobs_are_rejected_before_the_base_class_runs\ng13_raft_document_set/test_r2.py::test_failure_behavior__the_numeric_knobs_are_rejected_before_the_base_class_runs\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down - Failed: `RaftSampling` is not exported by the curator blocks package; blocks.raft exposes ['Ba...\nFAILED g13_raft_document_set/test_r1.py::test_rule__a_mutable_raft_draw_stats_ledger_rides_on_every_answer_generator - Failed: `RaftDrawStats` is not exported by the curator blocks package; blocks.raft exposes ['BaseM...\nFAILED g13_raft_document_set/test_r1.py::test_scope__the_ledger_counts_document_set_builds_not_parse_calls - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r1.py::test_exclusions__the_question_joins_the_memo_key_so_each_one_gets_its_own_coin - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r1.py::test_observability__the_builder_is_memoised_with_maxsize_512 - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r2.py::test_rule__insufficient_distractors_error_names_the_chunk_and_the_shortfall - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft ...\nFAILED g13_raft_document_set/test_r2.py::test_scope__the_worst_case_is_checked_before_the_coin_is_flipped - TypeError: LLM.__init__() got an unexpected keyword argument 'rng'\nFAILED g13_raft_document_set/test_r2.py::test_failure_behavior__the_numeric_knobs_are_rejected_before_the_base_class_runs - Failed: DID NOT RAISE ValueError\nFAILED g13_raft_document_set/test_r2.py::test_exclusions__a_list_corpus_drops_blank_documents_and_renumbers_from_zero - Failed: the facade's question_generator_cls seam is not implemented, so the constraint that goes ...\n9 failed, 3 warnings in 6.14s\n"
+  },
+  "naive": {
+   "rewards": {
+    "g13.open_feature": 1.0,
+    "g13.r1.rule": 0.0,
+    "g13.r1.scope": 0.0,
+    "g13.r1.exclusions_or_crossover": 0.0,
+    "g13.r1.observability": 0.0,
+    "g13.r2.rule": 0.0,
+    "g13.r2.scope": 0.0,
+    "g13.r2.exclusions_or_crossover": 0.0,
+    "g13.r2.failure_behavior": 0.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 1,
+   "counts": {
+    "failed": 8,
+    "passed": 1
+   },
+   "collected": true,
+   "stdout_tail": "h is untouched\") only counts\n        # once the list branch really filters, and the facade seam it is measured\n        # through has to exist at all.\n        require_feature(\n            \"question_generator_cls\" in raft_name(\"Raft\").__dataclass_fields__,\n            \"the facade's question_generator_cls seam\")\n    \n        StubQ, StubA = stub_pair()\n        Raft = raft_name(\"Raft\")\n        Raft(model=\"m\", question_generator_cls=StubQ, answer_generator_cls=StubA)(\n            [\"alpha\", \"\", \"  \", \"\\n\", \" bravo \"])\n    \n        chunks = chunks_handed_to(StubA)\n>       assert len(chunks) == 2, \"three wholly blank entries dropped\"\nE       AssertionError: three wholly blank entries dropped\nE       assert 5 == 2\nE        +  where 5 = len(Dataset({\\n    features: ['chunk_id', 'content'],\\n    num_rows: 5\\n}))\n\ng13_raft_document_set/test_r2.py:178: AssertionError\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-43ab1792/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n================================================================================================= short test summary info ==================================================================================================\nFAILED g13_raft_document_set/test_r1.py::test_rule__a_mutable_raft_draw_stats_ledger_rides_on_every_answer_generator - Failed: `RaftDrawStats` is not exported by the curator blocks package; blocks.raft exposes ['Any',...\nFAILED g13_raft_document_set/test_r1.py::test_scope__the_ledger_counts_document_set_builds_not_parse_calls - AssertionError: expected one of ('document_sets', 'n_document_sets', 'document_set_count', 'builds') on _Raf...\nFAILED g13_raft_document_set/test_r1.py::test_exclusions__the_question_joins_the_memo_key_so_each_one_gets_its_own_coin - AssertionError: one coin per distinct (chunk_id, question): keying on the chunk alone draws 2, ...\nFAILED g13_raft_document_set/test_r1.py::test_observability__the_builder_is_memoised_with_maxsize_512 - AssertionError: lru_cache(maxsize=512); got maxsize=128\nFAILED g13_raft_document_set/test_r2.py::test_rule__insufficient_distractors_error_names_the_chunk_and_the_shortfall - Failed: `InsufficientDistractorsError` is not exported by the curator blocks package; blocks.raft ...\nFAILED g13_raft_document_set/test_r2.py::test_scope__the_worst_case_is_checked_before_the_coin_is_flipped - Failed: DID NOT RAISE ValueError\nFAILED g13_raft_document_set/test_r2.py::test_failure_behavior__the_numeric_knobs_are_rejected_before_the_base_class_runs - Failed: DID NOT RAISE ValueError\nFAILED g13_raft_document_set/test_r2.py::test_exclusions__a_list_corpus_drops_blank_documents_and_renumbers_from_zero - AssertionError: three wholly blank entries dropped\n8 failed, 1 passed, 3 warnings in 5.68s\n"
+  },
+  "oracle": {
+   "rewards": {
+    "g13.open_feature": 1.0,
+    "g13.r1.rule": 1.0,
+    "g13.r1.scope": 1.0,
+    "g13.r1.exclusions_or_crossover": 1.0,
+    "g13.r1.observability": 1.0,
+    "g13.r2.rule": 1.0,
+    "g13.r2.scope": 1.0,
+    "g13.r2.exclusions_or_crossover": 1.0,
+    "g13.r2.failure_behavior": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-56727944/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 3 warnings in 5.45s\n"
+  },
+  "spec": {
+   "rewards": {
+    "g13.open_feature": 1.0,
+    "g13.r1.rule": 1.0,
+    "g13.r1.scope": 1.0,
+    "g13.r1.exclusions_or_crossover": 1.0,
+    "g13.r1.observability": 1.0,
+    "g13.r2.rule": 1.0,
+    "g13.r2.scope": 1.0,
+    "g13.r2.exclusions_or_crossover": 1.0,
+    "g13.r2.failure_behavior": 1.0
+   },
+   "unmeasured": [],
+   "untested": [],
+   "rc": 0,
+   "counts": {
+    "passed": 9
+   },
+   "collected": true,
+   "stdout_tail": ".........                                                                                                                                                                                                            [100%]\n===================================================================================================== warnings summary =====================================================================================================\n../tree/src/bespokelabs/curator/request_processor/config.py:8\n  /tmp/tg/g13_raft_document_set-381e8b92/tree/src/bespokelabs/curator/request_processor/config.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    class RequestProcessorConfig(BaseModel):\n\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\ng13_raft_document_set/test_open.py::test_open_feature__the_facade_owns_the_knobs_and_the_randomness_it_hands_down\n  /opt/curator-dev/venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n9 passed, 3 warnings in 5.49s\n"
+  }
+ },
+ "verdicts": {
+  "g13.open_feature": "open_feature",
+  "g13.r1.rule": "hidden",
+  "g13.r1.scope": "hidden",
+  "g13.r1.exclusions_or_crossover": "hidden",
+  "g13.r1.observability": "hidden",
+  "g13.r2.rule": "hidden",
+  "g13.r2.scope": "hidden",
+  "g13.r2.exclusions_or_crossover": "hidden",
+  "g13.r2.failure_behavior": "hidden"
+ }
+}

@@ -1,0 +1,254 @@
+diff --git a/src/bespokelabs/curator/request_processor/_factory.py b/src/bespokelabs/curator/request_processor/_factory.py
+index 179c844..fb3ab6f 100644
+--- a/src/bespokelabs/curator/request_processor/_factory.py
++++ b/src/bespokelabs/curator/request_processor/_factory.py
+@@ -5,12 +5,16 @@ from pydantic import BaseModel
+ 
+ from bespokelabs.curator.log import logger
+ from bespokelabs.curator.request_processor.config import (
++    _BACKEND_MODES,
++    BackendModeError,
+     BackendParamsType,
+-    BatchRequestProcessorConfig,
+-    OfflineRequestProcessorConfig,
+     OnlineRequestProcessorConfig,
++    _resolve_mode,
+     _validate_backend_params,
+ )
++from bespokelabs.curator.request_processor.config import (
++    _remove_none_values as _config_remove_none_values,
++)
+ 
+ if t.TYPE_CHECKING:
+     from pydantic import BaseModel
+@@ -18,20 +22,13 @@ if t.TYPE_CHECKING:
+     from bespokelabs.curator.request_processor.base_request_processor import BaseRequestProcessor
+ 
+ 
+-# TODO: Redundant move to misc module.
+-def _remove_none_values(d: dict) -> dict:
+-    """Remove all None values from a dictionary."""
+-    return {k: v for k, v in d.items() if v is not None}
++_remove_none_values = _config_remove_none_values
+ 
+ 
+ class _RequestProcessorFactory:
+     @classmethod
+     def _create_config(cls, params, batch, backend):
+-        if backend == "vllm":
+-            return OfflineRequestProcessorConfig(**_remove_none_values(params))
+-        elif batch:
+-            return BatchRequestProcessorConfig(**_remove_none_values(params))
+-        return OnlineRequestProcessorConfig(**_remove_none_values(params))
++        return _validate_backend_params(params, batch, backend)
+ 
+     @staticmethod
+     def _check_openai_structured_output_support(config_params) -> bool:
+@@ -59,7 +56,11 @@ class _RequestProcessorFactory:
+             logger.info(f"Requesting output from {model_name}, using Anthropic backend")
+             return "anthropic"
+ 
+-        if any(x in model_name for x in ["codestral", "mistral", "ministral", "pixtral"]):
++        if provider in {"gemini", "vertex_ai"} and batch:
++            logger.info(f"Requesting output from {model_name}, using Gemini backend")
++            return "gemini"
++
++        if any(x in model_name for x in ["codestral", "mistral", "ministral", "pixtral"]) and batch:
+             logger.info(f"Requesting output from {model_name}, using Mistral backend")
+             return "mistral"
+ 
+@@ -79,18 +80,18 @@ class _RequestProcessorFactory:
+         return_completions_object: bool = False,
+     ) -> "BaseRequestProcessor":
+         """Create appropriate processor instance based on config params."""
+-        if params:
+-            params["model"] = model_name
+-            _validate_backend_params(params)
+-        else:
+-            params = t.cast(BackendParamsType, {"model": model_name})
+-
+-        params.update({"generation_params": generation_params})  # noqa
++        params = t.cast(BackendParamsType, dict(params) if params else {})
++        params["model"] = model_name  # noqa
++        params["generation_params"] = generation_params  # noqa
++        params["return_completions_object"] = return_completions_object  # noqa
+ 
+         if backend is None:
+             backend = cls._determine_backend(model_name, params, response_format, batch)
+ 
+-        params["return_completions_object"] = return_completions_object
++        mode = _resolve_mode(batch, backend)
++        if backend in _BACKEND_MODES and mode not in _BACKEND_MODES[backend]:
++            raise BackendModeError(backend, mode, tuple(sorted(_BACKEND_MODES[backend])))
++
+         config = cls._create_config(params, batch, backend)
+ 
+         if backend == "klusterai" and not batch:
+@@ -154,9 +155,6 @@ class _RequestProcessorFactory:
+ 
+             return AnthropicOnlineRequestProcessor(config)
+ 
+-        if backend == "litellm" and batch:
+-            raise ValueError("Batch mode is not supported with LiteLLM backend.")
+-
+         if backend == "litellm":
+             from bespokelabs.curator.request_processor.online.litellm_online_request_processor import LiteLLMOnlineRequestProcessor
+ 
+@@ -171,8 +169,6 @@ class _RequestProcessorFactory:
+             config.api_key = config.api_key or os.getenv("MISTRAL_API_KEY")
+             if not config.api_key:
+                 raise ValueError("MISTRAL_API_KEY is not set.")
+-            if not batch:
+-                raise ValueError("Only batch mode is supported with Mistral backend")
+             from bespokelabs.curator.request_processor.batch.mistral_batch_request_processor import MistralBatchRequestProcessor
+ 
+             return MistralBatchRequestProcessor(config)
+@@ -181,8 +177,6 @@ class _RequestProcessorFactory:
+             config.api_key = config.api_key or os.getenv("AZURE_OPENAI_API_KEY")
+             if not config.api_key:
+                 raise ValueError("AZURE_OPENAI_API_KEY is not set.")
+-            if not batch:
+-                raise ValueError("Only batch mode is supported with the Azure backend.")
+             from bespokelabs.curator.request_processor.batch.azure_batch_request_processor import AzureBatchRequestProcessor
+ 
+             return AzureBatchRequestProcessor(config)
+diff --git a/src/bespokelabs/curator/request_processor/config.py b/src/bespokelabs/curator/request_processor/config.py
+index ff2fa39..a36dff2 100644
+--- a/src/bespokelabs/curator/request_processor/config.py
++++ b/src/bespokelabs/curator/request_processor/config.py
+@@ -1,8 +1,6 @@
+ import typing as t
+ 
+-from pydantic import BaseModel, Field, ValidationError
+-
+-from bespokelabs.curator.log import logger
++from pydantic import BaseModel, Field, field_validator
+ 
+ 
+ class RequestProcessorConfig(BaseModel):
+@@ -40,23 +38,6 @@ class RequestProcessorConfig(BaseModel):
+ 
+         extra = "forbid"
+ 
+-    def __post_init__(self):
+-        """Post-initialization hook to validate generation parameters.
+-
+-        Validates that all provided generation parameters are supported by the specified model
+-        using litellm's parameter validation.
+-
+-        Raises:
+-            ValueError: If an unsupported generation parameter is provided
+-        """
+-        import litellm
+-
+-        self.supported_params = litellm.get_supported_openai_params(model=self.model)
+-        logger.debug(f"Automatically detected supported params using litellm for {self.model}: {self.supported_params}")
+-
+-        for key in self.generation_params.keys():
+-            raise ValueError(f"Generation parameter '{key}' is not supported for model '{self.model}'")
+-
+ 
+ class BatchRequestProcessorConfig(RequestProcessorConfig):
+     """Additional configuration specific to batch processors.
+@@ -83,10 +64,13 @@ class BatchRequestProcessorConfig(RequestProcessorConfig):
+     completion_window: str = "24h"
+     azure_deployment: str | None = None
+ 
+-    def __post_init__(self):
+-        """Post-initialization hook to validate batch size."""
+-        if isinstance(self.batch_size, str) and self.batch_size != "auto":
++    @field_validator("batch_size")
++    @classmethod
++    def _validate_batch_size(cls, value: t.Union[int, str]) -> t.Union[int, str]:
++        """Validate that batch_size is either an integer or the string "auto"."""
++        if isinstance(value, str) and value != "auto":
+             raise ValueError('batch_size must be either an integer or "auto"')
++        return value
+ 
+ 
+ class OnlineRequestProcessorConfig(RequestProcessorConfig):
+@@ -135,13 +119,6 @@ class OfflineRequestProcessorConfig(RequestProcessorConfig):
+     gpu_memory_utilization: float = Field(default=0.95, gt=0, le=1)
+     dtype: str = Field(default="auto")
+ 
+-    def __post_init__(self):
+-        """Post-initialization hook to validate generation parameters.
+-
+-        Overrides base class validation since offline models have different parameter requirements.
+-        """
+-        pass
+-
+ 
+ class BaseBackendParams(t.TypedDict, total=False):
+     """Base backend params TypedDict class."""
+@@ -188,17 +165,56 @@ class OfflineBackendParams(BaseBackendParams, total=False):
+ BackendParamsType = t.Union[OnlineBackendParams, BatchBackendParams, OfflineBackendParams]
+ 
+ 
+-def _validate_backend_params(params: BackendParamsType):
+-    validators = (
+-        BatchRequestProcessorConfig,
+-        OnlineRequestProcessorConfig,
+-        OfflineRequestProcessorConfig,
+-    )
+-    for validator in validators:
+-        try:
+-            validator.model_validate(params)
+-        except ValidationError:
+-            continue
+-        else:
+-            return validator(**params)
+-    raise ValueError(f"Backend params are not valid, please refer {validators} for more info on backend params.")
++_MODE_CONFIGS: dict[str, type[RequestProcessorConfig]] = {
++    "batch": BatchRequestProcessorConfig,
++    "online": OnlineRequestProcessorConfig,
++    "offline": OfflineRequestProcessorConfig,
++}
++
++_BACKEND_MODES: dict[str, frozenset[str]] = {
++    "openai": frozenset({"online", "batch"}),
++    "anthropic": frozenset({"online", "batch"}),
++    "klusterai": frozenset({"online", "batch"}),
++    "inference.net": frozenset({"online", "batch"}),
++    "gemini": frozenset({"batch"}),
++    "mistral": frozenset({"batch"}),
++    "azure": frozenset({"batch"}),
++    "litellm": frozenset({"online"}),
++    "vllm": frozenset({"offline"}),
++}
++
++
++class BackendModeError(ValueError):
++    """Raised when a backend cannot serve the requested mode.
++
++    Attributes:
++        backend: Name of the backend which was requested
++        mode: The requested mode, one of "batch", "online" or "offline"
++        supported: The modes the backend does support, sorted ascending
++    """
++
++    def __init__(self, backend: str, mode: str, supported: tuple[str, ...]) -> None:
++        """Initialize the error with the backend, the requested mode and the supported modes."""
++        self.backend = backend
++        self.mode = mode
++        self.supported = supported
++        super().__init__(f"backend {backend!r} does not support {mode} mode; supported modes: {', '.join(supported)}")
++
++
++def _resolve_mode(batch: bool, backend: str | None) -> str:
++    """Resolve which processing mode a (batch, backend) pair asks for."""
++    if backend == "vllm":
++        return "offline"
++    return "batch" if batch else "online"
++
++
++# TODO: Redundant move to misc module.
++def _remove_none_values(d: dict) -> dict:
++    """Remove all None values from a dictionary."""
++    return {k: v for k, v in d.items() if v is not None}
++
++
++def _validate_backend_params(params: BackendParamsType, batch: bool = False, backend: str | None = None) -> RequestProcessorConfig:
++    """Validate backend params against the config class for the requested mode."""
++    config_class = _MODE_CONFIGS[_resolve_mode(batch, backend)]
++    return config_class(**_remove_none_values(params))

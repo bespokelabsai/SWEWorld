@@ -66,6 +66,18 @@ conversation or document that should have existed instead — who was in it, wha
 prompted it, what else it would have been about. A remark forced into a room where
 it does not belong is more visible than a new conversation that makes sense.
 
+**And the place has to be about the same work the remark is about.** A document
+about a neighbouring feature will pass every test above — the words match, the
+author is right, the argument is live — and still lose the remark, because a
+reader takes what a page is about as what a remark in it is about. A rule for how
+this feature's file is serialised, planted in a page about a different feature's
+file, is read as that other feature's rule and skipped. Measured: three of one
+task's four page carriers were batch-mode documents, one of them invented for the
+purpose, and the rollout that found them wrote "this discussion is a different
+path … not directly related to the ticket" and scored zero on that requirement
+while scoring full marks on the one whose pages were about the right feature. If
+you invent a document, its subject is this work, not the work next to it.
+
 ## Adapt the wording
 
 Return the remark as it would actually have appeared in the place you chose:

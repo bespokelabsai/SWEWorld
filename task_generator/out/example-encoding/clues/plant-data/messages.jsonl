@@ -1,0 +1,220 @@
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:21:00+00:00", "text": "back on the turn scoring question from yesterday. if part of the answer falls outside what we keep, is that a partial? half in, half the points"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-14T13:24:00+00:00", "text": "honestly i dont think part credit on a turn works. its one or the other"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-14T13:25:00+00:00", "text": "one or the other on what basis though. kept vs not kept is doing a lot of work in that sentence"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-14T13:27:00+00:00", "text": "the whole answer has to sit inside what we keep, thats the condition. all of it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:28:00+00:00", "text": "and when it straddles the edge? some of it survived"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-03-14T13:30:00+00:00", "text": "then it counts for nothing at all. no fraction for the bit that made it"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-03-14T13:32:00+00:00", "text": "mhm ok. that takes out the overlap math i had half written"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-25T14:12:00+00:00", "text": "ran the cookbook token weight snippet with no tokenizer and the vector came back flat"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-25T14:15:00+00:00", "text": "flat as in every weight 1.0? on what pair"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-25T14:17:00+00:00", "text": "ya, every one 1.0. 'Hello' then 'Hi there!'"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-25T14:21:00+00:00", "text": "i'd expect the first few dark since thats the question, no?"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-25T14:26:00+00:00", "text": "right thats the bug that branch just hands back ones it isnt masking anything today"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-04-25T14:30:00+00:00", "text": "so if i'm following, the fix goes in the no-tokenizer branch itself, not a note on the page"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-04-25T14:33:00+00:00", "text": "yep in the branch it should come out the same shape the tokenizer path gives you question dark answer weighted nobodys written it yet"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-04-25T14:36:00+00:00", "text": "honestly though i had been reading that flat vector as the tokenizer just being optional"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:04:00+00:00", "text": "what happened with the fireworks upload yesterday, it came back rejected whole?"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-20T13:06:00+00:00", "text": "yup. one long sample and they bounced the entire upload over it, not just that record"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-20T13:08:00+00:00", "text": "but our own check passed the file first? so either the check is wrong or their limit is not what we think it is"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-20T13:09:00+00:00", "text": "honestly i think the cap and the check are just in different units"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:11:00+00:00", "text": "mhm. so if i'm reading that right the cap we have is in tokens and the thing we were comparing it against was never tokens"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-20T13:13:00+00:00", "text": "right. so to_jsonl_lines works out max_seq_length * FIREWORKS_BYTES_PER_TOKEN, and thats the budget every line gets measured against, in bytes"}
+{"channel": "cookbooks", "author": "dermot", "created_at": "2025-03-20T13:14:00+00:00", "text": "yeah ok. that would explain why nothing local ever fired on that file"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T14:03:00+00:00", "text": "my sanity check on the jsonl rows disagrees with what the code decides, every time. so basically i measured the line myself and got something smaller"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T14:05:00+00:00", "text": "if i'm reading that right you measured the string length? characters, not what actually goes out"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T14:06:00+00:00", "text": "ya, len of the line"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T14:08:00+00:00", "text": "look, counting characters was the mistake. it is len(line.encode('utf-8')) that we go on, so bytes"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T14:09:00+00:00", "text": "UTF-8 bytes of what though, the row as we built it or the serialized thing"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T14:11:00+00:00", "text": "the serialized one. json.dumps(ensure_ascii=False) with the default separators, and that line is what gets measured"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-03-19T14:12:00+00:00", "text": "ok that explains my gap. and the 'qqq'/'ok' pair, what does that land at"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-03-19T14:14:00+00:00", "text": "90. and the row that came out exactly on the number was fine, that one was never the failure"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-03-19T14:16:00+00:00", "text": "mhm, that tracks with the two rows i pulled last night"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-24T15:11:00+00:00", "text": "pulled a handful of rows out of the export and a few of them just start mid answer. not entirely sure if thats us or the viewer"}
+{"channel": "cookbooks", "author": "gideon", "created_at": "2025-03-24T15:13:00+00:00", "text": "its us. the rows that get cut hardest are the ones youre looking at"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-03-24T15:14:00+00:00", "text": "cut hardest as in the longest ones. and the cut eats forward from the front of the row, i take it"}
+{"channel": "cookbooks", "author": "gideon", "created_at": "2025-03-24T15:16:00+00:00", "text": "ya. so basically what arives is an answer with none of its question left in front of it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:17:00+00:00", "text": "and something drops those before training, presumably"}
+{"channel": "cookbooks", "author": "gideon", "created_at": "2025-03-24T15:18:00+00:00", "text": "thats the thing, no. we happily train on those"}
+{"channel": "cookbooks", "author": "gideon", "created_at": "2025-03-24T15:19:00+00:00", "text": "honestly though thats not defensible. no question left, the row doesnt go in. i dunno which ticket it lands on but thats what were doing"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-24T15:20:00+00:00", "text": "mhm. i had been putting those down to the preview rendering badly"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T11:51:00+00:00", "text": "emil hasnt come back on the stability item yet. if i had to guess the two green CI runs is what closes it"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T11:53:00+00:00", "text": "look, that item is not clean. nightly died last night"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T11:54:00+00:00", "text": "died as in flaky, or died as in it stopped"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T11:56:00+00:00", "text": "stopped. ExampleTooLongError, and the traceback right after it"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-19T11:58:00+00:00", "text": "which limit did it trip though, i believe we have a couple of them in there"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T12:01:00+00:00", "text": "\"example of 129 tokens exceeds max_seq_length=40: 0 prompt tokens would survive, minimum is 16\" - thats the whole line"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T12:03:00+00:00", "text": "mhm. zero surviving, so theres nothing left to trim down to"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T12:05:00+00:00", "text": "right. so green CI is not enough for that item, it stays open and it doesnt go in this cut"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-03-19T12:07:00+00:00", "text": "yeah ok. i had that line half crossed off in the weekly notes, putting it back"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T14:03:00+00:00", "text": "quick one before i forget. when an example is too long to fit, what does the refusal actually say? my logs just show a skip and a number"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T14:05:00+00:00", "text": "it puts the example's token_count next to the max_seq_length it went past. those two are in there for certain"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T14:06:00+00:00", "text": "ya but thats the part i already have. what i want is how much of the prompt would still be left, otherwise i cant tell if reshaping the example is worth it or i just drop it"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T14:10:00+00:00", "text": "fair enough. let me think — the refusal line reads exactly: example of {token_count} tokens exceeds max_seq_length={max_seq_length}: {retained_prompt_tokens} prompt tokens would survive, minimum is 16"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T14:12:00+00:00", "text": "so if i'm reading that right, the text says nothing about how many messages the example had"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T14:13:00+00:00", "text": "correct. num_messages rides along as an attribute, it isn't printed."}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-19T14:15:00+00:00", "text": "yeah ok. that said none of this is on a branch yet is it, i went looking earlier"}
+{"channel": "pipeline", "author": "nils", "created_at": "2025-03-19T14:16:00+00:00", "text": "not yet, someone still has to write it. maybe it goes on the batch ticket, i don't much mind which"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-19T14:17:00+00:00", "text": "so my alert is matching the old wording then. explains the silence"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-17T13:36:00+00:00", "text": "nightly came back empty. one row over the cap and the whole submission got rejected"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-17T13:38:00+00:00", "text": "yup, chased that this morning. one row we wont take shouldnt take the other forty thousand down with it"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-17T13:41:00+00:00", "text": "so skip that one and send the rest. writer is all or nothing today, nothing in it survives a bad row"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-17T13:44:00+00:00", "text": "right. it just gives up"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-17T13:46:00+00:00", "text": "and the other end — we still bounce the very short prompts before the cap ever comes into it. keeping that or dropping it"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-17T13:49:00+00:00", "text": "yeah, thats my read as well. no floor worth defending — anything that fits under the cap goes through however short its question is"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-17T13:51:00+00:00", "text": "mhm. the tiny ones are mostly retry stubs anyway"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-21T14:03:00+00:00", "text": "what is to_tinker_datum supposed to do when window_start comes back nonzero"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-21T14:06:00+00:00", "text": "it raises. ExampleTooLongError"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-21T14:07:00+00:00", "text": "even if its off by a token or two"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-21T14:09:00+00:00", "text": "presumably yes but off the top of my head i am not entirely sure if we said any nonzero or there is some slack"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-01-21T14:16:00+00:00", "text": "any nonzero. if window_start > 0 at all it raises, no slack — honestly an example we had to cut isnt really an example anymore, its an artifact"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-21T14:16:00+00:00", "text": "right thats gonna take out a chunk of the long ones"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-21T14:18:00+00:00", "text": "mhm. i had it the other way round in my head, that it would just hand back the shortened one. good that i asked before writing it"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-22T15:11:00+00:00", "text": "quick one on the windowing while i have it open — if an example gets cut at all, is that a partial refusal or is the whole thing refused"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-22T15:14:00+00:00", "text": "binary\nwindowed at all means refused theres no half state"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-22T15:17:00+00:00", "text": "yeah ok. so the refused one just never lands in the batch, or does something downstream have to look at a flag"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T15:20:00+00:00", "text": "no flag. format_batch skips that example and carrys on"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-22T15:22:00+00:00", "text": "that leaves the bit i keep tripping over then. an example we never cut still shows window_start 0 in its encoding"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T15:25:00+00:00", "text": "right but thats a measured 0, not an empty field. the windowing runs either way, so it comes back saying the window starts at the front. nothing is being left unset there"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-01-22T15:28:00+00:00", "text": "huh\nyep thats not how i had it in my head i had that 0 down as nobody having filled the field in"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-24T14:06:00+00:00", "text": "quick one on to_tinker_datum — are we still refusing anything where window_start came back above zero?"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T14:08:00+00:00", "text": "that was the call yes. any nonzero window_start and it raises ExampleTooLongError. the reasoning being that an example we had to cut isnt really an example anymore, its an artifact"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-24T14:09:00+00:00", "text": "i remember the framing. it isnt holding up though, the bin i pulled is mostly long support threads that were completely fine"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T14:13:00+00:00", "text": "mhm we dropped that one. window_start > 0 on its own refuses nothing now, honestly it was just binning good long conversations"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T14:16:00+00:00", "text": "so what trips it instead. if i had to guess something about how much of the tail survives the cut"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T14:18:00+00:00", "text": "close. to_tinker_datum still raises ExampleTooLongError but its keyed on where the final assistant span starts relative to window_start. if theres near nothing of the answer left past the cut, refuse. otherwise its just a long chat and we keep it"}
+{"channel": "engineering", "author": "dermot", "created_at": "2025-04-24T14:19:00+00:00", "text": "near nothing being defined how"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-24T14:20:00+00:00", "text": "if it starts under 16 tokens past window_start"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-24T14:23:00+00:00", "text": "yup, that reads better. i can stop subtracting that bin out of my totals then, been doing it since febuary"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-15T14:31:00+00:00", "text": "whats the refusal rule on long prompts now i lost track"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-15T14:34:00+00:00", "text": "not the old one anyway. we had it as refusal is binary, windowed at all means refused, and format_batch just skips that example and carrys on"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-15T14:36:00+00:00", "text": "right thats the one i remember plus an example we never cut still shows window_start 0 in its encoding"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-15T14:38:00+00:00", "text": "ya and honestly that was droping legit long chats. anything a bit chatty came back refused"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-15T14:41:00+00:00", "text": "so we stopped refusing on windowed-at-all. look, it is ExampleTooLongError now and only under 16 retained prompt tokens"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-15T14:43:00+00:00", "text": "and the skip behaviour"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-04-15T14:46:00+00:00", "text": "skip stays. format_batch skips it and carrys on, same as before. nobody has written it yet, presumably it goes on whatever ticket dermot has open"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-15T14:49:00+00:00", "text": "so basically the window_start 0 thing stops meaning anything to us"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:43:00+00:00", "text": "quick thing on the encoder before i forget - it raises its own error type now right? does that break people catching around it"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:45:00+00:00", "text": "shouldnt. EncodingError isnt a fresh branch off on its own, it sits under ValueError"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:46:00+00:00", "text": "hm ok but the existing call sites catch ValueError, not the new name. so what happens there"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:47:00+00:00", "text": "thats the bit i wasnt sure about either honestly"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:49:00+00:00", "text": "thats the whole reason for the shape - anything already catching ValueError around the encoder still catches it. no edits at those sites"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T13:50:00+00:00", "text": "and we're keeping it that way, i dont want somebody making it standalone in six months and quietly breaking every handler. still needs writing, but thats the shape it gets written to"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T13:52:00+00:00", "text": "ya ok. i had half a rewrite of those try/excepts in my head, binning that"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T11:31:00+00:00", "text": "the run skipped a chunk of rows this morning and now i cant tell what actually came back for each one"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T11:32:00+00:00", "text": "do i have to re-run the whole thing to find out, off the top of my head there is nothing in the output"}
+{"channel": "cookbooks", "author": "gideon", "created_at": "2025-04-03T11:35:00+00:00", "text": "no, um, you dont need to re-run. every datum carries its own metadata block and num_messages is in there"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T11:36:00+00:00", "text": "right but does that survive a skip. thats the part im not sure about"}
+{"channel": "cookbooks", "author": "gideon", "created_at": "2025-04-03T11:38:00+00:00", "text": "ya it does, so basically even after a skip i can still tell what came back — i opened your file and the four message row was sitting right there"}
+{"channel": "cookbooks", "author": "emil", "created_at": "2025-04-03T11:41:00+00:00", "text": "so if i'm reading that right, the count is per datum, not something the run has to report back to us"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-04-03T11:41:00+00:00", "text": "mhm. so the check reads num_messages off the block then, no log parsing. nobody has written that yet"}
+{"channel": "cookbooks", "author": "gideon", "created_at": "2025-04-03T11:43:00+00:00", "text": "exactly. honestly though i lost the morning re-running for a number that was already sitting in the file"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-17T14:02:00+00:00", "text": "did we ever get to the bottom of the accented rows coming back empty out of to_jsonl_lines"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T14:04:00+00:00", "text": "yep re-checked one of them this morning  that run was max_seq_length=33"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-17T14:05:00+00:00", "text": "and the budget off that"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T14:06:00+00:00", "text": "lands at 99  its three times the seq length so 33 gets you there"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-17T14:08:00+00:00", "text": "so if im reading you right the accented line comes in just past that"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T14:09:00+00:00", "text": "the line measures 100  one over"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-03-17T14:11:00+00:00", "text": "and then? it hands back a shortened one, or nothing"}
+{"channel": "code-review", "author": "nikolai", "created_at": "2025-03-17T14:12:00+00:00", "text": "nothing  to_jsonl_lines gives back an empty list  theres no trimmed verison of the row anywhere"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-17T14:14:00+00:00", "text": "yup thats the shape i was seeing in the counts, honestly couldnt tell if it was dropping or trimming"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-11T10:07:00+00:00", "text": "for the finetuning masking are you pulling the assistant spans out of the tokenizer or computing them yourself"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-11T10:09:00+00:00", "text": "computing them. the tokenizer offsets did not line up with what the chat template actually renders so i went back to charcter offsets on the rendered string"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-11T10:10:00+00:00", "text": "look, i measured the Hello / Hi there! text by hand - 15 characters up to where the assistant header starts, 39 with that whole turn on the end. right now the test just asserts those two numbers"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-06-11T10:14:00+00:00", "text": "let me think through that... the thing that worries me a little is the template can shift under you on a tokenizer bump and then your 15 and 39 are quietly wrong, nothing fails loudly. not entirely sure what the catch for that looks like honestly"}
+{"channel": "engineering", "author": "konrad", "created_at": "2025-06-11T10:16:00+00:00", "text": "mhm, presumably we derive them from the template in the test instead of hardcoding. anyway that is after i get the masking itself correct"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-06-11T10:18:00+00:00", "text": "solid enough for now i'd say gotta think through that one properly when the other template lands"}
+{"channel": "engineering", "author": "emil", "created_at": "2025-04-18T15:32:00+00:00", "text": "one more while were on it - a cleanup bumped a counter on an EncodingReport after the batch had finished and the figure i pasted in the ticket was wrong. frozen=True on it, its finished when format_batch hands it back"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-18T15:33:00+00:00", "text": "ya frozen. if it gets loud thats information too, means somebody is writing to one after the fact and we want to know who"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-18T15:21:00+00:00", "text": "the encoding tests are killing me, every assert spells out all five counts even when four of them are zero. honestly though it's unreadable"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-18T15:23:00+00:00", "text": "yep i'd say make EncodingReport a dataclass with defualts"}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-18T15:24:00+00:00", "text": "ok but i still have to name all five in the assert, no? um that's the part that's noisy"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-18T15:25:00+00:00", "text": "i think thats the bit gideon is stuck on, defaults on the constructor dont do anything for the assert side"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-18T15:27:00+00:00", "text": "you stop naming them EncodingReport() is empty on its own so thats what the no-op cases go against and two of them compare with =="}
+{"channel": "engineering", "author": "gideon", "created_at": "2025-04-18T15:28:00+00:00", "text": "ahh ya. one line each then"}
+{"channel": "engineering", "author": "dario", "created_at": "2025-04-18T15:29:00+00:00", "text": "mhm. keeping the name as is i assume"}
+{"channel": "engineering", "author": "nikolai", "created_at": "2025-04-18T15:30:00+00:00", "text": "yep no reason to rename it"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T13:12:00+00:00", "text": "if i run to_tinker_datum on a single example by hand while debugging, does that leave state on the object? thinking of self.last_report specifically"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-21T13:14:00+00:00", "text": "it doesnt. i pushed one example through it in the repl yesterday to debug exactly this and last_report came back untouched"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-21T13:15:00+00:00", "text": "thats when it returns cleanly though. what about when the call raises partway"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:16:00+00:00", "text": "ya thats the one id worry about tbh"}
+{"channel": "pipeline", "author": "emil", "created_at": "2025-03-21T13:18:00+00:00", "text": "same, so i made it raise on purpose and looked after — untouched there too. it leaves it alone either way"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-03-21T13:20:00+00:00", "text": "ok then im just calling it straight on the row that fails, beats the print statements i have sitting in there now"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T14:12:00+00:00", "text": "viewer handed me a dropped_indices tuple this morning, so i went and pulled row 7 out of my input file and tbh it was fine. clean row, nothing wrong with it"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T14:13:00+00:00", "text": "so what is that number even pointing at"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-28T14:19:00+00:00", "text": "i think you counted entries. nothing gets written in there for the rows that came through ok"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T14:23:00+00:00", "text": "ok but the values themselves. um, are they positions in my file or just an ordering"}
+{"channel": "viewer", "author": "emil", "created_at": "2025-04-28T14:27:00+00:00", "text": "the input row each skip landed on, i believe. ascending. one drop at row 1 gives you 1, not 0"}
+{"channel": "viewer", "author": "gideon", "created_at": "2025-04-28T14:33:00+00:00", "text": "ya, exactly. so basically those numbers only count among the ones we skipped, 7 was never listed at all, i chased it back off the count"}
+{"channel": "viewer", "author": "dario", "created_at": "2025-04-28T14:38:00+00:00", "text": "honestly the panel copy is what misled you there, it reads like one slot per row. needs a pass"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:12:00+00:00", "text": "pulled the rows dropped_indices pointed me at and none of them are the ones that blew up. so basically i greped the wrong lines"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-05-13T15:15:00+00:00", "text": "those arent offsets into the list you submitted to_jsonl_lines numbers them against the rows we wrote out"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:17:00+00:00", "text": "wait so anything dropped before that point just shifts everything after it? um then my whole triage doc is off"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-05-13T15:19:00+00:00", "text": "right off by however many never made it into the file"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-05-13T15:23:00+00:00", "text": "yep same on the fireworks pass. i read them as my submitted list, lined up for the first handful then went sideways"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-05-13T15:26:00+00:00", "text": "they should be numbered against what went in not what came out thats the list people are actually holding nobody has written it yet though"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-05-13T15:29:00+00:00", "text": "ya ok. redoing the grep off my submitted list, the counts were junk either way"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T13:32:00+00:00", "text": "encoding summary from last nights batch says windowed nine, but the file only has six lines in it"}
+{"channel": "cookbooks", "author": "nils", "created_at": "2025-04-11T13:34:00+00:00", "text": "is it the per row flag thats off, or just the total"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T13:35:00+00:00", "text": "per row is fine as far as i can tell. every one of them reads windowed True in its own encoding"}
+{"channel": "cookbooks", "author": "otto", "created_at": "2025-04-11T13:37:00+00:00", "text": "so its only the rollup thats wrong"}
+{"channel": "cookbooks", "author": "nils", "created_at": "2025-04-11T13:39:00+00:00", "text": "the total is counting rows we dropped before the write. those shouldnt be in it"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-04-11T13:40:00+00:00", "text": "so count over what actually got written, nothing else"}
+{"channel": "cookbooks", "author": "nils", "created_at": "2025-04-11T13:42:00+00:00", "text": "yes. the per datum True stays exactly as it is, its the sum thats doing the wrong thing"}
+{"channel": "cookbooks", "author": "otto", "created_at": "2025-04-11T13:45:00+00:00", "text": "six is what i got counting the jsonl by hand this morning fwiw"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T15:11:00+00:00", "text": "pulled the eval file this morning and the tool role example isnt in it. dropped or never generated"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-03-24T15:16:00+00:00", "text": "dropped as far as the counter is concerned it got swallowd into the drop count"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T15:20:00+00:00", "text": "swallowed how though, it wasnt malformed. and nothing complained during the run?"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-03-24T15:24:00+00:00", "text": "no the run carried on last night finished like normal"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-03-24T15:27:00+00:00", "text": "so we shipped a file missing the rows i needed and the totals still looked fine. thats the part that bothers me honestly"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T15:31:00+00:00", "text": "mhm thats the same file i staged off last nights run"}
+{"channel": "pipeline", "author": "nikolai", "created_at": "2025-03-24T15:35:00+00:00", "text": "right and thats the thing its not a drop it has no business landing in that count"}
+{"channel": "pipeline", "author": "dermot", "created_at": "2025-03-24T15:39:00+00:00", "text": "yeah ok. so it comes out of there. nobody has written that yet obviously"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T12:48:20+00:00", "text": "same shape as your notebook thing this morning i think. i handed format_batch a tokenizer that has no apply_chat_template on it"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T12:50:20+00:00", "text": "and did it raise there or did it just carry on"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T12:52:20+00:00", "text": "carried on. chewed through four hundred exmaples and called every one of them a drop"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T12:54:20+00:00", "text": "wait the whole file came back drops? um. thats not really a batch then"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-03-14T12:55:20+00:00", "text": "yup. a drop is supposed to be the odd row that didnt fit, not the entire input"}
+{"channel": "code-review", "author": "gideon", "created_at": "2025-03-14T12:57:20+00:00", "text": "exactly, so basically that shouldnt become a batch of drops. if the tokenizer cant do apply_chat_template then format_batch stops there, honestly though its one broken tokenizer, not four hundred broken rows"}
+{"channel": "code-review", "author": "dario", "created_at": "2025-03-14T13:02:20+00:00", "text": "mhm. same as construciton handing back a dead object, just three calls further down"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:11:00+00:00", "text": "quick one - format_batch, where do the encoding counts come out now? i dont see them on the object anywhere"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:15:00+00:00", "text": "it hands back a pair, the datums and the report together. you unpack at the call site"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:16:00+00:00", "text": "which order"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:18:00+00:00", "text": "datums first, EncodingReport second. so data, report = format_batch(...)"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-01-21T15:20:00+00:00", "text": "ok and is it stashed anywhere too? i have a spot that only wants the counts, would be nice to just read them"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:24:00+00:00", "text": "no, the return is the only place they live. nothing else carries them, so if you want counts you take them out of what you unpacked. honestly i think thats the cleaner shape anyway"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:26:00+00:00", "text": "so restating - anything currently treating the return as just the datums breaks on the unpack and needs touching"}
+{"channel": "releases", "author": "dario", "created_at": "2025-01-21T15:27:00+00:00", "text": "right, and i havent been through the call sites yet. nobody has written any of it"}
+{"channel": "releases", "author": "dermot", "created_at": "2025-01-21T15:29:00+00:00", "text": "yeah ok. the batch runner is one of those, if i had to guess"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-22T18:15:47+00:00", "text": "362 still has nobodys name on it as far as i can tell"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T18:17:47+00:00", "text": "i made a start on it this morning. only a start"}
+{"channel": "code-review", "author": "dermot", "created_at": "2025-01-22T18:19:47+00:00", "text": "ok. whats format_batch taking now, if i had to guess still just the examples"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T18:21:47+00:00", "text": "examples and the tokenizer. thats whats in review — format_batch(examples, tokenizer)"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-22T18:23:47+00:00", "text": "and it hands back the encoded list same as before i believe? or is something else coming out of it"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T18:25:47+00:00", "text": "-> Tuple[List[Any], EncodingReport]. the list, and the report next to it"}
+{"channel": "code-review", "author": "emil", "created_at": "2025-01-22T18:27:47+00:00", "text": "hm. so the report comes out of the call itself, not read off somewhere after"}
+{"channel": "code-review", "author": "konrad", "created_at": "2025-01-22T18:29:47+00:00", "text": "right, it rides out with the data. anyway the body isnt written yet, just the signature"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T13:22:00+00:00", "text": "what actually broke on the trainer side yesterday? someone said format_batch"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-19T13:25:00+00:00", "text": "the tuple. we settled months ago that it hands back (data, report), datums first and the EncodingReport second, and callers unpack it, nothing else carrying the counts. thats gone as of this morning, we're reverting it"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T13:26:00+00:00", "text": "gone why, off the top of my head that unpack sits in more than one place"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-19T13:29:00+00:00", "text": "it broke the hand off at tinker_trainer.py:250. that end wants datums and got handed a tuple instead. so its a plain list of datums again, like before"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-19T13:31:00+00:00", "text": "and the counts? that was the whole reason for the second element, nothing else was carrying them"}
+{"channel": "releases", "author": "dario", "created_at": "2025-03-19T13:33:00+00:00", "text": "they sit on self.last_report now. still an EncodingReport, you just read it off after the call rather than unpacking it"}
+{"channel": "releases", "author": "konrad", "created_at": "2025-03-19T13:34:00+00:00", "text": "right. so the callers stop unpacking, thats the change"}
+{"channel": "releases", "author": "emil", "created_at": "2025-03-19T13:36:00+00:00", "text": "yup. honestly i've lost track of what the tuple was buying us over that"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T14:03:00+00:00", "text": "konrad quick one before i touch the encoder path today — is 362 as it stands in review still the thing to build against"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:07:00+00:00", "text": "no. look, the signautre I signed off on there, format_batch(examples, tokenizer) -> Tuple[List[Any], EncodingReport], report riding out alongside the data — thats dropped"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T14:09:00+00:00", "text": "dropped on taste or dropped because something actually broke"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:14:00+00:00", "text": "broke. the unpack at tinker_trainer.py:250, forwarding stopped the moment the return was two things instead of one. so the return is List[Any], plain"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T14:16:00+00:00", "text": "and the report lives where now"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:20:00+00:00", "text": "self.last_report. format_batch reassigns it, and to_jsonl_lines reassigns it too"}
+{"channel": "cookbooks", "author": "dario", "created_at": "2025-03-21T14:23:00+00:00", "text": "mhm. none of that is written yet i take it"}
+{"channel": "cookbooks", "author": "konrad", "created_at": "2025-03-21T14:25:00+00:00", "text": "not yet, presumably whoever picks 362 back up. its just the shape at the moment"}
+{"channel": "cookbooks", "author": "nikolai", "created_at": "2025-03-21T14:28:00+00:00", "text": "fine by me mine reads it after the jsonl call anyway so theres nothing on my side to move"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-07-10T13:02:00+00:00", "text": "the drop list coming out of format_batch — is that the same thing to_jsonl_lines reports back, or not? i had both open yesterday and they did not agree"}
+{"channel": "pipeline", "author": "dario", "created_at": "2025-07-10T13:05:00+00:00", "text": "yesterday, probably not. the renumber only went in after that"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-07-10T13:07:00+00:00", "text": "ok so basically nothing from before is worth comparing. did anyone push the same thing through both since"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-07-10T13:10:00+00:00", "text": "yes. i took the same input list and reran both, now that the renumber landed"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-07-10T13:11:00+00:00", "text": "and?"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-07-10T13:13:00+00:00", "text": "dropped_indices comes back identcial. same out of format_batch, same out of to_jsonl_lines"}
+{"channel": "pipeline", "author": "konrad", "created_at": "2025-07-10T13:14:00+00:00", "text": "anyway, no more guessing which one i am reading"}
+{"channel": "pipeline", "author": "gideon", "created_at": "2025-07-10T13:17:00+00:00", "text": "ya thats the bit that kept biting me, i was reading whichever one came up first and assuming"}

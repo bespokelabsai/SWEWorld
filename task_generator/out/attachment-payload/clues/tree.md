@@ -10,7 +10,7 @@
 - **dario** (2025-04-23, #pipeline): we already have the base64 string in hand when the block gets built, so i'd weigh that rather than decoding, and hang size_mb off the block as a plain float.
 - **emil** (2025-04-29, #pipeline): from the run: `image attachment is 21.3 MB, over the 20.0 MB limit.` documents shouldn't sit on that number. and it's strictly over - exactly 20.0 goes through fine.
 - **dermot** (2025-04-16, #pipeline): yeah - AttachmentTooLarge fires before we ever reach file_upload_limit_check, it subclasses AttachmentError like the rest and AttachmentError is a ValueError, so the old ValueError handlers still catch it.
-- **nils** (2025-06-02, #general): let me think - the base64 text is what actually goes over the wire, so size_mb is just the length of that string over 1024*1024. no decoding first, and not 1000-based megabytes.
+- **nils** (2025-06-02, #general): let me think - the base64 text is what actually goes over the wire, so size_mb is what get_base64_size hands back for that string. it works the real byte count out of the length arithmetically instead of decoding, and the divisor in there is 1024*1024, not a 1000-based megabyte.
 - **nikolai** (2025-05-06, #incidents): AttachmentTooLarge(kind, size_mb, limit_mb) and it keeps all three as .kind .size_mb and .limit_mb so a test can asssert on them not scrape a traceback
 
 ### g8.r1.s2 — A separate whole-prompt ceiling of 45 MB applies to the sum of the base64 block sizes, evaluated once in the prompt-assembly path after every attachment has been converted and every per-attachment provider hook call has run, raising the same exception type with the kind set to the prompt and the summed size.
@@ -91,9 +91,9 @@
 *The leap nobody states:* Case and whitespace differences are the user typing, not the user being wrong, so only a genuine miss deserves the fallback and the log line.
 
 - **konrad** (2025-04-14, #viewer): Look, I burned an hour on a run where I passed detail="HIGH" and every image came back looking like auto. Shift key held down is not a typo.
-- **emil** (2025-04-24, #viewer): for the module bullet - `_SUPPORTED_IMAGE_DETAILS` is auto, low and high, nothing else, and `normalize_detail` is the only reader - hand it None and you get "auto" back.
+- **emil** (2025-04-24, #viewer): for the module bullet - `_SUPPORTED_IMAGE_DETAILS: tuple[str, ...]`, three entries, and index 0 is what the fallback hands back. `normalize_detail` is the only reader - give it None and you get "auto".
 - **nils** (2025-04-21, #general): detail warning fired on all 40k images last night, most of which never set one - that's noise. and it rewrote Image.detail under me, we shouldn't mutate the source, my fixtures diff now
-- **dermot** (2025-05-14, #pipeline): yeah ok - if it isn't one of the three we fall back to auto and log that once. nothing set at all logs nothing and the block still goes out with detail "auto".
+- **dermot** (2025-05-13, #pipeline): yeah ok - if it isn't one of the three we fall back to auto and log that once. nothing set at all logs nothing and the block still goes out with detail "auto".
 - **nikolai** (2025-06-16, #pipeline): checked the openai side each image goes out as type image_url with an image_url object carrying url and detail and for inline we send the url as data:image/png;base64, then the payload
 
 ### herrings — believed at the time, reversed later

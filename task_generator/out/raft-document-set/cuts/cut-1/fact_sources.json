@@ -1,0 +1,50 @@
+[
+ {
+  "req": 1,
+  "field": "rule",
+  "part": "P6",
+  "blind_alternative": "keeps raft.py:156's prepend \u2014 documents = [oracle_document] then extend with distractors \u2014 since that is the default action of anyone editing the function"
+ },
+ {
+  "req": 1,
+  "field": "scope",
+  "part": "P5",
+  "blind_alternative": "drops the shuffle in the oracle-absent branch as a statistical no-op over random.sample's output, or samples distractors+1 first and flips the coin afterwards, giving one sampler k for both branches"
+ },
+ {
+  "req": 1,
+  "field": "exclusions_or_crossover",
+  "part": "P7",
+  "blind_alternative": "writes oracle_index = documents.index(oracle_document) after the shuffle \u2014 the shortest correct-looking fix, wrong only on duplicate chunk content"
+ },
+ {
+  "req": 1,
+  "field": "observability",
+  "part": "P7",
+  "blind_alternative": "reports 0 for the duplicate-content fixture (first text match, or the retained pre-shuffle slot) and [\"alpha\",\"bravo\",\"charlie\"] for the ordering fixture"
+ },
+ {
+  "req": 2,
+  "field": "rule",
+  "part": "P9",
+  "blind_alternative": "leaves raft.py:109's two-argument key at maxsize=128 (adjusting the docstring to 'per chunk'), or deletes the lru_cache wrapper entirely so every parse call re-draws"
+ },
+ {
+  "req": 2,
+  "field": "scope",
+  "part": "P10",
+  "blind_alternative": "validates lazily against the count the current branch actually needs (distractors when present, distractors+1 when absent), or clamps k to len(available_indices) so small corpora keep working"
+ },
+ {
+  "req": 2,
+  "field": "failure_behavior",
+  "part": "P10",
+  "blind_alternative": "adds no exception class and lets random.sample's plain ValueError('Sample larger than population or is negative') surface from inside the draw, after the coin has already been consumed"
+ },
+ {
+  "req": 2,
+  "field": "observability",
+  "part": "P9",
+  "blind_alternative": "cache_info() reports maxsize=128 with hits=1, misses=2, currsize=2 and only two coins for the four-call sequence (or there is no cache_info at all and four coins are drawn)"
+ }
+]

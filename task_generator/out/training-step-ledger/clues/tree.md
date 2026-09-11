@@ -15,9 +15,9 @@
 
 *The leap nobody states:* Free-text labels that three people spell three ways are only fixable by pinning the allowed strings in one place, and once they are pinned in a meaningful order there is no reason to re-sort them.
 
-- **konrad** (2025-03-24, #engineering): Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels and no repeats within a record.
+- **konrad** (2025-03-24, #engineering): Grepped the saved records: one row lists epoch twice, and elsehwere I count epoch_end and end_of_epoch, all of it free text. Anyway, fixed set of labels, and the double epoch row goes too - not by refusing the write, the record just carries the label once and a second mention folds into the first.
 - **dario** (2025-04-14, #code-review): looking at 632 - sorted a to z puts final ahead of interval. the CheckpointInfo field defaults to (), save_checkpoint's reasons kwarg to ('interval',), the one nobody passes.
-- **gideon** (2025-04-09, #code-review): so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise.
+- **gideon** (2025-04-09, #code-review): so basically the review comment on my PR says canonical_reasons hands them back in the order the tuple is written, interval then epoch then final. and canonical_reasons(()) just comes back (), it doesn't raise - nor does handing it epoch twice, that comes back as one epoch.
 - **nikolai** (2025-03-14, #code-review): i typed 'intervals' by accident yesterday and it went striaght into the record, so anything not in CHECKPOINT_REASONS should raise the ledgers error right at the call
 
 ### g11.r1.sc3 — The last optimizer step of a run is always checkpointed whatever the config says, while the interval and per-epoch triggers stay gated on their config fields, and the whole arrangement is the Tinker trainer's only; the Fireworks trainer stores nothing and carries no labels.

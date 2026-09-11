@@ -1,0 +1,37 @@
+From: dario@world.local
+To: gideon@world.local, emil@world.local, dermot@world.local,
+ konrad@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: user question: does a local run without the tokenizer extra still
+ report encoding stats
+Date: Thu, 24 Apr 2025 15:14:00 +0000
+Message-ID: <178880169048.2292275.3055406706495036322@world.local>
+In-Reply-To: <178880169045.2292275.18118887838373085815@world.local>
+References: <178880169045.2292275.18118887838373085815@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dermot,
+
+Your restatement of the window is right and the guess you appended to it is n=
+ot, and the two are worth pulling apart, because it is the second half that w=
+ould cost you another night.
+
+Structurally identical, yes =E2=80=94 same fields, same order, same code writ=
+ing them, and window_start carries the same meaning in both branches. But the=
+ block is not silent about where the number came from. It carries metadata['e=
+ncoding']['tokenizer'], and that boolean is False precisely on the runs where=
+ we fell back to the character estimate, and True where a real tokenizer prod=
+uced the count. So the record does say which counter ran. That single key is =
+what separates the two cases, and it is sitting in every record you already h=
+ave, including the ones from the runs you were reconciling.
+
+What the block genuinely cannot tell you is anything about trimming, and that=
+ is where I think the confusion started. A 0 in window_start is a 0 in either=
+ branch whenever nothing was dropped, so it discriminates nothing on its own.=
+ One field there is a measurement and the other is a declaration; the zero is=
+ the measurement, and the declaration is the one you want when the question i=
+s which path ran. In any case, nothing needs to change in the writer for that=
+ to hold.
+
+Dario

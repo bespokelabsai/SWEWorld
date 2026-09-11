@@ -56,7 +56,7 @@ or `("identity_version",)`.
 - Move `_get_function_hash` verbatim into the new module and re-export it there.
 - Delete `_hash_fingerprint` in favour of `LLM._run_identity(dataset_hash, *, cache_enabled: bool, ...)`.
 - Add `LLM.backend` and `LLM.backend_params` properties.
-- `LLM.__call__` reconciles the run directory before using it.
+- `LLM.__call__` reconciles the run directory before using it; its signature, like `_run_identity`'s, may grow whatever the work needs.
 - `LLM._get_cached_response` re-raises `RunIdentityError`, while still returning `None`
   (with the existing warning) for anything else.
 

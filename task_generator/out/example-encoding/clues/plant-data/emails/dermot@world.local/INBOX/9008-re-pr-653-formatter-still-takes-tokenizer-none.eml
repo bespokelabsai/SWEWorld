@@ -1,0 +1,20 @@
+From: konrad@world.local
+To: dermot@world.local, emil@world.local, dario@world.local,
+ gideon@world.local, nikolai@world.local, priya@world.local, ilse@world.local
+Subject: Re: PR 653: formatter still takes tokenizer=None
+Date: Tue, 06 May 2025 14:41:00 +0000
+Message-ID: <178880169036.2292275.17815962622085878873@world.local>
+In-Reply-To: <178880169033.2292275.3628240914124480993@world.local>
+References: <178880169033.2292275.3628240914124480993@world.local>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Mhm, agreed on both, and the point about truncation being where two implement=
+ations would drift is a better argument than the one I gave.
+
+Anyway, the thing I would like written into the commit message is that the al=
+l-ones branch was never a decision anyone made. Nobody sat down and decided t=
+hat a formatter without a tokenizer should train on the user turns. It is the=
+ shape the fixture happened to take when the flag did not exist yet, and the =
+suite has been quietly agreeing with it ever since.

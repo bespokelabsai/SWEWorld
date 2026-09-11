@@ -1,0 +1,15 @@
+{
+ "task_id": "g13",
+ "arm": "blind",
+ "fact_keys": [
+  "g13.r1.rule",
+  "g13.r1.scope",
+  "g13.r1.exclusions_or_crossover",
+  "g13.r1.observability",
+  "g13.r2.rule",
+  "g13.r2.scope",
+  "g13.r2.exclusions_or_crossover",
+  "g13.r2.failure_behavior"
+ ],
+ "open_key": "g13.open_feature"
+}

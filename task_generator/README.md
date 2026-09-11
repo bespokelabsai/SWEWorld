@@ -193,6 +193,13 @@ Rollouts land as `<model>_run<N>_<id>.json` carrying `score` and a
 so a hosted number and a local number are directly comparable. Hosted models are
 Horizon's own roster (`biggie-max`, `cipher-omni`, `lumen`) and the agent type
 that works is `meteor` — `cascade` failed all 20 rollouts with no task binding.
+**`meteor` is right for THESE arms only.** Agent type is a function of the task
+FORMAT, and the `-world*` arms under `harbor_tasks/` are `format: harbor`, whose
+roster is a different one — `typhoon` is what their rollouts have actually run on.
+Submitting a harbor task with `meteor` fails the whole evaluation in ~3 minutes
+with `rollouts.total: 0`, zero spend and `steps: [provision pending, evaluate
+failed]` — the same signature as an exhausted budget, so check the format in
+`.horizon/metadata.json` before reaching for `whoami`.
 A new task is **gated to `cipher-omni`** until 10+ rollouts land below a 0.4 pass
 rate; `--model biggie-max` returns `403 Forbidden` until then.
 

@@ -70,11 +70,33 @@ def junit_outcomes(path: pathlib.Path) -> dict[str, str]:
     is one more thing that can fail to load in an environment the agent may have
     disturbed, and this file's whole job is to keep working when something else
     did not.
+
+    That principle now has teeth, because this file is written by the pytest
+    process and that process imports agent-authored code. An absent junit
+    already scored a clean zero. A MALFORMED one did not: `ET.parse` raised,
+    `main()` died, and no reward.json was written at all — which Harbor reports
+    as a broken harness rather than as a failed task. One stray byte in a file
+    the submission can reach was a way out of a bad score. So: bounded size, no
+    DTD (`xml.etree` expands internal entities, and a few hundred bytes of
+    nested ones will sit in the verifier's CPU until Harbor kills it), and every
+    parse failure folded to "no outcomes", which is the honest zero.
     """
     if not path.exists():
         return {}
+    try:
+        if path.stat().st_size > 8 * 1024 * 1024:
+            return {}
+        raw = path.read_bytes()
+    except OSError:
+        return {}
+    if b"<!DOCTYPE" in raw or b"<!ENTITY" in raw:
+        return {}
+    try:
+        root = ET.fromstring(raw)
+    except (ET.ParseError, ValueError):
+        return {}
     out: dict[str, str] = {}
-    for case in ET.parse(path).getroot().iter("testcase"):
+    for case in root.iter("testcase"):
         node = f"{case.get('classname', '')}::{case.get('name', '')}"
         state = "passed"
         for child in case:
@@ -158,7 +180,15 @@ def main() -> int:
               if not k.endswith("open_feature") and k not in unmeasured]
     rewards[f"{task}.hidden_mean"] = (
         round(sum(hidden) / len(hidden), 4) if hidden else 0.0)
-    rewards[f"{task}.suite_error"] = 1.0 if not outcomes else 0.0
+    # `suite_ok`, not `suite_error`. Same diagnostic, opposite polarity, and the
+    # polarity is the whole point: every OTHER key here is higher-is-better, and
+    # a consumer that averages the dict has no way to know this one was not.
+    # Horizon's validation gate does exactly that -- it means `Final Score` as
+    # the mean of every key in reward.json -- so a flawless oracle run came back
+    # 0.9411764705882353, which is 16/17, and the gate refused the task for not
+    # scoring 1.0. The run was perfect; `suite_error: 0.0` MEANT no error.
+    # Nothing reads the old name except archived job records.
+    rewards[f"{task}.suite_ok"] = 0.0 if not outcomes else 1.0
 
     provenance = {}
     prov_file = LOGS / "provenance.json"

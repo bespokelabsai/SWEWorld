@@ -6,8 +6,8 @@
 |---|---|---|
 | `blind` | the ticket | — |
 | `spec` | the ticket + both hidden requirements | — |
-| `clues` | the ticket + all 55 remarks, quoted | **1.00** |
-| `world` | the ticket, against `sweworld:0.4.4` where the 55 remarks live in chat, the wiki and mail | — |
+| `clues` | the ticket + all 57 remarks, quoted | **1.00** |
+| `world` | the ticket, against `sweworld:0.4.4` where the 57 remarks live in chat, the wiki and mail | — |
 | `located` | the `world` arm plus a map naming each remark's channel, day, minute and length (or its page, or its mail subject) — the search removed, the inference left | **1.00** |
 
 Scores are per run and live with the run, not here.
@@ -233,15 +233,15 @@ inside the facts above.
 
 ## Where the remarks are spread
 
-55 remarks in total — 47 clues, 4 herrings and 4 reversals — across 3 surfaces and 6 chat channels. `clues.spread()` reports on this — at least 2 sources, 3 weeks and 2 rooms per requirement, so no single sitting recovers one. It is advisory, not enforced: read the numbers rather than trusting that something refused a plant without them.
+57 remarks in total — 47 clues, 5 herrings and 5 reversals — across 3 surfaces and 6 chat channels. `clues.spread()` reports on this — at least 2 sources, 3 weeks and 2 rooms per requirement, so no single sitting recovers one. It is advisory, not enforced: read the numbers rather than trusting that something refused a plant without them.
 
 | surface | remarks | where they sit |
 |---|---|---|
 | chat (Mattermost) | **29** | `#code-review` 7, `#engineering` 7, `#pipeline` 6, `#cookbooks` 5, `#releases` 3, `#viewer` 1 |
-| wiki (BookStack) | **14** | 14 page comments |
-| mail (Roundcube/IMAP) | **12** | 12 separate threads |
+| wiki (BookStack) | **15** | 15 page comments |
+| mail (Roundcube/IMAP) | **13** | 13 separate threads |
 
-> **The wiki remarks are page _comments_, not page bodies.** BookStack's `/api/search` does not index comments, so a term that lives only in one returns nothing. `/api/pages/{id}` returns them alongside the body — an agent that searches instead of enumerating never sees these 14.
+> **The wiki remarks are page _comments_, not page bodies.** BookStack's `/api/search` does not index comments, so a term that lives only in one returns nothing. `/api/pages/{id}` returns them alongside the body — an agent that searches instead of enumerating never sees these 15.
 
 ---
 
@@ -347,6 +347,8 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 - **dermot** (2025-04-14, thread:<178769930038.2250839.2605881431154859866@world.local>): One review note on 632: when the batch aborted halfway, self.last_report had already been half updated — it should still read whatever the last good run left.
 - **dario** (2025-05-28, thread:new|g9.r2.say23): and to_tinker_datum just raises ExampleTooLongError outright — the binning is format_batch's job, honestly a single datum has no batch to be counted into.
 - **dario** (2025-06-11, page:engineering/what-format-batch-counts-as-a-drop-and-what-stops-the-pass-instead.md): re gideon's tokenizer - no apply_chat_template on it, so format_batch raises TokenizerCapabilityError right there, pass stops, nothing gets binned as a drop
+- **dario** (2025-05-28, thread:new|g9.r2.say23): Length and role sequence are row problems — one bad row says nothing about the next row, so those get counted and skipped
+- **dario** (2025-06-17, page:engineering/request-builder-what-we-drop-and-what-we-raise-on.md): and yes this is me contradicting myself - the split i gave on the 653 thread back in may, length and role sequence both being row problems, that half of it was wrong and im dropping it. only the over-long ones are row problems.
 
 ### herrings — believed at the time, reversed later
 
@@ -359,7 +361,7 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 
 ## Where every remark is
 
-55 remarks, oldest first. **Quotes are exact** — they are read back out of the corpus, not out of the plan, so the timestamps are the ones in the world.
+57 remarks, oldest first. **Quotes are exact** — they are read back out of the corpus, not out of the plan, so the timestamps are the ones in the world.
 
 `herring` is a decision the team really made and later reversed; the remark that overturns it is always strictly later and says so. `reversal` is that retraction.
 
@@ -406,6 +408,7 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 | 2025-05-14 | wiki comment | docs/engineering/end-of-run-summary-tables-how-the-formatters-are-wired.md | gideon | [`g9.r2.l8`](#g9r2l8) | 2 | clue | `scope` |
 | 2025-05-20 | wiki comment | docs/engineering/finetuning-export-what-the-end-of-run-summary-counts.md | emil | [`g9.r2.l14`](#g9r2l14) | 2 | clue | `rule` |
 | 2025-05-28 | mail | “PR 653: which layer drops a bad row, and who counts it” | nikolai | [`g9.r2.say23`](#g9r2say23) | 4 | clue | `scope` |
+| 2025-05-28 | mail | “Re: PR 653: which layer drops a bad row, and who counts it” | dario | [`g9.r2.h-role-row`](#g9r2h-role-row) | 1 | **herring** | — |
 | 2025-06-03 | wiki comment | docs/engineering/viewer-dataset-download-export-format-notes-pr-652.md | dario | [`g9.r1.l-fw-2`](#g9r1l-fw-2) | 2 | clue | `exclusions_or_crossover` |
 | 2025-06-10 | wiki comment | docs/engineering/overnight-finetune-off-the-curated-export-jun-9-10-run-what-the-training-rows-actually-contained.md | gideon | [`g9.r1.l-rule-1`](#g9r1l-rule-1) | 3 | clue | `rule` |
 | 2025-06-11 | chat | #engineering | nikolai | [`g9.r1.fix28`](#g9r1fix28) | 6 | clue | `scope` |
@@ -416,6 +419,7 @@ Each requirement decomposes into subconclusions, and each of those is implied by
 | 2025-06-17 | wiki comment | docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md | dario | [`g9.r2.l17`](#g9r2l17) | 2 | clue | `failure_behavior` |
 | 2025-06-17 | wiki comment | docs/engineering/chat-formatting-and-assistant-span-masking-in-the-finetuning-client.md | dermot | [`g9.r1.l-scope-3`](#g9r1l-scope-3) | 2 | clue | `scope` |
 | 2025-06-17 | wiki comment | docs/engineering/chat-formatting-and-assistant-span-masking-in-the-finetuning-client.md | nils | [`g9.r1.l-rule-4`](#g9r1l-rule-4) | 2 | clue | `rule` |
+| 2025-06-17 | wiki comment | docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md | dario | [`g9.r2.rev3`](#g9r2rev3) | 1 | **reversal** of `g9.r2.h-role-row` | `failure_behavior` |
 | 2025-06-24 | wiki comment | docs/engineering/per-example-stats-from-the-windowed-export-review-notes-653-follow-on.md | konrad | [`g9.r2.l2`](#g9r2l2) | 2 | clue | `rule` |
 | 2025-06-26 | wiki comment | docs/meetings/weekly-sync-notes-week-of-jun-23-batch-mode.md | dermot | [`g9.r2.l5`](#g9r2l5) | 2 | clue | `rule` |
 | 2025-06-26 | wiki comment | docs/engineering/local-offline-inference-what-the-encode-step-returns-when-no-tokenizer-is-loaded.md | gideon | [`g9.r1.say24`](#g9r1say24) | 2 | clue | `scope` |
@@ -1841,6 +1845,16 @@ So basically check first, and if nothing imports them just delete and write fres
 Gideon
 ```
 
+#### `g9.r2.h-role-row` · **herring**
+
+- **mail** · “Re: PR 653: which layer drops a bad row, and who counts it” · **dario** · 2025-05-28 11:06
+- to nikolai@world.local, emil@world.local, gideon@world.local
+- carries nothing — it is here to be wrong
+- find it: Roundcube, or IMAP on :143 as worldadmin@world.local
+
+> Length and role sequence are row problems — one bad row says nothing about the next row, so those get counted and skipped
+
+
 #### `g9.r1.l-fw-2`
 
 - **wiki comment** · docs/engineering/viewer-dataset-download-export-format-notes-pr-652.md · **dario** · 2025-06-03 11:26
@@ -2026,6 +2040,16 @@ As it appears, spread across the exchange:
 09:47  dario     the malformed input section still has both cases sitting under the same bullet ("rows that fail validation are skipped") and i think thats wrong, or at least its wrong for half of it.  if a conversation comes through with a role sequence that doesnt make sense - two user turns back to back, assistant leading, whatever the shape is - honestly that is my data being broken somewhere upstream, its not a row we should be quietly skipping. skipping it means nobody finds out until the counts dont add up three weeks later, if they even notice then. i would much rather it just fails loudly at that point so whoever built the file gets told what they built.  the over-long ones are a different animal and i have no argument with dropping those, they genuinely cant be used. but they should be binned and counted, so there is an actual number somewhere to look at instead of infering it from the fact that the output file came out shorter than the input. in any case the two things shouldnt be described as one behaviour on this page, they are not the same behaviour.
 15:12  dermot    for whoever reads this later - the sequence check and the length check are the same guard in the loader, which is presumably how they came to be one bullet here in the first place. separating them the way described above means the sequence case raises and the length case increments, so they cannot stay in one branch, thats a real change and not just a wording fix on the page.  that said, the counter as it exists today covers both together, so the dropped figure in the table above is not measuring what its caption claims. i went back through last month's run and a bit over two thirds of what it counted were sequence failures rather than length.
 ```
+
+#### `g9.r2.rev3` · **reversal**
+
+- **wiki comment** · docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md · **dario** · 2025-06-17 09:47
+- carries `g9.r2.failure_behavior`
+- takes back `g9.r2.h-role-row`
+- find it: open the page — `/api/pages/{id}` returns its `comments`; BookStack search does not index them
+
+> and yes this is me contradicting myself - the split i gave on the 653 thread back in may, length and role sequence both being row problems, that half of it was wrong and im dropping it. only the over-long ones are row problems.
+
 
 #### `g9.r1.l-scope-3`
 

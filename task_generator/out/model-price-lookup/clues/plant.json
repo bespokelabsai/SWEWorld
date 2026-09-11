@@ -1322,6 +1322,54 @@
        "uncarried": []
       },
       {
+       "clue_id": "g6.r1.l10b",
+       "kind": "clue",
+       "reverses": "",
+       "covers": [
+        "exclusions_or_crossover",
+        "observability"
+       ],
+       "subconclusion": "g6.r1.sc3",
+       "holder": "emil",
+       "text": "circling back on the paragraph above \u2014 the window case does have a name after all, its `unknown_window`. chased it down in #code-review yesterday: if the map has no row for the window you asked for, thats what comes back, it does not quietly borrow the `\"*\"` tier. so this page can stop calling it folklore; someone fold it into the table next time theyre in here.",
+       "drafted": "circling back on the paragraph above \u2014 the window case does have a name after all, its `unknown_window`. chased it down in #code-review yesterday: if the map has no row for the window you asked for, thats what comes back, it does not quietly borrow the `\"*\"` tier. so this page can stop calling it folklore; someone fold it into the table next time theyre in here.",
+       "settles": "the team agrees the absent-window failure is named unknown_window and is written down outside chat",
+       "leaves_open": "Does not say what the other two reason strings are.",
+       "verbatim": [
+        "unknown_window"
+       ],
+       "forbidden_terms": [],
+       "source": "notion",
+       "carrier": {
+        "source": "notion",
+        "kind": "doc_comment",
+        "date": "2025-06-26",
+        "room": "page:engineering/price-lookup-errors-what-each-bad-argument-actually-raises.md",
+        "class": "explicit",
+        "why": "The page itself asks somebody who owns the check to write the name down; this is that, on the surface that asked.",
+        "title": "Price Lookup Errors: What Each Bad Argument Actually Raises"
+       },
+       "placement": {
+        "choice": "none",
+        "why": "Second carrier for a name that had exactly one."
+       },
+       "problems": [],
+       "status": "planted",
+       "rendered_in": null,
+       "verified": true,
+       "uncarried": [],
+       "invented": {
+        "kind": "doc_comment",
+        "messages": [
+         {
+          "author": "emil",
+          "minute": "10:18",
+          "text": "circling back on the paragraph above \u2014 the window case does have a name after all, its `unknown_window`. chased it down in #code-review yesterday: if the map has no row for the window you asked for, thats what comes back, it does not quietly borrow the `\"*\"` tier. so this page can stop calling it folklore; someone fold it into the table next time theyre in here."
+         }
+        ]
+       }
+      },
+      {
        "clue_id": "g6.r1.l11",
        "kind": "clue",
        "reverses": "",

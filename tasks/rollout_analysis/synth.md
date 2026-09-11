@@ -8,7 +8,7 @@ tasks with reader output: ['g1', 'g2', 'g3', 'g4', 'g6', 'g7', 'g8', 'g9', 'g10'
 |---|---|---|---|---|---|---|
 | g1 | 10 | 10 | 0.79 | 0.79 | 3 | [] |
 | g2 | 10 | 9 | 0.85 | 0.85 | 0 | [(8, '9f2db992')] |
-| g3 | 10 | 10 | 0.92 | 0.92 | 5 | [] |
+| g3 | 10 | 9 | 0.93 | 0.83 | 6 | [(3, '035777f5')] |
 | g4 | 10 | 8 | 0.94 | 0.75 | 4 | [(2, '0ebb2b86'), (9, '0ebb2b86')] |
 | g6 | 10 | 8 | 0.84 | 0.67 | 0 | [(1, '30b9f0dd'), (3, '30b9f0dd')] |
 | g7 | 10 | 9 | 0.76 | 0.69 | 0 | [(5, '8deffce4')] |
@@ -23,67 +23,88 @@ tasks with reader output: ['g1', 'g2', 'g3', 'g4', 'g6', 'g7', 'g8', 'g9', 'g10'
 |---|---|---|---|---|---|---|---|---|
 | g1 | 0 | 8 | 0 | 0 | 3 | 10 | 0 | 21 |
 | g2 | 0 | 0 | 0 | 0 | 0 | 12 | 0 | 12 |
-| g3 | 0 | 0 | 1 | 0 | 0 | 6 | 0 | 7 |
+| g3 | 0 | 2 | 0 | 0 | 0 | 4 | 0 | 6 |
 | g4 | 0 | 1 | 0 | 0 | 1 | 2 | 0 | 4 |
 | g6 | 0 | 0 | 0 | 0 | 7 | 2 | 0 | 9 |
-| g7 | 0 | 3 | 2 | 0 | 4 | 8 | 0 | 17 |
-| g8 | 0 | 3 | 0 | 0 | 4 | 4 | 2 | 13 |
+| g7 | 0 | 3 | 0 | 0 | 4 | 8 | 0 | 15 |
+| g8 | 0 | 4 | 0 | 0 | 4 | 5 | 0 | 13 |
 | g9 | 0 | 0 | 0 | 6 | 3 | 2 | 0 | 11 |
 | g10 | 0 | 0 | 0 | 0 | 1 | 4 | 0 | 5 |
-| g11 | 0 | 0 | 0 | 3 | 0 | 10 | 0 | 13 |
+| g11 | 0 | 0 | 0 | 1 | 4 | 8 | 0 | 13 |
 
-**pooled:** not_found 60 (54%), implementation_slip 23 (21%), found_misread 15 (13%), herring_followed 9 (8%), grader_overspecifies 3 (3%), overridden_by_other_corpus_text 2 (2%)
-**points in dead runs (excluded above):** {'never_shipped': 25, 'infra': 30}
+**pooled:** not_found 57 (52%), implementation_slip 27 (25%), found_misread 18 (17%), herring_followed 7 (6%)
+**points in dead runs (excluded above):** {'never_shipped': 50, 'infra': 14}
 
 ## Fact-field difficulty (pooled, live runs)
 
 | field | passed |
 |---|---|
-| failure_behavior | 97/125 (78%) |
-| rule | 157/186 (84%) |
-| scope | 146/168 (87%) |
-| observability | 136/156 (87%) |
-| exclusions_or_crossover | 137/150 (91%) |
+| failure_behavior | 96/124 (77%) |
+| rule | 157/184 (85%) |
+| scope | 143/166 (86%) |
+| observability | 133/154 (86%) |
+| exclusions_or_crossover | 136/148 (92%) |
 
 ## Findability by remark quality (pooled, live runs; found = yes or partial)
 
 | bucket | found |
 |---|---|
 | surface=wiki page | 10/16 (62%) |
-| surface=wiki comment | 240/345 (70%) |
-| surface=chat | 2669/3698 (72%) |
-| surface=mail | 298/362 (82%) |
-| kind=clue | 2610/3740 (70%) |
-| kind=herring | 262/315 (83%) |
-| kind=reversal | 345/366 (94%) |
-| literal=no | 769/1320 (58%) |
-| literal=yes | 2448/3101 (79%) |
-| carrier=doc_comment | 61/121 (50%) |
+| surface=wiki comment | 233/343 (68%) |
+| surface=chat | 2703/3681 (73%) |
+| surface=mail | 294/359 (82%) |
+| kind=clue | 2615/3699 (71%) |
+| kind=herring | 278/335 (83%) |
+| kind=reversal | 347/365 (95%) |
+| literal=no | 798/1328 (60%) |
+| literal=yes | 2442/3071 (80%) |
+| carrier=doc_comment | 54/119 (45%) |
 | carrier=doc_edit | 10/16 (62%) |
-| carrier=chat_insert | 511/812 (63%) |
-| carrier=chat_thread | 2158/2886 (75%) |
+| carrier=chat_insert | 516/803 (64%) |
+| carrier=chat_thread | 2187/2878 (76%) |
 | carrier=doc_new | 179/224 (80%) |
-| carrier=mail_new | 248/308 (81%) |
+| carrier=mail_new | 244/305 (80%) |
 | carrier=mail_reply | 50/54 (93%) |
-| channel=#cookbooks | 310/452 (69%) |
-| channel=#engineering | 421/608 (69%) |
-| channel=#pipeline | 575/825 (70%) |
-| channel=#code-review | 466/654 (71%) |
-| channel=#general | 165/223 (74%) |
-| channel=#help | 50/66 (76%) |
-| channel=#incidents | 187/241 (78%) |
-| channel=#viewer | 194/250 (78%) |
-| channel=#releases | 263/333 (79%) |
+| channel=#cookbooks | 312/449 (69%) |
+| channel=#engineering | 420/604 (70%) |
+| channel=#pipeline | 578/815 (71%) |
+| channel=#code-review | 473/648 (73%) |
+| channel=#general | 163/220 (74%) |
+| channel=#viewer | 198/253 (78%) |
+| channel=#incidents | 193/241 (80%) |
+| channel=#help | 53/66 (80%) |
+| channel=#releases | 275/339 (81%) |
 | channel=#random | 38/46 (83%) |
 
-**found clues registered as a requirement:** 2430/2610 (93%); **followed by the shipped code:** 2478/2610 (95%)
+**found clues registered as a requirement:** 2427/2615 (93%); **followed by the shipped code:** 2477/2615 (95%)
 
 ## Herrings (pooled, live runs)
 
-- (run, herring) pairs: 366
-- saw the herring: 284/366 (78%)
-- saw its reversal: 339/366 (93%)
-- saw the herring but not its reversal: 13/366 (4%)
-- believed the herring: 8/366 (2%)
-- shipped code followed the herring: 8/366 (2%)
+- (run, herring) pairs: 362
+- saw the herring: 282/362 (78%)
+- saw its reversal: 339/362 (94%)
+- saw the herring but not its reversal: 12/362 (3%)
+- believed the herring: 7/362 (2%)
+- shipped code followed the herring: 7/362 (2%)
+
+## Corpus spread: chat only, mostly chat, or spread across chat, wiki and mail (live runs)
+
+| task | group | remarks by surface | mean reward (live) | found on chat | found off chat | not-found points: missing remark in chat / off chat |
+|---|---|---|---|---|---|---|
+| g1 | mostly chat | chat 44, mail 4, wiki comment 2 | 0.79 | 305/440 (69%) | 45/59 (76%) | 6 / 4 |
+| g2 | mostly chat | chat 38, mail 5, wiki comment 3 | 0.85 | 250/342 (73%) | 69/72 (96%) | 11 / 1 |
+| g3 | mostly chat | chat 44, mail 3, wiki comment 2 | 0.93 | 343/396 (87%) | 35/45 (78%) | 2 / 0, 2 mixed |
+| g4 | chat only | chat 48 | 0.94 | 262/376 (70%) | — | 2 / 0 |
+| g6 | spread | chat 19, wiki comment 7, mail 6, wiki page 1 | 0.84 | 90/144 (62%) | 85/109 (78%) | 0 / 0, 2 mixed |
+| g7 | spread | chat 34, mail 8, wiki comment 8, wiki page 1 | 0.76 | 199/302 (66%) | 115/153 (75%) | 0 / 5, 3 mixed |
+| g8 | chat only | chat 51 | 0.86 | 403/512 (79%) | — | 5 / 0 |
+| g9 | spread | chat 29, wiki comment 15, mail 13 | 0.84 | 202/287 (70%) | 188/280 (67%) | 2 / 0 |
+| g10 | chat only | chat 46 | 0.93 | 275/414 (66%) | — | 4 / 0 |
+| g11 | chat only | chat 47 | 0.86 | 374/468 (80%) | — | 8 / 0 |
+
+| group | tasks | live runs | mean reward (live) | found on chat | found off chat | knowledge points lost per live run | not-found per live run | not-found with the missing remark off chat |
+|---|---|---|---|---|---|---|---|---|
+| chat only | g4, g8, g10, g11 | 37 | 0.89 | 1314/1770 (74%) | — | 0.95 | 0.51 | 0/19 (0%) |
+| mostly chat | g1, g2, g3 | 28 | 0.85 | 898/1178 (76%) | 149/176 (85%) | 1.39 | 0.93 | 7/26 (27%) |
+| spread | g6, g7, g9 | 27 | 0.82 | 491/733 (67%) | 388/542 (72%) | 1.30 | 0.44 | 10/12 (83%) |
 

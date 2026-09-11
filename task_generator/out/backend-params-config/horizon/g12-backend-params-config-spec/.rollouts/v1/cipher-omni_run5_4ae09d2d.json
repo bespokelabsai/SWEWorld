@@ -1,0 +1,13 @@
+{
+  "id": "4ae09d2d-d45f-4768-a288-6d2aa588a0c5",
+  "evaluation_id": "2f844ea1-75b8-49af-b08c-edc8b15f0e0a",
+  "run_number": 5,
+  "model": "cipher-omni",
+  "agent_type": "meteor",
+  "score": 1,
+  "success": true,
+  "task_version": 1,
+  "grade_result": "{\n  \"subscores\": {\n    \"g12.r1.rule\": 1.0,\n    \"g12.r1.scope\": 1.0,\n    \"g12.r1.failure_behavior\": 1.0,\n    \"g12.r1.observability\": 1.0,\n    \"g12.r2.rule\": 1.0,\n    \"g12.r2.scope\": 1.0,\n    \"g12.r2.exclusions_or_crossover\": 1.0,\n    \"g12.r2.failure_behavior\": 1.0,\n    \"g12.r2.observability\": 1.0,\n    \"g12.open_feature\": 1.0\n  },\n  \"weights\": {\n    \"g12.r1.rule\": 0.1111111111111111,\n    \"g12.r1.scope\": 0.1111111111111111,\n    \"g12.r1.failure_behavior\": 0.1111111111111111,\n    \"g12.r1.observability\": 0.1111111111111111,\n    \"g12.r2.rule\": 0.1111111111111111,\n    \"g12.r2.scope\": 0.1111111111111111,\n    \"g12.r2.exclusions_or_crossover\": 0.1111111111111111,\n    \"g12.r2.failure_behavior\": 0.1111111111111111,\n    \"g12.r2.observability\": 0.11111111111111088,\n    \"g12.open_feature\": 0.0\n  },\n  \"metadata\": {\n    \"feedback\": \"9 of 9 hidden requirements satisfied. Open feature: yes. Nothing missed.\"\n  },\n  \"score\": 1.0\n}",
+  "created_at": "2026-09-08T20:22:32.575Z",
+  "completed_at": "2026-09-08T20:40:07.576Z"
+}
