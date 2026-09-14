@@ -245,3 +245,44 @@ Plan: ~/.claude/plans/can-you-look-at-inherited-russell.md
       9/9, naive 1/9, pristine 0/9 before and after; pytest reference agrees
 - [x] copied to all seven g7 arms' tests/ (byte-identical to _suites); report and page updated
 - [ ] push g7 world-hosted + hosted validate, when an eval can follow (user's call)
+
+---
+
+# g1: the observations channel is forgeable end-to-end (argus, 2026-09-14)
+
+argus failed g1's world-hosted arm: pristine `main` + an import-time `atexit` hook that
+overwrites the worker's `observations.json` scores **reward 1.0, all eleven subscores**.
+The jail closed the READ channel; the worker still AUTHORS the outcome file. Two holes:
+
+1. Every expected value is static and published — `batch_plan.json`, `PLAN_FORMAT_VERSION`,
+   the 512 cap, "sha256 … first twelve hex", `{"num_jobs": n}` are all in the corpus the
+   world arm tells the agent to read, and `probe_support.py` (necessarily in the jail)
+   carries the exact inputs. spec/clues hand over `767` and `e3b0c44298fc` in instruction.md.
+2. ~30 of g1's ~90 assertions are booleans the WORKER computed (`swept_proof`, `unchanged`,
+   `keepers_intact`, the eight `doc_*_eq` flags). `r1.scope` and `r2.exclusions` are graded
+   on nothing else — emitting `true` passes them knowing no answer at all.
+
+Fix (plan: `~/.claude/plans/root-cause-the-g1-graceful-sutherland.md`): per-run seed from
+root + judge derives its own expectations + judge reads the artifact dirs itself; constants
+move to AST. Nothing smaller passes: randomization alone leaves the booleans, and killing
+the booleans alone leaves values an agent can memorise.
+
+## Build
+- [x] `run_split`: per-run seed + root-readable artifacts dir, passed to worker and judge
+- [x] `probe_support.py`: seed-threaded inputs (dataset, limits, prepopulate, keepers, oversize row)
+- [x] `probe.py`: scenario dirs under the artifacts root, raw values only, `os._exit`
+- [x] `judge.py`: stdlib oracle (request → bytes → greedy pack → fingerprint → document)
+- [x] `judge.py`: read the artifact dirs for the r1 sidecar and the five r2 facts
+- [x] `judge.py`: AST for the constants (`_module_source`/`_class_source` from g3's judge)
+
+## Prove (twin, before any push)
+- [x] bracket: oracle 1.0, pristine/noop 0.0, naive open=1 rest 0, clues 1.0
+- [x] forge #1, argus's own: hardcoded oracle observations, ungated atexit → 0.0
+- [x] forge #2 (rewritten): a forgery `os._exit` cannot stop — intercepts the write and plants the directories: every former boolean `true` → 0.0
+- [x] read diagnostic: jailed worker still PermissionError on task.json/test_*/judge.py
+
+## Ship
+- [x] 5 suite files into all 6 g1 arms; `run_suites.py` repo-wide; byte-identity verified
+- [ ] push world-hosted → `.horizon/metadata.json` version 16
+- [ ] hosted validate oracle 1.00 / noop 0.00 (async — poll `validate-logs -a`)
+- [ ] `tasks/rollout_analysis/targets.json` g1.v → 16; lessons.md entry

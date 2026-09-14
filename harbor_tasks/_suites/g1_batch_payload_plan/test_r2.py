@@ -14,6 +14,15 @@
 `batch_plan.json` is r1's fact, so nothing here asserts that it exists: the listings below
 are compared with that one name filtered out, and an implementation that sweeps without
 writing a sidecar passes r2 in full.
+
+NOT THE GRADED PATH. The suite grades through `probe.py`/`judge.py`, and the
+judge DERIVES its expectations from the seed root draws per run rather than
+holding the literals below: a fixed fixture makes every expected value the same
+every run, and g1's are written down in the world the agent reads, so a tree
+implementing nothing could hardcode a passing observations file (measured:
+reward 1.0). What is here is the worked example of each fact on the old fixed
+fixture, and the fact<->test bijection. Read it to see what a fact MEANS; read
+`judge.py` for how it is decided.
 """
 from __future__ import annotations
 

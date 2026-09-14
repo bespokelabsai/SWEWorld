@@ -20,6 +20,15 @@ Each test stays on its own fact. `rule` and `scope` never hardcode a digest — 
 different hash is judged on that in `observability` alone. `observability` in turn takes
 `limits` from the implementation's own `batch_limits`, so the fan-out cap of
 `failure_behavior` is not charged twice.
+
+NOT THE GRADED PATH. The suite grades through `probe.py`/`judge.py`, and the
+judge DERIVES its expectations from the seed root draws per run rather than
+holding the literals below: a fixed fixture makes every expected value the same
+every run, and g1's are written down in the world the agent reads, so a tree
+implementing nothing could hardcode a passing observations file (measured:
+reward 1.0). What is here is the worked example of each fact on the old fixed
+fixture, and the fact<->test bijection. Read it to see what a fact MEANS; read
+`judge.py` for how it is decided.
 """
 from __future__ import annotations
 

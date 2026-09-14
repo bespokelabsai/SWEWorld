@@ -1,25 +1,69 @@
 """g1 judge: the process that decides pass/fail and NEVER imports the submission.
 
-Reads the observations `probe.py` wrote (values pulled from live curator) and
-applies the assertions the g1 suite has always made, writing a `junit.xml` whose
+Reads the observations `probe.py` wrote, the directories the probe's scenarios
+actually ran in, and the cloned source text; writes a `junit.xml` whose
 `classname`/`name` are the current suite's node ids — so `score.py` folds them
-into the identical fact keys and `test.sh`/`score.py` are unchanged. No agent
-code runs here, so the report cannot be forged; and `test.sh` locks /tests to
-root, so the worker cannot read the numbers below to forge an observation that
-matches them. That pair is what closes the forgery in tasks/lessons.md
-(2026-09-09) that a uid alone could not.
+into the identical fact keys and `test.sh`/`score.py` are unchanged.
 
-The expected values are lifted from `test_open`/`test_r1`/`test_r2`; those files
-stay the human-readable source of truth and the fact<->test bijection.
+WHY THIS FILE NO LONGER HOLDS THE ANSWERS AS LITERALS. The split moved the
+verdict out of the process that runs agent code. It left the worker AUTHORING
+the values the verdict is computed from, and with a fixed fixture those values
+never changed — while g1's are published in the world the agent is told to read.
+A pristine tree plus one import-time `atexit` hook that rewrote
+`observations.json` scored reward 1.0 on every fact. Three things close that:
+
+  * **the inputs move every run.** `fixture_spec.derive(seed)` re-draws prompts,
+    row counts and limits from the seed root picked, and this file recomputes
+    what the answers must be for THOSE inputs — so there is nothing to memorise
+    and nothing in the corpus to copy. Row sizes are priced HERE, from the shape
+    of a serialised request, which is why that shape must never appear in
+    anything the worker can read.
+  * **the directories are read here.** "The sweep ran", "the failed run left the
+    place alone", "the bystanders were not touched" used to be booleans the
+    worker computed. They are now this process opening the directory the run
+    used and comparing it against the inputs it planted.
+  * **the constants are read out of the source.** `PLAN_FILE_NAME`, the format
+    version and the 512 cap cannot be re-drawn — they ARE the requirement — so
+    they are checked against the module text as well as the run, and a tree that
+    reports the right number without defining it fails.
+
+The residual, stated plainly: a submission that IMPLEMENTS the rule inside a
+forged hook still passes, because it has then done the work. What is gone is
+passing by repeating values that were knowable in advance.
+
+`test_open`/`test_r1`/`test_r2` stay the human-readable source of truth for what
+each fact means; their worked example uses the old fixed fixture.
 """
 from __future__ import annotations
 
+import ast
+import hashlib
 import json
+import os
 import pathlib
 import sys
 from xml.sax.saxutils import escape, quoteattr
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fixture_spec  # noqa: E402 - same derivation the worker used
+
 MODEL = "gpt-4o-mini"
+
+# The answers that cannot be re-drawn, because they are the requirement itself.
+PLAN_FILE_NAME = "batch_plan.json"
+PLAN_FORMAT_VERSION = 1
+MAX_BATCHES_PER_PLAN = 512
+DOC_KEYS = ["plan_format_version", "plan_id", "limits", "num_batches", "num_requests",
+            "num_bytes", "batches"]
+BATCH_KEYS = ["index", "start_idx", "end_idx", "num_requests", "num_bytes"]
+
+PLANNER = ["bespokelabs/curator/request_processor/batch_payload_planner.py",
+           "bespokelabs/curator/request_processor/batch_payload_planner/__init__.py"]
+
+UNBOUNDED_BYTES = 1_000_000
+
+SPEC: dict = {}
+ARTIFACTS = pathlib.Path("/nonexistent")
 
 
 class Fail(AssertionError):
@@ -66,6 +110,204 @@ def check_cover(plan, n_rows, msg="cover"):
 
 
 # ---------------------------------------------------------------------------
+# the oracle: what this run's inputs should produce
+# ---------------------------------------------------------------------------
+def api_request(idx: int, prompt: str) -> dict:
+    """The provider dict curator serialises one row into.
+
+    This is the one piece of knowledge that prices a row, and it is why it lives
+    here and nowhere the worker can read: hand it over and a tree that
+    implements nothing can price every row, pack them, and hash the cuts.
+    """
+    return {"custom_id": str(idx), "method": "POST", "url": "/v1/chat/completions",
+            "body": {"model": MODEL, "messages": [{"role": "user", "content": prompt}]}}
+
+
+def prompt_of(idx: int) -> str:
+    return f"{SPEC['prefix']}{idx}"
+
+
+def row_size(idx: int) -> int:
+    return len(json.dumps(api_request(idx, prompt_of(idx))).encode())
+
+
+def row_sizes(n: int) -> list:
+    return [row_size(i) for i in range(n)]
+
+
+def pack(sizes, max_requests, max_bytes) -> list:
+    """The greedy forward fill both limits are inclusive of, as [index, start,
+    end, num_requests, num_bytes] — the shape `probe_support.tuples` records.
+
+    A batch's byte size counts the n-1 newline separators `"\\n".join` adds.
+    """
+    plan, start, current = [], 0, []
+
+    def close(end):
+        plan.append([len(plan), start, end, len(current),
+                     sum(current) + max(len(current) - 1, 0)])
+
+    for idx, size in enumerate(sizes):
+        nxt = current + [size]
+        if current and (len(nxt) > max_requests or sum(nxt) + len(nxt) - 1 > max_bytes):
+            close(idx)
+            start, current = idx, [size]
+        else:
+            current = nxt
+    if current:
+        close(len(sizes))
+    return plan
+
+
+def fingerprint(plan) -> str:
+    canonical = ";".join(f"{t[1]}-{t[2]}:{t[4]}" for t in plan)
+    return hashlib.sha256(canonical.encode()).hexdigest()[:12]
+
+
+def document(plan, limits_asdict) -> dict:
+    return {
+        "plan_format_version": PLAN_FORMAT_VERSION,
+        "plan_id": fingerprint(plan),
+        "limits": limits_asdict,
+        "num_batches": len(plan),
+        "num_requests": sum(t[3] for t in plan),
+        "num_bytes": sum(t[4] for t in plan),
+        "batches": [dict(zip(BATCH_KEYS, t)) for t in plan],
+    }
+
+
+def dataset_plan(n=None, max_requests=None, max_bytes=None) -> list:
+    """The plan this run's main `"auto"` fixture must produce."""
+    n = SPEC["rows"] if n is None else n
+    return pack(row_sizes(n),
+                SPEC["max_requests"] if max_requests is None else max_requests,
+                SPEC["max_bytes"] if max_bytes is None else max_bytes)
+
+
+# ---------------------------------------------------------------------------
+# reading the directories the scenarios ran in
+# ---------------------------------------------------------------------------
+def adir(name: str) -> pathlib.Path:
+    path = ARTIFACTS / name
+    ok(path.is_dir(), f"the {name} scenario left no working directory behind")
+    return path
+
+
+def listing(name: str) -> list:
+    return sorted(p.name for p in adir(name).iterdir())
+
+
+def text_of(name: str, filename: str) -> str:
+    path = adir(name) / filename
+    ok(path.is_file(), f"{name}/{filename} is missing; the directory holds {listing(name)}")
+    return path.read_text()
+
+
+def json_of(name: str, filename: str):
+    return json.loads(text_of(name, filename))
+
+
+def lines_in(name: str, filename: str) -> list:
+    return [json.loads(line) for line in text_of(name, filename).splitlines() if line.strip()]
+
+
+def rows_in(name: str, filename: str) -> list:
+    """The dataset row indices one request file holds — and a check that the
+    file is THIS run's.
+
+    Indices alone are seed-independent: rows 0..n-1 look the same in every run,
+    so a directory captured from an earlier run passes an index check. The
+    prompt text carries the run's token, and that is what makes a planted
+    directory fail.
+    """
+    rows = []
+    for line in lines_in(name, filename):
+        idx = line["original_row_idx"]
+        want = prompt_of(idx)
+        got = line.get("original_row", {}).get("prompt")
+        eq(got, want, f"{name}/{filename} row {idx} is not from this run")
+        rows.append(idx)
+    return rows
+
+
+def numbered(name: str, stem: str, suffix: str) -> list:
+    return sorted(p.name for p in adir(name).iterdir()
+                  if p.name.startswith(stem) and p.name.endswith(suffix))
+
+
+def request_files(n: int) -> list:
+    return [f"requests_{i}.jsonl" for i in range(n)]
+
+
+def metadata_files(n: int) -> list:
+    return [f"metadata_{i}.json" for i in range(n)]
+
+
+def planted_names() -> list:
+    """Everything `prepopulate` put in a working directory, this run."""
+    return request_files(SPEC["prepop_n"]) + metadata_files(SPEC["prepop_n"])
+
+
+def require_swept(name: str):
+    """The gate: this run really did sweep, so "left alone" means something.
+
+    A tree that never implements the sweep leaves the whole stale tail in place,
+    and every "nothing was removed" check below would pass on it for the wrong
+    reason. The old version asked the worker for this as a boolean.
+    """
+    tail = f"requests_{SPEC['prepop_n'] - 1}.jsonl"
+    ok(tail not in listing(name),
+       f'the "auto" branch\'s sweep of stale request files is not implemented '
+       f"({name} still holds {tail})")
+
+
+# ---------------------------------------------------------------------------
+# reading the submission's source — for the constants that cannot be re-drawn
+# ---------------------------------------------------------------------------
+def _module_source(candidates) -> str:
+    root = pathlib.Path(os.environ.get("SUBMISSION_SRC", ""))
+    for rel in candidates:
+        path = root / rel
+        if path.is_file():
+            return path.read_text(errors="replace")
+    raise Fail(f"none of {candidates} exists in the submission")
+
+
+def _assigned(src: str, name: str):
+    """The value the module assigns to a module-level constant."""
+    tree = ast.parse(src)
+    for node in tree.body:
+        targets = node.targets if isinstance(node, ast.Assign) else (
+            [node.target] if isinstance(node, ast.AnnAssign) and node.value is not None else [])
+        for target in targets:
+            if isinstance(target, ast.Name) and target.id == name:
+                value = node.value if isinstance(node, ast.Assign) else node.value
+                try:
+                    return ast.literal_eval(value)
+                except ValueError:
+                    raise Fail(f"{name} is not a literal in the module source")
+    raise Fail(f"the planner module does not define {name}")
+
+
+def _field_default(src: str, classname: str, field: str):
+    """A dataclass field's default, following one level of constant indirection."""
+    tree = ast.parse(src)
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.ClassDef) and node.name == classname):
+            continue
+        for stmt in node.body:
+            if isinstance(stmt, ast.AnnAssign) and isinstance(stmt.target, ast.Name) \
+                    and stmt.target.id == field and stmt.value is not None:
+                if isinstance(stmt.value, ast.Name):
+                    return _assigned(src, stmt.value.id)
+                try:
+                    return ast.literal_eval(stmt.value)
+                except ValueError:
+                    raise Fail(f"{classname}.{field} has no literal default")
+    raise Fail(f"{classname}.{field} has no default in the module source")
+
+
+# ---------------------------------------------------------------------------
 # open feature — the whole stated surface, planner, files
 # ---------------------------------------------------------------------------
 REQUIRED_SURFACE = ["BatchLimits", "PlannedBatch", "payload_size_bytes", "payload_bytes",
@@ -76,52 +318,80 @@ def judge_open(o):
     for name in REQUIRED_SURFACE:
         has(o["surface"], name)
     ok("ValueError" in o["btle_mro"], f"BatchPayloadTooLargeError does not subclass ValueError: {o['btle_mro']}")
-    ok("BatchPayloadTooLargeError" in o["srtle_mro"], f"SingleRequestTooLargeError does not subclass BatchPayloadTooLargeError: {o['srtle_mro']}")
-    eq(o["error_fields"], [2, 99, 50], "BatchPayloadTooLargeError fields")
+    ok("BatchPayloadTooLargeError" in o["srtle_mro"],
+       f"SingleRequestTooLargeError does not subclass BatchPayloadTooLargeError: {o['srtle_mro']}")
+    eq(o["error_fields"], [SPEC["err_num_requests"], SPEC["err_size_bytes"], SPEC["err_limit_bytes"]],
+       "the error carries the three numbers it was built with")
 
-    eq(o["row_0_request"], {
-        "custom_id": "0",
-        "method": "POST",
-        "url": "/v1/chat/completions",
-        "body": {"model": MODEL, "messages": [{"role": "user", "content": "say 0"}]},
-    }, "the OpenAI batch request shape")
-    eq(o["payload_size_row0"], 153, "payload_size_bytes(row 0)")
-    eq(o["generic_len"], 217, "the generic request is 217 bytes")
-    eq(o["measure_generic"], 153, "measure_request_payload")
+    # --- one row, serialised the way the provider wants it ------------------
+    expected_request = api_request(0, prompt_of(0))
+    eq(o["row_0_request"], expected_request, "the provider request for row 0")
+    eq(o["payload_size_row0"], row_size(0), "payload_size_bytes is the UTF-8 length of json.dumps")
+    eq(o["measure_generic"], o["payload_size_row0"], "measure_request_payload != payload_size_bytes")
+    ok(SPEC["prefix"] in json.dumps(o["generic_dump"]),
+       "the generic request does not carry this run's prompt")
 
-    eq(o["payload_bytes"], [0, 10, 32], "payload_bytes")
+    size = SPEC["unit_size"]
+    eq(o["payload_bytes"], [0, size, 3 * size + 2], "payload_bytes counts the n-1 separators")
 
-    eq(o["plan_empty"], [], "plan_batches([])")
-    eq(o["plan_7_1000_32"], [[0, 0, 3, 3, 32], [1, 3, 6, 3, 32], [2, 6, 7, 1, 10]], "greedy fill, byte-bound")
-    eq(o["plan_6_3_32"], [[0, 0, 3, 3, 32], [1, 3, 6, 3, 32]], "greedy fill, request-bound")
+    # --- greedy forward fill, both limits inclusive, exhaustive spans -------
+    per = SPEC["unit_per_batch"]
+    unit_cap = per * size + per - 1
+    eq(o["plan_empty"], [], "zero sizes plan zero batches")
+    eq(o["plan_by_bytes"], pack([size] * SPEC["unit_rows"], 1000, unit_cap),
+       f"{SPEC['unit_rows']} rows of {size} bytes under a {unit_cap}-byte budget")
+    eq(o["plan_by_count"], pack([size] * SPEC["count_rows"], SPEC["count_per_batch"], UNBOUNDED_BYTES),
+       f"{SPEC['count_rows']} rows at {SPEC['count_per_batch']} per batch")
 
-    raised(o["raise_single"], mro=["SingleRequestTooLargeError", "BatchPayloadTooLargeError", "ValueError"],
-           attrs={"row_idx": 1, "size_bytes": 500, "limit_bytes": 32, "num_requests": 1}, msg="single oversize")
+    raised(o["raise_single"],
+           mro=["SingleRequestTooLargeError", "BatchPayloadTooLargeError", "ValueError"],
+           attrs={"row_idx": 1, "size_bytes": unit_cap + 1, "limit_bytes": unit_cap, "num_requests": 1},
+           msg="a row over the byte budget on its own")
 
-    eq(o["batch_limits"], [7, 4242], "batch_limits mirrors the two properties")
+    eq(o["batch_limits"], [SPEC["echo_max_requests"], SPEC["echo_max_bytes"]],
+       "batch_limits mirrors the two properties")
 
-    plan = o["plan_5_3_400"]
-    eq(plan, [[0, 0, 2, 2, 307], [1, 2, 4, 2, 307], [2, 4, 5, 1, 153]], "plan of 5 rows at 3/400")
-    check_cover(plan, 5)
-    eq(o["result_rel"], ["requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl"], "create_request_files result")
-    eq(o["batch_rows"], [list(range(t[1], t[2])) for t in plan], "each file holds its planned rows")
-    eq(o["batch_meta_numjobs"], [t[3] for t in plan], "metadata num_jobs == num_requests")
+    # --- planning the dataset, and the files it writes ----------------------
+    plan = dataset_plan()
+    eq(o["plan_dataset"], plan, f"the plan of {SPEC['rows']} rows at {SPEC['max_requests']}/{SPEC['max_bytes']}")
+    check_cover(o["plan_dataset"], SPEC["rows"])
+    eq(o["result_rel"], request_files(len(plan)), "create_request_files result")
 
-    ok(o["empty_batch_file_empty"], "create_batch_file([]) == b''")
+    # read the directory rather than ask what is in it
+    for t in plan:
+        eq(rows_in("open_run", f"requests_{t[0]}.jsonl"), list(range(t[1], t[2])),
+           f"requests_{t[0]}.jsonl holds its planned rows")
+        eq(json_of("open_run", f"metadata_{t[0]}.json")["num_jobs"], t[3],
+           f"metadata_{t[0]}.json num_jobs")
+
+    eq(o["empty_batch_file_len"], 0, "create_batch_file([]) is not empty")
     eq(o["built_sizes"], [t[4] for t in plan], "built file size == planned num_bytes")
 
-    eq(o["gp_plan"], [[0, 0, 2, 2, 347], [1, 2, 4, 2, 347], [2, 4, 6, 2, 347]], "gen-params plan")
-    eq(o["gp_line_counts"], [2, 2, 2], "gen-params file line counts")
+    # --- row-level generation_params ----------------------------------------
+    # Cut by count, so the spans are known without pricing a row that carries
+    # generation params; the byte accounting is graded on the plain rows above.
+    gp_expected = pack([1] * SPEC["gp_rows"], SPEC["gp_max_requests"], UNBOUNDED_BYTES)
+    eq([t[:4] for t in o["gp_plan"]], [t[:4] for t in gp_expected], "the gen-params plan's spans")
+    ok(all(t[4] > 0 for t in o["gp_plan"]), f"gen-params batches carry no bytes: {o['gp_plan']}")
+    for t in gp_expected:
+        eq(len(rows_in("open_gp", f"requests_{t[0]}.jsonl")), t[3],
+           f"gen-params requests_{t[0]}.jsonl line count")
 
-    eq(o["wide_basenames"], [f"requests_{i}.jsonl" for i in range(11)], "one file per planned batch, numeric order")
+    eq(o["wide_basenames"], request_files(SPEC["wide_rows"]),
+       "one file per planned batch, numeric order")
 
     eq(o["empty_plan"], [], "zero rows plans zero batches")
     eq(o["empty_create_result"], [], "zero rows writes no file")
     eq(o["empty_glob_requests"], [], "no stray request files")
     eq(o["empty_glob_metadata"], [], "no stray metadata files")
 
-    eq(o["fixed_result_rel"], ["requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl"], "explicit-integer result")
-    eq(o["fixed_line_counts"], [2, 2, 1], "explicit-integer line counts")
+    # --- the explicit-integer branch is untouched ---------------------------
+    chunk = SPEC["explicit_batch_size"]
+    fixed_counts = [len(range(i, min(i + chunk, SPEC["rows"]))) for i in range(0, SPEC["rows"], chunk)]
+    eq(o["fixed_result_rel"], request_files(len(fixed_counts)), "explicit-integer result")
+    for i, count in enumerate(fixed_counts):
+        eq(len(rows_in("open_fixed", f"requests_{i}.jsonl")), count,
+           f"explicit-integer requests_{i}.jsonl line count")
 
 
 # ---------------------------------------------------------------------------
@@ -130,44 +400,72 @@ def judge_open(o):
 def judge_r1_rule(o):
     for name in ("PLAN_FILE_NAME", "PLAN_FORMAT_VERSION", "plan_fingerprint", "plan_document"):
         has(o["surface"], name)
-    eq(o["plan_file_name"], "batch_plan.json", "PLAN_FILE_NAME")
-    eq(o["plan_format_version"], 1, "PLAN_FORMAT_VERSION")
 
+    src = _module_source(PLANNER)
+    eq(o["plan_file_name"], PLAN_FILE_NAME, "PLAN_FILE_NAME")
+    eq(_assigned(src, "PLAN_FILE_NAME"), PLAN_FILE_NAME, "PLAN_FILE_NAME in the module source")
+    eq(o["plan_format_version"], PLAN_FORMAT_VERSION, "PLAN_FORMAT_VERSION")
+    eq(_assigned(src, "PLAN_FORMAT_VERSION"), PLAN_FORMAT_VERSION, "PLAN_FORMAT_VERSION in the module source")
+
+    # the digest is over the cuts and the sizes; index and num_requests are not in it
+    eq(o["fp_same"], fingerprint(o["fp_spans"]), "plan_fingerprint of a known plan")
     eq(o["fp_same"], o["fp_relabelled"], "plan_fingerprint changed when only index/num_requests changed")
     ok(o["fp_same"] != o["fp_diff_size"], "plan_fingerprint ignores the batch sizes")
     ok(o["fp_same"] != o["fp_diff_cut"], "plan_fingerprint ignores where the cuts fall")
 
-    eq(o["plan_len"], 3, "five rows at 3/400 should plan 3 batches")
-    eq(o["doc_keys"], ["plan_format_version", "plan_id", "limits", "num_batches", "num_requests", "num_bytes", "batches"], "sidecar envelope keys")
-    eq(o["doc_format_version"], 1, "doc plan_format_version")
-    ok(o["doc_plan_id_eq_fp"], "doc plan_id != plan_fingerprint(plan)")
-    ok(o["doc_limits_eq_asdict"], "doc limits != asdict(limits)")
-    ok(o["doc_num_batches_eq"], "doc num_batches != len(plan)")
-    ok(o["doc_num_requests_eq"], "doc num_requests != sum")
-    ok(o["doc_num_bytes_eq"], "doc num_bytes != sum")
-    ok(o["doc_batches_eq_asdict"], "doc batches != [asdict(p)]")
-    eq(o["batch0_keys"], ["index", "start_idx", "end_idx", "num_requests", "num_bytes"], "a batch entry's keys")
-    ok(o["doc_eq_plan_document"], "doc != plan_document(plan, limits)")
+    plan = dataset_plan()
+    eq(o["plan"], plan, "the plan this run's dataset produces")
+    eq(o["batches_asdict"], [dict(zip(BATCH_KEYS, t)) for t in plan], "PlannedBatch as a dict")
+
+    expected = document(plan, o["limits_asdict"])
+    doc = json_of("r1_rule", PLAN_FILE_NAME)
+    eq(list(doc), DOC_KEYS, "sidecar envelope keys")
+    eq(doc, expected, "the sidecar the run left behind")
+    eq(list(doc["batches"][0]), BATCH_KEYS, "a batch entry's keys")
+    eq(o["plan_document_out"], doc, "plan_document(plan, limits) != the document on disk")
 
 
 def judge_r1_scope(o):
-    ok(o["ordered_sidecar_exists"], 'the "auto" branch wrote no plan sidecar')
+    # Written at all, and describing THIS run — an empty plan's document is the
+    # same every run, and a fact whose every check is seed-independent can be
+    # answered by planting the directories it reads. Measured: a forgery that
+    # implemented nothing passed this one fact and no other.
+    plan = dataset_plan()
+    ordered_doc = json_of("r1_scope_ordered", PLAN_FILE_NAME)
+    eq(ordered_doc.get("num_batches"), len(plan), 'the "auto" branch wrote no plan for this run')
+    eq(ordered_doc.get("batches"), [dict(zip(BATCH_KEYS, t)) for t in plan],
+       "the sidecar does not describe the run that wrote it")
+    eq(ordered_doc.get("plan_id"), fingerprint(plan), "the sidecar's plan_id")
+
+    # written before any request file of its own run
     if o["ordered_reused_acreate"]:
-        ok(o["ordered_plan_exists_on_first_call"] is True, "the sidecar was written after the request files, not before them")
+        ok(o["ordered_plan_exists_on_first_call"] is True,
+           "the sidecar was written after the request files, not before them")
 
+    # a 0-batch plan is still recorded
     eq(o["empty_create_result"], [], "empty auto run returns []")
-    eq(o["empty_doc_tuple"], [0, 0, 0, []], "a 0-batch plan is still recorded")
-    ok(o["empty_doc_plan_id_eq_fp"], "empty doc plan_id != plan_fingerprint([])")
+    empty_doc = json_of("r1_scope_empty", PLAN_FILE_NAME)
+    eq([empty_doc["num_batches"], empty_doc["num_requests"], empty_doc["num_bytes"], empty_doc["batches"]],
+       [0, 0, 0, []], "a 0-batch plan is still recorded")
+    eq(empty_doc["plan_id"], fingerprint([]), "the empty plan's plan_id")
 
-    ok(o["fixed_no_sidecar"], "the explicit-integer branch wrote a plan sidecar")
-    ok(o["none_no_sidecar"], "the `dataset is None` path wrote a plan sidecar")
+    # the explicit-integer branch: no sidecar, and it really did run here
+    ok(PLAN_FILE_NAME not in listing("r1_scope_fixed"), "the explicit-integer branch wrote a plan sidecar")
+    chunk = SPEC["explicit_batch_size"]
+    eq(rows_in("r1_scope_fixed", "requests_0.jsonl"), list(range(chunk)),
+       "the explicit-integer branch did not write this run's rows")
+    ok(PLAN_FILE_NAME not in listing("r1_scope_none"), "the `dataset is None` path wrote a plan sidecar")
 
 
 def judge_r1_exclusions(o):
-    ok(o["sidecar_exists"], "the batch_plan.json sidecar is not implemented, so the constraint cannot be credited")  # require_feature
-    for keys in o["meta_keysets"]:
-        eq(keys, ["num_jobs"], "metadata carries plan fields it should not")
-    eq(o["meta_numjobs"], [t[3] for t in o["plan"]], "metadata num_jobs == num_requests")
+    ok((adir("r1_excl") / PLAN_FILE_NAME).is_file(),
+       "the batch_plan.json sidecar is not implemented, so the constraint cannot be credited")  # require_feature
+    plan = dataset_plan()
+    eq(o["plan"], plan, "the plan this run's dataset produces")
+    for t in plan:
+        meta = json_of("r1_excl", f"metadata_{t[0]}.json")
+        eq(sorted(meta), ["num_jobs"], "metadata carries plan fields it should not")
+        eq(meta["num_jobs"], t[3], "metadata num_jobs == num_requests")
 
 
 def judge_r1_failure_behavior(o):
@@ -175,94 +473,125 @@ def judge_r1_failure_behavior(o):
     ok("ValueError" in o["bptfe_mro"], f"BatchPlanTooFragmentedError does not subclass ValueError: {o['bptfe_mro']}")
     ok("BatchPayloadTooLargeError" not in o["bptfe_mro"], "a fragmented plan is not an oversized payload")
 
-    eq(o["len_512"], 512, "512 batches is the boundary and it is admissible")
-    raised(o["raise_513"], mro=["BatchPlanTooFragmentedError"], attrs={"num_batches": 513, "limit": 512}, msg="513 batches")
-    raised(o["raise_explicit_cap"], mro=["BatchPlanTooFragmentedError"], attrs={"num_batches": 3, "limit": 2}, msg="explicit max_batches_per_plan")
-    raised(o["raise_oversize_first"], mro=["SingleRequestTooLargeError"], attrs={"row_idx": 600}, msg="per-row scan wins")
+    # The cap is the one input that is also an answer, so it is checked twice:
+    # the limit the implementation actually applied, and the number its source
+    # defines. Reporting 512 without defining it is not enough.
+    limit = MAX_BATCHES_PER_PLAN
+    eq(o["default_limit"], limit, "BatchLimits.max_batches_per_plan default")
+    eq(_field_default(_module_source(PLANNER), "BatchLimits", "max_batches_per_plan"), limit,
+       "max_batches_per_plan's default in the module source")
+    eq(o["len_at_limit"], limit, f"{limit} batches is the boundary and it is admissible")
+    raised(o["raise_over_limit"], mro=["BatchPlanTooFragmentedError"],
+           attrs={"num_batches": limit + 1, "limit": limit}, msg=f"{limit + 1} batches")
+
+    raised(o["raise_explicit_cap"], mro=["BatchPlanTooFragmentedError"],
+           attrs={"num_batches": SPEC["cap_rows"], "limit": SPEC["cap_max_batches"]},
+           msg="explicit max_batches_per_plan")
+    raised(o["raise_oversize_first"], mro=["SingleRequestTooLargeError"],
+           attrs={"row_idx": SPEC["oversize_rows"]}, msg="per-row scan wins")
 
 
 def judge_r1_observability(o):
-    eq(o["fp_empty"], "e3b0c44298fc", "plan_fingerprint([])")
-    eq(o["fp_7"], "ad0828fea95e", "plan_fingerprint of the 7-row plan")
-    eq(o["fp_3batches"], "f4b1ea1573c0", "plan_fingerprint of the 3-batch plan")
-    eq(o["wide_len"], 11, "11 rows at one per batch")
-    eq(o["fp_wide"], "c53f6fb95c13", "plan_fingerprint of the 11-batch plan")
+    eq(o["fp_empty"], fingerprint([]), "plan_fingerprint([])")
 
-    expected_doc = {
-        "plan_format_version": 1,
-        "plan_id": "f4b1ea1573c0",
-        # from the implementation's own limits, so the fan-out cap is graded
-        # once, under failure_behavior, and not a second time here.
-        "limits": o["limits_asdict"],
-        "num_batches": 3,
-        "num_requests": 5,
-        "num_bytes": 767,
-        "batches": [
-            {"index": 0, "start_idx": 0, "end_idx": 2, "num_requests": 2, "num_bytes": 307},
-            {"index": 1, "start_idx": 2, "end_idx": 4, "num_requests": 2, "num_bytes": 307},
-            {"index": 2, "start_idx": 4, "end_idx": 5, "num_requests": 1, "num_bytes": 153},
-        ],
-    }
-    eq(o["doc"], expected_doc, "the document the 5-row run leaves behind")
-    eq(o["doc_limits_maxreq"], 3, "doc limits max_requests_per_batch")
-    eq(o["doc_limits_maxbytes"], 400, "doc limits max_bytes_per_batch")
-    ok(o["raw_tail"].endswith("]\n}\n"), f"the sidecar is not indented JSON with a trailing newline: {o['raw_tail']!r}")
+    wide = pack(row_sizes(SPEC["wide_rows"]), 1, UNBOUNDED_BYTES)
+    eq(o["wide_plan"], wide, "one row per batch")
+    eq(o["fp_wide"], fingerprint(wide), "plan_fingerprint of the one-per-batch plan")
+
+    plan = dataset_plan()
+    eq(o["plan"], plan, "the plan this run's dataset produces")
+    eq(o["fp_plan"], fingerprint(plan), "plan_fingerprint of that plan")
+
+    # the implementation's own limits are substituted, so the fan-out cap is
+    # graded once, under failure_behavior, and not a second time here
+    limits = o["limits_asdict"]
+    eq(limits.get("max_requests_per_batch"), SPEC["max_requests"], "doc limits max_requests_per_batch")
+    eq(limits.get("max_bytes_per_batch"), SPEC["max_bytes"], "doc limits max_bytes_per_batch")
+
+    doc = json_of("r1_obs", PLAN_FILE_NAME)
+    eq(doc, document(plan, limits), "the document the run leaves behind")
+    raw = text_of("r1_obs", PLAN_FILE_NAME)
+    ok(raw.endswith("]\n}\n"), f"the sidecar is not indented JSON with a trailing newline: {raw[-20:]!r}")
 
 
 # ---------------------------------------------------------------------------
 # r2 — the "auto" branch sweeps its stale numbering
 # ---------------------------------------------------------------------------
 def judge_r2_rule(o):
-    n = o["plan_len"]
-    ok(1 <= n <= 5, f"five rows planned {n} batches")
-    eq(o["req_glob"], [f"requests_{i}.jsonl" for i in range(n)], "stale request files survived the run")
-    eq(o["meta_glob"], [f"metadata_{i}.json" for i in range(n)], "stale metadata files survived the run")
-    first = o["plan"][0]
-    eq(o["req0_rows"], list(range(first[1], first[2])), "requests_0.jsonl holds the new run's rows")
+    plan = dataset_plan()
+    eq(o["plan"], plan, "the plan this run's dataset produces")
+    n = len(plan)
+    ok(n < SPEC["prepop_n"], f"the fixture must plan fewer batches ({n}) than it pre-populated")
+
+    eq(numbered("r2_rule", "requests_", ".jsonl"), request_files(n), "stale request files survived the run")
+    eq(numbered("r2_rule", "metadata_", ".json"), metadata_files(n), "stale metadata files survived the run")
+    eq(rows_in("r2_rule", "requests_0.jsonl"), list(range(plan[0][1], plan[0][2])),
+       "requests_0.jsonl holds the new run's rows")
 
 
 def judge_r2_scope(o):
-    ok(o["swept_proof"], 'the "auto" branch\'s sweep of stale request files is not implemented')  # require_feature
-    ok(all(o["fixed_req_exists"]), "the explicit-integer branch removed a stale request file")
-    ok(all(o["fixed_meta_exists"]), "the explicit-integer branch removed a stale metadata file")
-    eq(o["fixed_req5_content"], "stale\n", "the explicit-integer branch rewrote requests_5.jsonl")
-    ok(all(o["none_req_exists"]), "the `dataset is None` path removed a stale request file")
-    ok(all(o["none_meta_exists"]), "the `dataset is None` path removed a stale metadata file")
-    eq(o["none_req3_content"], "stale\n", "the `dataset is None` path rewrote requests_3.jsonl")
+    require_swept("r2_scope_sweep")
+
+    # the explicit-integer branch owns its own numbering and removes nothing
+    chunk = SPEC["explicit_batch_size"]
+    for name, scenario in (("explicit-integer", "r2_scope_fixed"), ("`dataset is None`", "r2_scope_none")):
+        here = listing(scenario)
+        untouched = range(chunk + 1, SPEC["prepop_n"]) if scenario == "r2_scope_fixed" \
+            else range(1, SPEC["prepop_n"])
+        for i in untouched:
+            ok(f"requests_{i}.jsonl" in here, f"the {name} branch removed a stale request file")
+            ok(f"metadata_{i}.json" in here, f"the {name} branch removed a stale metadata file")
+            eq(text_of(scenario, f"requests_{i}.jsonl"), SPEC["stale_request"],
+               f"the {name} branch rewrote requests_{i}.jsonl")
+            eq(text_of(scenario, f"metadata_{i}.json"), SPEC["stale_metadata"],
+               f"the {name} branch rewrote metadata_{i}.json")
 
 
 def judge_r2_exclusions(o):
-    ok(o["swept"], 'the "auto" branch\'s sweep of stale request files is not implemented')  # require_feature
-    for name, intact in o["keepers_intact"].items():
-        ok(intact, f"the sweep touched {name}, which is not a request or metadata file")
+    require_swept("r2_excl")
+    for name, body in SPEC["keepers"].items():
+        ok(name in listing("r2_excl"), f"the sweep removed {name}, which is not a request or metadata file")
+        eq(text_of("r2_excl", name), body, f"the sweep rewrote {name}")
 
 
 def judge_r2_failure_behavior(o):
-    ok(o["swept_proof"], 'the "auto" branch\'s sweep of stale request files is not implemented')  # require_feature
-    eq(o["before_len"], 14, "the pre-populated working dir should hold 14 files")
-    raised(o["raise_plan"], mro=["SingleRequestTooLargeError"], attrs={"row_idx": 1}, msg="planning raises on the oversize row")
+    require_swept("r2_fail_sweep")
+
+    raised(o["raise_plan"], mro=["SingleRequestTooLargeError"], attrs={"row_idx": 1},
+           msg="planning raises on the oversize row")
     raised(o["raise_create"], mro=["SingleRequestTooLargeError"], msg="create_request_files raises")
-    ok(o["unchanged"], "a planning failure changed the working directory")
+
+    # The whole fact: the directory is exactly what was planted in it. Every
+    # name and every byte comes from this run's fixture, so a directory prepared
+    # in advance cannot stand in for one a failed run left alone.
+    planted = dict.fromkeys(planted_names(), None)
+    expected = set(planted) | set(SPEC["keepers"]) | {o["plan_file_name"]}
+    eq(set(listing("r2_fail")), expected, "a planning failure changed the working directory")
+    for i in range(SPEC["prepop_n"]):
+        eq(text_of("r2_fail", f"requests_{i}.jsonl"), SPEC["stale_request"], f"requests_{i}.jsonl was rewritten")
+        eq(text_of("r2_fail", f"metadata_{i}.json"), SPEC["stale_metadata"], f"metadata_{i}.json was rewritten")
+    for name, body in SPEC["keepers"].items():
+        eq(text_of("r2_fail", name), body, f"{name} was rewritten")
+    eq(text_of("r2_fail", o["plan_file_name"]), SPEC["stale_sidecar"], "the stale sidecar was rewritten")
 
 
 def judge_r2_observability(o):
-    eq(o["good_listing"], [
-        "metadata_0.json", "metadata_1.json", "metadata_2.json",
-        "requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl", "responses_0.jsonl",
-    ], "the working dir after a successful run")
-    eq(o["good_responses_content"], "keep\n", "the bystander survived the successful run")
-    raised(o["bad_plan_raises"], mro=["SingleRequestTooLargeError"], msg="bad plan raises")
-    raised(o["bad_create_raises"], mro=["SingleRequestTooLargeError"], msg="bad create raises")
-    eq(o["bad_listing"], [
-        "batch_plan.json",
-        "metadata_0.json", "metadata_1.json", "metadata_2.json",
-        "metadata_3.json", "metadata_4.json", "metadata_5.json",
-        "requests_0.jsonl", "requests_1.jsonl", "requests_2.jsonl",
-        "requests_3.jsonl", "requests_4.jsonl", "requests_5.jsonl",
-        "responses_0.jsonl",
-    ], "the working dir after a failed run")
-    eq(o["bad_plan_content"], {"plan_format_version": 1, "stale": True}, "the stale sidecar survived the failed run")
-    eq(o["bad_req2_content"], "stale\n", "a stale request file survived the failed run")
+    # the successful run: its own numbering, plus the bystanders, and nothing else
+    plan = dataset_plan()
+    expected_good = set(request_files(len(plan))) | set(metadata_files(len(plan))) | set(SPEC["keepers"])
+    eq(set(listing("r2_obs_good")) - {PLAN_FILE_NAME, o["plan_file_name"]}, expected_good,
+       "the working directory after a successful run")
+    for name, body in SPEC["keepers"].items():
+        eq(text_of("r2_obs_good", name), body, f"the successful run rewrote {name}")
+
+    # the failed run: exactly what it found
+    raised(o["bad_plan_raises"], mro=["SingleRequestTooLargeError"], msg="planning raises")
+    raised(o["bad_create_raises"], mro=["SingleRequestTooLargeError"], msg="create_request_files raises")
+    expected_bad = set(planted_names()) | set(SPEC["keepers"]) | {o["plan_file_name"]}
+    eq(set(listing("r2_obs_bad")), expected_bad, "the working directory after a failed run")
+    eq(text_of("r2_obs_bad", o["plan_file_name"]), SPEC["stale_sidecar"], "the stale sidecar was rewritten")
+    eq(text_of("r2_obs_bad", f"requests_{SPEC['prepop_n'] - 1}.jsonl"), SPEC["stale_request"],
+       "a stale request file was rewritten")
 
 
 JUDGES = {
@@ -296,7 +625,11 @@ def junit(results):
     return "\n".join(lines)
 
 
-def main(obs_path: str, out_path: str) -> int:
+def main(obs_path: str, out_path: str, seed: str, artifacts: str) -> int:
+    global SPEC, ARTIFACTS
+    SPEC = fixture_spec.derive(seed)
+    ARTIFACTS = pathlib.Path(artifacts)
+
     try:
         observations = json.loads(pathlib.Path(obs_path).read_text())
     except (OSError, ValueError) as exc:
@@ -329,4 +662,4 @@ def main(obs_path: str, out_path: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1], sys.argv[2]))
+    raise SystemExit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]))

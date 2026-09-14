@@ -65,6 +65,7 @@ import json
 import os
 import pathlib
 import pwd
+import secrets
 import shutil
 import signal
 import stat
@@ -314,11 +315,36 @@ def run_split(meta: dict, suite_dir: pathlib.Path, src: pathlib.Path, work: path
     the same assertions the suite always made. No agent code has run in it, so
     the report it writes cannot be forged — the gap `run_suites` documents and a
     uid alone could not close (see tasks/lessons.md, 2026-09-09).
+
+    SEED and ARTIFACTS, both root-chosen, both handed to the two processes.
+    Splitting the processes stops the worker REWRITING the verdict; it does not
+    stop the worker INVENTING the values the judge reads — and with a fixed
+    fixture those values are the same every run, so an agent that has seen one
+    run (or read them out of the world's own corpus) can hardcode a passing
+    observations file from a tree that implements nothing. Measured on g1: reward
+    1.0 from pristine `main` plus one `atexit` hook. The worker cannot pick the
+    seed itself (it would pick one it has answers for) and the judge runs too
+    late to choose it, so root does, once, here. `artifacts` is where the
+    worker's scenarios run: root-readable, so a suite can grade the directory it
+    reads itself rather than the worker's description of it.
+
+    Both are extra argv, and every other suite's probe takes `sys.argv[1]` alone
+    — so this is inert for them until their own probe/judge opt in.
     """
     log = LOGS / "pytest.log"
     report["mode"] = "worker/judge"
 
     obs = out / "observations.json"
+
+    seed = secrets.token_hex(8)
+    report["seed"] = seed
+
+    # 0755, not the 0700 of `out`: the worker must write here and root must read
+    # it back afterwards. Owned by the drop uid, under the unpredictable `work`.
+    artifacts = work / "artifacts"
+    artifacts.mkdir()
+    os.chown(artifacts, drop.pw_uid, drop.pw_gid)
+    artifacts.chmod(0o755)
 
     # Stage a JAIL: the worker's ENTIRE view of the suite is these three
     # answer-free files, copied into a root-owned dir. /tests is root-only 0700
@@ -332,9 +358,16 @@ def run_split(meta: dict, suite_dir: pathlib.Path, src: pathlib.Path, work: path
     jail = work / "jail"
     jail.mkdir()
     jail.chmod(0o755)
+    # `fixture_spec.py` is optional and only a suite that re-draws its inputs
+    # ships one. It holds the run's INPUTS, never an expected value, so the
+    # worker reading it gains nothing — and it must read it, because it is what
+    # builds the scenarios.
     for name, srcfile in (("probe.py", suite_dir / "probe.py"),
                           ("probe_support.py", suite_dir / "probe_support.py"),
+                          ("fixture_spec.py", suite_dir / "fixture_spec.py"),
                           ("harness.py", TESTS / "harness.py")):
+        if not srcfile.is_file():
+            continue
         shutil.copy(srcfile, jail / name)
         (jail / name).chmod(0o644)
 
@@ -342,7 +375,8 @@ def run_split(meta: dict, suite_dir: pathlib.Path, src: pathlib.Path, work: path
     # ONLY the submission src and the jail — NOT /tests, NOT suite_dir. The worker
     # has no import or open() path into /tests.
     worker_env["PYTHONPATH"] = os.pathsep.join([str(src), str(jail)])
-    rc_w, timed_out = spawn([f"{VENV}/bin/python", str(jail / "probe.py"), str(obs)],
+    rc_w, timed_out = spawn([f"{VENV}/bin/python", str(jail / "probe.py"), str(obs),
+                             seed, str(artifacts)],
                             worker_env, log, drop=drop, cwd=jail)
     report["worker_returncode"] = rc_w
     if timed_out:
@@ -365,7 +399,8 @@ def run_split(meta: dict, suite_dir: pathlib.Path, src: pathlib.Path, work: path
                  "PYTHONPATH": "", "SUBMISSION_SRC": str(src),
                  "PYTHONHASHSEED": "0", "PYTHONDONTWRITEBYTECODE": "1"}
     rc_j, _ = spawn(["python3", str(suite_dir / "judge.py"), str(safe_obs),
-                     str(LOGS / "junit.xml")], judge_env, log, drop=None)
+                     str(LOGS / "junit.xml"), seed, str(artifacts)],
+                    judge_env, log, drop=None)
     report["judge_returncode"] = rc_j
     report["ran_as"] = f"worker {DROP_USER}:{DROP_GROUP} ({drop.pw_uid}), judge root"
 

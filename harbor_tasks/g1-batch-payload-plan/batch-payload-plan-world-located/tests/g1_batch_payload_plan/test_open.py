@@ -23,6 +23,15 @@ the dataset factories and the log/metadata readers) live in `probe_support` so t
 worker (`probe.py`) and this human reference share ONE definition and cannot drift. The
 expected VALUES this test asserts stay here (and in `judge.py`); `probe_support` holds none.
 `test_r1`/`test_r2` import the names they need `from test_open`, which re-exports them.
+
+NOT THE GRADED PATH. The suite grades through `probe.py`/`judge.py`, and the
+judge DERIVES its expectations from the seed root draws per run rather than
+holding the literals below: a fixed fixture makes every expected value the same
+every run, and g1's are written down in the world the agent reads, so a tree
+implementing nothing could hardcode a passing observations file (measured:
+reward 1.0). What is here is the worked example of each fact on the old fixed
+fixture, and the fact<->test bijection. Read it to see what a fact MEANS; read
+`judge.py` for how it is decided.
 """
 from __future__ import annotations
 

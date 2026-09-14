@@ -13,13 +13,16 @@ sidecar document and directory listings, and the error types/attributes — live
 only in `judge.py` (and, for humans, in `test_open`/`test_r1`/`test_r2`), which
 the worker cannot read.
 
-The names here that coincide with a fact (`MODEL`, `GEN_PARAMS`, `STALE_REQUEST`,
-`STALE_METADATA`) are INPUTS: the model the processor is built for, the row-level
-generation params fed into a dataset, the stale bytes a pre-populated working dir
-holds. They must be the literals the reference uses or the scenarios do not
-reproduce; the judge holds its own copies for the equality checks it grades, so a
-worker reading them here gains nothing it does not still have to make curator
-actually produce.
+The INPUTS themselves are no longer written down here. `fixture_spec.derive`
+re-draws them from the seed root picks per run — prompts, row counts, limits, the
+bytes a pre-populated directory holds — because a fixed fixture makes every
+expected value the same every run, and g1's are published in the world the agent
+reads. The helpers below therefore take their inputs as arguments; the defaults
+are only there so `test_open.py` still imports and reads as it did.
+
+`MODEL` stays a literal: it is the model the processor is built for, and the
+judge never grades a value computed from it. Row sizes are deliberately NOT
+computable from anything in this file — see `fixture_spec`'s header.
 
 `test_open.py` imports these names so there is a single definition of each helper
 — the probe cannot drift from the reference. `test_r1`/`test_r2` keep their own
@@ -47,10 +50,9 @@ import pytest
 
 # ---- inputs the fixtures feed --------------------------------------------
 MODEL = "gpt-4o-mini"
-# row-level generation params fed into a dataset; an INPUT, not an answer.
+# Defaults for the pytest reference only. The graded run overrides every one of
+# them from `fixture_spec.derive(seed)`; see this module's header.
 GEN_PARAMS = '{"temperature": 0.9}'
-# the bytes a working dir left behind by an earlier run holds; INPUTS the
-# probe plants, so a run that leaves them untouched is graded on that.
 STALE_REQUEST = "stale\n"
 STALE_METADATA = "{}\n"
 
@@ -152,8 +154,8 @@ def prompt_dataset(n, prefix="say "):
     return Dataset.from_dict({"prompt": [f"{prefix}{i}" for i in range(n)]})
 
 
-def genparams_dataset(n):
-    return Dataset.from_dict({"prompt": [f"say {i}" for i in range(n)], "generation_params": [GEN_PARAMS] * n})
+def genparams_dataset(n, prefix="say ", params=GEN_PARAMS):
+    return Dataset.from_dict({"prompt": [f"{prefix}{i}" for i in range(n)], "generation_params": [params] * n})
 
 
 def api_requests_for(processor, dataset, start_idx, end_idx, generation_params_per_row=False):
@@ -185,9 +187,36 @@ def basenames(paths):
 # ---------------------------------------------------------------------------
 # working directories, standing in for the pytest tmp_path fixture
 # ---------------------------------------------------------------------------
-def make_tmp_dir():
-    """A fresh empty working directory, standing in for the `tmp_path` fixture."""
-    return tempfile.mkdtemp(prefix="g1-")
+_ARTIFACTS: str | None = None
+
+
+def set_artifacts_root(path) -> None:
+    """Run the scenarios somewhere root can read them afterwards.
+
+    The judge grades several facts on what a working directory actually holds —
+    that the sweep ran, that a failed run left the place alone — and it must read
+    that directory itself. Asking the worker "was the directory untouched?" is
+    asking the process that runs agent code for a verdict, and `true` is a
+    one-line answer to it.
+    """
+    global _ARTIFACTS
+    _ARTIFACTS = str(path)
+
+
+def make_tmp_dir(name=None):
+    """A fresh empty working directory, standing in for the `tmp_path` fixture.
+
+    Named rather than random when a root is set, so the judge can find the
+    directory a given scenario ran in without the worker telling it where to
+    look. Falls back to `mkdtemp` for the pytest reference, which has no root.
+    """
+    if _ARTIFACTS is None or name is None:
+        return tempfile.mkdtemp(prefix="g1-")
+    path = os.path.join(_ARTIFACTS, name)
+    os.makedirs(path, exist_ok=True)
+    # The judge reads these as root; the agent's own uid never sees them.
+    os.chmod(path, 0o755)
+    return path
 
 
 # ---------------------------------------------------------------------------
@@ -212,13 +241,14 @@ def load_plan_file(module, working_dir):
         return json.load(handle)
 
 
-def auto_run(dataset, *, max_requests=3, max_bytes=400):
-    """A 5-row-style `"auto"` run in its own fresh working dir.
+def auto_run(dataset, *, max_requests=3, max_bytes=400, name=None):
+    """An `"auto"` run in its own fresh working dir.
 
     Returns (processor, plan, working_dir, limits) — the same tuple test_r1's
     local `auto_run` returns, over a `make_tmp_dir()` instead of the fixture.
+    `name` puts that directory where the judge can read it afterwards.
     """
-    working_dir = make_tmp_dir()
+    working_dir = make_tmp_dir(name)
     processor = make_processor(working_dir)
     with patched_limits(max_requests=max_requests, max_bytes=max_bytes):
         plan = processor.plan_request_batches(dataset)
@@ -230,16 +260,16 @@ def auto_run(dataset, *, max_requests=3, max_bytes=400):
 # ---------------------------------------------------------------------------
 # r2 — the sweep (probe copies of test_r2's local helpers)
 # ---------------------------------------------------------------------------
-def prepopulate(working_dir, *, n=6, extra=None):
+def prepopulate(working_dir, *, n=6, extra=None, stale_request=STALE_REQUEST, stale_metadata=STALE_METADATA):
     """A working dir left behind by an earlier, differently-limited `"auto"` run."""
     os.makedirs(working_dir, exist_ok=True)
     for i in range(n):
         with open(os.path.join(working_dir, f"requests_{i}.jsonl"), "w") as handle:
-            handle.write(STALE_REQUEST)
+            handle.write(stale_request)
         # `{}` and not `{"num_jobs": 1}`: a metadata file the cache check cannot read is
         # what makes curator regenerate rather than return the stale files as a cache hit.
         with open(os.path.join(working_dir, f"metadata_{i}.json"), "w") as handle:
-            handle.write(STALE_METADATA)
+            handle.write(stale_metadata)
     for name, body in (extra or {}).items():
         with open(os.path.join(working_dir, name), "w") as handle:
             handle.write(body)
@@ -259,15 +289,24 @@ def listing(working_dir, keep=()):
     return sorted(name for name in os.listdir(working_dir) if name in keep or name.startswith("requests_") or name.startswith("metadata_"))
 
 
-def big_dataset():
-    """Row 1 is larger on its own than the 400-byte budget, so planning must raise."""
-    return Dataset.from_dict({"prompt": ["ok", "x" * 600, "ok"]})
+def big_dataset(rows=3, big_at=1, big_len=600, prefix="say "):
+    """One row is larger on its own than the byte budget, so planning must raise."""
+    prompts = [f"{prefix}{i}" for i in range(rows)]
+    prompts[big_at] = "x" * big_len
+    return Dataset.from_dict({"prompt": prompts})
 
 
-def swept():
-    """Run a clean `"auto"` run over a pre-populated dir; True when the stale tail is gone."""
-    working_dir = prepopulate(make_tmp_dir())
+def sweep_run(working_dir, dataset, *, n, max_requests, max_bytes, extra=None,
+              stale_request=STALE_REQUEST, stale_metadata=STALE_METADATA):
+    """Pre-populate a directory, then run a clean `"auto"` run over it.
+
+    Returns the directory. Whether the stale tail is gone is the JUDGE's reading
+    of that directory, not a boolean this side reports — an earlier version
+    returned `True` here and passing the fact took exactly that one word.
+    """
+    prepopulate(working_dir, n=n, extra=extra,
+                stale_request=stale_request, stale_metadata=stale_metadata)
     processor = make_processor(working_dir)
-    with patched_limits(max_requests=3, max_bytes=400):
-        processor.create_request_files(prompt_dataset(5))
-    return not os.path.exists(os.path.join(working_dir, "requests_5.jsonl"))
+    with patched_limits(max_requests=max_requests, max_bytes=max_bytes):
+        processor.create_request_files(dataset)
+    return working_dir
