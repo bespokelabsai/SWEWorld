@@ -361,8 +361,9 @@ the jail and reached for the module's constant instead.
 - [x] the v16 matrix again: oracle/clues 1.0, naive open-only, pristine 0, forgeA 0, forgeC 0 (marker written)
 
 ## Ship
-- [ ] propagate to the six g1 arms, push v17, hosted validate (no eval, per Nidhi)
-- [ ] targets.json g1.v -> 17, lessons.md entry
+- [x] propagated to the six g1 arms, pushed v17, hosted validate: **oracle 1.0 (17/17),
+      noop 0.0588 (16 facts at 0.0, `suite_ok` 1.0)** — no eval, per Nidhi
+- [x] targets.json g1.v -> 17, lessons.md entry
 
 ## Review — v17
 
