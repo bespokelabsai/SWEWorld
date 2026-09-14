@@ -437,10 +437,14 @@ def judge_r1_scope(o):
        "the sidecar does not describe the run that wrote it")
     eq(ordered_doc.get("plan_id"), fingerprint(plan), "the sidecar's plan_id")
 
-    # written before any request file of its own run
+    # Written before any request file of its own run. The worker records the
+    # directory as it stood at the first `acreate_request_file`; THIS process
+    # decides which name had to be in it, so r1.scope no longer depends on the
+    # module exporting the constant that r1.rule grades.
     if o["ordered_reused_acreate"]:
-        ok(o["ordered_plan_exists_on_first_call"] is True,
-           "the sidecar was written after the request files, not before them")
+        ok(PLAN_FILE_NAME in (o.get("ordered_listing_at_first_call") or []),
+           "the sidecar was written after the request files, not before them: "
+           f"the directory held {o.get('ordered_listing_at_first_call')}")
 
     # a 0-batch plan is still recorded
     eq(o["empty_create_result"], [], "empty auto run returns []")
@@ -505,6 +509,7 @@ def judge_r1_observability(o):
     # the implementation's own limits are substituted, so the fan-out cap is
     # graded once, under failure_behavior, and not a second time here
     limits = o["limits_asdict"]
+    ok(isinstance(limits, dict), f"the processor exposed no batch_limits to record: {limits!r}")
     eq(limits.get("max_requests_per_batch"), SPEC["max_requests"], "doc limits max_requests_per_batch")
     eq(limits.get("max_bytes_per_batch"), SPEC["max_bytes"], "doc limits max_bytes_per_batch")
 
@@ -564,15 +569,21 @@ def judge_r2_failure_behavior(o):
     # The whole fact: the directory is exactly what was planted in it. Every
     # name and every byte comes from this run's fixture, so a directory prepared
     # in advance cannot stand in for one a failed run left alone.
+    # `plan_file_name` is None when the submission exports no PLAN_FILE_NAME, and
+    # then no sidecar was planted: r2 is graded on the stale files and the
+    # bystanders alone, which is what test_r2 promises it is graded on.
     planted = dict.fromkeys(planted_names(), None)
-    expected = set(planted) | set(SPEC["keepers"]) | {o["plan_file_name"]}
+    expected = set(planted) | set(SPEC["keepers"])
+    if o["plan_file_name"]:
+        expected |= {o["plan_file_name"]}
     eq(set(listing("r2_fail")), expected, "a planning failure changed the working directory")
     for i in range(SPEC["prepop_n"]):
         eq(text_of("r2_fail", f"requests_{i}.jsonl"), SPEC["stale_request"], f"requests_{i}.jsonl was rewritten")
         eq(text_of("r2_fail", f"metadata_{i}.json"), SPEC["stale_metadata"], f"metadata_{i}.json was rewritten")
     for name, body in SPEC["keepers"].items():
         eq(text_of("r2_fail", name), body, f"{name} was rewritten")
-    eq(text_of("r2_fail", o["plan_file_name"]), SPEC["stale_sidecar"], "the stale sidecar was rewritten")
+    if o["plan_file_name"]:
+        eq(text_of("r2_fail", o["plan_file_name"]), SPEC["stale_sidecar"], "the stale sidecar was rewritten")
 
 
 def judge_r2_observability(o):
@@ -580,16 +591,19 @@ def judge_r2_observability(o):
     plan = dataset_plan()
     expected_good = set(request_files(len(plan))) | set(metadata_files(len(plan))) | set(SPEC["keepers"])
     eq(set(listing("r2_obs_good")) - {PLAN_FILE_NAME, o["plan_file_name"]}, expected_good,
-       "the working directory after a successful run")
+       "the working directory after a successful run")  # both names filtered: r1's fact, not this one
     for name, body in SPEC["keepers"].items():
         eq(text_of("r2_obs_good", name), body, f"the successful run rewrote {name}")
 
     # the failed run: exactly what it found
     raised(o["bad_plan_raises"], mro=["SingleRequestTooLargeError"], msg="planning raises")
     raised(o["bad_create_raises"], mro=["SingleRequestTooLargeError"], msg="create_request_files raises")
-    expected_bad = set(planted_names()) | set(SPEC["keepers"]) | {o["plan_file_name"]}
+    expected_bad = set(planted_names()) | set(SPEC["keepers"])
+    if o["plan_file_name"]:
+        expected_bad |= {o["plan_file_name"]}
     eq(set(listing("r2_obs_bad")), expected_bad, "the working directory after a failed run")
-    eq(text_of("r2_obs_bad", o["plan_file_name"]), SPEC["stale_sidecar"], "the stale sidecar was rewritten")
+    if o["plan_file_name"]:
+        eq(text_of("r2_obs_bad", o["plan_file_name"]), SPEC["stale_sidecar"], "the stale sidecar was rewritten")
     eq(text_of("r2_obs_bad", f"requests_{SPEC['prepop_n'] - 1}.jsonl"), SPEC["stale_request"],
        "a stale request file was rewritten")
 

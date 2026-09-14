@@ -26,7 +26,7 @@ computable from anything in this file — see `fixture_spec`'s header.
 
 `test_open.py` imports these names so there is a single definition of each helper
 — the probe cannot drift from the reference. `test_r1`/`test_r2` keep their own
-local copies of the r1/r2-specific helpers (auto_run, plan_path, prepopulate, …)
+local copies of the r1/r2-specific helpers (auto_run, prepopulate, …)
 and are left unchanged; the copies below are the probe's, and they reproduce the
 same curator calls.
 """
@@ -222,25 +222,6 @@ def make_tmp_dir(name=None):
 # ---------------------------------------------------------------------------
 # r1 — the sidecar (probe copies of test_r1's local helpers)
 # ---------------------------------------------------------------------------
-def plan_path(module, working_dir):
-    """Where the sidecar lands, by the module's OWN name for it.
-
-    The implementation's `PLAN_FILE_NAME` is used to locate the file — the
-    literal "batch_plan.json" is r1's ANSWER and stays in the judge. A module
-    that never exported the constant already fails r1's rule; here that surfaces
-    as a probe error for the node rather than a wrong location.
-    """
-    return os.path.join(str(working_dir), module.PLAN_FILE_NAME)
-
-
-def load_plan_file(module, working_dir):
-    path = plan_path(module, working_dir)
-    if not os.path.isfile(path):
-        raise AssertionError(f'the "auto" branch wrote no plan sidecar; {working_dir} holds {sorted(os.listdir(working_dir))}')
-    with open(path) as handle:
-        return json.load(handle)
-
-
 def auto_run(dataset, *, max_requests=3, max_bytes=400, name=None):
     """An `"auto"` run in its own fresh working dir.
 
@@ -253,7 +234,9 @@ def auto_run(dataset, *, max_requests=3, max_bytes=400, name=None):
     with patched_limits(max_requests=max_requests, max_bytes=max_bytes):
         plan = processor.plan_request_batches(dataset)
         processor.create_request_files(dataset)
-        limits = processor.batch_limits
+        # `batch_limits` is the OPEN feature's; r1.exclusions calls this helper
+        # and throws the limits away, and should not fail on a missing attribute
+        limits = getattr(processor, "batch_limits", None)
     return processor, plan, working_dir, limits
 
 

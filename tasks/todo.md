@@ -326,3 +326,56 @@ is inert.
 changed `run_suites.py` in the repo that has not been pushed. The change is inert
 for them (the extra argv is ignored, the artifacts dir unused); it goes live on
 each task's next push.
+
+
+---
+
+# g1 v17: three facts died on a constant only one of them owns (argus, 2026-09-14)
+
+argus re-run against v16. `probe.py` reached for `module.PLAN_FILE_NAME` in three probe
+functions, as the FIRST statement of each. A submission that hardcodes `"batch_plan.json"`
+and exports no constant makes that raise `AttributeError` -> `ok: False` -> "probe error"
+-> the fact scores 0 before any of its behaviour is looked at. Lost: r1.scope,
+r2.failure_behavior, r2.observability, on top of the r1.rule it legitimately fails.
+`test_r2.py:14-16` promises the opposite: "an implementation that sweeps without writing a
+sidecar passes r2 in full".
+
+r1.scope's coupling is old (v15 probe.py:225). The two r2 ones are mine: v15 planted the
+stale bystander under a module-level literal, I deleted the literal to keep answers out of
+the jail and reached for the module's constant instead.
+
+## Build
+- [x] `sidecar_name(module)` = `getattr(..., None)` — NOT a default to the answer, which
+      would put r1.rule's string back in the jail
+- [x] r1.scope: drop the name entirely; record the directory listing at the first
+      `acreate_request_file` and let the judge assert the spelling
+- [x] the two r2 probes: plant the stale sidecar only when there is a name; judge's
+      sidecar checks conditional on it
+- [x] three crashes that should be clean failures: `PlannedBatch` bound at first use,
+      `read_field(..., default=None)` for `max_batches_per_plan`, defensive `batch_limits`
+- [x] delete the dead `plan_path`/`load_plan_file` (same coupling, nothing calls them)
+
+## Prove
+- [x] `oracle-literal` (argus's rollout as a fixture): **0.6 before, 0.9 after**, r1.rule alone
+- [x] `sweep-only` (sweeps, no sidecar at all): **0.4 before, 0.6 after — all five r2 facts pass**
+- [x] the v16 matrix again: oracle/clues 1.0, naive open-only, pristine 0, forgeA 0, forgeC 0 (marker written)
+
+## Ship
+- [ ] propagate to the six g1 arms, push v17, hosted validate (no eval, per Nidhi)
+- [ ] targets.json g1.v -> 17, lessons.md entry
+
+## Review — v17
+
+| fixture | v16 | fixed | what it proves |
+|---|---|---|---|
+| `oracle-literal` — correct sidecar, hardcoded name, no constant (argus's rollout) | 0.6 | **0.9** | only r1.rule fails, and with a real message |
+| `sweep-only` — sweeps, writes no sidecar at all | 0.4 | **0.6** | all five r2 facts pass: `test_r2.py:14-16`'s promise |
+| oracle / clues | 1.0 | 1.0 | |
+| naive | open only | open only | |
+| pristine | 0.0 | 0.0 | |
+| forge A (argus's obs fixture) | 0.0 | 0.0 | |
+| forge C (`json.dump` intercept + planted dirs) | 0.0 | **0.0, marker written** | the decoupling did not reopen v16's closure |
+
+Both new fixtures stay in the bracket. The twin is rebuilt by `setup_twin.sh` in the
+session scratchpad; `driver.sh` was rewritten after it deleted the container's root
+filesystem (unguarded `cd` + `find .` — see lessons.md).

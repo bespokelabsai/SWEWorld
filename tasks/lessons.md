@@ -1238,3 +1238,78 @@ run, from the corpus, or because the fact is the same every time — no permissi
 bit, uid or jail closes it; only moving the answer out of reach of prediction
 does. And prove it with a payload that survives the mitigation you are proudest
 of.
+
+## 2026-09-14 — "use the correct scores" asked for a check, not new content
+
+Asked to update the rollout-audit artifact "with the correct scores", I verified
+every reward against the pulled subscores (all matched) and then added a whole
+scoring section plus Horizon-score markers nobody asked for. The user only cared
+that `reward` was right. Rule: when a request is to make numbers correct, verify
+them first and report the verdict; if they are already right, change nothing and
+say so. Adding explanatory material is a separate request the user makes.
+
+## A probe reaching for an attribute is a dependency between facts (2026-09-14)
+
+argus, second pass on g1. `probe.py` opened three of its eleven nodes with
+`module.PLAN_FILE_NAME` — r1.rule's constant. A submission that hardcodes
+`"batch_plan.json"` and exports no constant makes that raise; `probe.main` catches
+per node, the judge says "probe error", `score.py` folds the fact to 0. r1.scope,
+r2.failure_behavior and r2.observability all died on a naming detail that only
+r1.rule owns, and because the access was each node's FIRST statement, nothing
+those facts could have reported survived. Measured on a fixture of argus's own
+rollout: **hidden_mean 0.6, where the same tree deserves 0.9**.
+
+`test_r2.py:14-16` had promised the opposite in as many words — "an implementation
+that sweeps without writing a sidecar passes r2 in full" — and the human reference
+honours it with a literal. The probe invented the coupling. Half of it was mine:
+v15 planted the stale bystander under a module-level literal, I deleted that
+literal to keep answers out of the worker's jail (correct) and reached for the
+module's constant instead (not correct). **Removing an answer from the jail is not
+a licence to depend on the submission for it.**
+
+What the fix looks like, and it is not `getattr(module, "X", <the answer>)`:
+
+- **`getattr(..., None)`, then grade what you can.** The r2 probes plant the stale
+  sidecar only when there is a name to plant under; the judge adds it to the
+  expected directory only when it was planted. r2 keeps every bit of evidence it
+  is entitled to and none it is not. A literal default would have put r1.rule's
+  answer back in the jail — the thing v16 spent a day removing.
+- **Let the judge own the spelling.** r1.scope used to ask the worker "is
+  <name> in this directory yet?". It now records the directory and the judge
+  asserts the name — no dependency, and strictly stronger, because the worker no
+  longer chooses what to look for.
+- **A missing field should fail the fact, not kill the node.**
+  `read_field(..., default=None)` turns a probe error into the judge's own
+  message: "BatchLimits.max_batches_per_plan default: None != 512".
+
+**Rule for myself:** grep every probe for attribute access on the submission and
+ask which fact owns each one. If the answer is "a different fact", the node has a
+silent dependency whose failure mode is the worst available — a zero that reads
+as "not implemented" about behaviour nobody looked at. Two fixtures make it
+visible and belong in the bracket for good: one that implements everything but
+the naming detail, and one that implements the other requirement and nothing of
+this one.
+
+### Postscript: the verification driver deleted its own container (2026-09-14)
+
+Mid-verification, `docker exec` started answering `exec: "bash": executable file
+not found`. The twin was healthy; its root filesystem was empty. Cause, in the
+scratchpad `driver.sh` inherited from the 2026-09-10 session:
+
+```bash
+git clone -q "$URL" /tmp/push      # failed, silently — the script had `set -uo pipefail`, not -e
+cd /tmp/push                       # failed too; cwd stayed /
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +   # deleted /
+```
+
+Nothing outside the container was touched (it runs through `docker exec`, and the
+host repo was clean), and the measurements taken before it died stand — but the
+twin had to be rebuilt and a fixture re-run. Now: `set -euo pipefail`, the clone
+is asserted (`test -d "$WORK/.git"`), and every path in the script is absolute —
+`find "$WORK" …`, `git -C "$WORK" …`. There is also a `setup_twin.sh` that
+rebuilds the whole thing from scratch, because a verification harness that cannot
+be recreated in one command is a harness you will be tempted not to re-run.
+
+**Rule for myself:** a recursive delete never runs on a relative path. Either the
+path is absolute, or the `cd` that established it was checked — and a helper
+script that deletes anything gets `set -e` before it gets anything else.

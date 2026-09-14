@@ -125,6 +125,16 @@ def limits(module, *, max_requests=None, max_bytes=None, **extra):
                        **extra)
 
 
+def sidecar_name(module):
+    """The name the module writes its plan under, or None if it exports none.
+
+    NOT a default to `"batch_plan.json"`: that string is r1.rule's answer and
+    this file lives in the worker's jail. A fact that only needs to FIND the
+    file takes None and grades what it can; only r1.rule grades the name.
+    """
+    return getattr(module, "PLAN_FILE_NAME", None)
+
+
 def stale_kwargs() -> dict:
     return {"stale_request": SPEC["stale_request"], "stale_metadata": SPEC["stale_metadata"]}
 
@@ -242,17 +252,22 @@ def probe_open() -> dict:
 # ===========================================================================
 def probe_r1_rule() -> dict:
     module = S.planner()
-    PB = module.PlannedBatch
     o: dict = {}
 
     o["surface"] = surface(module)
-    o["plan_file_name"] = module.PLAN_FILE_NAME
-    o["plan_format_version"] = module.PLAN_FORMAT_VERSION
+    # r1.rule's own fact, and still reported defensively: the judge fails it on
+    # `None != "batch_plan.json"`, which says what is wrong, where a probe error
+    # would have thrown away the digests and the document below with it.
+    o["plan_file_name"] = sidecar_name(module)
+    o["plan_format_version"] = getattr(module, "PLAN_FORMAT_VERSION", None)
 
     # The fingerprint is taken over where the cuts fall and how big each batch
     # is: index/num_requests do not enter it. The judge holds the digest scheme
     # and recomputes all four of these from the spans below, so a reported hex
     # has to be the hex of the plan it claims to be.
+    # bound here, not at the top: a module without PlannedBatch should fail this
+    # fact on the surface it just reported, not before it reported anything
+    PB = module.PlannedBatch
     a, b = SPEC["unit_size"], SPEC["unit_size"] + 1
     o["fp_spans"] = [[0, 0, 2, 2, a], [1, 2, 4, 2, a]]
     o["fp_same"] = module.plan_fingerprint([PB(0, 0, 2, 2, a), PB(1, 2, 4, 2, a)])
@@ -267,7 +282,7 @@ def probe_r1_rule() -> dict:
     # disk: the judge computes what both should be and compares all three. The
     # worker used to report `doc == plan_document(...)` as one boolean.
     o["plan_document_out"] = jsonable(module.plan_document(plan, lim))
-    o["limits_asdict"] = jsonable(dataclasses.asdict(lim))
+    o["limits_asdict"] = jsonable(dataclasses.asdict(lim)) if lim is not None else None
     o["batches_asdict"] = jsonable([dataclasses.asdict(p) for p in plan])
     return o
 
@@ -296,34 +311,39 @@ def probe_r1_observability() -> dict:
     o["fp_plan"] = module.plan_fingerprint(plan)
     # carried so the judge substitutes the implementation's own limits rather
     # than grading the fan-out cap twice; it still checks the two limits it set
-    o["limits_asdict"] = jsonable(dataclasses.asdict(lim))
+    o["limits_asdict"] = jsonable(dataclasses.asdict(lim)) if lim is not None else None
     return o
 
 
 def probe_r1_scope() -> dict:
-    module = S.planner()
+    S.planner()
     o: dict = {}
-    plan_name = module.PLAN_FILE_NAME  # r1's rule owns the name; here it is a lookup key
-    o["plan_file_name"] = plan_name
 
     # --- written before any request file of its own run --------------------
     # Ordering is the one thing that cannot be read off the finished directory,
     # so it stays an in-process observation; everything else in this fact is the
     # judge's own reading of the four directories below.
+    #
+    # What is recorded is the whole directory, not "is <name> there yet". Asking
+    # the module for PLAN_FILE_NAME to build that name made r1.scope die of an
+    # AttributeError whenever a submission hardcoded its filename and exported no
+    # constant — a fact lost to a detail r1.rule owns, before this node gathered
+    # any evidence at all. The judge holds the spelling; the worker holds a list.
     working_dir = S.make_tmp_dir("r1_scope_ordered")
     processor = S.make_processor(working_dir)
     seen = {}
-    original = processor.acreate_request_file
+    original = getattr(processor, "acreate_request_file", None)
 
-    async def recording(*args, **kwargs):
-        seen.setdefault("plan_exists", os.path.exists(os.path.join(working_dir, plan_name)))
-        return await original(*args, **kwargs)
+    if original is not None:
+        async def recording(*args, **kwargs):
+            seen.setdefault("listing", sorted(os.listdir(working_dir)))
+            return await original(*args, **kwargs)
 
-    processor.acreate_request_file = recording
+        processor.acreate_request_file = recording
     with S.patched_limits(max_requests=SPEC["max_requests"], max_bytes=SPEC["max_bytes"]):
         processor.create_request_files(dataset())
     o["ordered_reused_acreate"] = bool(seen)
-    o["ordered_plan_exists_on_first_call"] = seen.get("plan_exists")
+    o["ordered_listing_at_first_call"] = seen.get("listing")
 
     # --- a 0-batch plan is still recorded ----------------------------------
     from datasets import Dataset
@@ -369,11 +389,14 @@ def probe_r1_failure_behavior() -> dict:
     # off the implementation and reports it; the judge checks that number
     # against its own copy AND against the module source, so a tree that merely
     # claims 512 without defining it fails.
-    default_limit = read_field(one_per_batch, "max_batches_per_plan")
+    # `default=None` so a BatchLimits without the field fails this fact with the
+    # judge's own message about the default, instead of dying as a probe error
+    default_limit = read_field(one_per_batch, "max_batches_per_plan", default=None)
     o["default_limit"] = default_limit
-    o["len_at_limit"] = len(module.plan_batches([size] * default_limit, one_per_batch))
-    o["raise_over_limit"] = raises(module.plan_batches, [size] * (default_limit + 1), one_per_batch,
-                                   attrs=("num_batches", "limit"))
+    if isinstance(default_limit, int):
+        o["len_at_limit"] = len(module.plan_batches([size] * default_limit, one_per_batch))
+        o["raise_over_limit"] = raises(module.plan_batches, [size] * (default_limit + 1), one_per_batch,
+                                       attrs=("num_batches", "limit"))
 
     o["cap_rows"] = SPEC["cap_rows"]
     o["cap_max_batches"] = SPEC["cap_max_batches"]
@@ -451,14 +474,20 @@ def probe_r2_exclusions() -> dict:
 def probe_r2_failure_behavior() -> dict:
     module = S.planner()
     o: dict = {}
-    o["plan_file_name"] = module.PLAN_FILE_NAME
+    # r1's fact, read defensively and never required: `test_r2` promises "an
+    # implementation that sweeps without writing a sidecar passes r2 in full",
+    # and `module.PLAN_FILE_NAME` here broke that promise with an AttributeError
+    # for anything that hardcoded the name. None means "no sidecar to plant",
+    # and the judge then grades this fact on the stale files alone.
+    o["plan_file_name"] = sidecar_name(module)
 
     # the gate: the sweep exists, so "nothing was removed" means something
     S.sweep_run(S.make_tmp_dir("r2_fail_sweep"), dataset(), n=SPEC["prepop_n"],
                 max_requests=SPEC["max_requests"], max_bytes=SPEC["max_bytes"], **stale_kwargs())
 
     extra = dict(SPEC["keepers"])
-    extra[module.PLAN_FILE_NAME] = SPEC["stale_sidecar"]
+    if o["plan_file_name"]:
+        extra[o["plan_file_name"]] = SPEC["stale_sidecar"]
     working_dir = S.prepopulate(S.make_tmp_dir("r2_fail"), n=SPEC["prepop_n"],
                                 extra=extra, **stale_kwargs())
     processor = S.make_processor(working_dir)
@@ -483,7 +512,7 @@ def probe_r2_failure_behavior() -> dict:
 def probe_r2_observability() -> dict:
     module = S.planner()
     o: dict = {}
-    o["plan_file_name"] = module.PLAN_FILE_NAME
+    o["plan_file_name"] = sidecar_name(module)  # r1's fact; see probe_r2_failure_behavior
 
     good_dir = S.prepopulate(S.make_tmp_dir("r2_obs_good"), n=SPEC["prepop_n"],
                              extra=SPEC["keepers"], **stale_kwargs())
@@ -492,7 +521,8 @@ def probe_r2_observability() -> dict:
         good.create_request_files(dataset())
 
     extra = dict(SPEC["keepers"])
-    extra[module.PLAN_FILE_NAME] = SPEC["stale_sidecar"]
+    if o["plan_file_name"]:
+        extra[o["plan_file_name"]] = SPEC["stale_sidecar"]
     bad_dir = S.prepopulate(S.make_tmp_dir("r2_obs_bad"), n=SPEC["prepop_n"],
                             extra=extra, **stale_kwargs())
     bad = S.make_processor(bad_dir)
