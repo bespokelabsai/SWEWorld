@@ -284,5 +284,45 @@ the booleans alone leaves values an agent can memorise.
 ## Ship
 - [x] 5 suite files into all 6 g1 arms; `run_suites.py` repo-wide; byte-identity verified
 - [ ] push world-hosted → `.horizon/metadata.json` version 16
-- [ ] hosted validate oracle 1.00 / noop 0.00 (async — poll `validate-logs -a`)
-- [ ] `tasks/rollout_analysis/targets.json` g1.v → 16; lessons.md entry
+- [x] hosted validate: oracle 1.00 (17/17), noop 0.00 on every fact
+- [x] `tasks/rollout_analysis/targets.json` g1.v → 16; lessons.md entry
+
+## Review — g1 v16 (2026-09-14)
+
+**Measured on the twin, both directions.** `reward` is `hidden_mean`; 11 nodes.
+
+| tree | old grader | new grader |
+|---|---|---|
+| oracle | 1.0 | **1.0** on four different seeds |
+| clues | — | 1.0 |
+| naive | open only | open only (hidden 0.0) |
+| pristine / noop | 0.0 | 0.0 |
+| argus's fixture (hardcoded obs, atexit) | **1.0, all 11** | **0.0** |
+| a forgery `os._exit` cannot stop (patches `json.dump`, plants the working dirs, replays a capture of this same code) | — | **0.0**, payload's marker file written |
+| 1.2 KB of `true` for r1.scope + r2.exclusions | **2 facts, hidden_mean 0.2** | n/a (no boolean survives) |
+
+**Hosted, g1 v16 (task `6877f4a4`)**: oracle `val-6877f4a4-1789410623932` — 1.0,
+all 17 subscores at 1.0. noop `noop-val-6877f4a4-1789410626345` — 0.0588, which is
+16 of 17 subscores at 0.0 and `suite_ok` at 1.0, the same signature g3 v9 has.
+
+Jail diagnostic: the worker gets `PermissionError` on `task.json`, `judge.py`,
+`test_open.py`, `test_r*.py` and `score.py`, and reads only
+`{probe.py, probe_support.py, fixture_spec.py, harness.py}`.
+
+Fuzzed 500 seeds for degenerate fixtures (a single-batch plan, a row larger than
+the budget, a plan as long as the pre-populated tail): none.
+
+Regression on the shared harness: g10 through the same `run_suites.py` — oracle
+1.0, pristine 0.0. Every other probe takes `sys.argv[1]` alone, so the extra argv
+is inert.
+
+**Two things the first draft got wrong, both caught by measurement, not review:**
+- the prompt token was fixed-width, so row sizes never moved and a captured run
+  fitted the next one — 3 of 10 facts passed by replay;
+- `r1.scope` was graded entirely on seed-independent values (an empty plan's
+  document is the same every run), so planting the directories passed it.
+
+**Repo-vs-hosted drift this creates:** 17 hosted arms of g2-g11 now carry a
+changed `run_suites.py` in the repo that has not been pushed. The change is inert
+for them (the extra argv is ignored, the artifacts dir unused); it goes live on
+each task's next push.
