@@ -1185,3 +1185,56 @@ then G7-D once its grader fix was in ("remove g7d from the artifact and .md file
   fixed, remove its entries rather than badging them "fixed".
 - Remove the label, never the measurement: the runs still lost what they lost in that
   eval, so rewards and loss counts stay as measured and are described plainly.
+
+## A split grader still fails if the worker can KNOW the answers (2026-09-14)
+
+argus on g1: pristine `main` plus an import-time `atexit` hook that overwrites
+`observations.json` scored **reward 1.0 on all eleven facts**. I reproduced it
+against the unchanged grader before touching anything, and it was worse than the
+report said — about **thirty of g1's ninety assertions were booleans the worker
+computed** (`swept_proof`, `unchanged`, `keepers_intact`, eight `doc_*_eq`), and a
+**1.2 KB file of `true`** passes `r1.scope` and `r2.exclusions` knowing no answer
+at all. `keepers_intact: {}` passed because the judge iterated the worker's own
+dict.
+
+Three rounds of jailing had all been aimed at what the worker can READ. None of
+them touched what it can WRITE, and reading was never the point: the expected
+values are the planted requirement, published in the corpus the world arm tells
+the agent to read, and `probe_support.py` (necessarily in the jail) named the
+exact inputs. The forger did not need `/tests` at all.
+
+What actually closed it, and the order matters — each covers what the others miss:
+
+- **Re-draw the inputs every run.** Root picks a seed, `run_split` hands it to
+  worker and judge, `fixture_spec.derive` turns it into prompts, counts and
+  limits. Nothing about the run is knowable in advance.
+- **Entropy has to reach the GRADED value, not just the input.** My first draft
+  re-drew the prompt token at a fixed width, so every row serialised to the same
+  number of bytes and a plan captured from one run fitted the next: the replay
+  forgery passed 3 of 10 facts. Varying the token's WIDTH moved the byte counts
+  and the digests with it. **Randomising an input that does not change the answer
+  is decoration.**
+- **The judge reads the directories.** "The sweep ran", "the failed run left the
+  place alone" are now root opening the working directory and diffing it against
+  the inputs it planted — not a word the worker chose.
+- **Seed-independent facts stay forgeable even so.** `r1.scope` was graded on an
+  empty plan's document, which is identical every run; the replay forgery passed
+  that one fact and no other. Grading it on the run's own sidecar closed it.
+  **Check every fact for whether ANY of its assertions move with the seed.**
+- **Constants that cannot be re-drawn get read out of the source.** The 512 cap,
+  `PLAN_FILE_NAME`, the format version: AST over `SUBMISSION_SRC`, so reporting
+  the right number without defining it fails.
+
+`os._exit` bound before the submission import kills the exact `atexit` vector —
+and it is a trap to stop there. It made the first two forge fixtures score 0.0
+with their payloads never running, which reads exactly like a fix. The fixture
+that proves anything intercepts the write itself (`json.dump` patched at import)
+and **writes a marker file you check**; lessons.md 2026-09-09 says read the
+marker before believing a zero, and it was right again.
+
+**Rule for myself:** to close a forged-value channel, ask what the forger would
+have to KNOW, not what it can reach. If the answer is knowable — from a previous
+run, from the corpus, or because the fact is the same every time — no permission
+bit, uid or jail closes it; only moving the answer out of reach of prediction
+does. And prove it with a payload that survives the mitigation you are proudest
+of.
