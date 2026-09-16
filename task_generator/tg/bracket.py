@@ -25,18 +25,39 @@ declared and nothing grades it — a hole in the suite, not a failure).
 
 Folding is done by `score.fold`, the same function the paid verifier runs, so a
 fact key here means exactly what it will mean in `jobs/<job>/result.json`.
+
+**Forgery is measured here too, and gates the same way.** A suite must grade
+through the worker/judge split (`probe.py` + `judge.py`), every tree is graded
+through that split exactly as a verifier runs it (`suite.run_split`), and three
+more rows are required before a task ships:
+
+    oracle_reseed  the oracle again, under a different seed. Must pass every fact:
+                   a judge that only works for one draw is not deriving anything.
+    forge_replay   the oracle's own observations and artifacts, replayed by an
+                   import-time hook into an untouched tree (see `forge.py`).
+    forge_true     the same, with every boolean forced True.
+
+Both forges must score 0 on every hidden fact. Each is a finding Argus filed
+against g1-g11 after they shipped; before this gate the generator produced
+exactly the suite shape they were filed against, and nothing local noticed.
 """
 from __future__ import annotations
 
 import json
 import pathlib
 
-from . import suite
+import ast
+import shutil
+import tempfile
+
+from . import forge, suite
 from .model import Task, score_module
 
 # pristine is not a fixture; the other two are required before anything is
 # emitted. Order is the order the report's columns appear in.
 CANONICAL = ("pristine", "naive", "oracle")
+FORGES = tuple(f"forge_{k}" for k in forge.KINDS)
+RESEED = "oracle_reseed"
 
 HIDDEN = "hidden"
 COINCIDENCE = "coincidence"
@@ -64,14 +85,40 @@ def _rewards(task: Task, outcomes: dict[str, str]) -> tuple[dict[str, float], se
     return rewards, unmeasured, untested
 
 
+def judge_problems(tests) -> list[str]:
+    """What makes a judge unable to be the process that decides.
+
+    The judge runs as root and writes the verdict. If it imports the submission,
+    or anything the submission can shadow, the split is decorative.
+    """
+    judge = tests / "judge.py"
+    if not judge.is_file():
+        return []
+    banned = ("bespokelabs", "curator", "harness", "probe", "probe_support", "conftest")
+    found = []
+    for node in ast.walk(ast.parse(judge.read_text())):
+        names = ([a.name for a in node.names] if isinstance(node, ast.Import)
+                 else [node.module or ""] if isinstance(node, ast.ImportFrom) else [])
+        for name in names:
+            if name.split(".")[0] in banned:
+                found.append(f"judge.py imports {name!r}; the judge must never load "
+                             "what the submission can shadow")
+    return found
+
+
 def measure(
     task: Task,
     *,
     roles: list[str] | None = None,
     per_test_timeout: int = 120,
+    tests: "pathlib.Path | None" = None,
 ) -> dict:
-    """Run the suite against every tree and fold the results per fact."""
-    tests = task.dir / "tests"
+    """Run the suite against every tree and fold the results per fact.
+
+    `tests` overrides `task.dir / "tests"`, to measure a suite that lives
+    elsewhere (an emitted `_suites/<suite>`) against this task's fixtures.
+    """
+    tests = tests or task.dir / "tests"
     if not tests.is_dir():
         raise SystemExit(f"no suite at {tests}; run `tg tests {task.slug}` first")
 
@@ -83,11 +130,10 @@ def measure(
     if missing:
         raise SystemExit(f"no fixture for {', '.join(missing)} in {fixtures}")
 
+    split = suite.is_split(tests)
     trees: dict[str, dict] = {}
-    for role in chosen:
-        fixture = None if role == "pristine" else fixtures / f"{role}.py"
-        result = suite.run(fixture, suite_name=task.suite, task_tests=tests,
-                           per_test_timeout=per_test_timeout)
+
+    def record(role: str, result: dict) -> None:
         rewards, unmeasured, untested = _rewards(task, result["outcomes"])
         trees[role] = {
             "rewards": rewards,
@@ -97,9 +143,32 @@ def measure(
             "counts": json.loads(suite.summarise(result)),
             "collected": bool(result["outcomes"]),
             "stdout_tail": result["stdout"][-4000:],
+            **({"seed": result["report"].get("seed")} if result.get("report") else {}),
         }
-    return {"task": task.id, "suite": task.suite, "trees": trees,
-            "verdicts": verdicts(task, trees)}
+
+    capture = pathlib.Path(tempfile.mkdtemp(prefix=f"tg-capture-{task.slug}-"))
+    try:
+        for role in chosen:
+            fixture = None if role == "pristine" else fixtures / f"{role}.py"
+            if split:
+                record(role, suite.run_split(
+                    fixture, suite_name=task.suite, task_tests=tests,
+                    capture=capture if role == "oracle" else None))
+            else:
+                record(role, suite.run(fixture, suite_name=task.suite, task_tests=tests,
+                                       per_test_timeout=per_test_timeout))
+        if split and "oracle" in trees and (capture / "observations.json").is_file():
+            record(RESEED, suite.run_split(fixtures / "oracle.py", suite_name=task.suite,
+                                           task_tests=tests))
+            for kind in forge.KINDS:
+                record(f"forge_{kind}", suite.run_split(
+                    None, suite_name=task.suite, task_tests=tests,
+                    forge_hook=forge.hook(kind, capture)))
+    finally:
+        shutil.rmtree(capture, ignore_errors=True)
+    return {"task": task.id, "suite": task.suite, "split": split,
+            "judge_problems": judge_problems(tests) if split else [],
+            "trees": trees, "verdicts": verdicts(task, trees)}
 
 
 def verdicts(task: Task, trees: dict[str, dict]) -> dict[str, str]:
@@ -155,6 +224,37 @@ def ships(measured: dict) -> tuple[bool, list[str]]:
     absent = [role for role in CANONICAL if role not in measured["trees"]]
     if absent:
         problems.append(f"bracket incomplete: {', '.join(absent)} never run")
+
+    # Forgery. Not a verdict per fact but a property of the grader, and every
+    # clause is something Argus found in a shipped task.
+    if not measured.get("split"):
+        problems.append(
+            "the suite is not a worker/judge split (probe.py + judge.py): it would be "
+            "graded by pytest in the submission's own process, which can rewrite its "
+            "junit and read the answers in /tests. See tasks/grading-forgery-fix-handoff.md.")
+    else:
+        problems += measured.get("judge_problems") or []
+        hidden_keys = [k for k in measured["verdicts"] if not k.endswith("open_feature")]
+        reseed = measured["trees"].get(RESEED)
+        if reseed is None:
+            problems.append(f"{RESEED}: never run (it needs an oracle capture)")
+        else:
+            for key in measured["verdicts"]:
+                if reseed["rewards"].get(key) != 1.0:
+                    problems.append(f"{key}: fails the oracle under a second seed — the "
+                                    "judge is not deriving its expectation from the seed")
+        for row in FORGES:
+            tree = measured["trees"].get(row)
+            if tree is None:
+                problems.append(f"{row}: never run")
+                continue
+            for key in hidden_keys:
+                if tree["rewards"].get(key) == 1.0:
+                    problems.append(
+                        f"{key}: FORGEABLE — passes {row}, an untouched tree whose import "
+                        "hook writes back the oracle's captured observations. The judge must "
+                        "compute the expected value from the run's seed and read the "
+                        "artifacts itself, not trust values the worker reports.")
     open_keys = [k for k, v in measured["verdicts"].items() if v == OPEN]
     for key in open_keys:
         if measured["trees"].get("oracle", {}).get("rewards", {}).get(key) != 1.0:
@@ -206,7 +306,11 @@ def render(task: Task, measured: dict) -> str:
     """The matrix, as a table, with the verdict spelled out per fact."""
     roles = [r for r in CANONICAL if r in measured["trees"]]
     roles += [r for r in measured["trees"] if r not in roles]
-    lines = [f"# Bracket — {task.id} ({task.slug})", ""]
+    if not measured.get("split"):
+        lines_note = "graded by in-process pytest — NOT a worker/judge split"
+    else:
+        lines_note = "graded through the worker/judge split, as a verifier runs it"
+    lines = [f"# Bracket — {task.id} ({task.slug})", "", f"_{lines_note}_", ""]
 
     for role in roles:
         tree = measured["trees"][role]

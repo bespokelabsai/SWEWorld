@@ -136,9 +136,22 @@ def cmd_suite(args) -> int:
         if not fixture.is_file():
             print(f"no fixture {fixture}", file=sys.stderr)
             return 2
-    result = suite_mod.run(fixture, suite_name=task.suite, task_tests=task.dir / "tests")
+    tests = task.dir / "tests"
+    if args.forge:
+        return _suite_forge(task, tests)
+    if suite_mod.is_split(tests):
+        # The worker/judge path, as a verifier grades. `test_*.py` are the
+        # readable reference; passing them under pytest says nothing about
+        # whether probe.py and judge.py agree with them.
+        result = suite_mod.run_split(fixture, suite_name=task.suite, task_tests=tests)
+        print(f"[tg] graded through probe.py + judge.py, seed "
+              f"{result['report'].get('seed', '?')}")
+    else:
+        print("[tg] no probe.py + judge.py yet: graded by in-process pytest, which "
+              "`cli bracket` will refuse to ship")
+        result = suite_mod.run(fixture, suite_name=task.suite, task_tests=tests)
     if not result["outcomes"]:
-        print("the suite did not collect. pytest said:\n" + result["stdout"][-4000:])
+        print("the suite did not collect. The grader said:\n" + result["stdout"][-4000:])
         return result["rc"] or 2
     for node, state in sorted(result["outcomes"].items()):
         print(f"{state.upper():7} {node}")
@@ -146,6 +159,49 @@ def cmd_suite(args) -> int:
     if result["rc"] != 0:
         print("\n--- pytest output ---\n" + result["stdout"][-6000:])
     return result["rc"]
+
+
+def _suite_forge(task, tests) -> int:
+    """The forgery half of `cli bracket`, on the oracle alone, for the test writer.
+
+    The bracket needs naive and spec builds that do not exist yet while the suite
+    is being written, and forgeability is a property of the suite alone, so the
+    author can check it while it is still cheap to change.
+    """
+    import shutil
+    import tempfile
+    from tg import forge
+    if not suite_mod.is_split(tests):
+        print("no probe.py + judge.py: nothing to forge-check", file=sys.stderr)
+        return 2
+    oracle = task.dir / "fixtures" / "oracle.py"
+    capture = pathlib.Path(tempfile.mkdtemp(prefix="tg-forge-"))
+    bad = 0
+    try:
+        rows = [("oracle", oracle, "", capture), ("oracle_reseed", oracle, "", None)]
+        for label, fixture, hook, cap in rows:
+            r = suite_mod.run_split(fixture, suite_name=task.suite, task_tests=tests, capture=cap)
+            failed = sorted(n for n, st in r["outcomes"].items() if st != "passed")
+            print(f"{label:14} seed {r['report'].get('seed', '?')}: "
+                  f"{len(r['outcomes']) - len(failed)}/{len(r['outcomes'])} passed")
+            for node in failed:
+                print(f"    FAIL {node}")
+            bad += len(failed) + (0 if r["outcomes"] else 1)
+        if not (capture / "observations.json").is_file():
+            print("the oracle run left no observations to forge from", file=sys.stderr)
+            return 2
+        for kind in forge.KINDS:
+            r = suite_mod.run_split(None, suite_name=task.suite, task_tests=tests,
+                                    forge_hook=forge.hook(kind, capture))
+            passed = sorted(n for n, st in r["outcomes"].items()
+                            if st == "passed" and "open_feature" not in n)
+            print(f"forge_{kind:8}: {len(passed)} hidden test(s) passed (must be 0)")
+            for node in passed:
+                print(f"    FORGEABLE {node}")
+            bad += len(passed)
+    finally:
+        shutil.rmtree(capture, ignore_errors=True)
+    return 0 if bad == 0 else 1
 
 
 def cmd_exec(args) -> int:
@@ -553,6 +609,9 @@ def main(argv: list[str] | None = None) -> int:
 
     suite = add("suite", cmd_suite)
     suite.add_argument("--role", default="oracle", help="oracle | naive | pristine | <name>")
+    suite.add_argument("--forge", action="store_true",
+                       help="grade the oracle under two seeds and run the replay forgeries; "
+                            "every hidden test must fail them")
 
     ex = add("exec", cmd_exec)
     ex.add_argument("--role", default="oracle")

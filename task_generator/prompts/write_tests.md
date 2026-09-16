@@ -34,6 +34,70 @@ In `tests/` in your working directory, exactly these:
 - `test_open.py` — the openly stated feature.
 - `test_r1.py` — requirement 1.
 - `test_r2.py` — requirement 2.
+- `probe.py`, `judge.py`, `probe_support.py`, `fixture_spec.py` — **the grader.**
+  See "How the suite is actually graded" below. The three `test_*.py` files are
+  the readable reference for what each fact means; the four grader files are
+  what scores an agent, and they must agree with the reference test for test.
+
+## How the suite is actually graded — and why the tests alone are not enough
+
+A hosted verifier never runs `test_*.py` in pytest. It runs two processes:
+
+- **the worker, `probe.py`**, as an unprivileged user, from a jail holding only
+  `probe.py`, `probe_support.py`, `fixture_spec.py` and `harness.py`. It is the
+  only process that imports the agent's code. It drives curator for each graded
+  test and records VALUES — never a pass/fail — to the observations file.
+- **the judge, `judge.py`**, as root, standard library only, which never imports
+  the submission. It applies the assertions and writes `junit.xml` using the same
+  node ids as the tests (`test_r1::test_rule__...`), so the fact keys are
+  unchanged.
+
+The argv contract (`harbor_tasks/_suites/run_suites.py:run_split`):
+`probe.py <observations.json> <seed> <artifacts_dir>` and
+`judge.py <observations.json> <junit.xml> <seed> <artifacts_dir>`; the judge also
+gets `SUBMISSION_SRC` in its environment to read the submission's source.
+
+Every rule below is a forgery an automated reviewer found in a shipped task,
+where a submission that implemented nothing scored anyway. Read these worked
+examples before writing anything, and copy their structure:
+`{{suites}}/g7_agent_turn_ledger/`, `{{suites}}/g4_run_cache_identity/`,
+`{{suites}}/g1_batch_payload_plan/` (each: `fixture_spec.py`, `probe.py`,
+`probe_support.py`, `judge.py`, and the docstrings that explain why).
+
+1. **Inputs move every run.** `fixture_spec.derive(seed)` draws every input a
+   scenario uses — names, sizes, counts, contents, which call fails, shuffled
+   lists of candidates — and both probe and judge import it. The judge computes
+   what a correct implementation produces **for those inputs**. With a fixed
+   fixture, one captured correct run replayed into an empty tree scored 1.0.
+   Randomising an input that does not change the graded value is decoration:
+   make the seed move the value you assert.
+2. **The judge reads what it grades.** Scenarios run in directories under the
+   artifacts dir; the judge opens those files itself (as root; refuse symlinks,
+   `O_NOFOLLOW`) instead of asking the worker what was in them. **Never grade a
+   boolean the worker reports about a fixed input** — a file of `true` passed two
+   facts that way.
+3. **No answer is readable by the worker.** Nothing in `probe.py`,
+   `probe_support.py` or `fixture_spec.py` may contain an expected value: not a
+   filename, a constant's value, a threshold, a token, an exception name the
+   requirement fixes. Answers live only in `judge.py` and `test_r*.py`.
+   Test-function names are visible too: keep the suffix after
+   `test_<field>__` neutral (`checkpoint_contract`, not `reads_186_bytes`).
+4. **Where a scenario must USE something the requirement names** (a file name, a
+   sentinel), discover it from the submission — `getattr(module, NAME, None)`, or
+   the file a run actually wrote — and let the JUDGE decide whether what was
+   discovered is right. Never fall back to the literal in the jail.
+5. **One missing name fails one fact.** Each probe node gathers its own evidence
+   and catches its own exceptions; a submission that hardcodes a name instead of
+   exporting the constant must lose only the fact whose requirement names the
+   constant. Constants that cannot be re-drawn are checked by the judge in the
+   submission's source with `ast`.
+6. **The worker cannot crash the record.** Bind `_EXIT = os._exit` before
+   importing the submission and leave through it; write observations with
+   `json.dump(..., default=repr)` so an unexpected value (a `PosixPath` on an
+   exception) cannot abort the whole file and zero every fact.
+7. **The judge imports nothing the submission can shadow** — not curator, not
+   `harness`, not `probe_support`. `fixture_spec.py` must therefore be standard
+   library only.
 
 ## Naming, which is how grading works
 
@@ -124,6 +188,15 @@ From the shared harness, already on the path:
 
 ## Finish condition
 
-`{{suite_cmd}}` reports every test passing against the golden tree, and you have
-re-read each test once against the two questions above (does it fail on untouched
-curator? does it reject a correct alternative design?).
+All three of these, and you have re-read each test once against the two
+questions above (does it fail on untouched curator? does it reject a correct
+alternative design?):
+
+- `{{suite_cmd}}` reports every node passing against the golden tree. Once
+  `probe.py` and `judge.py` exist it grades through them, exactly as a verifier
+  does — that is the result that counts, not pytest over `test_*.py`.
+- `{{pristine_cmd}}` reports every hidden node failing.
+- `{{forge_cmd}}` exits 0: the oracle passes under two different seeds, and
+  replaying the oracle's captured observations and artifacts into an untouched
+  tree — as-is, and with every boolean forced true — passes **no** hidden node.
+  The bracket runs the same check and refuses to ship a task that fails it.

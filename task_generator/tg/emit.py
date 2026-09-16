@@ -98,7 +98,29 @@ def emit(slug: str, *, force: bool = False) -> dict:
     if problems and not force:
         raise SystemExit("refusing to emit:\n  " + "\n  ".join(problems))
 
+    # Not overridable by --force: a suite without the split is graded in the
+    # submission's own process (run_suites falls back to pytest), which is the
+    # grading forgery Argus found in every g task before the port. A forced emit
+    # of that is a task that can be scored without being solved.
+    from . import suite as suite_mod
+    if not suite_mod.is_split(task.dir / "tests"):
+        raise SystemExit(
+            f"refusing to emit: {task.dir / 'tests'} has no probe.py + judge.py. "
+            "Write the worker/judge split (prompts/write_tests.md) and re-run "
+            "`cli bracket`; --force does not skip this.")
+
     suite_dst = SUITES / task.suite
+    # Not overridable by --force. A suite on the worker/judge split grades from
+    # probe.py + judge.py, which exist only in `_suites`; `out/<slug>/tests`
+    # holds the older test_*.py alone. Replacing one with the other deleted the
+    # judge, and `run_suites.py` then fell back to in-process pytest as the
+    # submission's own uid -- the grading forgery the split was built to close --
+    # while reporting nothing unusual.
+    if (suite_dst / "judge.py").exists() and not (task.dir / "tests" / "judge.py").exists():
+        raise SystemExit(
+            f"refusing to emit: {suite_dst} grades through probe.py/judge.py and "
+            f"{task.dir / 'tests'} does not. Emitting would put the forgeable "
+            "in-process grader back. Edit the suite in _suites directly.")
     if suite_dst.exists():
         shutil.rmtree(suite_dst)
     shutil.copytree(task.dir / "tests", suite_dst,

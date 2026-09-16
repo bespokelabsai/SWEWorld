@@ -482,7 +482,10 @@ def write_tests(slug: str, *, budget: float = 25.0) -> pathlib.Path:
                   facts=facts,
                   whole=(task.dir / "whole.md").read_text(),
                   oracle_tree=str(oracle),
-                  suite_cmd=suite_command(slug))
+                  suite_cmd=suite_command(slug),
+                  pristine_cmd=suite_command(slug, "pristine"),
+                  forge_cmd=suite_command(slug) + " --forge",
+                  suites=str(SUITES))
     result = agent.run(text, repo=REPO, label="tests", cwd=task.dir,
                        add_dirs=[SUITES, oracle], budget_usd=budget,
                        log_dir=_log(task), timeout_s=7200)

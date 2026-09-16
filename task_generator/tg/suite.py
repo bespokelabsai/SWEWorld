@@ -148,6 +148,99 @@ def run(
             _docker("exec", container, "rm", "-rf", base, check=False)
 
 
+def is_split(task_tests: pathlib.Path) -> bool:
+    """Whether a suite grades through the worker/judge split, as a hosted
+    verifier would. A suite without both files is graded by in-process pytest,
+    which the submission can forge -- see `run_split`."""
+    return (task_tests / "probe.py").is_file() and (task_tests / "judge.py").is_file()
+
+
+def run_split(
+    fixture: pathlib.Path | None,
+    *,
+    suite_name: str,
+    task_tests: pathlib.Path,
+    shared: pathlib.Path = SUITES,
+    container: str = CONTAINER,
+    capture: pathlib.Path | None = None,
+    forge_hook: str = "",
+    timeout_s: int = 1800,
+) -> dict:
+    """`run`, through the grader a verifier actually uses.
+
+    The worker (probe.py, as nobody, from a jail) and the judge (judge.py, as
+    root, never importing the submission) run exactly as in `run_suites`, with a
+    fresh seed. `run` grades the reference `test_*.py` in one pytest process, and
+    that is not what scores an agent: every forgery Argus found against g1-g11
+    lived in the gap between the two.
+
+    `capture`, a local directory: the worker's observations.json and artifacts/
+    are copied back into it, for `forge.hook`. `forge_hook`: text appended to the
+    tree's `bespokelabs/curator/__init__.py` after the fixture is applied.
+    """
+    if not is_split(task_tests):
+        raise SuiteError(f"{task_tests} has no probe.py + judge.py; it is not a split suite")
+    container_ready(container)
+    tag = f"{suite_name}-split-{uuid.uuid4().hex[:8]}"
+    base = f"{ROOT}/{tag}"
+    local = pathlib.Path(tempfile.mkdtemp(prefix=f"tg-{tag}-"))
+    try:
+        _docker("exec", container, "mkdir", "-p", f"{base}/tests/{suite_name}",
+                f"{base}/fixtures")
+        _docker("exec", container, "chmod", "755", ROOT, base)
+        _docker("cp", f"{shared}/.", f"{container}:{base}/tests")
+        _docker("exec", container, "rm", "-rf", f"{base}/tests/{suite_name}")
+        _docker("exec", container, "mkdir", "-p", f"{base}/tests/{suite_name}")
+        _docker("cp", f"{task_tests}/.", f"{container}:{base}/tests/{suite_name}")
+        _docker("cp", str(pathlib.Path(__file__).with_name("split_driver.py")),
+                f"{container}:{base}/split_driver.py")
+        if fixture is not None:
+            _docker("cp", f"{fixture.parent}/.", f"{container}:{base}/fixtures")
+        if forge_hook:
+            (local / "forge_hook.py").write_text(forge_hook)
+            _docker("cp", str(local / "forge_hook.py"), f"{container}:{base}/forge_hook.py")
+        _docker("exec", container, "bash", "-c",
+                f"find {base}/tests -name __pycache__ -type d -prune -exec rm -rf {{}} +",
+                check=False)
+
+        steps = [f"set -e; cp -r {PRISTINE} {base}/tree"]
+        if fixture is not None:
+            steps.append(f"python3 {base}/fixtures/{fixture.name} {base}/tree")
+        if forge_hook:
+            steps.append(f"cat {base}/forge_hook.py >> "
+                         f"{base}/tree/src/bespokelabs/curator/__init__.py")
+        # /tests is root-only for a split suite (build_tasks.TEST_SH); the worker
+        # must be unable to read it here too, or the bracket would pass a suite
+        # whose probe only works because it could open the answers.
+        steps.append(f"chown -R root:root {base}/tests && chmod -R go-rwx {base}/tests")
+        steps.append(f"chmod -R a+rX {base}/tree")
+        steps.append(f"python3 {base}/split_driver.py {base} {suite_name}"
+                     + (f" {base}/capture" if capture is not None else ""))
+        done = _docker("exec", container, "bash", "-c", "; ".join(steps[:1]) + " && "
+                       + " && ".join(steps[1:]), check=False, timeout=timeout_s)
+
+        report: dict = {}
+        for line in done.stdout.splitlines():
+            if line.startswith("SPLIT-REPORT "):
+                report = json.loads(line[len("SPLIT-REPORT "):])
+        got = _docker("cp", f"{container}:{base}/logs/junit.xml", str(local / "junit.xml"),
+                      check=False)
+        junit = local / "junit.xml"
+        outcomes: dict[str, str] = {}
+        if got.returncode == 0 and junit.is_file():
+            from .model import score_module
+            outcomes = score_module().junit_outcomes(junit)
+        if capture is not None:
+            capture.mkdir(parents=True, exist_ok=True)
+            _docker("cp", f"{container}:{base}/capture/.", str(capture), check=False)
+        return {"outcomes": outcomes, "rc": done.returncode,
+                "stdout": (done.stdout + done.stderr)[-6000:],
+                "junit": junit if junit.is_file() else None,
+                "report": report, "tag": tag}
+    finally:
+        _docker("exec", container, "rm", "-rf", base, check=False)
+
+
 def summarise(result: dict) -> str:
     counts: dict[str, int] = {}
     for state in result["outcomes"].values():

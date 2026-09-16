@@ -1,61 +1,120 @@
 # task_generator
 
-Authors a hidden-requirement task by **designing the whole implementation first
-and cutting it afterwards**, and proves the cut discriminates before spending
-anything on an agent trial.
+> **Start here: [`docs/task-generator-guide.html`](../docs/task-generator-guide.html)**, a
+> one-page illustrated guide: what this package is, how the bracket proves a requirement is
+> hidden, and a step-by-step walkthrough for your first task. Open it in a browser. It is also
+> published at <https://claude.ai/artifact/NCs3jj5RiFf1QJw1e7VeYc>.
+>
+> The first section below is a short overview that stands on its own. Everything after it is the
+> full operating manual.
 
-It is the front half that `harbor_tasks/` was missing. That half runs the
-experiment — blind / `-spec` / `-clues` arms, per-fact reward keys, OAuth-only
-trials — but the 60 tasks it draws from were written ticket-first with hidden
-requirements attached afterwards, and the measured bracket says what that cost:
-**13 of 29 facts are coincidences**, passed by an implementation that never saw
-the requirement, and 3 are unmeasurable. Each of those was discovered after a
+## In brief
+
+### What it is
+
+`task_generator` writes **hidden-requirement coding tasks** against curator, the product
+SWEWorld's company ships. An agent is handed a **ticket**. The task also has **hidden
+requirements** that are written nowhere in that ticket, and the agent has to find them in the
+company's chat, wiki and mail. The package's job is to make those tasks *verifiable*: it proves
+the hidden part really is hidden before anything is spent on an agent trial.
+
+It exists because the first 60 tasks (`data_gen/input/tasks.json`, now retired to
+`failed_tasks/`) were written ticket-first, with hidden requirements added afterwards. When
+measured, **13 of their 29 hidden facts were coincidences**: an agent that never saw the clue
+passed them anyway, because the code or the ticket gave them away. Each was found only after a
 paid trial.
 
-## Overview: the whole pipeline, and the clues arm, in brief
+### How it works, in five steps
 
-Each task goes from a brief to up to **five gradable arms of the same ticket**,
-proving the gap between them rather than asserting it:
+1. **Design the whole thing, then cut it.** You write a short brief naming an area of curator.
+   An agent writes the complete specification (`whole.md`), and another implements all of it
+   (the **oracle**). Only then is the specification cut into `ticket.md` (visible) and
+   `hidden.md` (usually two requirements, `r1` and `r2`). A test suite is written with one test
+   per **fact**, each keyed like `g1.r1.rule`.
+2. **Bracket it. This is the gate.** Four copies of curator are built: **pristine**
+   (untouched), **naive** (an agent that sees only the ticket), **spec** (ticket plus hidden
+   requirements) and **oracle**. One suite runs against all four. A fact is `hidden` only when
+   the oracle and spec pass and naive fails. Naive is the blind agent made mechanical, at about a
+   dollar instead of about seven.
+3. **Emit it.** `emit` writes the task into `harbor_tasks/` (suite, fixtures, and a row in
+   `tasks.generated.json`), and `build_tasks.py` renders its arms.
+4. **Plant it (optional, about two thirds of the bill).** Each hidden requirement becomes remarks
+   scattered across months of the already-generated corpus. The remarks go into real chat days,
+   wiki pages, comments and mail threads, among reversed decisions (**herrings**). `prove`
+   rebuilds from the ticket plus the remarks alone to show the plant can still be solved.
+   `inject` writes the plant into a copy of the corpus for a re-baked world image.
+5. **Measure it.** Run trials locally (`cli trial`) or hosted on Horizon (`cli horizon`, then
+   the `horizon` CLI). The headline numbers are **spec ≈ 1.00** (the suite can be satisfied)
+   and **blind ≈ 0.00** (the requirements are really hidden).
 
+### The arms: one ticket, several conditions
+
+| arm | the agent gets | expect |
+|---|---|---|
+| `blind` | the ticket alone | ≈ 0.00, with `open_feature` at 1.0 |
+| `-spec` | ticket plus both hidden requirements, stated outright | ≈ 1.00 |
+| `-clues` | ticket plus every planted remark, quoted in date order, herrings included | the ceiling for inference |
+| `-world` | the blind ticket, inside the populated world image | the real test: can it *find* them? |
+| `-world-located` | the world arm, told which pages and days hold the evidence | splits "didn't find" from "didn't use" |
+| `…-hosted` | the world arms built from the published registry image, for Horizon | same as the local twin |
+
+`reward` is the mean over hidden facts. `open_feature`, which grades the ticket itself, is
+reported but not included. Keys are folded by `harbor_tasks/_suites/score.py`, so a fact means
+the same thing in a local bracket, a Harbor trial and a Horizon rollout.
+
+### Your first task, in commands
+
+Before starting:
+
+- The `devbox` container must be running (image `sweworld:repo-only-dev`, from
+  `harbor_tasks/_env/Dockerfile`). curator can't be imported on the host, so every suite runs
+  inside it.
+- The `claude` CLI must be on `CLAUDE_CODE_OAUTH_TOKEN`. `tg/auth.py` strips `ANTHROPIC_API_KEY`
+  on purpose.
+- The plant stages also need a phase-4 corpus, and hosted runs need `~/horizon_env/bin/horizon`.
+
+```bash
+cli() { python3 task_generator/cli.py "$@"; }          # from the repo root
+
+cli new my-area --brief "$(cat brief.txt)"   # you write the brief: see "Before anything" below
+cli author my-area                           # whole.md             ~$6
+cli build my-area --role oracle              # the reference build  ~$3.50
+cli split my-area                            # ticket | hidden      exit 1 is ADVISORY: read the audit
+cli tests my-area                            # one test per fact
+cli build my-area --role naive               # ticket only          ~$2
+cli build my-area --role spec                # ticket + hidden      ~$2
+cli bracket my-area                          # THE GATE: every fact must read `hidden`
+cli trim my-area && cli bracket my-area      # tighten the requirements, re-check
+cli emit my-area                             # -> harbor_tasks/
+cli trial my-area --arm spec                 # ~25 min, ~$7 each
+cli trial my-area --arm blind
 ```
-author → build oracle/naive/spec → split → tests → bracket (gate: every fact
-must read `hidden`) → emit (writes the harbor artifacts) → [clues, optional]
-→ horizon (renders blind/spec/clues as hosted arms) → trial / hosted eval
-```
 
-- **`blind`** — the ticket alone. Should score ~0.
-- **`spec`** — ticket + the hidden requirements, stated outright. Should score
-  ~1.00: proof the requirements as written are sufficient to solve it.
-- **`clues`** — ticket + every planted remark quoted inline, date-ordered. The
-  ceiling — can an agent use evidence once it has already been pulled out for
-  it.
-- **`world`** / **`world-hosted`** — the plain blind ticket, but run against an
-  actual populated SWEWorld image whose chat, wiki and mail genuinely contain
-  those same remarks, scattered among everything else. The real test: can an
-  agent find the evidence itself, not just use it once handed over. See "The
-  in-world arm" below. (`world-hosted` is the same arm pushed to Horizon, and
-  lives in a separate project, `sweworld`, from the apex arms' `nidhi-test`.)
+Walk the stages one at a time. `cli make <slug>` exists, but no task has been built with it,
+because `split` and `bracket` exit non-zero on heuristics and `make` can't tell those from real
+defects. On a `coincidence` verdict, run `cli author <slug> --extend`. **Don't re-split.**
 
-**How a plant becomes a corpus (`cli.py clues <slug>`, `tg/clues.py`):** unlike
-`data_gen/phase3_plant.py`, which plants into conversation *specs* before
-anything is simulated, this plants **after** — into a corpus that already
-exists. Per hidden requirement: build a MuSR-style tree of subconclusions and
-leaf remarks, write any reversed-decision herrings, place each leaf in a real
-carrier (an existing chat day, wiki page, comment or mail thread) or invent one
-only if nothing fits, then turn a single remark into a real multi-turn exchange
-(`reknit`) and judge which claims actually survived it. `cli.py prove` then
-builds from just the ticket and the remarks and scores it with the real suite,
-to prove the plant is solvable before anything is trusted; `cli.py repair`
-fixes only the remarks `prove` blames, in place, rather than re-rolling the
-whole tree. `cli.py settle` is the strictest check of all — it decomposes each
-requirement's own test assertions and judges every one `stated` / `implied` /
-`absent` / `not_required` against the corpus (see "Rubric conditions 3 and 4"
-below).
+### Where things stand (2026-09-15)
 
-`tg/clues.py` itself only writes `out/<slug>/clues/` — the plant ledger, not
-the corpus. `tg/inject.py` is the only code that writes into an actual copy of
-the corpus (`messages.jsonl`, `comments.jsonl`, `docs/*.md`, `emails/*.eml`),
-which is what the `world` arm needs a re-baked image for.
+- **Built:** g1–g4 and g6–g13. g5 was refused at the bracket and was never emitted. g1–g4 and
+  g6–g11 have the plant and the world arms; g4 and g6–g11 also have `-world-located-hosted`,
+  which g1–g3 never got. g12 and g13 have finished the
+  cut (`bracket`, `trim`, `horizon` blind and spec) but have no plant or harbor arms yet.
+- **New tasks are written forge-resistant from the start (2026-09-16).** `cli tests` now asks
+  for the worker/judge split with a per-run seed — `probe.py`, `judge.py`, `probe_support.py`,
+  `fixture_spec.py` — beside the reference `test_*.py`, following g1, g4 and g7, whose suites
+  are the worked examples. `cli suite` grades through that split, `cli suite --forge` and
+  `cli bracket` replay the oracle's observations into an untouched tree and refuse any hidden
+  fact that still scores, and `cli emit` refuses a suite without the split even under
+  `--force`. The g1–g11 suites were ported by hand before this existed; only g1, g4 and g7 carry
+  the seed, and g12/g13 are still on pytest. Mechanism: `harbor_tasks/_suites/run_suites.py`;
+  history: `tasks/grading-forgery-fix-handoff.md`.
+- **Several at once:** `fleet/orchestrate.py` drives up to five tasks through these same commands.
+  It adds locks and a judge for the calls this README leaves to you (see `fleet/README.md`).
+
+---
+
+# The manual
 
 ## The two loops
 
@@ -116,14 +175,15 @@ subtraction rather than a guess.
 | `bracket` | **yes** | free | pristine / naive / oracle / spec → a verdict per fact. Every fact must read `hidden` |
 | `audit` | **yes** | ? | one adversarial Catalog A/B call per fact. **Never run on g1** — `--optional` |
 | `trim` | | $2.95 | cut each requirement to what its assertions actually check |
-| `emit` | **yes** | free | write the harbor artifacts; refuses unless the bracket shipped |
-| `clues` | **yes** | $48 | the plant. ~175 placement calls, and **two thirds of the whole bill** |
+| `emit` | **yes** | free | write the harbor artifacts; refuses unless the bracket shipped, and (not even under `--force`) without the worker/judge split — see §11 |
+| `clues` | **yes** | $45 | the plant. ~175 placement calls, and **two thirds of the whole bill** |
 | `settle` | | $10.73 | rewrite every graded assertion a reader was left to infer |
 | `reverse` | **yes** | $1 | say out loud that each herring's decision was dropped |
 | `reorder` | **yes** | $1 | move a decision dated before the complaint it answers. Before `reknit`, not after |
 | `reknit` | **yes** | $9 | turn each remark into the exchange it was made in |
+| `consistency` | **yes** | $8 | a fact an exchange now states backwards, with nothing later overturning it. After `reknit`, because `reknit` is what introduces it |
 | `prove --runs 3` | **yes** | $5.50 | build from ticket + remarks alone, three times, and score with the real suite |
-| `horizon --arms blind,spec,clues` | **yes** | free | the hosted arms. Name `clues` or its gate does not run |
+| `horizon --arms blind,spec,clues` | **yes** | free | the hosted arms. Name `clues` or its gate does not run. Refuses any task whose `_suites/<suite>` has `judge.py` — see below |
 | `inject` | **yes** | free | write the plant into a copy of the corpus, for the in-world arm. `--optional` |
 
 Then measure. Locally first — one machine, one model, the instruction the only
@@ -140,7 +200,9 @@ And to build the harbor arms after `emit`:
 
 ```bash
 python3 task_generator/build_tasks.py \
-    --extra-tasks task_generator/tasks.generated.json --pick g1 [--world]
+    --extra-tasks task_generator/tasks.generated.json --pick <id> [--world] [--hosted]
+python3 task_generator/build_located_arm.py <slug> [--hosted]   # the -world-located arms
+python3 task_generator/cli.py answers <slug>                    # harbor_tasks/<id>-<slug>/README.md
 ```
 
 `harbor_tasks/` is this package's **output tree**: `build_tasks.py`,
@@ -150,9 +212,22 @@ hand-written 60 in `data_gen/input/tasks.json`, which is what `--extra-tasks` is
 for: ids in that file are **positional** (`t1`…`t60`)
 and `SLUGS`/`SUITE_DIR` are hardcoded index dicts, so a generated task has to
 carry its own id, slug and suite. The hand-written 60 are never touched.
-`--world` adds a fourth arm that boots the populated image, where the remarks are
+`--world` adds the arm that boots the populated image, where the remarks are
 in the corpus rather than in the ticket; it needs `cli inject` to have run and the
-image to have been re-baked.
+image to have been re-baked. `--hosted` builds the same arms FROM the published
+registry image, because Horizon cannot resolve a local tag. The full arm ladder, and
+what each arm separates from the others, is in `harbor_tasks/README.md`.
+
+**g1–g4 and g6–g11 are `FROZEN`, and `build_tasks.py` exits 1 on them without
+`--thaw`.** Their arms were fixed by hand after emission — corpus edits went into
+each world arm's `environment/plant/` (a stray `Subject:` line in a mail body, g3's
+invented "fail it out on the first"), not into `out/<slug>/clues/plant-data`, which
+is what a build copies `plant/` from — so regenerating them would put the defects
+back. g1 was frozen first for its own reason: it is the task measured across every
+arm, and those numbers compare only while the artifact does not move. A frozen
+task's arms change by copying `_suites/<suite>` into each arm's `tests/` and nothing
+else (`tasks/grading-forgery-fix-handoff.md` §7). Pass `--thaw` only after syncing
+the hand-made plant fixes back into `out/`.
 
 ### The hosted arms, end to end
 
@@ -162,6 +237,17 @@ arm under `out/<slug>/horizon/`. Emitting is where two gates fire:
 and ordinary Linux, and `unsolvable()` refuses a clues arm whose digest never
 types a graded name — the latter only when `clues` is one of the arms, which is
 why the flag defaults to naming all three.
+
+**`cli horizon` refuses any task whose `harbor_tasks/_suites/<suite>/judge.py`
+exists, and `--force` does not skip it.** The apex arms it writes grade through
+`grader.py`, which runs pytest in one process with the submission first on
+`PYTHONPATH` — so the code being graded can rewrite the junit it is graded by, the
+forgery `run_suites.run_split` was built to close. Every g1–g11 suite has been
+ported to the split, and `emit` now requires it, so in practice this refuses every
+emitted task. Their hosted measurements run on the harbor `…-world-hosted` arms
+(`harbor_tasks/<id>-<slug>/`, graded through `run_suites.py`), pushed with the same
+`horizon` commands below; `out/<slug>/horizon/` holds only what was emitted before
+the port.
 
 **The `horizon` CLI is not on `PATH`.** It lives in its own virtualenv:
 
@@ -477,6 +563,28 @@ task's row in `tasks.generated.json`. Refuses unless the bracket shipped, and
 `emit.check_bijection` proves every declared fact has a test and every test a
 fact.
 
+**`emit` refuses a suite without `probe.py` + `judge.py`, and `--force` does not
+skip it.** Without them `run_suites.py` falls back to pytest in the submission's
+own process, which can rewrite `junit.xml` from an `atexit` hook — measured at
+reward 1.0 from a pristine tree. It also refuses — again with no `--force` —
+when `_suites/<suite>/judge.py` exists but `out/<slug>/tests/judge.py` does not:
+the split's `probe.py`/`judge.py` for the hand-ported g1–g11 exist only in
+`_suites`, and replacing that directory with `out/<slug>/tests` once deleted the
+judge, after which `run_suites.py` fell back to in-process pytest and reported
+nothing unusual. Edit those suites in `_suites` directly. `build_tasks.py` treats
+g1–g4 and g6–g11 as `FROZEN` (exit 1 without `--thaw`) because their arms carry
+hand-made corpus fixes that `out/<slug>/clues/plant-data` does not.
+
+**What the bracket checks about forgery.** Every tree is graded through the split,
+as a verifier grades it (`suite.run_split`, which imports `run_suites.run_split`
+rather than copying it). Three more rows must hold before anything ships:
+`oracle_reseed` passes every fact under a second seed, and `forge_replay` and
+`forge_true` — an untouched tree whose import hook writes back the oracle's
+captured observations and artifacts, as-is and with every boolean forced true —
+pass no hidden fact (`tg/forge.py`). Each is a finding Argus filed against a
+shipped task. Measured on g7: its pre-hardening suite passes `forge_replay` on all
+nine facts and is refused; the hardened one fails both forges on all nine.
+
 ### Then measure
 
 Locally first — one machine, one model, the instruction the only variable — and
@@ -508,9 +616,10 @@ mail contain those same fifty remarks, in the rooms and on the days the plant ch
 cli reknit <slug>          # the invented conversations must SAY the remark
 cli inject <slug>          # -> a copy of the corpus with the plant written in
 python3 data_gen/install_corpus.py --run <run>-<id>
-make bake-image TAG=0.4.2  # gated on world-verify
+make bake-image TAG=<next> # gated on world-verify; then point WORLD_IMAGE in build_tasks.py at it
 python3 task_generator/build_tasks.py --extra-tasks task_generator/tasks.generated.json \
-        --pick g1 --world
+        --pick <id> --world     # a FROZEN id (g1–g4, g6–g11) needs --thaw; see above
+python3 task_generator/build_located_arm.py <slug>
 cli trial <slug> --arm world
 ```
 
@@ -612,7 +721,7 @@ to the instruction above it.** Prompts are advice; gates are enforcement.
 
 `tg/*.py` contains no module name, no fact name and no test name. A task's
 substance lives entirely in `out/<slug>/` and the method lives in `prompts/` and
-`rubric.md`. Adding task two is `cli new` plus the same nine commands.
+`rubric.md`. Adding a task is `cli new` plus the same stages.
 
 The one thing worth tuning per area is the **brief**. `prompts/author_whole.md`
 asks the specification to break the feature into parts, and to give every part
@@ -727,13 +836,20 @@ out/<slug>/
   task.json           id / slug / suite + the tasks.json entry
   fact_sources.json   per fact: which part, and what a blind agent picks instead
   tests/              test_open.py, test_r1.py, test_r2.py
-  fixtures/           oracle.{patch,py}, naive.{patch,py}
+  fixtures/           oracle / naive / spec .{patch,py}
+  cuts/cut-N/         every earlier cut, archived by `split`
   bracket.json/.md    the gate
   audit.json/.md      Catalog A/B, per fact
+  trim.json/.md       what `trim` cut from each requirement
+  clues/              the plant: plant.json, proof.md, README.md
+  horizon/            the hosted apex arms, one directory each
   report.md           the four-condition matrix
   spend.json          every agent call, what it cost
   logs/               every rendered prompt and raw reply
 .trees/<slug>/<role>/ persistent working checkouts (gitignored)
+tasks.generated.json  every emitted task, the input `build_tasks.py --extra-tasks` reads
+
+harbor_tasks/         OUTPUT: <id>-<slug>/ (the arms) and _suites/<suite>/ (the graders)
 ```
 
 `logs/<step>.prompt.md` is the exact text the model was given, substitutions
