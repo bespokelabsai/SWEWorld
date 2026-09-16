@@ -63,7 +63,20 @@ HOW_WE_REFERENCE = (
     "House style for pointing at work in chat: a pull request or issue goes by "
     "its number with the word in front (issue 163, PR 528), never a bare "
     "#number — in Mattermost that opens a channel autocomplete. A wiki page "
-    "goes by its title. Say it in full the first time, short form after."
+    "goes by its title. Say it in full the first time, short form after. "
+    # Both halves of this used to be a rule with no way to obey it, which is
+    # the same hole `read_repo` closed for code. A persona was handed a page's
+    # title and its owner and nothing that said whether it had been written, so
+    # 96 remarks in the shipped corpus announced a page as up before its own
+    # `created_at`; and a day capped at "no PR above 3" produced a morning
+    # reviewing PR 173 and PR 242, opened the following month. So the rule now
+    # comes with the answer: the tools are what settle it.
+    "Do not say a page is on the wiki unless it is marked as written above or "
+    "you wrote it yourself in this conversation — list_pages is what settles "
+    "that, not what you remember planning. Same for a number: name a PR or an "
+    "issue only if it is on the table above or find_issue just showed it to "
+    "you. A plausible-looking number is how a review ends up discussing work "
+    "that does not exist yet."
 )
 
 # The roster is structural — "Core Engineer, Request Processing" is a role, not
@@ -184,6 +197,10 @@ class World:
         self.channels = {c["name"]: c for c in self.company["channels"]}
         self.services = {s["slug"]: s for s in self.company["services"]}
         self.docs = {d["id"]: d for d in self.artifacts["docs"]}
+        # The LIVE wiki, attached by phase4_run once the stores exist. `docs`
+        # above is the plan; this is what is on disk right now, and the two
+        # answer different questions. None in a dry run, where nothing writes.
+        self.wiki = None
         self.threads = {t["id"]: t for t in self.artifacts["threads"]}
         # Page comments are the fourth thing phase 2 plans and the only one
         # phase 4 never read. Three clues were planted in them and had nowhere
@@ -389,9 +406,35 @@ def shared_ground(world: World, day: dict, spec: dict) -> dict:
     # people are here to talk about. Then the wider set of what is open, so
     # somebody can refer to a review that is waiting on them without inventing
     # its number.
-    on_the_table = [{"what": world.humanize(o.get("title") or o["id"]),
-                     "who": world.label(_holder(world, o))}
-                    for o in (spec.get("referenced_objects") or [])[:6]]
+    on_the_table = []
+    for o in (spec.get("referenced_objects") or [])[:6]:
+        what = world.humanize(o.get("title") or o["id"])
+        if o["kind"] == "doc":
+            # DOES THIS PAGE EXIST YET. The spec has always known — phase 2
+            # writes `written` when the day's packet found it among
+            # `already_written` and `planned` when today's goal is to write it
+            # — and this function used to drop it on the floor, handing the
+            # persona a title, an owner, and nothing that said whether anybody
+            # had written the thing. Both halves of the corpus's wiki problem
+            # came out of that silence. Every spec from 2024-12-10 to 12-18 said
+            # `written` for the bulk-llm-inference design, and every one of
+            # those days produced somebody saying it was not on the wiki; the
+            # same gap the other way round announced pages days early.
+            #
+            # `world.wiki` is the live store and is the better answer wherever
+            # it is set, because the plan says what SHOULD have been written by
+            # now and the store says what was. It is None while `simulate`
+            # builds every channel up front — deliberately, so `context.md`
+            # shows exactly what will run and a dry run costs nothing — so the
+            # spec's own status is the working answer today.
+            live = world.wiki.written(o["id"]) if world.wiki else ""
+            if live:
+                what += f" — on the wiki since {live[:10]}"
+            elif o.get("status") == "written":
+                what += " — already on the wiki, go and read it"
+            else:
+                what += " — NOT on the wiki yet, still to be written"
+        on_the_table.append({"what": what, "who": world.label(_holder(world, o))})
     on_the_table += [{"what": f"PR {pr['number']}: {pr['title']}",
                       "who": world.label(pr.get("persona", ""))}
                      for pr in (state.get("open_prs") or [])[:6]]

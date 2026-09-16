@@ -377,6 +377,27 @@ class Wiki(Store):
                 gone += len(lines) - len(keep)
         return gone
 
+    def written(self, doc_id: str) -> str:
+        """When this PLANNED page was actually written, or "" if nobody has.
+
+        Phase 2 plans a title; the persona who writes it files it under
+        whichever collection they think it belongs in, so the slug is the only
+        stable link between the plan and the file. Read off disk rather than
+        `_pages`, which only holds what this process wrote — a page written on
+        Monday has to still be there on Thursday.
+
+        This exists so the grounding can tell people the truth. A doc used to
+        arrive on the table as a title and an owner and nothing else, and a
+        persona with no way to tell a planned page from a written one announced
+        it as up: 96 chat messages in the shipped corpus contradicted a page's
+        own `created_at` that way.
+        """
+        stem = slug(self.doc_titles.get(doc_id, "") or doc_id)
+        for path in sorted(self.docs.glob(f"*/{stem}.md")):
+            meta, _ = self._frontmatter(path)
+            return str(meta.get("created_at") or "yes")
+        return ""
+
     def read(self, rel: str) -> str:
         page = self._pages.get(rel)
         if page:

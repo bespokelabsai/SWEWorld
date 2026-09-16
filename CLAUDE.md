@@ -120,6 +120,15 @@ Keys are read from `.env` at the repo root or in `data_gen/` (see `rl.env_value`
 
 - **`data/schemas/` is partly stale.** `identities.md` and `docs.md` still describe **Outline** and its OIDC authorship model; the world moved to BookStack. The root `.env` carries the matching fossils (`OUTLINE_*`, `MINIO_*`, `TRAEFIK_*`) which nothing in `world/`, `scripts/` or the Makefile reads. Trust `world/` and the ingest scripts over the schema prose where they disagree.
 
+- **Personas were never told which pages existed.** `shared_ground` dropped the
+  `status` phase 2 computes for every referenced doc (`written` / `planned`) and
+  handed over a title and an owner, so a persona guessed — announcing planned
+  pages and asking after written ones for a fortnight. The status is carried
+  through now, `Wiki.written()` overrides it from the store where it is
+  attached, and `HOW_WE_REFERENCE` names the tool (`list_pages`, `find_issue`)
+  that settles it. Same shape as the `read_repo` rule for code: a rule with no
+  way to obey it is not a rule.
+
 - **The corpus had three clocks and no join.** `artifacts.json` dates a page with
   no time; `worldapps.Clock` stamped it from a private +7-minute counter; the
   chat announcing it ran on the engine's per-turn cursor in a separately

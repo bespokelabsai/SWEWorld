@@ -1368,3 +1368,30 @@ believed:
 
 **Rule for myself:** a new check gets run against known-good input first. If it
 does not come back clean on data nobody has touched, the check is the bug.
+
+### Postscript: the fix was upstream of the fix (2026-09-16)
+
+I shipped a reconciler — retime the artifact to agree with the chat — and
+presented it as the answer. Nidhi's question was better: *"shouldn't the users
+use their tools to see what docs are created and then mention the docs?"*
+
+They were right, and the evidence was already in the repo. `referenced_objects`
+carries a `status` per doc, computed by phase 2 from that day's packet:
+`written` when it is among `already_written`, `planned` when today's goal is to
+write it. `shared_ground` read the title and the owner off each one and threw
+the status away. Every spec from 2024-12-10 to 12-18 said `written` for the
+bulk-llm-inference design; every one of those days produced a persona saying it
+was not on the wiki. The generator had the right answer and did not pass it on.
+
+Two things to take from it. **A reconciler is a symptom fix** — mine repaired 70
+of 96 contradictions and would have repaired them again next run, forever,
+without anyone asking why they kept coming back. And **the codebase had already
+solved this once for code**: the `read_repo` rule says outright that a persona
+asked not to name a symbol that does not exist yet "had no means of finding out
+which those were... so the rule now comes with the answer." The same sentence
+was needed for pages and for PR numbers and nobody had written it.
+
+**Rule for myself:** before building machinery to correct an output, find where
+the input was supposed to say the thing. If a check keeps finding the same
+defect, the interesting question is not how to repair it but which component
+knew and stayed quiet.

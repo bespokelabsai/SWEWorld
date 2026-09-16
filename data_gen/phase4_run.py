@@ -1414,12 +1414,18 @@ def _stores(world, out: Path, clock: wa.Clock, args=None) -> list:
     for doc in world.artifacts["docs"]:
         collections.setdefault(doc.get("collection") or "engineering", "")
     domain = "world.local"
+    wiki = wa.Wiki(out, clock, collections=collections,
+                   scrub=__import__("bespoke_user").scrub_prose,
+                   planned_comments=world.artifacts.get("comments") or [],
+                   doc_titles={d["id"]: d.get("title", "")
+                               for d in world.artifacts["docs"]})
+    # The grounding has to say whether a page on today's table has actually
+    # been written, and only the store knows. Without this a persona is handed
+    # a title and an owner and nothing else, and announces a planned page as up
+    # — see `shared_ground` and HOW_WE_REFERENCE.
+    world.wiki = wiki
     return [
-        wa.Wiki(out, clock, collections=collections,
-                scrub=__import__("bespoke_user").scrub_prose,
-                planned_comments=world.artifacts.get("comments") or [],
-                doc_titles={d["id"]: d.get("title", "")
-                            for d in world.artifacts["docs"]}),
+        wiki,
         wa.Mail(out, clock, domain=domain,
                 addresses={p: f"{p}@{domain}" for p in world.people}),
         wa.Forge(out, clock, items=world.forge),

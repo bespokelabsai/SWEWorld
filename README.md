@@ -156,20 +156,31 @@ planted task, and it is the one to run after touching `data/` by hand:
 `harbor_tasks/.located-corpora/` caches the old bodies, so a broken plant still
 builds a healthy-looking artifact.
 
-### Why the corpus drifts in the first place
+### Why the corpus drifted, and what stops it now
 
-Three things decided when something happened and none of them agreed.
-`artifacts.json` gives a page a *date* with no time; `worldapps.Clock` stamped
-the file from a private counter that added seven minutes per call from the day's
-start; and the chat announcing the page ran on the engine's own per-turn cursor,
-in a channel-day simulated separately. Same wall clock, three unjoined
-authorities — which is why all 108 pages landed between 09:14 and 10:38 on
-thirteen distinct values, and why a 09:00 opener could announce a 09:14 file.
+**Nobody told the personas which pages existed.** `shared_ground` handed each
+doc on today's table as a title and an owner and nothing else, while the spec
+had computed the answer all along — phase 2 writes `status: written` when the
+day's packet found the page among `already_written`, `planned` when today's goal
+is to write it. Every spec from 2024-12-10 to 12-18 said `written` for the
+bulk-llm-inference design, and every one of those days produced somebody saying
+it was not on the wiki. The status is now carried through, the live store
+(`Wiki.written()`) overrides it wherever it is attached, and `HOW_WE_REFERENCE`
+names the tool that settles it — the same shape as the `read_repo` rule for
+code, which already says *"a rule with no way to obey it"* is not a rule.
 
-`Clock.set_now()` and `data_gen/patches/sim_engine-pin-app-clock.patch` join the
-first two: a tool call is now stamped inside the turn that made it. That removes
-the arbitrary drift but cannot make a persona write a page before announcing it,
-which is what `--fix` reconciles and `check_corpus.py` gates.
+**And the tool clock was not the message clock.** `artifacts.json` dates a page
+with no time; `worldapps.Clock` stamped the file from a private counter adding
+seven minutes per call from the day's start; the chat announcing it ran on the
+engine's per-turn cursor in a separately simulated channel-day. That is why all
+108 pages landed between 09:14 and 10:38 on thirteen distinct values, and why a
+09:00 opener could announce a 09:14 file. `Clock.set_now()` and
+`data_gen/patches/sim_engine-pin-app-clock.patch` join them: a tool call is now
+stamped inside the turn that made it.
+
+`--fix` and `check_corpus.py` stay as the net, because neither change can force
+a persona to write the page before announcing it — but they are the net now,
+not the fix.
 
 ## Viewing the world
 
