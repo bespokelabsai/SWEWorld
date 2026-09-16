@@ -566,6 +566,19 @@ def emit(task: Task, arms: tuple[str, ...] = ARMS,
         if not needed.exists():
             raise SystemExit(f"missing {needed}")
 
+    # Not overridable. GRADER runs pytest over the suite in ONE process with the
+    # submission first on PYTHONPATH, so the code being graded can rewrite the
+    # junit it is graded by -- the forgery `_suites/run_suites.run_split` exists
+    # to close. A task that has been ported to the split must not be re-emitted
+    # through the grader that predates it.
+    split = REPO / "harbor_tasks" / "_suites" / task.suite / "judge.py"
+    if split.exists():
+        raise SystemExit(
+            f"refusing to emit a Horizon arm for {task.id}: its suite grades through "
+            f"{split.parent.name}/probe.py + judge.py, and this emitter's grader.py "
+            "imports the submission into the process that reports the score. "
+            "Use the harbor arms (tasks/grading-forgery-fix-handoff.md).")
+
     # Before the push, not after: a hosted validation costs a Cloud Batch round
     # trip to say the same thing, and says it as a score rather than as a path.
     if not force:

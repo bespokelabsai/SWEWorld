@@ -83,6 +83,16 @@ WORLD_REGISTRY = ("us-central1-docker.pkg.dev/apex-485220/horizon/environments/"
 # validated against the NEW task instead.
 FROZEN = {"g1"}
 
+# And every task graded through the worker/judge split, for a reason that has
+# nothing to do with oracles: their arms were fixed by hand after emission and
+# `emit()` would put the defects back. Corpus edits went into each world arm's
+# `environment/plant/` (g2, g3, g6, g7, g9 -- a stray "Subject:" line in a mail
+# body, g3's invented "fail it out on the first"), not into
+# `out/<slug>/clues/plant-data`, which is what `write_plant` copies from. The
+# arms are updated by copying `_suites` into `tests/` only (see
+# tasks/grading-forgery-fix-handoff.md section 7).
+FROZEN |= {"g2", "g3", "g4", "g6", "g7", "g8", "g9", "g10", "g11"}
+
 # Slugs for the tasks phase 3 currently plants. A generated slug from the title
 # would do, but these are the names that will appear in every result table and
 # in `jobs/`, so the four in use are named by hand.
@@ -936,11 +946,21 @@ chmod 0700 /logs/verifier
 # A NON-split suite runs pytest as nobody FROM /tests and must keep it
 # group-readable (that path's in-process forgery is the separate,
 # provenance-mitigated case run_suites documents).
+#
+# Both halves FAIL CLOSED. A lock that did not take, or a task.json nobody could
+# read, used to print a warning and carry on -- and the second fell into the
+# branch below, opening every answer file to the grading group. No reward is
+# better than a reward the submission could have read the answers for.
 SUITE=$(python3 -c 'import json;print(json.load(open("/tests/task.json"))["suite"])' 2>/dev/null || echo "")
-if [ -n "$SUITE" ] && [ -f "/tests/$SUITE/probe.py" ] && [ -f "/tests/$SUITE/judge.py" ]; then
-  chown -R root:root /tests 2>/dev/null
-  chmod -R go-rwx /tests 2>/dev/null \
-    || echo "WARNING: could not lock /tests to root-only" >&2
+if [ -z "$SUITE" ] || [ ! -d "/tests/$SUITE" ]; then
+  echo "FATAL: cannot tell which suite grades this task from /tests/task.json; not grading" >&2
+  exit 1
+fi
+if [ -f "/tests/$SUITE/probe.py" ] && [ -f "/tests/$SUITE/judge.py" ]; then
+  if ! { chown -R root:root /tests && chmod -R go-rwx /tests; }; then
+    echo "FATAL: could not lock /tests to root-only; not grading" >&2
+    exit 1
+  fi
 else
   chgrp -R nogroup /tests 2>/dev/null && chmod -R g+rX,o-rwx /tests 2>/dev/null \
     || echo "WARNING: could not open /tests to the grading group" >&2
@@ -1137,7 +1157,8 @@ def main(argv: list[str] | None = None) -> int:
                          "the base differs, because Horizon cannot resolve a local tag.")
     ap.add_argument("--thaw", action="store_true",
                     help=f"regenerate a task listed in FROZEN ({', '.join(sorted(FROZEN))}) "
-                         "anyway. Overwrites its hand-written oracle with the stub.")
+                         "anyway. Rebuilds plant/ and tests/ from task_generator/out, undoing "
+                         "fixes made in the arms since.")
     ap.add_argument("--extra-tasks", default=None,
                     help="a JSON list of generated tasks (task_generator/"
                          "tasks.generated.json) to build alongside the "
@@ -1186,9 +1207,9 @@ def main(argv: list[str] | None = None) -> int:
     frozen = [t["_id"] for t in chosen if t["_id"] in FROZEN]
     if frozen and not args.thaw:
         print(f"refusing to regenerate {', '.join(frozen)}: frozen (see FROZEN).\n"
-              f"Emitting would overwrite a hand-written oracle with the stub and\n"
-              f"turn a 1.0 reference solution into a 0.0 one. Pass --thaw if that\n"
-              f"is genuinely what you want.", file=sys.stderr)
+              f"Emitting would rebuild plant/ from out/<slug>/clues/plant-data and\n"
+              f"undo the corpus fixes made in the arms since. Pass --thaw only after\n"
+              f"syncing those back.", file=sys.stderr)
         return 1
 
     made = []

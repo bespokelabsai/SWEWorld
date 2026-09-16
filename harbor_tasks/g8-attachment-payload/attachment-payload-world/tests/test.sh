@@ -31,10 +31,21 @@ chmod 0700 /logs/verifier
 # A NON-split suite runs pytest as nobody FROM /tests and must keep it
 # group-readable (that path's in-process forgery is the separate,
 # provenance-mitigated case run_suites documents).
+#
+# Both halves FAIL CLOSED. A lock that did not take, or a task.json nobody could
+# read, used to print a warning and carry on -- and the second fell into the
+# branch below, opening every answer file to the grading group. No reward is
+# better than a reward the submission could have read the answers for.
 SUITE=$(python3 -c 'import json;print(json.load(open("/tests/task.json"))["suite"])' 2>/dev/null || echo "")
-if [ -n "$SUITE" ] && [ -f "/tests/$SUITE/probe.py" ] && [ -f "/tests/$SUITE/judge.py" ]; then
-  chown -R root:root /tests 2>/dev/null
-  chmod -R go-rwx /tests 2>/dev/null     || echo "WARNING: could not lock /tests to root-only" >&2
+if [ -z "$SUITE" ] || [ ! -d "/tests/$SUITE" ]; then
+  echo "FATAL: cannot tell which suite grades this task from /tests/task.json; not grading" >&2
+  exit 1
+fi
+if [ -f "/tests/$SUITE/probe.py" ] && [ -f "/tests/$SUITE/judge.py" ]; then
+  if ! { chown -R root:root /tests && chmod -R go-rwx /tests; }; then
+    echo "FATAL: could not lock /tests to root-only; not grading" >&2
+    exit 1
+  fi
 else
   chgrp -R nogroup /tests 2>/dev/null && chmod -R g+rX,o-rwx /tests 2>/dev/null     || echo "WARNING: could not open /tests to the grading group" >&2
 fi
