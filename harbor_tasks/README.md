@@ -1,5 +1,9 @@
 # harbor_tasks
 
+> How these tasks are authored, and what each arm is for:
+> [`docs/task-generator-guide.html`](../docs/task-generator-guide.html) and
+> [`task_generator/README.md`](../task_generator/README.md).
+
 **Output, not source.** Every directory here is emitted by `task_generator/`, and
 the only things that are hand-maintained are the graders in `_suites/` and the
 base images in `_env/`. If you want to change what a task asks, change it in
@@ -35,6 +39,15 @@ g2-executor-output-cap/
                                         `cli.py answers`)
 ```
 
+Not every task has every piece of that. g1, g2 and g3 have no
+`-world-located-hosted` arm; g7–g11 have no per-task `README.md` (`cli.py answers`
+was never run for them); g12 and g13 are `fixtures/` only. `ls` the group before
+assuming an arm exists. g4 also carries a stray
+`g4-run-cache-identity/g4-run-cache-identity-world-hosted/` next to the correctly
+named `run-cache-identity-world-hosted/` — it is the one Horizon versions and
+rollouts were recorded against, and `tasks/rollout_analysis/targets.json` points
+at it, so it stays until those records are moved rather than being tidied away.
+
 The arms exist to decompose a low blind score, which on its own is ambiguous
 between three different failures. `-spec` asks whether the requirement can be
 implemented once stated; `-clues` whether it can be *inferred* from the raw
@@ -50,8 +63,17 @@ Shared, not per task:
 |---|---|
 | `_suites/` | the graders. One directory per live suite, plus `run_suites.py`, `score.py`, `provenance.py`, `conftest.py`, `harness.py` and `fakeapi.py`. Copied wholesale into every arm's `tests/` at build time, because Harbor copies `tests/` to `/tests` and only whole directories travel |
 | `_env/Dockerfile` | the `sweworld:repo-only-dev` base: repository and history, no corpus |
-| `_env/world-registry.Dockerfile` | the same world published to Horizon's registry, which the hosted arms pin by digest |
+| `_env/world-registry.Dockerfile` | the same world published to Horizon's registry, which the hosted arms pin by digest. It currently builds `FROM sweworld:0.4.8` |
 | `_loop/run.sh` | how a trial is launched; `task_generator/tg/trial.py` shells out to it |
+
+Which world an arm boots is pinned per arm, and the pins are not all the same.
+`build_tasks.py` emits `WORLD_IMAGE = sweworld:0.4.4` for the local world arms and
+`WORLD_REGISTRY` (`…/sweworld-batch-payload-plan@sha256:f34db483…`) for the hosted
+ones, and every task but g1 still carries those. g1's world arms were hand-moved
+to `sweworld:0.4.8` (its mail threads rewritten to read like mail) and its hosted
+arm to `@sha256:ed682229…`, which is why `world-registry.Dockerfile` now names
+0.4.8 while the emitter still says 0.4.4. `grep ^FROM` the arm's
+`environment/Dockerfile` for the truth; a rebuild would silently move g1 back.
 
 A suite that ships `probe.py` and `judge.py` alongside its tests is graded
 out-of-process: a worker running as `nobody` imports the submission and reports
@@ -59,6 +81,13 @@ observations, and a judge running as root decides pass/fail without ever
 importing agent code. That split is what closes the score forgery a uid could
 not — `run_suites.py`'s docstring has the whole story, including the measured
 `reward: 1.0` from a pristine tree that motivated it.
+
+The generated `tests/test.sh` fails closed around that split. If it cannot read
+the suite name from `/tests/task.json`, or cannot lock `/tests` to root-only for a
+split suite, it prints `FATAL: …; not grading` and exits 1. Both used to warn and
+carry on, and the first fell through to the branch that opens `/tests` to the
+grading group — every answer file readable by the submission. No reward beats a
+reward the agent could have read the answers for.
 
 ## Running
 
@@ -83,21 +112,38 @@ emit:
 
 ```bash
 python3 task_generator/build_tasks.py \
-    --extra-tasks task_generator/tasks.generated.json --pick g2 --world --hosted
+    --extra-tasks task_generator/tasks.generated.json --pick <id> --world --hosted   # refused for a FROZEN id
 python3 task_generator/build_located_arm.py executor-output-cap   # the -located arms
-python3 task_generator/clue_digest.py g2                          # read one clue dump
+python3 task_generator/clue_digest.py t1                          # a phase-3 plant's clue dump
 ```
 
-`build_tasks.py` is idempotent and rewrites each arm's `tests/` and
-`environment/plant/` **wholesale** — it `rmtree`s them first, so anything
-hand-edited in place is gone. It reads the plant for the `-clues` and `-world`
-arms, so **rebuild after every re-plant**: each `-clues` instruction carries an
-HTML comment stamping the plant it was built from, which makes a stale one
-visible rather than silent. Two build-time gates fail the run rather than emit a
-bad arm — an answer-key leak (a `settles` clause or subconclusion reaching the
-instruction, which would make it a reworded `-spec`) and a coverage gap (a fact
-no planted remark carries, which the arm could not pass for reasons that are not
-the agent's).
+**g1–g4 and g6–g11 are frozen.** `build_tasks.py` lists them in `FROZEN` and
+refuses to regenerate them (exit 1) unless given `--thaw`. Their arms were fixed
+by hand after emission: corpus edits went straight into each world arm's
+`environment/plant/` (a stray `Subject:` line in a mail body, g3's invented "fail
+it out on the first"), not into `task_generator/out/<slug>/clues/plant-data`,
+which is where a build copies `plant/` from. A rebuild would put the defects
+back. So those arms change in two narrow ways only: a grader change is made in
+`_suites/` and copied into each arm's `tests/` (and nothing else — see
+`tasks/grading-forgery-fix-handoff.md` §7); a corpus change is made in the arms'
+`plant/` by hand. Pass `--thaw` only after syncing those fixes back into `out/`.
+
+`clue_digest.py`'s command line takes a bare id and looks only in phase 3's
+`data_gen/build/clues.json`, whose ids are `t*` — `clue_digest.py g2` fails with
+"not in clues.json". Generated plants are matched by title (`load(id, title=…)`),
+so for a `g*` task read the rendered digest where it shipped: the `-clues` arm's
+`instruction.md`.
+
+For a task that is not frozen, `build_tasks.py` is idempotent and rewrites each
+arm's `tests/` and `environment/plant/` **wholesale** — it `rmtree`s them first,
+so anything hand-edited in place is gone. It reads the plant for the `-clues` and
+`-world` arms, so **rebuild after every re-plant**: each `-clues` instruction
+carries an HTML comment stamping the plant it was built from, which makes a stale
+one visible rather than silent. Two build-time gates fail the run rather than
+emit a bad arm — an answer-key leak (a `settles` clause or subconclusion reaching
+the instruction, which would make it a reworded `-spec`) and a coverage gap (a
+fact no planted remark carries, which the arm could not pass for reasons that are
+not the agent's).
 
 ## What is not here
 

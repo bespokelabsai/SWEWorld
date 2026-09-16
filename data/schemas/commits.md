@@ -7,6 +7,14 @@
 Conventions (timestamps, person references, unknown-key handling) are defined
 in [`identities.md`](identities.md).
 
+> **`data/commits.jsonl` is a placeholder** — a schema comment and no commits, so
+> `ingest_git.py` replays nothing. The world's real history is the actual curator
+> repository with its identities rewritten, and it arrives through
+> `data/history/` and `scripts/ingest_history.py` instead; see
+> [`history.md`](history.md). A synthetic replay could not reproduce the trees an
+> agent reads, the merge DAG, or the commit subjects that cite real pull request
+> numbers. This contract stays for a world with no real repository behind it.
+
 ---
 
 ## Shape

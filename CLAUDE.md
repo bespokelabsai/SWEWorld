@@ -13,38 +13,45 @@ Two halves that are easy to confuse:
 - **`data_gen/`** generates the *content* — the company, its people, and months of chat/docs/mail. Runs on your machine, costs LLM tokens, writes to `data_gen/build/`.
 - **`world/` + `scripts/`** build and populate the *container*. `data/` is the handoff between them.
 
-**`data/` holds a generated corpus** — 9,592 chat messages over 121 days, 114 wiki pages and 640 mails, installed from `data_gen/build/phase4/runs/corpus/` by `install_corpus.py` and baked into `sweworld:0.4.0`. `commits.jsonl` is still a placeholder; real history arrives through `data/history/` (exported from `curator/` by `make history`). `data/schemas/*.md` is the hand-written contract; everything else under `data/` is generated.
+Downstream of both, the tasks an agent is scored on:
+
+- **`task_generator/`** turns a hidden requirement into a Harbor task with several arms (blind, spec, clues, world, located, hosted) and a grader; `task_generator/README.md` is the manual, `docs/task-generator-guide.html` the illustrated overview.
+- **`harbor_tasks/`** is its *output* — only `_suites/` (the graders) is hand-maintained. Most built tasks are `FROZEN` in `build_tasks.py`: their plants were hand-fixed in place, so a rebuild needs `--thaw` and undoes that.
+- **`failed_tasks/`** holds the retired t-series tasks and the bracket experiment; **`tasks/`** holds working notes, `lessons.md`, and `rollout_analysis/` (reading eval transcripts against answer keys); **`jobs/`** is local trial output.
+
+**`data/` holds a generated corpus** — 9,802 chat messages over 161 days, 108 wiki pages and 93 mails (613 `.eml` files, one per mailbox copy). It was installed from `data_gen/build/phase4/runs/corpus/` by `install_corpus.py` and has since been pruned, planted and `check_corpus --fix`ed, so its counts no longer match the run's. The newest bake is `sweworld:0.4.11` (`:latest`); built tasks still pin older bakes (`WORLD_IMAGE` in `task_generator/build_tasks.py`), so check which one a task runs before reasoning about its corpus. `commits.jsonl` is still a placeholder; real history arrives through `data/history/` (exported from `curator/` by `make history`). `data/schemas/*.md` is the hand-written contract; everything else under `data/` is generated.
 
 ## Commands
 
 ```bash
 make build-image      # build sweworld:dev (services, no content)
-make run              # boot and publish every service
+make run              # boot and publish every service (:latest bake, else :dev)
 make verify           # acceptance checks against the running world
 make shell            # shell in as the agent (ubuntu, no sudo)
 make stop / logs / clean
 make bake-image TAG=0.1.0   # boot base, ingest data/, gate on verify, commit
 make push-image TAG=0.1.0 REGISTRY=…   # deliberately separate from bake
 make history          # on the HOST: rewrite curator/ history into data/history/
+make check-corpus     # on the HOST: does data/ agree with itself? (bake-image runs it first)
 ```
 
-`make history` is the only target that touches `curator/` — read-only — and the only one that runs outside a container. It writes `data/history/` (a git bundle plus the forge record), which `bake-image` later ingests.
+`make history` is the only target that touches `curator/` — read-only. It, `check-corpus`, and the corpus gate at the start of `bake-image` run on the host; everything else runs in a container. It writes `data/history/` (a git bundle plus the forge record), which `bake-image` later ingests.
 
-**`make run` gives you an empty world.** That is the base image by design and is the single most likely thing to confuse someone opening BookStack and finding nothing. Populate with `bake-image`, or ingest into a running container (see README — order matters: comments need pages to exist).
+**`make run` boots `sweworld:latest` if a bake exists, and falls back to the empty `:dev` base otherwise** (`RUN_IMAGE` in the Makefile, override with `make run RUN_IMAGE=sweworld:0.4.4`). The fallback is by design and is the single most likely thing to confuse someone opening BookStack and finding nothing. Populate with `bake-image`, or ingest into a running container (see README — order matters: comments need pages to exist). `make verify` fails an unbaked world on its corpus-count checks unless `WORLD_EXPECT_CORPUS=0`.
 
 Ports are overridable (`GITEA_PORT`, `MM_PORT`, `BOOKSTACK_PORT`, `ROUNDCUBE_PORT`, `PASS_PORT`, `HTTP_PORT`). Published and container-internal ports are deliberately identical — BookStack redirects to its `APP_URL`, so a mismatch half-works, which is worse than failing.
 
-There is **no test suite**. `make verify` (`world/bin/world-verify`) is the acceptance gate, and it checks the running world, not the code. `data_gen/` has no tests at all — verify changes there by running a phase with `--dry-run`.
+There is **no test suite**. `make verify` (`world/bin/world-verify`) is the acceptance gate, and it checks the running world, not the code. `data_gen/` has exactly one test, `python3 data_gen/test_clock.py` (no network, under a second), covering the clock join; otherwise verify changes there with phase 4's `--dry-run`. Phase 3's `--dry-run` is **not** free: it makes every model call and overwrites `clues.json` and `phase3_plant.md`.
 
 ## The generation pipeline (`data_gen/`)
 
-Two chains. `data_gen/README.md` documents only the first.
+Two chains, both documented in `data_gen/README.md` (and illustrated in `docs/data-gen-guide.html`).
 
 **Stages 0–2 — read the real repository.** Deterministic where possible; no invented technical shape.
 
 ```
 extract_repository_history.py → build/repository_history.json + repository_blobs/
-build_episodes.py             → build/engineering_episodes.json   (needs GITHUB_TOKEN)
+build_episodes.py             → build/engineering_episodes.json   (reads stage 0; no token)
 analyze_repository.py         → build/engineering_grounding.json
 make_report.py                → build/report.html
 ```
@@ -53,14 +60,14 @@ make_report.py                → build/report.html
 
 | Phase | Script | Writes | Answers |
 |---|---|---|---|
-| 1 | `phase1_company_grounding.py` | `company_grounding.json` | who works here, who owns what |
+| 1 | `phase1_company_grounding.py` | `company_grounding.json`, `data/identities.yaml`, `data/channels.yaml` | who works here, who owns what |
 | 2a | `phase2_timeline.py` | `timeline.json` | project state per day (pure arithmetic, no model) |
 | 2b | `phase2_workstreams.py` | `workstreams.json`, `artifacts.json` | threads of work, docs and mail they produce |
 | 2c | `phase2_days.py` | `days/state/*.json`, `days/specs/*.json` | one conversation spec per channel per day |
-| 3 | `phase3_plant.py` | `clues.json`, `phase3_plant.md`, rewrites `days/specs/` | hide requirements as scattered clues |
+| 3 | `phase3_plant.py` | `clues.json`, `phase3_plant.md`, `phase3_forge.json`, rewrites `days/specs/` | hide requirements as scattered clues |
 | 4 | `phase4_simulate.py` | `build/phase4/runs/<run>/` | the specs become actual messages |
 
-`repolib.py` is shared infrastructure: `rl.LLM` (a disk-cached Claude client), path constants, `Git`, logging (`rl.ok/warn/info/fail`). Every LLM response is cached in `data_gen/cache/llm/` keyed by model, effort, prompts and schema — re-running costs nothing and `--no-refresh` never opens a socket.
+`repolib.py` is shared infrastructure: `rl.LLM` (a disk-cached Claude client), path constants, `Git`, logging (`rl.ok/warn/info/fail`). Every LLM response is cached in `data_gen/cache/llm/` keyed by model, effort, prompts and schema — plus `answered_by: cli:<model>` on the CLI backend, so an answer from a different CLI model is not served as a hit — re-running costs nothing and `--no-refresh` never opens a socket.
 
 ### Phase 3 — the hidden-requirements planter
 
@@ -112,13 +119,13 @@ Keys are read from `.env` at the repo root or in `data_gen/` (see `rl.env_value`
 
 **Everything is expensive to regenerate.** Before re-running a phase, know what it overwrites: phase 3 rewrites *every* file in `days/specs/`, not just the days it touches. Back up `clues.json` and `days/specs/` before a re-plant.
 
-**Long runs need care.** A full phase-4 corpus run is tens of hours; a 3-day slice is ~20 minutes. Use `--dry-run` (writes the review document, spends nothing) to check wiring first. `build/phase4_context.md` (or `<run>/context.md`) shows *everything* a model will be told, so a conversation that comes out wrong is diagnosable there rather than by re-running.
+**Long runs need care.** A full phase-4 corpus run is tens of hours; a 3-day slice is ~20 minutes. Use phase 4's `--dry-run` (writes the review document, spends nothing) to check wiring first. `<run>/context.md` shows *everything* a model will be told, so a conversation that comes out wrong is diagnosable there rather than by re-running.
 
 **Comment style is load-bearing here.** Comments in this codebase explain *why*, usually by naming the failure that motivated the code — "a live run lost 17 of ~36 turns that way and still looked like it was working". Match that: a comment that restates what the line does adds nothing, and one that names the bug it prevents stops someone reintroducing it.
 
 ## Things that cost real debugging time
 
-- **`data/schemas/` is partly stale.** `identities.md` and `docs.md` still describe **Outline** and its OIDC authorship model; the world moved to BookStack. The root `.env` carries the matching fossils (`OUTLINE_*`, `MINIO_*`, `TRAEFIK_*`) which nothing in `world/`, `scripts/` or the Makefile reads. Trust `world/` and the ingest scripts over the schema prose where they disagree.
+- **The world moved from Outline to BookStack**, and `data/schemas/` described Outline and its OIDC authorship model for a long time after (`identities.md` and `docs.md` are now brought over; `history.md` covers `data/history/`). The root `.env` still carries the matching fossils (`OUTLINE_*`, `MINIO_*`, `TRAEFIK_*`) which nothing in `world/`, `scripts/` or the Makefile reads. Trust `world/` and the ingest scripts over the schema prose where they disagree.
 
 - **Personas were never told which pages existed.** `shared_ground` dropped the
   `status` phase 2 computes for every referenced doc (`written` / `planned`) and

@@ -1,14 +1,16 @@
 # Rollout analysis tooling
 
-What produced `tasks/g1-g11-lumen-rollout-analysis.md`: every lumen rollout of a task's
-world-hosted eval, read against that task's answer key, remark by remark. The unit of
+What produced `tasks/g1-g11-lumen-rollout-analysis.md` (every lumen rollout of each task's
+world-hosted eval) and `tasks/g9-meridian-rollout-analysis.md` (g9's world-hosted arm under
+meridian, targets key `g9-meridian`): rollouts read against the task's answer key, remark by
+remark. The unit of
 work is (transcript × answer-key remark), and **the readers decide; the scripts only count**.
 
 ## Stages
 
 | step | command | writes |
 |---|---|---|
-| 1. choose | edit `targets.json`: task id, version, eval id(s), arm, slug | — |
+| 1. choose | edit `targets.json`: task id, version, eval id(s), arm, slug, and `model` if not lumen | — |
 | 2. pull | `~/horizon_env/bin/python pull.py [g7 g9]` | `rollouts/<g>/`, `full/<g>/`, `manifest.json` |
 | 3. pre-pass | `python3 prepass.py [g7 g9]` | `prepass/<g>.json` and a pointer sheet per run in `prepass/<g>/` |
 | 4. read | one Sonnet subagent per rollout, prompt = `reader_instructions.md` + that run's paths | `readers/<g>/run<N>.json` + `.md` |
@@ -17,7 +19,13 @@ work is (transcript × answer-key remark), and **the readers decide; the scripts
 | 7. pool | `python3 synth.py` | `synth.md` |
 
 - **Pull.** `pull.py` fetches the full rollout record because `horizon rollouts pull`
-  truncates the grader trace at 2048 bytes.
+  truncates the grader trace at 2048 bytes. A target's `model` defaults to lumen; give a
+  second model its own key (`g9-meridian`) rather than a second eval under the same one,
+  since run numbers repeat across evals and would collide. The key's prefix before the
+  first `-` is the task, which is what the fact names key on.
+- **Graders differ.** The worker/judge suites emit `junit.xml`, not `ctrf.json`; the
+  judge's message is the whole trace. `prepass.grade()` reads both — without that the
+  pointer sheet says "no failing tests" next to a zeroed fact, which reads as a grader bug.
 - **Pre-pass.** It only *aims* the reading: it lists where each remark's exact rendered text
   first surfaces. It has false positives (it matched repo source once), and a remark that
   was re-wrapped on screen can be missed.
@@ -29,6 +37,13 @@ work is (transcript × answer-key remark), and **the readers decide; the scripts
   session cap.
 - **Check.** Never edit a reader's JSON to change a verdict; override it in `aggregate.py`
   with a comment naming the evidence.
+- **Pool — known bug, not fixed.** `synth.py` pools *every* `targets.json` key that has reader
+  output, so `g9-meridian` lands in the cross-task tables beside lumen's `g9` as if it were a
+  tenth task — a second model mixed into lumen's pooled rates. And `synth.load()` still filters
+  subscores with `rf"{g}\.r\d\."` on the full key, without the `task = g.split("-")[0]` fix
+  `aggregate.py` got: `g9-meridian.r1.` matches nothing, so meridian's facts come out empty and
+  its rows read as zero facts graded. Until that is fixed, read meridian from
+  `aggregate.py g9-meridian` and the meridian report, not from `synth.md`.
 
 ## Things that bit
 
@@ -39,23 +54,31 @@ work is (transcript × answer-key remark), and **the readers decide; the scripts
 - **A version folder can hold several evals.** g11 v7 had a 10/10-errored eval next to the
   target one, so filter by rollout id and not by folder.
 - **Readers can nest their data differently.** One reader put its clue rows under `clues`;
-  `readers/g6/run9.json` was merged back, and the original is kept as `.orig`.
+  `readers/g6/run9.json` was merged back (the original `.orig` is in git at d7edb71).
 - **Readers share the scratch directory.** Their temporary helper files collide, so tell
   them to use unique names. Their outputs are per-run and safe.
 - **Answer key newer than the served world.** The repo's key can be newer than the world a
   run was served (g7 v4, g6 v6). Readers judge against the transcript, and the difference
   goes in `notable`.
 
-## Swap done 2026-09-11: g7 → v5 eval 8deffce4, g9 → v8 eval 3b0b259f (old verdicts in `readers/_superseded/`)
+## History: the 2026-09-11 swaps (g7 → v5 eval 8deffce4, g9 → v8 eval 3b0b259f, then g3, g11)
+
+Record only. The `_superseded/` folders named below no longer exist; see the end of this
+section for where their contents went. At the time, g7's and g9's old verdicts were moved to
+`readers/_superseded/`.
 
 Later the same day g3 went the same way: v9 eval 035777f5, the rerun on the corpus and
-grader fix. Its v7 verdicts, pre-pass and pulled records are in `_superseded/g3_v7_evalce846459`
-under `readers/`, `prepass/`, `full/` and `rollouts/`. `synth.py` also gained a corpus-spread
+grader fix. Its v7 verdicts and pre-pass were archived as `_superseded/g3_v7_evalce846459` under
+`readers/` and `prepass/`. `synth.py` also gained a corpus-spread
 section (chat only / mostly chat / spread), which the report's top section reads from.
 
 g11 followed: v11 eval a8572080, the rerun on the G11-H fix (konrad's `rev2` now retracts both
-halves of his herring). Its v7 (eval 94bf8242) material is in `_superseded/g11_v7_eval94bf8242`,
+halves of his herring). Its v7 (eval 94bf8242) material was archived as `_superseded/g11_v7_eval94bf8242`,
 and the three run-1 overrides that belonged to that eval were removed from `aggregate.py`.
+
+All `_superseded/` archives were removed from the tree on 2026-09-15. The `readers/` and
+`prepass/` copies are recoverable with `git checkout d7edb71 -- <path>`; the `full/` and
+`rollouts/` copies were gitignored, so re-pull those evals by id with `pull.py` if needed.
 
 The checklist that was followed, kept for the next rerun:
 
@@ -72,7 +95,7 @@ Nidhi is rerunning **g7** and running **10 new g9 rollouts**. When they are done
 
 ## Shareable page
 
-`python3 build_page.py <out.html>` re-renders the report as the published page (charts read the
+`python3 build_page.py [out.html]` (default `rollout-audit.html` beside it) re-renders the report as the published page (charts read the
 report's own tables). Published 2026-09-11 at
 https://claude.ai/code/artifact/470d7a2e-e848-4b5f-a481-890cf3e8848c — republish to that URL
 (pass it as `url` from a new session) so the link stays the same.

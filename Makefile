@@ -119,7 +119,7 @@ bake-image: ## Boot base, ingest data/, gate on verify, commit $(IMAGE):TAG
 	@test -n "$(TAG)" || { echo "!! bake-image: TAG is required, e.g. make bake-image TAG=0.1.0"; exit 1; }
 	@echo ">> [bake] TAG=$(TAG) SOURCE=$(RELEASE_SOURCE) RUNTIME=$(RELEASE_RUNTIME)"
 	@# GATE ONE, before a container is even started: does the corpus agree with
-	@# itself? A bake takes twenty minutes and ~3GB, and the contradictions this
+	@# itself? A bake takes twenty minutes and ~7GB, and the contradictions this
 	@# catches are invisible to world-verify, which counts rows. sweworld:0.4.9
 	@# shipped 175 of them. Bypass with CORPUS_CHECK=0 only to bake a corpus you
 	@# know is mid-repair.

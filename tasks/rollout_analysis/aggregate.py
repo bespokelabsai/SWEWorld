@@ -14,8 +14,8 @@ S = os.path.dirname(os.path.abspath(__file__))
 OVERRIDES = {
     # g7's three overrides (run 4 borderline order, run 10 defect A) belonged to eval 94bf8242,
     # superseded 2026-09-11 by eval 8deffce4 (v5), which reuses the same run numbers; they
-    # were removed so they cannot land on the new runs. The old verdicts are archived in
-    # readers/_superseded/g7_v4_eval94bf8242/.
+    # were removed so they cannot land on the new runs. The old verdicts were archived in
+    # readers/_superseded/g7_v4_eval94bf8242/, deleted 2026-09-15; recover it from git at d7edb71.
     # write_sidecar's argument order is graded but stated nowhere the world serves: the only
     # clause pinning it ("you hand it the work dir and the ledger", g7.r1.say20) exists in the
     # plant's gist and was dropped when phase 4 rendered the exchange (0 hits in the served
@@ -38,7 +38,8 @@ OVERRIDES = {
     # g11's three run-1 overrides (herring_followed, the half-reversed konrad herring) belonged to
     # eval 94bf8242 (v7), superseded 2026-09-11 by the rerun on the G11-H fix, which reuses the
     # same run numbers; they were removed so they cannot land on the new run 1. The old verdicts
-    # are archived in readers/_superseded/g11_v7_eval94bf8242/.
+    # were archived in readers/_superseded/g11_v7_eval94bf8242/, deleted 2026-09-15; recover it
+    # from git at d7edb71.
     # g11 v11 run 7: reader said not_found, yet its own herring row has konrad's herring seen,
     # rev2 never seen, "believed: herring", code followed — Analysis L3640 "warmup strict
     # `step < warmup_steps` ... confirmed", shipped with no effective_warmup clamp.
@@ -86,6 +87,11 @@ def pct(n, d):
 
 
 def main(g):
+    # A target key can name a model as well as a task: "g9-meridian" is g9 read under a
+    # second model, a different eval with its own run numbers. The FACTS are still the
+    # task's ("g9.r1.rule"), so they key on `task`; OVERRIDES and NEVER_SHIPPED stay on
+    # the folder key, or one eval's hand-checked overrule would land on the other's runs.
+    task = g.split("-")[0]
     pre = json.load(open(f"{S}/prepass/{g}.json"))
     meta = {r["id"]: r for r in pre["remarks"]}
     runs = []
@@ -95,7 +101,7 @@ def main(g):
         # Horizon's grade is the truth for what passed; a reader's copy of it drifted
         # once already (g7 counted r1.failure_behavior 3/10 against 6 recorded losses)
         rid_full = next(k for k in pre["runs"] if k.startswith(str(d["rollout_id"])[:8]))
-        graded = {k: v for k, v in pre["runs"][rid_full]["grade"]["subscores"].items() if re.match(rf"{g}\.r\d\.", k)}
+        graded = {k: v for k, v in pre["runs"][rid_full]["grade"]["subscores"].items() if re.match(rf"{task}\.r\d\.", k)}
         fact_fixes += [(d["run"], k, d["facts"].get(k), v) for k, v in graded.items() if d["facts"].get(k) != v]
         d["facts"] = graded
         for l in d.get("lost_facts", []):
@@ -116,7 +122,7 @@ def main(g):
          f"{[d['run'] for d in runs if d['_infra']]})", ""]
 
     # facts
-    facts = sorted({k for d in runs for k in d["facts"] if re.match(rf"{g}\.r\d\.", k)})
+    facts = sorted({k for d in runs for k in d["facts"] if re.match(rf"{task}\.r\d\.", k)})
     L += ["## per-fact pass rate (all runs)", "", "| fact | passed | lost causes |", "|---|---|---|"]
     for k in facts:
         p = sum(d["facts"].get(k) == 1 for d in runs)
@@ -157,7 +163,7 @@ def main(g):
     hs = collections.defaultdict(list)
     # readers append a description to the id ("g7.r1.x (dermot #pipeline ...)"), which
     # split one herring across several rows
-    hid = lambda s: (re.search(rf"{g}\.r\d\.[\w-]+", str(s)) or re.search(r"\S+", str(s))).group(0)
+    hid = lambda s: (re.search(rf"{task}\.r\d\.[\w-]+", str(s)) or re.search(r"\S+", str(s))).group(0)
     for d in live:
         for h in d.get("herrings", []):
             hs[(hid(h.get("herring")), hid(h.get("reversal")))].append(h)

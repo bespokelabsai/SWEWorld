@@ -1,3 +1,11 @@
+> **Historical — superseded.** A snapshot from 2026-09-04, kept for the record. The
+> status table and resume commands below are overtaken: g7–g11 have since been
+> planted, emitted and given world arms, their suites were ported to the worker/judge
+> split, `cli horizon` now refuses those suites, and `build_tasks.py` treats them as
+> `FROZEN`. Do not resume from here. Current state and commands:
+> [`task_generator/README.md`](../README.md) and
+> [`harbor_tasks/README.md`](../../harbor_tasks/README.md).
+
 # Phase C handoff — five plants, two stages left
 
 **Written 2026-09-04 22:35 UTC.** Everything stopped on one external cause: the

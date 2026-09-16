@@ -1,5 +1,14 @@
 # The overnight loop
 
+> **Historical.** The loop below ran the hand-written `t1`–`t4` groups, which have
+> since moved to `failed_tasks/`. `run.sh` resolves its task as
+> `harbor_tasks/$GROUP/$VARIANT`, so it cannot launch them from there — what
+> still uses `run.sh` is `task_generator/tg/trial.py`, against the `g*` groups.
+> For how tasks are built and run now, see
+> [`task_generator/README.md`](../../task_generator/README.md) and
+> [`harbor_tasks/README.md`](../README.md). The spec-must-reach-1.0 discipline
+> described here still holds; the task list does not.
+
 Per task, in order t1 → t2 → t3 → t4:
 
 1. Run `<slug>-spec` — the arm with both hidden requirements written into the
@@ -25,5 +34,12 @@ pass every test** (a fix that breaks satisfiability is worse than the bug) and
 pristine must still fail. Fixes that make a fact non-discriminating are recorded
 in `failed_tasks/_suites/bracket_matrix.txt`, never reverted to keep a number alive.
 
-`run.sh` passes `CLAUDE_CODE_OAUTH_TOKEN` and nothing else. `ANTHROPIC_API_KEY`
-lives in `.env` for phase-3 one-shots and must not reach an agent turn.
+`run.sh` passes the agent `CLAUDE_CODE_OAUTH_TOKEN` and sets `CLAUDE_FORCE_OAUTH=1`,
+and unsets `ANTHROPIC_API_KEY` after sourcing `.env`. Naming only the token was not
+enough: harbor's claude-code adapter reads the key from its own environment and the
+CLI prefers it, so the first t12 trial billed the key with the subscription token
+sitting unused beside it. `ANTHROPIC_API_KEY` lives in `.env` for phase-3 one-shots
+and must not reach an agent turn. `USE_PERSONAL_TOKEN=1` opts into a second
+subscription, swapping `CLAUDE_CODE_PERSONAL_OAUTH_TOKEN` in as the OAuth token
+(refused with exit 5 if that is not in `.env`), so a day of trials does not lock
+interactive work out of the default account's session limit.

@@ -37,7 +37,7 @@ Everything is plain HTTP behind one nginx vhost ingress on port 80.
 ```bash
 make build-image      # build sweworld:dev
 make run              # boot it and publish every service
-make verify           # acceptance checks (33 at last count, incl. corpus content)
+make verify           # acceptance checks (33 on a baked world, incl. corpus content)
 make shell            # a shell as the agent (ubuntu, no sudo)
 make stop             # tear it down
 ```
@@ -48,7 +48,10 @@ the empty `sweworld:dev` when nothing has been baked. Name another with
 
 **A world with no bake is an empty world** — services up, no content. That is
 the base image by design, and it is the single thing most likely to confuse
-someone opening BookStack for the first time and finding nothing there.
+someone opening BookStack for the first time and finding nothing there. It is
+also why `make verify` fails on one: the corpus checks (pages, posts, mail,
+forge issues) expect a bake, and pass on an empty world only when run with
+`WORLD_EXPECT_CORPUS=0`.
 
 ## From a phase-4 run to a populated world
 
@@ -81,7 +84,8 @@ Things worth knowing before you do it:
   twice *and* nests `scripts/` inside itself, so the run silently executes the
   previous bake's code. The guard in the recipe stops you; heed it rather than
   working around it.
-- **Each bake is about 7GB.** Check `df -h /` first. Old tags are worth keeping
+- **Each bake is about 7GB on disk** (~2GB of it image content, per
+  `docker images sweworld`). Check `df -h /` first. Old tags are worth keeping
   for rollback, but they add up.
 - **Nothing lives in a volume.** The data is in the image, which is exactly why
   every container started from that tag has it, and equally why replacing the
@@ -90,10 +94,15 @@ Things worth knowing before you do it:
 
 ### Making task images use the new world
 
-`harbor_tasks/_env/Dockerfile` pins its base **inline**, and today that is
-`sweworld:0.3.1-forge` — repository and history, deliberately no corpus. A new
-bake does not reach it. To build tasks on the corpus, edit that `FROM` line to
-the tag you baked.
+Only the world arms boot the corpus, and each pins its base **inline** in its
+own `environment/Dockerfile`. `task_generator/build_tasks.py` writes that line
+from `WORLD_IMAGE`, today `sweworld:0.4.4`; g1's world arms were pinned by hand
+to `sweworld:0.4.8`. Every other arm builds on `sweworld:repo-only-dev`, which
+`harbor_tasks/_env/Dockerfile` makes from `sweworld:0.3.1-forge` — repository
+and history, deliberately no corpus — which no bake should reach. To move
+tasks to the tag you baked, change `WORLD_IMAGE` and re-emit, or edit the
+`FROM` line of an arm already emitted. The hosted arms pin a registry digest
+instead (`WORLD_REGISTRY`), which a local bake never changes.
 
 Spell the tag out literally. Do not reintroduce `ARG WORLD_IMAGE` +
 `FROM ${WORLD_IMAGE}`: Horizon rewrites `FROM` lines through a pull-through
@@ -110,6 +119,8 @@ everything a second time), so this is a one-shot on a fresh container:
 docker cp data sweworld:/opt/world-state/data
 docker cp scripts sweworld:/opt/world-state/scripts
 docker exec sweworld bash -c 'cd /opt/world-state && \
+  python3 scripts/ingest_history.py  --data-dir data && \
+  python3 scripts/ingest_forge.py    --data-dir data && \
   python3 scripts/ingest_git.py      --data-dir data && \
   python3 scripts/ingest_docs.py     --data-dir data && \
   python3 scripts/ingest_comments.py --data-dir data && \
@@ -117,21 +128,23 @@ docker exec sweworld bash -c 'cd /opt/world-state && \
   python3 scripts/ingest_mail.py     --data-dir data'
 ```
 
-Order matters: comments need the pages to exist, and `ingest_docs.py` hands over
-the page ids in `.docs-manifest.json`.
+Order matters, and it is the order `bake-image` uses: pull requests need the
+commits `ingest_history.py` pushed and the accounts it created, comments need
+the pages to exist, and `ingest_docs.py` hands over the page ids in
+`.docs-manifest.json`.
 
 ### Checking the corpus before you bake it
 
 ```bash
-make check-corpus                          # both of the below
+make check-corpus                          # the first and third of these
 python3 scripts/check_corpus.py            # does the corpus agree with itself?
 python3 scripts/check_corpus.py --fix      # retime pages and mail to agree with chat
 python3 scripts/check_corpus.py --plants   # has an edit broken a planted task?
 ```
 
-`bake-image` runs the first two before it starts a container, because a bake is
-twenty minutes and ~3GB and none of what they catch is visible to `world-verify`,
-which counts rows. `CORPUS_CHECK=0` bypasses it for a corpus you know is
+`bake-image` runs the same two checks (never `--fix`, which writes to `data/`)
+before it starts a container, because a bake is twenty minutes and ~7GB and
+none of what they catch is visible to `world-verify`, which counts rows. `CORPUS_CHECK=0` bypasses it for a corpus you know is
 mid-repair.
 
 The ingest scripts validate each file against its schema and `world-verify`
@@ -147,13 +160,14 @@ page's `created_at`, and each announcement mail's `Date`, to the value that
 contradicts the fewest remarks. **Artifacts move and chat does not** — a page
 carries one timestamp and no anchor, while 287 planted clues anchor to a chat
 message by `"HH:MM author"`, so retiming a message detaches a clue silently and
-rewording one cannot. On the corpus as generated, `--fix` takes 173 findings to
-55; the 55 that remain each need a wording change and are reported line by line.
+rewording one cannot. On the corpus as first generated, `--fix` took 173 findings
+to 55, and each of those 55 needed a wording change, reported line by line. The
+corpus now in `data/` checks clean.
 
 `--plants` is the separate question of whether an edit has desynchronised a
 planted task, and it is the one to run after touching `data/` by hand:
 `inject.located()` substring-searches the corpus for the plant's own words, and
-`harbor_tasks/.located-corpora/` caches the old bodies, so a broken plant still
+`task_generator/.located-corpora/` caches the old bodies, so a broken plant still
 builds a healthy-looking artifact.
 
 ### Why the corpus drifted, and what stops it now
@@ -176,7 +190,8 @@ engine's per-turn cursor in a separately simulated channel-day. That is why all
 108 pages landed between 09:14 and 10:38 on thirteen distinct values, and why a
 09:00 opener could announce a 09:14 file. `Clock.set_now()` and
 `data_gen/patches/sim_engine-pin-app-clock.patch` join them: a tool call is now
-stamped inside the turn that made it.
+stamped from the turn that made it, `AUTHORING_LAG` (12 minutes) before it, so a
+page lands before the message announcing it rather than the second before.
 
 `--fix` and `check_corpus.py` stay as the net, because neither change can force
 a persona to write the page before announcing it — but they are the net now,
@@ -250,19 +265,21 @@ One identity is admin on every service:
 Gitea and Mattermost want the **username**; BookStack and Roundcube want the
 **email**. That difference is the usual reason a login "does not work".
 
-The personas exist as accounts too, but only for mail — they never sign in to
-anything else, and their BookStack users carry no password at all, because they
-exist purely so authorship has something to point at:
+The personas in `data/identities.yaml` exist as accounts too, so authorship has
+something to point at. Only their Gitea and mail accounts carry a password;
+their BookStack users have none at all, and their Mattermost users come from
+the bulk import. The login is the persona `id` for Gitea and the email for mail:
 
-| Persona | Mailbox | Password |
+| Persona | Gitea user | Mailbox |
 |---|---|---|
-| alice | `alice@world.local` | `persona` |
-| bob | `bob@world.local` | `persona` |
-| carol | `carol@world.local` | `persona` |
+| dario | `dario` | `dario@world.local` |
+| gideon | `gideon` | `gideon@world.local` |
+| konrad | `konrad` | `konrad@world.local` |
 
-The persona password comes from `MAIL_PERSONA_PASSWORD` in `.env` and defaults to
-`persona`; the admin's comes from `WORLD_ADMIN_PASSWORD`. Change either there,
-not here.
+The persona password comes from `MAIL_PERSONA_PASSWORD` and defaults to
+`persona-world` (Gitea refuses anything under eight characters). A bake copies
+no `.env` into the container, so a baked world has the default; the admin's
+comes from `WORLD_ADMIN_PASSWORD` the same way.
 
 **The admin mailbox receives a copy of every message in the world**, so signing
 in to Roundcube as `worldadmin` shows the whole corpus rather than an empty
@@ -423,13 +440,16 @@ world/
   ci-templates/           .gitea/workflows/ci.yml seeded into repos
   passstore/              the credentials page
 vendor/                   frozen third-party source (curator), never cloned
-scripts/                  ingestion: git, docs, comments, chat, mail
-                          (+ worldlib, check_corpus)
+scripts/                  ingestion: history, forge, git, docs, comments,
+                          chat, mail (+ worldlib, check_corpus, replace_mail)
 data/schemas/             the data contracts a generation step must satisfy
-data/                     the corpus those contracts describe — 9.6k chat
-                          messages, 108 wiki pages, 613 mails, and the
-                          rewritten curator history under history/
-Makefile                  build-image · run · verify · bake-image · push-image
+data/                     the corpus those contracts describe — 9.8k chat
+                          messages, 108 wiki pages, 93 mails (613 .eml files,
+                          one per mailbox copy), and the rewritten curator
+                          history under history/
+Makefile                  build-image · run · verify · shell · logs · stop ·
+                          check-corpus · history · bake-image · push-image ·
+                          clean
 
 data_gen/                 generates the corpus: stages 0-2 read the real
                           curator repository, phases 1-4 build the company,
@@ -460,6 +480,10 @@ make push-image TAG=0.1.0  # tag into the registry and push
 
 ## Status
 
-- Image builds clean; `world-verify` passes 24/24 from a fresh build.
+- Image builds clean. `world-verify` runs 33 checks and a bake commits only if
+  all pass; on a fresh build the four corpus checks fail by design unless
+  `WORLD_EXPECT_CORPUS=0`.
 - Agent push → CI → deploy → health check → live, verified end to end.
-- `data/schemas/` defines the contracts; `data/` holds placeholder content.
+- `data/schemas/` defines the contracts; `data/` holds the generated corpus.
+  Only `commits.jsonl` is still a placeholder — real history comes from
+  `data/history/`.

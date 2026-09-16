@@ -24,7 +24,7 @@ Nothing is written until the tree is proved solvable: the leaves go back to a
 model with the answer removed, and every part of the requirement has to be
 recoverable from them alone.
 
-    phase3_plant.py --dry-run     # decompose, place, prove, report; write nothing
+    phase3_plant.py --dry-run     # decompose, place, prove, report (spends; overwrites clues.json)
     phase3_plant.py --no-refresh  # replay from cache, free
     phase3_plant.py               # plant
 

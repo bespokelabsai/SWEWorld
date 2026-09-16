@@ -3,7 +3,7 @@
 For each task: parse the answer key's "Where every remark is" section into a remark
 table, parse each transcript into numbered turns, and list where each remark's exact
 rendered text surfaces (turn, transcript line, the command that surfaced it).
-Also writes each run's graded outcome: fact subscores plus the full failing ctrf traces.
+Also writes each run's graded outcome: fact subscores plus the full failing ctrf/junit traces.
 """
 import codecs, json, os, re, sys
 
@@ -135,6 +135,16 @@ def grade(g, rid):
         for t in ct["results"]["tests"]:
             if t["status"] != "passed":
                 out["failed_tests"].append({k: v for k, v in t.items() if k not in ("duration", "start", "stop", "retries")})
+        return out
+    # The worker/judge suites emit junit.xml instead of ctrf.json, and the judge's
+    # message IS the whole trace (got != want). Without this the pointer sheet said
+    # "no failing tests" next to a zeroed fact, which reads as a grader bug.
+    for m in re.finditer(r'<testcase classname="([^"]+)" name="([^"]+)"><failure message="[^"]*">(.*?)</failure>',
+                         fb.get("junit.xml") or "", re.S):
+        trace = m.group(3)
+        for ent, ch in (("&quot;", '"'), ("&lt;", "<"), ("&gt;", ">"), ("&amp;", "&")):
+            trace = trace.replace(ent, ch)
+        out["failed_tests"].append({"name": f"{m.group(1)}::{m.group(2)}", "trace": trace})
     return out
 
 
@@ -158,7 +168,7 @@ def main(tasks):
                  f"transcript: {run['transcript']}  ({run['steps']} agent steps)", "",
                  "## graded facts", ""]
             L += [f"- {k}: {v}" for k, v in run["grade"]["subscores"].items()]
-            L += ["", "## failing tests (full ctrf trace)", ""]
+            L += ["", "## failing tests (full ctrf/junit trace)", ""]
             for t in run["grade"]["failed_tests"]:
                 L += [f"### {t.get('name')}", "```", str(t.get("trace") or t.get("message") or t)[:6000], "```"]
             L += ["", "## where each answer-key remark's exact text surfaces (pointer only — verify by reading)", "",

@@ -30,7 +30,12 @@ prompt) holds the raw tool calls.
   can be newer than the world this rollout ran against** (corpus fixes are sometimes made locally
   after an eval). If the key's quote of a remark differs from what the transcript shows the world
   served, judge the agent against what it actually saw, and record the difference in `notable`.
-- Grader (test_r1.py / test_r2.py) and reference solution (oracle.patch).
+- Grader (test_r1.py / test_r2.py) and reference solution (oracle.patch). For a worker/judge
+  suite (one with probe.py + judge.py, which is every g1–g11 suite) `judge.py` is what decided
+  pass/fail, and for g1, g4 and g7 its expected values are derived from a per-run seed
+  (`fixture_spec.derive(seed)`) — so a literal in test_r*.py is NOT necessarily what this run
+  was checked against. Take the failing assertion's two sides from the grade's junit/judge trace
+  in the full record, and use test_r*.py only for what a fact means.
 - Plant record (per remark `settles`, `forbidden_terms`, `carrier`).
 
 ## What to do

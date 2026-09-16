@@ -1,5 +1,9 @@
 # fleet — five tasks at once
 
+> New to the pipeline this drives? Read
+> [`docs/task-generator-guide.html`](../../docs/task-generator-guide.html) or the "In brief"
+> section of [`task_generator/README.md`](../README.md) first.
+
 `task_generator/` builds one task per hand-walked pass through ~20 stages. This
 walks five at a time. It is **additive and droppable**: it drives `cli.py` as a
 subprocess exactly as a person would type it, it edits no file outside this

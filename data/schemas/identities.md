@@ -16,7 +16,7 @@ These apply to **all** schemas in this directory.
 
 | Rule | Detail |
 |---|---|
-| Timestamps | ISO-8601 with an explicit offset: `2026-03-14T09:22:31Z` or `...+01:00`. Ingestion converts to whatever each service wants (Mattermost needs epoch **milliseconds**, Outline needs a `Date`, git needs its own format). Never emit bare local times. |
+| Timestamps | ISO-8601 with an explicit offset: `2026-03-14T09:22:31Z` or `...+01:00`. Ingestion converts to whatever each service wants (Mattermost needs epoch **milliseconds**, BookStack needs a MySQL `DATETIME` in UTC, git needs its own format). Never emit bare local times. |
 | Person references | Always the persona `id` (`dario`), never a display name or email. |
 | Encoding | UTF-8, LF line endings. |
 | Ordering | Files may be in any order. Ingestion sorts by timestamp where order matters. |
@@ -49,7 +49,7 @@ personas:
 | `personas[].email` | string | yes | — | Must be `<local>@<domain>`. One address per persona across git, chat, and mail. |
 | `personas[].role` | string | no | `""` | Job title. Becomes Mattermost `position`. Flavour only. |
 | `personas[].timezone` | string | no | `UTC` | IANA name. Advisory — used by generation to pick plausible working hours. |
-| `personas[].password` | string | no | `$MAIL_PERSONA_PASSWORD` | Login password for this persona across Gitea and mail. See *Authorship* below. |
+| `personas[].password` | string | no | `$MAIL_PERSONA_PASSWORD` | Login password for this persona's Gitea account and mailbox — nothing else has one. See *Authorship* below. |
 | `personas[].gitea_username` | string | no | `id` | Override only if the id is not a valid Gitea username. |
 | `personas[].mattermost_username` | string | no | `id` | Override only if the id collides with a Mattermost reserved name. |
 | `personas[].git_author` | string | no | `{display_name} <{email}>` | Exact author string written into commits. Override for personas whose historical commits used a different address. |
@@ -64,7 +64,7 @@ a service forces your hand.
 ## The admin persona
 
 The agent's own account is defined in `.env` as `WORLD_ADMIN_*`, **not** here.
-`bootstrap.sh` creates it before any data exists.
+`world/bootstrap/` creates it at image build, before any data exists.
 
 You may still list it in `personas` (conventionally `id: worldadmin`) so it can
 author content. Ingestion will not recreate it or change its password — it
@@ -79,28 +79,29 @@ biggest constraint on the whole pipeline:
 
 | Service | How authorship is set | Needs persona password? |
 |---|---|---|
-| Gitea | The commit's author string. Any value, no account needed. | No |
-| Mattermost | The `user` field in the bulk import. The importer creates users. | No |
-| Outline | **Whoever owns the API token.** There is no author field. | **Yes** |
+| Gitea | Commits: the author map `ingest_history.py --export` writes. Issues, PRs, reviews: created by the admin token with a `Sudo:` header, then backdated in SQLite. | Yes, to **create** the account — Gitea will not make one without it |
+| Mattermost | The `user` field in the bulk import. The importer creates users, with no password. | No |
+| BookStack | **Whoever owns the API token.** Pages are created as the admin, then `ingest_docs.py` rewrites the author and dates in MariaDB. | No |
 | Mail | The `From:` header, plus which mailbox it is APPENDed into. | Yes, to log in as them |
 
-Outline's `documents.create` accepts `createdAt` but has no `createdBy`. To
-attribute a document to Dario, the script must hold *Dario's* token — which
-means logging into Outline as Dario via Gitea OIDC, which means Dario needs a
-Gitea password. That is what `password` is for.
+BookStack's API stamps `now` and the token owner on everything, with no author
+field. Rather than log in as each persona, `ingest_docs.py` inserts a user row
+per persona straight into MariaDB with an **empty password** — an account that
+can never sign in and exists only so a byline has something to point at — and
+then corrects `entities`, `comments`, `page_revisions` and `activities` to that
+user and the document's own timestamp. `ingest_comments.py` shares the same
+resolver, so a page and its comments are never attributed differently.
 
 If `password` is omitted, ingestion falls back to `MAIL_PERSONA_PASSWORD` from
-`.env`, which is uniform across personas by design — these are disposable local
-credentials, and keeping them out of the data file avoids per-user secrets in
-version control.
+`.env` (default `persona-world`), which is uniform across personas by design —
+these are disposable local credentials, and keeping them out of the data file
+avoids per-user secrets in version control. It must be at least eight
+characters: Gitea rejects a shorter one as `PasswordIsRequired`, which sends you
+looking for a missing field. A bake copies no `.env` into the container, so a
+baked world carries the default.
 
-If you do not care about per-author attribution in Outline, run
-`ingest_docs.py --single-author`; every document is then created by the admin
-token and no persona passwords are needed.
-
-> A persona's Outline account does not exist until their **first successful
-> OIDC login**. Outline provisions accounts on login and offers no API to
-> pre-create them, so `ingest_docs.py` performs that login on demand.
+If you do not care about per-author attribution in BookStack, run
+`ingest_docs.py --single-author`; every document then stays owned by the admin.
 
 ---
 
@@ -152,13 +153,13 @@ Ingestion never mutates this file.
 
 ## Mapping to each service
 
-| Field | Gitea | Mattermost | Outline | Mail |
+| Field | Gitea | Mattermost | BookStack | Mail |
 |---|---|---|---|---|
 | `id` | — | — | — | — |
-| `display_name` | `full_name` | `first_name` + `last_name` | profile name via OIDC | `From:` display name |
-| `email` | `email` | `email` | `email` via OIDC claim | mailbox address |
-| `gitea_username` | `username` | — | `preferred_username` claim | — |
+| `display_name` | `full_name` | `first_name` + `last_name` | `users.name` | `From:` display name |
+| `email` | `email` | `email` | `users.email` (the lookup key) | mailbox address |
+| `gitea_username` | `username` | — | — | — |
 | `mattermost_username` | — | `username` | — | — |
 | `role` | — | `position` | — | — |
-| `password` | login password | — | (via Gitea OIDC) | IMAP/SMTP password |
-| `is_admin` | `--admin` | `roles: system_user system_admin` | — | — |
+| `password` | login password | — | none; the row has an empty password | IMAP/SMTP password |
+| `is_admin` | not created — the bootstrap account is reused | `roles: system_user system_admin` | — | — |
