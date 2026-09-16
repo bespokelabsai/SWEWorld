@@ -45,6 +45,14 @@ def ok(text: str) -> dict:
     return {"content": [{"type": "text", "text": text}]}
 
 
+# How long before talking about a page somebody actually wrote it. A tool call
+# and the message about it happen in the same turn, and stamping them a second
+# apart says a person finished a design doc and switched apps inside a second.
+# This is a plausible authoring gap, not a measurement: nothing downstream wants
+# the exact minute, and everything downstream wants the order to be possible.
+AUTHORING_LAG = dt.timedelta(minutes=12)
+
+
 class Clock:
     """What the stores stamp things with — the engine's turn cursor when it has one.
 
@@ -72,11 +80,14 @@ class Clock:
     def __init__(self, start: dt.datetime | None = None):
         self.at = start
         self._turn: dt.datetime | None = None
+        self._day: dt.datetime | None = start
+        self._nth = 0
 
     def set_day(self, when: dt.datetime) -> None:
         # A new day drops the turn cursor: carrying yesterday's last turn into
         # today would stamp the morning's first page with last night's time.
         self.at = when
+        self._day = when
         self._turn = None
 
     def set_now(self, when: dt.datetime) -> None:
@@ -84,15 +95,23 @@ class Clock:
         if when.tzinfo is None:
             when = when.replace(tzinfo=UTC)
         self._turn = when
+        self._nth = 0
         self.at = when
 
     def stamp(self) -> dt.datetime:
         if self._turn is not None:
-            # Seconds, not the seven-minute stride: a persona that writes a page
-            # and mails about it in one turn needs two ordered stamps, and both
-            # belong inside the turn that made them.
-            self._turn += dt.timedelta(seconds=1)
-            self.at = self._turn
+            # Written over the preceding quarter hour, not in the second before
+            # speaking about it. Each further write in the same turn is a minute
+            # later than the last, so two artifacts keep their order and both
+            # still land before the message that mentions them.
+            self._nth += 1
+            when = self._turn - AUTHORING_LAG + dt.timedelta(minutes=self._nth - 1)
+            if self._day is not None and when < self._day:
+                # An early-morning turn would otherwise back-date the page into
+                # yesterday evening. The day it was written on is the part that
+                # has to be right.
+                when = self._day + dt.timedelta(minutes=self._nth - 1)
+            self.at = min(when, self._turn)
             return self.at
         self.at = (self.at or dt.datetime.now(UTC)) + dt.timedelta(minutes=7)
         return self.at

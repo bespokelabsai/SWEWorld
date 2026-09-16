@@ -35,6 +35,7 @@ import argparse
 import collections
 import datetime as dt
 import email.parser
+import hashlib
 import json
 import re
 import subprocess
@@ -105,6 +106,13 @@ WEEK_START = re.compile(r"[Ww]eek of ([A-Z][a-z]{2})\w*\s+(\d{1,2})")
 MONTHS = {m: i + 1 for i, m in enumerate(
     "jan feb mar apr may jun jul aug sep oct nov dec".split())}
 WEEKLY_OFFSET_DAYS = (0, 6)
+
+# How long before talking about a page somebody actually wrote it. Ordering is
+# what the checks enforce, because ordering is what is POSSIBLE; this is what is
+# plausible, and it is only ever used by --fix. Landing a page on the exact
+# second of the remark announcing it satisfies every check and still says a
+# person finished a postmortem and posted about it in the same instant.
+AUTHORING_LAG = dt.timedelta(minutes=12)
 
 
 def flat(text: str) -> str:
@@ -541,6 +549,37 @@ def best_created_at(page: dict, claims: list[tuple[dict, bool]], ceiling: str | 
                                    - dt.datetime.fromisoformat(current)).total_seconds())))
 
 
+def humane_time(claims: list[tuple[dict, bool]], chosen: str, key: str = "") -> str:
+    """Move a page off the exact second of the remark that announces it.
+
+    `best_created_at` returns the announcement's own timestamp, which satisfies
+    every check and still says a person finished a postmortem and posted about
+    it in the same instant.
+
+    ONLY that case. A timestamp derived from a denial is already the smallest
+    move that keeps the denial true, and dragging it further was worse than the
+    thing it fixed: it pushed a handover page past its own comments and a weekly
+    note out of the week it is named for.
+
+    The interval is jittered off the page's own path so that twenty-four pages
+    announced at 09:00 do not all land at 08:48, which would be the same tell
+    one step to the left.
+    """
+    if not any(up and m["created_at"] == chosen for m, up in claims):
+        return chosen
+    lag = AUTHORING_LAG + dt.timedelta(
+        minutes=int(hashlib.sha1(key.encode()).hexdigest(), 16) % 9 - 4)
+    want = dt.datetime.fromisoformat(chosen) - lag
+    # Never back past somebody saying it was not there yet; if the gap is
+    # narrower than the interval, take the middle of it.
+    lo = max((m["created_at"] for m, up in claims
+              if not up and m["created_at"] < chosen), default=None)
+    if lo is not None and want <= dt.datetime.fromisoformat(lo):
+        floor, ceil = dt.datetime.fromisoformat(lo), dt.datetime.fromisoformat(chosen)
+        want = floor + (ceil - floor) / 2
+    return want.isoformat()
+
+
 def fix_pages(corpus: Corpus, apply: bool) -> int:
     ceilings = clue_ceiling()
     changed = 0
@@ -548,7 +587,8 @@ def fix_pages(corpus: Corpus, apply: bool) -> int:
         claims = claims_about(corpus, page)
         if not claims:
             continue
-        want = best_created_at(page, claims, ceilings.get(page["rel"]))
+        want = humane_time(claims, best_created_at(page, claims, ceilings.get(page["rel"])),
+                           page["rel"])
         if want == page["created_at"]:
             continue
         changed += 1
