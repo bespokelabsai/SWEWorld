@@ -79,45 +79,58 @@ class Clock:
 
     def __init__(self, start: dt.datetime | None = None):
         self.at = start
-        self._turn: dt.datetime | None = None
         self._day: dt.datetime | None = start
-        self._nth = 0
+        # Keyed by persona, NOT one cursor. Channels run concurrently in
+        # batches (`_batches(channels, args.concurrency)`, `concurrent=True`),
+        # and they share one Clock, so a single `_turn` is a race: with
+        # #code-review pinned at 14:32 and #pipeline pinning 09:40 before the
+        # first one's tool call ran, dermot's page came out stamped 09:28 —
+        # five hours from when he spoke, and confidently so, which is worse
+        # than the old shared counter that was only ever vaguely wrong.
+        #
+        # One persona speaking in two concurrent channels still collides, and
+        # cannot not: the engine gives them one agent and one session. Those
+        # two turns are at least the same person on the same day.
+        self._turn: dict[str, dt.datetime] = {}
+        self._nth: dict[str, int] = {}
 
     def set_day(self, when: dt.datetime) -> None:
-        # A new day drops the turn cursor: carrying yesterday's last turn into
-        # today would stamp the morning's first page with last night's time.
+        # A new day drops every turn cursor: carrying yesterday's last turn
+        # into today would stamp the morning's first page with last night's
+        # time.
         self.at = when
         self._day = when
-        self._turn = None
+        self._turn.clear()
+        self._nth.clear()
 
-    def set_now(self, when: dt.datetime) -> None:
-        """Pin to the engine's wall-clock cursor for the turn about to run."""
+    def set_now(self, when: dt.datetime, key: str = "") -> None:
+        """Pin one persona's cursor to the turn they are about to take."""
         if when.tzinfo is None:
             when = when.replace(tzinfo=UTC)
-        self._turn = when
-        self._nth = 0
+        self._turn[key] = when
+        self._nth[key] = 0
         self.at = when
 
-    def stamp(self) -> dt.datetime:
-        if self._turn is not None:
+    def stamp(self, key: str = "") -> dt.datetime:
+        turn = self._turn.get(key)
+        if turn is not None:
             # Written over the preceding quarter hour, not in the second before
-            # speaking about it. Each further write in the same turn is a minute
-            # later than the last, so two artifacts keep their order and both
-            # still land before the message that mentions them.
-            self._nth += 1
-            when = self._turn - AUTHORING_LAG + dt.timedelta(minutes=self._nth - 1)
+            # speaking about it. Each further write in the same turn is a
+            # minute later than the last, so two artifacts keep their order and
+            # both still land before the message that mentions them.
+            self._nth[key] = self._nth.get(key, 0) + 1
+            when = turn - AUTHORING_LAG + dt.timedelta(minutes=self._nth[key] - 1)
             if self._day is not None and when < self._day:
                 # An early-morning turn would otherwise back-date the page into
-                # yesterday evening. The day it was written on is the part that
-                # has to be right.
-                when = self._day + dt.timedelta(minutes=self._nth - 1)
-            self.at = min(when, self._turn)
+                # yesterday evening. The day it was written on has to be right.
+                when = self._day + dt.timedelta(minutes=self._nth[key] - 1)
+            self.at = min(when, turn)
             return self.at
         self.at = (self.at or dt.datetime.now(UTC)) + dt.timedelta(minutes=7)
         return self.at
 
-    def iso(self) -> str:
-        when = self.stamp()
+    def iso(self, key: str = "") -> str:
+        when = self.stamp(key)
         if when.tzinfo is None:
             when = when.replace(tzinfo=UTC)
         return when.isoformat(timespec="seconds")
@@ -270,7 +283,7 @@ class Wiki(Store):
 
     def write(self, *, uid: str, title: str, body: str, collection: str,
               ts: str | None = None, kind: str = "") -> str:
-        when = ts or self.clock.iso()
+        when = ts or self.clock.iso(uid)
         book = self.shelve(collection, kind, when)
         rel = f"{book}/{slug(title)}.md"
         path = self.docs / rel
@@ -442,7 +455,7 @@ class Wiki(Store):
         promise. A comment with no quote is a page-level comment, which is what
         most comments are anyway.
         """
-        when = ts or self.clock.iso()
+        when = ts or self.clock.iso(uid)
         # The plan's own id when there is one: it says `<doc>-c1` replies to
         # `<doc>-c0`, and a minted `c-<slug>-<n>` is a name that `reply_to`
         # cannot reach, so the thread would come out flat.
@@ -591,7 +604,7 @@ class Mail(Store):
 
     def send(self, *, uid: str, to: list[str], subject: str, body: str,
              ts: str | None = None, in_reply_to: str = "") -> str:
-        when = ts or self.clock.iso()
+        when = ts or self.clock.iso(uid)
         stamp = dt.datetime.fromisoformat(when)
         if stamp.tzinfo is None:
             stamp = stamp.replace(tzinfo=UTC)

@@ -1,6 +1,6 @@
 --- /tmp/sim_engine.orig.py	2026-09-16 01:07:46.204956067 +0000
-+++ sim_engine.py	2026-09-16 01:07:46.241959863 +0000
-@@ -637,11 +637,41 @@
++++ sim_engine.py	2026-09-16 02:49:13.096362530 +0000
+@@ -637,11 +637,47 @@
          # the director runs, and this is the only route from there to the world: `tools=` is invoked
          # once during cohort prep and dropped, so nothing downstream ever saw an app again.
          user._extra_apps = lambda: list(apps)
@@ -13,7 +13,7 @@
      return attach
  
  
-+def _pin_app_clock(agent, when):
++def _pin_app_clock(agent, uid, when):
 +    """Stamp what a tool writes with the turn that wrote it, not a parallel counter.
 +
 +    An app's clock is the CLIENT's object -- it reaches the library only through
@@ -28,6 +28,12 @@
 +    with "the design doc is up on the wiki" was announcing a file stamped 09:14,
 +    and 96 chat messages ended up contradicting a page's own timestamp.
 +
++    Pinned PER PERSONA, because channels run concurrently against one shared
++    clock: a single cursor meant whichever channel dispatched last won, and a
++    page written by somebody whose turn was at 14:32 came out stamped 09:28.
++    A persona speaking in two concurrent channels still collides and cannot
++    not — one agent, one session — but that is the same person on the same day.
++
 +    Best-effort on purpose: an app clock with no `set_now` keeps its own
 +    behaviour, so a client that has not adopted this is not broken by it.
 +    """
@@ -36,19 +42,19 @@
 +        return
 +    setter = getattr(get(), "set_now", None)
 +    if setter is not None:
-+        setter(when)
++        setter(when, uid)
 +
 +
  async def prepare_cohort(members, *, source, model=None, grounding_policy="warn", settings=None,
                           cached=None, tools=None):
      """One prepared `User` (the persistent agent) per member, with the shared cohort dedup + forced
-@@ -2374,6 +2404,9 @@
+@@ -2374,6 +2410,9 @@
                      print(f"  [{run_tag}] (day is out of room — wrapping)")
                      break
              turn_dt, elapsed_hint, clock_hint = tt.dt, tt.elapsed_hint, tt.clock_hint
 +            # Before the agent runs, so a page or a mail its tools write is
 +            # stamped inside this turn rather than on the store's own cursor.
-+            _pin_app_clock(agents.get(speaker), turn_dt)
++            _pin_app_clock(agents.get(speaker), speaker, turn_dt)
  
              # build the thread-reply framing (parent + its replies so far) ONLY when we actually thread
              reply_to = None

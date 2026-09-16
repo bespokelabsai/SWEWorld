@@ -41,7 +41,17 @@ The patch adds three things:
 * One call, immediately after `turn_dt` is computed and **before** the agent
   runs, so anything its tools write is stamped inside that turn.
 
-The matching client-side half is `Clock.set_now()` in `data_gen/worldapps.py`.
+The matching client-side half is `Clock.set_now()` in `data_gen/worldapps.py`,
+and `data_gen/test_clock.py` covers both.
+
+**The pin is keyed by persona, not global.** Channels run concurrently in
+batches (`_batches(channels, args.concurrency)`, `concurrent=True`) against one
+shared clock, so a single cursor is a race — measured: with #code-review pinned
+at 14:32 and #pipeline pinning 09:40 before the first channel's tool call ran, a
+page written by the 14:32 speaker came out stamped 09:28. Persona is the right
+granularity because it is the engine's own: `person_locks` already serialises
+one person across channels "so their single agent session is never entered
+twice", and the pin sits inside that lock.
 
 **What it does not fix.** Syncing the clocks removes arbitrary drift; it does not
 make a persona write a page before announcing it, and nothing in the engine can.

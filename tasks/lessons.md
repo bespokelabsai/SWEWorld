@@ -1395,3 +1395,32 @@ was needed for pages and for PR numbers and nobody had written it.
 the input was supposed to say the thing. If a check keeps finding the same
 defect, the interesting question is not how to repair it but which component
 knew and stayed quiet.
+
+### Postscript: the shared clock was a race, and my first test missed it (2026-09-16)
+
+Nidhi: *"test cross channel concurrency."* Right to ask. `attach_tools(apps, clock)`
+closes over ONE clock, phase 4 runs channels in concurrent batches, and my
+`set_now` put a single cursor on that shared object. Measured: #code-review
+pinned 14:32, #pipeline pinned 09:40 before the first channel's tool call ran,
+and a page written by the 14:32 speaker came out stamped **09:28**. The old
++7-minute counter was shared too, but it was only ever vaguely wrong; mine was
+confidently wrong, which is worse, because a precise-looking timestamp is one
+nobody re-checks.
+
+Keying the pin by persona fixes it. The granularity is not a guess — it is the
+engine's own: `person_locks` already serialises one person's turn across
+channels *"so their single agent session is never entered twice"*, and the pin
+sits inside that lock.
+
+**The part worth keeping.** My first concurrency test reported one failure —
+emil's page landing three hours after his turn — and I nearly wrote it up as an
+unavoidable limitation. It was not: the test was wrong. It interleaved one
+persona across two channels, which `person_locks` makes impossible. A test that
+does not model the concurrency control it is testing under measures a world that
+does not exist, and the failure it invents is indistinguishable from a real one.
+Check what the system already serialises **before** concluding a race is
+inherent.
+
+`data_gen/test_clock.py` is now the only test in that tree, because the defect it
+covers is invisible in a transcript: a page stamped from another channel's turn
+reads fine on its own page.
