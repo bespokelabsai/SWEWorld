@@ -1,7 +1,7 @@
 ---
 title: "Weekly Sync Notes \u2014 Week of Oct 28 (Release & CI)"
 author: konrad
-created_at: 2024-10-30T09:21:00+00:00
+created_at: 2024-10-30T09:00:00+00:00
 ---
 
 # Weekly Sync Notes, Week of Oct 28 (Release & CI)

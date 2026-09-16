@@ -1,7 +1,7 @@
 ---
 title: "Weekly Notes \u2014 Week of Mar 24"
 author: konrad
-created_at: 2025-03-26T09:14:00+00:00
+created_at: 2025-03-26T09:00:00+00:00
 ---
 
 # Weekly Notes, Week of Mar 24

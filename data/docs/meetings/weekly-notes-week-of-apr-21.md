@@ -1,7 +1,7 @@
 ---
 title: "Weekly Notes \u2014 Week of Apr 21"
 author: gideon
-created_at: 2025-04-23T09:14:00+00:00
+created_at: 2025-04-23T09:00:00+00:00
 ---
 
 # Weekly Notes, Week of Apr 21

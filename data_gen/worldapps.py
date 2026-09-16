@@ -46,21 +46,54 @@ def ok(text: str) -> dict:
 
 
 class Clock:
-    """What the stores stamp things with.
+    """What the stores stamp things with — the engine's turn cursor when it has one.
 
-    The engine computes each turn's time inside its own loop and does not hand
-    it out, so this advances alongside rather than in lockstep: the same day and
-    the same order, not the same instant. Good enough for a corpus where what
-    matters is that a page written on Monday is there to open on Thursday.
+    It used to advance "alongside rather than in lockstep": a private counter
+    that added seven minutes per call from the day's start, while the engine
+    computed each turn's time in its own loop and never handed it out. Same day
+    and same order, different instant — which read as harmless until the corpus
+    was checked across artifacts. Every one of the 108 wiki pages landed between
+    09:14 and 10:38 on thirteen distinct clock values, because that is where
+    `start + 7k minutes` puts them, and none of those values had anything to do
+    with the conversation that produced the page. A channel opening at 09:00
+    with "the design doc is up on the wiki" was then announcing a file stamped
+    09:14, and 96 chat messages contradicted a page's `created_at` that way.
+
+    So: `set_now()` pins this to the engine's cursor for the turn about to run,
+    and a store stamps inside the turn that actually called it. The seven-minute
+    stride survives only as the fallback for a caller that drives nothing —
+    `phase4_run` without the engine, and the tests.
+
+    Syncing the clocks removes the arbitrary drift. It does NOT make a persona
+    write the page before announcing it, and nothing here can: that is what
+    `scripts/check_corpus.py --fix` reconciles afterwards.
     """
 
     def __init__(self, start: dt.datetime | None = None):
         self.at = start
+        self._turn: dt.datetime | None = None
 
     def set_day(self, when: dt.datetime) -> None:
+        # A new day drops the turn cursor: carrying yesterday's last turn into
+        # today would stamp the morning's first page with last night's time.
+        self.at = when
+        self._turn = None
+
+    def set_now(self, when: dt.datetime) -> None:
+        """Pin to the engine's wall-clock cursor for the turn about to run."""
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=UTC)
+        self._turn = when
         self.at = when
 
     def stamp(self) -> dt.datetime:
+        if self._turn is not None:
+            # Seconds, not the seven-minute stride: a persona that writes a page
+            # and mails about it in one turn needs two ordered stamps, and both
+            # belong inside the turn that made them.
+            self._turn += dt.timedelta(seconds=1)
+            self.at = self._turn
+            return self.at
         self.at = (self.at or dt.datetime.now(UTC)) + dt.timedelta(minutes=7)
         return self.at
 

@@ -1,7 +1,7 @@
 ---
 title: "Postmortem: Dec 13 revert of batch context-manager refactor (PR #254)"
 author: konrad
-created_at: 2024-12-16T09:14:00+00:00
+created_at: 2024-12-16T09:00:00+00:00
 ---
 
 # Postmortem: Dec 13 revert of batch context-manager refactor (PR #254)

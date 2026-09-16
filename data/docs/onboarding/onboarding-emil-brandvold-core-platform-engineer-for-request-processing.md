@@ -1,7 +1,7 @@
 ---
 title: "Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing"
 author: konrad
-created_at: 2025-01-06T09:35:00+00:00
+created_at: 2025-01-06T09:30:12+00:00
 ---
 
 # Onboarding: Emil Brandvold, Core Platform Engineer for Request Processing

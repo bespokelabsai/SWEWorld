@@ -1313,3 +1313,58 @@ be recreated in one command is a harness you will be tempted not to re-run.
 **Rule for myself:** a recursive delete never runs on a relative path. Either the
 path is absolute, or the `cd` that established it was checked — and a helper
 script that deletes anything gets `set -e` before it gets anything else.
+
+## Three clocks, no join (2026-09-16)
+
+Asked to check the corpus for time consistency, the useful question turned out not
+to be "is any timestamp wrong" but "how many authorities decide what a timestamp
+is". Three, and nothing reconciles them:
+
+* `artifacts.json` gives a wiki page or a mail a **date**, no time;
+* `worldapps.write()` stamps the file with `ts or self.clock.iso()` — the
+  simulation clock of whichever channel-day the persona was writing in, which
+  restarts at 09:00, so all 108 pages land between 09:14 and 10:38 on thirteen
+  distinct clock values;
+* the chat that announces the page runs on the same clock in a **different**
+  channel-day, simulated separately and told only whether the artifact was
+  `planned` or `written`.
+
+So #code-review announces a doc at 09:00 that the tool call writes at 09:14 in
+another room, and three weeks later a day whose spec still says `planned` has
+somebody ask where it is. 96 messages contradicted a page's `created_at` that
+way. The repository never drifts, because `ingest_history.py` rewrites identities
+and refs and **no dates** — which is why it is the authority to fix everything
+else against.
+
+**The fix that generalises**: 70 of the 96 went away by moving 46 page
+timestamps and touching no message at all. Ask which side of a contradiction is
+cheaper to move *before* reaching for the prose — here one frontmatter line
+displaced up to eleven remarks.
+
+### A cap in a prompt is not a cap
+
+Each channel-day spec carries `must_not_mention.prs_above`. On 2024-10-30 the cap
+was 3, the agenda named PR #2 and PR #3, and the personas spent the morning
+reviewing "PR 173" and "PR 242" — numbers from the following month, invented
+because they looked right. Same shape as the `tg/leak.py` lesson above:
+**prompts are advice; gates are enforcement.** `scripts/check_corpus.py` is now
+the gate, and it reads `forge.json` rather than trusting the spec.
+
+### Write the checker before the fix, and make it fail honestly
+
+Two of the checker's own first results were wrong, and both would have been
+believed:
+
+* it flagged "I'll get PR 574 merged this afternoon" and "Do we need PR 653
+  merged before we tag?" — a plan and a question, neither contradictable by
+  `merged_at`. The data was right and the check was wrong.
+* `--plants` first asserted that *every* planted string is present in `data/`.
+  Most are injected into the image at task-build time and never were, so it
+  reported 5,479 failures on an untouched corpus. The question that matters is
+  the **delta**: a remark the corpus carried before an edit and does not carry
+  after. Its baseline then came back 24 short, because one `git show` with 613
+  arguments silently returns less than you asked for — a check that
+  under-reads its own baseline reports "clean" for the wrong reason.
+
+**Rule for myself:** a new check gets run against known-good input first. If it
+does not come back clean on data nobody has touched, the check is the bug.

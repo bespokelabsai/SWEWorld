@@ -1,7 +1,7 @@
 ---
 title: "Bulk LLM Inference: next-phase design"
 author: dermot
-created_at: 2024-12-09T09:14:00+00:00
+created_at: 2024-12-18T18:30:51+00:00
 ---
 
 # Bulk LLM Inference: next-phase design

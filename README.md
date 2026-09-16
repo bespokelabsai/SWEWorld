@@ -7,6 +7,11 @@
 >
 > Also published at
 > <https://claude.ai/code/artifact/663b480e-8703-4129-ac23-633a36e7f179>.
+>
+> **Building tasks: [`docs/task-generator-guide.html`](docs/task-generator-guide.html)**, a
+> walkthrough of `task_generator/` for someone new to it: how a hidden-requirement task is
+> designed whole, cut into a ticket and hidden facts, bracketed, planted and measured.
+> `task_generator/README.md` opens with the same overview in text, then the full manual.
 
 A self-hosted company "world" for agent tasks: a git server, a chat workspace, a
 docs wiki, and a mail server, running as **one container image** with
@@ -114,6 +119,57 @@ docker exec sweworld bash -c 'cd /opt/world-state && \
 
 Order matters: comments need the pages to exist, and `ingest_docs.py` hands over
 the page ids in `.docs-manifest.json`.
+
+### Checking the corpus before you bake it
+
+```bash
+make check-corpus                          # both of the below
+python3 scripts/check_corpus.py            # does the corpus agree with itself?
+python3 scripts/check_corpus.py --fix      # retime pages and mail to agree with chat
+python3 scripts/check_corpus.py --plants   # has an edit broken a planted task?
+```
+
+`bake-image` runs the first two before it starts a container, because a bake is
+twenty minutes and ~3GB and none of what they catch is visible to `world-verify`,
+which counts rows. `CORPUS_CHECK=0` bypasses it for a corpus you know is
+mid-repair.
+
+The ingest scripts validate each file against its schema and `world-verify`
+counts rows in the populated world; neither reads two files together. That is
+where the findings a reader actually notices live — a wiki page announced in
+chat before it exists, a PR discussed a month before it was opened, a `.post1`
+hotfix announced before the release it patches. `check_corpus.py` cross-checks
+chat against the wiki, the mail and `data/history/forge.json`, which is the only
+clock in the world that never drifts.
+
+`--fix` repairs the half that is repairable without touching prose: it moves each
+page's `created_at`, and each announcement mail's `Date`, to the value that
+contradicts the fewest remarks. **Artifacts move and chat does not** — a page
+carries one timestamp and no anchor, while 287 planted clues anchor to a chat
+message by `"HH:MM author"`, so retiming a message detaches a clue silently and
+rewording one cannot. On the corpus as generated, `--fix` takes 173 findings to
+55; the 55 that remain each need a wording change and are reported line by line.
+
+`--plants` is the separate question of whether an edit has desynchronised a
+planted task, and it is the one to run after touching `data/` by hand:
+`inject.located()` substring-searches the corpus for the plant's own words, and
+`harbor_tasks/.located-corpora/` caches the old bodies, so a broken plant still
+builds a healthy-looking artifact.
+
+### Why the corpus drifts in the first place
+
+Three things decided when something happened and none of them agreed.
+`artifacts.json` gives a page a *date* with no time; `worldapps.Clock` stamped
+the file from a private counter that added seven minutes per call from the day's
+start; and the chat announcing the page ran on the engine's own per-turn cursor,
+in a channel-day simulated separately. Same wall clock, three unjoined
+authorities — which is why all 108 pages landed between 09:14 and 10:38 on
+thirteen distinct values, and why a 09:00 opener could announce a 09:14 file.
+
+`Clock.set_now()` and `data_gen/patches/sim_engine-pin-app-clock.patch` join the
+first two: a tool call is now stamped inside the turn that made it. That removes
+the arbitrary drift but cannot make a persona write a page before announcing it,
+which is what `--fix` reconciles and `check_corpus.py` gates.
 
 ## Viewing the world
 
@@ -357,7 +413,7 @@ world/
   passstore/              the credentials page
 vendor/                   frozen third-party source (curator), never cloned
 scripts/                  ingestion: git, docs, comments, chat, mail
-                          (+ worldlib)
+                          (+ worldlib, check_corpus)
 data/schemas/             the data contracts a generation step must satisfy
 data/                     the corpus those contracts describe — 9.6k chat
                           messages, 108 wiki pages, 613 mails, and the
@@ -367,8 +423,12 @@ Makefile                  build-image · run · verify · bake-image · push-ima
 data_gen/                 generates the corpus: stages 0-2 read the real
                           curator repository, phases 1-4 build the company,
                           its people and months of chat, docs and mail
+                          (guide: docs/data-gen-guide.html)
 task_generator/           authors one hidden-requirement task at a time, and
-                          emits its arms into harbor_tasks/
+                          emits its arms into harbor_tasks/ (guide:
+                          docs/task-generator-guide.html)
+docs/                     the three standalone HTML guides: the whole repo,
+                          task_generator, and data_gen
 harbor_tasks/             the emitted arms, plus _suites/ (the graders that
                           run inside the container) and _env/ (their bases)
 failed_tasks/             the first hand-written batch, kept for the record

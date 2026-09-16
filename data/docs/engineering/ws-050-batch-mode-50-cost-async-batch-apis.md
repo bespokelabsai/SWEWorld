@@ -1,7 +1,7 @@
 ---
 title: "WS-050: Batch Mode (50%-Cost Async Batch APIs)"
 author: emil
-created_at: 2025-04-07T09:56:00+00:00
+created_at: 2025-03-31T11:27:24+00:00
 ---
 
 # WS-050: Batch Mode (50%-Cost Async Batch APIs)

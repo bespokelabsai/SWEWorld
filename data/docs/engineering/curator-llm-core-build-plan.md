@@ -1,7 +1,7 @@
 ---
 title: "curator.LLM core build plan"
 author: dermot
-created_at: 2024-11-05T09:14:00+00:00
+created_at: 2024-11-05T09:05:08+00:00
 ---
 
 # curator.LLM core build plan

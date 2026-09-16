@@ -1,7 +1,7 @@
 ---
 title: "Postmortem: provider-integrations example revert on Feb 6"
 author: nikolai
-created_at: 2025-02-07T09:42:00+00:00
+created_at: 2025-02-07T09:12:00+00:00
 ---
 
 # Postmortem: provider-integrations example revert, Feb 6 2025

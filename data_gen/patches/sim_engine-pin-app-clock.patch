@@ -1,0 +1,54 @@
+--- /tmp/sim_engine.orig.py	2026-09-16 01:07:46.204956067 +0000
++++ sim_engine.py	2026-09-16 01:07:46.241959863 +0000
+@@ -637,11 +637,41 @@
+         # the director runs, and this is the only route from there to the world: `tools=` is invoked
+         # once during cohort prep and dropped, so nothing downstream ever saw an app again.
+         user._extra_apps = lambda: list(apps)
++        # And the clock they stamp with, for the same reason: it arrives here and
++        # nowhere else, and the engine is the only thing that knows what time a
++        # turn happens. See `_pin_app_clock`.
++        user._extra_app_clock = lambda: clock
+         user._extra_system_prompt_block = lambda: slack_prompts.tool_inventory_block(apps)
+         user._extra_tool_clause = lambda: slack_prompts.TOOL_CLAUSE
+     return attach
+ 
+ 
++def _pin_app_clock(agent, when):
++    """Stamp what a tool writes with the turn that wrote it, not a parallel counter.
++
++    An app's clock is the CLIENT's object -- it reaches the library only through
++    `attach_tools` -- so the engine cannot stamp app writes itself. What it can
++    do is say when "now" is, which is the one thing the store was guessing.
++
++    Before this, a store advanced its own cursor seven minutes per call from the
++    day's start while the engine computed turn times in this loop and handed
++    them to nobody. In a 121-day corpus that put all 108 wiki pages between
++    09:14 and 10:38 on thirteen distinct clock values, none of them related to
++    the conversation that produced the page -- so a channel opening at 09:00
++    with "the design doc is up on the wiki" was announcing a file stamped 09:14,
++    and 96 chat messages ended up contradicting a page's own timestamp.
++
++    Best-effort on purpose: an app clock with no `set_now` keeps its own
++    behaviour, so a client that has not adopted this is not broken by it.
++    """
++    get = getattr(agent, "_extra_app_clock", None)
++    if get is None:
++        return
++    setter = getattr(get(), "set_now", None)
++    if setter is not None:
++        setter(when)
++
++
+ async def prepare_cohort(members, *, source, model=None, grounding_policy="warn", settings=None,
+                          cached=None, tools=None):
+     """One prepared `User` (the persistent agent) per member, with the shared cohort dedup + forced
+@@ -2374,6 +2404,9 @@
+                     print(f"  [{run_tag}] (day is out of room — wrapping)")
+                     break
+             turn_dt, elapsed_hint, clock_hint = tt.dt, tt.elapsed_hint, tt.clock_hint
++            # Before the agent runs, so a page or a mail its tools write is
++            # stamped inside this turn rather than on the store's own cursor.
++            _pin_app_clock(agents.get(speaker), turn_dt)
+ 
+             # build the thread-reply framing (parent + its replies so far) ONLY when we actually thread
+             reply_to = None

@@ -1,7 +1,7 @@
 ---
 title: "Weekly notes: week of Nov 4"
 author: gideon
-created_at: 2024-11-06T09:14:00+00:00
+created_at: 2024-11-06T09:00:00+00:00
 ---
 
 # Weekly notes: week of Nov 4

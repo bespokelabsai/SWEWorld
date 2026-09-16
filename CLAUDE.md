@@ -120,6 +120,16 @@ Keys are read from `.env` at the repo root or in `data_gen/` (see `rl.env_value`
 
 - **`data/schemas/` is partly stale.** `identities.md` and `docs.md` still describe **Outline** and its OIDC authorship model; the world moved to BookStack. The root `.env` carries the matching fossils (`OUTLINE_*`, `MINIO_*`, `TRAEFIK_*`) which nothing in `world/`, `scripts/` or the Makefile reads. Trust `world/` and the ingest scripts over the schema prose where they disagree.
 
+- **The corpus had three clocks and no join.** `artifacts.json` dates a page with
+  no time; `worldapps.Clock` stamped it from a private +7-minute counter; the
+  chat announcing it ran on the engine's per-turn cursor in a separately
+  simulated channel-day. 96 messages contradicted a page's own `created_at`.
+  `Clock.set_now()` plus `data_gen/patches/sim_engine-pin-app-clock.patch` join
+  the tool clock to the turn clock; `scripts/check_corpus.py` is the gate
+  (`make check-corpus`, and `bake-image` runs it first) and `--fix` reconciles
+  what a clock cannot. **Artifacts may be retimed; chat may only be reworded** —
+  287 planted clues anchor by `"HH:MM author"`.
+
 - **`maddy creds create` exits 0 when it fails.** It shipped a mail server with zero accounts while logging `15-mail: OK`. `world/bootstrap/15-mail.sh` asserts the account exists afterwards.
 - **Backdating BookStack means four tables**, not one: `entities`, `comments`, `page_revisions`, and `activities`. Correcting only the first two leaves a wiki whose pages read right but whose Recent Activity feed — the dashboard's main content — says "World Admin created page X, 3 minutes ago" for the whole world.
 - **Login confusion**: Gitea and Mattermost want the *username* (`worldadmin`), BookStack and Roundcube want the *email* (`worldadmin@world.local`).

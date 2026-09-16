@@ -108,6 +108,7 @@ channels:
       - konrad
       - nikolai
       - nils
+      - otto
       - petar
       - priya
   - name: releases
@@ -119,6 +120,7 @@ channels:
       - dario
       - dermot
       - emil
+      - gideon
       - konrad
       - nikolai
       - priya
@@ -133,6 +135,8 @@ channels:
       - emil
       - gideon
       - ilse
+      - konrad
+      - nikolai
       - nils
       - petar
       - theo
@@ -147,6 +151,7 @@ channels:
       - emil
       - gideon
       - konrad
+      - nikolai
   - name: cookbooks
     display_name: "Cookbooks & Recipes"
     type: O
@@ -156,6 +161,8 @@ channels:
       - dario
       - dermot
       - emil
+      - gideon
       - konrad
       - nikolai
+      - nils
       - otto

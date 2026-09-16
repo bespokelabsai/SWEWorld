@@ -1,7 +1,7 @@
 ---
 title: "Examples & Cookbooks: Plan for the Reasoning-Dataset Scripts"
 author: dermot
-created_at: 2024-10-30T09:35:00+00:00
+created_at: 2024-11-08T13:57:45+00:00
 ---
 
 # Examples & Cookbooks: Plan for the Reasoning-Dataset Scripts

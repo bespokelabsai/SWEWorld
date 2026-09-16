@@ -1,7 +1,7 @@
 ---
 title: "v0.1.24 Release Notes"
 author: emil
-created_at: 2025-05-06T09:35:00+00:00
+created_at: 2025-05-30T17:53:12+00:00
 ---
 
 # Millrow v0.1.24 Release Notes

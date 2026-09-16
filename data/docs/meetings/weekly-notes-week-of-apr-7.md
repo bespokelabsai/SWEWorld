@@ -1,7 +1,7 @@
 ---
 title: "Weekly Notes \u2014 Week of Apr 7"
 author: dermot
-created_at: 2025-04-09T09:14:00+00:00
+created_at: 2025-04-09T09:00:00+00:00
 ---
 
 # Weekly Notes, Week of Apr 7

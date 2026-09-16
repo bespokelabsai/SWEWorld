@@ -1,7 +1,7 @@
 ---
 title: "Postmortem: Dec 10 revert of batch auto-delete"
 author: dermot
-created_at: 2024-12-11T09:14:00+00:00
+created_at: 2024-12-11T09:00:00+00:00
 ---
 
 # Postmortem: Dec 10 revert of batch auto-delete

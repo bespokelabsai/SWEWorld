@@ -6,12 +6,15 @@
 #
 #   make build-image              base image: services installed, world empty
 #   make run                      boot it and publish every service
+#   make check-corpus             does data/ agree with itself and the repo?
 #   make bake-image TAG=0.1.0     boot base, ingest data/, verify, commit
 #   make push-image TAG=0.1.0     tag into the registry and push (manual)
 # =============================================================================
 SHELL := /bin/bash
 
 IMAGE     ?= sweworld
+# The corpus gate in `bake-image`. Set to 0 to bake a corpus mid-repair.
+CORPUS_CHECK ?= 1
 REGISTRY  ?=
 TAG       ?=
 CONTAINER ?= sweworld
@@ -47,11 +50,21 @@ RELEASE_CONTAINER ?= sweworld-bake
 # The published image still RUNS under gVisor; runc is only how it is produced.
 RELEASE_RUNTIME   ?= runc
 
-.PHONY: help build-image run stop logs shell verify history bake-image push-image clean
+.PHONY: help build-image run stop logs shell verify check-corpus history bake-image push-image clean
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+
+check-corpus: ## Cross-check data/ against itself and the repository record
+	@# Runs on the HOST, against data/, before anything is ingested. The ingest
+	@# scripts validate one file against one schema and world-verify counts rows
+	@# in the booted world; neither reads two files together, which is where a
+	@# page announced in chat before it exists, or a PR discussed a month before
+	@# it was opened, actually lives. `--fix` retimes pages and mail; what is
+	@# left after that needs a wording change and is reported line by line.
+	python3 scripts/check_corpus.py
+	python3 scripts/check_corpus.py --plants
 
 history: ## Rewrite the real repository's history under the company's names
 	@# Runs on the host, where curator/ is. Reads it, never writes to it.
@@ -105,6 +118,13 @@ verify: ## Run the acceptance checks against the running world
 bake-image: ## Boot base, ingest data/, gate on verify, commit $(IMAGE):TAG
 	@test -n "$(TAG)" || { echo "!! bake-image: TAG is required, e.g. make bake-image TAG=0.1.0"; exit 1; }
 	@echo ">> [bake] TAG=$(TAG) SOURCE=$(RELEASE_SOURCE) RUNTIME=$(RELEASE_RUNTIME)"
+	@# GATE ONE, before a container is even started: does the corpus agree with
+	@# itself? A bake takes twenty minutes and ~3GB, and the contradictions this
+	@# catches are invisible to world-verify, which counts rows. sweworld:0.4.9
+	@# shipped 175 of them. Bypass with CORPUS_CHECK=0 only to bake a corpus you
+	@# know is mid-repair.
+	@test "$(CORPUS_CHECK)" = "0" || python3 scripts/check_corpus.py
+	@test "$(CORPUS_CHECK)" = "0" || python3 scripts/check_corpus.py --plants
 	-docker rm -f $(RELEASE_CONTAINER) >/dev/null 2>&1
 	docker run -d --runtime=$(RELEASE_RUNTIME) --name $(RELEASE_CONTAINER) $(RELEASE_SOURCE)
 	@# Baking a baked image ingests everything twice AND nests scripts/ inside
