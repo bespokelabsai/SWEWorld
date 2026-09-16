@@ -37,7 +37,7 @@ make check-corpus     # on the HOST: does data/ agree with itself? (bake-image r
 
 `make history` is the only target that touches `curator/` — read-only. It, `check-corpus`, and the corpus gate at the start of `bake-image` run on the host; everything else runs in a container. It writes `data/history/` (a git bundle plus the forge record), which `bake-image` later ingests.
 
-**`make run` boots `sweworld:latest` if a bake exists, and falls back to the empty `:dev` base otherwise** (`RUN_IMAGE` in the Makefile, override with `make run RUN_IMAGE=sweworld:0.4.4`). The fallback is by design and is the single most likely thing to confuse someone opening BookStack and finding nothing. Populate with `bake-image`, or ingest into a running container (see README — order matters: comments need pages to exist). `make verify` fails an unbaked world on its corpus-count checks unless `WORLD_EXPECT_CORPUS=0`.
+**`make run` boots `sweworld:latest` if a bake exists, and falls back to the empty `:dev` base otherwise** (`RUN_IMAGE` in the Makefile, override with `make run RUN_IMAGE=sweworld:0.4.4`). The fallback is by design and is the single most likely thing to confuse someone opening BookStack and finding nothing. Populate with `bake-image`, or ingest into a running container (see `world/README.md` — order matters: comments need pages to exist). `make verify` fails an unbaked world on its corpus-count checks unless `WORLD_EXPECT_CORPUS=0`.
 
 Ports are overridable (`GITEA_PORT`, `MM_PORT`, `BOOKSTACK_PORT`, `ROUNDCUBE_PORT`, `PASS_PORT`, `HTTP_PORT`). Published and container-internal ports are deliberately identical — BookStack redirects to its `APP_URL`, so a mismatch half-works, which is worse than failing.
 
