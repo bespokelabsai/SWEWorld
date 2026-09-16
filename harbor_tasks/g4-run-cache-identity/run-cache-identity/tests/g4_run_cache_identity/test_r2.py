@@ -18,6 +18,14 @@ identities to each other and reads the components, `observability` asserts the
 literal shape of the run hash and reads the module's own source. `scope` is the
 only test that drives `LLM.__call__`; `failure_behavior` is the only one that
 expects a raise.
+
+This is the human reference, over the old fixed example inputs. The grader
+(probe.py/judge.py) asserts the same facts over inputs re-drawn from a per-run
+seed (`fixture_spec.derive`) — model, dataset hash, generation params, system
+prompt, response model, functions, backend-knob values and combinations, run ids
+and rows — and reads the stamps and cache directories the scenarios leave behind,
+so a value captured from one run, or typed out of this file, fits no other.
+Node names are neutral on purpose: the worker's jail carries them in probe.py.
 """
 from __future__ import annotations
 
@@ -81,7 +89,7 @@ def stamped_run_id(cache, name):
 # =============================================================================
 # rule — the id is supplied by the caller, and it is what tells two runs apart
 # =============================================================================
-def test_rule__a_cache_disabled_run_is_identified_by_a_run_id_its_caller_supplies():
+def test_rule__uncached_identity():
     importable()
 
     params = inspect.signature(sym("compute_run_identity")).parameters
@@ -112,7 +120,7 @@ def test_rule__a_cache_disabled_run_is_identified_by_a_run_id_its_caller_supplie
 # =============================================================================
 # scope — LLM.__call__ mints the default, from the environment or a fresh uuid
 # =============================================================================
-def test_scope__the_call_mints_the_default_id_from_the_environment_and_passes_it_down(tmp_path, monkeypatch):
+def test_scope__identity_sourcing(tmp_path, monkeypatch):
     importable()
 
     llm = Batchy(model_name="gpt-4o-mini", batch=True)
@@ -170,7 +178,7 @@ def test_scope__the_call_mints_the_default_id_from_the_environment_and_passes_it
 # =============================================================================
 # failure_behavior — the id and the cache setting must agree
 # =============================================================================
-def test_failure_behavior__a_missing_id_and_an_unwanted_one_are_both_refused(tmp_path, monkeypatch):
+def test_failure_behavior__refusals(tmp_path, monkeypatch):
     importable()
 
     error = sym("RunIdentityError")
@@ -203,7 +211,7 @@ def test_failure_behavior__a_missing_id_and_an_unwanted_one_are_both_refused(tmp
 # =============================================================================
 # observability — the nocache run hash, and a module that reads no randomness
 # =============================================================================
-def test_observability__the_nocache_run_hash_is_stable_and_the_module_reads_no_randomness():
+def test_observability__uncached_hash_shape():
     importable()
 
     stub = make_stub()

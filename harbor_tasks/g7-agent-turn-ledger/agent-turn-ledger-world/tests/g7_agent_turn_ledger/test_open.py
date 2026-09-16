@@ -22,21 +22,17 @@ from __future__ import annotations
 import asyncio  # noqa: F401 - used in the test body
 import os
 
-# The answer-free helpers/inputs live in probe_support so the worker (probe.py)
-# and this human reference share ONE definition and cannot drift. The expected
-# VALUES this test asserts stay here (and in judge.py); probe_support holds none.
-# The names re-exported here are the ones test_r1/test_r2 still import from
-# `test_open` (Boom, Conversation, PARTNER, SEEDER, SIDECAR, authors,
-# call_write_sidecar, log_lines, sym, write_log), plus what this module's own
-# body uses.
+# The answer-free helpers live in probe_support so the worker (probe.py) and this
+# human reference share ONE definition and cannot drift. probe_support holds no
+# expected value and no fixed agent name — the grader draws the names per run
+# (fixture_spec.derive) — so this worked example pins its own and hands them over.
+# test_r1/test_r2 import Boom, Conversation, PARTNER, SEEDER, authors,
+# call_write_sidecar, log_lines, sym and write_log from here.
+import probe_support
 from probe_support import (  # noqa: F401
     CLOCK,
     LOG,
-    PARTNER,
     SEED,
-    SEEDER,
-    SENTINEL,
-    SIDECAR,
     AgentResponse,
     Boom,
     Conversation,
@@ -53,6 +49,10 @@ from probe_support import (  # noqa: F401
     sym,
     write_log,
 )
+
+SEEDER = "client"
+PARTNER = "advisor"
+probe_support.set_names(SEEDER, PARTNER)
 
 
 def test_open_feature__the_seed_is_logged_and_max_length_budgets_generated_responses(tmp_path):

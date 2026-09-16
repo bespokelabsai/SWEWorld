@@ -19,6 +19,14 @@ The four are four measurements. `rule` never looks at backend_params, `scope`
 never compares a run hash, `exclusions` varies only backend_params, and
 `observability` is the only test that writes a stamp to disk or builds a real
 `curator.LLM`.
+
+This is the human reference, over the old fixed example inputs. The grader
+(probe.py/judge.py) asserts the same facts over inputs re-drawn from a per-run
+seed (`fixture_spec.derive`) — model, dataset hash, generation params, system
+prompt, response model, functions, backend-knob values and combinations, run ids
+and rows — and reads the stamps and cache directories the scenarios leave behind,
+so a value captured from one run, or typed out of this file, fits no other.
+Node names are neutral on purpose: the worker's jail carries them in probe.py.
 """
 from __future__ import annotations
 
@@ -93,7 +101,7 @@ class Batchy(curator.LLM):
 # =============================================================================
 # rule — twelve components, and how four of them are computed
 # =============================================================================
-def test_rule__the_key_is_exactly_twelve_components_and_the_parse_function_is_one_of_them():
+def test_rule__component_set():
     importable()
 
     keys = sym("IDENTITY_COMPONENT_KEYS")
@@ -138,7 +146,7 @@ def test_rule__the_key_is_exactly_twelve_components_and_the_parse_function_is_on
 # =============================================================================
 # scope — the resolved backend, and a copy of the backend params
 # =============================================================================
-def test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument():
+def test_scope__backend_resolution():
     importable()
 
     auto = Batchy(model_name="gpt-4o-mini", batch=True)          # backend= is None here
@@ -166,7 +174,7 @@ def test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argu
 # =============================================================================
 # exclusions — four backend params are identity; the api key is not
 # =============================================================================
-def test_exclusions__only_four_backend_params_fork_the_cache_and_the_api_key_is_not_one():
+def test_exclusions__backend_param_filter():
     importable()
 
     allowed = sym("IDENTITY_BACKEND_PARAM_KEYS")
@@ -197,7 +205,7 @@ def test_exclusions__only_four_backend_params_fork_the_cache_and_the_api_key_is_
 # =============================================================================
 # observability — the requirement's own table
 # =============================================================================
-def test_observability__the_stated_component_table_holds_and_no_api_key_reaches_the_stamp(tmp_path):
+def test_observability__stamp_contents(tmp_path):
     importable()
 
     params = {"base_url": "https://x/v1", "max_retries": 7, "api_key": "sk-secret", "request_timeout": 30}

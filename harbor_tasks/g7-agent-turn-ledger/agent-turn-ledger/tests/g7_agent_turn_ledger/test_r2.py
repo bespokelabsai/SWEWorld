@@ -10,6 +10,11 @@
 
 `rule` fixes the token, `scope` fixes the matching discipline, and neither runs a
 conversation; `observability` is the only one that does.
+
+This is the human reference, over fixed example replies. The grader asserts the
+same rule over shuffled lists of candidate replies re-drawn from a per-run seed
+(`fixture_spec.derive`), rendering them with the token the submission completes
+on and checking that token against the one named here.
 """
 from __future__ import annotations
 
@@ -36,7 +41,7 @@ def an_agent():
     return Agent(name="client", model_name="gpt-4o-mini", backend="litellm", system_prompt="You are a client.")
 
 
-def test_rule__the_sentinel_is_the_end_of_conversation_token(tmp_path):
+def test_rule__completion_signal(tmp_path):
     assert sym("COMPLETION_SENTINEL") == SENTINEL
 
     agent = an_agent()
@@ -45,7 +50,7 @@ def test_rule__the_sentinel_is_the_end_of_conversation_token(tmp_path):
     assert agent.is_completed("all set") is False
 
 
-def test_scope__matching_is_case_sensitive_suffix_only_and_ignores_trailing_space(tmp_path):
+def test_scope__matching_discipline(tmp_path):
     agent = an_agent()
     require_feature(
         agent.is_completed(f"all set {SENTINEL}") is True,
@@ -59,7 +64,7 @@ def test_scope__matching_is_case_sensitive_suffix_only_and_ignores_trailing_spac
     assert agent.is_completed("all set") is False
 
 
-def test_failure_behavior__a_structured_or_missing_reply_answers_false(tmp_path):
+def test_failure_behavior__non_text_replies(tmp_path):
     agent = an_agent()
     # An untouched Agent returns False for everything, so this constraint only
     # means something once the sentinel match exists at all.
@@ -74,7 +79,7 @@ def test_failure_behavior__a_structured_or_missing_reply_answers_false(tmp_path)
     assert agent.is_completed(42) is False
 
 
-def test_observability__the_message_that_ends_the_talk_is_still_a_turn(tmp_path):
+def test_observability__final_turn_accounting(tmp_path):
     probe = an_agent()
     require_feature(
         probe.is_completed(f"all set {SENTINEL}") is True,

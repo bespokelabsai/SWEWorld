@@ -1,44 +1,63 @@
 """g4 worker: the ONLY process that imports the submission.
 
-Runs as `nobody`. For each graded test it reproduces exactly the curator calls
-that test makes and writes the resulting values — never a pass/fail — to the
-observations file named on argv. `judge.py`, which never imports the submission
-and which the grading uid cannot even read (test.sh locks it to root), turns
-those values into the verdict. This is the split that closes the forgery in
-`tasks/lessons.md` (2026-09-09): a uid cannot stop imported agent code from
-rewriting a report its own process produces, so the process that imports the
-code no longer produces the report — and the numbers it would have to forge to
-pass live only in the judge it cannot read.
+Runs as `nobody`, from a root-staged jail that holds this file,
+`probe_support.py`, `fixture_spec.py` and `harness.py` and nothing else. For
+each graded test it drives curator and writes what happened — never a pass/fail
+— to the observations file named on argv. `judge.py`, which never imports the
+submission and which this process cannot read (test.sh keeps /tests root-only
+for a split suite), turns those values and the directories the scenarios left
+behind into the verdict.
 
-The curator-facing halves are lifted from `test_open`/`test_r1`/`test_r2`, same
-helpers (`make_stub`, `identity_for`, `components_of`, `run_hash_of`, `sym`,
-`batchy`, `run_dirs`, `stamped_run_id`), so a value here is the value the test
-saw. The judge holds the assertions those tests made. A submission that returns
-forged values only forges values the judge still checks against the real
-expectations — which is implementing them.
+WHAT THE SPLIT ALONE DID NOT BUY. Separating the processes stopped the worker
+rewriting the verdict; it did not stop the worker inventing the values the
+verdict is computed from. The old g4 fixture never changed — one dataset hash,
+one run id, one api key, one base URL — so its run hashes never changed
+either, a capture of one correct run replayed onto a tree that implemented
+nothing passed every hidden fact, and r2.failure_behavior was graded almost
+entirely on exception names this process reported. So:
 
-Two g4-specific reproduction rules:
+  * **the inputs are re-drawn every run** from the seed root chose
+    (`fixture_spec.derive`): the model, dataset hash, generation params, system
+    prompt, response model, prompt and parse functions, every backend knob's
+    value, which knobs are combined, every run id and the rows. The judge
+    checks the components an identity carries against THOSE inputs;
+  * **what a run leaves on disk is read by the judge.** The stamp
+    `write_run_stamp` wrote, the cache directories `LLM.__call__` created and
+    the stamps inside them all sit under the artifacts root, one directory per
+    scenario, and root opens them itself;
+  * **no answer is carried here.** Not the component keys, not the allowlist,
+    not the stamp file's name, not the run-id parameter or environment
+    variable, not the shape of a cache-disabled run hash. Identities are
+    recorded WHOLE, so this file never names a component; where a scenario has
+    to USE an answer — pass a run id, set the variable a default id comes from —
+    it is discovered from the submission (`run_id_param`, `run_id_env`) and the
+    judge decides whether what was discovered is right. A submission that
+    hardcodes a constant instead of exporting it is still measured on every
+    fact that does not name the constant (tasks/lessons.md, 2026-09-14, "a probe
+    reaching for an attribute is a dependency between facts").
 
-  * the probe is not under pytest, so every scenario that wanted `tmp_path` gets
-    its own `probe_support.newtmp()` and every scenario that wanted `monkeypatch`
-    gets the `MonkeyPatch` shim below, undone between probes so one day's patched
-    env or attribute cannot leak into the next;
-  * the run hashes and digests are HIGH-ENTROPY. The probe records curator's
-    OBSERVED hash (twice, where the test proves stability) and the judge decides.
-    For the cache-disabled `v3-nocache-` hash and the identity digest the source
-    tests never pinned a literal — they check shape and self-consistency — so the
-    judge reproduces those same relational checks (see judge.py). The probe never
-    computes an expected hash of its own.
+The `tmp_path` fixtures of the reference tests are `probe_support.newtmp()` (for
+the open feature) or a directory under the artifacts root (for anything the
+judge reads); `monkeypatch` is the `MonkeyPatch` shim below, undone between
+probes so one probe's patched env or attribute cannot leak into the next.
 """
 from __future__ import annotations
 
+import ast
 import dataclasses
 import inspect
 import json
 import os
+import re
 import sqlite3
 import sys
 import traceback
+
+# Bound BEFORE the submission is imported, and called instead of returning from
+# main(): interpreter shutdown runs `atexit` hooks the submission registered at
+# import. One door, not the fix — what makes a forged value worthless is that it
+# is not knowable in advance.
+_EXIT = os._exit
 
 # The import-time environment the suite's conftest sets, applied here because
 # this worker is not run under pytest. g4 drives no provider socket: the stubs
@@ -54,17 +73,13 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("HF_DATASETS_OFFLINE", "1")
 os.environ.setdefault("COLUMNS", "220")
 
+import fixture_spec  # noqa: E402 - the run's inputs; stdlib only, no answers
+
 _MISSING = object()
 
 
 class MonkeyPatch:
-    """The slice of pytest's monkeypatch the g4 fixtures use, with undo.
-
-    `test_r2` scope/failure want `setattr(..., raising=False)`, `setenv` and
-    `delenv`; nothing here needs the rest. `undo()` runs between probes so one
-    day's patched `_request_processor.run` or CURATOR_* env cannot leak into the
-    next.
-    """
+    """The slice of pytest's monkeypatch the g4 scenarios use, with undo."""
 
     def __init__(self) -> None:
         self._undo: list = []
@@ -106,18 +121,36 @@ class MonkeyPatch:
         self._undo = []
 
 
-# probe_support owns the curator imports and the answer-free stubs/inputs; reuse
-# them so a probe calls curator exactly as the test does. Importing it runs the
-# submission's `import bespokelabs.curator` — this process's whole purpose, and
-# why it is disposable. The worker never imports test_open, whose source carries
-# the expected answer literals.
+# probe_support owns the curator imports and the answer-free stubs; importing it
+# runs the submission's `import bespokelabs.curator` — this process's whole
+# purpose, and why it is disposable.
 import probe_support as S  # noqa: E402
 from harness import read_field  # noqa: E402
 
+SPEC: dict = {}
+ARTIFACTS = "/nonexistent"
+
+
+def scenario_dir(*parts: str) -> str:
+    """A directory for one scenario, where the judge will look for it."""
+    path = os.path.join(ARTIFACTS, *parts)
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def jsonable(value):
+    try:
+        return json.loads(json.dumps(value))
+    except (TypeError, ValueError):
+        if isinstance(value, (tuple, list, set, frozenset)):
+            return [jsonable(v) for v in value]
+        if isinstance(value, dict):
+            return {str(k): jsonable(v) for k, v in value.items()}
+        return repr(value)
+
 
 # Attributes carried by the run-identity exception family; recorded whenever an
-# exception is caught so the judge can check the ones the test asserted. Tuples
-# become lists through json, which the judge compares against lists.
+# exception is caught so the judge can check the ones the test asserted.
 _EXC_ATTRS = ("path", "expected_run_hash", "found_run_hash", "mismatched_components",
               "cache_dir", "field", "expected", "found")
 
@@ -128,13 +161,20 @@ def raises(fn, *args, **kwargs) -> dict:
     try:
         fn(*args, **kwargs)
     except BaseException as exc:  # noqa: BLE001 - the test catches a type; the judge checks which
-        info = {"raised": True, "mro": [c.__name__ for c in type(exc).__mro__], "str": str(exc)}
+        info = {"raised": True, "mro": [c.__name__ for c in type(exc).__mro__], "str": str(exc)[:500]}
         for attr in _EXC_ATTRS:
             if hasattr(exc, attr):
-                value = getattr(exc, attr)
-                info[attr] = list(value) if isinstance(value, tuple) else value
+                info[attr] = jsonable(getattr(exc, attr))
         return info
     return {"raised": False, "mro": []}
+
+
+def attempt(fn, *args, **kwargs) -> dict:
+    """{"value": ...} or {"error": ...}: one step's evidence, never the node's death."""
+    try:
+        return {"value": jsonable(fn(*args, **kwargs))}
+    except BaseException as exc:  # noqa: BLE001
+        return {"error": f"{type(exc).__name__}: {exc}"[:500]}
 
 
 def stopped(fn, *args, **kwargs) -> bool:
@@ -151,8 +191,151 @@ def _stop(*args, **kwargs):
     raise S._Stop()
 
 
+def record(identity) -> dict:
+    """An identity, whole: the judge picks out what each fact grades."""
+    return {
+        "run_hash": jsonable(read_field(identity, "run_hash", default=None)),
+        "digest": jsonable(read_field(identity, "digest", default=None)),
+        "cache_enabled": jsonable(read_field(identity, "cache_enabled", default=None)),
+        "components": jsonable(dict(read_field(identity, "components"))),
+    }
+
+
+def ident(over: dict, dataset_hash: str, **kwargs) -> dict:
+    """The identity of a stub built from `over`, as a recorded attempt."""
+    def run():
+        return record(S.identity_for(S.make_stub(**dict(over)), dataset_hash, **kwargs))
+    return attempt(run)
+
+
+# ---------------------------------------------------------------------------
+# discovery: the names a scenario has to USE, taken from the submission
+# ---------------------------------------------------------------------------
+_DISCOVERED: dict = {}
+
+# The first two positional parameters and the one keyword the ticket states.
+_STATED = {"llm", "dataset_hash", "cache_enabled"}
+
+
+def signature_of(fn) -> list:
+    """[[name, kind, default]] for every parameter, or an error string."""
+    try:
+        params = inspect.signature(fn).parameters
+    except (TypeError, ValueError) as exc:
+        return f"{type(exc).__name__}: {exc}"
+    out = []
+    for p in params.values():
+        default = "<<absent>>" if p.default is inspect.Parameter.empty else jsonable(p.default)
+        out.append([p.name, p.kind.name, default])
+    return out
+
+
+def run_id_param():
+    """The keyword `compute_run_identity` takes a caller's run id by, or None.
+
+    Not a default to the name r2 grades: every parameter beyond the stated ones
+    is tried with a drawn id on a cache-disabled identity, and the one whose
+    value reaches the components is it. The judge checks the name.
+    """
+    if "param" in _DISCOVERED:
+        return _DISCOVERED["param"]
+    found = None
+    fn = S.sym("compute_run_identity", None)
+    try:
+        params = list(inspect.signature(fn).parameters.values())[2:] if callable(fn) else []
+    except (TypeError, ValueError):
+        params = []
+    marker = SPEC["id_probe"]
+    for p in params:
+        if p.name in _STATED or p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD):
+            continue
+        try:
+            identity = fn(S.make_stub(), SPEC["dataset_hash"], cache_enabled=False, **{p.name: marker})
+            if marker in json.dumps(jsonable(dict(read_field(identity, "components")))):
+                found = p.name
+                break
+        except BaseException:  # noqa: BLE001 - a candidate that raises is not the one
+            continue
+    _DISCOVERED["param"] = found
+    return found
+
+
+def _string_literals(root: str) -> set:
+    found = set()
+    for dirpath, _dirs, files in os.walk(root):
+        for fname in files:
+            if not fname.endswith(".py"):
+                continue
+            try:
+                tree = ast.parse(open(os.path.join(dirpath, fname), errors="replace").read())
+            except (OSError, SyntaxError, ValueError):
+                continue
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                    found.add(node.value)
+    return found
+
+
+def _json_mentions(root: str, needle: str) -> bool:
+    for dirpath, _dirs, files in os.walk(root):
+        for fname in files:
+            if fname.endswith(".json"):
+                try:
+                    if needle in open(os.path.join(dirpath, fname), errors="replace").read():
+                        return True
+                except OSError:
+                    continue
+    return False
+
+
+def run_id_env(llm, rows, mp):
+    """The environment variable a cache-disabled call takes its default id from, or None.
+
+    Every CURATOR_* string the submission's source spells, that this process has
+    not set itself, is set in turn to a drawn id for one cache-disabled call; the
+    variable whose value is stamped into the run directory is it. The judge
+    checks the name. Runs in a scratch cache the judge never reads.
+    """
+    if "env" in _DISCOVERED:
+        return _DISCOVERED["env"]
+    from bespokelabs import curator
+    root = os.path.dirname(os.path.abspath(curator.__file__))
+    controlled = {"CURATOR_CACHE_DIR", "CURATOR_DISABLE_CACHE"}
+    candidates = sorted(s for s in _string_literals(root)
+                        if re.fullmatch(r"CURATOR_[A-Z0-9_]+", s)
+                        and s not in controlled and s not in os.environ)
+    found = None
+    marker = SPEC["id_probe"]
+    for i, name in enumerate(candidates):
+        trial = MonkeyPatch()
+        cache = str(S.newtmp())
+        try:
+            trial.setenv("CURATOR_CACHE_DIR", cache)
+            trial.setenv("CURATOR_DISABLE_CACHE", "true")
+            trial.setenv(name, marker)
+            try:
+                llm(rows)
+            except BaseException:  # noqa: BLE001 - the sentinel, or a refusal; the directory decides
+                pass
+            if _json_mentions(cache, marker):
+                found = name
+                break
+        finally:
+            trial.undo()
+    _DISCOVERED["env"] = found
+    _DISCOVERED["env_candidates"] = candidates
+    return found
+
+
+def a_call_llm(mp):
+    """A real LLM whose processor is replaced by the stop sentinel."""
+    llm = S.batchy(model_name=SPEC["call_model"], backend="openai", batch=True)
+    mp.setattr(llm._request_processor, "run", _stop, raising=False)
+    return llm
+
+
 # ===========================================================================
-# the openly stated feature
+# the openly stated feature (weight 0)
 # ===========================================================================
 def probe_open(mp) -> dict:
     S.importable()
@@ -207,7 +390,7 @@ def probe_open(mp) -> dict:
     from pathlib import Path
     home = tmp / "created" / "nested"
     stamp = ri.write_run_stamp(home, identity, now=S.NOW)
-    o["stamp_written"] = (home / "run_identity.json").read_text()
+    o["stamp_written"] = (home / S.stamp_name()).read_text()
     payload = json.loads(o["stamp_written"])
     o["stamp_payload"] = payload
     o["stamp_sorted_keys"] = sorted(payload)
@@ -224,11 +407,11 @@ def probe_open(mp) -> dict:
     o["read_absent"] = ri.read_run_stamp(tmp / "nothing-here") is None
     broken = tmp / "broken"
     broken.mkdir()
-    (broken / "run_identity.json").write_text("{not json")
+    (broken / S.stamp_name()).write_text("{not json")
     o["read_broken"] = ri.read_run_stamp(broken) is None
     partial = tmp / "partial"
     partial.mkdir()
-    (partial / "run_identity.json").write_text(json.dumps({"run_hash": S.run_hash_of(identity)}))
+    (partial / S.stamp_name()).write_text(json.dumps({"run_hash": S.run_hash_of(identity)}))
     o["read_partial"] = ri.read_run_stamp(partial) is None
 
     # -- reconciling a directory: created / adopted / upgraded / matched -----
@@ -409,136 +592,103 @@ def probe_open(mp) -> dict:
     return o
 
 
+
+
 # ===========================================================================
 # r1 — what the run key is computed from
 # ===========================================================================
 def probe_r1_rule(mp) -> dict:
     S.importable()
     o: dict = {}
-    keys = S.sym("IDENTITY_COMPONENT_KEYS")
-    o["keys"] = list(keys)
-    o["keys_sorted"] = list(keys) == sorted(keys)
-    o["components_sorted"] = sorted(S.components_of(S.identity_for(S.make_stub())))
+    o["keys"] = jsonable(S.sym("IDENTITY_COMPONENT_KEYS", None))
 
-    function_hash = S.sym("_get_function_hash")
-    named = S.components_of(S.identity_for(S.make_stub(prompt_func=S.prompt_one, parse_func=S.parse_two)))
-    o["named_prompt"] = named["prompt_func_hash"]
-    o["fh_prompt"] = function_hash(S.prompt_one)
-    o["named_parse"] = named["parse_func_hash"]
-    o["fh_parse"] = function_hash(S.parse_two)
-    o["parse_none"] = S.components_of(S.identity_for(S.make_stub(parse_func=None)))["parse_func_hash"]
-    o["fh_none"] = function_hash(None)
-
-    o["gen_none"] = S.components_of(S.identity_for(S.make_stub(generation_params=None)))["generation_params"]
-    o["gen_empty"] = S.components_of(S.identity_for(S.make_stub(generation_params={})))["generation_params"]
-    o["gen_temp"] = S.components_of(S.identity_for(S.make_stub(generation_params={"temperature": 0.7})))["generation_params"]
-
-    o["rf_none"] = S.components_of(S.identity_for(S.make_stub(response_format=None)))["response_format"]
-    o["rf_structured"] = S.components_of(S.identity_for(S.make_stub(response_format=S.Answer)))["response_format"]
-    # The reference the source compares against: the compact sorted schema of the
-    # test's OWN input model, computed in the same environment as curator. Not an
-    # answer literal — the judge checks curator's output equals this reference.
-    o["rf_reference"] = json.dumps(S.Answer.model_json_schema(), sort_keys=True, separators=(",", ":"))
-
-    o["sp_none"] = S.components_of(S.identity_for(S.make_stub(system_prompt=None)))["system_prompt"]
-    o["sp_terse"] = S.components_of(S.identity_for(S.make_stub(system_prompt="be terse")))["system_prompt"]
-    o["rco_true"] = S.components_of(S.identity_for(S.make_stub(return_completions_object=True)))["return_completions_object"]
-    o["rco_false"] = S.components_of(S.identity_for(S.make_stub(return_completions_object=False)))["return_completions_object"]
-
-    o["model_name"] = S.components_of(S.identity_for(S.make_stub(model_name="gpt-4o-mini")))["model_name"]
-    o["batch_mode"] = S.components_of(S.identity_for(S.make_stub(batch_mode=True)))["batch_mode"]
-    o["dataset_hash"] = S.components_of(S.identity_for(S.make_stub(), dataset_hash="9f1c8e2b7d4a6053"))["dataset_hash"]
+    # The worker's own reference for each recipe the variants use: what the
+    # submission's `_get_function_hash` says of the drawn functions (and of no
+    # function), and the compact sorted schema of the drawn response model.
+    fh = S.sym("_get_function_hash", None)
+    o["fh"] = {
+        "@prompt": attempt(fh, S.function_from(SPEC["prompt_fn"])) if callable(fh) else None,
+        "@parse": attempt(fh, S.function_from(SPEC["parse_fn"])) if callable(fh) else None,
+        "none": attempt(fh, None) if callable(fh) else None,
+    }
+    o["model_schema"] = attempt(lambda: json.dumps(S.model_from(SPEC["response_model"]).model_json_schema(),
+                                                   sort_keys=True, separators=(",", ":")))
+    o["variants"] = {label: ident(over, dh) for label, over, dh in fixture_spec.component_variants(SPEC)}
     return o
 
 
 def probe_r1_scope(mp) -> dict:
     S.importable()
     o: dict = {}
-    auto = S.batchy(model_name="gpt-4o-mini", batch=True)             # backend= is None here
-    declared = S.batchy(model_name="gpt-4o-mini", backend="openai", batch=True)
-    o["auto_backend"] = auto.backend
-    o["declared_backend"] = declared.backend
-    o["auto_component"] = S.components_of(S.identity_for(auto, "d0"))["backend"]
-    o["declared_component"] = S.components_of(S.identity_for(declared, "d0"))["backend"]
-    o["litellm_backend"] = S.components_of(S.identity_for(S.make_stub(backend="litellm")))["backend"]
+    dh = SPEC["dataset_hash"]
+    auto = S.batchy(model_name=SPEC["known_model"], batch=True)                  # backend= is None here
+    declared = S.batchy(model_name=SPEC["known_model"], backend="openai", batch=True)
+    o["auto_backend"] = attempt(lambda: auto.backend)
+    o["declared_backend"] = attempt(lambda: declared.backend)
+    o["auto_identity"] = attempt(lambda: record(S.identity_for(auto, dh)))
+    o["declared_identity"] = attempt(lambda: record(S.identity_for(declared, dh)))
+    o["stub_identity"] = ident({"backend": SPEC["stub_backend"]}, dh)
 
-    o["auto_params"] = auto.backend_params
-    given = {"batch_size": 3, "max_retries": 7}
-    configured = S.batchy(model_name="gpt-4o-mini", batch=True, backend_params=dict(given))
-    o["configured_params"] = configured.backend_params
-    handed_out = configured.backend_params
-    handed_out["batch_size"] = 999
-    handed_out["injected"] = True
-    o["configured_params_after_mutate"] = configured.backend_params
+    o["auto_params"] = attempt(lambda: auto.backend_params)
+    configured = S.batchy(model_name=SPEC["known_model"], batch=True, backend_params=dict(SPEC["llm_params"]))
+    o["configured_params"] = attempt(lambda: configured.backend_params)
+
+    def mutate():
+        handed_out = configured.backend_params
+        for key in list(handed_out):
+            handed_out[key] = handed_out[key] + 1 if isinstance(handed_out[key], int) else None
+        key, value = SPEC["mutation"]
+        handed_out[key] = value
+        return configured.backend_params
+    o["after_mutation"] = attempt(mutate)
     return o
 
 
 def probe_r1_exclusions(mp) -> dict:
     S.importable()
     o: dict = {}
-    allowed = S.sym("IDENTITY_BACKEND_PARAM_KEYS")
-    o["allowlist"] = sorted(allowed)
+    allowed = S.sym("IDENTITY_BACKEND_PARAM_KEYS", None)
+    o["allowlist"] = sorted(allowed) if isinstance(allowed, (set, frozenset, list, tuple)) else jsonable(allowed)
 
-    plain = {"base_url": "https://x/v1"}
-    o["baseline"] = S.run_hash_of(S.identity_for(S.make_stub(backend_params=dict(plain))))
+    dh = SPEC["dataset_hash"]
+    scenarios = {label: ident({"backend_params": params}, dh)
+                 for label, params in fixture_spec.knob_scenarios(SPEC)}
+    o["scenarios"] = scenarios
 
-    # Per knob: what curator carried and whether the cache directory forked.
-    # The judge holds the identity/non-identity split; this file does not.
-    per_knob: dict = {}
-    non_forking: list = []
-    for key, value in S.CANDIDATE_BACKEND_PARAMS:
-        stub = S.make_stub(backend_params={**plain, key: value})
-        carried = S.components_of(S.identity_for(stub))["backend_params"]
-        forked = S.run_hash_of(S.identity_for(stub)) != o["baseline"]
-        per_knob[key] = {"carried": carried, "forked": forked, "value": value}
-        if not forked:
-            non_forking.append((key, value))
-    o["per_knob"] = per_knob
-
-    # A pile of the knobs curator itself treats as noise, all at once: they must
-    # still leave the run untouched. The noise set is derived from the live
-    # observations above, never from a stored partition.
-    noisy = S.make_stub(backend_params={**plain, **dict(non_forking)})
-    o["noisy_carried"] = S.components_of(S.identity_for(noisy))["backend_params"]
-    o["noisy_forked"] = S.run_hash_of(S.identity_for(noisy)) != o["baseline"]
+    # The knobs this build treats as noise, all at once. Chosen from what the
+    # single-knob scenarios above observed, never from a stored partition; the
+    # judge checks the choice against its own before trusting the result.
+    base = (scenarios["plain"].get("value") or {}).get("run_hash")
+    noise = [k for k in SPEC["knob_order"]
+             if base is not None and (scenarios[f"knob:{k}"].get("value") or {}).get("run_hash") == base]
+    o["noise_keys"] = noise
+    plain = {"base_url": SPEC["plain_url"]}
+    o["noise"] = ident({"backend_params": {**plain, **{k: SPEC["knob_values"][k] for k in noise}}}, dh)
     return o
 
 
 def probe_r1_observability(mp) -> dict:
     S.importable()
-    ri = S.ri
-    tmp = S.newtmp()
     o: dict = {}
-    params = {"base_url": "https://x/v1", "max_retries": 7, "api_key": "sk-secret", "request_timeout": 30}
-    stub = S.make_stub(backend_params=dict(params))
-    identity = S.identity_for(stub, "d0")
-    components = S.components_of(identity)
+    dh = SPEC["dataset_hash"]
+    params = SPEC["stamp_params"]
+    identity = S.identity_for(S.make_stub(backend_params=dict(params)), dh)
+    o["identity"] = attempt(record, identity)
 
-    o["components_sorted"] = sorted(components)
-    o["identity_keys"] = list(S.sym("IDENTITY_COMPONENT_KEYS"))
-    o["backend_params"] = components["backend_params"]
-    o["no_key_in_components"] = "sk-secret" not in json.dumps(components, sort_keys=True, default=repr)
+    # The stamp goes where the judge reads it; the judge opens the bytes itself.
+    write_run_stamp = S.sym("write_run_stamp", None)
+    run_dir = os.path.join(scenario_dir("r1_obs"), "run")
+    o["stamp_write"] = (attempt(lambda: write_run_stamp(run_dir, identity, now=SPEC["stamp_now"]) and None)
+                        if callable(write_run_stamp) else None)
 
-    ri.write_run_stamp(tmp / "run", identity, now=S.NOW)
-    stamp_text = (tmp / "run" / "run_identity.json").read_text()
-    o["no_key_in_stamp"] = "sk-secret" not in stamp_text
-    o["url_in_stamp"] = "https://x/v1" in stamp_text
+    o["rotated"] = ident({"backend_params": dict(SPEC["rotated_params"])}, dh)
+    o["changed"] = [ident({"backend_params": dict(params), **over}, dh)
+                    for over in fixture_spec.changed_stamp_stubs(SPEC)]
 
-    o["base_hash"] = S.run_hash_of(identity)
-    rotated = S.make_stub(backend_params={"base_url": "https://x/v1", "max_retries": 999, "api_key": "sk-other"})
-    o["rotated_hash"] = S.run_hash_of(S.identity_for(rotated, "d0"))
-
-    o["changed_hashes"] = [
-        S.run_hash_of(S.identity_for(S.make_stub(backend_params=dict(params), parse_func=S.parse_two), "d0")),
-        S.run_hash_of(S.identity_for(S.make_stub(backend_params=dict(params), system_prompt="be terse"), "d0")),
-        S.run_hash_of(S.identity_for(S.make_stub(backend_params=dict(params), return_completions_object=True), "d0")),
-        S.run_hash_of(S.identity_for(S.make_stub(backend_params=dict(params), backend="litellm"), "d0")),
-    ]
-
-    auto = S.batchy(model_name="gpt-4o-mini", batch=True)
-    declared = S.batchy(model_name="gpt-4o-mini", backend="openai", batch=True)
-    o["auto_hash"] = S.run_hash_of(S.identity_for(auto, "d0"))
-    o["declared_hash"] = S.run_hash_of(S.identity_for(declared, "d0"))
+    auto = S.batchy(model_name=SPEC["known_model"], batch=True)
+    declared = S.batchy(model_name=SPEC["known_model"], backend="openai", batch=True)
+    o["auto"] = attempt(lambda: record(S.identity_for(auto, dh)))
+    o["declared"] = attempt(lambda: record(S.identity_for(declared, dh)))
     return o
 
 
@@ -549,151 +699,151 @@ def probe_r2_rule(mp) -> dict:
     S.importable()
     from bespokelabs import curator
     o: dict = {}
-    params = inspect.signature(S.sym("compute_run_identity")).parameters
-    o["compute_run_id"] = ["run_id" in params,
-                           params["run_id"].kind.name if "run_id" in params else None,
-                           params["run_id"].default if "run_id" in params else _sentinel_default()]
-
-    o["callers"] = {}
-    for name, func in (("_run_identity", curator.LLM._run_identity), ("__call__", curator.LLM.__call__)):
-        taken = inspect.signature(func).parameters
-        o["callers"][name] = ["run_id" in taken,
-                              taken["run_id"].kind.name if "run_id" in taken else None,
-                              taken["run_id"].default if "run_id" in taken else _sentinel_default()]
-
+    o["signatures"] = {
+        "compute_run_identity": signature_of(S.sym("compute_run_identity", None)),
+        "_run_identity": signature_of(getattr(curator.LLM, "_run_identity", None)),
+        "__call__": signature_of(curator.LLM.__call__),
+    }
+    name = run_id_param()
+    o["param"] = name
+    if name is None:
+        return o
+    dh = SPEC["dataset_hash"]
+    rid = SPEC["id_rule"]
     stub = S.make_stub()
-    identity = S.identity_for(stub, "d0", cache_enabled=False, run_id="local-run-7")
-    o["cache_enabled"] = read_field(identity, "cache_enabled")
-    o["run_id"] = S.components_of(identity)["run_id"]
-    o["base_hash"] = S.run_hash_of(identity)
-    o["replay_same_stub"] = S.run_hash_of(S.identity_for(stub, "d0", cache_enabled=False, run_id="local-run-7"))
-    o["replay_new_stub"] = S.run_hash_of(S.identity_for(S.make_stub(), "d0", cache_enabled=False, run_id="local-run-7"))
-    o["other_id"] = S.run_hash_of(S.identity_for(stub, "d0", cache_enabled=False, run_id="local-run-8"))
-    o["other_inputs"] = S.run_hash_of(S.identity_for(stub, "other", cache_enabled=False, run_id="local-run-7"))
+    o["base"] = attempt(lambda: record(S.identity_for(stub, dh, cache_enabled=False, **{name: rid})))
+    o["replay_same_stub"] = attempt(lambda: record(S.identity_for(stub, dh, cache_enabled=False, **{name: rid})))
+    o["replay_new_stub"] = ident({}, dh, cache_enabled=False, **{name: rid})
+    o["other_id"] = attempt(lambda: record(S.identity_for(stub, dh, cache_enabled=False,
+                                                          **{name: SPEC["id_rule_other"]})))
+    o["other_inputs"] = attempt(lambda: record(S.identity_for(stub, SPEC["alt_dataset_hash"],
+                                                              cache_enabled=False, **{name: rid})))
     return o
-
-
-def _sentinel_default():
-    """A JSON-safe stand-in for 'the parameter is absent' — never equals None."""
-    return "<<absent>>"
 
 
 def probe_r2_scope(mp) -> dict:
     S.importable()
-    tmp = S.newtmp()
     o: dict = {}
-    llm = S.batchy(model_name="gpt-4o-mini", batch=True)
-    mp.setattr(llm._request_processor, "run", _stop, raising=False)
-    rows = S.Dataset.from_list(S.ROWS)
-    cache = tmp / "cc"
-    mp.setenv("CURATOR_CACHE_DIR", str(cache))
+    llm = a_call_llm(mp)
+    rows = S.Dataset.from_list(SPEC["rows"])
     mp.delenv("CURATOR_DISABLE_CACHE", raising=False)
-    mp.delenv("CURATOR_RUN_ID", raising=False)
 
-    o["cached_stopped"] = stopped(llm, rows)
-    cached = S.run_dirs(cache)
-    o["cached_dirs"] = len(cached)
-    o["cached_run_id"] = S.stamped_run_id(cache, cached[0]) if cached else "<<no-dir>>"
+    env = run_id_env(llm, rows, mp)
+    param = run_id_param()
+    o["env"] = env
+    o["param"] = param
 
-    mp.setenv("CURATOR_DISABLE_CACHE", "true")
-    mp.setenv("CURATOR_RUN_ID", "ci-job-42")
-    o["env_stopped"] = [stopped(llm, rows), stopped(llm, rows)]
-    named = [name for name in S.run_dirs(cache) if name not in cached]
-    o["named_dirs"] = len(named)
-    o["named_run_id"] = S.stamped_run_id(cache, named[0]) if named else "<<no-dir>>"
+    def phase(label, disable, env_value, calls, **kwargs):
+        step = MonkeyPatch()
+        try:
+            step.setenv("CURATOR_CACHE_DIR", scenario_dir("r2_scope", label))
+            if disable:
+                step.setenv("CURATOR_DISABLE_CACHE", "true")
+            else:
+                step.delenv("CURATOR_DISABLE_CACHE")
+            if env is not None:
+                if env_value is None:
+                    step.delenv(env)
+                else:
+                    step.setenv(env, env_value)
+            o[label] = [raises(llm, rows, **kwargs) for _ in range(calls)]
+        finally:
+            step.undo()
 
-    known = set(S.run_dirs(cache))
-    o["explicit_stopped"] = stopped(llm, rows, run_id="explicit-7")
-    given = [name for name in S.run_dirs(cache) if name not in known]
-    o["given_dirs"] = len(given)
-    o["given_run_id"] = S.stamped_run_id(cache, given[0]) if given else "<<no-dir>>"
-
-    mp.delenv("CURATOR_RUN_ID")
-    known = set(S.run_dirs(cache))
-    o["minted_stopped"] = [stopped(llm, rows), stopped(llm, rows)]
-    minted = [name for name in S.run_dirs(cache) if name not in known]
-    o["minted_dirs"] = len(minted)
-    o["minted_ids"] = [S.stamped_run_id(cache, name) for name in minted]
+    phase("cached", False, None, 1)
+    if env is not None:
+        phase("from_env", True, SPEC["id_env"], 2)
+    if param is not None:
+        phase("explicit", True, SPEC["id_env"], 1, **{param: SPEC["id_explicit"]})
+    phase("minted", True, None, 2)
     return o
 
 
 def probe_r2_failure_behavior(mp) -> dict:
     S.importable()
-    tmp = S.newtmp()
     o: dict = {}
+    dh = SPEC["dataset_hash"]
     stub = S.make_stub()
-    o["missing_none"] = raises(S.identity_for, stub, "d0", cache_enabled=False, run_id=None)
-    o["missing_absent"] = raises(S.identity_for, stub, "d0", cache_enabled=False)
-    o["missing_empty"] = raises(S.identity_for, stub, "d0", cache_enabled=False, run_id="")
-    o["cached_with_id"] = raises(S.identity_for, stub, "d0", cache_enabled=True, run_id="x")
+    param = run_id_param()
+    o["param"] = param
+    o["missing_absent"] = raises(S.identity_for, stub, dh, cache_enabled=False)
+    if param is not None:
+        o["missing_none"] = raises(S.identity_for, stub, dh, cache_enabled=False, **{param: None})
+        o["missing_empty"] = raises(S.identity_for, stub, dh, cache_enabled=False, **{param: ""})
+        o["cached_with_id"] = raises(S.identity_for, stub, dh, cache_enabled=True, **{param: SPEC["id_refused"]})
 
-    llm = S.batchy(model_name="gpt-4o-mini", batch=True)
-    mp.setattr(llm._request_processor, "run", _stop, raising=False)
-    cache = tmp / "cc"
-    mp.setenv("CURATOR_CACHE_DIR", str(cache))
+    # A cached call handed an id is refused all the way up, before a directory
+    # exists; then a legitimate cache-disabled call into the SAME cache root
+    # proves the root was live. The judge reads the root afterwards.
+    llm = a_call_llm(mp)
+    rows = S.Dataset.from_list(SPEC["rows"])
+    mp.setenv("CURATOR_CACHE_DIR", scenario_dir("r2_fail", "cc"))
     mp.delenv("CURATOR_DISABLE_CACHE", raising=False)
-    rows = S.Dataset.from_list(S.ROWS)
-    cached = S.run_hash_of(S.identity_for(llm, rows._fingerprint))
-    o["call_with_id"] = raises(llm, rows, run_id="x")
-    dirs = S.run_dirs(cache)
-    o["dirs_after"] = dirs
-    o["cached_not_present"] = cached not in dirs
+    if param is not None:
+        o["call_with_id"] = raises(llm, rows, **{param: SPEC["id_refused"]})
+    mp.setenv("CURATOR_DISABLE_CACHE", "true")
+    kwargs = {param: SPEC["id_control"]} if param is not None else {}
+    o["control"] = raises(llm, rows, **kwargs)
     return o
 
 
 def probe_r2_observability(mp) -> dict:
     S.importable()
     o: dict = {}
-    stub = S.make_stub()
-    identity = S.identity_for(stub, "d0", cache_enabled=False, run_id="local-run-7")
-    run_hash = S.run_hash_of(identity)
-    o["run_hash"] = run_hash
-    o["run_hash_stable"] = S.run_hash_of(S.identity_for(stub, "d0", cache_enabled=False, run_id="local-run-7"))
-    o["run_hash_other"] = S.run_hash_of(S.identity_for(stub, "d0", cache_enabled=False, run_id="other"))
-    o["cached_run_id"] = S.components_of(S.identity_for(stub, "d0"))["run_id"]
-    o["cached_run_hash"] = S.run_hash_of(S.identity_for(stub, "d0"))
+    name = run_id_param()
+    o["param"] = name
+    if name is not None:
+        dh = SPEC["dataset_hash"]
+        o["uncached"] = ident({}, dh, cache_enabled=False, **{name: SPEC["id_obs"]})
+        o["uncached_again"] = ident({}, dh, cache_enabled=False, **{name: SPEC["id_obs"]})
+        o["uncached_other"] = ident({}, dh, cache_enabled=False, **{name: SPEC["id_obs_other"]})
+        o["cached"] = ident({}, dh)
 
     # The defining module's on-disk source is read and AST-scanned by the judge
     # (from SUBMISSION_SRC), not trusted from this process. Record where curator
     # actually put compute_run_identity, for the judge's diagnostics.
-    module = sys.modules[S.sym("compute_run_identity").__module__]
-    o["defining_module"] = module.__name__
-    try:
-        o["defining_file"] = inspect.getsourcefile(module)
-    except Exception:
-        o["defining_file"] = None
+    fn = S.sym("compute_run_identity", None)
+    o["defining_module"] = getattr(fn, "__module__", None)
     return o
 
 
 PROBES = {
     "test_open::test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorded": probe_open,
-    "test_r1::test_rule__the_key_is_exactly_twelve_components_and_the_parse_function_is_one_of_them": probe_r1_rule,
-    "test_r1::test_scope__the_backend_component_is_the_resolved_name_not_the_declared_argument": probe_r1_scope,
-    "test_r1::test_exclusions__only_four_backend_params_fork_the_cache_and_the_api_key_is_not_one": probe_r1_exclusions,
-    "test_r1::test_observability__the_stated_component_table_holds_and_no_api_key_reaches_the_stamp": probe_r1_observability,
-    "test_r2::test_rule__a_cache_disabled_run_is_identified_by_a_run_id_its_caller_supplies": probe_r2_rule,
-    "test_r2::test_scope__the_call_mints_the_default_id_from_the_environment_and_passes_it_down": probe_r2_scope,
-    "test_r2::test_failure_behavior__a_missing_id_and_an_unwanted_one_are_both_refused": probe_r2_failure_behavior,
-    "test_r2::test_observability__the_nocache_run_hash_is_stable_and_the_module_reads_no_randomness": probe_r2_observability,
+    "test_r1::test_rule__component_set": probe_r1_rule,
+    "test_r1::test_scope__backend_resolution": probe_r1_scope,
+    "test_r1::test_exclusions__backend_param_filter": probe_r1_exclusions,
+    "test_r1::test_observability__stamp_contents": probe_r1_observability,
+    "test_r2::test_rule__uncached_identity": probe_r2_rule,
+    "test_r2::test_scope__identity_sourcing": probe_r2_scope,
+    "test_r2::test_failure_behavior__refusals": probe_r2_failure_behavior,
+    "test_r2::test_observability__uncached_hash_shape": probe_r2_observability,
 }
 
 
-def main(out_path: str) -> int:
+def main(out_path: str, seed: str, artifacts: str) -> int:
+    global SPEC, ARTIFACTS
+    SPEC = fixture_spec.derive(seed)
+    ARTIFACTS = artifacts
+    S.set_spec(SPEC)
+
     results: dict[str, dict] = {}
     for node, fn in PROBES.items():
         mp = MonkeyPatch()
         try:
             results[node] = {"ok": True, "obs": fn(mp)}
         except BaseException as exc:  # noqa: BLE001 - a probe that dies is a failed fact, reported not raised
-            results[node] = {"ok": False,
-                             "error": f"{type(exc).__name__}: {exc}",
+            results[node] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"[:1000],
                              "trace": traceback.format_exc()[-2000:]}
         finally:
             mp.undo()
+    results["discovery"] = {"ok": True, "obs": jsonable(_DISCOVERED)}
     with open(out_path, "w") as fh:
-        json.dump(results, fh)
+        json.dump(results, fh, default=repr)
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1]))
+    code = main(sys.argv[1], sys.argv[2], sys.argv[3])
+    sys.stdout.flush()
+    sys.stderr.flush()
+    _EXIT(code)

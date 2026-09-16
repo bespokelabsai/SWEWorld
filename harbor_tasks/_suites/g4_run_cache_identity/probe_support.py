@@ -1,37 +1,31 @@
-"""g4 — answer-free scenario helpers/inputs shared by the worker (probe.py) and
-the human reference (test_open.py).
+"""g4 — answer-free scenario helpers shared by the worker (probe.py) and the
+human reference (test_open.py).
 
-This module holds ONLY the curator imports, the stubs, the scenario INPUTS and
-the tolerant readers the probe needs to drive curator; it contains NO
-expected-output value. That is load-bearing: `run_split` copies this file into
-the worker's jail, so it is inside the process that runs agent code. If any
-reward-bearing expected value ever appeared here, the worker could read it and
-forge a passing `observations.json`. In particular the twelve-key component
-list, the four-key backend-params allowlist and WHICH backend knobs fork the
-cache (the r1 partition), the `_get_function_hash(None)` digest, the migration
-column set, the store_metadata row values, and the exact stamp serialisation
-live only in `judge.py` (and, for humans, in `test_open.py`), which the worker
-cannot read.
+This module holds ONLY the curator imports, the stub builder, the builders that
+turn `fixture_spec` recipes into real functions and response models, and the
+tolerant readers the probe needs to drive curator. It contains NO expected
+value. That is load-bearing: `run_split` copies this file into the worker's
+jail, so it is inside the process that runs agent code, and anything answer-like
+here is something a forged observations file can copy. In particular the
+component key set, the backend-param allowlist, the `_get_function_hash(None)`
+digest, the cache-disabled run-hash shape, the run-id environment variable, the
+stamp file's NAME and every stamp/row value the judge grades live only in
+`judge.py` (and, for humans, in `test_open.py`/`test_r*.py`), which the worker
+cannot read: /tests is root-only for a split suite and the jail holds only
+`probe.py`, `probe_support.py`, `fixture_spec.py` and `harness.py`.
 
-`CANDIDATE_BACKEND_PARAMS` is deliberately a FLAT, UNLABELLED list: it names the
-backend knobs the exclusions test varies, but nothing here says which of them
-fork the cache. The probe records, per knob, what curator actually did; the
-judge alone holds the identity/non-identity split, so a worker reading this file
-still cannot forge the per-knob verdicts without implementing the rule.
+Where a scenario has to USE one of those answers — read a stamp by name, set the
+run-id variable, pass a run id to a call — it is discovered from the submission
+(`stamp_name`, and the discovery in probe.py), never written here; the judge
+checks what was discovered.
 
-`NOW`, `LATER`, `METADATA`, `_DEFAULT_BACKEND_PARAMS`, `ROWS` and the values in
-`CANDIDATE_BACKEND_PARAMS` are INPUTS: the strings the fixtures feed into
-curator. They must be the literals the reference uses or the scenarios do not
-reproduce; the judge holds its own copies for the equality checks it grades, so
-a worker reading them here gains nothing it does not still have to make curator
-actually produce.
-
-`test_open.py` imports these names so there is a single definition of each helper
-— the probe cannot drift from the reference.
+`NOW`, `LATER` and `METADATA` are the open feature's inputs (weight 0); the
+hidden facts draw theirs from `fixture_spec.derive(seed)` through `set_spec`.
 """
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
 import tempfile
@@ -40,7 +34,7 @@ from types import SimpleNamespace
 
 import pytest
 from datasets import Dataset  # noqa: F401 - re-exported for test_open/the probe
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
 from harness import read_field, surface  # noqa: F401 - re-exported for test_open/test_r*
 
@@ -60,31 +54,9 @@ except Exception:  # pragma: no cover
     PromptFormatter = None
 
 
-# ---- inputs the fixtures feed ---------------------------------------------
+# ---- the open feature's inputs ----------------------------------------------
 NOW = "2025-01-02T03:04:05"
 LATER = "2025-01-02T04:00:00"
-
-_DEFAULT_BACKEND_PARAMS = {"base_url": "https://api.example.test/v1", "max_retries": 7, "api_key": "sk-secret"}
-
-ROWS = [{"topic": "cats"}]
-
-# The backend knobs the exclusions test varies, one flat list with NO hint of
-# which fork the cache. Values match the reference so the scenarios reproduce
-# exactly; the identity/non-identity partition is the judge's secret.
-CANDIDATE_BACKEND_PARAMS = [
-    ("max_retries", 99),
-    ("azure_deployment", "deployment-b"),
-    ("request_timeout", 30),
-    ("base_url", "https://y/v1"),
-    ("require_all_responses", False),
-    ("batch_size", 7),
-    ("batch_check_interval", 11),
-    ("completion_window", "48h"),
-    ("seconds_to_pause_on_rate_limit", 5),
-    ("max_requests_per_minute", 4242),
-    ("delete_successful_batch_files", True),
-    ("api_key", "sk-rotated"),
-]
 
 OLD_RUNS_COLUMNS = (
     "run_hash",
@@ -110,25 +82,22 @@ METADATA = {
     "prompt_func": "def p(): pass",
     "parse_func": "def q(): pass",
     "model_name": "gpt-4o-mini",
-    "response_format": "text",
+    "response_format": "structured",
     "batch_mode": False,
     "timestamp": NOW,
     "is_hosted_viewer_synced": False,
     "identity_version": 3,
 }
 
-
-def prompt_one(row):
-    return f"one: {row}"
-
-
-def parse_two(row, response):
-    return {"two": response}
+# The run's derived inputs. Empty until `set_spec`; the human reference never
+# sets it and gets the plain defaults below.
+SPEC: dict = {}
 
 
-class Answer(BaseModel):
-    text: str
-    score: int
+def set_spec(spec: dict) -> None:
+    SPEC.clear()
+    SPEC.update(spec)
+    _BUILT.clear()
 
 
 class _Stop(Exception):
@@ -152,13 +121,18 @@ _CANDIDATE_MODULES = (
     "bespokelabs.curator.types.curator_response",
 )
 
+_RAISE = object()
 
-def sym(name: str):
+
+def sym(name: str, default=_RAISE):
     """A name exported by the package, from whichever module holds it.
 
     The ticket puts the identity rule in `run_identity.py`, but a constant is
     graded on existing and on what it says, not on which file it was typed
     into, so every already-imported curator module is searched before giving up.
+    With a `default`, a missing name is that default rather than a failure: the
+    probe reports None and the judge — which owns the name — decides, so a
+    missing constant fails only the fact that names it.
     """
     for mod_name in _CANDIDATE_MODULES:
         mod = sys.modules.get(mod_name)
@@ -173,7 +147,68 @@ def sym(name: str):
     for mod_name, mod in sorted(sys.modules.items()):
         if mod_name.startswith("bespokelabs.curator") and hasattr(mod, name):
             return getattr(mod, name)
+    if default is not _RAISE:
+        return default
     pytest.fail(f"the implementation exports no {name!r} anywhere in bespokelabs.curator")
+
+
+def stamp_name():
+    """The stamp file's name as the submission spells it, or None.
+
+    Discovered, never defaulted: the name is graded by the judge, and a default
+    here would put it in the worker's jail.
+    """
+    name = getattr(ri, "RUN_IDENTITY_FILENAME", None) if ri is not None else None
+    return name if isinstance(name, str) and name and os.path.basename(name) == name else None
+
+
+# ---------------------------------------------------------------------------
+# Building the recipes fixture_spec draws
+# ---------------------------------------------------------------------------
+_BUILT: dict = {}
+
+
+def function_from(recipe: dict):
+    """A module-level function built from a recipe's name and body text.
+
+    Registered on this module under its drawn name, so a pickler that pickles a
+    function by reference finds it and one that pickles by value sees the drawn
+    body; either way its `_get_function_hash` moves with the seed.
+    """
+    key = ("fn", recipe["name"])
+    if key not in _BUILT:
+        source = f"def {recipe['name']}({recipe['args']}):\n    return {recipe['body']!r} + str(row)\n"
+        namespace: dict = {"__name__": __name__}
+        exec(compile(source, __file__, "exec"), namespace)  # noqa: S102 - the recipe is ours
+        fn = namespace[recipe["name"]]
+        fn.__module__ = __name__
+        globals()[recipe["name"]] = fn
+        _BUILT[key] = fn
+    return _BUILT[key]
+
+
+_TYPES = {"str": str, "int": int, "float": float, "bool": bool}
+
+
+def model_from(recipe: dict):
+    """A pydantic response model built from a recipe's class name and fields."""
+    key = ("model", recipe["name"])
+    if key not in _BUILT:
+        fields = {name: (_TYPES[kind], ...) for name, kind in recipe["fields"]}
+        model = create_model(recipe["name"], __base__=BaseModel, **fields)
+        _BUILT[key] = model
+    return _BUILT[key]
+
+
+def resolve(value):
+    """A scenario override with its recipe tokens replaced by the built objects."""
+    if value == "@prompt":
+        return function_from(SPEC["prompt_fn"])
+    if value == "@parse":
+        return function_from(SPEC["parse_fn"])
+    if value == "@model":
+        return model_from(SPEC["response_model"])
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -186,23 +221,24 @@ def make_stub(**over):
     reads a method off it is served; `_request_processor` and `_backend_params`
     mirror `backend` / `backend_params` so an implementation that reaches for
     the private spelling gets the same answer as one that uses the property.
+    Defaults are the run's drawn inputs once `set_spec` has run.
     """
     formatter_keys = ("model_name", "prompt_func", "parse_func", "response_format", "generation_params", "system_prompt")
     formatter_kwargs = {
-        "model_name": "gpt-4o-mini",
+        "model_name": SPEC.get("model", "gpt-4o-mini"),
         "prompt_func": None,
         "parse_func": None,
         "response_format": None,
-        "generation_params": {"temperature": 0.7},
+        "generation_params": dict(SPEC.get("generation_params", {"temperature": 0.7})),
         "system_prompt": None,
     }
     for key in formatter_keys:
         if key in over:
-            formatter_kwargs[key] = over.pop(key)
+            formatter_kwargs[key] = resolve(over.pop(key))
     backend = over.pop("backend", "openai")
     backend_params = over.pop("backend_params", None)
     if backend_params is None:
-        backend_params = dict(_DEFAULT_BACKEND_PARAMS)
+        backend_params = {}
     formatter = PromptFormatter(**formatter_kwargs)
     stub = SimpleNamespace(
         prompt_formatter=formatter,
@@ -217,7 +253,9 @@ def make_stub(**over):
     return stub
 
 
-def identity_for(stub, dataset_hash="9f1c8e2b7d4a6053", **kwargs):
+def identity_for(stub, dataset_hash=None, **kwargs):
+    if dataset_hash is None:
+        dataset_hash = SPEC.get("dataset_hash", "0f0f0f0f")
     return ri.compute_run_identity(stub, dataset_hash, **kwargs)
 
 
@@ -229,14 +267,14 @@ def run_hash_of(identity) -> str:
     return read_field(identity, "run_hash")
 
 
-def stamp_dict(path) -> dict:
-    return json.loads((Path(path) / "run_identity.json").read_text())
+def stamp_dict(path, name=None) -> dict:
+    return json.loads((Path(path) / (name or stamp_name())).read_text())
 
 
-def write_stamp_file(path, payload) -> None:
+def write_stamp_file(path, payload, name=None) -> None:
     path = Path(path)
     path.mkdir(parents=True, exist_ok=True)
-    (path / "run_identity.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    (path / (name or stamp_name())).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
 
 def make_old_db(path) -> None:
@@ -251,7 +289,7 @@ def make_old_db(path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# A real LLM built with no socket in reach (used by r1/r2 scope scenarios)
+# A real LLM built with no socket in reach
 # ---------------------------------------------------------------------------
 def _batchy():
     """Build `Batchy` lazily so a broken curator import fails per test, not here.
@@ -271,36 +309,6 @@ def _batchy():
 
 def batchy(**kwargs):
     return _batchy()(**kwargs)
-
-
-# ---------------------------------------------------------------------------
-# Reading the cache directories a run leaves behind (r2 scope/failure)
-# ---------------------------------------------------------------------------
-def run_dirs(cache) -> list:
-    """The run directories under a cache root, ignoring metadata.db."""
-    import os
-
-    cache = Path(cache)
-    if not cache.is_dir():
-        return []
-    return sorted(name for name in os.listdir(cache) if (cache / name).is_dir())
-
-
-def stamped_run_id(cache, name):
-    """The run id a run directory was stamped with.
-
-    Read through the implementation's own `read_run_stamp` first, so a stamp
-    that is spelled differently on disk still answers; the raw file is the
-    fallback. This is what proves the id reached the identity, rather than the
-    directory name, which would also depend on how the dataset is fingerprinted.
-    """
-    directory = Path(cache) / name
-    stamp = sym("read_run_stamp")(directory)
-    if stamp is not None:
-        return dict(read_field(stamp, "components"))["run_id"]
-    raw = directory / "run_identity.json"
-    assert raw.is_file(), f"{name} carries no readable run identity stamp"
-    return json.loads(raw.read_text())["components"]["run_id"]
 
 
 def newtmp() -> Path:

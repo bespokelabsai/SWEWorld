@@ -16,6 +16,13 @@
 The four are four measurements. `rule` never loads a hand-written checkpoint,
 `scope` never expects an exception, `failure_behavior` never reads a byte count,
 and `observability` is the only one that spells the file out literally.
+
+This is the human reference, over the fixed worked example the ticket describes
+("client"/"advisor", 186 and 189 bytes). The grader (`probe.py` + `judge.py`)
+asserts the same things over inputs re-drawn from a per-run seed, so the
+agent names, run lengths and therefore the byte counts differ run to run; the
+test names say which part of the requirement each one grades and nothing more,
+because a node id is visible wherever a verdict is.
 """
 from __future__ import annotations
 
@@ -32,13 +39,14 @@ from test_open import (
     Conversation,
     PARTNER,
     SEEDER,
-    SIDECAR,
     authors,
     call_write_sidecar,
     log_lines,
     sym,
     write_log,
 )
+
+SIDECAR = "turn_ledger.json"
 
 EIGHT_KEYS = {
     "version",
@@ -90,7 +98,7 @@ def full_state(**overrides):
     return state
 
 
-def test_rule__a_versioned_checkpoint_rewritten_after_every_appended_response(tmp_path):
+def test_rule__checkpoint_contract(tmp_path):
     assert sym("TURN_LEDGER_FILENAME") == "turn_ledger.json"
     assert sym("TURN_LEDGER_VERSION") == 2
 
@@ -132,7 +140,7 @@ def test_rule__a_versioned_checkpoint_rewritten_after_every_appended_response(tm
     assert json.loads(open(path).read()) == state
 
 
-def test_scope__load_ledger_writes_nothing_and_the_log_outranks_the_checkpoint(tmp_path):
+def test_scope__loading_and_authority(tmp_path):
     statuses = sym("LEDGER_STATUSES")
     assert set(statuses) == {"created", "adopted", "verified"}
 
@@ -186,7 +194,7 @@ def test_scope__load_ledger_writes_nothing_and_the_log_outranks_the_checkpoint(t
     assert read_field(processor.ledger, "status") == "created"
 
 
-def test_failure_behavior__absent_or_old_is_adopted_and_a_disagreeing_one_aborts(tmp_path):
+def test_failure_behavior__verification_arms(tmp_path):
     desync = sym("TurnLedgerDesyncError")
     base = sym("TurnLedgerError")
     assert issubclass(desync, base) and issubclass(base, RuntimeError)
@@ -241,7 +249,7 @@ def test_failure_behavior__absent_or_old_is_adopted_and_a_disagreeing_one_aborts
     assert len(log_lines(tmp_path)) == 3
 
 
-def test_observability__the_checkpoint_reads_186_bytes_mid_run_and_189_at_the_end(tmp_path):
+def test_observability__checkpoint_on_disk(tmp_path):
     read_sidecar = sym("read_sidecar")
     desync = sym("TurnLedgerDesyncError")
 

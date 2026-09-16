@@ -1,26 +1,18 @@
-"""g7 — answer-free scenario helpers/inputs shared by the worker (probe.py) and
-the human reference (test_open.py).
+"""g7 — answer-free scenario helpers shared by the worker (probe.py) and the
+human reference (test_open.py / test_r1.py / test_r2.py).
 
-This module holds ONLY the curator imports, the conversation fakes, the scenario
-INPUTS and the log/dataset readers the probe needs to drive curator; it contains
-NO expected-output value. That is load-bearing: `run_split` copies this file into
-the worker's jail, so it is inside the process that runs agent code. If any
-reward-bearing expected value ever appeared here, the worker could read it and
-forge a passing `observations.json`. The answers — the 186/189 byte counts, the
-exact sidecar JSON spelling, the eight sidecar key/values, the completion-reason
-strings, `TURN_LEDGER_VERSION`, the sentinel token asserted equal to
-`COMPLETION_SENTINEL`, and the `TurnLedgerDesyncError` message format — live only
-in `judge.py` (and, for humans, in `test_open.py`), which the worker cannot read.
+This module holds ONLY the curator imports, the conversation fakes and the
+log/dataset readers the probe needs to drive curator; it contains NO expected
+value and NO name a hidden requirement fixes. That is load-bearing: `run_split`
+copies this file into the worker's jail, so it is readable by the process that
+runs agent code. The checkpoint's file name, its version and spelling, the
+completion token and every status word live only in `judge.py` (and, for humans,
+in `test_r1.py`/`test_r2.py`), which the worker cannot read: `test.sh` keeps
+/tests root-only for a split suite.
 
-The names here that coincide with a fact (`SEED`, `SEEDER`, `PARTNER`, `SIDECAR`,
-`SENTINEL`, `CLOCK`) are INPUTS: the strings the fixtures feed into messages, the
-clock stamped onto the seed, the file the sidecar is written to. They must be the
-literals the reference uses or the scenarios do not reproduce; the judge holds its
-own copies for the equality checks it grades, so a worker reading them here gains
-nothing it does not still have to make curator actually produce.
-
-`test_open.py` imports these names so there is a single definition of each helper
-— the probe cannot drift from the reference.
+Agent names are not fixed here either. The grader draws them per run
+(`fixture_spec.derive`) because they are spelled into the checkpoint, and the
+human reference pins its own worked example with `set_names`.
 """
 from __future__ import annotations
 
@@ -33,6 +25,8 @@ import pytest
 
 from harness import read_field  # noqa: F401 - re-exported for test_open/test_r*
 
+import fixture_spec
+
 from bespokelabs.curator.agent.agent_response import AgentResponse
 from bespokelabs.curator.agent.processor import MultiTurnAgenticProcessor
 from bespokelabs.curator.llm.prompt_formatter import PromptFormatter
@@ -42,17 +36,19 @@ from bespokelabs.curator.types.token_usage import _TokenUsage
 import datetime
 
 # ---- inputs the fixtures feed ---------------------------------------------
-CLOCK = datetime.datetime(2025, 1, 2, 3, 4, 5)
+CLOCK = datetime.datetime.fromisoformat(fixture_spec.CLOCK_ISO)
 SEED = "I need help with my investment strategy. What should I do?"
-LOG = "responses_0.jsonl"
-SIDECAR = "turn_ledger.json"
+LOG = fixture_spec.LOG
 
-SEEDER = "client"
-PARTNER = "advisor"
+# Set by the caller before any Conversation is built: the probe from the run's
+# seed, the human reference from its worked example.
+SEEDER = None
+PARTNER = None
 
-# r2 feeds this token into replies to trigger completion; the ASSERTION that
-# COMPLETION_SENTINEL equals it is the judge's, not this file's.
-SENTINEL = "<<END_OF_CONVERSATION>>"
+
+def set_names(seeder, partner):
+    global SEEDER, PARTNER
+    SEEDER, PARTNER = seeder, partner
 
 
 class Boom(RuntimeError):
@@ -96,8 +92,8 @@ class Conversation:
         self.calls = []
         self.raise_on = set(raise_on)          # 1-based call numbers that blow up
         self._is_completed = is_completed or (lambda response: False)
-        seeder_prompt = "You are a client that asks questions to the advisor." if system_prompt else None
-        partner_prompt = "You are a helpful advisor." if system_prompt else None
+        seeder_prompt = "You ask the questions in this conversation." if system_prompt else None
+        partner_prompt = "You answer the questions in this conversation." if system_prompt else None
         self.seeder = self._agent(SEEDER, seeder_prompt)
         self.partner = self._agent(PARTNER, partner_prompt)
 
@@ -174,33 +170,15 @@ def authors(working_dir):
 
 
 def write_log(working_dir, rows):
-    """A hand-written log: one (author, content) pair per line."""
+    """A hand-written log: one (author, content) pair per line.
+
+    The bytes come from `fixture_spec.log_text`, which the judge also has, so a
+    scenario's log can be compared against what was planted by the process that
+    decides the verdict.
+    """
     path = os.path.join(str(working_dir), LOG)
     with open(path, "w") as handle:
-        for index, (author, content) in enumerate(rows):
-            record = {
-                "name": author,
-                "response_message": content,
-                "parsed_response_message": None,
-                "response_errors": None,
-                "raw_response": None,
-                "raw_request": None,
-                "generic_request": {
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": content}],
-                    "response_format": None,
-                    "original_row": {"prompt": content},
-                    "original_row_idx": 0,
-                    "generation_params": {},
-                    "is_multimodal_prompt": False,
-                },
-                "created_at": CLOCK.isoformat(),
-                "finished_at": CLOCK.isoformat(),
-                "token_usage": None,
-                "response_cost": 0.0 if index == 0 else 0.001,
-                "finish_reason": "seed" if index == 0 else "stop",
-            }
-            handle.write(json.dumps(record) + "\n")
+        handle.write(fixture_spec.log_text(rows))
     return path
 
 
