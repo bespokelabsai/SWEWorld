@@ -1,7 +1,7 @@
 ---
 title: "Weekly sync notes: week of Jan 27 \u2014 v0.1.17 and v0.1.17.post1 shipped"
 author: nikolai
-created_at: 2025-01-29T09:00:00+00:00
+created_at: 2025-01-29T08:45:00+00:00
 ---
 
 # Weekly sync notes: week of Jan 27, v0.1.17 and v0.1.17.post1 shipped

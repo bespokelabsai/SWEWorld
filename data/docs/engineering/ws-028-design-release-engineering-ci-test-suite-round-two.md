@@ -1,7 +1,7 @@
 ---
 title: "WS-028 design: Release Engineering, CI & Test Suite, round two"
 author: dermot
-created_at: 2025-01-30T09:00:00+00:00
+created_at: 2025-01-30T08:47:00+00:00
 ---
 
 # WS-028 Design: Release Engineering, CI & Test Suite, Round Two

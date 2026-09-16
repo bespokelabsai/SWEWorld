@@ -1,7 +1,7 @@
 ---
 title: "Weekly Notes \u2014 Week of May 19"
 author: emil
-created_at: 2025-05-21T11:19:35+00:00
+created_at: 2025-05-21T11:05:35+00:00
 ---
 
 # Weekly Notes, Week of May 19

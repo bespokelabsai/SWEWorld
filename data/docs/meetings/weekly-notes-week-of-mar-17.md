@@ -1,7 +1,7 @@
 ---
 title: "Weekly Notes \u2014 Week of Mar 17"
 author: nils
-created_at: 2025-03-19T09:00:00+00:00
+created_at: 2025-03-19T08:52:00+00:00
 ---
 
 # Weekly Notes, Week of Mar 17

@@ -1,7 +1,7 @@
 ---
 title: "Postmortem: Dec 4 Revert of End-of-Run Retry Logic"
 author: gideon
-created_at: 2024-12-05T09:00:00+00:00
+created_at: 2024-12-05T08:47:00+00:00
 ---
 
 # Postmortem: Dec 4 Revert of End-of-Run Retry Logic

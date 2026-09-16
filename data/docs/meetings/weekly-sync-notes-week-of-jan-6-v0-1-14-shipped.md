@@ -1,7 +1,7 @@
 ---
 title: "Weekly sync notes: week of Jan 6 \u2014 v0.1.14 shipped"
 author: dermot
-created_at: 2025-01-08T09:00:00+00:00
+created_at: 2025-01-08T08:49:00+00:00
 ---
 
 # Weekly sync notes: week of Jan 6, v0.1.14 shipped

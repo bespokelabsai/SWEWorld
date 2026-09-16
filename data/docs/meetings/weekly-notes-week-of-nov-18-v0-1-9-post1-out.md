@@ -1,7 +1,7 @@
 ---
 title: "Weekly notes: week of Nov 18 - v0.1.9.post1 out"
 author: gideon
-created_at: 2024-11-20T09:00:00+00:00
+created_at: 2024-11-20T08:48:00+00:00
 ---
 
 # Weekly notes: week of Nov 18 - v0.1.9.post1 out
