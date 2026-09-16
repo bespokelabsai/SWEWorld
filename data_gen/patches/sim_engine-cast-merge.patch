@@ -1,0 +1,42 @@
+--- /tmp/sim_engine.orig.py	2026-09-16 16:21:20.819946737 +0000
++++ sim_engine.py	2026-09-16 16:25:09.187373442 +0000
+@@ -553,8 +553,11 @@
+     try:
+         with open(path) as fh:
+             doc = json.load(fh)
+-    except (OSError, ValueError):
+-        return {}                      # a corrupt cache re-casts rather than crashing the run
++    except (OSError, ValueError) as e:
++        # Not `return {}`: an empty cast is a silent redraw of every voice, and the next save then
++        # overwrites the file with the redraw. A half-written file from a concurrent writer did that.
++        raise RuntimeError(f"cast profiles at {path} are unreadable ({e}); restore them rather "
++                           f"than re-casting") from e
+     stamped = doc.get("world") or ""
+     if world and stamped and stamped != world:
+         print(f"  cast profiles are from world {stamped!r}, this is {world!r}: re-casting")
+@@ -567,13 +570,21 @@
+ 
+     Written unconditionally rather than only when the file is absent: a cast that gained a person
+     should extend the file, not be ignored because an older one exists. Stamped with `world` so a
+-    later read can tell whether these people still belong to the world asking for them."""
++    later read can tell whether these people still belong to the world asking for them.
++
++    MERGED with the people already on file, never replacing them. A caller casting a slice of the
++    company (three days of a months-long corpus) used to erase everyone outside that slice, and each
++    of them came back later as a fresh random voice. Written to a temp file and renamed, so a reader
++    never sees half a file."""
+     if not path:
+         return
+     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
+-    with open(path, "w") as fh:
+-        json.dump({"world": world,
+-                   "people": {uid: u.snapshot() for uid, u in profiles.items()}}, fh, indent=2)
++    people = _load_profiles(path, world) if os.path.exists(path) else {}
++    people.update({uid: u.snapshot() for uid, u in profiles.items()})
++    tmp = f"{path}.{os.getpid()}.tmp"
++    with open(tmp, "w") as fh:
++        json.dump({"world": world, "people": people}, fh, indent=2)
++    os.replace(tmp, path)
+     if not quiet:
+         print(f"  cast profiles -> {path}")
+ 

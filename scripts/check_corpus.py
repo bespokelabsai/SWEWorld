@@ -26,7 +26,7 @@ wrong.
 Run it with no arguments for the story checks. `--plants` runs the separate
 question of whether a corpus edit has broken one of the planted tasks, which is
 the failure that hides: `inject.located()` substring-searches the corpus for the
-plant's own words, and `harbor_tasks/.located-corpora/` caches the old bodies,
+plant's own words, and `task_generator/.located-corpora/` caches the old bodies,
 so a desynced plant still builds a healthy-looking artifact.
 """
 from __future__ import annotations
@@ -179,6 +179,7 @@ class Corpus:
                 "message_id": mid,
                 "subject": msg["Subject"] or "",
                 "date": parsedate_to_datetime(msg["Date"]),
+                "in_reply_to": (msg["In-Reply-To"] or "").strip(),
                 "copies": [],
             })
             entry["copies"].append(path)
@@ -293,6 +294,23 @@ def check_chat_reply_order(corpus: Corpus) -> None:
                 f"#{msg['channel']} {msg['created_at'][:16]} {msg['author']}: reply "
                 f"predates its root {root['id']} at {root['created_at'][:16]}",
                 corpus.data / "messages.jsonl")
+
+
+def check_mail_reply_order(corpus: Corpus) -> None:
+    """A reply cannot be dated before the mail it answers.
+
+    Mail is stamped from the writer's own turn clock, and channels are simulated
+    concurrently on separate timelines, so a persona at 09:50 in one room can
+    reply to a mail sent at 14:48 from another. Nothing else reads Date against
+    In-Reply-To: `ingest_mail.py` checks only that the parent exists.
+    """
+    for mid, mail in corpus.mail.items():
+        parent = corpus.mail.get(mail["in_reply_to"])
+        if parent and mail["date"] < parent["date"]:
+            corpus.problems.error(
+                f"mail {mail['subject'][:50]!r} is dated {mail['date'].isoformat()[:16]}, "
+                f"before the message it answers at {parent['date'].isoformat()[:16]}",
+                mail["copies"][0])
 
 
 def check_forge_references(corpus: Corpus) -> None:
@@ -495,6 +513,7 @@ STORY_CHECKS = (
     check_page_claims,
     check_comment_after_page,
     check_chat_reply_order,
+    check_mail_reply_order,
     check_forge_references,
     check_merge_claims,
     check_mail_send_claims,
@@ -508,20 +527,35 @@ STORY_CHECKS = (
 # =============================================================================
 # Reconciling
 # =============================================================================
-def clue_ceiling() -> dict[str, str]:
-    """The earliest date a planted comment sits on each page.
+def _at(when: str) -> dt.datetime:
+    """An ISO stamp as an aware datetime. Compared as strings, "2025-06-04" sorts
+    before "2025-06-04T10:30", which is how a date-only ceiling let a page move
+    to 14:48 on the day its planted comment is injected at 10:30."""
+    stamp = dt.datetime.fromisoformat(when)
+    return stamp if stamp.tzinfo else stamp.replace(tzinfo=dt.timezone.utc)
+
+
+def clue_ceiling(corpus: Corpus) -> dict[str, dt.datetime]:
+    """The earliest comment on each page, planted or already in the corpus.
 
     A page may be moved later to agree with the chat, but never past a remark
-    planted on it: a BookStack comment older than its own page is the defect
-    this tool exists to catch, and a repair that creates one is worse than the
-    contradiction it fixes.
+    on it: a BookStack comment older than its own page is the defect this tool
+    exists to catch, and a repair that creates one is worse than the
+    contradiction it fixes. The corpus's own comments count as much as the
+    planted ones; ignoring them let `--fix` break `check_comment_after_page`.
     """
     pages, _threads = carriers()
-    return {rel: min(d for d in dates if d)
-            for rel, dates in pages.items() if any(dates)}
+    out = {rel: min(_at(d) for d in dates if d)
+           for rel, dates in pages.items() if any(dates)}
+    for comment in corpus.comments:
+        when = _at(comment["created_at"])
+        if comment["doc"] not in out or when < out[comment["doc"]]:
+            out[comment["doc"]] = when
+    return out
 
 
-def best_created_at(page: dict, claims: list[tuple[dict, bool]], ceiling: str | None) -> str:
+def best_created_at(page: dict, claims: list[tuple[dict, bool]],
+                    ceiling: dt.datetime | None) -> str:
     """The timestamp this page would have if it agreed with as much chat as possible.
 
     Not "before the first announcement": the corpus argues with itself about
@@ -542,7 +576,7 @@ def best_created_at(page: dict, claims: list[tuple[dict, bool]], ceiling: str | 
     options = {current} | set(ups) | {
         (dt.datetime.fromisoformat(d) + dt.timedelta(seconds=1)).isoformat() for d in dens}
     if ceiling:
-        options = {o for o in options if o[:10] <= ceiling} or {current}
+        options = {o for o in options if _at(o) <= ceiling} or {current}
     return min(sorted(options),
                key=lambda w: (wrong(w),
                               abs((dt.datetime.fromisoformat(w)
@@ -581,14 +615,17 @@ def humane_time(claims: list[tuple[dict, bool]], chosen: str, key: str = "") -> 
 
 
 def fix_pages(corpus: Corpus, apply: bool) -> int:
-    ceilings = clue_ceiling()
+    ceilings = clue_ceiling(corpus)
     changed = 0
     for page in corpus.pages:
         claims = claims_about(corpus, page)
         if not claims:
             continue
-        want = humane_time(claims, best_created_at(page, claims, ceilings.get(page["rel"])),
-                           page["rel"])
+        ceiling = ceilings.get(page["rel"])
+        want = humane_time(claims, best_created_at(page, claims, ceiling), page["rel"])
+        # `humane_time` only ever moves earlier, but say so where it matters.
+        if ceiling and _at(want) > ceiling:
+            want = page["created_at"]
         if want == page["created_at"]:
             continue
         changed += 1
@@ -654,6 +691,19 @@ def fix_mail(corpus: Corpus, apply: bool) -> int:
         for mid, slot in zip(want, slots):
             due[mid] = slot
 
+    # Never at or past a reply to it. Moving an announcement later can put it
+    # after the "Re:" that answers it, and nothing downstream would say so.
+    replies: dict[str, dt.datetime] = {}
+    for mail in corpus.mail.values():
+        parent = mail["in_reply_to"]
+        if parent and (parent not in replies or mail["date"] < replies[parent]):
+            replies[parent] = mail["date"]
+    for mid in list(due):
+        if mid in replies and due[mid] >= replies[mid]:
+            print(f"  kept {corpus.mail[mid]['subject'][:50]!r}: it would land after "
+                  f"its reply at {replies[mid].isoformat()[:16]}")
+            del due[mid]
+
     index_path = corpus.data / "emails" / "index.jsonl"
     rows = [json.loads(l) for l in index_path.read_text().splitlines() if l.strip()]
     by_path = {r["path"]: r for r in rows}
@@ -703,6 +753,18 @@ def planted_strings() -> set[str]:
     return found
 
 
+def stamp_at(date: str, minute: str) -> str:
+    """`tg.inject.stamp`, which is what places a planted remark in time."""
+    hh, _, mm = (minute or "10:30").partition(":")
+    try:
+        when = dt.datetime.fromisoformat(date).replace(
+            hour=int(hh) % 24, minute=int(mm or 0) % 60, tzinfo=dt.timezone.utc)
+    except ValueError:
+        when = dt.datetime.fromisoformat(date).replace(hour=10, minute=30,
+                                                       tzinfo=dt.timezone.utc)
+    return when.isoformat()
+
+
 def carriers() -> tuple[dict[str, list[str]], set[str]]:
     """Where the plants hang their clues: which page, and which mail thread.
 
@@ -713,13 +775,25 @@ def carriers() -> tuple[dict[str, list[str]], set[str]]:
     pages: dict[str, list[str]] = collections.defaultdict(list)
     threads: set[str] = set()
 
+    def minutes(node) -> list[str]:
+        if isinstance(node, dict):
+            own = [node["minute"]] if isinstance(node.get("minute"), str) else []
+            return own + [m for v in node.values() for m in minutes(v)]
+        if isinstance(node, list):
+            return [m for v in node for m in minutes(v)]
+        return []
+
     def walk(node):
         if isinstance(node, dict):
             carrier = node.get("carrier")
             if isinstance(carrier, dict):
                 room = carrier.get("room") or ""
-                if room.startswith("page:"):
-                    pages[room[5:]].append(carrier.get("date") or "")
+                if room.startswith("page:") and carrier.get("date"):
+                    # The instant `inject.write_comment` will stamp the first
+                    # remark: its own minute, else the 10:30 it defaults to.
+                    first = min(minutes(node) or ["10:30"],
+                                key=lambda m: _at(stamp_at(carrier["date"], m)))
+                    pages[room[5:]].append(stamp_at(carrier["date"], first))
                 elif room.startswith("thread:"):
                     threads.add(room[7:])
             for value in node.values():
@@ -752,11 +826,27 @@ def _tracked_text(ref: str, prefix: str) -> str:
     return "".join(out)
 
 
+def plant_baseline() -> str:
+    """The corpus the plants were built against, not HEAD.
+
+    Against HEAD the anchor check is empty the moment a corpus edit is
+    committed: the commit that moved a message is compared with itself and
+    passes. The plants anchor to the messages as they were when a plant.json
+    last changed, so that commit is the reference, and a resync moves it on.
+    """
+    ref = subprocess.run(
+        ["git", "log", "-1", "--format=%H", "--", "task_generator/out/*/clues*/plant.json"],
+        cwd=REPO, capture_output=True, text=True).stdout.strip()
+    if not ref:
+        print("  plants: no commit changed a plant; comparing against HEAD")
+    return ref or "HEAD"
+
+
 def check_plants(corpus: Corpus, baseline: str) -> None:
     """The five things a corpus edit must not break.
 
     Each one is silent when it fails. The located arm still builds — off the
-    cache in `harbor_tasks/.located-corpora/` — and the artifact looks healthy
+    cache in `task_generator/.located-corpora/` — and the artifact looks healthy
     while the tool that makes it does not work.
     """
     problems = corpus.problems
@@ -822,11 +912,11 @@ def check_plants(corpus: Corpus, baseline: str) -> None:
         if page is None:
             continue  # a page the plant creates at injection time
         checked += 1
-        earliest = min((d for d in dates if d), default=None)
-        if earliest and page["created_at"][:10] > earliest:
+        earliest = min((d for d in dates if d), default=None, key=_at)
+        if earliest and _at(page["created_at"]) > _at(earliest):
             problems.error(
-                f"{rel} is dated {page['created_at'][:10]} but carries a planted "
-                f"comment dated {earliest}")
+                f"{rel} is dated {page['created_at'][:16]} but carries a planted "
+                f"comment at {earliest[:16]}")
     print(f"  plants: {checked} carrier page(s) checked against their clue dates")
 
     # 5. A mail thread root carries planted replies; its Date is load-bearing.
@@ -845,8 +935,9 @@ def main() -> None:
                     help="with --fix, show what would move and write nothing")
     ap.add_argument("--plants", action="store_true",
                     help="check that no edit has broken a planted task")
-    ap.add_argument("--baseline", default="HEAD",
-                    help="git ref to compare chat anchors against (default HEAD)")
+    ap.add_argument("--baseline", default="",
+                    help="git ref to compare chat anchors against (default: the "
+                         "last commit that changed a plant)")
     args = ap.parse_args()
 
     problems = wl.Problems()
@@ -868,7 +959,7 @@ def main() -> None:
               "Re-run without --fix; what is left needs a wording change.")
         return
     if args.plants:
-        check_plants(corpus, args.baseline)
+        check_plants(corpus, args.baseline or plant_baseline())
     else:
         for check in STORY_CHECKS:
             start = len(problems.errors)

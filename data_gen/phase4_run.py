@@ -129,6 +129,53 @@ def _cast_file(root: Path) -> Path:
     return root / "cast.json"
 
 
+_CAST_LOCK: asyncio.Lock | None = None
+
+
+async def _build_cast(G, people, root: Path, world, *, quiet: bool):
+    """`G.build_cast`, without letting it forget anyone.
+
+    The engine saves only the cohort it was handed, in mode "w". A run is built
+    three days at a time, so anyone absent from one slice was erased from the
+    shared file and redrawn from scratch when they next spoke: otto, petar and
+    theo each lost their voice that way, and dario and emil went from 0-25%
+    lowercase-start to 66-100% in the last batch. So the file is read before
+    and folded back after, under a lock, because parallel `--run` workers share
+    it and a half-written file reads as "no cast" and redraws everybody.
+    """
+    import fcntl
+    import os
+    path = _cast_file(root)
+    slug = world.company["company"].get("slug", "world")
+    global _CAST_LOCK
+    _CAST_LOCK = _CAST_LOCK or asyncio.Lock()
+    # flock is per open file, so two coroutines of ONE process would block each
+    # other on it inside the event loop and never wake. The asyncio lock orders
+    # them; the flock, taken off the loop, orders processes.
+    async with _CAST_LOCK:
+        with open(root / "cast.lock", "w") as lock:
+            await asyncio.to_thread(fcntl.flock, lock, fcntl.LOCK_EX)
+            before: dict = {}
+            if path.exists():
+                try:
+                    before = json.loads(path.read_text(encoding="utf-8"))
+                except ValueError as e:
+                    # The engine treats this as an empty cast and redraws every voice.
+                    rl.fail(f"{path} is unreadable ({e}); restore it from a run "
+                            "directory's cast.json rather than recasting the company")
+            cast = await G.build_cast(people, profiles_path=str(path), world=slug,
+                                      quiet=quiet)
+            if (before.get("world") or slug) == slug:
+                after = json.loads(path.read_text(encoding="utf-8"))
+                kept = {**(before.get("people") or {}), **(after.get("people") or {})}
+                if kept.keys() != (after.get("people") or {}).keys():
+                    tmp = path.with_suffix(".json.tmp")
+                    tmp.write_text(json.dumps({**after, "people": kept}, indent=2),
+                                   encoding="utf-8")
+                    os.replace(tmp, path)
+    return cast
+
+
 def _claim(out: Path) -> None:
     """Refuse to start if another run already owns this directory.
 
@@ -1197,13 +1244,19 @@ async def _run(world, days, built, people, root: Path, out: Path, args) -> int:
     bu.reset_cost_ledger()
     clock = wa.Clock()
     stores = _stores(world, out, clock, args)
+    # What earlier batches of this run already wrote. The stores start empty in
+    # every process, so batch two's personas were told "the wiki has no pages
+    # yet" and "no page by that name" about pages `Wiki.written` was, in the
+    # same prompt, telling them were up — and a planned comment on one of them
+    # could never be made. `drop_day` forgets a re-run day's share again.
+    for store in stores:
+        if hasattr(store, "rehydrate"):
+            store.rehydrate()
     tools = G.attach_tools(stores, clock)
 
     # ONE prepared cast for the whole run: every day is the same people, and a
     # profiles file makes a run split across invocations draw the same voices.
-    prepared = await G.build_cast(people, profiles_path=str(_cast_file(root)),
-                                 world=world.company["company"].get("slug", "world"),
-                                 quiet=args.verbose < 1)
+    prepared = await _build_cast(G, people, root, world, quiet=args.verbose < 1)
 
     llm = rl.LLM(rl.DEFAULT_CACHE_DIR / "llm", model=rl.MODEL, effort="low",
                  backend="cli", verbose=args.verbose)
@@ -1317,9 +1370,7 @@ async def _run(world, days, built, people, root: Path, out: Path, args) -> int:
             # persistent sessions with memory, so reusing them would have the
             # personas recalling the attempt being replaced and referring back
             # to messages that no longer exist anywhere.
-            retry = await G.build_cast(people, quiet=True,
-                                       profiles_path=str(_cast_file(root)),
-                                       world=world.company["company"].get("slug", "world"))
+            retry = await _build_cast(G, people, root, world, quiet=True)
             redo = _corrective([c for c in channels if c["name"] in bad],
                                missing, world)
             fixed_doc = await _one_day(G, name, n, redo, retry, tools, base, end,
@@ -1768,7 +1819,7 @@ def _splice(day_doc: dict, redo: dict, path: Path) -> None:
     path.write_text(json.dumps(day_doc, indent=2), encoding="utf-8")
 
 
-def merge_days(out: Path, workspace: str) -> dict:
+def merge_days(out: Path, workspace: str, only: set[str] | None = None) -> dict:
     """Fold every day into ONE transcript, and take the per-day parts away.
 
     Channels merge BY NAME, so #engineering reads as one continuous history
@@ -1811,8 +1862,15 @@ def merge_days(out: Path, workspace: str) -> dict:
         for user in before.get("users") or []:
             users.setdefault(user["id"], user)
         for channel in before.get("channels") or []:
-            older = [m for m in channel.get("messages") or []
-                     if m.get("ts", "")[:10] not in fresh]
+            # Under --channels only the named rooms were re-run. Dropping every
+            # room's messages on a fresh date kept #pipeline's new day and
+            # threw away the rest of the company's, with pages and mail (which
+            # `_run` deliberately leaves alone then) still pointing at them.
+            if only and channel["name"] not in only:
+                older = list(channel.get("messages") or [])
+            else:
+                older = [m for m in channel.get("messages") or []
+                         if m.get("ts", "")[:10] not in fresh]
             kept += len(older)
             if older:
                 into = channels.setdefault(
@@ -2035,7 +2093,9 @@ def _finish(world, root: Path, out: Path, clue_rows, art_rows, stores, args,
     # the clue ledger down with it — for fifteen batches, silently, while the
     # batch loop reported success. A projection failing must never cost us the
     # evidence, so it is contained here and re-raised at the very end.
-    merged = merge_days(out, args.workspace or "SWEWorld")
+    only = ({c.strip() for c in args.channels.split(",") if c.strip()}
+            if getattr(args, "channels", None) else None)
+    merged = merge_days(out, args.workspace or "SWEWorld", only)
     render_failed = None
     try:
         rows = render.render(merged) if merged else []

@@ -53,6 +53,10 @@ def ok(text: str) -> dict:
 AUTHORING_LAG = dt.timedelta(minutes=12)
 
 
+# The least a reply trails the mail it answers when the clocks disagree.
+REPLY_LAG_MIN = 6
+
+
 class Clock:
     """What the stores stamp things with — the engine's turn cursor when it has one.
 
@@ -171,6 +175,13 @@ class Store:
         return 0
 
     # -- bookkeeping --------------------------------------------------------
+    def _forget(self, date: str) -> None:
+        """Drop from memory what `drop_day` just deleted from disk. A run
+        rehydrates earlier batches, so without this a day being re-simulated
+        would still find its own old pages, comments and mail "already made"."""
+        self._made = [r for r in self._made
+                      if not str(r.get("ts", "")).startswith(date)]
+
     def _record(self, *, kind: str, ident: str, title: str, by: str,
                 action: str, ts: str, **extra) -> dict:
         row = {"kind": kind, "id": ident, "title": title, "by": by,
@@ -399,14 +410,24 @@ class Wiki(Store):
         for path in sorted(self.docs.glob("*/*.md")):
             if str(self._frontmatter(path)[0].get("created_at", "")).startswith(date):
                 path.unlink()
+                self._pages.pop(f"{path.parent.name}/{path.name}", None)
                 gone += 1
         if self.comments.exists():
             lines = self.comments.read_text(encoding="utf-8").splitlines(keepends=True)
-            keep = [raw for raw in lines if not raw.strip() or raw.startswith("#")
-                    or not str(json.loads(raw).get("created_at", "")).startswith(date)]
+            keep = []
+            for raw in lines:
+                if not raw.strip() or raw.startswith("#"):
+                    keep.append(raw)
+                    continue
+                row = json.loads(raw)
+                if str(row.get("created_at", "")).startswith(date):
+                    self._comments.pop(row.get("id"), None)
+                else:
+                    keep.append(raw)
             if len(keep) < len(lines):
                 self.comments.write_text("".join(keep), encoding="utf-8")
                 gone += len(lines) - len(keep)
+        self._forget(date)
         return gone
 
     def written(self, doc_id: str) -> str:
@@ -459,13 +480,30 @@ class Wiki(Store):
         # The plan's own id when there is one: it says `<doc>-c1` replies to
         # `<doc>-c0`, and a minted `c-<slug>-<n>` is a name that `reply_to`
         # cannot reach, so the thread would come out flat.
-        row = {"id": ident or f"c-{slug(rel)}-{len(self._made)}", "doc": rel,
+        if not ident:
+            # Counted over the comments, not `_made`: pages and comments share
+            # that list, and a count that two comments can read the same value
+            # from minted one id twice, so the second overwrote the first in
+            # `_comments` and the ingest saw a duplicate key.
+            n = len(self._comments)
+            while f"c-{slug(rel)}-{n}" in self._comments:
+                n += 1
+            ident = f"c-{slug(rel)}-{n}"
+        row = {"id": ident, "doc": rel,
                "author": uid, "created_at": when, "text": text.strip()}
         if reply_to:
             row["reply_to"] = reply_to
         self._comments[row["id"]] = row["text"]
         with self.comments.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+        # Recorded, or the comment exists on disk and nowhere the run looks:
+        # this call once sat stranded after `rewrite_comment`'s return, so every
+        # planned comment stayed owed, every comment clue read as unsaid, and
+        # the day was re-run until the page held the same comment twice.
+        page = (self._pages.get(rel) or {}).get("title") or rel
+        self._record(kind="comment", ident=row["id"],
+                     title=f"comment on {page}", by=uid, action="comment",
+                     ts=when)
 
     def rewrite_comment(self, ident: str, text: str) -> bool:
         """Replace one comment's text on disk as well as in memory.
@@ -492,10 +530,6 @@ class Wiki(Store):
                 encoding="utf-8")
             self._comments[ident] = text
         return hit
-        page = (self._pages.get(rel) or {}).get("title") or rel
-        self._record(kind="comment", ident=row["id"],
-                     title=f"comment on {page}", by=uid, action="comment",
-                     ts=when)
 
     # -- the tools ----------------------------------------------------------
     def mcp_server(self, uid: str, clock, writer=None):
@@ -687,6 +721,9 @@ class Mail(Store):
             keep.append(raw)
         if len(keep) < len(lines):
             self.index.write_text("".join(keep), encoding="utf-8")
+        self._threads = {k: t for k, t in self._threads.items()
+                         if not str(t.get("ts", "")).startswith(date)}
+        self._forget(date)
         return len(lines) - len(keep)
 
     def extend(self, mid: str, said: str) -> int:
@@ -791,10 +828,21 @@ class Mail(Store):
             if parent is None:
                 return ok("No message with that subject in your mail.")
             subject = parent["subject"]
+            # Channels run concurrently on their own timelines, so this turn can
+            # be earlier in the day than the room the parent was sent from: a
+            # 09:50 reply to a 14:48 mail. Nothing reads Date against
+            # In-Reply-To downstream, so it is kept in order here, and
+            # `check_corpus.check_mail_reply_order` gates what gets through.
+            when = self.clock.iso(uid)
+            if parent.get("ts") and dt.datetime.fromisoformat(when) \
+                    <= dt.datetime.fromisoformat(parent["ts"]):
+                when = (dt.datetime.fromisoformat(parent["ts"])
+                        + dt.timedelta(minutes=REPLY_LAG_MIN)).isoformat(timespec="seconds")
             self.send(uid=uid, to=[parent["from"]] + parent["to"],
                       subject=subject if subject.lower().startswith("re:")
                       else f"Re: {subject}",
-                      body=args.get("body") or "", in_reply_to=parent["mid"])
+                      body=args.get("body") or "", in_reply_to=parent["mid"],
+                      ts=when)
             self._touch(uid, "reply_to_mail", subject, self.clock.iso())
             return ok(f"Replied to \"{subject}\".")
 

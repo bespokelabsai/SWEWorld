@@ -18,6 +18,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+import threading
 import re
 import shutil
 import subprocess
@@ -1473,33 +1474,56 @@ class LLM:
             self.auth_mode = "api-key"
         return True
 
-    def _key(self, system: str, prompt: str, schema: dict) -> str:
-        payload = json.dumps(
-            {"model": self.model, "effort": self.effort, "system": system,
-             "prompt": prompt, "schema": schema},
-            sort_keys=True,
-        )
+    def _key(self, system: str, prompt: str, schema: dict,
+             legacy: bool = False) -> str:
+        fields = {"model": self.model, "effort": self.effort, "system": system,
+                  "prompt": prompt, "schema": schema}
+        # The CLI backend answers with `cli_model`, not `self.model`, and the
+        # key used to say only the latter: a live phase 4 judged on Sonnet, then
+        # `--audit-only` on Opus replayed every Sonnet verdict as its own.
+        if self.backend == "cli" and not legacy:
+            fields["answered_by"] = f"cli:{self.cli_model}"
+        payload = json.dumps(fields, sort_keys=True)
         return hashlib.sha256(payload.encode()).hexdigest()
+
+    def _cached(self, path: Path, model_label: str) -> dict | None:
+        """A cache entry's data, if it holds an answer from `model_label`.
+
+        Entries written before the key named the backend all sit under the
+        opus-shaped key whichever model answered. The file records who did, so
+        a CLI lookup can still reuse its own old answers and an SDK lookup
+        stops being handed them."""
+        if not path.exists():
+            return None
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+            data = doc["data"]
+        except (json.JSONDecodeError, KeyError):
+            path.unlink(missing_ok=True)
+            return None
+        if doc.get("model") not in (None, model_label):
+            return None
+        return data
 
     def complete(self, *, system: str, prompt: str, schema: dict,
                  label: str = "", max_tokens: int = 32000) -> dict:
         """One structured-output call. Returns the parsed object."""
         key = self._key(system, prompt, schema)
         path = self.cache_dir / f"{key}.json"
-        if path.exists():
-            try:
+        model_label = self.cli_model if self.backend == "cli" else self.model
+        for where in dict.fromkeys(
+                [path, self.cache_dir / f"{self._key(system, prompt, schema, legacy=True)}.json"]):
+            data = self._cached(where, model_label)
+            if data is not None:
                 with self._lock:
                     self.stats["cache_hits"] += 1
-                return json.loads(path.read_text(encoding="utf-8"))["data"]
-            except (json.JSONDecodeError, KeyError):
-                path.unlink(missing_ok=True)
+                return data
         if not self.refresh:
             raise RuntimeError(
                 f"--no-refresh, but {label or key[:12]} is not cached. "
                 "Run once without it to populate the cache."
             )
 
-        model_label = self.cli_model if self.backend == "cli" else self.model
         if self.verbose:
             info(f"calling {model_label} for {label or key[:12]}...")
 
@@ -1518,7 +1542,9 @@ class LLM:
         used = {k: self.stats[k] - before[k] for k in
                 ("input_tokens", "cache_creation_tokens", "cache_read_tokens",
                  "output_tokens")}
-        tmp = path.with_suffix(".tmp")
+        # Per writer: two threads missing one key shared `<key>.tmp`, and the
+        # second `replace` found the first had already moved it.
+        tmp = path.with_suffix(f".{os.getpid()}.{threading.get_ident()}.tmp")
         tmp.write_text(json.dumps({
             "model": model_label, "effort": self.effort, "label": label,
             "backend": self.backend, "auth_mode": self.auth_mode,
