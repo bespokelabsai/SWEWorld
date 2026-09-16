@@ -233,3 +233,34 @@ sides" reply in 10/10 transcripts), g9 v8 3b0b259f (10/10 scored).
 - **key/corpus drift**: the key still quotes rev2's pre-fix wording. The served v11 plant has
   "...both of those are gone now. the end doesnt sit at zero any more, it bottoms out at a tenth
   of base_lr and holds there...". The facts are the same; the key's quote is stale.
+
+## g9-meridian v8 (eval de47e209), read 2026-09-15 — the same task/version as g9 under meridian
+
+- **`g9.r2.l15` was never rendered into the world.** The plant record's text is dario settling
+  the question — "the fireworks jsonl path never loads a tokenizer, so a token total and a trim
+  count coming back off it are just noise — both read zero there" — and the served corpus has only
+  nikolai ASKING it (mail 9035, "Do we return None, do we leave the keys out entirely, or do we
+  put zeros in there?"), leaning the wrong way with "I'd say leaving them out is cleanest". No
+  reply exists in any mailbox; `both read zero` / `read zero there` have 0 hits across
+  messages.jsonl, comments.jsonl, docs/ and emails/. The plant's own carrier note describes the
+  shape that was meant to land: "someone asks what the returned counts mean per backend, dario
+  settles the Fireworks half".
+  **Readers credited it found 9/10** — they found the THREAD, not the clause. Left standing in the
+  remark table rather than overridden, because no fact verdict turns on it: run 2 is the only
+  r2.rule loss and its reader already called it `not_found`, and the other nine derived the zero
+  from `to_jsonl_lines` never tokenizing. Flagged here so the 9/10 is not read as a finding.
+- **No verdict overruled.** Ten reader-recorded losses, ten graded losses, and every cause
+  survived a check against the transcript, the plant and the served corpus.
+- **The one fact that separates this eval: `g9.r2.failure_behavior`, 3/10.** `g9.r2.rev3`, the
+  only reversal in g9 that lives in a wiki comment, surfaced in **0 of 10** runs (lumen: 4 of 10).
+  Of the 6 runs that read the `g9.r2.h-role-row` herring, 5 believed it and 5 shipped it. The
+  other four herring/reversal pairs all live in chat: reversal seen 10/10, herring believed 0/10.
+- **Why rev3 is unreachable by search.** It sits on
+  `docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md`; the corroborating
+  `say24` sits on `what-format-batch-counts-as-a-drop-and-what-stops-the-pass-instead.md`. Neither
+  page's title or body contains "encoding", "finetuning" or "Fireworks" — 0 hits each — and the
+  task is named *example encoding*, so "encoding" is the first query every run typed. Runs 5 and 8
+  fetched page comments routinely (5-6 pages each, body+comments via `/api/pages/{id}`); they
+  still never opened these two, because the pages never appeared in a result list. The failure is
+  not "the agent does not read comments", it is that the pages carrying them share no vocabulary
+  with the task's own subject.

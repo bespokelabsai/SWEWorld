@@ -4630,7 +4630,16 @@
      "provenance.deployed": 1,
      "reward": 0.7143
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r1::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_tokens_is_refused",
+      "trace": "over-long refusal: retained_prompt_tokens: -61 != 0"
+     },
+     {
+      "name": "test_r2::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report",
+      "trace": "bad roles abort: expected an exception, none raised"
+     }
+    ]
    }
   },
   "f7cf25ff-a8ea-41ed-a3b4-10901df1e7ce": {
@@ -7124,7 +7133,12 @@
      "provenance.deployed": 1,
      "reward": 0.8571
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r1::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_tokens_is_refused",
+      "trace": "over-long refusal: num_messages: None != 2"
+     }
+    ]
    }
   },
   "3ad4d147-adcd-4523-b322-0447c9d08218": {
@@ -9203,7 +9217,12 @@
      "provenance.deployed": 1,
      "reward": 0.8571
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r2::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report",
+      "trace": "bad roles abort: expected an exception, none raised"
+     }
+    ]
    }
   },
   "a22ae416-9870-4e23-a9dd-151f16e42a02": {
@@ -11974,7 +11993,12 @@
      "provenance.deployed": 1,
      "reward": 0.8571
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r2::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report",
+      "trace": "bad roles abort: expected an exception, none raised"
+     }
+    ]
    }
   },
   "e776537c-d6db-47f6-b1d9-d503e7670bb9": {
@@ -14190,7 +14214,12 @@
      "provenance.deployed": 1,
      "reward": 0.8571
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r2::test_rule__both_batch_entry_points_publish_a_frozen_encoding_report",
+      "trace": "supervised_tokens sums the kept examples, matching the kept datum itself: 20 != 9"
+     }
+    ]
    }
   },
   "e26f06c1-5081-4788-86c8-76adb6185a00": {
@@ -17131,7 +17160,12 @@
      "provenance.deployed": 1,
      "reward": 0.8571
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r2::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report",
+      "trace": "bad roles abort: expected an exception, none raised"
+     }
+    ]
    }
   },
   "775a81a2-5c3b-4b6d-b860-f0ad0a93f820": {
@@ -21532,7 +21566,16 @@
      "provenance.deployed": 1,
      "reward": 0.7143
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r1::test_rule__an_assistant_turn_the_window_cuts_in_half_is_not_supervised_at_all",
+      "trace": "the straddling span (48, 59) must contribute nothing, not its surviving tail: [0, 1, 2, 3, 4, 5, 6, 30, 31, 32, 33, 34, 35, 36, 37, 38] != [30, 31, 32, 33, 34, 35, 36, 37, 38]"
+     },
+     {
+      "name": "test_r2::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report",
+      "trace": "bad roles abort: expected an exception, none raised"
+     }
+    ]
    }
   },
   "0b39d6d4-6515-44b5-a198-089935e4bb95": {
@@ -24069,7 +24112,12 @@
      "provenance.deployed": 1,
      "reward": 0.8571
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r1::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_tokens_is_refused",
+      "trace": "over-long refusal: retained_prompt_tokens: None != 0"
+     }
+    ]
    }
   },
   "3f9184ba-2187-448b-bf9f-de76ea0a2c66": {
@@ -26613,7 +26661,12 @@
      "provenance.deployed": 1,
      "reward": 0.8571
     },
-    "failed_tests": []
+    "failed_tests": [
+     {
+      "name": "test_r2::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report",
+      "trace": "bad roles abort: expected an exception, none raised"
+     }
+    ]
    }
   }
  }

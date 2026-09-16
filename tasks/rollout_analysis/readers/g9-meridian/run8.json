@@ -1,0 +1,813 @@
+{
+ "task": "g9",
+ "run": 8,
+ "eval": "de47e209",
+ "rollout_id": "9ad48705-6023-4d5a-9f0c-f84feef560d9",
+ "reward": 0.8571,
+ "facts": {
+  "g9.open_feature": 1,
+  "g9.r1.rule": 1,
+  "g9.r1.scope": 1,
+  "g9.r1.exclusions_or_crossover": 1,
+  "g9.r1.failure_behavior": 1,
+  "g9.r2.rule": 1,
+  "g9.r2.scope": 1,
+  "g9.r2.failure_behavior": 0
+ },
+ "remarks": [
+  {
+   "id": "g9.r1.h1",
+   "kind": "herring",
+   "carries": null,
+   "found": "yes",
+   "step": 13,
+   "line": 1599,
+   "how": "``",
+   "registered": "dismissed",
+   "agent_quote": "Chat confirms the report is stored in last_report (not returned)... [same batch, second pass over the ExampleTooLongError thread]",
+   "quote_line": 1342,
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.g9-tuple-return-1",
+   "kind": "herring",
+   "carries": null,
+   "found": "yes",
+   "step": 5,
+   "line": 984,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "dismissed",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.h2",
+   "kind": "herring",
+   "carries": null,
+   "found": "yes",
+   "step": 5,
+   "line": 994,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "dismissed",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.g9-tuple-return-2",
+   "kind": "herring",
+   "carries": null,
+   "found": "yes",
+   "step": 5,
+   "line": 993,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "dismissed",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l18",
+   "kind": "clue",
+   "carries": "g9.r2.failure_behavior",
+   "found": "yes",
+   "step": 8,
+   "line": 1299,
+   "how": "``",
+   "registered": "requirement",
+   "agent_quote": "Chat confirms the report is stored in last_report (not returned), is a frozen dataclass with defaults, and length rejection uses fewer than 16 retained prompt tokens rather than rejecting every windowed row.",
+   "quote_line": 1342,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-rule-3",
+   "kind": "clue",
+   "carries": "g9.r1.rule",
+   "found": "no",
+   "near_miss": "Only the 'encoding' chat search and later term searches were run; 'part credit on a turn' text never matched any search term used, and #engineering was fetched whole only for the 5 channels returned by the first 'encoding' search hit-list, which did not include this post.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.say20",
+   "kind": "clue",
+   "carries": "g9.r1.failure_behavior",
+   "found": "yes",
+   "step": 5,
+   "line": 985,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "requirement",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-fail-4",
+   "kind": "clue",
+   "carries": "g9.r1.failure_behavior",
+   "found": "no",
+   "near_miss": "Same #pipeline channel-history dump the agent did fetch (200 posts) should have contained this post chronologically, but the agent's own reading of that channel focused on the ExampleTooLongError/window_start thread; this specific 'one row we wont take shouldnt take the other forty thousand down with it' line is never quoted or paraphrased anywhere in Analysis.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.say26",
+   "kind": "clue",
+   "carries": "g9.r1.exclusions_or_crossover",
+   "found": "yes",
+   "step": 34,
+   "line": 2873,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The remaining search output was too broad. I will save it and print only direct API hits before applying the byte filter.",
+   "quote_line": 2857,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-fail-2",
+   "kind": "clue",
+   "carries": "g9.r1.failure_behavior",
+   "found": "yes",
+   "step": 12,
+   "line": 1529,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The terminal is only retaining the tail of large batches. I will request the policy context alone to capture the exact requirements.",
+   "quote_line": 1391,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.rev1",
+   "kind": "reversal of g9.r2.g9-tuple-return-1",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 12,
+   "line": 1517,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The terminal is only retaining the tail of large batches. I will request the policy context alone to capture the exact requirements.",
+   "quote_line": 1391,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-fail-3",
+   "kind": "clue",
+   "carries": "g9.r1.failure_behavior",
+   "found": "yes",
+   "step": 12,
+   "line": 1539,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The terminal is only retaining the tail of large batches. I will request the policy context alone to capture the exact requirements.",
+   "quote_line": 1391,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-fw-4",
+   "kind": "clue",
+   "carries": "g9.r1.exclusions_or_crossover",
+   "found": "yes",
+   "step": 29,
+   "line": 2643,
+   "how": "``",
+   "registered": "requirement",
+   "agent_quote": "A later mail explicitly adds FIREWORKS_BYTES_PER_TOKEN=3... (signal recovered from a noisy chat-search dump dominated by an unrelated bulk-llm-inference batch-planner thread)",
+   "quote_line": 2633,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-fw-1",
+   "kind": "clue",
+   "carries": "g9.r1.exclusions_or_crossover",
+   "found": "yes",
+   "step": 29,
+   "line": 2653,
+   "how": "``",
+   "registered": "requirement",
+   "agent_quote": "A later mail explicitly adds FIREWORKS_BYTES_PER_TOKEN=3... (signal recovered from a noisy chat-search dump dominated by an unrelated bulk-llm-inference batch-planner thread)",
+   "quote_line": 2633,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l7",
+   "kind": "clue",
+   "carries": "g9.r2.scope",
+   "found": "no",
+   "near_miss": "The mail/chat passes never searched 'to_tinker_datum' or 'last_report' as terms in isolation from the batch dumps already read; this specific post ('pushed one example through to_tinker_datum in the repl') never surfaces even though neighboring rev1/rev2 posts in the same channel did.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.rev2",
+   "kind": "reversal of g9.r2.g9-tuple-return-2",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 5,
+   "line": 983,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "requirement",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-fail-1",
+   "kind": "clue",
+   "carries": "g9.r1.failure_behavior",
+   "found": "no",
+   "near_miss": "#cookbooks channel dump was fetched (200 posts) but this specific post is never quoted; the agent's cookbooks reading concentrated on the Fireworks byte-budget thread.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l16",
+   "kind": "clue",
+   "carries": "g9.r2.failure_behavior",
+   "found": "no",
+   "near_miss": "Never surfaced by any search term used ('dropped_indices', 'supervised_tokens', 'encoding') or by the channel dumps read.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l11",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "no",
+   "near_miss": "Wiki comment on docs/meetings/weekly-notes-week-of-mar-31.md; that page never appeared in either wiki search ('encoding' or 'finetuning'/'EncodingReport') result list the agent printed, and was never fetched.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.say22",
+   "kind": "clue",
+   "carries": "g9.r1.failure_behavior",
+   "found": "no",
+   "near_miss": "Not surfaced by any chat search term used; #cookbooks dump was read but this post is not quoted.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l12",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 5,
+   "line": 990,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "requirement",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l19",
+   "kind": "clue",
+   "carries": "g9.r2.failure_behavior",
+   "found": "no",
+   "near_miss": "Mail subject 'Re: Weekly update: week of Apr 7' (ids 108-111) appeared in the keyword-filtered 'relevant mail' listing but its body was never fetched -- the agent only pulled bodies for the say25, l-rule-2, and PR-653 role/stats/drop threads.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.rev2",
+   "kind": "reversal of g9.r1.h2",
+   "carries": "g9.r1.failure_behavior",
+   "found": "yes",
+   "step": 5,
+   "line": 995,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "requirement",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l13",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "no",
+   "near_miss": "Not surfaced by any search/channel-dump/mail-fetch the agent performed; grepped transcript for its distinctive wording directly, zero hits.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l4",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 5,
+   "line": 987,
+   "how": "`curl --max-time 15 -s -H \"Authorization: Bearer $TOKEN\" -H 'Content-Type: application/json`",
+   "registered": "requirement",
+   "agent_quote": "Additional record references indicate batch statistics and bad-row handling were agreed separately. I need the full threads and mail before defining the final API.",
+   "quote_line": 1002,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l3",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 8,
+   "line": 1333,
+   "how": "``",
+   "registered": "requirement",
+   "agent_quote": "Chat confirms the report is stored in last_report (not returned), is a frozen dataclass with defaults, and length rejection uses fewer than 16 retained prompt tokens rather than rejecting every windowed row.",
+   "quote_line": 1342,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.say25",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "yes",
+   "step": 6,
+   "line": 1061,
+   "how": "`python3 -c 'import json; print(\"\\n\\n\".join(v[\"id\"]+\" \"+str(v[\"subject\"])+\"\\n\"+v[\"body\"] fo`",
+   "registered": "requirement",
+   "agent_quote": "The mail settles suppression of cut assistant fragments, but exact public fields and batch behavior require the rest of the discussion.",
+   "quote_line": 1156,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.rev1",
+   "kind": "reversal of g9.r1.h1",
+   "carries": "g9.r1.failure_behavior",
+   "found": "yes",
+   "step": 12,
+   "line": 1530,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The terminal is only retaining the tail of large batches. I will request the policy context alone to capture the exact requirements.",
+   "quote_line": 1391,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-scope-2",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "no",
+   "near_miss": "Not surfaced by the chat searches or the channel dumps read; #code-review appears in several other found remarks but this post is not quoted anywhere.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l9",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 23,
+   "line": 2354,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The unchanged legacy tests are compatible with tail-windowing plus the 16-token guard. I have enough to implement core behavior; I will verify the remaining report details with a narrow search.",
+   "quote_line": 2228,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-scope-1",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "no",
+   "near_miss": "Mail subject not in the keyword-filtered 'relevant mail' list at all (filter was ['encod','finetun','tinker','fireworks'] on subject+body; 'tokenizer=None' does not match any of those substrings), so this thread was never a candidate for fetching.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.say23",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "no",
+   "near_miss": "Same as l-scope-1: 'PR 653 before the next cut' never appears in the keyword-filtered mail listing, so its body was never pulled.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.l-rule-2",
+   "kind": "clue",
+   "carries": "g9.r1.rule",
+   "found": "yes",
+   "step": 6,
+   "line": 1090,
+   "how": "`python3 -c 'import json; print(\"\\n\\n\".join(v[\"id\"]+\" \"+str(v[\"subject\"])+\"\\n\"+v[\"body\"] fo`",
+   "registered": "requirement",
+   "agent_quote": "The mail settles suppression of cut assistant fragments, but exact public fields and batch behavior require the rest of the discussion.",
+   "quote_line": 1156,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l1",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 7,
+   "line": 1181,
+   "how": "`python3 -c 'import json; print(\"\\n\\n\".join(v[\"id\"]+\"\\n\"+v[\"body\"] for v in json.load(open(`",
+   "registered": "requirement",
+   "agent_quote": "Settled additions include EncodingReport, ExampleTooLongError, per-batch skip/report behavior, and stable zero statistics on Fireworks. I will recover exact schemas and truncation conditions from nearby chat/history.",
+   "quote_line": 1290,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l6",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "no",
+   "near_miss": "Subject 'stats report branch - need someone to run it before the 0.1.25 cut' (ids 132/138) DID appear in the printed 'relevant mail' listing, but the agent's subsequent body-fetch command only requested ids 131,137,143,144,146,147,148 -- 132/138 were skipped even though they were right next to the others in the same listing.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.l-scope-4",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "no",
+   "near_miss": "Mail subject 'sft export - fast tokenizer and manual fallback return different label weights' never appears in the keyword-filtered relevant-mail listing (filter looked for 'encod/finetun/tinker/fireworks' substrings), so it was never fetched.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l10",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 23,
+   "line": 2352,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The unchanged legacy tests are compatible with tail-windowing plus the 16-token guard. I have enough to implement core behavior; I will verify the remaining report details with a narrow search.",
+   "quote_line": 2228,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l15",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 7,
+   "line": 1225,
+   "how": "`python3 -c 'import json; print(\"\\n\\n\".join(v[\"id\"]+\"\\n\"+v[\"body\"] for v in json.load(open(`",
+   "registered": "requirement",
+   "agent_quote": "Settled additions include EncodingReport, ExampleTooLongError, per-batch skip/report behavior, and stable zero statistics on Fireworks. I will recover exact schemas and truncation conditions from nearby chat/history.",
+   "quote_line": 1290,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l8",
+   "kind": "clue",
+   "carries": "g9.r2.scope",
+   "found": "no",
+   "near_miss": "Wiki comment on docs/engineering/end-of-run-summary-tables-how-the-formatters-are-wired.md; that page id never appeared among the pages fetched (132,137,145,153,154,156) nor in the printed wiki-search result lists.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.l14",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 17,
+   "line": 1885,
+   "how": "``",
+   "registered": "requirement",
+   "agent_quote": "The report fields are now identified: kept, dropped, windowed, dropped_indices, supervised_tokens, in that order. The dict envelope must retain the ticket's exact keys, so no extra marker can be added there.",
+   "quote_line": 2037,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.say23",
+   "kind": "clue",
+   "carries": "g9.r2.scope",
+   "found": "yes",
+   "step": 7,
+   "line": 1250,
+   "how": "`python3 -c 'import json; print(\"\\n\\n\".join(v[\"id\"]+\"\\n\"+v[\"body\"] for v in json.load(open(`",
+   "registered": "requirement",
+   "agent_quote": "Settled additions include EncodingReport, ExampleTooLongError, per-batch skip/report behavior, and stable zero statistics on Fireworks. I will recover exact schemas and truncation conditions from nearby chat/history.",
+   "quote_line": 1290,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.h-role-row",
+   "kind": "herring",
+   "carries": null,
+   "found": "yes",
+   "step": 7,
+   "line": 1267,
+   "how": "`python3 -c 'import json; print(\"\\n\\n\".join(v[\"id\"]+\"\\n\"+v[\"body\"] for v in json.load(open(`",
+   "registered": "requirement",
+   "agent_quote": "Settled additions include EncodingReport, ExampleTooLongError, per-batch skip/report behavior, and stable zero statistics on Fireworks. I will recover exact schemas and truncation conditions from nearby chat/history.",
+   "quote_line": 1290,
+   "acted": "followed",
+   "note": "Herring read in full (mail 148, dario): 'Length and role sequence are row problems ... those get counted and skipped.' Agent's shipped format_batch absorbs InvalidRoleSequenceError as a drop exactly per this text; the reversal (g9.r2.rev3, wiki comment on the same PR653 role-drop question) was never seen."
+  },
+  {
+   "id": "g9.r1.l-fw-2",
+   "kind": "clue",
+   "carries": "g9.r1.exclusions_or_crossover",
+   "found": "no",
+   "near_miss": "Page 154 (viewer-dataset-download-export-format-notes-pr-652) appeared in the very first 'encoding' wiki search's preview_html snippet, but was never opened via /api/pages/154 for its full body+comments -- only page 156 from that same search was fetched.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.l-rule-1",
+   "kind": "clue",
+   "carries": "g9.r1.rule",
+   "found": "no",
+   "near_miss": "Wiki comment on docs/engineering/overnight-finetune-off-the-curated-export-jun-9-10-run...; page never appeared in either wiki search's result list and was never fetched.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.fix28",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "no",
+   "near_miss": "Not surfaced by any chat search term used ('encoding','dropped_indices','supervised_tokens','to_jsonl_lines','ensure_ascii'); #engineering was read via channel dump and thread search but this post is not quoted.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.say24",
+   "kind": "clue",
+   "carries": "g9.r2.failure_behavior",
+   "found": "no",
+   "near_miss": "Wiki comment on docs/engineering/what-format-batch-counts-as-a-drop-and-what-stops-the-pass-instead.md -- this page never appeared in the 'finetuning' search's 20-result list the agent printed, and was never fetched.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.say21",
+   "kind": "clue",
+   "carries": "g9.r1.failure_behavior",
+   "found": "yes",
+   "step": 4,
+   "line": 752,
+   "how": "`python3 -c 'import json; p=json.load(open(\"/tmp/page156.json\")); print(p.get(\"markdown\") o`",
+   "registered": "requirement",
+   "agent_quote": "(no distinct Analysis text isolated for this step beyond the shared batch reasoning)",
+   "quote_line": null,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.say27",
+   "kind": "clue",
+   "carries": "g9.r1.rule",
+   "found": "yes",
+   "step": 18,
+   "line": 1968,
+   "how": "`python3 -c 'import json,re; p=json.load(open(\"/tmp/page153.json\")); print(p.get(\"markdown\"`",
+   "registered": "requirement",
+   "agent_quote": "The older trimming note is superseded by later masking decisions: cut-open assistant spans are not supervised. The same tail-window arithmetic applies on both paths.",
+   "quote_line": 1987,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-fw-3",
+   "kind": "clue",
+   "carries": "g9.r1.exclusions_or_crossover",
+   "found": "yes",
+   "step": 28,
+   "line": 2560,
+   "how": "`python3 -c 'import json; print(\"\\n\\n\".join(v[\"id\"]+\"\\n\"+v[\"body\"] for v in json.load(open(`",
+   "registered": "requirement",
+   "agent_quote": "A later mail explicitly adds FIREWORKS_BYTES_PER_TOKEN=3 to the public policy. This likely governs file-side trimming that the short ticket did not spell out; I need that record before finishing Fireworks.",
+   "quote_line": 2633,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l17",
+   "kind": "clue",
+   "carries": "g9.r2.failure_behavior",
+   "found": "no",
+   "near_miss": "Wiki comment on docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md -- this page never appeared in either wiki search and was never fetched. This is the page that would have corrected the h-role-row herring.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.rev3",
+   "kind": "reversal of g9.r2.h-role-row",
+   "carries": "g9.r2.failure_behavior",
+   "found": "no",
+   "near_miss": "Same page as g9.r2.l17 (request-builder-what-we-drop-and-what-we-raise-on.md), never fetched. This is the reversal of the herring the agent shipped code around -- the single most consequential miss in the run.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.l-scope-3",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "yes",
+   "step": 16,
+   "line": 1817,
+   "how": "`python3 -c 'import json; p=json.load(open(\"/tmp/page132.json\")); print(p.get(\"markdown\") o`",
+   "registered": "requirement",
+   "agent_quote": "The wiki search found dedicated masking, trimming, report, and per-example statistics pages. These should settle the remaining exact schemas.",
+   "quote_line": 1731,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r1.l-rule-4",
+   "kind": "clue",
+   "carries": "g9.r1.rule",
+   "found": "yes",
+   "step": 16,
+   "line": 1834,
+   "how": "`python3 -c 'import json; p=json.load(open(\"/tmp/page132.json\")); print(p.get(\"markdown\") o`",
+   "registered": "requirement",
+   "agent_quote": "The wiki search found dedicated masking, trimming, report, and per-example statistics pages. These should settle the remaining exact schemas.",
+   "quote_line": 1731,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l2",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 19,
+   "line": 2015,
+   "how": "``",
+   "registered": "requirement",
+   "agent_quote": "The older trimming note is superseded by later masking decisions... (per-example stats page read together with the masking page)",
+   "quote_line": 1987,
+   "acted": "followed"
+  },
+  {
+   "id": "g9.r2.l5",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "no",
+   "near_miss": "Wiki comment on docs/meetings/weekly-sync-notes-week-of-jun-23-batch-mode.md; page never appeared in either wiki search's printed result list.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r1.say24",
+   "kind": "clue",
+   "carries": "g9.r1.scope",
+   "found": "no",
+   "near_miss": "Wiki comment on docs/engineering/local-offline-inference-what-the-encode-step-returns-when-no-tokenizer-is-loaded.md; page never appeared in either wiki search's printed result list.",
+   "registered": "n/a",
+   "acted": "n/a"
+  },
+  {
+   "id": "g9.r2.fix25",
+   "kind": "clue",
+   "carries": "g9.r2.rule",
+   "found": "yes",
+   "step": 23,
+   "line": 2353,
+   "how": "`python3 - <<'PY'`",
+   "registered": "requirement",
+   "agent_quote": "The unchanged legacy tests are compatible with tail-windowing plus the 16-token guard. I have enough to implement core behavior; I will verify the remaining report details with a narrow search.",
+   "quote_line": 2228,
+   "acted": "followed"
+  }
+ ],
+ "herrings": [
+  {
+   "herring": "g9.r1.h1",
+   "reversal": "g9.r1.rev1",
+   "saw_herring": "yes (step5 line994, and again step13 line1599, chat #code-review dump)",
+   "saw_reversal": "yes (step12 line1530, #engineering channel dump/search)",
+   "believed": "reversal",
+   "quote": "Chat confirms the report is stored in last_report (not returned), is a frozen dataclass with defaults, and length rejection uses fewer than 16 retained prompt tokens rather than rejecting every windowed row. (transcript line 1342)",
+   "code_followed_herring": false,
+   "note": "Shipped ExampleTooLongError requires window_start>0 AND retained_prompt_tokens<16, matching the reversal, not 'any nonzero window_start refuses'."
+  },
+  {
+   "herring": "g9.r2.g9-tuple-return-1",
+   "reversal": "g9.r2.rev1",
+   "saw_herring": "yes (step5 line984, chat #releases dump)",
+   "saw_reversal": "yes (step12 line1517)",
+   "believed": "reversal",
+   "quote": "Chat confirms the report is stored in last_report (not returned)... (transcript line 1342)",
+   "code_followed_herring": false,
+   "note": "format_batch returns a plain List[Any] and the EncodingReport is read off self.last_report, not unpacked from a tuple -- matches the reversal."
+  },
+  {
+   "herring": "g9.r1.h2",
+   "reversal": "g9.r1.rev2",
+   "saw_herring": "yes (step5 line994, chat #code-review dump)",
+   "saw_reversal": "yes (step5 line995, same dump, one line later)",
+   "believed": "reversal",
+   "quote": "(same step-5 batch reasoning at line 1002: 'Additional record references indicate batch statistics and bad-row handling were agreed separately.')",
+   "code_followed_herring": false,
+   "note": "Both herring and reversal sit in the same channel dump only one line apart; the agent's later Analysis (line 1342) explicitly states the 16-retained-token version, so it read past the herring to the reversal rather than stopping at the first hit."
+  },
+  {
+   "herring": "g9.r2.g9-tuple-return-2",
+   "reversal": "g9.r2.rev2",
+   "saw_herring": "yes (step5 line993)",
+   "saw_reversal": "yes (step5 line983)",
+   "believed": "reversal",
+   "quote": "(same step-5 batch reasoning, line 1002)",
+   "code_followed_herring": false,
+   "note": "Same tuple-return herring family as g9-tuple-return-1; shipped code follows the reversal (last_report, plain list return) consistently."
+  },
+  {
+   "herring": "g9.r2.h-role-row",
+   "reversal": "g9.r2.rev3",
+   "saw_herring": "yes (step7 line1267, mail 148 read in full)",
+   "saw_reversal": "no -- g9.r2.rev3 is a wiki comment on docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md, a page the agent never fetched (it never appeared in either of the two wiki searches run, 'encoding' or 'finetuning'/'EncodingReport', and was not among the 4 pages by id the agent chose to open)",
+   "believed": "herring",
+   "quote": "Settled additions include EncodingReport, ExampleTooLongError, per-batch skip/report behavior, and stable zero statistics on Fireworks. I will recover exact schemas and truncation conditions from nearby chat/history. (transcript line 1290, written immediately after reading mail 148)",
+   "code_followed_herring": true,
+   "note": "THE decisive miss. format_batch's test fixture batch [invalid(role-seq empty), good, too_long, windowed] yields last_report.dropped_indices==(0,2) -- both the role-sequence failure (index 0) and the over-long failure (index 2) are silently counted as drops. The grader's 'bad roles abort' assertion fails because no exception is raised for the role-sequence case. Dario's own later mail (148) states 'the binning is format_batch's job' immediately after saying role sequence is a row problem to count and skip -- the agent's shipped code implements exactly that sentence, never having seen dario's 2025-06-17 wiki-comment retraction ('this is me contradicting myself ... only the over-long ones are row problems')."
+  }
+ ],
+ "lost_facts": [
+  {
+   "fact": "g9.r2.failure_behavior",
+   "assertion": "test_r2::test_failure_behavior__bad_roles_and_a_bad_tokenizer_abort_the_batch_and_write_no_report -- 'bad roles abort: expected an exception, none raised'",
+   "cause": "herring_followed",
+   "evidence": "Shipped format_batch (transcript line 3030 'continue' + regression test at lines 2368-2381) treats an InvalidRoleSequenceError exactly like ExampleTooLongError: for batch [invalid(empty roles), good, too_long, windowed] it asserts formatter.last_report == EncodingReport(2,2,1,(0,2),...) -- i.e. BOTH index 0 (role-sequence failure) and index 2 (length failure) are silently counted as drops, no exception propagates. TokenizerCapabilityError is correctly left to propagate (same test: 'with pytest.raises(TokenizerCapabilityError): formatter.format_batch([good], object())'), so only the role-sequence half of the fact is wrong. This matches the herring g9.r2.h-role-row verbatim (mail 148, dario, read in full at transcript lines 1266-1281: 'Length and role sequence are row problems ... those get counted and skipped ... the binning is format_batch's job'). The reversal (g9.r2.rev3, a wiki *comment* on docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md, dario: 'this is me contradicting myself ... only the over-long ones are row problems') and the two corroborating clues (g9.r2.l17, same page; g9.r2.say24, wiki comment on docs/engineering/what-format-batch-counts-as-a-drop-and-what-stops-the-pass-instead.md) were never seen: neither page ever appeared in either of the agent's two wiki searches ('encoding'; 'finetuning' and 'EncodingReport'), and the agent's page-fetch loop only opened ids 132,137,145,153 (plus 154/156 from the first search) -- it never enumerated the remaining ~16 results of its own 'finetuning' search, and it never actually read the 'EncodingReport' search's result file at all (it ran `for q in finetuning EncodingReport; do curl ...; done` but the follow-up python only opened `/tmp/wiki-finetuning.json`, silently dropping the EncodingReport results, transcript lines 1715-1725).",
+   "remarks": [
+    "g9.r2.h-role-row",
+    "g9.r2.rev3",
+    "g9.r2.l17",
+    "g9.r2.say24",
+    "g9.r2.l18"
+   ]
+  }
+ ],
+ "passed_facts": [
+  {
+   "fact": "g9.open_feature",
+   "relied_on": "ticket",
+   "quote": "Built directly from the ticket's own module spec (weight 0, not evidence of corpus recovery)."
+  },
+  {
+   "fact": "g9.r1.rule",
+   "relied_on": [
+    "g9.r1.l-rule-3",
+    "g9.r1.l-rule-2",
+    "g9.r1.l-rule-4"
+   ],
+   "quote": "mail 124-128 thread (g9.r1.l-rule-2, read in full at transcript lines 1057-1147): 'a genuinely short answer from one we mutilated ... An assistant turn ... either the whole answer sits inside what we keep or it counts for nothing at all' -- consistent with the all-or-nothing boundary rule the agent implemented (span contributes only if s>=window_start)."
+  },
+  {
+   "fact": "g9.r1.scope",
+   "relied_on": [
+    "g9.r1.say25",
+    "g9.r1.l-scope-3",
+    "g9.r1.l-rule-4"
+   ],
+   "quote": "wiki page 132 comments and mail 116-118 (say25, transcript lines 1059-1089): the no-tokenizer path 'emits the same encoding block ... window_start and all' and 'window_start comes back 0 on any run where we never had to trim' -- agent implemented the no-tokenizer path through the identical windowing/masking logic rather than the old all-ones shortcut."
+  },
+  {
+   "fact": "g9.r1.exclusions_or_crossover",
+   "relied_on": [
+    "g9.r1.l-fw-1",
+    "g9.r1.l-fw-4",
+    "g9.r1.say26",
+    "g9.r1.l-fw-3"
+   ],
+   "quote": "'The record explicitly says over-budget Fireworks rows are dropped, not trimmed, and sizing uses json.dumps(ensure_ascii=False) with default separators.' (transcript line 2889, after reading the chat-search hits for to_jsonl_lines/ensure_ascii at lines 2874-2884 and the mail-151 FIREWORKS_BYTES_PER_TOKEN=3 inventory)."
+  },
+  {
+   "fact": "g9.r1.failure_behavior",
+   "relied_on": [
+    "g9.r1.rev1",
+    "g9.r1.rev2",
+    "g9.r1.l-fail-2",
+    "g9.r1.l-fail-3",
+    "g9.r1.say21"
+   ],
+   "quote": "'Chat confirms the report is stored in last_report (not returned), is a frozen dataclass with defaults, and length rejection uses fewer than 16 retained prompt tokens rather than rejecting every windowed row.' (transcript line 1342) -- follows the reversal (g9.r1.rev1/rev2) over the herring (g9.r1.h1/h2)."
+  },
+  {
+   "fact": "g9.r2.rule",
+   "relied_on": [
+    "g9.r2.rev1",
+    "g9.r2.rev2",
+    "g9.r2.l2",
+    "g9.r2.l14",
+    "g9.r2.l4",
+    "g9.r2.l3",
+    "g9.r2.l1"
+   ],
+   "quote": "'The report fields are now identified: kept, dropped, windowed, dropped_indices, supervised_tokens, in that order.' (transcript line 2037, after wiki page 145 comments) -- and follows the tuple-return reversal (rev1/rev2) over the herring."
+  },
+  {
+   "fact": "g9.r2.scope",
+   "relied_on": [
+    "g9.r2.say23",
+    "guess"
+   ],
+   "quote": "mail 147 (g9.r2.say23, transcript lines 1250-1263, nikolai): 'to_tinker_datum just raises ExampleTooLongError straight out -- the binning is format_batch's job, a single datum has no batch to be counted into.' The specific carrier for this exact fact (g9.r2.l7, 'self.last_report came back untouched' when to_tinker_datum is called directly) was never surfaced; the agent's to_tinker_datum implementation simply never references self.last_report at all, which incidentally satisfies the requirement as a natural consequence of not being asked to touch it, rather than from having read the corpus text that says so explicitly."
+  }
+ ],
+ "search_strategy": "Mail: pulled the ENTIRE IMAP mailbox once (/tmp/mail.py, ~34KB relevant subset), then filtered subjects+bodies by a fixed 4-term keyword list ['encod','finetun','tinker','fireworks'] to build a candidate list (~28 ids). Only a subset of those candidate ids were ever body-fetched (116-118, 124/126-128, 131/137/143-148, 118/151-153); two ids that DID appear in the printed candidate list (132, 138 -- 'stats report branch') were skipped over when the agent wrote its next fetch command. Any thread whose subject+body never contained one of the 4 keyword substrings (e.g. 'PR 653: formatter still takes tokenizer=None', 'PR 653 before the next cut', 'sft export...') never became a candidate at all, so its body was structurally unreachable by this pipeline regardless of relevance. Chat: one Mattermost full-text search for 'encoding' surfaced posts across 5 channel ids, which were then dumped whole (200 posts each); three further targeted term searches ('to_jsonl_lines'/'ensure_ascii', 'dropped_indices'/'supervised_tokens') ran team-wide (not channel-scoped) and pulled in #viewer and other channels the initial 5-channel dump missed. No channel was enumerated exhaustively beyond these searches; posts matching none of the ~6 search terms used were never seen. Wiki: two searches only ('encoding', then 'finetuning' and 'EncodingReport' together) -- the agent printed and read only the 'finetuning' result file's list of 20 pages, never opening the parallel 'EncodingReport' result file it had also fetched. Of the pages surfaced, only 4-5 were opened via /api/pages/{id} for full body+comments (132, 137, 145, 153, plus 154/156 from the first search); the remaining ~15+ candidate pages from its own searches, and the entirely-unsearched-for pages (docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md, docs/engineering/what-format-batch-counts-as-a-drop-and-what-stops-the-pass-instead.md, docs/engineering/end-of-run-summary-tables-how-the-formatters-are-wired.md, docs/meetings/weekly-notes-week-of-mar-31.md, docs/meetings/weekly-sync-notes-week-of-jun-23-batch-mode.md, docs/engineering/local-offline-inference-...md, docs/engineering/overnight-finetune-off-the-curated-export-...md, docs/engineering/viewer-dataset-download-export-format-notes-pr-652.md) were never fetched. Gitea: fetched issues/362 and /653 plus their comments, both came back with empty bodies/comments (no useful signal). No further Gitea PR diff or issue search was attempted.",
+ "end_reason": "Not infra and not budget-exhaustion in any forced sense: at step ~35 (of 44) the agent had already implemented, tested (130 passed locally), committed, pushed, watched CI go green, and confirmed the deployed release/health endpoint matched the commit. It then explicitly declared 'No further actions needed' (transcript line 3311) and, on the harness's completion confirmation prompt, answered yes. It never returned to the corpus after implementation began (~step 9 onward the remaining steps are almost entirely: write code, run tests, read a handful more chat/wiki snippets to firm up exact field names, then ship). It did not re-run either wiki search's full result list, did not search wiki or chat for 'role sequence' or 'InvalidRoleSequenceError' as terms at any point, and did not check for a page comment specifically contradicting a decision it had already encoded from a single mail reply. This is a genuine 'decided it had enough' stop, not a run that ran out of turns or died.",
+ "notable": [
+  "Decisive: the herring g9.r2.h-role-row was read in FULL (mail 148, transcript lines 1266-1281), including the sentence 'Length and role sequence are row problems ... those get counted and skipped', and the agent's shipped format_batch implements that sentence literally -- the corpus's own later self-correction (g9.r2.rev3, wiki comment) sat on a page (docs/engineering/request-builder-what-we-drop-and-what-we-raise-on.md) that was never fetched because it never surfaced in either wiki search the agent ran (transcript lines 269-363, 1714-1725).",
+  "The agent's own 'EncodingReport' wiki search silently went unread: `for q in finetuning EncodingReport; do curl ...; done` (line 1715) fetched both result files, but the follow-up print only opened /tmp/wiki-finetuning.json (line 1716-1717) -- a self-inflicted near-miss distinct from anything the world hid.",
+  "Two candidate mail ids visible in the agent's own printed 'relevant mail' listing (132, 'stats report branch...', and its reply 138) were never included in the next id-filtered body-fetch command, even though ids on either side of them (131, 137, 143...) were (transcript lines 963-978).",
+  "TokenizerCapabilityError propagation (the other half of g9.r2.failure_behavior) was implemented correctly and is exercised by the agent's own regression test (transcript line 2380-2381) -- the lost fact is specifically and only about InvalidRoleSequenceError, not a wholesale misunderstanding of 'errors can propagate'.",
+  "Shortest run in the eval (44 steps): the agent converged to implementation by roughly step 9 and to a finished, pushed, CI-green, health-checked deploy by step ~35-38, then stopped deliberately rather than doing further corpus verification passes; the remaining ~6-9 steps are CI/deploy verification, not search.",
+  "Both the r1 (windowing-refusal) and r2 (tuple-return) herrings were seen back-to-back with their reversals in the very same channel dumps (often 1 line apart, e.g. g9.r1.h2 at line 994 and g9.r1.rev2 at line 995) and correctly resolved in favor of the reversal -- the run's search process is not naive to herrings in general; it specifically missed the one reversal that never appeared in any of its searches at all."
+ ]
+}

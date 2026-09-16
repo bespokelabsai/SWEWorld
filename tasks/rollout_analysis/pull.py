@@ -1,7 +1,7 @@
 """Pull the rollouts one analysis covers, and write the manifest every later stage reads.
 
 For each task in targets.json: `horizon rollouts pull` the task version into rollouts/<g>/,
-then fetch every lumen rollout of the named eval(s) in full from the API into full/<g>/.
+then fetch every rollout of the named eval(s) by the target's model in full from the API into full/<g>/.
 The full record matters: `rollouts pull` truncates grade_result at 2048 bytes, which cuts off
 the pytest trace that names the failing assertion.
 
@@ -43,8 +43,11 @@ def main(tasks):
         os.makedirs(f"{HERE}/full/{g}", exist_ok=True)
         # task_version_number, not version, and extracted_score, not score: the first pass
         # grouped on the wrong fields and every rollout came back version None
+        # the model is per-target: the same task version has been run under several
+        # (lumen, meridian, vesper), and pooling them would average two different agents
+        model = x.get("model", "lumen")
         rs = [r for r in c.tasks.rollouts(x["tid"]).rollouts
-              if r.model == "lumen" and r.task_version_number == x["v"]
+              if r.model == model and r.task_version_number == x["v"]
               and any(r.evaluation_id.startswith(e) for e in x["evals"])]
         man[g] = []
         for ro in sorted(rs, key=lambda ro: (ro.evaluation_id, ro.run_number)):
@@ -54,7 +57,7 @@ def main(tasks):
                            "score": ro.extracted_score, "errored": ro.is_errored,
                            "turns": ro.turn_count, "cost": ro.total_cost, "stop": ro.stop_reason})
         scored = sum(m["score"] is not None for m in man[g])
-        print(f"{g}: {len(man[g])} lumen rollouts, {scored} scored")
+        print(f"{g}: {len(man[g])} {model} rollouts, {scored} scored")
     json.dump(man, open(man_path, "w"), indent=1)
 
 

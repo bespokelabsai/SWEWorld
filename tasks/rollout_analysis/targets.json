@@ -90,5 +90,15 @@
   ],
   "arm": "harbor_tasks/g11-training-step-ledger/training-step-ledger-world-hosted",
   "slug": "training-step-ledger"
+ },
+ "g9-meridian": {
+  "tid": "149947c5-d450-4993-9904-58ecde65ced4",
+  "v": 8,
+  "evals": [
+   "de47e209"
+  ],
+  "arm": "harbor_tasks/g9-example-encoding/example-encoding-world-hosted",
+  "slug": "example-encoding",
+  "model": "meridian"
  }
 }

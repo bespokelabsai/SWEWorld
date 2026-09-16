@@ -20,6 +20,10 @@ transcript: /home/nidhi_bespokelabs_ai/SWEWorld/tasks/rollout_analysis/rollouts/
 
 ## failing tests (full ctrf trace)
 
+### test_r1::test_failure_behavior__a_windowed_example_with_under_sixteen_prompt_tokens_is_refused
+```
+over-long refusal: num_messages: None != 2
+```
 
 ## where each answer-key remark's exact text surfaces (pointer only — verify by reading)
 
