@@ -30,6 +30,9 @@
 # `image_reference` the push prints into the pinning arm's `FROM`. The pin is by
 # DIGEST because the corpus is the independent variable in these tasks — a moved
 # tag would change what a task measures without changing the task.
-FROM sweworld:0.4.8
+# Last published: sweworld:0.4.11 as the `sweworld-world` environment (2026-09-16),
+#   us-central1-docker.pkg.dev/apex-485220/horizon/environments/sweworld-world@sha256:234a3796f3219a8ebee32d867940fc03041159b66ecfc1156f575b6939029846
+# No task pins it yet; the hosted arms still name their own older digests.
+FROM sweworld:0.4.11
 
 COPY --from=sweworld:repo-only-dev /opt/curator-dev /opt/curator-dev
