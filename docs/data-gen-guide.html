@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  A standalone copy of the data_gen guide, readable straight off disk.
+
+  It is also published as a Claude Artifact:
+    https://claude.ai/artifact/MKQi9QEdts8cfp1TBdKJk5
+
+  The published version is a FRAGMENT - the host supplies the doctype, the head
+  and a small reset - so this file is that fragment plus the wrapper it would
+  otherwise be given. Wrapping the published copy in <html> would nest a
+  document inside a document, so edit the content once and re-copy.
+-->
+<style>
+  /* The reset the artifact host supplies, restated first so this file stands
+     alone and the page's own rules still win on anything they both set. */
+  html{color-scheme:light dark}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>data_gen Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ground: #f4f6f9;
+  --surface: #ffffff;
+  --sunk: #e9edf3;
+  --ink: #18202e;
+  --muted: #586274;
+  --rule: #d5dbe4;
+  --accent: #3350c4;
+  --accent-soft: #e3e8fb;
+  --hidden: #1d7f53;
+  --hidden-soft: #ddf1e7;
+  --coinc: #9a6412;
+  --coinc-soft: #f8ebd3;
+  --vacuous: #6b7384;
+  --vacuous-soft: #e7e9ee;
+  --broken: #b83434;
+  --broken-soft: #f8e0e0;
+  --unreach: #6c43b5;
+  --unreach-soft: #ece4f8;
+  --code-bg: #1b2231;
+  --code-ink: #e3e8f2;
+  --code-dim: #8e99ae;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #10141c;
+    --surface: #171c27;
+    --sunk: #1f2533;
+    --ink: #e4e8f0;
+    --muted: #9aa3b5;
+    --rule: #2c3445;
+    --accent: #8ea2f5;
+    --accent-soft: #232c4d;
+    --hidden: #5fcf98;
+    --hidden-soft: #173427;
+    --coinc: #e0ac55;
+    --coinc-soft: #3a2d15;
+    --vacuous: #a8b0c0;
+    --vacuous-soft: #262c38;
+    --broken: #ef8080;
+    --broken-soft: #3d1d1f;
+    --unreach: #b99af0;
+    --unreach-soft: #2d2342;
+    --code-bg: #0b0e14;
+    --code-ink: #dfe5ef;
+    --code-dim: #7d889c;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #10141c;
+  --surface: #171c27;
+  --sunk: #1f2533;
+  --ink: #e4e8f0;
+  --muted: #9aa3b5;
+  --rule: #2c3445;
+  --accent: #8ea2f5;
+  --accent-soft: #232c4d;
+  --hidden: #5fcf98;
+  --hidden-soft: #173427;
+  --coinc: #e0ac55;
+  --coinc-soft: #3a2d15;
+  --vacuous: #a8b0c0;
+  --vacuous-soft: #262c38;
+  --broken: #ef8080;
+  --broken-soft: #3d1d1f;
+  --unreach: #b99af0;
+  --unreach-soft: #2d2342;
+  --code-bg: #0b0e14;
+  --code-ink: #dfe5ef;
+  --code-dim: #7d889c;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-inline: 16px;
+  padding-block: 0 72px;
+}
+.shell {
+  max-width: 1140px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 56px;
+}
+nav.toc {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 28px);
+  align-self: start;
+  padding-top: 40px;
+  font-size: 13.5px;
+}
+nav.toc p {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-left: 2px solid var(--rule);
+}
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--ink); border-left-color: var(--accent); outline: none; }
+main { min-width: 0; max-width: 780px; }
+
+header.top { padding-block: 48px 8px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 14px;
+}
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(34px, 6vw, 50px); font-weight: 700; letter-spacing: -.02em; }
+h1 code { font-family: var(--mono); font-weight: 500; font-size: .86em; letter-spacing: -.03em; }
+.lede { font-size: 19px; color: var(--muted); max-width: 64ch; margin: 18px 0 0; }
+.lede strong { color: var(--ink); font-weight: 600; }
+
+section { padding-top: 60px; scroll-margin-top: 16px; }
+h2 { font-size: 29px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 14px; }
+h3 { font-size: 19px; font-weight: 500; margin: 30px 0 8px; }
+p { margin: 0 0 14px; max-width: 68ch; }
+p.note { color: var(--muted); font-size: 14.5px; }
+a { color: var(--accent); }
+code {
+  font-family: var(--mono);
+  font-size: .88em;
+  background: var(--sunk);
+  padding: .08em .35em;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+  padding: 16px 18px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0 16px;
+}
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; overflow-wrap: normal; }
+pre .c { color: var(--code-dim); }
+ul.plain { margin: 0 0 14px; padding-left: 20px; max-width: 68ch; }
+ul.plain li { margin-bottom: 6px; }
+
+/* the one-sentence definition */
+.thesis {
+  margin-top: 30px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 22px 24px;
+}
+.thesis p { margin: 0; font-size: 17px; }
+.flow-words {
+  margin-top: 14px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 13px;
+}
+.flow-words span { background: var(--sunk); padding: 3px 9px; border-radius: 4px; }
+.flow-words i { color: var(--muted); font-style: normal; }
+
+/* glossary */
+dl.gloss {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px;
+  margin: 18px 0 0;
+}
+dl.gloss div { padding: 12px 0; border-top: 1px solid var(--rule); }
+dl.gloss dt { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+dl.gloss dd { margin: 3px 0 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+
+/* stat row for "why" */
+.why {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 18px;
+}
+.why div { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+.why b { display: block; font-family: var(--display); font-size: 30px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.why span { font-size: 13.5px; color: var(--muted); line-height: 1.4; display: block; margin-top: 4px; }
+
+/* pipeline lanes */
+.lanes { display: grid; gap: 14px; margin: 20px 0 10px; }
+.lane {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+}
+.lane-head b { font-family: var(--display); font-size: 17px; font-weight: 700; display: block; }
+.lane-head span { font-size: 13px; color: var(--muted); display: block; line-height: 1.45; margin-top: 2px; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--rule);
+  background: var(--ground);
+  white-space: nowrap;
+}
+.chip.gate { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.chip.opt { border-style: dashed; color: var(--muted); }
+.chip.hand { border-color: var(--coinc); background: var(--coinc-soft); color: var(--coinc); }
+.arrow { color: var(--muted); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* diagram */
+figure { margin: 22px 0 8px; }
+.diagram {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 14px;
+  overflow-x: auto;
+}
+.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; color: var(--ink); }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; max-width: 68ch; }
+.d-box { fill: var(--ground); stroke: var(--rule); stroke-width: 1.2; }
+.d-tree { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.d-hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
+.d-suite { fill: var(--sunk); stroke: var(--ink); stroke-width: 1.2; }
+.d-line { stroke: var(--muted); stroke-width: 1.3; fill: none; }
+.d-t { fill: var(--ink); font-family: var(--mono); font-size: 12.5px; }
+.d-s { fill: var(--muted); font-family: var(--body); font-size: 11.5px; }
+.d-b { fill: var(--ink); font-family: var(--display); font-size: 14px; font-weight: 700; }
+.d-acc { fill: var(--accent); }
+.d-head { fill: var(--muted); }
+
+/* tables */
+.table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--ground); }
+tr:last-child td { border-bottom: none; }
+td.pf { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+td.pf em { font-style: normal; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.p-hidden { color: var(--hidden); background: var(--hidden-soft); }
+.p-coinc { color: var(--coinc); background: var(--coinc-soft); }
+.p-vac { color: var(--vacuous); background: var(--vacuous-soft); }
+.p-broken { color: var(--broken); background: var(--broken-soft); }
+.p-unreach { color: var(--unreach); background: var(--unreach-soft); }
+
+/* arms */
+.arms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.arm { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.arm-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.arm-top code { font-size: 15px; font-weight: 500; background: none; padding: 0; }
+.arm-top span { font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.arm p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.arm p b { color: var(--ink); font-weight: 500; }
+
+/* prerequisites */
+ul.checks { list-style: none; padding: 0; margin: 14px 0; display: grid; gap: 8px; }
+ul.checks li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 15px;
+}
+ul.checks li::before {
+  content: "";
+  width: 16px; height: 16px;
+  margin-top: 4px;
+  border: 1.6px solid var(--muted);
+  border-radius: 4px;
+}
+ul.checks small { display: block; color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+
+/* walkthrough steps */
+ol.steps { list-style: none; margin: 20px 0 0; padding: 0; counter-reset: step; display: grid; gap: 0; }
+ol.steps > li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 26px 52px;
+}
+ol.steps > li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--display); font-weight: 700; font-size: 15px;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+ol.steps > li::after {
+  content: "";
+  position: absolute; left: 17px; top: 38px; bottom: 4px;
+  border-left: 1.5px solid var(--rule);
+}
+ol.steps > li:last-child::after { display: none; }
+.step-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 34px; }
+.step-head h3 { margin: 0; font-size: 18px; }
+.tag { font-family: var(--mono); font-size: 11.5px; padding: 2px 7px; border-radius: 4px; white-space: nowrap; border: 1px solid transparent; }
+.t-cost { color: var(--muted); border-color: var(--rule); }
+.t-stop { color: var(--broken); background: var(--broken-soft); }
+.t-adv { color: var(--coinc); background: var(--coinc-soft); }
+.t-hand { color: var(--accent); background: var(--accent-soft); }
+.step-body { margin-top: 6px; }
+.step-body pre { margin: 8px 0 10px; }
+.kv { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 4px 12px; font-size: 14.5px; margin: 6px 0 0; }
+.kv dt { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.kv dd { margin: 0; }
+
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 18px 0;
+}
+.callout h3 { margin: 0 0 6px; font-size: 16px; }
+.callout p:last-child { margin-bottom: 0; }
+
+/* tree */
+pre.tree .c { color: var(--code-dim); }
+
+/* pitfalls */
+.pitfalls { display: grid; gap: 0; margin-top: 12px; }
+.pitfalls div { padding: 14px 0; border-top: 1px solid var(--rule); }
+.pitfalls b { display: block; font-weight: 600; margin-bottom: 3px; }
+.pitfalls p { margin: 0; color: var(--muted); font-size: 15px; }
+
+footer { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 13.5px; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.toc { display: none; }
+}
+@media (max-width: 620px) {
+  body { font-size: 15.5px; }
+  dl.gloss, .arms { grid-template-columns: minmax(0, 1fr); }
+  .why { grid-template-columns: minmax(0, 1fr); }
+  .lane { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  ol.steps > li { padding-left: 46px; }
+  .kv { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .kv dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+<style>
+/* additions on top of the shared guide system */
+.two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; }
+.card h3 { margin: 0 0 6px; font-size: 16px; }
+.card p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.card p b { color: var(--ink); font-weight: 500; }
+.free { color: var(--hidden); background: var(--hidden-soft); }
+.paid { color: var(--coinc); background: var(--coinc-soft); }
+@media (max-width: 620px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="shell">
+<nav class="toc" aria-label="Sections">
+  <p>On this page</p>
+  <ol>
+    <li><a href="#what">What it is</a></li>
+    <li><a href="#chains">The two chains</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+    <li><a href="#stages">Stages 0–2</a></li>
+    <li><a href="#repolib">repolib and the cache</a></li>
+    <li><a href="#phases">Phases 1 and 2</a></li>
+    <li><a href="#phase3">Phase 3: the planter</a></li>
+    <li><a href="#phase4">Phase 4: the simulation</a></li>
+    <li><a href="#auth">The auth trap</a></li>
+    <li><a href="#install">Into the world</a></li>
+    <li><a href="#spend">Cost, and how not to spend</a></li>
+    <li><a href="#pitfalls">Pitfalls</a></li>
+    <li><a href="#files">Where files land</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="top">
+  <p class="eyebrow">SWEWorld · data_gen/</p>
+  <h1>How <code>data_gen</code> builds a company</h1>
+  <p class="lede">The pipeline that turns <strong>a real open-source repository</strong> into <strong>months of chat, wiki pages and mail</strong> for a company that never existed — with hidden requirements scattered through it, and every technical detail traceable to code that really was written.</p>
+</header>
+
+<!-- ============ WHAT ============ -->
+<section id="what">
+  <h2>What it is</h2>
+  <div class="thesis">
+    <p><code>data_gen/</code> generates the world's <em>content</em>. It reads the real <a href="https://github.com/bespokelabsai/curator">curator</a> repository — every commit, pull request and issue — invents a company that plausibly wrote it, and then simulates that company talking for months. The output is a corpus: chat messages, wiki pages, page comments and email.</p>
+    <div class="flow-words" aria-hidden="true">
+      <span>real repo</span><i>→</i><span>grounding</span><i>→</i><span>company</span><i>→</i><span>day specs</span><i>→</i><span>planted clues</span><i>→</i><span>simulated talk</span><i>→</i><span>data/</span>
+    </div>
+  </div>
+
+  <p style="margin-top:22px">Three parts of SWEWorld are easy to confuse. They meet at one directory:</p>
+  <div class="two-col">
+    <div class="card"><h3><code>data_gen/</code></h3><p>Generates the <b>content</b>. Runs on your machine, costs real tokens, writes to <code>data_gen/build/</code>. That's this guide.</p></div>
+    <div class="card"><h3><code>world/</code> + <code>scripts/</code></h3><p>Build and populate the <b>container</b> — Gitea, Mattermost, BookStack, mail. They ingest whatever is in <code>data/</code>.</p></div>
+    <div class="card"><h3><code>task_generator/</code></h3><p>Authors the <b>tasks</b> an agent is graded on, and plants their requirements into a corpus that already exists. See its own guide (<a href="task-generator-guide.html">local</a> · <a href="https://claude.ai/artifact/NCs3jj5RiFf1QJw1e7VeYc">published</a>).</p></div>
+    <div class="card"><h3><code>data/</code></h3><p>The <b>handoff</b>. <code>install_corpus.py</code> writes a finished run here; <code>make bake-image</code> ingests it into the image.</p></div>
+  </div>
+
+  <p>The governing rule is that <b>nothing technical is invented</b>. People, project names and conversations are fiction, but the files, symbols, commits and dates they discuss are taken from the real repository. That is what makes a planted requirement checkable later.</p>
+</section>
+
+<!-- ============ CHAINS ============ -->
+<section id="chains">
+  <h2>The two chains</h2>
+  <p>This is the thing to get straight first: there are <b>two separate numbering schemes</b>, and they are unrelated. <b>Stages 0–2</b> read the real repository and answer “what is true”. <b>Phases 1–4</b> build the synthetic company on top of that. Stage 1 is <code>build_episodes.py</code>; phase 1 is <code>phase1_company_grounding.py</code>. They have nothing to do with each other.</p>
+  <p>Every step reads its predecessor's JSON out of <code>data_gen/build/</code>, so the pipeline is a chain of files on disk rather than one long process. You can stop, inspect, and pick up again.</p>
+
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 760 486" role="img" aria-label="Two chains of scripts. The first reads the real curator repository into three JSON records. The second builds the company, its timeline, its day specs, the planted clues and finally the simulated corpus, which is installed into data slash and baked into the world image.">
+        <defs>
+          <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" class="d-head"></path>
+          </marker>
+        </defs>
+
+        <text x="20" y="22" class="d-s">CHAIN 1 · STAGES 0–2 — read the real repository (no invention)</text>
+        <text x="430" y="22" class="d-s">CHAIN 2 · PHASES 1–4 — build the company</text>
+
+        <!-- chain 1 -->
+        <rect x="20" y="36" width="280" height="42" rx="6" class="d-box"></rect>
+        <text x="34" y="54" class="d-t">curator/</text>
+        <text x="34" y="70" class="d-s">the real checkout, read-only</text>
+
+        <line x1="160" y1="78" x2="160" y2="94" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="20" y="96" width="280" height="46" rx="6" class="d-box"></rect>
+        <text x="34" y="114" class="d-t">extract_repository_history.py</text>
+        <text x="34" y="131" class="d-s">→ repository_history.json + blobs</text>
+
+        <line x1="160" y1="142" x2="160" y2="158" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="20" y="160" width="280" height="46" rx="6" class="d-box"></rect>
+        <text x="34" y="178" class="d-t">build_episodes.py</text>
+        <text x="34" y="195" class="d-s">→ engineering_episodes.json</text>
+
+        <line x1="160" y1="206" x2="160" y2="222" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="20" y="224" width="280" height="46" rx="6" class="d-hot"></rect>
+        <text x="34" y="242" class="d-t">analyze_repository.py</text>
+        <text x="34" y="259" class="d-s">→ engineering_grounding.json</text>
+
+        <line x1="160" y1="270" x2="160" y2="286" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="20" y="288" width="280" height="42" rx="6" class="d-box"></rect>
+        <text x="34" y="306" class="d-t">make_report.py</text>
+        <text x="34" y="321" class="d-s">→ report.html (to read it by eye)</text>
+
+        <!-- crossover -->
+        <path d="M300,247 C360,247 370,60 424,60" class="d-line" marker-end="url(#a2)"></path>
+        <text x="312" y="160" class="d-s">the company is</text>
+        <text x="312" y="175" class="d-s">drawn from what</text>
+        <text x="312" y="190" class="d-s">the repo shows</text>
+
+        <!-- chain 2 -->
+        <rect x="428" y="36" width="312" height="46" rx="6" class="d-tree"></rect>
+        <text x="442" y="54" class="d-t">phase1_company_grounding.py</text>
+        <text x="442" y="71" class="d-s">→ company_grounding.json · people, channels</text>
+
+        <line x1="584" y1="82" x2="584" y2="96" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="428" y="98" width="312" height="46" rx="6" class="d-tree"></rect>
+        <text x="442" y="116" class="d-t">phase2_timeline.py</text>
+        <text x="442" y="133" class="d-s">→ timeline.json · pure arithmetic, no model</text>
+
+        <line x1="584" y1="144" x2="584" y2="158" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="428" y="160" width="312" height="46" rx="6" class="d-tree"></rect>
+        <text x="442" y="178" class="d-t">phase2_workstreams.py</text>
+        <text x="442" y="195" class="d-s">→ workstreams.json · artifacts.json</text>
+
+        <line x1="584" y1="206" x2="584" y2="220" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="428" y="222" width="312" height="46" rx="6" class="d-tree"></rect>
+        <text x="442" y="240" class="d-t">phase2_days.py</text>
+        <text x="442" y="257" class="d-s">→ days/state/ · days/specs/ (one per day)</text>
+
+        <line x1="584" y1="268" x2="584" y2="282" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="428" y="284" width="312" height="46" rx="6" class="d-hot"></rect>
+        <text x="442" y="302" class="d-t d-acc">phase3_plant.py</text>
+        <text x="442" y="319" class="d-s">→ clues.json · rewrites every day spec</text>
+
+        <line x1="584" y1="330" x2="584" y2="344" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="428" y="346" width="312" height="46" rx="6" class="d-hot"></rect>
+        <text x="442" y="364" class="d-t d-acc">phase4_simulate.py</text>
+        <text x="442" y="381" class="d-s">→ build/phase4/runs/&lt;run&gt;/ · the corpus</text>
+
+        <!-- footer -->
+        <line x1="584" y1="392" x2="584" y2="406" class="d-line" marker-end="url(#a2)"></line>
+        <rect x="428" y="408" width="312" height="42" rx="6" class="d-suite"></rect>
+        <text x="442" y="426" class="d-t">install_corpus.py → data/</text>
+        <text x="442" y="441" class="d-s">then `make bake-image` builds the world</text>
+
+        <text x="20" y="470" class="d-s">Each box reads the one above it out of data_gen/build/. Nothing runs in memory across steps.</text>
+      </svg>
+    </div>
+    <figcaption>Left: the deterministic record of a real repository. Right: the company built on top of it. The only crossing point is the grounding — who worked on what, and when.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section id="glossary">
+  <h2>Glossary</h2>
+  <dl class="gloss">
+    <div><dt>grounding</dt><dd>What was measured about the real repo (subsystems, tests, contributors, hotspots), plus an optional model-written interpretation of it. Measured and interpreted keys are declared separately in the file.</dd></div>
+    <div><dt>episode</dt><dd>One unit of real work: issue → branch → commits → pull request → review → merge, collapsed into a single record.</dd></div>
+    <div><dt>workstream</dt><dd>A multi-week thread of work that people would name, clustered from episodes.</dd></div>
+    <div><dt>artifact</dt><dd>A document or mail the calendar says someone will write, fixed <em>before</em> any day is generated, so no day cites a page nobody wrote.</dd></div>
+    <div><dt>day spec</dt><dd>One conversation plan, per channel per day: who speaks, about what, and what should be settled by the end.</dd></div>
+    <div><dt>fact</dt><dd>One of a requirement's five atomic parts: <code>rule</code>, <code>scope</code>, <code>exclusions_or_crossover</code>, <code>failure_behavior</code>, <code>observability</code>. A fact no remark carries makes the task unscoreable.</dd></div>
+    <div><dt>leaf / clue</dt><dd>One remark, at most two sentences and 30 words, carrying at most two facts. More than that and it reads as a specification rather than a thing somebody said.</dd></div>
+    <div><dt>herring</dt><dd>A decision the team really made and later reversed, planted strictly <em>before</em> the remark that overturns it.</dd></div>
+    <div><dt>carrier / slot</dt><dd>Where a clue can land: an existing conversation spec, a wiki page, a page comment, a mail message, or a forge issue.</dd></div>
+    <div><dt>run</dt><dd>One phase-4 simulation, under <code>build/phase4/runs/&lt;name&gt;/</code>, with <code>latest</code> pointing at the newest.</dd></div>
+  </dl>
+</section>
+
+<!-- ============ STAGES ============ -->
+<section id="stages">
+  <h2>Stages 0–2: read the real repository</h2>
+  <p>Deterministic wherever possible. The point is that no later step has to invent a file, a symbol or a date. Run from the repo root.</p>
+
+  <ol class="steps">
+    <li>
+      <div class="step-head"><h3><code>extract_repository_history.py</code></h3><span class="tag free">no model</span><span class="tag t-cost">stage 0</span></div>
+      <div class="step-body">
+<pre><code>python3 data_gen/extract_repository_history.py -v</code></pre>
+        <p>Mines the repository once: every commit on every ref, plus pull request, issue and review state from the GitHub API. It keeps the actual code — the blob before, the patch, the blob after.</p>
+        <dl class="kv"><dt>Writes</dt><dd><code>build/repository_history.json</code> and <code>build/repository_blobs/</code>, content-addressed by git blob SHA.</dd>
+        <dt>Needs</dt><dd>A GitHub token only when it refreshes: <code>--token</code>, <code>$GITHUB_TOKEN</code>, <code>$GH_TOKEN</code> or <code>.env</code>. <code>--no-github</code> and <code>--no-refresh</code> skip that.</dd>
+        <dt>Flags</dt><dd><code>--repo --rev --since --until --out --blobs-dir --cache-dir --token --no-refresh --no-github --no-patches --no-blobs</code></dd>
+        <dt>Note</dt><dd>Lockfiles, cassettes and binaries are skipped by a noise pattern, and skips are reported rather than silent. <code>--no-patches</code> drops the structural record to roughly a sixth of the size.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3><code>build_episodes.py</code></h3><span class="tag free">no model</span><span class="tag t-cost">stage 1</span></div>
+      <div class="step-body">
+<pre><code>python3 data_gen/build_episodes.py -v</code></pre>
+        <p>Collapses issue → branch → commits → pull request → review → merge into one episode each, with the pull request as the anchor. Commits with no pull request are grouped by author, time and paths.</p>
+        <dl class="kv"><dt>Writes</dt><dd><code>build/engineering_episodes.json</code></dd>
+        <dt>Needs</dt><dd><b>No token, normally.</b> It reads the stage-0 record (<code>--history</code>, which defaults to <code>build/repository_history.json</code>). It only calls GitHub when that file is missing or you pass <code>--from-api</code>.</dd>
+        <dt>Note</dt><dd>Gaps are recorded, never filled: a squash-merged pull request reports one commit in the clone beside six on the branch, and says so in <code>provenance_gaps</code>. <code>--no-github</code> costs every episode its review provenance.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3><code>analyze_repository.py</code></h3><span class="tag paid">~$3, ~13 min cold</span><span class="tag t-cost">stage 2</span></div>
+      <div class="step-body">
+<pre><code>data_gen/.venv/bin/python data_gen/analyze_repository.py -v</code></pre>
+        <p>Measures the codebase's shape — subsystems, interfaces, tests, config, CI, dependencies, hotspots, contributors and ownership — then has a model interpret that evidence into eras, people, process and capability areas.</p>
+        <dl class="kv"><dt>Writes</dt><dd><code>build/engineering_grounding.json</code>. Which keys were measured and which interpreted is declared in the file itself.</dd>
+        <dt>Needs</dt><dd>The <code>anthropic</code> SDK, hence the venv, and <code>ANTHROPIC_API_KEY</code>. <code>--no-enrich</code> runs measured-only on the system interpreter.</dd>
+        <dt>Read</dt><dd>It hard-fails when layout discovery isn't confident, rather than writing an empty analysis and exiting 0 — which is what it used to do. Citations are verified, but problems are flagged in the output rather than failing the run.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3><code>make_report.py</code></h3><span class="tag free">no model</span></div>
+      <div class="step-body">
+<pre><code>python3 data_gen/make_report.py</code></pre>
+        <p>Projects the grounding and episodes into <code>build/report.html</code>, one browsable page. It computes nothing new; it exists so you can check the record by eye before spending anything on phases.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- ============ REPOLIB ============ -->
+<section id="repolib">
+  <h2><code>repolib.py</code>, and why re-running is cheap</h2>
+  <p>Every script imports <code>repolib</code> as <code>rl</code>. It holds the path constants (<code>build/</code>, <code>cache/</code>, <code>curator/</code>), a read-only <code>Git</code> handle, the logging helpers (<code>rl.ok</code>, <code>warn</code>, <code>info</code>, and <code>fail</code>, which exits rather than raising), and <code>rl.LLM</code>, the model client.</p>
+  <div class="two-col">
+    <div class="card"><h3>Every answer is cached</h3><p>Keyed by a hash of <b>model, effort, system prompt, prompt and schema</b> — plus, on the CLI backend, the model that actually answers (<code>answered_by: cli:&lt;cli_model&gt;</code>), after an Opus <code>--audit-only</code> replayed Sonnet's verdicts as its own. Old keys are still read, but an entry recorded from a different model is skipped. One JSON file per call under <code>data_gen/cache/llm/</code>; re-running a step that hasn't changed costs nothing.</p></div>
+    <div class="card"><h3><code>--no-refresh</code> never opens a socket</h3><p>A cache miss raises, naming the step. That makes it the safe way to rebuild something from what you already paid for.</p></div>
+    <div class="card"><h3>Credentials come from <code>.env</code></h3><p><code>env_value</code> checks the environment, then <code>data_gen/.env</code>, then the repo root <code>.env</code>. That's how <code>GITHUB_TOKEN</code>, <code>ANTHROPIC_API_KEY</code>, <code>CLAUDE_CODE_OAUTH_TOKEN</code>, <code>WORLD_DOMAIN</code> and <code>MM_TEAM_NAME</code> are all found.</p></div>
+    <div class="card"><h3>Cost is counted honestly</h3><p>Cache-creation and cache-read tokens are billed at their own rates. Counting input tokens alone understates a run by an order of magnitude.</p></div>
+  </div>
+</section>
+
+<!-- ============ PHASES 1-2 ============ -->
+<section id="phases">
+  <h2>Phases 1 and 2: build the company</h2>
+
+  <ol class="steps">
+    <li>
+      <div class="step-head"><h3>Phase 1 — <code>phase1_company_grounding.py</code></h3><span class="tag paid">model</span></div>
+      <div class="step-body">
+<pre><code>python3 data_gen/phase1_company_grounding.py</code></pre>
+        <p>Turns the grounding into a company: a name, a roster, who owns which service, how each person writes, and the chat channels. <b>Nobody is invented</b> — each employee is one real contributor under a new name.</p>
+        <dl class="kv"><dt>Writes</dt><dd><code>build/company_grounding.json</code>, plus two projections into the world: <code>data/identities.yaml</code> and <code>data/channels.yaml</code>.</dd>
+        <dt>Gate</dt><dd>A leak scan. Every real identifier must stay inside the <code>real</code> and <code>identity_map</code> blocks; one hit anywhere else fails the run and nothing is written. It also fails if a forge login can't be mapped to the roster.</dd>
+        <dt>Careful</dt><dd>It refuses to overwrite a hand-edited <code>data/identities.yaml</code> or <code>data/channels.yaml</code> — it asks git whether the file still matches <code>HEAD</code>. Use <code>--force</code>, or <code>--no-emit-world-data</code> to leave <code>data/</code> alone.</dd>
+        <dt>Note</dt><dd>It needs a grounding with a <code>people</code> section, so stage 2 must have run <em>with</em> enrichment. There is no <code>--backend</code> or <code>--auth</code> here.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Phase 2a — <code>phase2_timeline.py</code></h3><span class="tag free">no model, no network</span></div>
+      <div class="step-body">
+<pre><code>python3 data_gen/phase2_timeline.py</code></pre>
+        <p>Pure arithmetic over the mined record: for each day, what was committed, which pull requests were open, what shipped, who was present, and which files and symbols existed. This is the substrate every interpreting phase reads.</p>
+        <dl class="kv"><dt>Writes</dt><dd><code>build/timeline.json</code>. Same bytes every run.</dd>
+        <dt>Note</dt><dd>Days are the <b>author's local day</b>, not UTC. Bucketing by UTC invented 302 weekend commits against a real 252.</dd>
+        <dt>Note</dt><dd>A missing <code>data/history/manifest.json</code> is a warning, but then nothing a spec cites can be opened in Gitea. Run <code>make history</code> first if you want that link to work.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Phase 2b — <code>phase2_workstreams.py</code></h3><span class="tag paid">model (names and titles only)</span></div>
+      <div class="step-body">
+<pre><code>python3 data_gen/phase2_workstreams.py</code></pre>
+        <p>Clusters episodes into workstreams people would actually name, and fixes a calendar of documents and mail <em>before</em> any day is written — which is what keeps days independent and stops a day citing a document nobody has written.</p>
+        <dl class="kv"><dt>Writes</dt><dd><code>build/workstreams.json</code> and <code>build/artifacts.json</code></dd>
+        <dt>Gate</dt><dd>Every episode in exactly one workstream, every author present on the day. It runs before the model stage, and nothing is written if it fails.</dd>
+        <dt>Note</dt><dd>The clustering and the calendar are deterministic; the model only writes names and titles, so <code>--no-enrich</code> gives you the structure for free.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Phase 2c — <code>phase2_days.py</code></h3><span class="tag paid">one call per day</span></div>
+      <div class="step-body">
+<pre><code>python3 data_gen/phase2_days.py --only 2025-03-11 2025-03-12   <span class="c"># or --from / --until / --limit</span></code></pre>
+        <p>For each conversation-worthy day, writes a deterministic state file (what the project knew that morning) and, with one model call per day, the conversation specs — one per channel that had something to say.</p>
+        <dl class="kv"><dt>Writes</dt><dd><code>build/days/state/YYYY-MM-DD.json</code> and <code>build/days/specs/YYYY-MM-DD.json</code></dd>
+        <dt>Note</dt><dd>State files are written unconditionally, before any early return. A day's spec only lands if it passed verification, so “all N days verified” is a real guarantee rather than a problem count.</dd>
+        <dt>Careful</dt><dd><code>--attach-only</code> binds artifacts to existing specs with no model call, but it <b>overwrites phase 2b's <code>artifacts.json</code></b> with resolved authors.</dd>
+        <dt>Note</dt><dd>Conversations are weekday-only — weekend work surfaces on Monday — and need at least two speakers.</dd></dl>
+      </div>
+    </li>
+  </ol>
+  <p class="note">Phases 1, 2b and 2c take <code>--no-refresh</code> (cache only) and <code>--no-enrich</code> (skip the model). Phase 2a takes neither, because it makes no model calls at all. Only 2b, 2c and phase 3 take <code>--backend</code> and <code>--auth</code>.</p>
+</section>
+
+<!-- ============ PHASE 3 ============ -->
+<section id="phase3">
+  <h2>Phase 3: hiding the requirements</h2>
+  <p>The conceptual core. A task states a feature openly and hides requirements written down nowhere. Each hidden requirement is decomposed into a tree — <b>subconclusions</b> a reader has to infer, and <b>leaves</b>, individual remarks that imply them — then scattered across months, channels and sources, so that no single sitting recovers it.</p>
+
+<pre><code>python3 data_gen/phase3_plant.py --pick t1,t12,t23 --backend sdk --auth api-key</code></pre>
+  <p class="note">Phase 3 is entirely one-shot calls, so run it on the API key. The CLI backend cold-starts a session per call, about 25 seconds each. <code>--limit</code> defaults to 5, and takes the <em>first</em> five tasks in the file — which is not a sample of anything, so use <code>--pick</code> when you mean specific tasks. <code>input/tasks.json</code> holds 60 hand-written tasks, each with 2 hidden requirements.</p>
+
+  <h3>Nothing is written until the tree is proved solvable</h3>
+  <p>Every gate below fails the whole run, and the failure feeds a bounded re-plant that is told what the last attempt got wrong.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Gate</th><th>Costs</th><th>What it catches</th></tr></thead>
+      <tbody>
+        <tr><td class="pf">every fact carried</td><td class="pf">free</td><td>A fact no leaf covers. The corpus could never teach it, so the task can't be scored.</td></tr>
+        <tr><td class="pf">giveaways()</td><td class="pf">free</td><td>A leaf that restates the requirement's own wording, or types a term it was forbidden to type.</td></tr>
+        <tr><td class="pf">spread_problems()</td><td class="pf">free</td><td>Too concentrated: fewer than 2 sources, 3 weeks or 2 rooms — or two leaves of one subconclusion in the same room within a fortnight.</td></tr>
+        <tr><td class="pf">solvability</td><td class="pf">model</td><td><b>Reconstruct then grade</b>, as two separate calls, best of three. One model rebuilds the requirement from the remarks with no answer key; a second grades that reconstruction. A grader that has seen the answer agrees with itself, which is why it is two calls.</td></tr>
+        <tr><td class="pf">…with the herrings in</td><td class="pf">model</td><td>The same proof run again with the reversed decisions present. A fact recoverable clean but lost in the noise is reported as <code>drowned</code>, separately from one that was <code>never</code> there.</td></tr>
+        <tr><td class="pf">not_fragmented()</td><td class="pf">model</td><td>A subconclusion one remark settles on its own — which makes every other remark under it decoration.</td></tr>
+        <tr><td class="pf">tree_adds_up()</td><td class="pf">model</td><td>Subconclusions that don't reach the requirement: a reader could get all of them and still not have it.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>What it writes, and what it overwrites</h3>
+  <dl class="kv"><dt>Writes</dt><dd><code>build/clues.json</code> (the ledger, written first on purpose), <code>build/phase3_plant.md</code> (the human report), and <code>build/phase3_forge.json</code> when any clue landed on a forge item.</dd>
+  <dt>Dry run</dt><dd><code>--dry-run</code> still makes every model call and still overwrites <code>clues.json</code> and <code>phase3_plant.md</code>. It skips only the corpus: the specs, <code>artifacts.json</code> and <code>phase3_forge.json</code>.</dd>
+  <dt>Rewrites</dt><dd><b>Every file</b> in <code>build/days/specs/</code>, not only the days it touched, plus <code>build/artifacts.json</code>. Back both up before a re-plant.</dd>
+  <dt>Why</dt><dd>It re-plants cleanly because <code>strip_previous()</code> removes the last plant first. Without it, the stage reads its own output and adds to it — the same clue in four rooms, which breaks the one-clue-per-carrier rule the design rests on.</dd>
+  <dt>Sources</dt><dd><code>--sources</code> defaults to <code>slack,notion,email</code>. <code>github</code> becomes available only when <code>build/forge_plan.json</code> exists, written by <code>scripts/ingest_forge.py --export --plan-out</code>, because a clue in a pull request that nothing posts is a clue that never lands.</dd></dl>
+</section>
+
+<!-- ============ PHASE 4 ============ -->
+<section id="phase4">
+  <h2>Phase 4: the specs become conversations</h2>
+  <p>Phase 4 hands each day's specs to persona agents and lets them talk. The engine is <code>bespoke_user</code>, installed separately at <code>~/.local/lib/python3.10/site-packages/bespoke_user/</code> — not in this repo. <code>phase4_simulate.py</code> owns all the domain knowledge; <code>phase4_run.py</code> is the engine half, imported only after authentication is settled.</p>
+
+<pre><code>python3 data_gen/phase4_simulate.py --day-count 3 --dry-run   <span class="c"># free: writes the review doc and stops</span>
+python3 data_gen/phase4_simulate.py --day-count 3 --run march-slice</code></pre>
+
+  <h3>People get the company's apps as tools</h3>
+  <p><code>worldapps.py</code> gives each persona MCP tools that write <b>the ingest schemas directly</b>, so a page written in conversation lands as the exact Markdown and frontmatter the ingest will parse. A private format plus a translation step would be a second place for the schema to be wrong.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Can</th><th>Writes</th></tr></thead>
+      <tbody>
+        <tr><td class="pf">Wiki</td><td>write, read, list, comment</td><td><code>docs/&lt;collection&gt;/&lt;page&gt;.md</code> with title/author/created_at frontmatter</td></tr>
+        <tr><td class="pf">Mail</td><td>send, reply, check inbox, read</td><td><code>emails/</code> as real <code>.eml</code> with proper threading, plus an index</td></tr>
+        <tr><td class="pf">Forge</td><td>find and read issues</td><td>nothing — read-only, so a persona cites a real pull request instead of inventing one</td></tr>
+        <tr><td class="pf">Repo</td><td>read, list, search, recent commits</td><td>nothing — and it is bounded by the clock, so a file added in July does not exist in March</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Every planted clue is checked against what was actually said</h3>
+  <p>A persona's words are their own, so a clue doesn't have to be worded as planted — but the <em>information</em> has to be there, and any identifier has to appear literally. Four rules, each of which was a real failure first:</p>
+  <ul class="plain">
+    <li><b>The whole remark is judged, element by element</b>, not against the one-line clause that summarises it. Free phrasing is not free abridgement: what a persona reliably keeps is the flat observation, and what they drop is the half that says why anybody minds — which is the half that tells a reader there is a requirement here.</li>
+    <li><b>Identifiers are matched in code</b>, normalised for backticks and casing, so a judge never decides whether a name was typed.</li>
+    <li><b>Information, not speech act.</b> A point made inside a question still counts; the old gate threw away a clue whose fact was stated perfectly, inside a question.</li>
+    <li><b>A miss returns a list of what was missing</b>, not a boolean. A retry that can't say what was missing is the same attempt again.</li>
+  </ul>
+
+  <h3>Two failures, two costs</h3>
+  <div class="two-col">
+    <div class="card"><h3>Nobody said it</h3><p>The channel-day runs again, told what was missing. Up to <code>--clue-tries</code> times.</p></div>
+    <div class="card"><h3>Said, but thinner than planted</h3><p>Repaired where it stands (<code>--clue-repairs</code>): the holder sends the missing part as one more message, seconds after their own. Re-simulating a whole day for half a remark re-rolls every other clue in the room that was already right. Repairs are named in <code>clues/&lt;id&gt;.md</code> under <b>Repaired</b>, never silent.</p></div>
+  </div>
+
+  <h3>The run directory</h3>
+<pre><code>build/phase4/cast.json          <span class="c"># SHARED, one level up — never per-run</span>
+build/phase4/latest -> runs/&lt;run&gt;
+build/phase4/runs/&lt;run&gt;/
+  context.md                    <span class="c"># everything a model will be told</span>
+  transcript.json               <span class="c"># the merged conversation</span>
+  messages.jsonl                <span class="c"># the chat projection the ingest reads</span>
+  docs/ · emails/ · comments.jsonl
+  clues.json + clues/index.md + clues/&lt;id&gt;.md
+  activity.json                 <span class="c"># every tool read a persona made</span>
+  artifacts.json + artifact_audit.md
+  run.json · cast.json (a copy, so the run is self-describing)</code></pre>
+  <p class="note"><code>cast.json</code> sits at the phase-4 root because it holds each persona's voice. Redrawing it per run would give the corpus a person who writes one way in February and another in April. Everything else is per-run because the stores are append-only: a three-day February run once inherited two “week of Mar 31” mails from the run before it.</p>
+  <p>Two gates run <b>before a token is spent</b>: a planned artifact kind that nothing will consume stops the run, and clue problems — an empty or question-shaped settle clause, a required identifier missing from the day's allow-list — are named up front, because finding them later costs a paid re-run per channel-day.</p>
+  <p class="note">When a conversation comes out wrong, read <code>&lt;run&gt;/context.md</code>. It is exactly what the model was told, so the fault is diagnosable there rather than by re-running.</p>
+</section>
+
+<!-- ============ AUTH ============ -->
+<section id="auth">
+  <h2>The auth trap, worth knowing before you run anything</h2>
+  <p>Persona turns and one-shot calls authenticate <b>differently</b>, and both fail silently the wrong way round.</p>
+  <div class="two-col">
+    <div class="card"><h3>Persona agent turns</h3><p>Run on <code>CLAUDE_CODE_OAUTH_TOKEN</code>, the subscription. They are almost all the tokens.</p></div>
+    <div class="card"><h3>One-shot calls</h3><p>The director, the landing judge, the clue judge and all of phase 3 run on <code>ANTHROPIC_API_KEY</code>. Routing a one-line question through the agent path cold-starts a session every time, which is how an 18-turn conversation becomes half an hour.</p></div>
+  </div>
+  <p><code>phase4_simulate.resolve_auth()</code> settles this <b>before</b> any import that reaches the engine, because the engine decides once, the moment it is first touched. Nothing afterwards may re-read <code>ANTHROPIC_API_KEY</code> — it has been removed from the environment on purpose. That is the whole reason <code>phase4_run.py</code> is a separate module imported inside a function.</p>
+</section>
+
+<!-- ============ INSTALL ============ -->
+<section id="install">
+  <h2>From a run to a populated world</h2>
+<pre><code>python3 data_gen/install_corpus.py --run &lt;run&gt; --dry-run
+python3 data_gen/install_corpus.py --run &lt;run&gt;
+make bake-image TAG=&lt;next&gt;</code></pre>
+  <p><code>install_corpus.py</code> is the supported handoff, and it validates rather than just copying. It <b>replaces</b> what it owns — <code>docs/</code>, <code>emails/</code>, <code>messages.jsonl</code> and <code>comments.jsonl</code> — deleting each first, because a merge leaves the previous corpus sitting beside the new one, indistinguishable, and the ingest would import both.</p>
+  <div class="two-col">
+    <div class="card"><h3>It never touches</h3><p><code>identities.yaml</code> and <code>channels.yaml</code> (phase 1 writes those), <code>commits.jsonl</code> and <code>history/</code> (they come from <code>make history</code> on the host), and <code>schemas/</code>, which is hand-written contract, not output.</p></div>
+    <div class="card"><h3>It checks before declaring success</h3><p>Collections match directories both ways, page frontmatter holds exactly the allowed keys, every <code>.eml</code> is indexed and every indexed path exists, and chat rows carry channel, author and timestamp. Any problem fails, and nothing is reverted.</p></div>
+  </div>
+  <p class="note">It also drops the duplicates listed in <code>data_gen/input/superseded.json</code>: runs made before the simulator learned to clear a day hold the same page and mail once per pass over that day.</p>
+  <h3>The gate before a bake: <code>scripts/check_corpus.py</code></h3>
+  <p>Syncing the tool clock to the turn clock cannot make a persona write a page before announcing it, and the ingest validates each file alone. So <code>make bake-image</code> runs <code>check_corpus.py</code> first (and <code>--plants</code>; <code>CORPUS_CHECK=0</code> skips both) — <code>sweworld:0.4.9</code> shipped 175 contradictions without it. It reads files against each other: a page announced before it exists, a comment older than its page, a mail reply dated before the mail it answers, a PR discussed before it was opened. <code>--fix</code> retimes pages and announcement mails to agree with the chat, never past a comment or a reply. <b>Artifacts may be retimed; chat may only be reworded</b>, because planted clues anchor to <code>"HH:MM author"</code>.</p>
+
+<!-- ============ SPEND ============ -->
+<section id="spend">
+  <h2>Cost, and how not to spend it</h2>
+  <p>A full phase-4 corpus run is <b>tens of hours</b>. A three-day slice is about <b>twenty minutes</b>. Stage 2 is roughly $3 and 13 minutes cold. Everything else is expensive to regenerate, so know what a step overwrites before you start it.</p>
+  <ul class="checks">
+    <li><span><b><code>--dry-run</code> on phase 4</b> writes <code>&lt;run&gt;/context.md</code> and spends nothing.<small>It still creates the run directory and repoints <code>latest</code>. The earlier phases have no dry run.</small></span></li>
+    <li><span><b><code>--dry-run</code> on phase 3 is neither free nor read-only.</b> It makes every decompose and prove call, and overwrites <code>build/clues.json</code> and <code>build/phase3_plant.md</code>; only the specs, <code>artifacts.json</code> and <code>phase3_forge.json</code> are spared.<small>The ledger is written before the flag is read, so a formatting error can't throw away an hour of generation.</small></span></li>
+    <li><span><b><code>--no-enrich</code></b> gives you the deterministic half of a phase with no model calls at all.<small>Available on stage 2 and phases 1, 2b and 2c.</small></span></li>
+    <li><span><b><code>--no-refresh</code></b> rebuilds from the cache and refuses to open a socket.<small>Not on phase 2a, which has nothing to cache.</small></span></li>
+    <li><span><b>Slice the days.</b> <code>--only</code>, <code>--from</code>, <code>--until</code> and <code>--limit</code> on phase 2c; <code>--days</code> and <code>--day-count</code> on phase 4.<small>Regenerating every day blindly is the expensive mistake.</small></span></li>
+    <li><span><b>Back up before any phase-3 run, dry runs included.</b> Copy <code>build/clues.json</code> and <code>build/days/specs/</code> first.<small>Phase 3 rewrites every spec file, not just the ones it touches, and even a dry run replaces the ledger.</small></span></li>
+  </ul>
+</section>
+
+<!-- ============ PITFALLS ============ -->
+<section id="pitfalls">
+  <h2>Pitfalls</h2>
+  <div class="pitfalls">
+    <div><b>The two numbering schemes are unrelated.</b><p>Stage 1 is <code>build_episodes.py</code>. Phase 1 is <code>phase1_company_grounding.py</code>. Nothing connects them but the word.</p></div>
+    <div><b><code>build_episodes.py</code> does not need a GitHub token.</b><p>It reads the stage-0 record by default. Only <code>--from-api</code>, or a missing record, sends it to the network.</p></div>
+    <div><b>Phase 1 writes into <code>data/</code>.</b><p>It projects <code>identities.yaml</code> and <code>channels.yaml</code> directly. Pass <code>--no-emit-world-data</code> if you don't want that.</p></div>
+    <div><b>Phase 3 rewrites every day spec.</b><p>Including days it never touched. Back up first; <code>strip_previous()</code> makes the re-plant clean, not reversible.</p></div>
+    <div><b>Auth is decided once, on first touch.</b><p>Which is why the engine is imported behind a function call, and why nothing may read the API key afterwards.</p></div>
+    <div><b>A corpus reaches the world only through <code>install_corpus.py</code>.</b><p>Phase 4's own <code>--install</code> copies the same four things but skips every validation and the superseded-duplicate cleanup.</p></div>
+  </div>
+</section>
+
+<!-- ============ FILES ============ -->
+<section id="files">
+  <h2>Where files land</h2>
+<pre class="tree"><code>data_gen/
+  repolib.py              <span class="c"># shared: LLM cache, Git, paths, logging, env</span>
+  github_api.py           <span class="c"># cached, resumable GitHub client</span>
+  extract_repository_history.py · build_episodes.py · analyze_repository.py
+  make_report.py          <span class="c"># + report_template.html</span>
+  phase1_company_grounding.py
+  phase2_timeline.py · phase2_workstreams.py · phase2_days.py
+  phase3_plant.py         <span class="c"># the planter</span>
+  phase4_simulate.py      <span class="c"># domain half: specs -> personas and channels</span>
+  phase4_run.py           <span class="c"># engine half: the day loop, clue gate, repairs</span>
+  phase4_render.py        <span class="c"># the messages.jsonl projection</span>
+  worldapps.py            <span class="c"># the apps personas hold as tools</span>
+  check_grounding.py      <span class="c"># is the code in a transcript real, and did anyone look?</span>
+  install_corpus.py       <span class="c"># a finished run -> data/</span>
+  test_clock.py           <span class="c"># the only test: python3 data_gen/test_clock.py</span>
+  patches/                <span class="c"># bespoke_user changes, as diffs</span>
+  input/tasks.json        <span class="c"># 60 hand-written tasks, 2 hidden requirements each</span>
+  input/superseded.json   <span class="c"># duplicate pages and mails to drop on install</span>
+  aliases.yaml            <span class="c"># spellings that are one person</span>
+  build/                  <span class="c"># everything generated (gitignored, large)</span>
+  cache/llm/              <span class="c"># one file per model answer (gitignored)</span>
+
+data/                     <span class="c"># the handoff the container ingests</span></code></pre>
+  <p class="note">Today's corpus in <code>data/</code>: 9,802 chat messages, 108 wiki pages and 93 mails (613 <code>.eml</code> files, one per mailbox copy). It began as an install of the <code>corpus</code> run but is no longer a copy of it (that run now holds 9,592 messages, 114 pages and 679 mail rows): <code>data/</code> has since been pruned by <code>superseded.json</code>, hand-reworked where tasks plant into it, and retimed by <code>check_corpus.py --fix</code>. Re-installing would undo all of that.</p>
+  <footer>Compiled from <code>data_gen/README.md</code> and the scripts themselves — <code>repolib.py</code>, the stage and phase modules, <code>worldapps.py</code>, <code>install_corpus.py</code> and <code>scripts/check_corpus.py</code> — as of 16 September 2026. Companion guide: how task_generator makes a task (<a href="task-generator-guide.html">local</a> · <a href="https://claude.ai/artifact/NCs3jj5RiFf1QJw1e7VeYc">published</a>).</footer>
+</section>
+</main>
+</div>
+</body>
+</html>

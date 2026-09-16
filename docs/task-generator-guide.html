@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  A standalone copy of the task_generator guide, readable straight off disk.
+
+  It is also published as a Claude Artifact:
+    https://claude.ai/artifact/NCs3jj5RiFf1QJw1e7VeYc
+
+  The published version is a FRAGMENT - the host supplies the doctype, the head
+  and a small reset - so this file is that fragment plus the wrapper it would
+  otherwise be given. Wrapping the published copy in <html> would nest a
+  document inside a document, so edit the content once and re-copy.
+-->
+<style>
+  /* The reset the artifact host supplies, restated first so this file stands
+     alone and the page's own rules still win on anything they both set. */
+  html{color-scheme:light dark}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>task_generator Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --ground: #f4f6f9;
+  --surface: #ffffff;
+  --sunk: #e9edf3;
+  --ink: #18202e;
+  --muted: #586274;
+  --rule: #d5dbe4;
+  --accent: #3350c4;
+  --accent-soft: #e3e8fb;
+  --hidden: #1d7f53;
+  --hidden-soft: #ddf1e7;
+  --coinc: #9a6412;
+  --coinc-soft: #f8ebd3;
+  --vacuous: #6b7384;
+  --vacuous-soft: #e7e9ee;
+  --broken: #b83434;
+  --broken-soft: #f8e0e0;
+  --unreach: #6c43b5;
+  --unreach-soft: #ece4f8;
+  --code-bg: #1b2231;
+  --code-ink: #e3e8f2;
+  --code-dim: #8e99ae;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #10141c;
+    --surface: #171c27;
+    --sunk: #1f2533;
+    --ink: #e4e8f0;
+    --muted: #9aa3b5;
+    --rule: #2c3445;
+    --accent: #8ea2f5;
+    --accent-soft: #232c4d;
+    --hidden: #5fcf98;
+    --hidden-soft: #173427;
+    --coinc: #e0ac55;
+    --coinc-soft: #3a2d15;
+    --vacuous: #a8b0c0;
+    --vacuous-soft: #262c38;
+    --broken: #ef8080;
+    --broken-soft: #3d1d1f;
+    --unreach: #b99af0;
+    --unreach-soft: #2d2342;
+    --code-bg: #0b0e14;
+    --code-ink: #dfe5ef;
+    --code-dim: #7d889c;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #10141c;
+  --surface: #171c27;
+  --sunk: #1f2533;
+  --ink: #e4e8f0;
+  --muted: #9aa3b5;
+  --rule: #2c3445;
+  --accent: #8ea2f5;
+  --accent-soft: #232c4d;
+  --hidden: #5fcf98;
+  --hidden-soft: #173427;
+  --coinc: #e0ac55;
+  --coinc-soft: #3a2d15;
+  --vacuous: #a8b0c0;
+  --vacuous-soft: #262c38;
+  --broken: #ef8080;
+  --broken-soft: #3d1d1f;
+  --unreach: #b99af0;
+  --unreach-soft: #2d2342;
+  --code-bg: #0b0e14;
+  --code-ink: #dfe5ef;
+  --code-dim: #7d889c;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-inline: 16px;
+  padding-block: 0 72px;
+}
+.shell {
+  max-width: 1140px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 56px;
+}
+nav.toc {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 28px);
+  align-self: start;
+  padding-top: 40px;
+  font-size: 13.5px;
+}
+nav.toc p {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-left: 2px solid var(--rule);
+}
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--ink); border-left-color: var(--accent); outline: none; }
+main { min-width: 0; max-width: 780px; }
+
+header.top { padding-block: 48px 8px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 14px;
+}
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(34px, 6vw, 50px); font-weight: 700; letter-spacing: -.02em; }
+h1 code { font-family: var(--mono); font-weight: 500; font-size: .86em; letter-spacing: -.03em; }
+.lede { font-size: 19px; color: var(--muted); max-width: 64ch; margin: 18px 0 0; }
+.lede strong { color: var(--ink); font-weight: 600; }
+
+section { padding-top: 60px; scroll-margin-top: 16px; }
+h2 { font-size: 29px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 14px; }
+h3 { font-size: 19px; font-weight: 500; margin: 30px 0 8px; }
+p { margin: 0 0 14px; max-width: 68ch; }
+p.note { color: var(--muted); font-size: 14.5px; }
+a { color: var(--accent); }
+code {
+  font-family: var(--mono);
+  font-size: .88em;
+  background: var(--sunk);
+  padding: .08em .35em;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+  padding: 16px 18px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0 16px;
+}
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; overflow-wrap: normal; }
+pre .c { color: var(--code-dim); }
+ul.plain { margin: 0 0 14px; padding-left: 20px; max-width: 68ch; }
+ul.plain li { margin-bottom: 6px; }
+
+/* the one-sentence definition */
+.thesis {
+  margin-top: 30px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 22px 24px;
+}
+.thesis p { margin: 0; font-size: 17px; }
+.flow-words {
+  margin-top: 14px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 13px;
+}
+.flow-words span { background: var(--sunk); padding: 3px 9px; border-radius: 4px; }
+.flow-words i { color: var(--muted); font-style: normal; }
+
+/* glossary */
+dl.gloss {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px;
+  margin: 18px 0 0;
+}
+dl.gloss div { padding: 12px 0; border-top: 1px solid var(--rule); }
+dl.gloss dt { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+dl.gloss dd { margin: 3px 0 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+
+/* stat row for "why" */
+.why {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 18px;
+}
+.why div { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+.why b { display: block; font-family: var(--display); font-size: 30px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.why span { font-size: 13.5px; color: var(--muted); line-height: 1.4; display: block; margin-top: 4px; }
+
+/* pipeline lanes */
+.lanes { display: grid; gap: 14px; margin: 20px 0 10px; }
+.lane {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+}
+.lane-head b { font-family: var(--display); font-size: 17px; font-weight: 700; display: block; }
+.lane-head span { font-size: 13px; color: var(--muted); display: block; line-height: 1.45; margin-top: 2px; }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--rule);
+  background: var(--ground);
+  white-space: nowrap;
+}
+.chip.gate { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.chip.opt { border-style: dashed; color: var(--muted); }
+.chip.hand { border-color: var(--coinc); background: var(--coinc-soft); color: var(--coinc); }
+.arrow { color: var(--muted); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* diagram */
+figure { margin: 22px 0 8px; }
+.diagram {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 14px;
+  overflow-x: auto;
+}
+.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; color: var(--ink); }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; max-width: 68ch; }
+.d-box { fill: var(--ground); stroke: var(--rule); stroke-width: 1.2; }
+.d-tree { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.d-hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
+.d-suite { fill: var(--sunk); stroke: var(--ink); stroke-width: 1.2; }
+.d-line { stroke: var(--muted); stroke-width: 1.3; fill: none; }
+.d-t { fill: var(--ink); font-family: var(--mono); font-size: 12.5px; }
+.d-s { fill: var(--muted); font-family: var(--body); font-size: 11.5px; }
+.d-b { fill: var(--ink); font-family: var(--display); font-size: 14px; font-weight: 700; }
+.d-acc { fill: var(--accent); }
+.d-head { fill: var(--muted); }
+
+/* tables */
+.table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--ground); }
+tr:last-child td { border-bottom: none; }
+td.pf { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+td.pf em { font-style: normal; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.p-hidden { color: var(--hidden); background: var(--hidden-soft); }
+.p-coinc { color: var(--coinc); background: var(--coinc-soft); }
+.p-vac { color: var(--vacuous); background: var(--vacuous-soft); }
+.p-broken { color: var(--broken); background: var(--broken-soft); }
+.p-unreach { color: var(--unreach); background: var(--unreach-soft); }
+
+/* arms */
+.arms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.arm { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.arm-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.arm-top code { font-size: 15px; font-weight: 500; background: none; padding: 0; }
+.arm-top span { font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.arm p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.arm p b { color: var(--ink); font-weight: 500; }
+
+/* prerequisites */
+ul.checks { list-style: none; padding: 0; margin: 14px 0; display: grid; gap: 8px; }
+ul.checks li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 15px;
+}
+ul.checks li::before {
+  content: "";
+  width: 16px; height: 16px;
+  margin-top: 4px;
+  border: 1.6px solid var(--muted);
+  border-radius: 4px;
+}
+ul.checks small { display: block; color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+
+/* walkthrough steps */
+ol.steps { list-style: none; margin: 20px 0 0; padding: 0; counter-reset: step; display: grid; gap: 0; }
+ol.steps > li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 26px 52px;
+}
+ol.steps > li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--display); font-weight: 700; font-size: 15px;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+ol.steps > li::after {
+  content: "";
+  position: absolute; left: 17px; top: 38px; bottom: 4px;
+  border-left: 1.5px solid var(--rule);
+}
+ol.steps > li:last-child::after { display: none; }
+.step-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 34px; }
+.step-head h3 { margin: 0; font-size: 18px; }
+.tag { font-family: var(--mono); font-size: 11.5px; padding: 2px 7px; border-radius: 4px; white-space: nowrap; border: 1px solid transparent; }
+.t-cost { color: var(--muted); border-color: var(--rule); }
+.t-stop { color: var(--broken); background: var(--broken-soft); }
+.t-adv { color: var(--coinc); background: var(--coinc-soft); }
+.t-hand { color: var(--accent); background: var(--accent-soft); }
+.step-body { margin-top: 6px; }
+.step-body pre { margin: 8px 0 10px; }
+.kv { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 4px 12px; font-size: 14.5px; margin: 6px 0 0; }
+.kv dt { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.kv dd { margin: 0; }
+
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 18px 0;
+}
+.callout h3 { margin: 0 0 6px; font-size: 16px; }
+.callout p:last-child { margin-bottom: 0; }
+
+/* tree */
+pre.tree .c { color: var(--code-dim); }
+
+/* pitfalls */
+.pitfalls { display: grid; gap: 0; margin-top: 12px; }
+.pitfalls div { padding: 14px 0; border-top: 1px solid var(--rule); }
+.pitfalls b { display: block; font-weight: 600; margin-bottom: 3px; }
+.pitfalls p { margin: 0; color: var(--muted); font-size: 15px; }
+
+footer { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 13.5px; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.toc { display: none; }
+}
+@media (max-width: 620px) {
+  body { font-size: 15.5px; }
+  dl.gloss, .arms { grid-template-columns: minmax(0, 1fr); }
+  .why { grid-template-columns: minmax(0, 1fr); }
+  .lane { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  ol.steps > li { padding-left: 46px; }
+  .kv { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .kv dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="toc" aria-label="Sections">
+  <p>On this page</p>
+  <ol>
+    <li><a href="#what">What it is</a></li>
+    <li><a href="#why">Why it exists</a></li>
+    <li><a href="#pipeline">The pipeline</a></li>
+    <li><a href="#bracket">The bracket</a></li>
+    <li><a href="#arms">The arms</a></li>
+    <li><a href="#before">Before you start</a></li>
+    <li><a href="#walk">Build a task</a></li>
+    <li><a href="#plant">Hide it in the world</a></li>
+    <li><a href="#measure">Measure it</a></li>
+    <li><a href="#status">Where things stand</a></li>
+    <li><a href="#files">Where files land</a></li>
+    <li><a href="#pitfalls">Pitfalls</a></li>
+    <li><a href="#further">Going further</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="top">
+  <p class="eyebrow">SWEWorld · task_generator/</p>
+  <h1>How <code>task_generator</code> makes a task</h1>
+  <p class="lede">A pipeline that writes <strong>hidden-requirement coding tasks</strong> against the curator codebase, then <strong>proves</strong> that the hidden part really is hidden before any money goes on agent trials.</p>
+</header>
+
+<!-- ============ WHAT ============ -->
+<section id="what">
+  <h2>What it is</h2>
+  <div class="thesis">
+    <p>You write a short brief about one area of curator. The tool designs the <em>whole</em> feature, builds it, and only then cuts it in two: a <b>ticket</b> an agent is given, and <b>hidden requirements</b> it has to find. Then it builds the feature again from the ticket alone and checks, test by test, that the ticket-only build fails exactly where the hidden requirements are.</p>
+    <div class="flow-words" aria-hidden="true">
+      <span>brief</span><i>→</i><span>whole spec</span><i>→</i><span>oracle build</span><i>→</i><span>ticket | hidden</span><i>→</i><span>tests</span><i>→</i><span>bracket</span><i>→</i><span>harbor task</span>
+    </div>
+  </div>
+
+  <p style="margin-top:22px">A hidden-requirement task tests whether an agent working inside the SWEWorld company can find requirements that were never written into its ticket. Those requirements live in chat, the wiki and email. <code>task_generator</code> is the machine that makes such tasks <em>verifiable</em>. The words below come up on every other page of this guide.</p>
+
+  <dl class="gloss">
+    <div><dt>brief</dt><dd>The one input you write by hand: 25–45 lines naming an area of curator, with exact files and line numbers.</dd></div>
+    <div><dt>whole.md</dt><dd>The complete specification, in parts, with nothing hidden yet.</dd></div>
+    <div><dt>ticket.md</dt><dd>The visible half, what every agent is given (“A” in the rubric).</dd></div>
+    <div><dt>hidden.md</dt><dd>The hidden half, usually two requirements, <code>r1</code> and <code>r2</code> (“B” and “C”).</dd></div>
+    <div><dt>fact</dt><dd>One gradable piece of a requirement, with a key like <code>g1.r1.rule</code>. Each requirement has up to five: <code>rule</code>, <code>scope</code>, <code>exclusions_or_crossover</code>, <code>failure_behavior</code>, <code>observability</code>. <code>open_feature</code> grades the ticket itself.</dd></div>
+    <div><dt>oracle / naive / spec</dt><dd>Three builds of the feature, each by a separate <code>claude -p</code> agent. The oracle builds from <code>whole.md</code>, naive from the ticket only, and spec from the ticket plus <code>hidden.md</code>.</dd></div>
+    <div><dt>bracket</dt><dd>The free, deterministic gate: one test suite run against every build, giving a verdict per fact.</dd></div>
+    <div><dt>arm</dt><dd>One version of the same task, differing only in what the agent is shown: <code>blind</code>, <code>spec</code>, <code>clues</code> or <code>world</code>.</dd></div>
+    <div><dt>clue · remark · herring</dt><dd>A clue is a planted remark in chat, wiki or mail that carries part of a fact. A herring is a decision the team made and later reversed, planted earlier.</dd></div>
+    <div><dt>plant · corpus</dt><dd>The plant is the ledger of placed remarks (<code>clues/plant.json</code>). The corpus is the company's generated chat, docs and mail it is written into.</dd></div>
+  </dl>
+</section>
+
+<!-- ============ WHY ============ -->
+<section id="why">
+  <h2>Why it exists</h2>
+  <p>The first 60 tasks (<code>data_gen/input/tasks.json</code>, now retired to <code>failed_tasks/</code>) were written ticket-first, with hidden requirements added afterwards. When those were measured, many “hidden” facts turned out to be ones an agent passed without ever seeing the clue, because the surrounding code already gave them away. Each of those was found only after a paid trial.</p>
+  <div class="why">
+    <div><b>13 / 29</b><span>facts in the hand-written tasks were coincidences, passed blind</span></div>
+    <div><b>~$1</b><span>for a local ticket-only build that catches the same thing, against ~$7–9 for an agent trial</span></div>
+    <div><b>$19</b><span>for task g2’s whole cut, spec 1.00 / blind 0.00, in one afternoon</span></div>
+  </div>
+  <p>The method comes from <code>task_generator/rubric.md</code>: <b>design whole, then split</b>. A requirement that was never separable from the visible ask can’t survive a split into ticket and hidden parts.</p>
+</section>
+
+<!-- ============ PIPELINE ============ -->
+<section id="pipeline">
+  <h2>The pipeline</h2>
+  <p>There are three phases. Each stage is one <code>python3 task_generator/cli.py &lt;stage&gt; &lt;slug&gt;</code> command. Every one writes a reviewable file under <code>task_generator/out/&lt;slug&gt;/</code>, so you can stop anywhere and read what came out.</p>
+
+  <div class="lanes">
+    <div class="lane">
+      <div class="lane-head"><b>A · The cut</b><span>~$20, a few hours. Produces a gradable task.</span></div>
+      <div class="chips">
+        <span class="chip hand">brief (you)</span><span class="arrow">→</span>
+        <span class="chip">new</span><span class="arrow">→</span>
+        <span class="chip">author</span><span class="arrow">→</span>
+        <span class="chip">build oracle</span><span class="arrow">→</span>
+        <span class="chip gate">split</span><span class="arrow">→</span>
+        <span class="chip gate">tests</span><span class="arrow">→</span>
+        <span class="chip">build naive</span><span class="arrow">→</span>
+        <span class="chip">build spec</span><span class="arrow">→</span>
+        <span class="chip gate">bracket</span><span class="arrow">→</span>
+        <span class="chip opt">audit</span><span class="arrow">→</span>
+        <span class="chip">trim</span><span class="arrow">→</span>
+        <span class="chip gate">emit</span><span class="arrow">→</span>
+        <span class="chip hand">port grader</span>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lane-head"><b>B · Measure</b><span>~$7 and ~25 min per local trial, or hosted on Horizon.</span></div>
+      <div class="chips">
+        <span class="chip">trial --arm spec</span><span class="arrow">+</span>
+        <span class="chip">trial --arm blind</span><span class="arrow">→</span>
+        <span class="chip">report</span>
+        <span class="arrow">or</span>
+        <span class="chip">horizon</span><span class="arrow">→</span>
+        <span class="chip">push · validate · evaluate</span>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lane-head"><b>C · The plant</b><span>Optional, ~$60–80, two thirds of the bill. Hides the requirements in the company.</span></div>
+      <div class="chips">
+        <span class="chip gate">clues</span><span class="arrow">→</span>
+        <span class="chip">settle</span><span class="arrow">→</span>
+        <span class="chip gate">reverse</span><span class="arrow">→</span>
+        <span class="chip gate">reorder</span><span class="arrow">→</span>
+        <span class="chip gate">reknit</span><span class="arrow">→</span>
+        <span class="chip gate">consistency</span><span class="arrow">→</span>
+        <span class="chip gate">prove --runs 3</span><span class="arrow">→</span>
+        <span class="chip gate">horizon</span><span class="arrow">→</span>
+        <span class="chip opt">inject</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <span><span class="chip gate">gate</span> non-zero exit means look before continuing</span>
+    <span><span class="chip opt">optional</span> skipped unless you ask</span>
+    <span><span class="chip hand">by hand</span> the one input the tool can’t produce</span>
+  </div>
+  <p class="note" style="margin-top:14px">Stage order, gates and budgets come from <code>task_generator/tg/recipe.py</code>. <code>cli make &lt;slug&gt; --dry-run</code> prints them next to what this task has actually spent. Phase B is listed before C because you can measure a task’s blind and spec arms before planting anything.</p>
+</section>
+
+<!-- ============ BRACKET ============ -->
+<section id="bracket">
+  <h2>The bracket: how it knows a fact is hidden</h2>
+  <p>This is the heart of the package. The four trees are the same curator checkout built from different inputs. One test suite runs against all four. Where each tree passes or fails tells you what each fact is really testing.</p>
+
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 760 316" role="img" aria-label="Four builds of curator from four inputs are graded by one suite; the pass/fail pattern across them gives each fact a verdict.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" class="d-head"></path>
+          </marker>
+        </defs>
+
+        <text x="16" y="22" class="d-s">WHAT THE BUILDER SEES</text>
+        <text x="270" y="22" class="d-s">TREE</text>
+        <text x="496" y="22" class="d-s">GRADED BY</text>
+
+        <!-- inputs -->
+        <rect x="16" y="40" width="184" height="46" rx="6" class="d-box"></rect>
+        <text x="108" y="61" text-anchor="middle" class="d-t">nothing</text>
+        <text x="108" y="77" text-anchor="middle" class="d-s">untouched curator</text>
+
+        <rect x="16" y="106" width="184" height="46" rx="6" class="d-box"></rect>
+        <text x="108" y="127" text-anchor="middle" class="d-t">ticket.md</text>
+        <text x="108" y="143" text-anchor="middle" class="d-s">the blind condition</text>
+
+        <rect x="16" y="172" width="184" height="46" rx="6" class="d-box"></rect>
+        <text x="108" y="193" text-anchor="middle" class="d-t">ticket + hidden.md</text>
+        <text x="108" y="209" text-anchor="middle" class="d-s">what the spec arm gets</text>
+
+        <rect x="16" y="238" width="184" height="46" rx="6" class="d-box"></rect>
+        <text x="108" y="259" text-anchor="middle" class="d-t">whole.md</text>
+        <text x="108" y="275" text-anchor="middle" class="d-s">the full design</text>
+
+        <!-- input -> tree -->
+        <line x1="200" y1="63" x2="262" y2="63" class="d-line" marker-end="url(#ah)"></line>
+        <line x1="200" y1="129" x2="262" y2="129" class="d-line" marker-end="url(#ah)"></line>
+        <line x1="200" y1="195" x2="262" y2="195" class="d-line" marker-end="url(#ah)"></line>
+        <line x1="200" y1="261" x2="262" y2="261" class="d-line" marker-end="url(#ah)"></line>
+        <text x="231" y="57" text-anchor="middle" class="d-s">as is</text>
+        <text x="231" y="123" text-anchor="middle" class="d-s">agent</text>
+        <text x="231" y="189" text-anchor="middle" class="d-s">agent</text>
+        <text x="231" y="255" text-anchor="middle" class="d-s">agent</text>
+
+        <!-- trees -->
+        <rect x="266" y="40" width="160" height="46" rx="6" class="d-tree"></rect>
+        <text x="346" y="68" text-anchor="middle" class="d-b">pristine</text>
+        <rect x="266" y="106" width="160" height="46" rx="6" class="d-hot"></rect>
+        <text x="346" y="134" text-anchor="middle" class="d-b d-acc">naive</text>
+        <rect x="266" y="172" width="160" height="46" rx="6" class="d-tree"></rect>
+        <text x="346" y="200" text-anchor="middle" class="d-b">spec</text>
+        <rect x="266" y="238" width="160" height="46" rx="6" class="d-tree"></rect>
+        <text x="346" y="266" text-anchor="middle" class="d-b">oracle</text>
+
+        <!-- tree -> suite -->
+        <line x1="426" y1="63" x2="492" y2="140" class="d-line" marker-end="url(#ah)"></line>
+        <line x1="426" y1="129" x2="492" y2="152" class="d-line" marker-end="url(#ah)"></line>
+        <line x1="426" y1="195" x2="492" y2="172" class="d-line" marker-end="url(#ah)"></line>
+        <line x1="426" y1="261" x2="492" y2="184" class="d-line" marker-end="url(#ah)"></line>
+
+        <!-- suite -->
+        <rect x="496" y="112" width="120" height="100" rx="8" class="d-suite"></rect>
+        <text x="556" y="146" text-anchor="middle" class="d-b">one suite</text>
+        <text x="556" y="166" text-anchor="middle" class="d-t">tests/</text>
+        <text x="556" y="184" text-anchor="middle" class="d-s">one test per fact</text>
+        <text x="556" y="199" text-anchor="middle" class="d-s">in the devbox</text>
+
+        <!-- suite -> verdict -->
+        <line x1="616" y1="162" x2="650" y2="162" class="d-line" marker-end="url(#ah)"></line>
+        <rect x="654" y="112" width="96" height="100" rx="8" class="d-hot"></rect>
+        <text x="702" y="146" text-anchor="middle" class="d-b d-acc">verdict</text>
+        <text x="702" y="166" text-anchor="middle" class="d-s">per fact</text>
+        <text x="702" y="186" text-anchor="middle" class="d-t">bracket</text>
+        <text x="702" y="201" text-anchor="middle" class="d-t">.json</text>
+
+        <text x="16" y="306" class="d-s">naive and spec are built in a temp directory outside the repo, so the agent can never wander into the answer key.</text>
+      </svg>
+    </div>
+    <figcaption>The naive build is the blind agent, made mechanical. If a ticket-only build passes a fact’s test, that fact wasn’t hidden, and you’ve found out for about a dollar instead of a paid trial.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Verdict</th><th>pristine</th><th>naive</th><th>oracle</th><th>What it means · what to do</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill p-hidden">hidden</span></td><td class="pf">fail</td><td class="pf">fail</td><td class="pf">pass</td><td>Only someone who knew the requirement passes. <b>Ship it.</b></td></tr>
+        <tr><td><span class="pill p-coinc">coincidence</span></td><td class="pf">fail</td><td class="pf"><em>pass</em></td><td class="pf">pass</td><td>The ticket or the code gave it away. Run <code>author --extend</code>, <b>not</b> another <code>split</code>.</td></tr>
+        <tr><td><span class="pill p-vac">vacuous</span></td><td class="pf"><em>pass</em></td><td class="pf">pass</td><td class="pf">pass</td><td>The test doesn’t need the feature to exist. Fix the test.</td></tr>
+        <tr><td><span class="pill p-broken">broken</span></td><td class="pf">—</td><td class="pf">—</td><td class="pf"><em>fail</em></td><td>The reference build fails its own test. A real defect, so stop here.</td></tr>
+        <tr><td><span class="pill p-unreach">unreachable</span></td><td class="pf">fail</td><td class="pf">fail</td><td class="pf">pass · <em>spec fails</em></td><td>Even with the requirements in hand, a build fails. The requirement’s wording doesn’t say what the test grades.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">The healthy shape is naive passing <b>only</b> <code>open_feature</code>: the agent built the feature from the ticket and recovered none of the hidden facts. If naive fails <code>open_feature</code> too, the ticket isn’t buildable. That is a gate as well, because a blind score of 0 would then mean “built nothing”, not “found nothing”.</p>
+</section>
+
+<!-- ============ ARMS ============ -->
+<section id="arms">
+  <h2>The arms: one ticket, several conditions</h2>
+  <p>Once a task is emitted, it can be run in several forms. In <code>harbor_tasks/</code> each one is a sibling directory, like <code>executor-output-cap-spec/</code>. Only the information the agent is given changes, so the gap between arms is what’s being measured.</p>
+  <div class="arms">
+    <div class="arm"><div class="arm-top"><code>blind</code><span>expect ≈ 0.00</span></div><p><b>The ticket alone.</b> A zero proves the requirements are really hidden, as long as <code>open_feature</code> is 1.0.</p></div>
+    <div class="arm"><div class="arm-top"><code>spec</code><span>expect ≈ 1.00</span></div><p><b>Ticket plus the hidden requirements, stated outright.</b> Proves the suite can be satisfied from what’s written.</p></div>
+    <div class="arm"><div class="arm-top"><code>clues</code><span>the ceiling</span></div><p><b>Ticket plus every planted remark</b>, quoted inline in date order. Can an agent <em>use</em> scattered evidence once it has been gathered for it?</p></div>
+    <div class="arm"><div class="arm-top"><code>world</code><span>the real test</span></div><p><b>The blind ticket, run inside a baked SWEWorld image</b> whose chat, wiki and mail contain those same remarks among everything else. Can the agent <em>find</em> them?</p></div>
+    <div class="arm"><div class="arm-top"><code>world-located</code><span>splits the miss</span></div><p><b>The world arm, told which pages and days hold the evidence.</b> Separates “couldn’t find it” from “found it and didn’t use it”.</p></div>
+    <div class="arm"><div class="arm-top"><code>…-hosted</code><span>for Horizon</span></div><p><b>The same world arms, built from the published registry image</b>, because Horizon can’t resolve a local image tag.</p></div>
+  </div>
+  <p class="note">Rewards are folded by <code>harbor_tasks/_suites/score.py</code>, the same module the paid verifier uses. So <code>g1.r1.rule</code> means the same thing in a local bracket, a Harbor trial and a Horizon rollout. <code>reward</code> is the mean over hidden facts and leaves out <code>open_feature</code>.</p>
+  <p class="note">How to read the ladder: <code>clues</code> matching <code>spec</code> means the plant is sufficient and any blind gap is retrieval. <code>clues</code> matching <code>blind</code> means the plant is too thin, and no amount of corpus work will fix it.</p>
+</section>
+
+<!-- ============ PREREQS ============ -->
+<section id="before">
+  <h2>Before you start</h2>
+  <p>Run everything from the repo root. Define this once per shell:</p>
+  <pre><code>cli() { python3 task_generator/cli.py "$@"; }</code></pre>
+  <ul class="checks">
+    <li><span><b>The <code>devbox</code> container is running</b>, from image <code>sweworld:repo-only-dev</code> (built from <code>harbor_tasks/_env/Dockerfile</code>).<small>curator can’t be imported on the host. Every test run goes through <code>docker exec devbox</code>, using <code>/opt/curator-dev/venv</code>. Check with <code>docker ps</code>.</small></span></li>
+    <li><span><b>The <code>curator/</code> checkout exists</b> at the repo root.<small>Builds copy it into <code>.trees/</code> or a temp directory. Never edit it directly.</small></span></li>
+    <li><span><b>The <code>claude</code> CLI works on your subscription</b>: <code>CLAUDE_CODE_OAUTH_TOKEN</code> in <code>.env</code>.<small><code>tg/auth.py</code> <em>removes</em> <code>ANTHROPIC_API_KEY</code> from every agent’s environment. If the token is missing, the tool refuses to run rather than falling back. Quick test: <code>claude -p 'say ok'</code>.</small></span></li>
+    <li><span><b>For the plant only:</b> a phase-4 corpus at <code>data_gen/build/phase4/runs/latest</code>.<small>The clue stages place remarks into conversations that already exist.</small></span></li>
+    <li><span><b>For hosted runs only:</b> <code>~/horizon_env/bin/horizon</code>, plus <code>HORIZON_API_KEY</code> and <code>MINI_BATCH_ID</code>.<small>It isn’t on <code>PATH</code>. Export <code>PATH="$HOME/horizon_env/bin:$PATH"</code> first.</small></span></li>
+  </ul>
+</section>
+
+<!-- ============ WALKTHROUGH ============ -->
+<section id="walk">
+  <h2>Build your first task, step by step</h2>
+  <p>There is a one-shot <code>cli make &lt;slug&gt;</code>, but <b>no task has actually been built with it</b>. <code>split</code> and <code>bracket</code> exit non-zero on heuristics, and <code>make</code> can’t tell a warning from a real defect. Walk the stages one at a time, and read the one thing listed before typing the next command.</p>
+  <div class="legend" style="margin-bottom:6px">
+    <span><span class="tag t-stop">stop on fail</span> a real defect</span>
+    <span><span class="tag t-adv">advisory exit</span> non-zero is a prediction, so read it</span>
+    <span><span class="tag t-hand">by hand</span> your judgement</span>
+  </div>
+
+  <ol class="steps">
+    <li>
+      <div class="step-head"><h3>Pick an area and write the brief</h3><span class="tag t-hand">by hand</span><span class="tag t-cost">~15 min reading curator</span></div>
+      <div class="step-body">
+        <p>This is the one input the tool can’t produce, and it decides whether the task works. Look for <b>two parts of the code that disagree, where the disagreement matters</b>. For example, g2 had three exit paths assembling output independently, and two result types disagreeing about whether a stream may be absent.</p>
+        <p>Use the shape of <code>task_generator/out/*/brief.md</code>: the area in one sentence, then <code>The area, concretely:</code> with <b>exact files and line numbers</b>, then the disagreement in plain words, then <code>Constraints:</code>. The constraints should say: pure, deterministic, no network, no sleeping, no threads, clock and randomness injected, and which fakes the tests may use.</p>
+        <ul class="plain">
+          <li>Prefer a <b>behaviour change inside existing shapes</b> over a brand-new module with an exact public API. Blind agents build the first far more often.</li>
+          <li>Avoid code that starts a live display, a pager or a terminal takeover when constructed. It has killed agents’ shells mid-rollout.</li>
+          <li>An area with one obvious implementation gives facts a blind agent passes for free.</li>
+        </ul>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Scaffold it</h3><span class="tag t-cost">free</span></div>
+      <div class="step-body">
+<pre><code>cli new my-area --brief "$(cat brief.txt)"
+cli make my-area --dry-run   <span class="c"># the stage table and what's left to spend</span></code></pre>
+        <dl class="kv"><dt>Writes</dt><dd><code>out/my-area/brief.md</code> and a skeleton <code>task.json</code>. The id is the next free <code>g&lt;N&gt;</code>, so the suite becomes <code>g&lt;N&gt;_my_area</code>.</dd>
+        <dt>Read</dt><dd>Check that the id and suite are what you expected. Everything downstream, including <code>harbor_tasks/</code>, keys off them.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Author the whole specification</h3><span class="tag t-cost">~$6</span></div>
+      <div class="step-body">
+<pre><code>cli author my-area</code></pre>
+        <dl class="kv"><dt>Writes</dt><dd><code>whole.md</code>: the feature in parts, each naming alternatives an engineer could plausibly pick instead.</dd>
+        <dt>Read</dt><dd>For each part, ask: <i>could a competent engineer reach this just by reading the ticket and the source?</i> If yes, it isn’t hidden. At least half the parts should carry something the codebase <b>can’t</b> supply: an invented name, a chosen value, a policy with no local evidence, or a deliberate departure from what the code does now.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Build the oracle</h3><span class="tag t-cost">~$3.50</span></div>
+      <div class="step-body">
+<pre><code>cli build my-area --role oracle</code></pre>
+        <dl class="kv"><dt>Writes</dt><dd>A working tree at <code>.trees/my-area/oracle/</code>, frozen as <code>fixtures/oracle.{patch,py}</code>.</dd>
+        <dt>Read</dt><dd>Nothing yet. The bracket judges the oracle, not you.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Split into ticket and hidden requirements</h3><span class="tag t-cost">~$1.30</span><span class="tag t-adv">advisory exit</span></div>
+      <div class="step-body">
+<pre><code>cli split my-area</code></pre>
+        <dl class="kv"><dt>Writes</dt><dd><code>ticket.md</code>, <code>hidden.md</code>, <code>task.json</code> and <code>fact_sources.json</code>. Earlier cuts are archived in <code>cuts/cut-N/</code>. It re-cuts once by itself if the ticket leaked a name a fact needs.</dd>
+        <dt>Read</dt><dd>The anchor audit it prints (<code>tg/leak.py</code>): identifiers each fact relies on that neither the ticket nor the source tree already contains. Exit 1 means “some fact has no invented name”. That is a prediction, not a verdict, because a fact can rest on a chosen value instead.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Write the tests</h3><span class="tag t-cost">largest per-call budget</span><span class="tag t-stop">stop on fail</span></div>
+      <div class="step-body">
+<pre><code>cli tests my-area</code></pre>
+        <dl class="kv"><dt>Writes</dt><dd><code>tests/test_open.py</code>, <code>test_r1.py</code> and <code>test_r2.py</code>: one decisive test per fact, all passing on the oracle.</dd>
+        <dt>Read</dt><dd>What each test reaches for, because that is what actually gets graded. A test that reads a path outside <code>/workdir</code>, <code>/tests</code> or <code>/tmp</code> passes locally and scores 0 hosted. g3 did exactly this.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Build naive and spec</h3><span class="tag t-cost">~$2 each</span></div>
+      <div class="step-body">
+<pre><code>cli build my-area --role naive   <span class="c"># sees ticket.md only</span>
+cli build my-area --role spec    <span class="c"># sees ticket + hidden.md</span></code></pre>
+        <dl class="kv"><dt>Writes</dt><dd><code>fixtures/naive.patch</code> and <code>fixtures/spec.patch</code>, built in isolated temp directories.</dd>
+        <dt>Why both</dt><dd>The oracle shares the author’s assumptions. Only a build from the requirement text alone shows whether that text is enough. g3’s spec arm capped at 0.44 for lack of this.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Run the bracket</h3><span class="tag t-cost">free · ~1 min</span><span class="tag t-stop">the gate</span></div>
+      <div class="step-body">
+<pre><code>cli bracket my-area</code></pre>
+        <dl class="kv"><dt>Writes</dt><dd><code>bracket.json</code> and <code>bracket.md</code>, with a verdict per fact.</dd>
+        <dt>Read</dt><dd>Every fact should read <span class="pill p-hidden">hidden</span>. <span class="pill p-broken">broken</span> or <span class="pill p-unreach">unreachable</span> means stop and fix. For <span class="pill p-coinc">coincidence</span>, run <code>cli author my-area --extend</code>, then rebuild and re-bracket. Naive is built once, so a single coincidence is one noisy sample. Treat several as a verdict on the specification.</dd></dl>
+      </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Trim, then emit</h3><span class="tag t-cost">~$3 · free</span><span class="tag t-stop">emit refuses unless shipped</span></div>
+      <div class="step-body">
+<pre><code>cli audit my-area      <span class="c"># optional adversarial review; skipping is a choice</span>
+cli trim my-area       <span class="c"># cut each requirement to what its tests check</span>
+cli bracket my-area    <span class="c"># again: trim changed what spec is handed</span>
+cli emit my-area</code></pre>
+        <dl class="kv"><dt>Writes</dt><dd><code>harbor_tasks/g&lt;N&gt;-my-area/</code>, <code>harbor_tasks/_suites/g&lt;N&gt;_my_area/</code>, and this task’s row in <code>task_generator/tasks.generated.json</code>.</dd>
+        <dt>Checks</dt><dd><code>emit.check_bijection</code>: every fact has a test, and every test has a fact.</dd></dl>
+        </div>
+    </li>
+
+    <li>
+      <div class="step-head"><h3>Port the grader to worker and judge</h3><span class="tag t-hand">by hand, for now</span></div>
+      <div class="step-body">
+        <p><code>cli tests</code> writes plain pytest files, and on that path the process that imports the agent’s code also writes the result file. An agent’s code can rewrite that result from an <code>atexit</code> hook, and this was measured at reward 1.0 from an untouched tree. Every shipped task from g1 to g11 was then ported to a two-process grader:</p>
+        <ul class="plain">
+          <li><code>probe.py</code> imports the submission as user <code>nobody</code>, inside a jail that can’t read <code>/tests</code>, and records only raw values.</li>
+          <li><code>judge.py</code> runs as root, never imports agent code, and applies the assertions. It writes the same test ids, so scoring is unchanged.</li>
+        </ul>
+        <dl class="kv"><dt>Writes</dt><dd><code>harbor_tasks/_suites/&lt;suite&gt;/probe.py</code>, <code>probe_support.py</code> and <code>judge.py</code>. <code>run_suites.py</code> switches to the split only when both files exist.</dd>
+        <dt>Recipe</dt><dd>§7 of <code>tasks/grading-forgery-fix-handoff.md</code>. Read its “Round 4” section first, which supersedes the earlier file-lock approach. Verify with oracle 1.0 and noop 0.0 before pushing.</dd></dl>
+        <p>You now have a gradable task. Go to <a href="#measure">Measure it</a>, or continue to the plant to hide its requirements in the company.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- ============ PLANT ============ -->
+<section id="plant">
+  <h2>Hide it in the world (the plant)</h2>
+  <p>So far the hidden requirements exist only in <code>hidden.md</code>. The plant turns each one into <b>remarks scattered across months of chat, wiki and mail</b>, placed into conversations that already exist in the generated corpus. That is what the <code>clues</code> and <code>world</code> arms need. Unlike <code>data_gen/phase3_plant.py</code>, which plants before simulation, this plants <em>after</em>, into a finished corpus.</p>
+
+<pre><code><span class="c"># long stages: run detached, not just backgrounded</span>
+setsid nohup python3 task_generator/cli.py clues my-area &gt; clues.log 2&gt;&amp;1 &lt; /dev/null &amp;</code></pre>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Stage</th><th>Budget</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>clues</code></td><td class="pf">~$45</td><td>Builds a tree of subconclusions and leaf remarks per requirement, writes herrings, and places each leaf in a real chat day, wiki page, comment or mail thread. About 175 placement calls.</td></tr>
+        <tr><td><code>settle</code></td><td class="pf">~$11</td><td>Checks every test assertion against the remarks as <code>stated</code> / <code>implied</code> / <code>absent</code>, and rewrites remarks so that “implied” becomes “stated”.</td></tr>
+        <tr><td><code>reverse</code></td><td class="pf">~$1</td><td>Makes sure someone later says out loud that each herring’s decision was dropped.</td></tr>
+        <tr><td><code>reorder</code></td><td class="pf">~$1</td><td>Moves any decision dated before the complaint it answers. Must run before <code>reknit</code>.</td></tr>
+        <tr><td><code>reknit</code></td><td class="pf">~$9</td><td>Turns each remark into a real multi-turn exchange. No single turn carries the whole remark, and every identifier is still typed literally.</td></tr>
+        <tr><td><code>consistency</code></td><td class="pf">~$8</td><td>Catches a fact that an exchange ended up stating backwards.</td></tr>
+        <tr><td><code>prove --runs 3</code></td><td class="pf">~$5.50</td><td>Builds from ticket plus remarks alone, three times, and scores with the real suite. Facts that fail together on the same runs point to one bad remark. Fix it with <code>cli repair</code>.</td></tr>
+        <tr><td><code>horizon --arms blind,spec,clues</code></td><td class="pf">free</td><td>Renders the hosted task directories. It refuses a clues arm whose remarks never type a graded name.</td></tr>
+        <tr><td><code>inject</code></td><td class="pf">free</td><td>Writes the plant into a copy of the corpus, for re-baking the world image (the <code>world</code> arm).</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>After the plant, build the arms that use it:</p>
+<pre><code>python3 task_generator/build_tasks.py --extra-tasks task_generator/tasks.generated.json \
+    --pick g&lt;N&gt; --world --hosted                         <span class="c"># blind, spec, clues, world (+ hosted)</span>
+python3 task_generator/build_located_arm.py my-area        <span class="c"># -world-located</span>
+cli answers my-area                                        <span class="c"># the task's answer-key README</span></code></pre>
+  <p class="note">For the <code>world</code> arm, <code>cli inject</code> first, then <code>data_gen/install_corpus.py</code>, then <code>make bake-image TAG=&lt;next&gt;</code>, then point <code>WORLD_IMAGE</code> in <code>build_tasks.py</code> at the new tag. Rebuild after every re-plant, because <code>build_tasks.py</code> rewrites each arm’s <code>tests/</code> and <code>plant/</code> wholesale.</p>
+  <p class="note">Each paid clue pass checkpoints to <code>.{stamp}.partial.json</code>, so a killed run loses one call, not the whole pass. <code>cli snap &lt;slug&gt; &lt;label&gt;</code> snapshots the plant before a risky change.</p>
+</section>
+
+<!-- ============ MEASURE ============ -->
+<section id="measure">
+  <h2>Measure it</h2>
+  <h3>Locally, first</h3>
+<pre><code>cli trial my-area --arm spec    <span class="c"># ~25 min, ~$7 — should be ≈ 1.00</span>
+cli trial my-area --arm blind   <span class="c"># should be ≈ 0.00, with open_feature at 1.0</span>
+cli trial my-area --arm clues   <span class="c"># after the plant</span>
+cli report my-area              <span class="c"># → out/my-area/report.md</span></code></pre>
+  <p>Those two numbers are the verdict: <b>spec ≈ 1.00</b> says the suite can be satisfied, and <b>blind ≈ 0.00</b> says the requirements are really hidden. If several facts fail together with identical assertion errors, that is <b>one defect</b>, usually one ambiguous sentence, not variance.</p>
+
+  <h3>Hosted, on Horizon</h3>
+<pre><code>cli horizon my-area --arms blind,spec,clues
+export PATH="$HOME/horizon_env/bin:$PATH"
+cd task_generator/out/my-area/horizon
+
+horizon tasks push g&lt;N&gt;-my-area                      <span class="c"># blind arm</span>
+horizon tasks push g&lt;N&gt;-my-area-spec                 <span class="c"># spec arm</span>
+horizon tasks validate --mode hosted --agent oracle  <span class="c"># must be 1.00</span>
+horizon tasks validate --mode hosted --agent noop    <span class="c"># must be 0.00</span>
+horizon tasks validate-logs
+
+horizon evaluations submit --model biggie-max --runs 3 &lt;task-id&gt;
+horizon evaluations watch &lt;eval-id&gt;
+horizon rollouts pull &lt;task-uuid&gt;</code></pre>
+  <p class="note">Hosted oracle/noop validation is the same bracket, in Horizon’s terms. New tasks are limited to <code>cipher-omni</code> until 10+ rollouts land below a 0.4 pass rate. Until then <code>biggie-max</code> returns 403. These apex arms use agent type <code>meteor</code>. The harbor-format <code>-world*</code> arms use <code>typhoon</code>.</p>
+</section>
+
+<!-- ============ STATUS ============ -->
+<section id="status">
+  <h2>Where things stand</h2>
+  <p class="note">As of 15 September 2026.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tasks</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td class="pf">g1–g4, g6–g11</td><td>Every arm built: blind, spec, clues, world, world-located and the hosted twins. Graders are ported to worker/judge. g1 also draws a fresh seed per run, so a captured answer can’t be replayed.</td></tr>
+        <tr><td class="pf">g12, g13</td><td>Cut finished (bracket, trim, hosted blind and spec arms). No plant, no harbor arms yet, and still graded on plain pytest.</td></tr>
+        <tr><td class="pf">g5</td><td>Refused at the bracket on seven coincidences. On disk as <code>out/response-ledger/</code>, never emitted.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">The rollout analyses of these tasks are in <code>tasks/rollout_analysis/</code>. The lessons that shaped the pipeline are in <code>tasks/lessons.md</code>.</p>
+</section>
+
+<!-- ============ FILES ============ -->
+<section id="files">
+  <h2>Where files land</h2>
+<pre class="tree"><code>task_generator/
+  cli.py                 <span class="c"># every command</span>
+  tg/                    <span class="c"># the method, task-agnostic (recipe, bracket, clues, horizon…)</span>
+  prompts/               <span class="c"># every prompt the agents are given</span>
+  rubric.md              <span class="c"># what makes a hidden requirement verifiable</span>
+  fleet/                 <span class="c"># several tasks at once (see below)</span>
+  out/&lt;slug&gt;/
+    brief.md             <span class="c"># you wrote this</span>
+    whole.md             <span class="c"># full spec</span>
+    ticket.md            <span class="c"># visible half</span>
+    hidden.md            <span class="c"># hidden half — what the spec arm carries</span>
+    task.json            <span class="c"># id / slug / suite + the task entry</span>
+    fact_sources.json    <span class="c"># per fact: which part, what a blind agent picks instead</span>
+    tests/               <span class="c"># test_open.py, test_r1.py, test_r2.py</span>
+    fixtures/            <span class="c"># oracle / naive / spec patches</span>
+    cuts/cut-N/          <span class="c"># every earlier cut, archived by split</span>
+    trim.json · .md      <span class="c"># what trim cut from each requirement</span>
+    bracket.json · .md   <span class="c"># the gate</span>
+    clues/               <span class="c"># the plant ledger, proof.md, …</span>
+    horizon/             <span class="c"># hosted arm directories</span>
+    spend.json           <span class="c"># every model call and its cost</span>
+    logs/                <span class="c"># exact prompt + raw reply for every step</span>
+  .trees/&lt;slug&gt;/&lt;role&gt;/  <span class="c"># persistent working checkouts (gitignored)</span>
+  tasks.generated.json   <span class="c"># every emitted task; build_tasks.py reads it</span>
+  build_tasks.py         <span class="c"># renders the harbor arms</span>
+  build_located_arm.py   <span class="c"># renders the -world-located arms</span>
+
+harbor_tasks/            <span class="c"># OUTPUT: emit and build_tasks.py write here</span>
+  g&lt;N&gt;-&lt;slug&gt;/          <span class="c"># one directory per arm, plus fixtures/ and README.md</span>
+  _suites/g&lt;N&gt;_&lt;slug&gt;/  <span class="c"># tests + probe.py / judge.py</span>
+  _suites/run_suites.py  <span class="c"># chooses pytest or the worker/judge split</span></code></pre>
+  <p class="note">When a step comes out wrong, open <code>logs/&lt;step&gt;.prompt.md</code>. It is exactly what the model was told, so you can diagnose from it instead of re-running.</p>
+</section>
+
+<!-- ============ PITFALLS ============ -->
+<section id="pitfalls">
+  <h2>Pitfalls worth knowing</h2>
+  <div class="pitfalls">
+    <div><b>Don’t re-cut on coincidences.</b><p>Re-running <code>split</code> only changes <em>which</em> parts are hidden. It cost g2 about $6 and changed nothing. A coincidence is a fact about the specification, so run <code>author --extend</code>. Re-cut only when the ticket leaked a name.</p></div>
+    <div><b>Run long stages detached.</b><p>Use <code>setsid nohup … &lt; /dev/null &amp;</code>. Many plant stages run past ten minutes, which is where harnesses tend to kill child processes.</p></div>
+    <div><b>Auth goes the wrong way silently.</b><p>If both the API key and the OAuth token are set, the CLI prefers the key. <code>tg/auth.py</code> strips the key for you. Never pass <code>--bare</code>.</p></div>
+    <div><b><code>open_feature</code> is graded but not in the reward.</b><p>If a ticket-only build can’t pass it, a blind 0.00 is meaningless. Fix it by amending the ticket in <code>task.json</code> and <code>ticket.md</code>, not by re-splitting.</p></div>
+    <div><b>Horizon’s status table misleads during a run.</b><p>Unfinished rollouts show as <code>failed</code>. Use <code>evaluations watch</code> for progress and <code>status --json</code> for the truth. g4’s evaluation was cancelled over this, costing $17.</p></div>
+    <div><b>Shared-state hazards if you run several tasks.</b><p><code>cli new</code> picks the next id by scanning, so pass <code>--id</code>. <code>emit</code> rewrites all of <code>tasks.generated.json</code>, so take <code>fleet/locks/generated.lock</code>.</p></div>
+  </div>
+</section>
+
+<!-- ============ FURTHER ============ -->
+<section id="further">
+  <h2>Going further</h2>
+  <ul class="plain">
+    <li><b><code>cli make &lt;slug&gt; --from &lt;stage&gt;</code></b> resumes the recipe from a stage once you know an area’s gates behave. <code>--optional</code> also runs audit and inject.</li>
+    <li><b><code>fleet/orchestrate.py</code></b> drives several tasks at once through the same <code>cli.py</code> commands. It adds locks, a gate reader, and a judge that makes the calls this guide leaves to you (extend vs re-cut, advisory vs fatal). Start with <code>orchestrate.py start --dry-run --ids g7,g8</code> and <code>orchestrate.py verify</code>.</li>
+    <li><b><code>harbor_tasks/README.md</code></b> describes the emitted arm ladder and how to run one with <code>harbor run -p harbor_tasks/g&lt;N&gt;-&lt;slug&gt;</code>. Point it at one task folder: <code>-p harbor_tasks</code> on its own runs nothing.</li>
+    <li><b>Other commands</b> are answers to something a gate printed: <code>repair</code> fixes remarks a proof blamed, <code>replace</code> re-places remarks with the same wording, <code>resync</code> brings the plant back in line after a corpus edit, and <code>answers</code> writes the answer key. <code>suite</code> and <code>exec</code> are how the build agents run code, and aren’t meant to be typed by hand.</li>
+    <li><b>The full manual</b> is <code>task_generator/README.md</code>. It includes the history behind each rule, like g1’s two cuts and g2’s cost breakdown.</li>
+  </ul>
+  <footer>Compiled from <code>task_generator/README.md</code>, <code>cli.py</code>, <code>tg/recipe.py</code>, <code>tg/suite.py</code>, <code>tg/auth.py</code>, <code>fleet/README.md</code>, <code>harbor_tasks/README.md</code> and <code>tasks/grading-forgery-fix-handoff.md</code>, as of 15 September 2026. Costs are measured on g1–g4 and are an order of magnitude, not a quote.</footer>
+</section>
+</main>
+</div>
+</body>
+</html>
