@@ -19,12 +19,18 @@ forges values the judge still checks against the real expectations, which is
 implementing them. Floats go through `json` (float encoding is `repr`), so every
 value round-trips to the identical double.
 
-The two source-text checks — retry_policy's stdlib-only import list, and the
-base processor's `attempts_left … max_retries` seeding / dead `seconds_to_pause`
-knob — are NOT here. The judge reads those files itself under SUBMISSION_SRC
-(parsing text executes nothing), which is both safe in the root process and a
-more faithful check of the graded artifact than trusting this worker to report
-its own source. See judge.py.
+The source-text checks are NOT here: retry_policy's standard-library-only import
+list, the three provider processors no longer touching a tracker counter, the
+base processor's `attempts_left` seeding (compared against the pristine tree)
+and its dead `seconds_to_pause` knob. The judge reads those files itself under
+SUBMISSION_SRC and CURATOR_BASELINE_DIR (parsing text executes nothing), which
+is both safe in the root process and a more faithful check of the graded
+artifact than trusting this worker to report its own source. See judge.py.
+
+What no source read can answer, this worker runs: the other half of the same
+provider clause — that the block still re-raises — is observed by entering each
+provider's rate-limit branch here (`drive_provider_rate_limit`) and recording
+what came out of it.
 """
 from __future__ import annotations
 
@@ -57,6 +63,19 @@ import probe_support as S  # noqa: E402
 from harness import baseline_text  # noqa: E402
 
 HORIZON = "throttle_cooldown_until"
+# The max_retries the processor is configured with before its own submission loop
+# is driven, so the attempts_left the production construction site arrives with is
+# a number nothing else here uses (the request factory seeds 3, the config default
+# is 10). An INPUT, not an answer: the judge holds the value it must come back as
+# (_PRODUCTION_MAX_RETRIES), and the two must agree.
+PRODUCTION_MAX_RETRIES = 9
+# The instant the cooldown scenario pins the processor's clock to, and how far
+# ahead of it the tracker's horizon is put. INPUTS, not answers: the judge holds
+# the pause those two imply (_COOLDOWN_AHEAD_SECONDS) and the two must agree.
+# Both are exact doubles and so is their sum, so the pause the processor derives
+# is exactly COOLDOWN_AHEAD_SECONDS with nothing to round.
+FROZEN_NOW = 1_700_000_000.0
+COOLDOWN_AHEAD_SECONDS = 4.0
 # Heuristic scoping words for r2's "exactly one new pause field" diff. Answer-free:
 # they say which added fields are ABOUT the pause, not which one is expected.
 _PAUSE_WORDS = ("cooldown", "pause", "backoff", "horizon", "throttle_until", "retry_after")
@@ -78,6 +97,19 @@ def raises(fn, *args, **kwargs) -> dict:
     except BaseException as exc:  # noqa: BLE001 - the test catches a type; the judge checks which
         return {"raised": True, "mro": [c.__name__ for c in type(exc).__mro__], "str": str(exc)}
     return {"raised": False, "mro": []}
+
+
+def classified(exc) -> str:
+    """The class `classify_failure` returned, or the name of what it raised.
+
+    "Never raises" is a stated guarantee, so a raise has to reach the judge as a
+    VALUE. Letting it propagate would report the whole open fact as a dead probe
+    and say nothing about which input killed it.
+    """
+    try:
+        return _cls(S.rp.classify_failure(exc))
+    except BaseException as exc:  # noqa: BLE001 - the guarantee under test
+        return f"raised {type(exc).__name__}"
 
 
 def outcome(verdict):
@@ -129,6 +161,9 @@ def probe_open() -> dict:
     o["classify_status"] = [_cls(rp.classify_failure(e)) for e in S.classify_status_inputs()]
     o["classify_type"] = [_cls(rp.classify_failure(e)) for e in S.classify_type_inputs()]
     o["classify_marker"] = [_cls(rp.classify_failure(e)) for e in S.classify_marker_inputs()]
+    # The guarantee that wraps P2/P3/P4: whatever the exception does when read,
+    # a class comes back. `classified` reports a raise instead of propagating it.
+    o["classify_hostile"] = [classified(e) for e in S.classify_hostile_inputs()]
 
     # ---- P5/P6: the schedule, the cap before the jitter, the draw count ---
     policy, clock, jitter = S.policy_with(jitter_value=0.25)
@@ -231,6 +266,33 @@ def probe_open() -> dict:
     log = S.read_field(request, "failure_log")
     o["request_failure_log"] = [[_cls(c), m] for (c, m) in log]
     o["wired_counters"] = list(S.counters(tracker))
+
+    # ---- the other half of that except block: the give-up write-out ------
+    # The ticket names the GenericResponse a request that will not be retried
+    # gets — `response_errors=format_failure_summary(request.failure_log)`,
+    # `response_message=None`, `raw_response=None`. Only the re-queue branch was
+    # ever observed, so an implementation that computed a summary and never
+    # plugged it in passed the whole open fact.
+    written: list = []
+    dead = S.make_api_request(attempts_left=3)
+    S.drive_one_failure(S.make_processor(max_retries=3), dead, S.OnlineStatusTracker(),
+                        Exception("invalid api key"), capture=written)
+    o["exhausted_written"] = len(written)
+    if written:
+        response = written[0]
+        o["exhausted_errors"] = S.read_field(response, "response_errors")
+        o["exhausted_message_is_none"] = S.read_field(response, "response_message") is None
+        o["exhausted_raw_is_none"] = S.read_field(response, "raw_response") is None
+
+    # ---- section 3, from the inside: the provider blocks re-raise --------
+    # instruction.md:120-126 has two halves — stop mutating the counters, and
+    # "just re-raise". The judge reads the first out of the source; only running
+    # the branch reads the second, and a handler that returns instead of raising,
+    # or that replaces the provider's exception with another, satisfied every
+    # source check while the failure never reached the base class to be
+    # classified at all.
+    o["providers"] = {name: S.drive_provider_rate_limit(name)
+                      for name in ("openai", "anthropic", "litellm")}
     return o
 
 
@@ -262,6 +324,14 @@ def probe_r1_rule() -> dict:
 
 def probe_r1_scope() -> dict:
     o = {"has_waivers": waivers_are_implemented()}
+    # Recorded before the feature guard so the value exists even for a tree that
+    # never built the waivers: "we could not see the production path" and "the
+    # production path seeds it wrongly" are different failures and the judge
+    # reports them apart.
+    seeding = S.production_seeding(PRODUCTION_MAX_RETRIES)
+    o["production_seeding_observed"] = seeding["observed"]
+    o["production_attempts_left"] = seeding["attempts_left"]
+    o["production_error"] = seeding["error"]
     if not o["has_waivers"]:
         return o
     first = S.make_api_request(task_id=1)
@@ -372,7 +442,15 @@ def probe_r2_rule() -> dict:
     # staged, world-readable copy the runner names in CURATOR_BASELINE_DIR; where
     # there is no baseline it returns None and this sub-check is skipped, not
     # failed (nothing to diff against is not a failed requirement).
-    shipped = baseline_text("status_tracker/online_status_tracker.py")
+    try:
+        shipped = baseline_text("status_tracker/online_status_tracker.py")
+    except OSError:
+        # `baseline_text` says it never raises, and it nearly doesn't: with no
+        # staged copy it falls back to /opt/world-state, which is 0700 root, and
+        # `Path.exists()` raises PermissionError on EACCES rather than answering
+        # False. The fact fails either way — the judge requires a baseline — but
+        # it fails saying so instead of as a dead probe node.
+        shipped = None
     o["has_baseline"] = shipped is not None
     if shipped is not None:
         added = {n for n in names if f"{n}:" not in shipped}
@@ -458,19 +536,39 @@ def probe_r2_exclusions() -> dict:
     o["knob_in_config"] = "seconds_to_pause_on_rate_limit" in cfg.model_fields
     o["knob_default"] = cfg(model="gpt-4o-mini").seconds_to_pause_on_rate_limit
     o["knob_set"] = cfg(model="gpt-4o-mini", seconds_to_pause_on_rate_limit=42).seconds_to_pause_on_rate_limit
-    processor = S.make_processor(max_retries=3, seconds_to_pause_on_rate_limit=10)
-    o["processor_knob"] = processor.config.seconds_to_pause_on_rate_limit
 
     slept: list = []
 
     async def fake_sleep(seconds):
         slept.append(seconds)
 
-    real_sleep = asyncio.sleep
+    # The clock the processor reads is FROZEN for this scenario, and the horizon
+    # is placed an exact number of seconds ahead of the frozen reading, so the
+    # pause is compared exactly.
+    #
+    # It used to be `horizon = time.time() + 4.0` graded as `3.0 < slept <= 4.0`:
+    # two live readings a whole scenario apart, bracketed by a one-second
+    # allowance. A correct implementation failed whenever the box descheduled
+    # this worker for a second between them, which is a grader that fails on
+    # machine load rather than on the code — and the v14 round was failed for it.
+    #
+    # Frozen BEFORE the processor is built, because an implementation is free to
+    # capture `time.time` into its policy at construction (the reference does:
+    # `RetryPolicy(clock=time.time, ...)`) and read the pause clock through
+    # `self.retry_policy._clock()`. Freezing first means both spellings — the
+    # module attribute at call time and the captured callable — return the same
+    # frozen instant. `counting` reports how many times it was read, so a pause
+    # that came from somewhere else fails saying so instead of silently.
+    frozen = S.counting(FROZEN_NOW)
+    real_time, real_sleep = time.time, asyncio.sleep
+    time.time = frozen.source
     asyncio.sleep = fake_sleep
     try:
+        processor = S.make_processor(max_retries=3, seconds_to_pause_on_rate_limit=10)
+        o["processor_knob"] = processor.config.seconds_to_pause_on_rate_limit
+
         lapsed = S.OnlineStatusTracker()
-        lapsed.time_of_last_rate_limit_error = time.time()
+        lapsed.time_of_last_rate_limit_error = FROZEN_NOW
         setattr(lapsed, HORIZON, 0.0)
         asyncio.run(processor.cool_down_if_rate_limit_error(lapsed))
         o["slept_after_lapsed"] = list(slept)
@@ -480,10 +578,13 @@ def probe_r2_exclusions() -> dict:
 
         ahead = S.OnlineStatusTracker()
         ahead.time_of_last_rate_limit_error = 0.0
-        setattr(ahead, HORIZON, time.time() + 4.0)
+        setattr(ahead, HORIZON, FROZEN_NOW + COOLDOWN_AHEAD_SECONDS)
+        reads_before = frozen.calls
         asyncio.run(processor.cool_down_if_rate_limit_error(ahead))
         o["slept_after_ahead"] = list(slept)
+        o["frozen_clock_reads"] = frozen.calls - reads_before
     finally:
+        time.time = real_time
         asyncio.sleep = real_sleep
     return o
 

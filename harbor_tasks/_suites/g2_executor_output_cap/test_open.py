@@ -17,6 +17,18 @@ anywhere in this suite, and the worker (`probe.py`) and this human reference
 share ONE definition of the seam and cannot drift. The names are re-exported
 below so `from test_open import install_sandbox, run` keeps working.
 
+Two things this file no longer records on its own, because they cannot run here.
+The suite is graded by `probe.py` + `judge.py`, and `judge.py` also checks what
+only the root side can see: that `output_cap.py` declares
+`DEFAULT_MAX_OUTPUT_BYTES = 65536` and imports no clock, randomness, I/O or
+environment module; that `_execute_in_sandbox`'s pushed signature is the one the
+ticket writes; that `execute_request` passes `max_output_bytes=` into the partial
+it builds (no test here calls that async path); and that `_collect_sandbox_files`
+is AST-identical to the pristine tree, which needs the baseline copy root stages
+as CURATOR_BASELINE_DIR and which this seam deliberately patches out. The inputs
+below are the ORIGINAL fixed fixture, kept as the worked example; the graded run
+re-draws them per seed from `fixture_spec.py`.
+
 Nothing here asserts *where* the budget cuts, how the elision reads, what a
 sub-floor budget does, what gets logged, or whether `error` is capped: those are
 r1's and r2's hidden facts, and an implementation that gets every one of them
@@ -103,9 +115,12 @@ def test_open_feature__a_configurable_byte_budget_shortens_what_the_sandbox_retu
     assert capped.message == "success"
     assert 0 < len(capped.stdout) < 300, f"stdout came back at {len(capped.stdout)} chars under a 64-byte budget"
     assert 0 < len(capped.stderr) < 300, f"stderr came back at {len(capped.stderr)} chars under a 64-byte budget"
-    # both names, whatever order they are reported in: the ticket asks the field to
-    # NAME the shortened streams, and r1 is where the order of the report is graded
-    assert sorted(read_field(capped, "truncated_streams")) == ["stderr", "stdout"]
+    # both names, in the order the ticket asks for them: "sorted alphabetically"
+    # (instruction.md:31-32). Asserted as a list, not through `sorted()` — the
+    # sorted comparison this line used to make graded the test rather than the
+    # submission, and ["stdout", "stderr"] passed it. r1's observability fact
+    # grades the ordering inside the WARNING line; this is the model field.
+    assert read_field(capped, "truncated_streams") == ["stderr", "stdout"]
     assert capped.files == FILES
 
     # --- all four construction sites obey the budget ----------------------
@@ -120,6 +135,17 @@ def test_open_feature__a_configurable_byte_budget_shortens_what_the_sandbox_retu
     for site, out in sites.items():
         assert out.stdout is not None, f"the {site} site returned no stdout at all"
         assert 0 < len(out.stdout) < 300, f"the {site} site returned {len(out.stdout)} characters under a 64-byte budget"
+
+    # --- the salvage site with nothing to salvage --------------------------
+    # `execute_command` itself raises, so `result` is still None and the ticket's
+    # own expression -- `getattr(result, "stdout", None)`, instruction.md:56 --
+    # comes back None on both streams; a None stream "contributes nothing" to
+    # truncated_streams (instruction.md:32), and `files` is still collected.
+    never = run(monkeypatch, command_error=RuntimeError("boom"), files=FILES, max_output_bytes=64)
+    assert never.stdout is None, f"the salvage site returned stdout={never.stdout!r} on a run that captured nothing"
+    assert never.stderr is None, f"the salvage site returned stderr={never.stderr!r} on a run that captured nothing"
+    assert read_field(never, "truncated_streams") == []
+    assert never.files == FILES
 
     # --- the exit-code message carries the capped stderr, unchanged wording -
     failed = run(monkeypatch, exit_code=1, stdout="", stderr="E" * 300, max_output_bytes=64)

@@ -42,5 +42,11 @@
    ],
    "earlier_reversed_version": "An earlier revision charged the failure path symmetrically with the success path \u2014 `_free_capacity(status_tracker, used_tokens, blocked_capacity)` using the usage the `except` block already builds \u2014 and returned the request slot on both kinds of release; it was reversed because a retry storm against a systematically failing model drained the bucket faster than the refill could recover it."
   }
+ ],
+ "protected_files": [
+  "src/bespokelabs/curator/cost.py",
+  "src/bespokelabs/curator/types/token_usage.py",
+  "src/bespokelabs/curator/types/generic_response.py",
+  "src/bespokelabs/curator/request_processor/config.py"
  ]
 }

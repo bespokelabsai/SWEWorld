@@ -16,6 +16,40 @@ The ticket states all of this outright, so one test measures it end to end:
 The fakes here are duck-typed agents — `name`, `model_name`, `prompt_formatter`,
 `_request_processor`, `is_completed` — exactly as the brief describes, so no
 provider, socket or clock is involved.
+
+Three clauses of the ticket cannot be shown by any of that, because they are
+constraints on source inside files the ticket rewrites, and every scenario below
+runs against fakes in a fresh directory:
+
+  * `MultiTurnAgenticProcessor.append_response()` is reused verbatim
+    (instruction.md:65);
+  * `Agent._hash_fingerprint` and the `xxh64(seed_message)` run identity are
+    untouched (instruction.md:66) — derivation AND use: a changed fingerprint,
+    or a pristine fingerprint that no longer names the working directory,
+    orphans every cache directory the company already has, and no fact here
+    would notice, because every scenario below hands the processor its own
+    directory. The identity itself is therefore compared against the pristine
+    tree, in the method's own place and as the module BINDS it: in
+    `MultiTurnAgents.__call__` every statement that binds `fingerprint`,
+    `disable_cache` or `working_dir`, and in `__call__` and `_setup_metadata`
+    the `run_hash`/`dataset_hash` entries that report it — not the whole
+    method, so an added log line or an unrelated metadata key passes. Anything
+    that makes the read definition not the bound one is refused, not resolved:
+    a duplicate or conditionally-placed `class`/`def`, a class decorator, a
+    `globals()` rebind, and — anywhere in the package — an assignment whose
+    attribute is `append_response`, `__call__`, `_setup_metadata` or
+    `_hash_fingerprint`, whatever expression that attribute is taken from, or a
+    `setattr` whose name argument is one of those four or is not a plain string
+    literal. The receiver is deliberately not read: five review rounds of
+    recognising it produced one more spelling each time, the last being
+    `getattr(m, "Multi" + "TurnAgenticProcessor").append_response = ...`;
+  * no new dependency, and Python stays at `^3.10` (instruction.md:67); the
+    ledger module also imports neither `time`, `random` nor `uuid`
+    (instruction.md:11).
+
+`judge.check_append_response_verbatim`, `check_run_identity_untouched` and
+`check_no_new_dependency` enforce those against `CURATOR_BASELINE_DIR` and the
+pristine manifest, as part of this same fact.
 """
 from __future__ import annotations
 
@@ -141,3 +175,18 @@ def test_open_feature__the_seed_is_logged_and_max_length_budgets_generated_respo
     assert len(bare.calls) == 1
     assert len(log_lines(bare_dir)) == 2
     assert len(rows_of(dataset3)) == 2
+
+    # ---- a formatter that answers with more than one system message --------
+    # instruction.md:44: the first moves to index 0, the others stay in place in
+    # the body. `judge.py` derives this from what the formatter answered; here
+    # the fixture's own shape is known, so it is written out.
+    multi_dir = tmp_path / "multi"
+    multi_dir.mkdir()
+    multi = Conversation(extra_system=2)
+    fourth = multi.processor(max_length=1)
+    asyncio.run(fourth.run(str(multi_dir)))
+    sent = multi.requests[0]
+    assert [msg["role"] for msg in sent] == ["system", "user", "system", "system"], sent
+    assert sent[0]["content"] == "You answer the questions in this conversation."
+    assert [msg["content"] for msg in sent[2:]] == ["trailing system rule 1",
+                                                    "trailing system rule 2"]

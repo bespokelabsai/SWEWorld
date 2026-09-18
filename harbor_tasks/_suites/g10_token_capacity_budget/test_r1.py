@@ -21,6 +21,16 @@ it. A correct implementation seeds exactly that in `__post_init__` (an openly st
 graded in `test_open`), so the re-seed changes nothing for a compliant tree — it is there so
 that an agent who got the debt floor right and the seeding wrong loses one fact rather than
 two.
+
+NOT THE GRADED PATH, and the numbers below are one worked example. `judge.py`
+re-draws the limits, the estimates and the reported usages from the run's seed
+(`fixture_spec.py`) and recomputes the floor each fact expects, because eight
+hidden facts whose expected values never changed were forgeable from the worker:
+a hand-written `observations.json` passed all of them against a tree with the
+floor and the counters deleted. The four facts below additionally ask root to
+read the submission: `CAPACITY_DEBT_FLOOR_FRACTION` must really be declared as
+the fraction, and the clamp counter must really be a tracker field starting at
+zero that something increments. So `-250.0` here is `-0.25 x the limit` there.
 """
 from __future__ import annotations
 

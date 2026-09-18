@@ -5,6 +5,10 @@
 set -uo pipefail
 
 mkdir -p /logs/verifier
+# chown BEFORE the chmod. `mkdir -p` leaves the directory owned by whoever owns
+# /logs, and if that is the agent's uid then 0700 locks the verdict directory to
+# the AGENT rather than to root -- the opposite of the intent, and silent.
+chown root:root /logs/verifier
 # 0700: score.py treats junit.xml and provenance.json found here as
 # authoritative, and run_suites.py drops privileges to import agent code. The
 # directory the verdict is assembled in must not be reachable by the uid that
@@ -22,9 +26,10 @@ chmod 0700 /logs/verifier
 # worker from a root-staged JAIL (run_suites.run_split) and never reads /tests. So
 # keep /tests ROOT-ONLY: the worker -- the one process that runs agent code --
 # then cannot open() ANY answer file by absolute path. That is the whole fix.
-# Locking individual files (judge.py, test_r*.py) did NOT work, because the
-# answers also live in files the worker reaches: /tests/task.json states every
-# expected value in prose, and test_open.py's source carries the answer literals.
+# Locking individual files did NOT work, because the answers also live in files the
+# worker reaches: /tests/task.json states every expected value in prose. (A split
+# suite ships no test_*.py at all now -- they stay in _suites as the human record --
+# so root-only /tests is what keeps task.json out of the worker's reach.)
 # Root-only /tests removes the entire class at once. provenance.py / run_suites.py
 # / score.py / judge.py all run as root and read /tests fine.
 #
@@ -62,7 +67,7 @@ fi
 python3 /tests/provenance.py
 "${CURATOR_VENV:-/opt/curator-dev/venv}/bin/python" /tests/run_suites.py
 
-# score.py is the only thing that writes rewards.json, so a crash in either of
+# score.py is the only thing that writes reward.json, so a crash in either of
 # the two above still leaves every key present and zero.
 python3 /tests/score.py
 

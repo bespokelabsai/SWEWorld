@@ -74,8 +74,8 @@ ARTIFACTS = "/nonexistent"
 
 NEVER = lambda author, content: False  # noqa: E731 - the callback build_ledger takes
 
-# The ledger's own attribute names. The open feature states these (test_open
-# reads every one off `processor.ledger`); what the checkpoint FILE holds beyond
+# The ledger's own attribute names. The open feature states these (the open
+# fact reads every one off `processor.ledger`); what the checkpoint FILE holds beyond
 # them is r1.rule's to grade and is never named here.
 LEDGER_FIELDS = ("responses", "turns", "last_author", "next_speaker",
                  "interleave_faults", "completed", "completion_reason")
@@ -422,6 +422,20 @@ def probe_open() -> dict:
     o["bare_n_calls"] = len(bare.calls)
     o["bare_lines"] = len(S.log_lines(bare_dir))
     o["bare_n_rows"] = len(S.rows_of(dataset3))
+
+    # ---- a formatter that answers with more than one system message --------
+    # instruction.md:44 names this case outright. Nothing is expected here: the
+    # messages the formatter produced, the messages each call was then given and
+    # the log's own authors and contents all go over, and the judge builds the
+    # transformation it should have seen out of the three.
+    multi_dir = scenario_dir("open_multi_system")
+    multi = S.Conversation(extra_system=2)
+    fourth = multi.processor(max_length=2)
+    asyncio.run(fourth.run(str(multi_dir)))
+    o["multi_requests"] = jsonable(multi.requests)
+    o["multi_formatter_out"] = jsonable(multi.formatter_out)
+    o["multi_authors"] = S.authors(multi_dir)
+    o["multi_contents"] = [json.loads(line)["response_message"] for line in S.log_lines(multi_dir)]
     return o
 
 

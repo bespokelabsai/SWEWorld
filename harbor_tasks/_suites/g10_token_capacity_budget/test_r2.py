@@ -18,6 +18,17 @@
 operations differ; `scope` and `exclusions` drive the real coroutine. `scope` gives its
 failed responses a `token_usage` equal to the blocked estimate so its subject is WHICH paths
 release, and `exclusions` makes the two differ so its subject is HOW MUCH comes back.
+
+NOT THE GRADED PATH, and the numbers below are one worked example. `judge.py`
+re-draws the limits, the estimates and the reported usages from the run's seed
+(`fixture_spec.py`) and recomputes what each release must leave behind. The four
+facts below additionally ask root to read the submission, because a forged
+observation claiming a refund happened is not evidence that one can happen:
+the tracker must declare a refund operation taking the blocked capacity alone,
+`BaseOnlineRequestProcessor._refund_capacity` must delegate to it, the two
+counters must be separate fields that only their own operation increments, and
+the handler's `except` body must reach a refund on EVERY terminal path -- not
+only when attempts remain.
 """
 from __future__ import annotations
 

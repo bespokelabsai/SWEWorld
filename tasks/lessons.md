@@ -1424,3 +1424,67 @@ inherent.
 `data_gen/test_clock.py` is now the only test in that tree, because the defect it
 covers is invisible in a transcript: a page stamped from another channel's turn
 reads fine on its own page.
+
+
+### 2026-09-17 — a "cosmetic" rubric finding is still the user's call when the fix is contents-preserving
+
+I triaged Argus's "typo" on the registry path `sweworld-batch-payload-plan` as a
+historical name and deferred it. Nidhi asked to republish instead. The rule: when a
+finding is cosmetic but the fix cannot change what the task measures (same image bytes
+under a new name), offer the fix with its cost rather than deferring it — and prove
+"cannot change" (layer diff_ids), never assume a rebuild from a local tag is the same world.
+
+Also: `find / -name curator.git` inside the world image returns
+`/opt/world-state/input/curator/.git` before Gitea's bare repo, so a "pristine vs main"
+comparison built on it compares the pristine tree with itself. Name
+`/var/lib/world/gitea/repositories/worldadmin/curator.git` explicitly (and pass
+`safe.directory`, or clone silently fails as root).
+
+### 2026-09-17 — a verification explanation must describe the judge, not my memory of it
+
+Two rubric rounds failed on g11's verification_explanation: first I misattributed which
+checks used 1e-6, then I missed that the 1e-12 ABSOLUTE floor, not the relative bound, is what
+binds on rates near 1e-4, left out one-sided inequality checks, and asserted a fixture had
+been validated when the only evidence was a hardcoded 1.00. What passes review: enumerate
+every `approx*`/`ok(...<>)` call in judge.py by grep, and MEASURE calibration by running
+alternative correct implementations (and wrong controls) through the real probe+judge.
+
+### 2026-09-17 — a root process must not inherit an unprivileged process's HOME
+
+The g1–g11 split judge ran as root with `HOME` set to the worker's (nobody-owned) home. Root
+python enables the user site directory under `$HOME`, so the worker could plant
+`~/.local/lib/python3.X/site-packages/usercustomize.py` and have it run as uid 0 before the
+judge's first line — the exact forgery the split existed to close, one directory over. It
+survived four hardening rounds because every forge fixture attacked the worker's OUTPUTS
+(observations, junit), never the judge's STARTUP. Any root interpreter in the grader runs
+`python3 -I` with a root-owned HOME/TMPDIR; a forge fixture should include a planted
+usercustomize.
+
+## A scoped rubric review is how regressions ship (2026-09-17)
+
+g3 v14 and g4 v9 each came back with rubrics that had **passed on an earlier version** and failed
+on the new one: g3 Verifiable (a `time.time() + 4.0` cooldown window added in the v14 round), g4
+Verifiable (our own task.toml sentence admitting a false negative), g4 No extraneous files (the
+shared `judge_io.py` I added to every arm, which g4's judge never imported — nine arms import it,
+g4 had zero).
+
+The local gate judges did not catch any of the three, because I scoped their prompts to *the
+rubrics that were failing* plus the forgery/dead-code attack classes. Anything recorded "pass" on
+an older version was never re-checked against the new tree.
+
+**Rules now in every fix and judge prompt:**
+1. Re-judge **all 36 pre-eval criteria** against the tree you are about to push, never just the
+   ones that failed. A rubric's old pass says nothing about a tree it never saw.
+2. Every new assertion must cite an `instruction.md` line. Adding checks is how we close *Do not
+   modify enforced*; it is also how we fail *Test instruction alignment*, and on g4 the correct fix
+   was to **relax** assertions the ticket never stated.
+3. No wall-clock window or real sleep in a correctness path — freeze or inject the clock.
+4. Never disclose a weakness in `task.toml` in place of removing it. A disclosed false-negative
+   path is quoted back as a *Verifiable* failure; honesty about a limitation we could have fixed
+   costs the rubric.
+5. Never ship a file the arm does not reference. A shared-file addition has to be wired into every
+   arm or shipped to none.
+
+The deeper shape: *Do not modify enforced*, *Verifiable* and *Test instruction alignment* pull
+against each other, so each strictness round creates new surface. Check the other two before
+declaring the first one closed.

@@ -13,6 +13,15 @@
 
 `rule` never pins `supervised_tokens` to a number — it checks that the report's sum
 matches what the kept datum itself reports, which is r2's fact rather than r1's.
+
+HOW THE GRADED RUN DIFFERS. These files are the human-readable fact<->assertion
+record and they use ONE worked conversation with its arithmetic written out. The
+graded run does not: `probe.py` builds every scenario from
+`fixture_spec.derive(seed)` with a seed root draws per run, and `judge.py`
+recomputes the expected values for that draw. The POLICY asserted here and the
+policy applied there are the same; only the numbers move. A fixed fixture was
+forgeable — a pristine tree plus one `atexit` hook could emit the observations
+that had always been correct.
 """
 from __future__ import annotations
 

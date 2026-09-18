@@ -23,6 +23,13 @@ two the requirement spells by name (`OutputCapError` / `MIN_MAX_OUTPUT_BYTES` in
 puts in `output_cap.py` itself. `rule` pins the ratio with two budgets; `scope` uses a
 multi-byte stream and a budget under which every plausible split keeps the same 18 bytes,
 so it measures boundary trimming rather than where the cut falls.
+
+`judge.py` additionally reads two declarations off the pushed source, because a
+value can be obeyed without being declared where the requirement puts it:
+`MIN_MAX_OUTPUT_BYTES = 16` and `TRUNCATION_LOG_TEMPLATE` with the agreed
+wording, both in `output_cap.py`. The budgets and payloads below are the
+ORIGINAL fixed fixture, kept as the worked example; the graded run re-draws them
+per seed from `fixture_spec.py`.
 """
 from __future__ import annotations
 

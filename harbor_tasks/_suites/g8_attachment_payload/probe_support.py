@@ -153,8 +153,23 @@ class FakeEncoder:
 
 
 PDF_BYTES = b"%PDF-1.4\n"
-PDF_B64 = base64.b64encode(PDF_BYTES).decode()  # "JVBERi0xLjQK" — a base64 of the input, not an answer
+PDF_B64 = base64.b64encode(PDF_BYTES).decode()  # a base64 of the input, not an answer
+PNG_BYTES = b"1234"
 REMOTE_JPEG = "https://cdn.example.com/photos/cat.jpeg?size=large"
+
+
+def apply_seed(spec: dict) -> None:
+    """Re-draw the attached bytes from the run's seed (see `fixture_spec`).
+
+    `probe.main` calls this before any probe runs, and the values above are the
+    stand-in the offline `test_*.py` read. A probe that never applied the seed
+    therefore does not pass blind: the judge derives its expectations from the
+    seed root drew, and last run's bytes do not match this run's.
+    """
+    global PDF_BYTES, PDF_B64, PNG_BYTES
+    PDF_BYTES = spec["pdf_bytes"]
+    PDF_B64 = base64.b64encode(PDF_BYTES).decode()
+    PNG_BYTES = spec["png_bytes"]
 
 
 def make_tmp_dir() -> pathlib.Path:

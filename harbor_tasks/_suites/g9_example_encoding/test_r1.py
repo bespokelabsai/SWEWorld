@@ -17,6 +17,15 @@
 Each measures one fact: `rule` uses examples that are never refused, `failure_behavior`
 never inspects a weight vector, `scope` stays on the mock path and `exclusions` never
 touches `DataFormatter`.
+
+HOW THE GRADED RUN DIFFERS. These files are the human-readable fact<->assertion
+record and they use ONE worked conversation with its arithmetic written out. The
+graded run does not: `probe.py` builds every scenario from
+`fixture_spec.derive(seed)` with a seed root draws per run, and `judge.py`
+recomputes the expected values for that draw. The POLICY asserted here and the
+policy applied there are the same; only the numbers move. A fixed fixture was
+forgeable — a pristine tree plus one `atexit` hook could emit the observations
+that had always been correct.
 """
 from __future__ import annotations
 
@@ -96,6 +105,27 @@ def test_scope__the_tokenizer_free_branch_supervises_assistant_spans_from_charac
     )
     assert weights_of(datum) == [0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     assert list(datum_part(datum, "model_input")) == [0, 1, 2, 3, 4, 5, 6, 7]
+
+    # And this path WINDOWS, like the tokenizer one — the half of the clause the
+    # example above cannot show, because its budget is far wider than its
+    # conversation. The repository's own test_max_seq_length
+    # (tests/finetune/test_data_formatter.py), which instruction.md:83 says must
+    # still pass, is this same shape: 1000 characters of prompt at
+    # max_seq_length=50. A tree that windowed only the tokenizer path used to
+    # score every fact while that test failed.
+    long_prompt = example(("user", "x" * 1000), ("assistant", "Response"))
+    windowed = DataFormatter(max_seq_length=50).to_tinker_datum(long_prompt)
+
+    windowed_encoding = encoding_of(windowed)
+    assert read_field(windowed_encoding, "token_count") == 258
+    assert read_field(windowed_encoding, "window_start") == 208
+    assert read_field(windowed_encoding, "windowed") is True
+    assert read_field(windowed_encoding, "supervised_tokens") == 6
+    assert list(datum_part(windowed, "model_input")) == list(range(208, 257))
+    assert weights_of(windowed) == [0.0] * 43 + [1.0] * 6
+    assert len(list(datum_part(windowed, "model_input"))) <= 50, (
+        "test_max_seq_length asserts exactly this, and it is the repository's own test"
+    )
 
     # train_on_assistant_only=False is all ones, here as on the tokenizer path.
     everything = DataFormatter(max_seq_length=1024, train_on_assistant_only=False)

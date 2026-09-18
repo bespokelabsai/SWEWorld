@@ -3,20 +3,31 @@
 Runs as `nobody`. For each graded test it reproduces exactly the curator calls
 that test makes and writes the resulting values — never a pass/fail — to the
 observations file named on argv. `judge.py`, which never imports the submission
-and which the grading uid cannot even read (test.sh locks it to root), turns
-those values into the verdict. This is the split that closes the forgery in
+and which the grading uid cannot even read (test.sh locks /tests to root), turns
+those values into the verdict. This is the split that closed the forgery in
 `tasks/lessons.md` (2026-09-09): a uid cannot stop imported agent code from
 rewriting a report its own process produces, so the process that imports the
-code no longer produces the report — and the numbers it would have to forge to
-pass live only in the judge it cannot read.
+code no longer produces the report.
 
-The curator-facing halves are lifted from `test_open`/`test_r1`/`test_r2`, same
-helpers, so a value here is the value the test saw. The judge holds the
-assertions those tests made (the counts, the `GOOD_TEXT`, the `(reason,
-position)` pairs, the report defaults). A submission that returns forged values
-only forges values the judge still checks against the real expectations — which
-is implementing them. Floats go through `json` (float encoding is `repr`), so
-every value round-trips to the identical double.
+WHAT THE SPLIT ALONE DID NOT BUY, and this file is the half that pays for it.
+Separating the processes stopped the worker rewriting the verdict. It did not
+stop the worker INVENTING the values the verdict is computed from, and g9's were
+the same every run — the same four messages, the same `max_seq_length=40`, the
+same 91/51/`[30..38]`, all of them also written down in the world the agent is
+told to read. Pristine `main` plus one import-time `atexit` hook that overwrote
+this file's output scored every fact. So:
+
+  * **the inputs are re-drawn every run** from the seed root chose
+    (`fixture_spec.derive`), and nothing here knows what the answers for this
+    run are — the judge recomputes them from the same seed;
+  * **nothing below is a verdict**, and the few booleans left are identity
+    checks on values the ticket fixes (`tokenizer is True`), never a claim about
+    a policy.
+
+One probe per graded fact, named for the node `score.py` folds it into; what each
+one has to have produced is worked out in the matching `judge_*`. Floats go
+through `json` (float encoding is `repr`), so every value round-trips to the
+identical double.
 """
 from __future__ import annotations
 
@@ -24,6 +35,14 @@ import json
 import os
 import sys
 import traceback
+
+# Bound BEFORE the submission is imported, and called instead of returning from
+# main(). Interpreter shutdown runs `atexit` hooks the submission registered at
+# import — which is how the observations file used to be overwritten. Leaving
+# through `os._exit` never reaches them. This is a lock on one door, not the fix:
+# a hook can patch `open` and edit the file as it is written. What makes forged
+# values worthless is that they are not knowable in advance.
+_EXIT = os._exit
 
 # The import-time environment the suite's conftest sets, applied here because
 # this worker is not run under pytest. g9 is pure in-process: no provider socket,
@@ -38,15 +57,17 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("HF_DATASETS_OFFLINE", "1")
 os.environ.setdefault("COLUMNS", "220")
 
-# probe_support owns the curator imports, the doubles, the scenario inputs and
-# the answer-free readers; reuse them so a probe calls curator exactly as the
-# test does. Importing it here (its module body) runs the submission's
+# probe_support owns the curator imports, the doubles and the answer-free
+# readers, so every probe drives curator through one definition of each helper.
+# Importing it here (its module body) runs the submission's
 # `import bespokelabs.curator.finetune` — this process's whole purpose, and why
-# it is disposable. The worker never imports test_open, whose source carries the
-# expected answer literals (GOOD_TEXT and the assertion numbers).
+# it is disposable. Nothing the worker can import holds an expected value.
+import fixture_spec  # noqa: E402
 import probe_support as S  # noqa: E402
 from harness import read_field, surface  # noqa: E402
 
+# This run's inputs; filled in by main() before any probe runs.
+SPEC: dict = {}
 
 # The report's five counters, in the order the ticket names them. These are FIELD
 # NAMES used to READ the report (like g11's STEP_PLAN_FIELDS in its worker), not
@@ -59,6 +80,11 @@ _REPORT_FIELDS = ("kept", "dropped", "windowed", "dropped_indices", "supervised_
 # list so it round-trips through json.
 _EXC_ATTRS = ("reason", "position", "role_sequence", "missing_method",
               "token_count", "max_seq_length", "retained_prompt_tokens", "num_messages")
+
+
+def pairs(name: str):
+    """One of this run's message lists, as `(role, content)` tuples."""
+    return [tuple(pair) for pair in SPEC[name]]
 
 
 def raises(fn, *args, **kwargs) -> dict:
@@ -89,6 +115,45 @@ def supervised(datum):
     return read_field(S.encoding_of(datum), "supervised_tokens")
 
 
+def encoding_vals(datum) -> dict:
+    """The five encoding fields plus the envelope, as the judge wants to read
+    them: raw values, no comparison."""
+    encoding = S.encoding_of(datum)
+    metadata = S.datum_part(datum, "metadata")
+    return {
+        "encoding_surface": surface(encoding),
+        "tokenizer_is_true": read_field(encoding, "tokenizer") is True,
+        "tokenizer_is_false": read_field(encoding, "tokenizer") is False,
+        "token_count": read_field(encoding, "token_count"),
+        "window_start": read_field(encoding, "window_start"),
+        "windowed": read_field(encoding, "windowed"),
+        # separately, because json cannot tell 1 from True after the fact and the
+        # ticket says this field is a bool
+        "windowed_is_bool": isinstance(read_field(encoding, "windowed"), bool),
+        "supervised_tokens": read_field(encoding, "supervised_tokens"),
+        "metadata_surface": surface(metadata),
+        "original_text": read_field(metadata, "original_text"),
+        "num_messages": read_field(metadata, "num_messages"),
+        "model_input": list(S.datum_part(datum, "model_input")),
+        "targets": S.targets_of(datum),
+        "weights": S.weights_of(datum),
+    }
+
+
+def encode_calls(tok) -> list:
+    """Every `encode` call the double saw: the text, and the keywords it was
+    passed. Values that are not json scalars are recorded as their repr, because
+    what the judge checks is which keywords were used, not what an exotic one
+    held."""
+    out = []
+    for text, kwargs in tok.encode_calls:
+        clean = {key: (value if isinstance(value, (bool, int, float, str, type(None)))
+                       else repr(value))
+                 for key, value in kwargs.items()}
+        out.append([text, clean])
+    return out
+
+
 # ---------------------------------------------------------------------------
 # open feature — the whole stated surface (one fact)
 # ---------------------------------------------------------------------------
@@ -115,74 +180,96 @@ def probe_open() -> dict:
         "EncodingError", "InvalidRoleSequenceError", "TokenizerCapabilityError",
         "ALLOWED_ROLES", "validate_role_sequence")]
     o["allowed_roles"] = sorted(ALLOWED_ROLES)
+    # instruction.md:11 declares it a frozenset, not just a container with those
+    # three strings in it; json cannot tell one collection from another after the
+    # fact, so the type is read here.
+    o["allowed_roles_is_frozenset"] = isinstance(ALLOWED_ROLES, frozenset)
     o["encoding_error_mro"] = [c.__name__ for c in EncodingError.__mro__]
     o["invalid_role_mro"] = [c.__name__ for c in InvalidRoleSequenceError.__mro__]
     o["tok_cap_mro"] = [c.__name__ for c in TokenizerCapabilityError.__mro__]
 
-    # the five (reason, position) cases — the MESSAGE lists are inputs; the reason
-    # and position are answers the judge holds, checked against what the error
-    # reports here.
-    case_msgs = [
-        [],
-        S.messages_of(("user", "q"), ("tool", "t"), ("assistant", "a")),
-        S.messages_of(("user", "q"), ("system", "s"), ("assistant", "a")),
-        S.messages_of(("system", "s"), ("user", "q"), ("user", "q2"), ("assistant", "a")),
-        S.messages_of(("system", "s"), ("user", "q"), ("assistant", "a"), ("user", "q2")),
-    ]
-    o["role_cases"] = [raises(validate_role_sequence, msgs) for msgs in case_msgs]
+    # this run's five malformed sequences, in the ticket's order. The judge works
+    # out which rule each one breaks first and at which index.
+    o["role_cases"] = [raises(validate_role_sequence, S.messages_of(*[tuple(m) for m in msgs]))
+                       for msgs in SPEC["role_cases"]]
 
     o["legal_returns_none"] = validate_role_sequence(
-        S.messages_of(("user", "q"), ("assistant", "a"))) is None
-    legal = S.example(("system", "s"), ("user", "q"), ("assistant", "a"))
+        S.messages_of(*pairs("legal_messages"))) is None
+    legal = S.example(*pairs("legal_example"))
     o["legal_example_none"] = validate_role_sequence(legal.messages) is None
 
-    # the left window, and one encode call that never truncates
+    # the left window, the envelope, and one encode call that never truncates
     tok = S.FakeTokenizer()
-    formatter = S.DataFormatter(max_seq_length=40)
-    datum = formatter.to_tinker_datum(S.example(*S.GOOD_PAIRS), tok)
-    model_input = list(S.datum_part(datum, "model_input"))
-    o["model_input"] = model_input
-    o["model_input_len"] = len(model_input)
-    o["model_input_19"] = model_input[19] if len(model_input) > 19 else None
-    o["targets"] = S.targets_of(datum)
-    o["targets_0"] = S.targets_of(datum)[0] if S.targets_of(datum) else None
-    o["encode_kwarg_keys"] = [sorted(kwargs) for _, kwargs in tok.encode_calls]
+    formatter = S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"])
+    datum = formatter.to_tinker_datum(S.example(*pairs("good")), tok)
+    o["good"] = encoding_vals(datum)
+    o["encode_calls"] = encode_calls(tok)
+    # Which prefixes the chat template was rendered for, and with which
+    # generation-prompt flag. The judge works out from the seed which calls the
+    # boundary trick has to have made for THIS run's conversation; a list of
+    # calls is an observation, not a verdict.
+    o["template_calls"] = [[messages, flag] for messages, flag in tok.template_calls]
 
-    # the envelope
-    metadata = S.datum_part(datum, "metadata")
-    o["metadata_surface"] = surface(metadata)
-    o["metadata_original_text"] = read_field(metadata, "original_text")
-    o["metadata_num_messages"] = read_field(metadata, "num_messages")
-    encoding = S.encoding_of(datum)
-    o["encoding_surface"] = surface(encoding)
-    o["enc_tokenizer_is_true"] = read_field(encoding, "tokenizer") is True
-    o["enc_token_count"] = read_field(encoding, "token_count")
-    o["enc_window_start"] = read_field(encoding, "window_start")
-    o["enc_windowed_is_true"] = read_field(encoding, "windowed") is True
+    # The same conversation under a tokenizer that returns two ids per character,
+    # so a character offset is not a token index. Rendering both prefixes and
+    # handing both to `encode` satisfies the boundary-trick call check even if the
+    # ids are then thrown away and the spans sliced on `len(text)`; only this
+    # geometry separates the two.
+    dense_tok = S.DenseTokenizer()
+    o["dense"] = encoding_vals(
+        S.DataFormatter(max_seq_length=SPEC["dense_max_seq_length"]).to_tinker_datum(
+            S.example(*pairs("good")), dense_tok))
+    o["dense_encode_calls"] = encode_calls(dense_tok)
+
+    # instruction.md:36 — with the all-ones fallback deleted, a tokenizer that
+    # raises while spans are computed reaches the caller as itself. Both halves:
+    # the template raising, and `encode` raising.
+    o["template_raises"] = raises(
+        S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"]).to_tinker_datum,
+        S.example(*pairs("good")), S.RaisingTemplateTokenizer())
+    o["encode_raises"] = raises(
+        S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"]).to_tinker_datum,
+        S.example(*pairs("good")), S.RaisingEncodeTokenizer())
+
+    # instruction.md:34 — validation happens FIRST THING, which is observable on
+    # an example that breaks both rules at once: a malformed sequence handed to a
+    # tokenizer with no chat template must report the roles, not the tokenizer.
+    o["roles_before_tokenizer"] = raises(
+        S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"]).to_tinker_datum,
+        S.example(*pairs("bad_roles")), S.NoTemplateTokenizer())
+
+    # instruction.md:75 — the Fireworks path validates role sequences too, and
+    # the role error is propagated rather than the example being skipped.
+    o["jsonl_bad_roles"] = raises(
+        S.FireworksDataFormatter(
+            max_seq_length=SPEC["fw_report_max_seq_length"]).to_jsonl_lines,
+        [S.example(*pairs("legal_example")), S.example(*pairs("bad_roles"))])
 
     # the no-tokenizer branch carries its text too
-    plain = S.DataFormatter(max_seq_length=1024).to_tinker_datum(
-        S.example(("user", "Hello"), ("assistant", "Hi there!")))
-    o["plain_original_text"] = read_field(S.datum_part(plain, "metadata"), "original_text")
-    o["plain_tokenizer_is_false"] = read_field(S.encoding_of(plain), "tokenizer") is False
+    plain = S.DataFormatter(max_seq_length=SPEC["plain_max_seq_length"]).to_tinker_datum(
+        S.example(*pairs("plain")))
+    o["plain"] = encoding_vals(plain)
 
     # a tokenizer with no chat template is refused, not worked around
     o["no_template"] = []
     for train_on_assistant_only in (True, False):
-        fmt = S.DataFormatter(max_seq_length=40, train_on_assistant_only=train_on_assistant_only)
+        fmt = S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"],
+                              train_on_assistant_only=train_on_assistant_only)
         o["no_template"].append(
-            raises(fmt.to_tinker_datum, S.example(*S.GOOD_PAIRS), S.NoTemplateTokenizer()))
+            raises(fmt.to_tinker_datum, S.example(*pairs("good")), S.NoTemplateTokenizer()))
 
     # from_config carries max_context_length into the uploaded file
     made = S.FireworksDataFormatter.from_config(
-        S.FireworksTrainerConfig(base_model=S.BASE_MODEL, max_context_length=100))
+        S.FireworksTrainerConfig(base_model=S.BASE_MODEL,
+                                 max_context_length=SPEC["context_small"]))
     o["made_is_fireworks"] = isinstance(made, S.FireworksDataFormatter)
     o["made_max_seq_length"] = made.max_seq_length
     o["made_train_on_assistant_only_is_true"] = made.train_on_assistant_only is True
     o["fallback_max_seq_length"] = S.FireworksDataFormatter.from_config(
         S.FireworksTrainerConfig(base_model=S.BASE_MODEL)).max_seq_length
-    o["explicit_4096"] = S.FireworksDataFormatter.from_config(
-        S.FireworksTrainerConfig(base_model=S.BASE_MODEL, max_context_length=4096)).max_seq_length
+    o["large_max_seq_length"] = S.FireworksDataFormatter.from_config(
+        S.FireworksTrainerConfig(base_model=S.BASE_MODEL,
+                                 max_context_length=SPEC["context_large"])).max_seq_length
     return o
 
 
@@ -191,39 +278,33 @@ def probe_open() -> dict:
 # ---------------------------------------------------------------------------
 def probe_r1_rule() -> dict:
     S.require_curator()
-    tok = S.FakeTokenizer()
-    datum = S.DataFormatter(max_seq_length=40).to_tinker_datum(S.example(*S.GOOD_PAIRS), tok)
-    o = {
-        "weights": S.weights_of(datum),
-        "supervised_tokens": read_field(S.encoding_of(datum), "supervised_tokens"),
-    }
-    wide = S.DataFormatter(max_seq_length=50).to_tinker_datum(S.example(*S.GOOD_PAIRS), S.FakeTokenizer())
-    o["wide_weights"] = S.weights_of(wide)
-    o["wide_window_start"] = read_field(S.encoding_of(wide), "window_start")
-    o["wide_supervised_tokens"] = read_field(S.encoding_of(wide), "supervised_tokens")
-    return o
+    narrow = S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"]).to_tinker_datum(
+        S.example(*pairs("good")), S.FakeTokenizer())
+    wide = S.DataFormatter(max_seq_length=SPEC["wide_max_seq_length"]).to_tinker_datum(
+        S.example(*pairs("good")), S.FakeTokenizer())
+    return {"narrow": encoding_vals(narrow), "wide": encoding_vals(wide)}
 
 
 def probe_r1_scope() -> dict:
     S.require_curator()
-    plain = S.example(("user", "Hello"), ("assistant", "Hi there!"))
-    datum = S.DataFormatter(max_seq_length=1024).to_tinker_datum(plain)
-    encoding = S.encoding_of(datum)
-    o = {
-        "plain_tokenizer_is_false": read_field(encoding, "tokenizer") is False,
-        "plain_token_count": read_field(encoding, "token_count"),
-        "plain_window_start": read_field(encoding, "window_start"),
-        "plain_supervised_tokens": read_field(encoding, "supervised_tokens"),
-        "plain_weights": S.weights_of(datum),
-        "plain_model_input": list(S.datum_part(datum, "model_input")),
-    }
-    everything = S.DataFormatter(max_seq_length=1024, train_on_assistant_only=False)
-    o["everything_weights"] = S.weights_of(everything.to_tinker_datum(plain))
-    o["everything_supervised"] = read_field(
-        S.encoding_of(everything.to_tinker_datum(plain)), "supervised_tokens")
-    o["good_all_ones_weights"] = S.weights_of(
-        S.DataFormatter(max_seq_length=40, train_on_assistant_only=False).to_tinker_datum(
-            S.example(*S.GOOD_PAIRS), S.FakeTokenizer()))
+    plain = S.example(*pairs("plain"))
+    o = {"plain": encoding_vals(
+        S.DataFormatter(max_seq_length=SPEC["plain_max_seq_length"]).to_tinker_datum(plain))}
+
+    everything = S.DataFormatter(max_seq_length=SPEC["plain_max_seq_length"],
+                                 train_on_assistant_only=False)
+    o["everything"] = encoding_vals(everything.to_tinker_datum(plain))
+    o["windowed_all_ones"] = encoding_vals(
+        S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"],
+                        train_on_assistant_only=False).to_tinker_datum(
+            S.example(*pairs("good")), S.FakeTokenizer()))
+
+    # The same branch under a budget NARROWER than its conversation. The
+    # scenario above is drawn far wider than its own, so it never windows; this
+    # one is the only place a tokenizer-free window is observed at all.
+    o["plain_windowed"] = encoding_vals(
+        S.DataFormatter(max_seq_length=SPEC["plain_windowed_max_seq_length"]).to_tinker_datum(
+            S.example(*pairs("plain_windowed"))))
     return o
 
 
@@ -232,20 +313,17 @@ def probe_r1_exclusions() -> dict:
     S.require_curator()
     o = {"bytes_per_token": S.encoding_names("FIREWORKS_BYTES_PER_TOKEN")}
 
-    fits = S.example(("user", "qqq"), ("assistant", "ok"))
-    over = S.example(("user", "qqqqqq"), ("assistant", "ok"))
-    lines = S.FireworksDataFormatter(max_seq_length=30).to_jsonl_lines([fits, over])
+    # This run's ladder of examples, whose serialised lines cover a band of
+    # lengths, ascii and multi-byte. The raw lines are recorded: the judge
+    # decides which of them should have survived.
+    examples = [S.example(*[tuple(m) for m in msgs]) for msgs in SPEC["fw_examples"]]
+    lines = S.FireworksDataFormatter(
+        max_seq_length=SPEC["fw_max_seq_length"]).to_jsonl_lines(examples)
     o["lines"] = lines
-    # decode here so the judge can compare structure without importing curator; the
-    # raw line strings are recorded above so the judge can check the byte length.
+    # decoded here so the judge can compare structure without importing curator;
+    # the raw line strings are recorded above so it can check the byte lengths.
     o["lines_decoded"] = [_json.loads(line) for line in lines]
     o["lines_byte_lens"] = [len(line.encode("utf-8")) for line in lines]
-
-    accented = S.example(("user", "héllo wörld"), ("assistant", "ok"))
-    o["accented_33"] = S.FireworksDataFormatter(max_seq_length=33).to_jsonl_lines([accented])
-    kept = S.FireworksDataFormatter(max_seq_length=34).to_jsonl_lines([accented])
-    o["accented_34"] = kept
-    o["accented_34_decoded"] = [_json.loads(line) for line in kept]
     return o
 
 
@@ -254,38 +332,45 @@ def probe_r1_failure_behavior() -> dict:
     ExampleTooLongError = S.encoding_names("ExampleTooLongError")
     o = {"example_too_long_mro": [c.__name__ for c in ExampleTooLongError.__mro__]}
 
-    tok = S.FakeTokenizer()
-    formatter = S.DataFormatter(max_seq_length=40)
-    too_long = S.example(*S.TOO_LONG_PAIRS)
-    o["too_long_error"] = raises(formatter.to_tinker_datum, too_long, tok)
+    formatter = S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"])
+    o["too_long_error"] = raises(
+        formatter.to_tinker_datum, S.example(*pairs("too_long")), S.FakeTokenizer())
 
-    good = S.example(*S.GOOD_PAIRS)
-    datum = formatter.to_tinker_datum(good, S.FakeTokenizer())
-    o["good_window_start"] = read_field(S.encoding_of(datum), "window_start")
+    good = S.example(*pairs("good"))
+    o["good_window_start"] = read_field(
+        S.encoding_of(formatter.to_tinker_datum(good, S.FakeTokenizer())), "window_start")
 
-    o["short_window_error"] = raises(
-        S.DataFormatter(max_seq_length=17).to_tinker_datum, good, S.FakeTokenizer())
+    # the same conversation under a window that leaves very little prompt
+    o["tight_error"] = raises(
+        S.DataFormatter(max_seq_length=SPEC["tight_max_seq_length"]).to_tinker_datum,
+        good, S.FakeTokenizer())
 
-    short = S.example(("user", "uu"), ("assistant", "bbbb"))
-    unwindowed = S.DataFormatter(max_seq_length=1024).to_tinker_datum(short, S.ShortHeaderTokenizer())
-    o["unwindowed_window_start"] = read_field(S.encoding_of(unwindowed), "window_start")
-    o["unwindowed_token_count"] = read_field(S.encoding_of(unwindowed), "token_count")
+    # a template whose generation header is one character, so nothing is windowed
+    o["unwindowed"] = encoding_vals(
+        S.DataFormatter(max_seq_length=SPEC["short_header_max_seq_length"]).to_tinker_datum(
+            S.example(*pairs("short_header")), S.ShortHeaderTokenizer()))
 
-    batch = S.DataFormatter(max_seq_length=40).format_batch([good, too_long], S.FakeTokenizer())
+    batch = S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"]).format_batch(
+        [S.example(*[tuple(m) for m in msgs]) for msgs in SPEC["batch"]], S.FakeTokenizer())
     o["batch_len"] = len(batch)
-    o["batch0_num_messages"] = (
-        read_field(S.datum_part(batch[0], "metadata"), "num_messages") if batch else None)
+    o["batch_num_messages"] = [
+        read_field(S.datum_part(datum, "metadata"), "num_messages") for datum in batch]
+    o["batch_window_starts"] = [
+        read_field(S.encoding_of(datum), "window_start") for datum in batch]
     return o
 
 
 # ---------------------------------------------------------------------------
 # r2 — what the formatter tells the caller it threw away
 # ---------------------------------------------------------------------------
+def _batch_examples():
+    return [S.example(*[tuple(m) for m in msgs]) for msgs in SPEC["batch"]]
+
+
 def _dropping_batch():
-    """A formatter whose last pass kept one example and dropped one."""
-    formatter = S.DataFormatter(max_seq_length=40)
-    kept = formatter.format_batch(
-        [S.example(*S.GOOD_PAIRS), S.example(*S.TOO_LONG_PAIRS)], S.FakeTokenizer())
+    """A formatter whose last pass ran this run's batch at the narrow window."""
+    formatter = S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"])
+    kept = formatter.format_batch(_batch_examples(), S.FakeTokenizer())
     return formatter, kept
 
 
@@ -305,40 +390,37 @@ def probe_r2_rule() -> dict:
     o["kept_is_list"] = isinstance(kept, list)
     o["kept_len"] = len(kept)
     o["report"] = report_vals(formatter.last_report)
-    o["kept0_supervised"] = supervised(kept[0]) if kept else None
+    o["kept_supervised"] = [supervised(datum) for datum in kept]
 
-    clean = S.DataFormatter(max_seq_length=1024)
-    data = clean.format_batch(
-        [S.example(*S.GOOD_PAIRS), S.example(*S.TOO_LONG_PAIRS)], S.FakeTokenizer())
+    clean = S.DataFormatter(max_seq_length=SPEC["clean_max_seq_length"])
+    data = clean.format_batch(_batch_examples(), S.FakeTokenizer())
     o["clean_data_len"] = len(data)
     o["clean_report"] = report_vals(clean.last_report)
-    o["clean_supervised_sum"] = supervised(data[0]) + supervised(data[1]) if len(data) == 2 else None
+    o["clean_supervised"] = [supervised(datum) for datum in data]
 
-    fireworks = S.FireworksDataFormatter(max_seq_length=30)
+    fireworks = S.FireworksDataFormatter(max_seq_length=SPEC["fw_report_max_seq_length"])
     lines = fireworks.to_jsonl_lines(
-        [S.example(("user", "qqq"), ("assistant", "ok")),
-         S.example(("user", "qqqqqq"), ("assistant", "ok"))])
+        [S.example(*[tuple(m) for m in msgs]) for msgs in SPEC["fw_report_examples"]])
     o["fw_lines_is_list"] = isinstance(lines, list)
-    o["fw_lines_len"] = len(lines)
+    o["fw_lines"] = lines
     o["fw_report"] = report_vals(fireworks.last_report)
     return o
 
 
 def probe_r2_scope() -> dict:
     S.require_curator()
-    fresh = S.DataFormatter(max_seq_length=40)
+    fresh = S.DataFormatter(max_seq_length=SPEC["good_max_seq_length"])
     o = {"fresh_report": report_vals(fresh.last_report)}
 
     formatter, _ = _dropping_batch()
-    after_batch = report_vals(formatter.last_report)
-    o["after_batch"] = after_batch
+    o["after_batch"] = report_vals(formatter.last_report)
 
-    datum = formatter.to_tinker_datum(S.example(*S.GOOD_PAIRS), S.FakeTokenizer())
-    o["datum_windowed_is_true"] = read_field(S.encoding_of(datum), "windowed") is True
+    datum = formatter.to_tinker_datum(S.example(*pairs("good")), S.FakeTokenizer())
+    o["datum_window_start"] = read_field(S.encoding_of(datum), "window_start")
     o["report_after_success"] = report_vals(formatter.last_report)
 
     o["raise_too_long"] = raises(
-        formatter.to_tinker_datum, S.example(*S.TOO_LONG_PAIRS), S.FakeTokenizer())
+        formatter.to_tinker_datum, S.example(*pairs("too_long")), S.FakeTokenizer())
     o["report_after_raise"] = report_vals(formatter.last_report)
     return o
 
@@ -346,17 +428,15 @@ def probe_r2_scope() -> dict:
 def probe_r2_failure_behavior() -> dict:
     S.require_curator()
     formatter, _ = _dropping_batch()
-    before = report_vals(formatter.last_report)
-    o = {"before": before}
+    o = {"before": report_vals(formatter.last_report)}
 
-    bad_roles = S.example(("user", "q"), ("user", "q again"))
+    bad_roles = S.example(*pairs("bad_roles"))
     o["raise_bad_roles"] = raises(
-        formatter.format_batch,
-        [S.example(*S.GOOD_PAIRS), S.example(*S.TOO_LONG_PAIRS), bad_roles], S.FakeTokenizer())
+        formatter.format_batch, _batch_examples() + [bad_roles], S.FakeTokenizer())
     o["report_after_bad_roles"] = report_vals(formatter.last_report)
 
     o["raise_bad_tok"] = raises(
-        formatter.format_batch, [S.example(*S.GOOD_PAIRS)], S.NoTemplateTokenizer())
+        formatter.format_batch, _batch_examples(), S.NoTemplateTokenizer())
     o["report_after_bad_tok"] = report_vals(formatter.last_report)
     return o
 
@@ -375,7 +455,10 @@ PROBES = {
 }
 
 
-def main(out_path: str) -> int:
+def main(out_path: str, seed: str) -> int:
+    global SPEC
+    SPEC = fixture_spec.derive(seed)
+
     results: dict[str, dict] = {}
     for node, fn in PROBES.items():
         try:
@@ -389,4 +472,10 @@ def main(out_path: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1]))
+    # argv: observations path, seed, artifacts dir. g9's scenarios are pure
+    # in-process, so it writes nothing to the artifacts directory and does not
+    # read it.
+    code = main(sys.argv[1], sys.argv[2])
+    sys.stdout.flush()
+    sys.stderr.flush()
+    _EXIT(code)

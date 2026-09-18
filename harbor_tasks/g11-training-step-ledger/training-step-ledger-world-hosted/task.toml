@@ -1,28 +1,32 @@
 schema_version = "1.4"
 
 [task]
-name = "bespokelabs/sweworld-training-step-ledger-world-hosted"
+name = "bespokelabs/training-step-ledger"
 version = "1.0.0"
 description = "Fine-tuning step ledger: one step unit, one checkpoint identity, one resume contract. The requirements that decide correctness are not stated. The remarks they were inferred from are in the company's chat, wiki and mail, and the agent has to find them."
 authors = [{ name = "SWEWorld" }]
-keywords = ["sweworld", "curator", "python", "hidden-requirements", "world-hosted"]
 
 [metadata]
-category = "implementation"
-difficulty = "medium"
-source_task = "g11"
-variant = "world-hosted"
-# Kept beside `variant`: a reader that predates the extra arms falls back to
-# this. `spec` and `clues` are controls — they hand over what the task hides.
-# `world` is not: it is the blind ticket against a corpus that has the answers
-# in it somewhere, so a reader falling back should read it as blind.
-control = false
+author_name = "Nidhi Parthasarathy"
+author_email = "nidhi@bespokelabs.ai"
+author_organization = "Bespoke Labs"
+category = "ML"
+subcategory = "ML infrastructure"
+tags = ["python", "fine-tuning", "checkpointing", "resume", "learning-rate-schedule", "requirements-discovery"]
+expert_time_estimate_hours = 6.0
+difficulty_explanation = "The ticket is a precise but deliberately incomplete refactor of a fine-tuning trainer: it re-bases every step count on optimizer steps, gives checkpoints a shape-checked identity and makes resume refuse a reshaped run. The requirements that decide correctness are not in it. Two further requirements, covering how checkpoints are triggered, named and merged and how the learning-rate schedule warms up and decays, were settled in scattered remarks: chat threads, wiki pages and their comments, mail and code review, spread over months and mixed with earlier decisions the team later reversed. The hard part is the same for a human engineer and an agent: work out which of dozens of remarks bear on this change, tell a superseded decision from the current one, and reassemble exact names, constants and edge-case behaviour that no single remark states whole, while also delivering a correct multi-file change to the trainer's step accounting. The accompanying company data (chat, wiki, mail and issue tracker) is synthetically generated around the real open-source curator repository and its real history. It is written to read like an ordinary engineering organisation, with realistic noise and reversals, so finding the evidence is a realistic retrieval-and-judgement challenge rather than a puzzle. In the real world this is the work of an ML-platform or training-infrastructure engineer picking up a ticket in a codebase whose conventions live partly in team memory."
+solution_explanation = "The reference solution (solution/oracle.patch, applied and pushed by solve.sh) adds a dependency-free leaf module step_ledger.py holding the step plan, the dataset signature, the resume validation and the learning-rate function. The trainers then take every step count, checkpoint decision and schedule value from that one plan instead of recomputing them inline. The key insight is that batches, optimizer steps and epochs are three different clocks: once one plan object answers 'which step does batch b belong to' and 'is b a step boundary', checkpointing, logging, resume and the schedule all stay consistent. Determinism comes from injecting the clock and a seeded RNG rather than calling the global modules. The hidden requirements are carried out in the same module: one canonical checkpoint per step with merged reasons and a padded name, and a length-aware warmup plus decay-to-a-floor schedule. The patch is then committed and merged to main in Gitea, which is how code reaches the graded and deployed state in this world."
+verification_explanation = "The verifier clones whatever main holds in Gitea after the agent finishes and grades that. A worker process, running unprivileged from a jail that holds no answers, imports the submission, runs fixed scenarios (small deterministic mock training runs, checkpoint save/merge sequences, resume attempts and learning-rate sweeps) and records the raw values it observed. A separate root judge, which never imports agent code, compares those values and the submission's source text against the expected behaviour and writes one test per fact. The two hidden requirements are split into nine facts (rule, scope, exclusions, failure behaviour and observability; the learning-rate requirement has no scope fact). Each fact passes only if all of its checks pass. The open ticket's behaviour (the step plan, resume contract, determinism, trainer integration and Fireworks reporting) is graded as one further test, open_feature, run by the same judge. The reward is binary: 1 only if open_feature passes, all nine hidden facts pass, and the four files the instruction protects are byte-identical to the pristine tree; otherwise 0. A submission that recovers the hidden requirements but does not deliver the ticket therefore scores 0. Per-fact results, the protected-file comparison and push/CI/deploy provenance are reported beside the reward in reward.json and ctrf.json; provenance is informational and does not gate it. The judge runs as root with Python in isolated mode (-I) and a root-owned HOME, so nothing the unprivileged worker writes can execute in it. Most checks are exact equality: names, tuples, field orders, checkpoint names, reasons and step/epoch/batch triples, exception types, signature parameter kinds, and source-level checks on imports. FLOAT TOLERANCES. Floats are compared with |got - expected| <= max(rel * |expected|, abs), abs defaulting to 1e-12. (1) Learning rates, in all four learning-rate facts and the rates pushed during the end-to-end runs: rel 1e-12. Rates lie between 1e-5 and 1e-4, so the 1e-12 absolute floor is the binding bound, about 1e-8 relative at 1e-4 and 1e-7 relative at the 1e-5 floor. Differences between successive decay steps are rounded to 15 decimal places and compared at rel 1e-9 (again 1e-12 absolute in effect). A rate expected to be exactly zero uses abs 1e-18. (2) Loss values, in the hidden checkpoint-observability fact (the two checkpoint losses) and in the open feature (per-batch losses, loss history, final loss, the resumed run's loss history): rel 1e-12, about 2e-12 absolute on losses near 2.3. (3) Two open-feature values, the next draw of the seeded RNG and the Fireworks mock final loss: rel 1e-6. INEQUALITY CHECKS, which are one-sided rather than tolerances: the first warmup step's rate is > 0; the rate at step 5 is < the rate at step 4 once decay has started; the minimum rate over steps 1-199 of an 8-step run is >= 0 (the schedule never goes negative past the end); the minimum of a clipped-warmup schedule is > 0; a default-config run's final loss is > 0; the rate at step 5 of a 10-step run must NOT be within rel 1e-6 of step 5 of a 100-step run (the schedule depends on run length); and two dataclass field-order checks (current_batch before total_batches, total_batches before step_plan). CALIBRATION. Every expected rate is a closed-form expression of a few decimal constants (base rate, warmup fraction, the 0.1 floor), and every expected loss is the mean of a few values 2.5 - 0.5 * draw from a seeded random.Random, so legitimate variation between correct implementations is only floating-point operation order. This was measured, not assumed. Four independently written correct implementations were run through the real probe and judge: the reference one; exact rational arithmetic (fractions.Fraction) with math.fsum loss means; a re-ordered decay (base - base*(1-r)*done/span) with statistics.fmean; and a floor-plus-interpolation form with losses summed in reverse. All four scored 10/10 on every fact. Across a sweep of run lengths 1-119, warmups 0-200 and floors 0/0.1/0.5, their rates differ by at most 2.7e-20 absolute, and their window-loss means by at most 8.9e-16 absolute, 3-4 orders of magnitude inside the bounds. Two deliberately wrong variants were run as controls. Decaying to zero instead of to the floor failed the rule, exclusions and observability learning-rate facts (e.g. lr(5) = 8.33e-05 against 8.5e-05). Recording the median instead of the mean of the accumulation window failed the checkpoint-observability fact and the open feature (2.2975 against 2.3041). So the bounds admit every correct formulation tested and reject wrong behaviour by many orders of magnitude."
 
 [agent]
 # The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
 # /opt/world-state or the deploy queue.
 user = "ubuntu"
-timeout_sec = 3600.0
+# 7200, not 3600. At an hour every g11 trial was still pushing, polling CI and
+# re-running tests in its last minutes, so the cutoff -- not the hidden
+# requirements -- was deciding how much got checked. The difficulty is meant to
+# be finding what nobody wrote down, not racing the clock.
+timeout_sec = 7200.0
 
 [verifier]
 # Root, because grading reads the pristine tree at /opt/world-state/input/curator
@@ -44,7 +48,9 @@ timeout_sec = 2400.0
 # file those args reach supervisord as argv and the world never boots.
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
-network_mode = "public"
+# `allow_internet`, not `network_mode`: the benchmark's task.toml schema names
+# only this one, and Harbor's default network mode is already public.
+allow_internet = true
 # EIGHT, and it must be submitted with `--machine-type e2-custom-8-16384`.
 # 0e81bc4 raised g7, g8 and g9's hosted arms from 2 to 8 and silently missed
 # g10 and g11, so this arm ran the whole world -- postgres, mariadb,

@@ -1,8 +1,11 @@
 # The hosted twin of batch-payload-plan-world.
 #
 # Identical task, identical corpus; the only difference is where the world image
-# comes from. Locally that is `sweworld:0.4.8` in the daemon. Horizon has no such
-# tag, so the world is published to the Artifact Registry first
+# comes from. The local twin pins `sweworld:0.4.8` in the daemon — deliberately
+# that bake and not the newest one, because the corpus is what this task
+# measures — and what binds HERE is the digest on the FROM line below, which is
+# that same world pushed to the registry. Horizon has no local tag, so the world
+# is published to the Artifact Registry first
 # (`horizon artifacts environment push sweworld-batch-payload-plan --dockerfile
 # harbor_tasks/_env/world-registry.Dockerfile`) and pulled from there by digest.
 # That push prints the digest below; do not point it at a task's own

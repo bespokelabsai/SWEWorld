@@ -1,7 +1,7 @@
 {
   "task_id": "3c2d44eb-8949-4fca-baf2-17dae899b203",
-  "task_name": "g8-attachment-payload-world-hosted",
+  "task_name": "attachment-payload",
   "format": "harbor",
   "mini_batch_id": "fde8a4a1-21d7-4f76-b153-6cfe480b82ff",
-  "version": 9
+  "version": 11
 }

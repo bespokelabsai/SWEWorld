@@ -15,11 +15,14 @@ passing `observations.json`. Measured: reward 1.0 from pristine `main` plus one
 knowable in advance, and the only way to produce them is to run an
 implementation that actually works.
 
-WHAT MAY NOT LIVE HERE. Expected outputs, and anything an expected output can be
-computed FROM. The row sizes are the sharp case: hand the worker the shape of a
-serialised request and it can price every row, pack them, and hash the cuts
-without implementing a thing. So this file names prompts, counts and limits, and
-the judge prices the rows itself from the request files the run actually wrote.
+WHAT MAY NOT LIVE HERE. Expected outputs. Not because they would be secret —
+curator IS the request shape, so a worker that wants the row sizes can derive
+them (measured: byte-identical to the judge's own prices), and what the seed
+takes away is replay, not derivation. The reason is narrower and holds anyway:
+an expected value written down here is one the worker can report WITHOUT running
+the implementation, so the judge would be grading this file instead of the run.
+So this file names prompts, counts and limits, and the judge prices the rows
+itself from the request files the run actually wrote.
 
 The one input that is also an answer is the fan-out cap. It cannot be re-drawn —
 512 IS the requirement — so the probe reads the limit off the implementation and
@@ -59,17 +62,28 @@ def derive(seed: str) -> dict:
     # below is wide enough that 2-3 of them still fit whatever the width.
     prefix = f"say {tok} "
 
+    # Drawn before the dict because the row count depends on the request limit:
+    # with `rows > max_requests` the count limit alone forces a cut, so the main
+    # `"auto"` plan is never one batch long — a plan with no cut in it grades the
+    # packing rule not at all, and the widened byte band could otherwise hold a
+    # whole small dataset.
+    max_requests = rnd.randint(2, 5)
+    rows = rnd.randint(max(4, max_requests + 1), 13)
+
     spec: dict = {
         "seed": seed,
         "token": tok,
         "prefix": prefix,
 
         # --- the main "auto" run: the 5-row/3/400 scenario, re-drawn ----------
-        # max_bytes is banded to hold 2-3 rows: below ~320 a single row would not
-        # fit and the run would raise instead of planning, which grades nothing.
-        "rows": rnd.randint(4, 8),
-        "max_requests": rnd.randint(2, 4),
-        "max_bytes": rnd.randrange(340, 521, 20),
+        # max_bytes is banded to hold 2-3 rows at the bottom of the band and 4 at
+        # the top: below ~320 a single row (157-167 bytes, whatever the token's
+        # width) would not fit and the run would raise instead of planning, which
+        # grades nothing. Both limits therefore bind somewhere in the band, and
+        # which of the two cuts a given batch moves with the seed.
+        "rows": rows,
+        "max_requests": max_requests,
+        "max_bytes": rnd.randrange(340, 721, 20),
 
         # --- one request per batch ------------------------------------------
         "wide_rows": rnd.randint(9, 13),
@@ -99,7 +113,20 @@ def derive(seed: str) -> dict:
         "err_limit_bytes": rnd.randint(30, 70),
 
         # --- the explicit-integer branch -------------------------------------
-        "explicit_batch_size": rnd.randint(2, 3),
+        # A chunk of 2 or 3 over the "auto" run's 4-8 rows was the whole of this
+        # branch's behavioural coverage, and a reviewer of v20 named the gap
+        # exactly: `ceil(len(dataset) / batch_size)` fitted to two sizes and one
+        # row count is not distinguishable from `ceil`. The chunk now comes from
+        # a ten-wide band and the branch gets its OWN dataset, sized below, so
+        # the numbering it has to reproduce is not knowable in advance.
+        "explicit_batch_size": rnd.randint(2, 11),
+
+        # --- a byte budget no single row can fit in ---------------------------
+        # Two uses, both of them "the limit binds": `create_batch_file` must
+        # refuse a batch over it, and the explicit-integer branch must ignore it
+        # (it neither resplits by bytes nor asks the planner, which would raise).
+        # Kept well under the 157 bytes the smallest row serialises to.
+        "batch_file_limit": rnd.randrange(20, 121, 5),
 
         # --- an explicit fan-out cap, well below the default ------------------
         "cap_rows": rnd.randint(3, 6),
@@ -110,10 +137,25 @@ def derive(seed: str) -> dict:
         "gp_max_requests": rnd.randint(2, 3),
 
         # --- the working dir an earlier run left behind ----------------------
-        "prepop_n": rnd.randint(5, 8),
+        # `prepop_n` is DERIVED below rather than drawn: r2 is graded on a stale
+        # tail the new run must remove, so the numbering planted here has to be
+        # longer than the plan, and `rows` is now wide enough that a fixed 5-8
+        # could not promise that.
         "stale_request": f"stale {tok}\n",
         "stale_metadata": "{}\n",
     }
+
+    # The explicit branch's own dataset: 2-5 whole chunks plus a remainder that
+    # is sometimes zero, so both a clean division and a short last file are drawn
+    # over a run of seeds, and neither the file count nor the line counts can be
+    # guessed from the ticket.
+    chunk = spec["explicit_batch_size"]
+    spec["explicit_rows"] = chunk * rnd.randint(2, 5) + rnd.randint(0, chunk - 1)
+
+    # Two rows always fit one batch (the band's floor, 340, holds 2*167+1), so
+    # the plan is never longer than ceil(rows / 2) batches and the planted tail
+    # is always at least one file past it.
+    spec["prepop_n"] = -(-spec["rows"] // 2) + rnd.randint(1, 3)
 
     # `max_batches_per_plan` for the explicit-cap scenario: one fewer than the
     # plan needs, so the run is one batch over its own ceiling.
@@ -122,8 +164,8 @@ def derive(seed: str) -> dict:
     # Bystanders a sweep must not touch. Names and bodies both carry the token,
     # so a worker cannot report a directory it prepared before this run started.
     spec["keepers"] = {
-        f"responses_0.jsonl": f"keep {tok}\n",
-        f"batch_objects.jsonl": '{"id": "batch_%s"}\n' % tok,
+        "responses_0.jsonl": f"keep {tok}\n",
+        "batch_objects.jsonl": '{"id": "batch_%s"}\n' % tok,
         f"{tok}.arrow": f"not really arrow {tok}",
         f"notes-{tok}.txt": f"hand-written {tok}\n",
     }

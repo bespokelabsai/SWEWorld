@@ -23,6 +23,12 @@ import pathlib
 import sys
 from xml.sax.saxutils import escape, quoteattr
 
+# The judge runs `python3 -I` with no PYTHONPATH, so /tests is not importable by
+# default. judge_io holds the hardened reads (no symlinks, size-capped) every
+# agent-influenced path goes through; harness.py cannot: it imports pytest.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import judge_io  # noqa: E402
+
 BASE = 1e-4
 SIGNATURE = "ds1-10-5d661fe8c9a2d002"
 
@@ -224,7 +230,7 @@ def _module_source(rel_candidates) -> str:
     for rel in rel_candidates:
         path = root / rel
         if path.is_file():
-            return path.read_text(encoding="utf-8", errors="replace")
+            return judge_io.read_text(path)
     raise Fail(f"cannot read source at any of {rel_candidates} under {root}")
 
 
@@ -422,7 +428,7 @@ def junit(results: list[tuple[str, str, str]]) -> str:
 
 def main(obs_path: str, out_path: str) -> int:
     try:
-        observations = json.loads(pathlib.Path(obs_path).read_text())
+        observations = json.loads(judge_io.read_text(obs_path))
     except (OSError, ValueError) as exc:
         observations = {}
         print(f"judge: cannot read observations: {exc}", file=sys.stderr)

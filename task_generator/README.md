@@ -502,8 +502,9 @@ moves it.
 
 ### `open_feature` is graded but not gated, and that is where a bad suite hides
 
-`bracket.ships()` looks at the hidden facts. `score.py` computes
-`reward = hidden_mean`, and `hidden_mean` **excludes** `open_feature`. So a suite
+`bracket.ships()` looks at the hidden facts. `score.py` computes a
+binary `reward` (1 only if every measured hidden fact passes and no protected file
+changed), and like the `hidden_mean` it reports beside it, that **excludes** `open_feature`. So a suite
 whose open-feature test is unreachable from the ticket passes every gate in this
 package and ships, and the damage only shows up as an uninterpretable headline:
 a blind arm scoring 0.00 cannot then be told apart from an agent that built

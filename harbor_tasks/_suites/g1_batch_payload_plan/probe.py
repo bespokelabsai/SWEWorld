@@ -57,8 +57,10 @@ import traceback
 # is written. What makes forged values worthless is that they are not knowable.
 _EXIT = os._exit
 
-# The import-time environment the suite's conftest sets, applied here because
-# this worker is not run under pytest.
+# The import-time environment curator needs to run offline and quietly. On the
+# pytest path `/tests/conftest.py` sets it; this arm is a split suite and ships
+# no conftest at all, so the worker sets it itself — and must, because nothing
+# else runs before the submission is imported.
 os.environ.setdefault("CURATOR_DISABLE_RICH_DISPLAY", "1")
 os.environ.setdefault("TELEMETRY_ENABLED", "false")
 os.environ.setdefault("CURATOR_VIEWER", "false")
@@ -72,10 +74,10 @@ os.environ.setdefault("COLUMNS", "220")
 import fixture_spec  # noqa: E402 - the run's inputs; stdlib only, no answers
 
 # probe_support owns the curator imports and the answer-free helpers; reuse them
-# so a probe calls curator exactly as the test does. Importing it runs the
+# so every scenario calls curator the one way. Importing it runs the
 # submission's `import bespokelabs.curator` — this process's whole purpose, and
-# why it is disposable. The worker never imports test_open/test_r*, whose source
-# carries the expected answer literals.
+# why it is disposable. Nothing the worker can import carries an expected
+# answer literal; those are all in `judge.py`, which it cannot read.
 import probe_support as S  # noqa: E402
 from harness import read_field, surface  # noqa: E402
 
@@ -212,6 +214,39 @@ def probe_open() -> dict:
         built_sizes.append(len(built))
     o["built_sizes"] = built_sizes
 
+    # --- an oversized batch is refused, with the new error ------------------
+    # The ticket's one behavioural change to `create_batch_file`, and behaviour
+    # is the only witness: the raise is not a declaration a source check can
+    # read, and no other scenario builds a batch over the limit. The limit comes
+    # from the seed and sits below a single row, so the judge knows the exact
+    # size the refused file would have had without this process pricing it.
+    over_limit = S.api_requests_for(processor, rows, 0, 2)
+    with S.patched_limits(max_requests=1000, max_bytes=SPEC["batch_file_limit"]):
+        o["raise_batch_file"] = raises(processor.create_batch_file, over_limit,
+                                       attrs=("num_requests", "size_bytes", "limit_bytes"))
+
+    # --- every row measured exactly once, in index order --------------------
+    # Its own processor: the recorder below replaces a bound method, and the
+    # scenarios above are graded on the unwrapped one. Every measuring path the
+    # ticket allows goes through `create_api_specific_request_batch` (that IS
+    # the payload being measured), so wrapping it counts the measurements
+    # whether the implementation calls `measure_request_payload` or builds the
+    # provider request itself. The judge checks the ORDER, so a plan that
+    # measured rows twice or out of order fails even though its cuts are right.
+    measure_dir = S.make_tmp_dir("open_measure")
+    measured = S.make_processor(measure_dir)
+    seen_rows = []
+    original_build = measured.create_api_specific_request_batch
+
+    def recording_build(generic_request, *args, **kwargs):
+        seen_rows.append(read_field(generic_request, "original_row_idx", default=None))
+        return original_build(generic_request, *args, **kwargs)
+
+    measured.create_api_specific_request_batch = recording_build
+    with S.patched_limits(max_requests=SPEC["max_requests"], max_bytes=SPEC["max_bytes"]):
+        measured.plan_request_batches(rows)
+    o["measured_row_order"] = list(seen_rows)
+
     # --- row-level generation_params are part of the measured payload ------
     gp_dir = S.make_tmp_dir("open_gp")
     gp_processor = S.make_processor(gp_dir)
@@ -240,10 +275,53 @@ def probe_open() -> dict:
     o["empty_glob_metadata"] = glob.glob(os.path.join(empty_dir, "metadata_*.json"))
 
     # --- the explicit-integer branch is untouched ---------------------------
+    # Its own dataset, sized in fixture_spec from the drawn chunk: the branch
+    # has to reproduce `ceil(len(dataset) / batch_size)` files over a chunk from
+    # a ten-wide band and a row count that is a whole number of chunks plus a
+    # remainder, rather than over the 4-8 rows at 2-3 that v20 spot-checked.
+    explicit_rows = dataset(SPEC["explicit_rows"])
     fixed_dir = S.make_tmp_dir("open_fixed")
     fixed = S.make_processor(fixed_dir, batch_size=SPEC["explicit_batch_size"])
-    fixed_result = fixed.create_request_files(rows)
+    fixed_result = fixed.create_request_files(explicit_rows)
     o["fixed_result_rel"] = relpaths(fixed_result, fixed_dir)
+
+    # "keeps its current behaviour exactly": ceil(len(dataset) / batch_size)
+    # fixed-width files, no byte resplit, no planner call. Run under a budget no
+    # single row fits in and a one-request count limit, so an explicit branch
+    # that consulted either would visibly differ — and one that asked the
+    # planner would raise SingleRequestTooLargeError here instead of writing.
+    # The call count is recorded rather than the verdict; the numbering is the
+    # judge's own reading of the directory.
+    bytes_dir = S.make_tmp_dir("open_fixed_bytes")
+    fixed_bytes = S.make_processor(bytes_dir, batch_size=SPEC["explicit_batch_size"])
+    planner_calls = []
+    original_plan = getattr(fixed_bytes, "plan_request_batches", None)
+    if original_plan is not None:
+        def counting_plan(*args, **kwargs):
+            planner_calls.append(1)
+            return original_plan(*args, **kwargs)
+
+        fixed_bytes.plan_request_batches = counting_plan
+
+    def run_fixed_bytes():
+        with S.patched_limits(max_requests=1, max_bytes=SPEC["batch_file_limit"]):
+            return fixed_bytes.create_request_files(explicit_rows)
+
+    o["fixed_bytes_raise"] = raises(run_fixed_bytes)
+    o["fixed_planner_calls"] = len(planner_calls)
+
+    # "filtered by incomplete_files": a request file whose metadata already
+    # agrees with its line count is a cache hit and is not rewritten. The
+    # planted file holds this run's stale text, so the judge can tell "left
+    # alone" from "rewritten with the same rows".
+    chunk = SPEC["explicit_batch_size"]
+    cache_dir = S.make_tmp_dir("open_fixed_cache")
+    with open(os.path.join(cache_dir, "requests_0.jsonl"), "w") as handle:
+        handle.write(SPEC["stale_request"] * chunk)
+    with open(os.path.join(cache_dir, "metadata_0.json"), "w") as handle:
+        json.dump({"num_jobs": chunk}, handle)
+    cached = S.make_processor(cache_dir, batch_size=chunk)
+    cached.create_request_files(dataset(chunk + 1))
     return o
 
 
@@ -474,8 +552,8 @@ def probe_r2_exclusions() -> dict:
 def probe_r2_failure_behavior() -> dict:
     module = S.planner()
     o: dict = {}
-    # r1's fact, read defensively and never required: `test_r2` promises "an
-    # implementation that sweeps without writing a sidecar passes r2 in full",
+    # r1's fact, read defensively and never required: r2 must hold for "an
+    # implementation that sweeps without writing a sidecar",
     # and `module.PLAN_FILE_NAME` here broke that promise with an AttributeError
     # for anything that hardcoded the name. None means "no sidecar to plant",
     # and the judge then grades this fact on the stale files alone.

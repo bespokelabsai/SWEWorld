@@ -22,15 +22,64 @@ between a settlement and a refund, including what happens to the request slot on
 release (r2). This module therefore never inspects `available_request_capacity` after a
 release, and never drives a token axis below zero.
 
-Also not asserted: the three provider processors' `get_header_based_rate_limits`. Every
-fact the ticket states about them — the un-swapped anthropic axes, the vanished
-`-remaining` reads, the vanished 4000/80000/400000 fallbacks — is a fact about
-`read_rate_limit_headers`, which is exercised directly below; reaching the provider
-methods themselves needs a live `test_call()` or a `requests.post`, i.e. a network.
+Not asserted HERE, but graded: everything only the source can witness. Reaching a
+provider processor's `get_header_based_rate_limits` needs a live `test_call()` or a
+`requests.post`, i.e. a network, so "all three delegate", "the openai provider table and
+its rps/tps scaling stay exactly as they are", "`cool_down_if_rate_limit_error` and the
+tracker's rate-limit counters are out of scope", "both reservation loops
+reserve through `_reserve_capacity` with the sleep as their only await", "the handler
+keeps its try/except/else/finally" and "capacity_budget is stdlib only, 3.10 syntax" are
+checked by `judge.py`'s `_check_*` functions, which parse the pushed tree and diff the
+named function, class or declaration against the pristine copy at CURATOR_BASELINE_DIR.
+The same fact, `test_open_feature`, carries them.
+
+The out-of-scope FILES are not among them any more: `cost.py`,
+`types/token_usage.py`, `types/generic_response.py` and `request_processor/config.py`
+are `protected_files` in `tests/task.json`, so root byte-compares each with the
+pristine tree and `score.py` holds the reward at 0 on any difference. That is why the
+AST compares of `_TokenUsage`, the `RATE_LIMIT_HEADER` declaration and
+`config.max_retries` / `config.seconds_to_pause_on_rate_limit` were deleted: bytes see
+`RATE_LIMIT_HEADER.clear()`, `.update({...})` and a subscript assignment, and no
+declaration diff does.
+
+Four more of them the structure-and-name checks used to miss, and `judge.py` now
+diffs against pristine as well (also on `test_open_feature`):
+
+  * `handle_single_request_with_retries` is pristine apart from the capacity releases
+    the ticket adds -- the except body, the exhausted branch, the else and the finally
+    included. A four-clause `try` and four mentioned names passed a rewritten handler;
+  * the retry queue's own operations, `put_nowait` in the handler and `empty`/`get` in
+    the loop, in the order the world shipped them: every fact here drives ONE attempt,
+    so nothing observes what a second attempt would come back to;
+  * `num_rate_limit_errors` and `time_of_last_rate_limit_error` are not WRITTEN
+    anywhere new, which a declaration compare alone does not say;
+  * the three limit properties' manual -> header -> default ladder, and
+    `OnlineStatusTracker.max_tokens_per_minute` declared exactly once (the world ships
+    it twice, both defaulting to 0, so the duplicate is invisible in every value).
+
+NOT THE GRADED PATH. The suite grades through `probe.py`/`judge.py`, and the
+judge DERIVES its expectations from the seed root draws per run rather than
+holding the literals below: a fixed fixture makes every expected value the same
+every run, and g10's are published in `instruction.md`, so a tree implementing
+nothing could hardcode a passing observations file (measured on v11: 9/9 from a
+hand-written `observations.json`, and 9/9 again with both hidden requirements
+deleted from the tree). What is here is the worked example of each fact on the
+old fixed fixture, and the fact<->test bijection. Read it to see what a fact
+MEANS; read `judge.py` for how it is decided, and `fixture_spec.py` for what
+moves run to run. Only the ticket's own constants stay fixed on both sides: the
+four `DEFAULT_MAX_*` numbers, the origin strings, the header-name tuples, the
+field order and the rejected `parse_limit_value` forms.
+
+One more source check landed with the seed, and it is on this fact:
+`instruction.md:65`'s dead `free_capacity` helper is read out of the class body
+now, not just reported absent by a worker boolean.
 """
 from __future__ import annotations
 
+import dataclasses
 import time as _time
+
+import pytest
 
 # The answer-free helpers/inputs live in probe_support so the worker (probe.py)
 # and this human reference share ONE definition and cannot drift. The expected
@@ -45,6 +94,7 @@ from probe_support import (  # noqa: F401
     _TokenUsage,
     budget_module,
     const,
+    count_releases,
     find_const,
     importable,
     make_request,
@@ -346,3 +396,86 @@ def test_open_feature__one_capacity_budget_decodes_limits_and_reserves_all_or_no
     # the manual -> header -> default precedence is unchanged
     assert token_axes(fresh.max_tokens_per_minute) == (50000, 20000, 70000)
     assert fresh.max_requests_per_minute == 600
+
+    # ---- the reading's own shape -----------------------------------------
+    reading_cls = mod.RateLimitReading
+    assert dataclasses.is_dataclass(reading_cls)
+    assert [f.name for f in dataclasses.fields(reading_cls)] == [
+        "max_requests_per_minute",
+        "max_tokens_per_minute",
+        "token_limit_strategy",
+        "source_headers",
+    ]
+    frozen_sample = read({"x-ratelimit-limit-tokens": "60000"})
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        frozen_sample.max_requests_per_minute = 1
+
+    # ---- tuple order decides, and the caller's mapping is not touched -----
+    given = {
+        "X-RateLimit-Limit-Requests": "abc",          # present but unparseable
+        "anthropic-ratelimit-requests-limit": "900",  # so the next name answers
+        "x-ratelimit-limit-tokens": "30000",
+    }
+    snapshot = dict(given)
+    rpm, tpm, strat, sources = reading_fields(read(given))
+    assert (rpm, tpm, strat) == (900, 30000, strategy.combined)
+    assert sources == ("anthropic-ratelimit-requests-limit", "x-ratelimit-limit-tokens")
+    assert given == snapshot, "the lower-casing is of a copy"
+
+    rpm, _, _, sources = reading_fields(
+        read({"x-ratelimit-limit-requests": "600", "anthropic-ratelimit-requests-limit": "900"})
+    )
+    assert (rpm, sources) == (600, ("x-ratelimit-limit-requests",))
+
+    # ---- every seperate-axis mutation rebinds a fresh _TokenUsage ---------
+    # `.total` is a stored pydantic field computed once at construction, so an
+    # implementation that assigns to `.input` keeps every axis right and leaves
+    # `.total` stale. Identity is what shows it; no axis reading does.
+    idc = tracker(
+        token_limit_strategy=strategy.seperate,
+        max_requests_per_minute=60,
+        max_tokens_per_minute=T(input=10_000, output=5_000),
+    )
+    seeded = idc.available_token_capacity
+    idc.consume_capacity(T(input=600, output=200))
+    consumed = idc.available_token_capacity
+    assert consumed is not seeded
+    assert token_axes(seeded) == (10000, 5000, 15000)
+    assert token_axes(consumed) == (9400, 4800, 14200)
+    idc.free_capacity(used=T(input=100, output=50), blocked=T(input=600, output=200))
+    assert idc.available_token_capacity is not consumed
+    assert token_axes(consumed) == (9400, 4800, 14200)
+
+    # ---- manual -> header -> default, on all three limit properties -------
+    prec = StubProcessor(T(input=1, output=1))
+    prec.manual_max_requests_per_minute, prec.header_based_max_requests_per_minute = 11, 22
+    prec.manual_max_tokens_per_minute, prec.header_based_max_tokens_per_minute = 33, 44
+    prec.manual_max_concurrent_requests, prec.header_based_max_concurrent_requests = 55, 66
+    assert (prec.max_requests_per_minute, prec.max_tokens_per_minute, prec.max_concurrent_requests) == (11, 33, 55)
+    prec.manual_max_requests_per_minute = None
+    prec.manual_max_tokens_per_minute = None
+    prec.manual_max_concurrent_requests = None
+    assert (prec.max_requests_per_minute, prec.max_tokens_per_minute, prec.max_concurrent_requests) == (22, 44, 66)
+    prec.header_based_max_requests_per_minute = None
+    prec.header_based_max_tokens_per_minute = None
+    prec.header_based_max_concurrent_requests = None
+    assert prec.max_requests_per_minute == prec.default_max_requests_per_minute
+    assert prec.max_tokens_per_minute == prec.default_max_tokens_per_minute
+    assert prec.max_concurrent_requests is None
+
+    # ---- exactly one release per attempt, on every terminal path ----------
+    # Counted rather than read off the buckets: a release is capped at the limit,
+    # so a handler that releases the same reservation twice leaves every value
+    # identical to one that releases it once. WHICH operation runs is r2's
+    # (hidden) business; that it runs once is the ticket's.
+    for attempts_left, response in (
+        (0, make_response("length", T(input=700, output=300))),   # exhausted
+        (1, make_response("length", T(input=700, output=300))),   # requeued
+        (1, make_response("stop", T(input=700, output=100))),     # success
+    ):
+        proc = StubProcessor(T(input=700, output=300))
+        t = tracker(max_requests_per_minute=60, max_tokens_per_minute=10_000)
+        blocked = proc._reserve_capacity(t, [])
+        counts = count_releases(t)
+        run_attempt(proc, t, blocked, attempts_left=attempts_left, response=response)
+        assert counts["settle"] + counts["refund"] == 1

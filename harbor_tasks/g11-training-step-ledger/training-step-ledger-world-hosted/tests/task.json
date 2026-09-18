@@ -48,5 +48,11 @@
    ],
    "earlier_reversed_version": "An earlier revision decayed to zero over the run and used the exclusive `step < warmup_steps` comparison that `tinker_trainer.py:548` still shows; both were reversed after the last steps of long runs stopped moving and the first step trained at rate 0."
   }
+ ],
+ "protected_files": [
+  "src/bespokelabs/curator/finetune/data_formatter.py",
+  "src/bespokelabs/curator/finetune/status_tracker.py",
+  "src/bespokelabs/curator/finetune/fireworks_data_formatter.py",
+  "src/bespokelabs/curator/finetune/trainer/base_trainer.py"
  ]
 }

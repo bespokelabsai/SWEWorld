@@ -203,7 +203,10 @@ def main() -> int:
     # table, ticket and mail blocks -- but it is a different and usually older
     # rendering, so lumping it in with the keys would fail the identical check
     # and hide the real problem.
-    keys = sorted(group.glob("*/solution/hidden_requirements.md"))
+    # Hosted arms hold theirs in .horizon-meta/, which `horizon tasks push` does
+    # not upload -- in solution/ it shipped as an unreferenced file.
+    keys = sorted([*group.glob("*/solution/hidden_requirements.md"),
+                   *group.glob("*/.horizon-meta/hidden_requirements.md")])
     if not keys:
         print(f"no answer key under {group}", file=sys.stderr)
         return 1

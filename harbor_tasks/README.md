@@ -61,7 +61,7 @@ Shared, not per task:
 
 | | |
 |---|---|
-| `_suites/` | the graders. One directory per live suite, plus `run_suites.py`, `score.py`, `provenance.py`, `conftest.py`, `harness.py` and `fakeapi.py`. Copied wholesale into every arm's `tests/` at build time, because Harbor copies `tests/` to `/tests` and only whole directories travel |
+| `_suites/` | the graders. One directory per live suite, plus `run_suites.py`, `score.py`, `provenance.py`, `conftest.py`, `harness.py` and `fakeapi.py`. At build time each arm's `tests/` gets the harness plus ITS OWN suite only (`build_tasks.SHARED_TEST_FILES`; `conftest.py`/`fakeapi.py` only for a non-split suite), because Harbor copies `tests/` to `/tests` and only whole directories travel. Arms built before 2026-09-17 still carry every suite until they are re-propagated |
 | `_env/Dockerfile` | the `sweworld:repo-only-dev` base: repository and history, no corpus |
 | `_env/world-registry.Dockerfile` | the same world published to Horizon's registry, which the hosted arms pin by digest. It currently builds `FROM sweworld:0.4.8` |
 | `_loop/run.sh` | how a trial is launched; `task_generator/tg/trial.py` shells out to it |

@@ -1,28 +1,32 @@
 schema_version = "1.4"
 
 [task]
-name = "bespokelabs/sweworld-executor-output-cap-world-hosted"
+name = "bespokelabs/executor-output-cap"
 version = "1.0.0"
 description = "Sandbox stdout/stderr output cap. The requirements that decide correctness are not stated. The remarks they were inferred from are in the company's chat, wiki and mail, and the agent has to find them."
 authors = [{ name = "SWEWorld" }]
-keywords = ["sweworld", "curator", "python", "hidden-requirements", "world-hosted"]
 
 [metadata]
-category = "implementation"
-difficulty = "medium"
-source_task = "g2"
-variant = "world-hosted"
-# Kept beside `variant`: a reader that predates the extra arms falls back to
-# this. `spec` and `clues` are controls — they hand over what the task hides.
-# `world` is not: it is the blind ticket against a corpus that has the answers
-# in it somewhere, so a reader falling back should read it as blind.
-control = false
+author_name = "Nidhi Parthasarathy"
+author_email = "nidhi@bespokelabs.ai"
+author_organization = "Bespoke Labs"
+category = "Software"
+subcategory = "Sandboxed code execution"
+tags = ["python", "pydantic", "code-execution", "output-truncation", "utf-8", "requirements-discovery"]
+expert_time_estimate_hours = 4.0
+difficulty_explanation = "The ticket asks for a per-stream byte budget on the stdout and stderr that curator's sandboxed code-execution backend returns, threaded through the backend config, two response models and all four places the backend builds its output. It is precise about that plumbing and deliberately silent about the requirements that decide correctness. Two further requirements were settled only in scattered remarks: exactly how an over-budget stream is cut, marked, validated and logged, and how far the cap reaches beyond the two streams. They live in chat threads, wiki pages and their comments, mail and code review spread over months, mixed with earlier decisions the team later reversed. The hard part is the same for a human engineer and an agent: work out which of dozens of remarks bear on this change, tell a superseded decision from the current one, and reassemble exact names, messages and edge-case behaviour that no single remark states whole, while also getting byte-level UTF-8 handling and four control-flow paths (success, timeout, non-zero exit and an exception raised mid-run) right in one consistent change. The accompanying company data (chat, wiki, mail and issue tracker) is synthetically generated around the real open-source curator repository and its real history, written to read like an ordinary engineering organisation with realistic noise and reversals. In the real world this is the work of a backend or platform engineer hardening an LLM data-generation library's code-execution path, in a codebase whose conventions live partly in team memory."
+solution_explanation = "The reference solution (solution/oracle.patch, applied and pushed to main by solve.sh) puts the whole capping rule in a new pure module, code_executor/output_cap.py: one function caps a single string or bytes value to a byte budget and reports whether it cut anything, and a second applies it to both streams and returns the sorted names of the streams it shortened. types.py adds the budget to CodeExecutionBackendConfig with a field validator for the floor, and the truncation fields to the response models. sandbox_backend.py passes the budget into _execute_in_sandbox as a keyword-only argument and caps once, right after the sandbox returns, so the success, timeout and non-zero-exit returns all use the same capped values and the single warning; the exception handler caps its salvaged streams and the exception text separately and stays silent. The key insight is to cap at the byte level and only then decode: slicing the encoded stream and moving each cut back by at most three bytes to a codepoint boundary keeps the budget exact without ever producing a replacement character on valid UTF-8. The non-zero-exit message is assembled from the already-capped stderr rather than capped again. The change is then committed and merged to main in Gitea, which is how code reaches the graded and deployed state in this world."
+verification_explanation = "The verifier clones whatever main holds in Gitea after the agent finishes and grades that. Root draws a fresh random seed for every grading run and hands it to both halves of the grader. A worker process, running as nobody from a jail that holds no answers, imports the submission and runs the scenarios that seed describes against curator's fake-sandbox seam (a fake Sandbox returning chosen exit codes, stdout and stderr, a patched file collector, and an exit hook that can raise), recording the raw values it observed: returned streams, lengths, truncated_streams, error text and flag, exception types and messages, signatures, model fields and captured log lines. A separate root judge, which never imports agent code, derives the same inputs from the same seed, recomputes what each scenario should have produced, compares, and writes one test per fact. The judge runs with Python in isolated mode (-I), an empty PYTHONPATH and a root-owned HOME, so nothing the worker writes can execute in it. The seed re-draws INPUTS only -- the budgets, the payloads, the exit code, the timeout and the sub-floor budgets -- never expectations, so a correct implementation passes on every seed: the reference solution was graded on three independent seeds with every fact passing, and the derivation's invariants (every payload over its budget, every sub-floor budget under the floor, at least one multi-byte cut landing inside a character) hold over 2000 draws. Re-drawing is what stops a submission that implements nothing from handing back the values an earlier correct run produced: with fixed scenarios those values never changed, and this task's rule is written down in the company corpus the agent is told to read. A pristine tree plus one import-time hook replaying a correct run's observations scores 0 of the 9 hidden facts under a fresh seed, measured. Some expectations cannot be re-drawn because they ARE the requirement -- the floor of 16, the default of 65536, the elision marker, the log template -- so the judge also reads them out of the submission's pushed source: output_cap.py must declare DEFAULT_MAX_OUTPUT_BYTES as 65536 and MIN_MAX_OUTPUT_BYTES as 16, must export TRUNCATION_LOG_TEMPLATE with the agreed wording, and must import no clock, randomness, filesystem, network or environment module, because the instruction says it stays a pure function of its arguments; _execute_in_sandbox must carry the five positional parameters the ticket lists plus a keyword-only max_output_bytes with a default; and _collect_sandbox_files must be AST-identical to the pristine tree's copy, because the instruction says it is untouched while the fake-sandbox seam patches it out, so no behavioural check can see it changed. If the pristine tree is not staged for the judge, that comparison fails its fact rather than passing blind. The two hidden requirements are split into nine facts: rule, scope, exclusions, failure behaviour and observability for how a stream is cut; rule, scope, exclusions and observability for how far the cap reaches (it has no separate failure-behaviour fact). Each fact passes only if every check in it passes. The open ticket's behaviour (config field and validation, backend plumbing, the keyword-only signature, the model fields and their serialization, capping at all four construction sites, the exact alphabetical order of the stream names truncated_streams reports when both streams were shortened -- compared as a list, so a submission that reports them the other way round fails -- the two streams the exception site salvages on a run where the sandbox command itself raised, which the instruction's own getattr salvage returns as None and which therefore name no truncated stream, the exit-code message, the untouched file collector and uncapped files) is graded as one further test, open_feature, by the same judge. The reward is binary: 1 only if open_feature passes, all nine hidden facts pass, and the three files the instruction says must not change (code_execution_backend/_factory.py, code_executor.py and code_executor/db.py) are byte-identical to the pristine tree; otherwise 0. Per-fact results, the protected-file comparison and push/CI/deploy provenance are reported beside the reward in reward.json and ctrf.json; provenance is informational and does not gate it. NO FLOAT TOLERANCES: the judge compares no floating-point values. Nearly every check is exact equality on strings, integers, lists, exception type names in the MRO, exception messages, parameter kinds and defaults, and log lines; a capped stream is compared character for character against the judge's own recomputation, elision marker included (the marker is 27 characters plus the digits of the dropped byte count, and it is charged outside the budget). ONE-SIDED CHECKS, all of them on inputs whose size this run's seed fixed: (1) open_feature: the over-budget stdout and stderr (260 to 420 characters each) must come back with 0 < length < the length they went in at, at every one of the four construction sites (stdout not None, 0 < length < the input length), and the capped stderr on the exit-code path must be shorter than the stderr it was assembled from -- a correct cap returns the budget plus the marker, so these only reject an absent cap or an emptied stream. (2) r1 exclusions: the over-budget stream must come back shorter than it went in, a guard that the cap exists at all before the unlimited and at-budget cases are credited. (3) r2 scope: the exit-code path's capped stderr must be shorter than its input and the assembled message longer than the budget, alongside the exact equality of that message with the status-code prefix plus the capped stderr, and its exact length. (4) Inequality and presence checks: the multi-byte stream must differ from its input and contain no U+FFFD replacement character (alongside the exact string the judge recomputed for it); OutputCapError's MRO contains ValueError; the refusals of the three sub-floor budgets carry the exact OutputCapError text inside pydantic's ValidationError; error_truncated exists on CodeExecutionOutput and not on CodeExecutionResult, its annotation is plain bool, and it is declared immediately after truncated_streams. Because every other expected value is an exact string or integer the judge recomputed from this run's inputs, there is no numeric slack for an alternative correct implementation to fall into, so no calibration run is needed."
 
 [agent]
 # The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
 # /opt/world-state or the deploy queue.
 user = "ubuntu"
-timeout_sec = 3600.0
+# 7200, not 3600. At an hour every g11 trial was still pushing, polling CI and
+# re-running tests in its last minutes, so the cutoff -- not the hidden
+# requirements -- was deciding how much got checked. The difficulty is meant to
+# be finding what nobody wrote down, not racing the clock.
+timeout_sec = 7200.0
 
 [verifier]
 # Root, because grading reads the pristine tree at /opt/world-state/input/curator
@@ -44,7 +48,14 @@ timeout_sec = 2400.0
 # file those args reach supervisord as argv and the world never boots.
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
-network_mode = "public"
+# `allow_internet`, not `network_mode`: the benchmark's task.toml schema names
+# only this one, and Harbor's default network mode is already public.
+allow_internet = true
+# The container is the whole company, not just a Python checkout: postgres,
+# mariadb, mattermost, bookstack, gitea and its CI runner, maddy and nginx all
+# run beside the agent, and the healthcheck bulk-imports the planted chat, wiki
+# and mail into them. 13 GB is what that stack needs to boot and ingest without
+# the kernel killing a service; the 2048 MB default does not bring the world up.
 cpus = 2
 memory_mb = 13000
 

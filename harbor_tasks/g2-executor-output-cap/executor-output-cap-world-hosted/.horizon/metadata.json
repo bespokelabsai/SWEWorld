@@ -1,7 +1,7 @@
 {
   "task_id": "5ced3c30-bc80-4c8a-9440-9b0d41e61adc",
-  "task_name": "g2-executor-output-cap-world",
+  "task_name": "executor-output-cap",
   "format": "harbor",
   "mini_batch_id": "fde8a4a1-21d7-4f76-b153-6cfe480b82ff",
-  "version": 12
+  "version": 15
 }

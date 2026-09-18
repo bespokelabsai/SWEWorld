@@ -92,7 +92,9 @@ RUN chmod 0755 /usr/local/bin/task-setup.sh
 # every chat remark, every page comment, every mail -- and skips the whole
 # exercise the task exists to measure. A g2 rollout already printed the listing
 # from `ls /opt/*`, sitting at drwxr-xr-x beside world-state's drwx------. The
-# ingest is unaffected: it runs as root from the healthcheck.
+# ingest is unaffected: it runs as root from the healthcheck. And temporary:
+# task-setup.sh deletes it once the ingest succeeds, because the agent may be
+# root and 0700 does not stop root.
 COPY --chmod=0700 plant /opt/task-plant
 
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh

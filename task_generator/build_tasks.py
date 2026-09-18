@@ -176,6 +176,41 @@ HOSTED_CPUS = 2
 LOCAL_CPUS = 4
 
 
+# The [metadata] keys the benchmark's task.toml schema accepts, in the order they
+# are written. Anything else there -- `difficulty`, `source_task`, `variant`,
+# `control`, all of which this file used to emit -- is an invented field to its
+# reviewers, and nothing read them: the arm's identity lives in tests/task.json.
+METADATA_KEYS = ("author_name", "author_email", "author_organization", "category",
+                 "subcategory", "tags", "expert_time_estimate_hours",
+                 "difficulty_explanation", "solution_explanation",
+                 "verification_explanation")
+METADATA_AUTHOR = {"author_name": "Nidhi Parthasarathy",
+                   "author_email": "nidhi@bespokelabs.ai",
+                   "author_organization": "Bespoke Labs"}
+
+
+def metadata_block(task: dict) -> str:
+    """`[metadata]` from the task's own `toml_metadata` in tasks.generated.json.
+
+    Per task, not templated here, because the three explanations and the time
+    estimate are claims about ONE task -- a shared paragraph would be wrong for
+    nine of ten. A task without them still builds, with the fields visibly
+    empty, rather than failing a rebuild over prose.
+    """
+    meta = {**METADATA_AUTHOR, **task.get("toml_metadata", {})}
+    lines = ["[metadata]"]
+    for key in METADATA_KEYS:
+        value = meta.get(key, [] if key == "tags" else 0.0
+                         if key == "expert_time_estimate_hours" else "")
+        if isinstance(value, list):
+            lines.append(f"{key} = [" + ", ".join(f'"{toml_str(v)}"' for v in value) + "]")
+        elif isinstance(value, (int, float)):
+            lines.append(f"{key} = {float(value)}")
+        else:
+            lines.append(f'{key} = "{toml_str(value)}"')
+    return "\n".join(lines) + "\n"
+
+
 def task_toml(name: str, task: dict, variant: str) -> str:
     """Per-task Harbor config, following AlphaShop's validated shape.
 
@@ -208,24 +243,17 @@ name = "bespokelabs/{name}"
 version = "1.0.0"
 description = "{toml_str(task['title'])}. {kind}"
 authors = [{{ name = "SWEWorld" }}]
-keywords = ["sweworld", "curator", "python", "hidden-requirements"{'' if variant == 'blind' else f', "{variant}"'}]
 
-[metadata]
-category = "implementation"
-difficulty = "{'hard' if variant == 'blind' else 'medium'}"
-source_task = "{task['_id']}"
-variant = "{variant}"
-# Kept beside `variant`: a reader that predates the extra arms falls back to
-# this. `spec` and `clues` are controls — they hand over what the task hides.
-# `world` is not: it is the blind ticket against a corpus that has the answers
-# in it somewhere, so a reader falling back should read it as blind.
-control = {str(variant in ('spec', 'clues')).lower()}
-
+{metadata_block(task)}
 [agent]
 # The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
 # /opt/world-state or the deploy queue.
 user = "ubuntu"
-timeout_sec = 3600.0
+# 7200, not 3600. At an hour every g11 trial was still pushing, polling CI and
+# re-running tests in its last minutes, so the cutoff -- not the hidden
+# requirements -- was deciding how much got checked. The difficulty is meant to
+# be finding what nobody wrote down, not racing the clock.
+timeout_sec = 7200.0
 
 [verifier]
 # Root, because grading reads the pristine tree at /opt/world-state/input/curator
@@ -247,7 +275,9 @@ timeout_sec = 2400.0
 # file those args reach supervisord as argv and the world never boots.
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
-network_mode = "public"
+# `allow_internet`, not `network_mode`: the benchmark's task.toml schema names
+# only this one, and Harbor's default network mode is already public.
+allow_internet = true
 cpus = {cpus}
 memory_mb = 13000
 
@@ -525,7 +555,8 @@ RUN chmod 0755 /usr/local/bin/task-setup.sh
 # from `ls /opt/*`, sitting at drwxr-xr-x beside world-state's drwx------. The
 # ingest is unaffected: it runs as root from the healthcheck. Build-time and
 # unconditional, so an ingest that exits early on one of the failure paths below
-# cannot leave the corpus exposed.
+# cannot leave the corpus exposed. And temporary: task-setup.sh deletes it once
+# the ingest succeeds, because the agent may be root and 0700 does not stop root.
 COPY --chmod=0700 plant /opt/task-plant
 
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh
@@ -781,6 +812,16 @@ for team in teams:
 print(f"task-plant: admin in {joined} channel(s)")
 PLANT_JOIN
   echo "task-plant: ingested" >> /opt/world-state/task-plant.log
+  # Now that every row is in the services, the plaintext plant has done its job
+  # and is only an answer key left on disk. 0700 kept the `ubuntu` agent out of
+  # it, but the benchmark's threat model is an agent with root, and root reads
+  # a 0700 directory as easily as anything. Gone from the running container, a
+  # root agent has to find the remarks where everyone else does -- in chat, the
+  # wiki and mail -- among the rest of the corpus. Only after success: a failed
+  # step above exits for the next probe to retry, and that retry needs the plant.
+  # The image's COPY layer still holds it; nothing inside the container can read
+  # a lower layer once the file is removed from the merged view.
+  rm -rf /opt/task-plant
 fi
 
 touch "$MARK"
@@ -820,12 +861,16 @@ REAL_SOLVE_HEAD = '''#!/bin/bash
 # files and stops scores exactly zero with every test reporting "does not
 # import". Pushing IS the solution in this world.
 #
-# The patch is embedded rather than read from a file beside this script: on the
-# apex arms the sibling file was unreadable from the solution's own directory
-# (/tests is root-owned 0700), and a heredoc has no permissions of its own. It is
-# generated from fixtures/oracle.patch at build time, so it cannot drift from the
-# suite that grades it.
+# The patch is `oracle.patch` beside this script, copied from fixtures/ at build
+# time so it cannot drift from the suite that grades it. It used to be a heredoc
+# of a thousand-odd lines, embedded because on the apex arms the sibling file was
+# unreadable from the solution's own directory; Harbor copies all of solution/
+# and runs this as root, so that reason does not apply here, and a patch buried
+# in a shell script is one nobody reviews.
 set -uo pipefail
+
+PATCH="$(dirname "$(readlink -f "$0")")/oracle.patch"
+[ -r "$PATCH" ] || { echo "oracle: $PATCH is missing or unreadable"; exit 1; }
 
 REPO_URL="http://worldadmin:worldadmin@git.world.local/worldadmin/curator.git"
 WORK="$(mktemp -d)"
@@ -836,15 +881,10 @@ wait-for-service --quiet gitea 2>/dev/null || true
 
 git clone --quiet "$REPO_URL" "$WORK/curator" || { echo "oracle: clone failed"; exit 1; }
 cd "$WORK/curator" || exit 1
-
-cat > /tmp/oracle.patch <<'CURATOR_ORACLE_PATCH_EOF'
 '''
 
 REAL_SOLVE_TAIL = '''
-CURATOR_ORACLE_PATCH_EOF
-
-git apply --whitespace=nowarn /tmp/oracle.patch || {{ echo "oracle: patch did not apply"; exit 1; }}
-rm -f /tmp/oracle.patch
+git apply --whitespace=nowarn "$PATCH" || {{ echo "oracle: patch did not apply"; exit 1; }}
 
 git config user.email "worldadmin@world.local"
 git config user.name  "worldadmin"
@@ -873,8 +913,8 @@ else
   echo "oracle: merged PR #$NUM into main"
 fi
 
-# Not required by the score — `score.py` sets reward = hidden_mean and leaves
-# provenance unweighted — but the deploy takes about half a minute here, and
+# Not required by the score — `score.py`'s binary reward is open_feature, the
+# hidden facts and the protected files, and leaves provenance unweighted — but the deploy takes about half a minute here, and
 # letting it land means the oracle run also demonstrates ci_green and deployed
 # rather than leaving two checks reading zero for no reason.
 sleep 45
@@ -902,15 +942,14 @@ def sh_dq(text: str) -> str:
 
 
 def solve(task: dict, slug: str) -> str:
-    """The oracle script for this task: real when there is a patch, stub otherwise."""
+    """The oracle script for this task: real when there is a patch, stub otherwise.
+
+    The patch itself is copied beside it by `emit()`.
+    """
     patch = group_dir(task, slug) / "fixtures" / "oracle.patch"
     if not patch.is_file():
         return STUB_SOLVE
-    body = patch.read_text().rstrip("\n")
-    if "CURATOR_ORACLE_PATCH_EOF" in body:
-        raise SystemExit(f"{task['_id']}: the oracle patch contains the heredoc "
-                         "delimiter; pick another")
-    return REAL_SOLVE_HEAD + body + REAL_SOLVE_TAIL.format(
+    return REAL_SOLVE_HEAD + REAL_SOLVE_TAIL.format(
         title=sh_dq(task["title"]), slug=slug)
 
 TEST_SH = '''#!/usr/bin/env bash
@@ -920,6 +959,10 @@ TEST_SH = '''#!/usr/bin/env bash
 set -uo pipefail
 
 mkdir -p /logs/verifier
+# chown BEFORE the chmod. `mkdir -p` leaves the directory owned by whoever owns
+# /logs, and if that is the agent's uid then 0700 locks the verdict directory to
+# the AGENT rather than to root -- the opposite of the intent, and silent.
+chown root:root /logs/verifier
 # 0700: score.py treats junit.xml and provenance.json found here as
 # authoritative, and run_suites.py drops privileges to import agent code. The
 # directory the verdict is assembled in must not be reachable by the uid that
@@ -937,9 +980,10 @@ chmod 0700 /logs/verifier
 # worker from a root-staged JAIL (run_suites.run_split) and never reads /tests. So
 # keep /tests ROOT-ONLY: the worker -- the one process that runs agent code --
 # then cannot open() ANY answer file by absolute path. That is the whole fix.
-# Locking individual files (judge.py, test_r*.py) did NOT work, because the
-# answers also live in files the worker reaches: /tests/task.json states every
-# expected value in prose, and test_open.py's source carries the answer literals.
+# Locking individual files did NOT work, because the answers also live in files the
+# worker reaches: /tests/task.json states every expected value in prose. (A split
+# suite ships no test_*.py at all now -- they stay in _suites as the human record --
+# so root-only /tests is what keeps task.json out of the worker's reach.)
 # Root-only /tests removes the entire class at once. provenance.py / run_suites.py
 # / score.py / judge.py all run as root and read /tests fine.
 #
@@ -978,7 +1022,7 @@ fi
 python3 /tests/provenance.py
 "${CURATOR_VENV:-/opt/curator-dev/venv}/bin/python" /tests/run_suites.py
 
-# score.py is the only thing that writes rewards.json, so a crash in either of
+# score.py is the only thing that writes reward.json, so a crash in either of
 # the two above still leaves every key present and zero.
 python3 /tests/score.py
 
@@ -1067,11 +1111,24 @@ def write_plant(task: dict, slug: str, variant: str, out: Path) -> None:
                f"no plant delta at {src} — run `cli.py inject {slug}`")
         write(out / "README.md", f"No plant for the {variant} arm: {why}.\n")
         return
+    # Zero-byte files are skipped: setup.sh ingests only a non-empty
+    # comments.jsonl, Harbor drops empty files in transit anyway, and an empty
+    # file shipped in the task is an unreferenced one to the benchmark's review.
     for path in sorted(src.rglob("*")):
-        if path.is_file():
+        if path.is_file() and path.stat().st_size:
             rel = path.relative_to(src)
             (out / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, out / rel)
+    if not any(out.rglob("*")):
+        write(out / "README.md", f"No plant for the {variant} arm: the delta at {src} is empty.\n")
+
+
+# The harness every suite runs under, and what only the non-split pytest path
+# needs on top: a split suite (probe.py + judge.py) never runs pytest, and its
+# jail holds only probe.py, probe_support.py and harness.py.
+SHARED_TEST_FILES = ("run_suites.py", "score.py", "provenance.py", "harness.py",
+                     "judge_io.py")
+PYTEST_TEST_FILES = ("conftest.py", "fakeapi.py")
 
 
 def emit(task: dict, slug: str, variant: str) -> Path:
@@ -1090,20 +1147,39 @@ def emit(task: dict, slug: str, variant: str) -> Path:
     write(out / "environment" / "setup.sh", SETUP, True)
     write_plant(task, slug, variant, out / "environment" / "plant")
     write(out / "solution" / "solve.sh", solve(task, slug), True)
+    patch = group_dir(task, slug) / "fixtures" / "oracle.patch"
+    if patch.is_file():
+        shutil.copyfile(patch, out / "solution" / "oracle.patch")
 
     tests = out / "tests"
     if tests.exists():
         shutil.rmtree(tests)
     # Harbor copies the whole tests/ directory to /tests, so the shared harness
     # is copied in rather than symlinked — a symlink out of the task directory
-    # does not survive the trip.
-    shutil.copytree(SUITES, tests, ignore=shutil.ignore_patterns(
-        "__pycache__", "*.pyc"))
+    # does not survive the trip. Only the harness and THIS task's suite: every
+    # arm used to carry all of `_suites/` -- twenty-odd other tasks' graders and
+    # the bracket notes -- none of which it runs.
+    tests.mkdir(parents=True)
+    split = all((SUITES / task["_suite"] / f).is_file() for f in ("probe.py", "judge.py"))
+    for name in SHARED_TEST_FILES + (() if split else PYTEST_TEST_FILES):
+        if (SUITES / name).is_file():
+            shutil.copyfile(SUITES / name, tests / name)
+    # A split suite's `test_*.py` stay in `_suites` and do NOT ship. They are the
+    # fact-to-assertion source of truth a human reads, and `run_split` never
+    # imports them -- the worker's jail holds probe/probe_support/harness only and
+    # the judge carries the assertions itself. Shipped, they are three files in the
+    # task that nothing builds, runs, solves or verifies.
+    ignore = ["__pycache__", "*.pyc"] + (["test_*.py"] if split else [])
+    shutil.copytree(SUITES / task["_suite"], tests / task["_suite"],
+                    ignore=shutil.ignore_patterns(*ignore))
     write(tests / "test.sh", TEST_SH, True)
-    write(tests / "task.json", json.dumps(
-        {"task_id": task["_id"], "suite": task["_suite"],
-         "variant": variant, "control": variant in ("spec", "clues"),
-         "hidden_requirements": task["hidden_requirements"]}, indent=1))
+    meta = {"task_id": task["_id"], "suite": task["_suite"],
+            "variant": variant, "control": variant in ("spec", "clues"),
+            "hidden_requirements": task["hidden_requirements"]}
+    # Files the ticket says must not change; run_suites.check_protected enforces it.
+    if task.get("protected_files"):
+        meta["protected_files"] = task["protected_files"]
+    write(tests / "task.json", json.dumps(meta, indent=1))
     lint(out)
     return out
 

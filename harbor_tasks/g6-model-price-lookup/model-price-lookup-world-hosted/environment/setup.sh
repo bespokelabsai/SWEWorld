@@ -206,6 +206,16 @@ for team in teams:
 print(f"task-plant: admin in {joined} channel(s)")
 PLANT_JOIN
   echo "task-plant: ingested" >> /opt/world-state/task-plant.log
+  # Now that every row is in the services, the plaintext plant has done its job
+  # and is only an answer key left on disk. 0700 kept the `ubuntu` agent out of
+  # it, but the benchmark's threat model is an agent with root, and root reads
+  # a 0700 directory as easily as anything. Gone from the running container, a
+  # root agent has to find the remarks where everyone else does -- in chat, the
+  # wiki and mail -- among the rest of the corpus. Only after success: a failed
+  # step above exits for the next probe to retry, and that retry needs the plant.
+  # The image's COPY layer still holds it; nothing inside the container can read
+  # a lower layer once the file is removed from the merged view.
+  rm -rf /opt/task-plant
 fi
 
 touch "$MARK"

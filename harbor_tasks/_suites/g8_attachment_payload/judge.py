@@ -1,7 +1,10 @@
 """g8 judge: the process that decides pass/fail and NEVER imports the submission.
 
-Reads the observations `probe.py` wrote (values pulled from live curator) and
-applies the assertions the g8 suite has always made, writing a `junit.xml` whose
+Reads the observations `probe.py` wrote (values pulled from live curator), plus —
+for the ticket's "reuse these as they are" constraint — the submitted source
+under SUBMISSION_SRC and the pristine tree under CURATOR_BASELINE_DIR, which it
+parses with `ast` and never imports. It applies the assertions the g8 suite has
+always made, writing a `junit.xml` whose
 `classname`/`name` are the current suite's node ids — so `score.py` folds them
 into the identical fact keys and `test.sh`/`score.py` are unchanged. No agent
 code runs here, so the report cannot be forged; and `test.sh` locks this file to
@@ -18,20 +21,40 @@ forgery leak in `probe_support.py`, which the worker copies into its jail.
 """
 from __future__ import annotations
 
+import ast
 import base64
 import hashlib
 import json
+import os
 import pathlib
 import sys
 from xml.sax.saxutils import escape, quoteattr
 
+# The judge runs `python3 -I` with no PYTHONPATH, so /tests is not importable by
+# default. judge_io holds the hardened reads (no symlinks, size-capped) every
+# agent-influenced path goes through; harness.py cannot: it imports pytest.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import judge_io  # noqa: E402
+
+# `-I` also drops the script's own directory, and `fixture_spec` sits beside
+# this file: the run's INPUTS, the same derivation the worker ran.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fixture_spec  # noqa: E402
+
 # Answer-free INPUTS, re-derived here so the expected render dicts can embed the
 # exact base64 the renderers produce. Inputs, not answers — but this file holds
 # both, and the worker cannot read either.
-PDF_BYTES = b"%PDF-1.4\n"
-PDF_B64 = base64.b64encode(PDF_BYTES).decode()      # "JVBERi0xLjQK"
-B64_1234 = base64.b64encode(b"1234").decode()       # "MTIzNA=="
-B64_X = base64.b64encode(b"x").decode()             # "eA=="
+# `main` re-derives these from the seed root drew, through the same
+# `fixture_spec.derive` the worker used, before any fact is judged. They are the
+# bytes this run attached, so an observations file recorded from a DIFFERENT run
+# carries a different base64 and a different fingerprint and fails here. That is
+# what closed the measured forgery: a pristine tree (no `types/attachment.py` at
+# all) plus a twelve-line `atexit` hook replaying a recorded observations file
+# scored reward 1.0 while the fixture never moved.
+PDF_BYTES = b""
+PDF_B64 = ""
+PNG_B64 = ""
+B64_X = base64.b64encode(b"x").decode()             # "eA==" - a fixed tiny input
 REMOTE_JPEG = "https://cdn.example.com/photos/cat.jpeg?size=large"
 LONG_PDF_URL = (
     "https://cdn.example.com/reports/"
@@ -72,6 +95,207 @@ def digest_of(text: str) -> str:
     return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
 
 
+# ---------------------------------------------------------------------------
+# "Reuse these as they are" — the source half of the ticket
+#
+# The ticket's constraints section names seven pieces of curator that this
+# change must leave alone (`instruction.md`: "Reuse `BaseType.serialize()`,
+# `BaseType._is_local_uri` / `_load_file_as_b64` / `is_local`,
+# `_MultiModalPrompt.load` / `.model_validate`, and `_unpack_multimodal` as they
+# are"). They live INSIDE the two files the ticket also edits, so no whole-file
+# `protected_files` entry can express it: a submission that rewrote `serialize()`
+# to suit its own block builder passed every behavioural check, because every
+# check goes through the new layer.
+#
+# So the judge compares them, function by function, against the pristine tree
+# root stages at CURATOR_BASELINE_DIR. AST, not text: a reflowed line or a
+# reworded docstring is not a behaviour change, while a new branch or a changed
+# call is. Nothing is imported — `ast.parse` only reads.
+# ---------------------------------------------------------------------------
+_REUSED_AS_IS = (
+    ("types/prompt.py", "Image", "serialize"),
+    ("types/prompt.py", "File", "serialize"),
+    ("types/prompt.py", "BaseType", "_is_local_uri"),
+    ("types/prompt.py", "BaseType", "_load_file_as_b64"),
+    ("types/prompt.py", "BaseType", "is_local"),
+    ("types/prompt.py", "_MultiModalPrompt", "load"),
+    ("request_processor/online/base_online_request_processor.py",
+     "BaseOnlineRequestProcessor", "_unpack_multimodal"),
+)
+# `.model_validate` is pydantic's own; "reuse it as it is" means the prompt model
+# does not grow an override of it.
+_NOT_OVERRIDDEN = (("types/prompt.py", "_MultiModalPrompt", "model_validate"),)
+
+
+def _submission_text(rel: str) -> str:
+    root = pathlib.Path(os.environ.get("SUBMISSION_SRC", ""))
+    for candidate in (root / "bespokelabs/curator" / rel, root / "src/bespokelabs/curator" / rel):
+        if candidate.is_file():
+            return judge_io.read_text(candidate)
+    raise Fail(f"cannot read submitted {rel} under {root}")
+
+
+def _baseline_text(rel: str) -> str:
+    """The file as the world shipped it.
+
+    A missing baseline FAILS rather than skips: "unchanged" is exactly the claim
+    that cannot be checked without something to compare against, and a check
+    that passes when its evidence is absent is worse than no check.
+    """
+    root = os.environ.get("CURATOR_BASELINE_DIR")
+    if not root:
+        raise Fail("CURATOR_BASELINE_DIR is unset: cannot prove the reused helpers are unchanged")
+    path = pathlib.Path(root) / rel
+    if not path.is_file():
+        raise Fail(f"no pristine {rel} at {path}: cannot prove the reused helpers are unchanged")
+    return judge_io.read_text(path)
+
+
+def _tree(src: str, what: str) -> ast.Module:
+    try:
+        return ast.parse(src)
+    except SyntaxError as exc:
+        raise Fail(f"{what} does not parse: {exc}")
+
+
+# --- resolving what the module BINDS, rather than searching for a match ------
+#
+# "Is this still the code the world shipped?" means nothing unless it reads the
+# method Python binds. The first version walked the tree and took the first
+# class/def of the name, which is the opposite of what Python does, and that was
+# a full bypass of the whole reward. Measured on this suite: the identical
+# rewrite of `File.serialize` that fails honestly (reward 0) passed 10/10 with a
+# decoy `class File` carrying the pristine method inserted ABOVE the real one,
+# and passed again with every class body left byte-identical and
+# `File.serialize = _mine`, `Image.serialize = _mine` and
+# `_MultiModalPrompt.model_validate = classmethod(...)` appended at module level
+# — the last of which also walked past the "does not override model_validate"
+# assertion.
+#
+# So: module level only; a name defined twice is REFUSED rather than resolved
+# (nothing in this ticket has a reason to define one of these twice); and every
+# later rebinding of the name is refused wherever it sits. Refusal, not
+# reachability analysis, is why there is no dead-code list here: a second `def`
+# or an assignment of the name under `if False:`, `while False:`, `for _ in []:`
+# or after a `return` is rejected exactly like a live one, so a submission
+# cannot argue its decoy about which branch runs.
+def _module_class(tree: ast.Module, cls: str, what: str) -> ast.ClassDef:
+    nodes = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == cls]
+    if len(nodes) > 1:
+        raise Fail(f"{what}: class {cls} is defined {len(nodes)} times at module level; Python "
+                   "binds the last one, so a decoy class cannot stand in for it")
+    if not nodes:
+        raise Fail(f"{what}: no module-level class {cls}")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == cls
+                                                for t in node.targets):
+            raise Fail(f"{what}: the name {cls} is reassigned at line {node.lineno}, so the class "
+                       "read here is not the one the module exports")
+    return nodes[0]
+
+
+def _rebindings(tree: ast.Module, cls: str, name: str, what: str) -> None:
+    """Refuse every module-level way of replacing `cls.name` after its `def`."""
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(
+                isinstance(t, ast.Attribute) and t.attr == name and isinstance(t.value, ast.Name)
+                and t.value.id == cls for t in node.targets):
+            raise Fail(f"{what}: {cls}.{name} is reassigned at line {node.lineno}, so the method "
+                       "read here is not the one the class ends up with")
+        if (isinstance(node, ast.Call) and getattr(node.func, "id", "") == "setattr"
+                and len(node.args) >= 2 and isinstance(node.args[0], ast.Name)
+                and node.args[0].id == cls and isinstance(node.args[1], ast.Constant)
+                and node.args[1].value == name):
+            raise Fail(f"{what}: setattr({cls}, {name!r}, ...) at line {node.lineno} replaces the "
+                       "method after its definition")
+
+
+def _class_body_bindings(klass: ast.ClassDef, name: str, what: str) -> None:
+    """Refuse a second binding of `name` anywhere in the class body, at any depth."""
+    for stmt in klass.body:
+        # The direct `def`s and the class's other members are the class as it
+        # reads; what is looked for here is a SECOND binding of this one name,
+        # which is every other kind of statement a class body can hold.
+        if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        for node in ast.walk(stmt):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+                raise Fail(f"{what}: {klass.name}.{name} is also defined at line {node.lineno}, "
+                           "under a conditional or a loop in the class body")
+            targets = (node.targets if isinstance(node, ast.Assign)
+                       else [node.target] if isinstance(node, ast.AnnAssign) else [])
+            if any(isinstance(t, ast.Name) and t.id == name for t in targets):
+                raise Fail(f"{what}: {klass.name}.{name} is rebound by an assignment in the class "
+                           f"body at line {node.lineno}")
+
+
+def _bound_method(tree: ast.Module, classname: str, funcname: str, what: str):
+    """`classname.funcname` as the module binds it, or a Fail naming the dodge."""
+    klass = _module_class(tree, classname, what)
+    direct = [stmt for stmt in klass.body
+              if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name == funcname]
+    if len(direct) > 1:
+        raise Fail(f"{what}: {classname}.{funcname} is defined {len(direct)} times in one class "
+                   "body; Python binds the last one, so a duplicate definition is not the "
+                   "implementation the world shipped")
+    _class_body_bindings(klass, funcname, what)
+    _rebindings(tree, classname, funcname, what)
+    return direct[0] if direct else None
+
+
+def _normalized(node) -> str:
+    """One function's shape, with its docstring and its formatting removed.
+
+    `ast.dump` without attributes already drops line numbers and column offsets,
+    so whitespace and comments cannot decide this; dropping a leading docstring
+    expression means a reworded docstring cannot either. What is left is the
+    decorators, the signature and the statements — the behaviour the ticket says
+    to leave alone.
+    """
+    body = list(node.body)
+    if (body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant)
+            and isinstance(body[0].value.value, str)):
+        body = body[1:] or [ast.Pass()]
+    # Dumped piece by piece rather than by rebuilding a FunctionDef: the node's
+    # own field list grew a `type_params` entry in 3.12, and a constructor call
+    # that misses a field dumps a node this check would then compare unequal to
+    # an identical one.
+    return " | ".join([
+        node.name,
+        ast.dump(node.args),
+        ast.dump(node.returns) if node.returns is not None else "",
+        ";".join(ast.dump(decorator) for decorator in node.decorator_list),
+        ast.dump(ast.Module(body=body, type_ignores=[])),
+    ])
+
+
+def _check_reused_as_is():
+    for rel, classname, funcname in _REUSED_AS_IS:
+        mine_tree = _tree(_submission_text(rel), f"the submitted {rel}")
+        base_tree = _tree(_baseline_text(rel), f"the pristine {rel}")
+        theirs = _bound_method(base_tree, classname, funcname,
+                               f"fixture drift: the pristine {rel}")
+        ok(theirs is not None, f"pristine {classname}.{funcname} not found in {rel}; baseline unusable")
+        mine = _bound_method(mine_tree, classname, funcname, rel)
+        ok(mine is not None,
+           f"{classname}.{funcname} is gone from {rel}; the ticket says to reuse it as it is")
+        if _normalized(mine) != _normalized(theirs):
+            raise Fail(f"{classname}.{funcname} in {rel} was rewritten (line {mine.lineno}); "
+                       "the ticket says to reuse it as it is")
+    for rel, classname, funcname in _NOT_OVERRIDDEN:
+        base_tree = _tree(_baseline_text(rel), f"the pristine {rel}")
+        ok(_bound_method(base_tree, classname, funcname,
+                         f"fixture drift: the pristine {rel}") is None,
+           f"pristine {classname} already defines {funcname}; this check has the wrong baseline")
+        # Same three refusals, read the other way round: the name must not be
+        # bound in the class AT ALL, and `_bound_method` raises on the two
+        # roundabout bindings (a def under a conditional, `cls.name = ...` or
+        # `setattr(cls, "name", ...)`) before it can return None.
+        mine_tree = _tree(_submission_text(rel), f"the submitted {rel}")
+        ok(_bound_method(mine_tree, classname, funcname, rel) is None,
+           f"{classname} now overrides {funcname}; the ticket says to reuse pydantic's as it is")
+
+
 def raised(info, *, mro=None, string=None, msg=""):
     """The `pytest.raises(...)` half: it raised, of the expected type, with the
     expected message. Exception ATTRIBUTES are checked by the caller, because
@@ -91,12 +315,26 @@ def judge_open(o):
     ok("ValueError" in o["attachment_error_mro"], "AttachmentError subclasses ValueError")
     ok("AttachmentError" in o["unknown_mime_mro"], "UnknownAttachmentMimeType subclasses AttachmentError")
     ok("AttachmentError" in o["missing_local_mro"], "MissingLocalAttachment subclasses AttachmentError")
+    ok("AttachmentError" in o["empty_attachment_mro"], "EmptyAttachment subclasses AttachmentError")
+
+    # the module the ticket names holds every name it declares there
+    for name, present in sorted(o["attachment_module_exports"].items()):
+        ok(present, f"bespokelabs.curator.types.attachment does not export {name}")
+    module_file = (o["attachment_module_file"] or "").replace("\\", "/")
+    ok(module_file.endswith("bespokelabs/curator/types/attachment.py"),
+       f"the attachment module is {module_file!r}, not types/attachment.py")
+
     eq(o["normalize_pdf"], "application/pdf", "normalize_mime_type pdf")
     ok(o["normalize_none"] is None, "normalize_mime_type(None)")
     ok(o["normalize_empty"] is None, "normalize_mime_type('')")
 
     eq(o["mime_remote_jpeg"], "image/jpeg", "remote jpeg mime (query stripped)")
     ok(o["mime_asset"] is None, "no image/png fallback")
+    ok(o["mime_download"] is None, "unguessable file mime stays None")
+    eq(o["mime_asset_warn_count"], 1, "one warning for an unguessable image url")
+    eq(o["mime_download_warn_count"], 1, "one warning for an unguessable file url")
+    eq(o["mime_quiet_guess"], "application/pdf", "a guessable url resolves")
+    eq(o["mime_quiet_warn_count"], 0, "a successful guess is quiet")
     eq(o["mime_file_pdf"], "application/pdf", "file pdf mime")
     eq(o["mime_png_content"], "image/png", "png sniffed from content")
 
@@ -116,24 +354,63 @@ def judge_open(o):
     eq(o["image_block_name_detail"], ["attachment.bin", None], "pdf image name/detail")
     eq(o["image_block_payload"], PDF_B64, "pdf image payload")
 
+    # frozen, the declaration and the behaviour: the ticket writes
+    # `model_config = ConfigDict(frozen=True)` on a pydantic model, so a plain
+    # class whose one __setattr__ happens to raise is not what it asked for
     raised(o["frozen"], msg="block is frozen")
+    raised(o["frozen_payload"], msg="block payload is frozen")
+    ok(o["block_is_basemodel"] is True, "AttachmentBlock is not a pydantic BaseModel")
+    ok(o["block_config_frozen"] is True,
+       f"AttachmentBlock.model_config frozen is {o['block_config_frozen']!r}, not True")
+    for field in ("kind", "source", "mime_type", "payload", "filename", "detail"):
+        ok(field in o["block_field_names"], f"AttachmentBlock has no {field} field: {o['block_field_names']}")
+    eq({k: v for k, v in sorted(o["block_required"].items())},
+       {"detail": False, "filename": True, "kind": True, "mime_type": True,
+        "payload": True, "source": True},
+       "which declared block fields are required")
+    ok(o["block_detail_default"] is None, f"detail default is {o['block_detail_default']!r}, not None")
+    ok(o["block_revalidates"] is True, "a block does not re-validate from its own dump")
+    raised(o["block_bad_kind"], mro="ValidationError", msg="kind outside the ticket's Literal")
+    raised(o["block_bad_source"], mro="ValidationError", msg="source outside the ticket's Literal")
 
     eq(o["remote_block_triple"], ["image", "url", REMOTE_JPEG], "remote jpeg -> url block")
     eq(o["remote_block_name_detail"], ["cat.jpeg", "auto"], "remote jpeg name/detail")
 
-    raised(o["miss_typo"], mro="MissingLocalAttachment", msg="missing typo")
+    # the refusals, with the messages the ticket writes out
+    raised(o["miss_typo"], mro="MissingLocalAttachment", msg="missing typo",
+           string="Attachment path is neither an http(s) URL nor an existing file: "
+                  "'/tmp/definitely-missing/typo.png'")
     eq(o["miss_typo"].get("url"), "/tmp/definitely-missing/typo.png", "missing typo url")
-    raised(o["miss_s3"], mro="MissingLocalAttachment", msg="missing s3")
+    raised(o["miss_s3"], mro="MissingLocalAttachment", msg="missing s3",
+           string="Attachment path is neither an http(s) URL nor an existing file: "
+                  "'s3://bucket/report.pdf'")
     eq(o["miss_s3"].get("url"), "s3://bucket/report.pdf", "missing s3 url")
-    raised(o["miss_notes"], mro="MissingLocalAttachment", msg="missing beats unguessable")
+    raised(o["miss_notes"], mro="MissingLocalAttachment", msg="missing beats unguessable",
+           string="Attachment path is neither an http(s) URL nor an existing file: "
+                  "'/tmp/definitely-missing/notes'")
 
-    raised(o["unknown_download"], mro="UnknownAttachmentMimeType", msg="unknown download")
+    raised(o["unknown_download"], mro="UnknownAttachmentMimeType", msg="unknown download",
+           string="Cannot determine MIME type for file attachment: 'https://example.com/download'")
     eq(o["unknown_download"].get("url"), "https://example.com/download", "unknown download url")
     eq(o["unknown_download"].get("attachment_type"), "file", "unknown download attachment_type")
     ok("ValueError" in o["unknown_download"].get("mro", []), "unknown download is a ValueError")
-    raised(o["unknown_asset"], mro="UnknownAttachmentMimeType", msg="unknown asset")
+    raised(o["unknown_asset"], mro="UnknownAttachmentMimeType", msg="unknown asset",
+           string="Cannot determine MIME type for image attachment: 'https://example.com/asset'")
     eq(o["unknown_asset"].get("attachment_type"), "image", "unknown asset attachment_type")
-    raised(o["unknown_extensionless"], mro="UnknownAttachmentMimeType", msg="unknown extensionless")
+    # the extensionless payload sits in a throwaway directory, so its message is
+    # rebuilt from the path the probe recorded rather than from a literal
+    raised(o["unknown_extensionless"], mro="UnknownAttachmentMimeType", msg="unknown extensionless",
+           string=f"Cannot determine MIME type for file attachment: {o['extensionless_url']!r}")
+
+    # an empty payload, refused after the MIME check, with its stated message
+    eq(o["empty_serializes_to"], "", "an empty local file serializes to ''")
+    raised(o["empty_payload"], mro="EmptyAttachment", msg="empty payload",
+           string=f"Attachment empty.pdf has an empty payload: {o['empty_url']!r}")
+    eq(o["empty_payload"].get("url"), o["empty_url"], "empty payload url")
+    eq(o["empty_payload"].get("filename"), "empty.pdf", "empty payload filename")
+    ok("AttachmentError" in o["empty_payload"].get("mro", []), "EmptyAttachment is an AttachmentError")
+    raised(o["empty_unguessable"], mro="UnknownAttachmentMimeType",
+           msg="the MIME check speaks before the empty check")
 
     eq(o["render_openai_pdf"], {
         "type": "file",
@@ -145,7 +422,7 @@ def judge_open(o):
     }, "openai render of remote image")
     eq(o["render_openai_file"], {
         "type": "image_url",
-        "image_url": {"url": f"data:image/png;base64,{B64_1234}", "detail": "auto"},
+        "image_url": {"url": f"data:image/png;base64,{PNG_B64}", "detail": "auto"},
     }, "openai render of png file")
     eq(o["remote_pdf_kind_source"], ["document", "url"], "remote pdf kind/source")
     eq(o["render_openai_remote_pdf"], {
@@ -188,6 +465,12 @@ def judge_open(o):
 
     eq(o["local_pdf_basename"], "report.pdf", "local pdf basename")
     ok(o["get_base64_size_pdf"] > 0, "get_base64_size positive")
+
+    # the constraints section: the helpers this change is told to reuse as they
+    # are, compared with the pristine tree. Source, not behaviour — every
+    # behavioural check above goes through the NEW layer, so a rewritten
+    # `serialize()` is invisible to all of them.
+    _check_reused_as_is()
 
 
 # ---------------------------------------------------------------------------
@@ -266,7 +549,7 @@ def judge_r1_observability(o):
 # r2 — what the canonical block records about itself
 # ---------------------------------------------------------------------------
 def judge_r2_rule(o):
-    eq(o["fingerprint"], "sha256:fc1c4358d4aa", "pdf fingerprint")
+    eq(o["fingerprint"], digest_of(PDF_B64), "pdf fingerprint")
     eq(o["fingerprint"], digest_of(PDF_B64), "pdf fingerprint == digest_of(PDF_B64)")
     ok(o["fingerprint"].startswith("sha256:") and len(o["fingerprint"]) == len("sha256:") + 12,
        "fingerprint shape")
@@ -274,9 +557,9 @@ def judge_r2_rule(o):
     eq(o["other_fingerprint"], digest_of("eA=="), "other fingerprint == digest_of('eA==')")
     ne(o["other_fingerprint"], o["fingerprint"], "fingerprint follows payload")
     eq(o["other_payload"], "eA==", "other payload")
-    eq(o["same_bytes_fingerprint"], "sha256:fc1c4358d4aa", "same bytes fingerprint the same")
+    eq(o["same_bytes_fingerprint"], digest_of(PDF_B64), "same bytes fingerprint the same")
     if o["helper_present"]:
-        eq(o["helper_pdf"], "sha256:fc1c4358d4aa", "attachment_fingerprint(PDF_B64)")
+        eq(o["helper_pdf"], digest_of(PDF_B64), "attachment_fingerprint(PDF_B64)")
         eq(o["helper_x"], "sha256:5e21d86b709b", "attachment_fingerprint('eA==')")
         eq(o["helper_empty"], digest_of(""), "attachment_fingerprint('')")
     if o["hex_len"] is not None:
@@ -372,9 +655,18 @@ def junit(results):
     return "\n".join(lines)
 
 
-def main(obs_path: str, out_path: str) -> int:
+def main(obs_path: str, out_path: str, seed: str) -> int:
+    global PDF_BYTES, PDF_B64, PNG_B64
+    # A missing seed FAILS every fact rather than grading against a guess: the
+    # expected base64 and fingerprints below ARE the seed's, and a judge that
+    # invented its own inputs would be grading a run that never happened.
+    spec = fixture_spec.derive(seed) if seed else None
+    if spec is not None:
+        PDF_BYTES = spec["pdf_bytes"]
+        PDF_B64 = base64.b64encode(PDF_BYTES).decode()
+        PNG_B64 = base64.b64encode(spec["png_bytes"]).decode()
     try:
-        observations = json.loads(pathlib.Path(obs_path).read_text())
+        observations = json.loads(judge_io.read_text(obs_path))
     except (OSError, ValueError) as exc:
         observations = {}
         print(f"judge: cannot read observations: {exc}", file=sys.stderr)
@@ -382,6 +674,9 @@ def main(obs_path: str, out_path: str) -> int:
     results = []
     for node, judge in JUDGES.items():
         classname, name = node.split("::", 1)
+        if spec is None:
+            results.append((classname, name, "no run seed: the inputs this run used are unknown"))
+            continue
         probe = observations.get(node)
         if probe is None:
             results.append((classname, name, "no observation from probe"))
@@ -405,4 +700,5 @@ def main(obs_path: str, out_path: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1], sys.argv[2]))
+    raise SystemExit(main(sys.argv[1], sys.argv[2],
+                          sys.argv[3] if len(sys.argv) > 3 else ""))

@@ -1,16 +1,21 @@
 """attachment-payload — the openly stated feature: one canonical attachment block.
 
 Everything asserted here is written down in the ticket: the new
-`types/attachment.py` module with `AttachmentBlock`, `AttachmentError`,
-`UnknownAttachmentMimeType`, `MissingLocalAttachment`, `normalize_mime_type` and
+`types/attachment.py` module with `AttachmentBlock` (a frozen pydantic model
+with the six fields the ticket declares), `AttachmentError`,
+`UnknownAttachmentMimeType`, `MissingLocalAttachment`, `EmptyAttachment` — all
+three with the exact messages the ticket writes — `normalize_mime_type` and
 `_FALLBACK_ATTACHMENT_FILENAME`; `BaseType.is_remote` and
 `_MultiModalPrompt.attachments()`; the single MIME policy with its four worked
-values; `_canonical_attachment_block` deciding `kind` from the MIME rather than
-from the Python class; the two module-level renderers and their exact dicts;
-`_format_multimodal` surviving as a one-shot; the litellm dispatch on
-`_uses_anthropic_multimodal_format()`; attachments before text in
-`_handle_multi_modal_prompt`; and `calculate_input_tokens` dispatching on
-`block["type"]` instead of indexing `msg["image_url"]`.
+values and its one warning per failed guess; `_canonical_attachment_block`
+deciding `kind` from the MIME rather than from the Python class and refusing in
+the ticket's order (missing local path, unresolvable MIME, empty payload); the
+two module-level renderers and their exact dicts; `_format_multimodal` surviving
+as a one-shot; the litellm dispatch on `_uses_anthropic_multimodal_format()`;
+attachments before text in `_handle_multi_modal_prompt`; `calculate_input_tokens`
+dispatching on `block["type"]` instead of indexing `msg["image_url"]`; and the
+constraints section's "reuse these as they are", checked against the pristine
+tree because every behavioural check above runs through the new layer instead.
 
 Nothing here touches a hidden fact. It never mentions a size ceiling, a
 `size_mb` field, an attachment count or what a document block COSTS the
@@ -32,6 +37,7 @@ from __future__ import annotations
 
 import base64
 import os
+import pathlib
 from types import SimpleNamespace
 
 import pytest
@@ -46,13 +52,30 @@ from probe_support import (  # noqa: F401 - several are re-exported for test_r1/
     REMOTE_JPEG,
     StubOnline,
     _MultiModalPrompt,
+    attachment_module,
     attachment_symbol,
     block_of,
+    capture_warnings,
     get_base64_size,
     importable,
     raising_stub,
     write,
 )
+
+# The names the ticket places in `types/attachment.py` by name, and the block
+# fields it declares. `attachment_symbol` sweeps four modules on purpose (a
+# hidden requirement's symbols may be spelled anywhere); these the ticket does
+# place, so where they live is itself part of the stated feature.
+TICKET_ATTACHMENT_NAMES = (
+    "AttachmentBlock",
+    "AttachmentError",
+    "UnknownAttachmentMimeType",
+    "MissingLocalAttachment",
+    "EmptyAttachment",
+    "normalize_mime_type",
+    "_FALLBACK_ATTACHMENT_FILENAME",
+)
+TICKET_BLOCK_FIELDS = ("kind", "source", "mime_type", "payload", "filename", "detail")
 
 
 # =============================================================================
@@ -68,6 +91,7 @@ def test_open_feature__one_canonical_block_every_provider_renders_from(tmp_path)
     AttachmentError = attachment_symbol("AttachmentError")
     UnknownAttachmentMimeType = attachment_symbol("UnknownAttachmentMimeType")
     MissingLocalAttachment = attachment_symbol("MissingLocalAttachment")
+    EmptyAttachment = attachment_symbol("EmptyAttachment")
     normalize_mime_type = attachment_symbol("normalize_mime_type")
     fallback_name = attachment_symbol("_FALLBACK_ATTACHMENT_FILENAME")
 
@@ -76,13 +100,30 @@ def test_open_feature__one_canonical_block_every_provider_renders_from(tmp_path)
     assert issubclass(AttachmentError, ValueError)
     assert issubclass(UnknownAttachmentMimeType, AttachmentError)
     assert issubclass(MissingLocalAttachment, AttachmentError)
+    assert issubclass(EmptyAttachment, AttachmentError)
     assert normalize_mime_type("  Application/PDF; charset=binary ") == "application/pdf"
     assert normalize_mime_type(None) is None
     assert normalize_mime_type("") is None
 
+    # -- the module the ticket names holds the names it declares there -------
+    assert attachment_module is not None, f"types/attachment.py did not import: {ATTACHMENT_IMPORT_ERROR!r}"
+    for name in TICKET_ATTACHMENT_NAMES:
+        assert hasattr(attachment_module, name), f"types/attachment.py does not export {name}"
+    assert attachment_module.__file__.replace("\\", "/").endswith(
+        "bespokelabs/curator/types/attachment.py")
+
     # -- one MIME policy, shared by Image and File --------------------------
     assert Image(url=REMOTE_JPEG).mime_type == "image/jpeg"          # query stripped
-    assert Image(url="https://example.com/asset").mime_type is None  # no image/png fallback
+    # a failed guess leaves mime_type None and says so exactly once, on both classes
+    with capture_warnings() as unguessable_image:
+        assert Image(url="https://example.com/asset").mime_type is None  # no image/png fallback
+    assert unguessable_image.count == 1
+    with capture_warnings() as unguessable_file:
+        assert File(url="https://example.com/download").mime_type is None
+    assert unguessable_file.count == 1
+    with capture_warnings() as guessable:
+        assert File(url="https://cdn.example.com/reports/report.pdf").mime_type == "application/pdf"
+    assert guessable.count == 0
     assert File(url="/tmp/x/report.PDF", mime_type="Application/PDF; charset=binary").mime_type == "application/pdf"
     assert Image(content=b"\x89PNG\r\n").mime_type == "image/png"    # the one surviving default
 
@@ -114,9 +155,30 @@ def test_open_feature__one_canonical_block_every_provider_renders_from(tmp_path)
     assert (image_block.filename, image_block.detail) == ("attachment.bin", None)
     assert image_block.payload == PDF_B64
 
-    # frozen
+    # -- the block is the pydantic model the ticket declares ----------------
+    import pydantic
+
     with pytest.raises(Exception):
         file_block.kind = "document"
+    with pytest.raises(Exception):
+        file_block.payload = "tampered"
+    assert issubclass(AttachmentBlock, pydantic.BaseModel)
+    assert dict(AttachmentBlock.model_config or {}).get("frozen") is True
+    for field in TICKET_BLOCK_FIELDS:
+        assert field in AttachmentBlock.model_fields
+    assert {name: AttachmentBlock.model_fields[name].is_required() for name in TICKET_BLOCK_FIELDS} == {
+        "kind": True, "source": True, "mime_type": True, "payload": True,
+        "filename": True, "detail": False,
+    }
+    assert AttachmentBlock.model_fields["detail"].default is None
+    # the Literal fields, exercised through a block the seam really built, so
+    # this never has to name the fields a hidden requirement added
+    dumped = file_block.model_dump()
+    assert type(file_block).model_validate(dumped) == file_block
+    with pytest.raises(pydantic.ValidationError):
+        type(file_block).model_validate({**dumped, "kind": "video"})
+    with pytest.raises(pydantic.ValidationError):
+        type(file_block).model_validate({**dumped, "source": "ftp"})
 
     # -- a remote url is a url block; a missing local path is refused -------
     remote_block = block_of(stub, remote_jpeg)
@@ -129,10 +191,14 @@ def test_open_feature__one_canonical_block_every_provider_renders_from(tmp_path)
     with pytest.raises(MissingLocalAttachment) as caught:
         block_of(stub, Image(url="/tmp/definitely-missing/typo.png"))
     assert caught.value.url == "/tmp/definitely-missing/typo.png"
+    assert str(caught.value) == ("Attachment path is neither an http(s) URL nor an existing file: "
+                                "'/tmp/definitely-missing/typo.png'")
 
     with pytest.raises(MissingLocalAttachment) as caught:
         block_of(stub, File(url="s3://bucket/report.pdf"))
     assert caught.value.url == "s3://bucket/report.pdf"
+    assert str(caught.value) == ("Attachment path is neither an http(s) URL nor an existing file: "
+                                "'s3://bucket/report.pdf'")
 
     # missing beats unguessable: the ordering of the two checks
     with pytest.raises(MissingLocalAttachment):
@@ -144,14 +210,30 @@ def test_open_feature__one_canonical_block_every_provider_renders_from(tmp_path)
     assert caught.value.url == "https://example.com/download"
     assert caught.value.attachment_type == "file"      # BaseType.type, not the block kind
     assert isinstance(caught.value, ValueError)
+    assert str(caught.value) == ("Cannot determine MIME type for file attachment: "
+                                "'https://example.com/download'")
 
     with pytest.raises(UnknownAttachmentMimeType) as caught:
         block_of(stub, Image(url="https://example.com/asset"))
     assert caught.value.attachment_type == "image"
+    assert str(caught.value) == ("Cannot determine MIME type for image attachment: "
+                                "'https://example.com/asset'")
 
     extensionless = File(url=write(tmp_path, "notes", b"hello"))
     with pytest.raises(UnknownAttachmentMimeType):
         block_of(stub, extensionless)
+
+    # -- an empty payload is refused, AFTER the MIME check ------------------
+    empty_url = write(tmp_path, "empty.pdf", b"")
+    assert File(url=empty_url).serialize() == ""
+    with pytest.raises(EmptyAttachment) as caught:
+        block_of(stub, File(url=empty_url))
+    assert (caught.value.url, caught.value.filename) == (empty_url, "empty.pdf")
+    assert str(caught.value) == f"Attachment empty.pdf has an empty payload: {empty_url!r}"
+    # the MIME check speaks first, so an empty file with an unguessable name is
+    # refused for its MIME rather than for being empty
+    with pytest.raises(UnknownAttachmentMimeType):
+        block_of(stub, File(url=write(tmp_path, "empty-notes", b"")))
 
     # -- the OpenAI rendering, all four shapes ------------------------------
     from bespokelabs.curator.request_processor.online.base_online_request_processor import _render_openai_block
@@ -242,3 +324,43 @@ def test_open_feature__one_canonical_block_every_provider_renders_from(tmp_path)
 
     assert os.path.basename(local_pdf.url) == "report.pdf"
     assert get_base64_size(PDF_B64) > 0
+
+    # -- the helpers the ticket says to reuse as they are --------------------
+    # Source, not behaviour: every check above goes through the NEW layer, so a
+    # rewritten `serialize()` is invisible to all of them. The graded copy of
+    # this lives in `judge.py` (`_check_reused_as_is`), which reads the pristine
+    # tree root staged for it; here it reads the same tree through `harness`.
+    import ast
+
+    import bespokelabs.curator as curator_pkg
+    from harness import baseline_text
+
+    def body_of(src, classname, funcname):
+        for node in ast.walk(ast.parse(src)):
+            if isinstance(node, ast.ClassDef) and node.name == classname:
+                for child in node.body:
+                    if isinstance(child, ast.FunctionDef) and child.name == funcname:
+                        statements = [s for s in child.body
+                                      if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant))]
+                        return ast.dump(ast.Module(body=statements, type_ignores=[])) + ast.dump(child.args)
+        return None
+
+    live = pathlib.Path(curator_pkg.__file__).parent
+    for rel, classname, funcname in (
+        ("types/prompt.py", "Image", "serialize"),
+        ("types/prompt.py", "File", "serialize"),
+        ("types/prompt.py", "BaseType", "_is_local_uri"),
+        ("types/prompt.py", "BaseType", "_load_file_as_b64"),
+        ("types/prompt.py", "BaseType", "is_local"),
+        ("types/prompt.py", "_MultiModalPrompt", "load"),
+        ("request_processor/online/base_online_request_processor.py",
+         "BaseOnlineRequestProcessor", "_unpack_multimodal"),
+    ):
+        shipped = baseline_text(rel)
+        if shipped is None:
+            continue  # no baseline to diff against locally; judge.py fails closed instead
+        mine = (live / rel).read_text()
+        assert body_of(mine, classname, funcname) == body_of(shipped, classname, funcname), (
+            f"{classname}.{funcname} in {rel} was rewritten; the ticket says to reuse it as it is")
+    prompt_src = (live / "types/prompt.py").read_text()
+    assert body_of(prompt_src, "_MultiModalPrompt", "model_validate") is None

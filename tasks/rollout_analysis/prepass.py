@@ -152,7 +152,12 @@ def main(tasks):
     os.makedirs(f"{S}/prepass", exist_ok=True)
     for g in tasks:
         x = T[g]
-        remarks = parse_key(f"{REPO}/{x['arm']}/solution/hidden_requirements.md")
+        # Hosted arms keep the key in .horizon-meta/ (not pushed: an answer key in
+        # solution/ is an unreferenced file to the benchmark's reviewers).
+        key = next(p for p in (f"{REPO}/{x['arm']}/.horizon-meta/hidden_requirements.md",
+                               f"{REPO}/{x['arm']}/solution/hidden_requirements.md")
+                   if os.path.exists(p))
+        remarks = parse_key(key)
         vdir = f"{S}/rollouts/{g}/v{x['v']}"
         runs = {}
         for m in MAN[g]:

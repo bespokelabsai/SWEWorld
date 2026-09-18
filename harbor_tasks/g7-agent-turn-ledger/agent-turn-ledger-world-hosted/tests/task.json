@@ -42,5 +42,32 @@
    ],
    "earlier_reversed_version": "An earlier build matched the token anywhere in the message and case-insensitively; that was reversed to a case-sensitive, suffix-only match after an agent quoted the token mid-sentence and ended the conversation a turn early."
   }
+ ],
+ "protected_files": [
+  "src/bespokelabs/curator/client.py",
+  "src/bespokelabs/curator/db.py",
+  "src/bespokelabs/curator/llm/llm.py",
+  "src/bespokelabs/curator/llm/prompt_formatter.py",
+  "src/bespokelabs/curator/request_processor/__init__.py",
+  "src/bespokelabs/curator/request_processor/_default_rate_limits.json",
+  "src/bespokelabs/curator/request_processor/_factory.py",
+  "src/bespokelabs/curator/request_processor/base_request_processor.py",
+  "src/bespokelabs/curator/request_processor/batch/anthropic_batch_request_processor.py",
+  "src/bespokelabs/curator/request_processor/batch/azure_batch_request_processor.py",
+  "src/bespokelabs/curator/request_processor/batch/base_batch_request_processor.py",
+  "src/bespokelabs/curator/request_processor/batch/gemini_batch_request_processor.py",
+  "src/bespokelabs/curator/request_processor/batch/mistral_batch_request_processor.py",
+  "src/bespokelabs/curator/request_processor/batch/openai_batch_request_processor.py",
+  "src/bespokelabs/curator/request_processor/config.py",
+  "src/bespokelabs/curator/request_processor/event_loop.py",
+  "src/bespokelabs/curator/request_processor/offline/base_offline_request_processor.py",
+  "src/bespokelabs/curator/request_processor/offline/vllm_offline_request_processor.py",
+  "src/bespokelabs/curator/request_processor/online/anthropic_online_request_processor.py",
+  "src/bespokelabs/curator/request_processor/online/base_online_request_processor.py",
+  "src/bespokelabs/curator/request_processor/online/litellm_online_request_processor.py",
+  "src/bespokelabs/curator/request_processor/online/openai_online_request_processor.py",
+  "src/bespokelabs/curator/request_processor/openai_request_mixin.py",
+  "src/bespokelabs/curator/viewer/__main__.py",
+  "src/bespokelabs/curator/viewer/server.js"
  ]
 }

@@ -25,9 +25,21 @@ entirely on exception names this process reported. So:
     `write_run_stamp` wrote, the cache directories `LLM.__call__` created and
     the stamps inside them all sit under the artifacts root, one directory per
     scenario, and root opens them itself;
+  * **what the digest was hashed FROM is kept, not just the digest.** Every
+    xxh64 entry point is wrapped BEFORE the submission is imported
+    (`install_recording_xxh64`), and the calls made while one identity is
+    computed are the ones kept (`capture_hashes`), so the judge re-hashes those
+    exact bytes with its own stdlib XXH64 instead of inferring the primitive
+    from 16 hex characters and an AST hit — the TB3 "Verifiable" finding on v7.
+    Installing first, rather than patching afterwards and hunting for the
+    reference a module captured, is what made it stop failing correct work;
   * **no answer is carried here.** Not the component keys, not the allowlist,
     not the stamp file's name, not the run-id parameter or environment
-    variable, not the shape of a cache-disabled run hash. Identities are
+    variable, not the shape of a cache-disabled run hash — and not the two
+    invented constant NAMES either, which are themselves part of the hidden
+    requirement: every string constant the package exports is reported as a
+    mapping (`probe_support.str_collections`) and the judge, which owns the
+    names, picks out the ones it is looking for. Identities are
     recorded WHOLE, so this file never names a component; where a scenario has
     to USE an answer — pass a run id, set the variable a default id comes from —
     it is discovered from the submission (`run_id_param`, `run_id_env`) and the
@@ -44,6 +56,7 @@ probes so one probe's patched env or attribute cannot leak into the next.
 from __future__ import annotations
 
 import ast
+import base64
 import dataclasses
 import inspect
 import json
@@ -52,6 +65,7 @@ import re
 import sqlite3
 import sys
 import traceback
+import types
 
 # Bound BEFORE the submission is imported, and called instead of returning from
 # main(): interpreter shutdown runs `atexit` hooks the submission registered at
@@ -120,6 +134,345 @@ class MonkeyPatch:
                     os.environ[name] = old
         self._undo = []
 
+
+# ---------------------------------------------------------------------------
+# what the digest was hashed FROM, so the judge can hash it again itself
+# ---------------------------------------------------------------------------
+# The digest's own value says nothing about which hash made it: 16 lowercase hex
+# characters is a truncated sha256 too, and an `xxh64` call the module never
+# uses satisfies any source check while a hand-rolled hash produces the digest.
+# The TB3 "Verifiable" review failed v7 for exactly that, and for the same gap
+# around the version tag ("an xxh64 of sorted components without the required
+# version tag would pass"). Neither can be settled from a proxy, so the bytes
+# that went INTO xxh64 are kept here and re-hashed in the judge with its own
+# stdlib XXH64 (`xxh64_ref.py`). Nothing is decided in this process: it records
+# (payload, seed, digest) triples and the identity they belong to.
+_XXH64_ENTRY_POINTS = ("xxh64", "xxh64_hexdigest", "xxh64_digest", "xxh64_intdigest")
+
+
+def _as_bytes(data):
+    """The bytes xxhash hashes for `data` — it encodes a str as UTF-8 (measured)."""
+    if isinstance(data, str):
+        return data.encode("utf-8")
+    try:
+        return bytes(data)
+    except (TypeError, ValueError):
+        return b""
+
+
+# The list a call's (payload, seed, digest) triple goes into, or None when
+# nothing is being graded. The wrappers below are installed ONCE and for good
+# (`install_recording_xxh64`), so they are live during every import and every
+# unrelated curator hash; this is what says which calls belong to the identity
+# `capture_hashes` is watching.
+_SINK: list = [None]
+
+# Per-hasher buffer cap. An identity payload is hundreds of bytes; curator also
+# hashes a function's source and a BytesIO through the same entry point, and the
+# wrappers now live for the whole process, so an uncapped buffer would hold
+# every one of those for as long as its hasher lives. A call over more than this
+# is not an identity payload, so dropping it loses nothing the judge grades.
+_BUF_CAP = 1 << 20
+
+
+def _note(payload: bytes, seed, hexdigest: str) -> None:
+    records = _SINK[0]
+    if records is None:
+        return
+    records.append({"payload": base64.b64encode(payload).decode("ascii"),
+                    "seed": seed if isinstance(seed, int) else 0,
+                    "hexdigest": hexdigest})
+
+
+def _recording_xxh64(real):
+    """`xxhash.xxh64` keeping the bytes it was fed, streamed `update`s included.
+
+    A class, not a function, and that is deliberate: this object goes into
+    whatever a submission holds its hasher in, and a plain Python function put
+    in a class body binds, so `self.fn(payload)` would hand the instance over as
+    the payload. A class is not a descriptor, so it survives being held as a
+    class attribute, in `__slots__`, or inside a `functools.partial`.
+    """
+    class Recording:
+        def __init__(self, data=b"", seed=0):
+            self._inner = real(data, seed)
+            self._seed = seed
+            self._buf = bytearray(_as_bytes(data))
+            self._over = len(self._buf) > _BUF_CAP
+
+        def update(self, data):
+            if not self._over:
+                self._buf += _as_bytes(data)
+                if len(self._buf) > _BUF_CAP:
+                    self._over = True
+                    self._buf = bytearray()
+            return self._inner.update(data)
+
+        def hexdigest(self):
+            out = self._inner.hexdigest()
+            if not self._over:
+                _note(bytes(self._buf), self._seed, out)
+            return out
+
+        def digest(self):
+            out = self._inner.digest()
+            if not self._over:
+                _note(bytes(self._buf), self._seed, out.hex())
+            return out
+
+        def intdigest(self):
+            out = self._inner.intdigest()
+            if not self._over:
+                _note(bytes(self._buf), self._seed, format(out & ((1 << 64) - 1), "016x"))
+            return out
+
+        def reset(self):
+            self._buf = bytearray()
+            self._over = False
+            return self._inner.reset()
+
+        def copy(self):
+            twin = Recording(b"", self._seed)
+            twin._inner = self._inner.copy()
+            twin._buf = bytearray(self._buf)
+            twin._over = self._over
+            return twin
+
+        def __getattr__(self, name):
+            return getattr(object.__getattribute__(self, "_inner"), name)
+
+    return Recording
+
+
+def _recording_function(real, to_hex):
+    """A one-shot entry point (`xxh64_hexdigest` and friends) that records.
+
+    An instance of a callable class rather than a `def`, for the same reason
+    `_recording_xxh64` returns a class: a function held in a class body or
+    reached through an instance binds and eats the payload.
+    """
+    class Recording:
+        def __call__(self, data=b"", seed=0):
+            out = real(data, seed)
+            _note(_as_bytes(data), seed, to_hex(out))
+            return out
+
+        def __getattr__(self, name):
+            return getattr(real, name)
+
+    return Recording()
+
+
+# How deep into the package's own objects the walk below goes, and how many
+# containers it will open. A module attribute is depth 1, so a dict of hashers on
+# a registry object held in a module attribute is depth 3; five is slack. The
+# budget only has to stop a pathological object graph from spending the probe's
+# time, and is far above what curator plus a submission's new module presents.
+_WALK_DEPTH = 5
+_WALK_BUDGET = 20000
+
+
+def _xxh64_slots(entry_of, roots):
+    """Every writable place a REAL xxh64 entry point is still HELD under `roots`.
+
+    Belt and braces behind `install_recording_xxh64`, which is what actually
+    makes a captured reference record: this can only find a holder that took
+    the object before the install, and it is kept because such a holder would
+    otherwise hash silently — not because the enumeration below is complete. It
+    cannot be: a reference in a C-level slot (`functools.partial.func`, a
+    `__slots__` member descriptor) lives in no `__dict__` and no walk reaches
+    it, which is how v10 still failed the TB3 "Verifiable" review with two
+    correct implementations scoring 0.
+
+    The object graph the package presents is walked — module and class
+    namespaces, instance dicts, dict values, list items, tuples (rebuilt whole
+    and put back where they were found), and a function's own defaults,
+    keyword-only defaults and closure cells — and every slot holding an entry
+    point is returned as `(put, original, entry)`: `put(wrapper)` records, and
+    `put(original)` undoes it. Only `__dict__`s are read, never `getattr`, so
+    walking cannot run a property and change what is being graded.
+
+    A class slot is restored through the same `put`, and needs no `staticmethod`
+    dance: the wrappers are a class and a callable instance, so unlike a plain
+    Python function neither binds and `self.fn(payload)` cannot end up handing
+    the instance over as the payload — a break introduced by the measurement,
+    which would be worse than the false negative it came to fix.
+    """
+    slots: list = []
+    seen: set = set()
+    budget = [_WALK_BUDGET]
+
+    def visit(value, put, depth):
+        entry = entry_of.get(id(value))
+        if entry is not None:
+            if put is not None:
+                slots.append((put, value, entry))
+            return
+        if depth <= 0 or budget[0] <= 0 or id(value) in seen:
+            return
+        seen.add(id(value))
+        budget[0] -= 1
+
+        if isinstance(value, dict):
+            for key, held in list(value.items()):
+                visit(held, lambda new, d=value, k=key: d.__setitem__(k, new), depth - 1)
+        elif isinstance(value, list):
+            for index, held in enumerate(list(value)):
+                visit(held, lambda new, seq=value, i=index: seq.__setitem__(i, new), depth - 1)
+        elif isinstance(value, tuple) and put is not None and value:
+            for index, held in enumerate(value):
+                visit(held, lambda new, old=value, i=index, up=put: up(old[:i] + (new,) + old[i + 1:]), depth - 1)
+        elif isinstance(value, (types.ModuleType, type)):
+            for name, held in list(vars(value).items()):
+                if name.startswith("__"):
+                    continue
+                if isinstance(held, (staticmethod, classmethod)):
+                    visit(held.__func__,
+                          lambda new, o=value, n=name, kind=type(held): setattr(o, n, kind(new)),
+                          depth - 1)
+                else:
+                    visit(held, _namespace_put(value, name), depth - 1)
+        elif isinstance(value, (types.FunctionType, types.MethodType)):
+            fn = value.__func__ if isinstance(value, types.MethodType) else value
+            visit(fn.__defaults__, lambda new, f=fn: setattr(f, "__defaults__", tuple(new)), depth - 1)
+            if isinstance(fn.__kwdefaults__, dict):
+                visit(fn.__kwdefaults__, None, depth - 1)
+            for cell in fn.__closure__ or ():
+                try:
+                    held = cell.cell_contents
+                except ValueError:      # an empty cell holds nothing yet
+                    continue
+                visit(held, lambda new, c=cell: setattr(c, "cell_contents", new), depth - 1)
+        else:
+            try:
+                inst = object.__getattribute__(value, "__dict__")
+            except (AttributeError, TypeError):
+                return
+            if isinstance(inst, dict):
+                # An object and its instance dict are one level, not two: the
+                # attributes are what a holder would be, and the dict is only
+                # how they are reached.
+                visit(inst, None, depth)
+
+    for root in roots:
+        visit(root, None, _WALK_DEPTH)
+    return slots
+
+
+def _namespace_put(owner, name):
+    # A class namespace used to need its replacement wrapped in `staticmethod`
+    # first: a plain Python function standing in for a C entry point binds, and
+    # `self.fn(payload)` would then hand the instance over as the payload. The
+    # wrappers are a class and a callable instance now, neither of which is a
+    # descriptor, so a class namespace is no different from a module's.
+    def put(new):
+        setattr(owner, name, new)
+    return put
+
+
+# What `xxhash` really exports, and the wrapper now standing in its place; both
+# filled once by `install_recording_xxh64`, before any submission code runs.
+_XXH64_REALS: dict = {}
+_XXH64_WRAPPERS: dict = {}
+
+
+def install_recording_xxh64() -> None:
+    """Replace every xxh64 entry point on the `xxhash` module, FOR GOOD.
+
+    Called before `import probe_support`, which is what imports the submission,
+    and never undone. That order is the whole mechanism: whatever a submission
+    captures at import time — `from xxhash import xxh64`, `_HASHERS = {...}`,
+    `class _H: fn = xxh64`, `functools.partial(xxh64, seed=0)`, a `__slots__`
+    holder, a default argument — captures THE WRAPPER, because the real object
+    is no longer reachable by the time its module body runs.
+
+    Two earlier tries failed the TB3 "Verifiable" review by patching after the
+    fact and then hunting for the captured object: first by attribute name (an
+    alias or a rebound module-level name defeats it), then by walking every
+    container that could hold it (v10). The walk cannot reach a reference in a
+    C-level slot — `functools.partial.func` is a getset and a `__slots__`
+    member is a member descriptor, so neither lives in any `__dict__` — and
+    both of those are ordinary Python, so both scored 0 with a correct
+    implementation. An enumeration of container kinds is a list that can always
+    be one short; installing first is not.
+    """
+    import xxhash
+
+    to_hex = {"xxh64_hexdigest": lambda out: out,
+              "xxh64_digest": lambda out: out.hex(),
+              "xxh64_intdigest": lambda out: format(out & ((1 << 64) - 1), "016x")}
+    for name in _XXH64_ENTRY_POINTS:
+        real = getattr(xxhash, name, None)
+        if real is None:
+            continue
+        wrapper = _recording_xxh64(real) if name == "xxh64" else _recording_function(real, to_hex[name])
+        try:
+            setattr(xxhash, name, wrapper)
+        except (AttributeError, TypeError):
+            continue
+        _XXH64_REALS[name] = real
+        _XXH64_WRAPPERS[name] = wrapper
+
+    # `xxhash` is a package over a C extension, so the same object is exported
+    # twice and `from xxhash._xxhash import xxh64` would otherwise reach the
+    # unwrapped one. Every already-imported `xxhash*` module holding one of the
+    # reals gets the wrapper too, matched on the object rather than the name.
+    for mod_name, mod in list(sys.modules.items()):
+        if mod is None or not str(mod_name).startswith("xxhash"):
+            continue
+        for name, real in _XXH64_REALS.items():
+            if getattr(mod, name, None) is real:
+                try:
+                    setattr(mod, name, _XXH64_WRAPPERS[name])
+                except (AttributeError, TypeError):
+                    continue
+
+
+def capture_hashes(records, call):
+    """Run `call` with every xxh64 entry point in reach recording its input.
+
+    The recording itself is already in place — `install_recording_xxh64` put it
+    there before the submission was imported — so this only says which calls
+    belong to the identity being graded, by pointing `_SINK` at `records` for
+    the duration.
+
+    The holder walk is belt and braces on top of that, not the mechanism: it
+    replaces any surviving reference to the REAL entry point that something took
+    before the install (nothing in a submission can, since its module body runs
+    later), and puts each one back on the way out whatever happens. Keying it on
+    the object rather than the attribute name is why an alias or a rebound name
+    cannot hide a holder from it.
+    """
+    entry_of = {id(real): name for name, real in _XXH64_REALS.items()}
+    roots = [mod for mod_name, mod in list(sys.modules.items())
+             if mod is not None and str(mod_name).startswith("bespokelabs")]
+
+    applied = []
+    for put, original, entry in _xxh64_slots(entry_of, roots):
+        try:
+            put(_XXH64_WRAPPERS[entry])
+        except (AttributeError, TypeError):
+            # A namespace that refuses assignment (an extension type) is not a
+            # place a submission can hold a hasher either, so skipping it costs
+            # nothing — and a wrapper that could not go in must not be undone.
+            continue
+        applied.append((put, original))
+
+    outer, _SINK[0] = _SINK[0], records
+    try:
+        return call()
+    finally:
+        _SINK[0] = outer
+        for put, original in reversed(applied):
+            put(original)
+
+
+# BEFORE the import below, and the order is load-bearing: whatever the
+# submission's module bodies capture then is the wrapper, not the real entry
+# point, so a reference kept in a partial, a __slots__ member or any other
+# C-level slot the walk cannot see still records. Patching afterwards and then
+# looking for the captured object failed the TB3 "Verifiable" review twice.
+install_recording_xxh64()
 
 # probe_support owns the curator imports and the answer-free stubs; importing it
 # runs the submission's `import bespokelabs.curator` — this process's whole
@@ -206,6 +559,8 @@ def ident(over: dict, dataset_hash: str, **kwargs) -> dict:
     def run():
         return record(S.identity_for(S.make_stub(**dict(over)), dataset_hash, **kwargs))
     return attempt(run)
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -335,7 +690,8 @@ def a_call_llm(mp):
 
 
 # ===========================================================================
-# the openly stated feature (weight 0)
+# the openly stated feature — one node, and the reward's first condition:
+# score.py grades 1 only if it passes and every hidden fact passes.
 # ===========================================================================
 def probe_open(mp) -> dict:
     S.importable()
@@ -386,6 +742,28 @@ def probe_open(mp) -> dict:
     o["other_dataset_hash"] = S.run_hash_of(S.identity_for(stub, dataset_hash="other"))
     o["frozen"] = raises(setattr, identity, "run_hash", "v3-0000000000000000")
 
+    # The same parameters handed over in opposite insertion orders. Nothing here
+    # says what the payload looks like; the judge compares the two digests, and
+    # only a key-sorted serialisation gives one answer for both.
+    gen = {"temperature": 0.7, "top_p": 0.3, "max_tokens": 16}
+    params = {"base_url": "https://canon.example.test/v1", "batch_size": 8}
+
+    def flip(d):
+        return {key: d[key] for key in reversed(list(d))}
+
+    o["canon_ordered"] = attempt(
+        lambda: record(S.identity_for(S.make_stub(generation_params=gen, backend_params=params))))
+    o["canon_reordered"] = attempt(
+        lambda: record(S.identity_for(S.make_stub(generation_params=flip(gen), backend_params=flip(params)))))
+
+    # The payload the digest was taken over, for the judge to hash again. A
+    # dataset hash no earlier scenario used, so a memoised identity cannot serve
+    # this call from a computation the capture did not see.
+    hash_calls: list = []
+    o["hash_identity"] = attempt(
+        lambda: capture_hashes(hash_calls, lambda: record(S.identity_for(S.make_stub(), SPEC["dataset_hash"] + "-recompute"))))
+    o["hash_calls"] = hash_calls
+
     # -- the stamp file ------------------------------------------------------
     from pathlib import Path
     home = tmp / "created" / "nested"
@@ -401,6 +779,7 @@ def probe_open(mp) -> dict:
     o["again_times"] = [read_field(again, "created_at"), read_field(again, "updated_at")]
     o["again_disk_times"] = [S.stamp_dict(home)["created_at"], S.stamp_dict(home)["updated_at"]]
     o["round_trip_ok"] = type(stamp).from_dict(stamp.to_dict()).to_dict() == stamp.to_dict()
+    o["frozen_stamp"] = raises(setattr, stamp, "run_hash", "v3-0000000000000000")
 
     # -- reading a stamp back ------------------------------------------------
     o["read_back_hash"] = S.run_hash_of(ri.read_run_stamp(home))
@@ -419,6 +798,7 @@ def probe_open(mp) -> dict:
     check = ri.reconcile_run_directory(fresh, identity, now=S.NOW)
     o["created"] = [read_field(check, "status"), read_field(check, "previous_version"),
                     os.listdir(fresh)]
+    o["frozen_check"] = raises(setattr, check, "status", "created")
 
     legacy = tmp / "b"
     legacy.mkdir()
@@ -541,6 +921,26 @@ def probe_open(mp) -> dict:
     o["load_mismatch"] = raises(CuratorResponse.load, cache_dir, other)
     o["ds_fingerprint"] = ds._fingerprint
     o["other_fingerprint"] = other._fingerprint
+    o["ds_size"] = len(ds)
+    o["ds_columns"] = list(ds.column_names)
+
+    # Size and columns are checked by editing the RECORDED dataset block and
+    # loading with the dataset it was saved from: no second dataset has the same
+    # fingerprint as `ds` while differing in its size or its column list, so a
+    # dataset swap can only ever reach the fingerprint comparison.
+    def recorded_as(**over):
+        target = tmp / ("recorded-" + "-".join(sorted(over)))
+        target.mkdir()
+        CuratorResponse(dataset=ds, cache_dir=str(target), model_name="gpt-4o-mini",
+                        run_identity=saved).save(target)
+        data = json.loads((target / "response.json").read_text())
+        if isinstance(data.get("dataset"), dict):
+            data["dataset"].update(over)
+        (target / "response.json").write_text(json.dumps(data))
+        return raises(CuratorResponse.load, target, ds)
+
+    o["load_size_mismatch"] = recorded_as(size=len(ds) + 1)
+    o["load_columns_mismatch"] = recorded_as(columns=list(ds.column_names) + ["c"])
     o["load_noverify_len"] = len(CuratorResponse.load(cache_dir, other, verify=False).dataset)
 
     legacy_response = json.loads((cache_dir / "response.json").read_text())
@@ -600,7 +1000,10 @@ def probe_open(mp) -> dict:
 def probe_r1_rule(mp) -> dict:
     S.importable()
     o: dict = {}
-    o["keys"] = jsonable(S.sym("IDENTITY_COMPONENT_KEYS", None))
+    # Every string constant the package exports, named by the module rather than
+    # by this file: the constant r1.rule grades is one of them, and the judge
+    # knows which. See probe_support.str_collections.
+    o["const_sets"] = S.str_collections()
 
     # The worker's own reference for each recipe the variants use: what the
     # submission's `_get_function_hash` says of the drawn functions (and of no
@@ -647,8 +1050,9 @@ def probe_r1_scope(mp) -> dict:
 def probe_r1_exclusions(mp) -> dict:
     S.importable()
     o: dict = {}
-    allowed = S.sym("IDENTITY_BACKEND_PARAM_KEYS", None)
-    o["allowlist"] = sorted(allowed) if isinstance(allowed, (set, frozenset, list, tuple)) else jsonable(allowed)
+    # As in probe_r1_rule: the allowlist is in here under whatever name the
+    # module gave it, and the judge is the only side that knows the name.
+    o["const_sets"] = S.str_collections()
 
     dh = SPEC["dataset_hash"]
     scenarios = {label: ident({"backend_params": params}, dh)

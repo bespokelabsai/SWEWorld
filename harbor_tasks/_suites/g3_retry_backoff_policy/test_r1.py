@@ -25,13 +25,14 @@ one that brackets the cost-2 boundary at `attempts_left` 2 and 1 — the pair th
 """
 from __future__ import annotations
 
+import ast
 import dataclasses
 import inspect
-import re
+import pathlib
 
-from harness import read_field, require_feature
+from harness import baseline_text, read_field, require_feature
 
-from test_open import drive_one_response, importable, make_api_request, make_processor, policy_with, v_budget, v_delay, v_reason, v_retry, v_waivers
+from test_open import drive_one_response, importable, make_api_request, make_processor, policy_with, production_seeding, v_budget, v_delay, v_reason, v_retry, v_waivers
 
 try:
     from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
@@ -43,6 +44,35 @@ try:
     from bespokelabs.curator.status_tracker.online_status_tracker import OnlineStatusTracker
 except Exception:  # pragma: no cover - reported by importable(), per test
     rp = OnlineRequestProcessorConfig = APIRequest = BaseOnlineRequestProcessor = OnlineStatusTracker = None
+
+
+def apirequest_sites(src):
+    """(line, seed dump, reads max_retries, unpacks) per `APIRequest(...)` call.
+
+    The judge's `_apirequest_sites`, in test form. Bound to the construction call
+    because that is the code that makes a request: an `attempts_left=` keyword
+    somewhere else in the module says nothing about how the request the processor
+    builds is seeded.
+    """
+    sites = []
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+        if name != "APIRequest":
+            continue
+        seed = None
+        for kw in node.keywords:
+            if kw.arg == "attempts_left":
+                seed = kw.value
+        sites.append((
+            node.lineno,
+            ast.dump(seed) if seed is not None else None,
+            seed is not None and any(isinstance(inner, ast.Attribute) and inner.attr == "max_retries" for inner in ast.walk(seed)),
+            any(kw.arg is None for kw in node.keywords),
+        ))
+    return sites
 
 
 def outcome(verdict):
@@ -143,8 +173,34 @@ def test_scope__the_waiver_allowance_is_per_request_and_lives_nowhere_else():
     # attempts_left keeps its name, its lack of a default, and its seeding.
     budget = {f.name: f for f in dataclasses.fields(APIRequest)}["attempts_left"]
     assert budget.default is dataclasses.MISSING and budget.default_factory is dataclasses.MISSING, "attempts_left must still be seeded by the caller"
-    source = inspect.getsource(BaseOnlineRequestProcessor)
-    assert re.search(r"attempts_left\s*=\s*[^,\n)]*max_retries", source), "attempts_left is no longer seeded from config.max_retries"
+    # Asked of the syntax tree, and of the pristine tree, not of the text. A
+    # regex over the source was satisfied by a comment or a docstring, so the
+    # real seeding could be deleted and the fact kept. `ast.dump` carries no
+    # line numbers, so moving the call site or reflowing its arguments is not a
+    # change; what the argument READS is.
+    # Asked of every APIRequest CONSTRUCTION, not of the file: the v12 review
+    # found set membership over the whole module satisfied by a pristine copy of
+    # the expression parked in code nothing reaches, while the request the
+    # processor really builds was seeded from anything at all.
+    module = pathlib.Path(inspect.getfile(BaseOnlineRequestProcessor)).read_text(encoding="utf-8")
+    sites = apirequest_sites(module)
+    assert sites, "nothing in base_online_request_processor.py constructs an APIRequest any more"
+    for line, dump, reads_max_retries, splat in sites:
+        assert not splat, f"the APIRequest built at line {line} unpacks its arguments, so its seeding cannot be read"
+        assert dump is not None, f"the APIRequest built at line {line} passes no attempts_left="
+        assert reads_max_retries, f"the APIRequest built at line {line} seeds attempts_left from something that does not read config.max_retries"
+    shipped = baseline_text("request_processor/online/base_online_request_processor.py")
+    assert shipped is not None, "no pristine tree to compare the seeding against"
+    was = {dump for _, dump, _, _ in apirequest_sites(shipped)}
+    now = {dump for _, dump, _, _ in sites}
+    assert not was - now, f"the seeding the pristine tree uses is gone: {sorted(was - now)}"
+
+    # And behaviour, because a source check alone cannot tell reachable code from
+    # unreachable: the processor's own submission loop is driven with an unusual
+    # max_retries and the request it builds must arrive with it.
+    seeding = production_seeding(9)
+    assert seeding["observed"], f"the submission loop built no APIRequest: {seeding['error']}"
+    assert seeding["attempts_left"] == 9, "the request the processor's submission loop builds must be seeded from config.max_retries"
 
 
 # =============================================================================

@@ -73,8 +73,8 @@ Replace the three per-provider `_format_multimodal` overrides with one canonical
 
 ### Constraints and non-goals
 - Python `^3.10`; pydantic `>=2.9.2`; no new dependency. Nothing here imports `aiohttp`, opens a socket, sleeps, or spawns anything.
-- Reuse `BaseType.serialize()` (`prompt.py:60`, `prompt.py:110`), `BaseType._is_local_uri` / `_load_file_as_b64` / `is_local` (`prompt.py:21-34`), `_MultiModalPrompt.load` / `.model_validate`, and `_unpack_multimodal` (`base_online_request_processor.py:110`) as they are.
-- Out of scope: the batch path (`openai_batch_request_processor.py:66`), `File` having no `detail` attribute, and the `self.config.model.split("/")[0]` gate at `litellm_online_request_processor.py:139`.
+- Reuse `BaseType.serialize()` (`prompt.py:59`, `prompt.py:110`), `BaseType._is_local_uri` / `_load_file_as_b64` / `is_local` (`prompt.py:21-34`), `_MultiModalPrompt.load` / `.model_validate`, and `_unpack_multimodal` (`base_online_request_processor.py:110`) as they are.
+- Out of scope: the batch path (`openai_batch_request_processor.py:66`), `File` having no `detail` attribute, and the `self.config.model.split("/")[0]` gate at `litellm_online_request_processor.py:140`.
 - Both renderers are module-level pure functions taking only an `AttachmentBlock`, so they can be exercised without constructing a configured processor.
 - Tests construct processors with `object.__new__(StubOnline)` or a no-arg `__init__`: no config, no cost processor, no I/O beyond a `tmp_path` file.
 

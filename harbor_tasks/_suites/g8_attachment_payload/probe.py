@@ -48,6 +48,7 @@ os.environ.setdefault("COLUMNS", "220")
 # Importing it runs the submission's `import bespokelabs.curator` — this
 # process's whole purpose, and why it is disposable. The worker never imports
 # test_open, whose source carries the expected answer literals.
+import fixture_spec  # noqa: E402 - the run's inputs; stdlib only, no answers
 import probe_support as S  # noqa: E402
 from probe_support import File, Image, _MultiModalPrompt  # noqa: E402
 from harness import read_field  # noqa: E402
@@ -75,8 +76,31 @@ LONG_EXTENSIONLESS_URL = (
 
 # The attributes the g8 exceptions carry, captured off a raised instance so the
 # judge can check the (kind, size_mb, limit_mb) / (count, limit) / url /
-# attachment_type the reference tests read.
-_EXC_ATTRS = ("url", "attachment_type", "kind", "size_mb", "limit_mb", "count", "limit")
+# attachment_type the reference tests read. `filename` is EmptyAttachment's, and
+# it is what lets the judge rebuild that exception's stated message: the payload
+# it refuses lives in a throwaway directory, so the url half of the message is
+# only knowable from what the probe recorded.
+_EXC_ATTRS = ("url", "attachment_type", "filename", "kind", "size_mb", "limit_mb", "count", "limit")
+
+# The names the ticket puts in `types/attachment.py` by name. Answer-free: it is
+# the ticket's own list, and the probe only records WHERE each one was found.
+# `probe_support.attachment_symbol` deliberately sweeps four modules, because a
+# hidden requirement's symbols may be spelled anywhere; these seven the ticket
+# does place, so the module they are reachable from is itself a graded fact.
+_TICKET_ATTACHMENT_NAMES = (
+    "AttachmentBlock",
+    "AttachmentError",
+    "UnknownAttachmentMimeType",
+    "MissingLocalAttachment",
+    "EmptyAttachment",
+    "normalize_mime_type",
+    "_FALLBACK_ATTACHMENT_FILENAME",
+)
+
+# The block fields the ticket declares, in the order it declares them. The
+# implementation may carry more (a hidden requirement adds two); these six it
+# must carry, with `detail` the only optional one.
+_TICKET_BLOCK_FIELDS = ("kind", "source", "mime_type", "payload", "filename", "detail")
 
 
 def raises(fn, *args, **kwargs) -> dict:
@@ -111,6 +135,7 @@ def probe_open() -> dict:
     AttachmentError = S.attachment_symbol("AttachmentError")
     UnknownAttachmentMimeType = S.attachment_symbol("UnknownAttachmentMimeType")
     MissingLocalAttachment = S.attachment_symbol("MissingLocalAttachment")
+    EmptyAttachment = S.attachment_symbol("EmptyAttachment")
     normalize_mime_type = S.attachment_symbol("normalize_mime_type")
     fallback_name = S.attachment_symbol("_FALLBACK_ATTACHMENT_FILENAME")
 
@@ -119,13 +144,31 @@ def probe_open() -> dict:
     o["attachment_error_mro"] = [c.__name__ for c in AttachmentError.__mro__]
     o["unknown_mime_mro"] = [c.__name__ for c in UnknownAttachmentMimeType.__mro__]
     o["missing_local_mro"] = [c.__name__ for c in MissingLocalAttachment.__mro__]
+    o["empty_attachment_mro"] = [c.__name__ for c in EmptyAttachment.__mro__]
     o["normalize_pdf"] = normalize_mime_type("  Application/PDF; charset=binary ")
     o["normalize_none"] = normalize_mime_type(None)
     o["normalize_empty"] = normalize_mime_type("")
 
+    # -- the module the ticket names actually holds the names it declares ---
+    module = S.attachment_module
+    o["attachment_module_file"] = getattr(module, "__file__", None)
+    o["attachment_module_exports"] = {
+        name: (module is not None and hasattr(module, name)) for name in _TICKET_ATTACHMENT_NAMES
+    }
+
     # -- one MIME policy, shared by Image and File --------------------------
     o["mime_remote_jpeg"] = Image(url=S.REMOTE_JPEG).mime_type
-    o["mime_asset"] = Image(url="https://example.com/asset").mime_type
+    # "exactly one logger.warning" when a url's MIME cannot be guessed, on BOTH
+    # classes, and none when it can be. Counted, never judged, here.
+    with S.capture_warnings() as unguessable_image:
+        o["mime_asset"] = Image(url="https://example.com/asset").mime_type
+    o["mime_asset_warn_count"] = unguessable_image.count
+    with S.capture_warnings() as unguessable_file:
+        o["mime_download"] = File(url="https://example.com/download").mime_type
+    o["mime_download_warn_count"] = unguessable_file.count
+    with S.capture_warnings() as guessable:
+        o["mime_quiet_guess"] = File(url="https://cdn.example.com/reports/report.pdf").mime_type
+    o["mime_quiet_warn_count"] = guessable.count
     o["mime_file_pdf"] = File(url="/tmp/x/report.PDF", mime_type="Application/PDF; charset=binary").mime_type
     o["mime_png_content"] = Image(content=b"\x89PNG\r\n").mime_type
 
@@ -145,7 +188,7 @@ def probe_open() -> dict:
     stub = S.StubOnline()
 
     # -- kind comes from the MIME type, never from the Python class ---------
-    png_file = File(url=S.write(tmp, "chart.png", b"1234"))
+    png_file = File(url=S.write(tmp, "chart.png", S.PNG_BYTES))
     file_block = S.block_of(stub, png_file)
     o["file_block_isinstance"] = isinstance(file_block, AttachmentBlock)
     o["file_block_triple"] = [read_field(file_block, "kind"), read_field(file_block, "source"),
@@ -159,8 +202,32 @@ def probe_open() -> dict:
     o["image_block_name_detail"] = [read_field(image_block, "filename"), read_field(image_block, "detail")]
     o["image_block_payload"] = read_field(image_block, "payload")
 
-    # frozen: assignment must raise
+    # -- the block is the pydantic model the ticket declares ----------------
+    # frozen: assignment must raise, on more than the one field, and the
+    # `frozen=True` config the ticket spells out must really be on the model.
     o["frozen"] = raises(_set_attr, file_block, "kind", "document")
+    o["frozen_payload"] = raises(_set_attr, file_block, "payload", "tampered")
+    import pydantic
+
+    o["block_is_basemodel"] = isinstance(file_block, pydantic.BaseModel) and issubclass(
+        AttachmentBlock, pydantic.BaseModel)
+    o["block_config_frozen"] = dict(getattr(AttachmentBlock, "model_config", None) or {}).get("frozen")
+    block_fields = dict(getattr(AttachmentBlock, "model_fields", None) or {})
+    o["block_field_names"] = sorted(block_fields)
+    o["block_required"] = {
+        name: bool(block_fields[name].is_required()) for name in _TICKET_BLOCK_FIELDS if name in block_fields
+    }
+    o["block_detail_default"] = (
+        block_fields["detail"].default if "detail" in block_fields else "<no detail field>")
+    # The typed Literal fields, exercised through the model the implementation
+    # actually built: re-validating its own dump must round-trip, and a `kind` or
+    # `source` outside the ticket's vocabulary must be rejected. Going through
+    # `model_validate` of a real block's dump keeps this answer-free — it never
+    # has to name the fields a hidden requirement added.
+    dumped = file_block.model_dump()
+    o["block_revalidates"] = type(file_block).model_validate(dumped) == file_block
+    o["block_bad_kind"] = raises(type(file_block).model_validate, {**dumped, "kind": "video"})
+    o["block_bad_source"] = raises(type(file_block).model_validate, {**dumped, "source": "ftp"})
 
     # -- a remote url is a url block; a missing local path is refused -------
     remote_block = S.block_of(stub, remote_jpeg)
@@ -180,7 +247,20 @@ def probe_open() -> dict:
     # -- an unresolvable MIME is refused, at block build time ---------------
     o["unknown_download"] = raises(S.block_of, stub, File(url="https://example.com/download"))
     o["unknown_asset"] = raises(S.block_of, stub, Image(url="https://example.com/asset"))
-    o["unknown_extensionless"] = raises(S.block_of, stub, File(url=S.write(tmp, "notes", b"hello")))
+    extensionless_url = S.write(tmp, "notes", b"hello")
+    o["extensionless_url"] = extensionless_url
+    o["unknown_extensionless"] = raises(S.block_of, stub, File(url=extensionless_url))
+
+    # -- an empty payload is refused, AFTER the MIME check ------------------
+    # The url half of this message is a throwaway path, so the probe records the
+    # path it used and the judge rebuilds the stated message from it.
+    empty_url = S.write(tmp, "empty.pdf", b"")
+    o["empty_url"] = empty_url
+    o["empty_serializes_to"] = File(url=empty_url).serialize()
+    o["empty_payload"] = raises(S.block_of, stub, File(url=empty_url))
+    # ordering: an empty file whose MIME is also unguessable is refused for the
+    # MIME, because that check speaks first
+    o["empty_unguessable"] = raises(S.block_of, stub, File(url=S.write(tmp, "empty-notes", b"")))
 
     # -- the OpenAI rendering, all four shapes ------------------------------
     from bespokelabs.curator.request_processor.online.base_online_request_processor import _render_openai_block
@@ -553,7 +633,12 @@ PROBES = {
 }
 
 
-def main(out_path: str) -> int:
+def main(out_path: str, seed: str) -> int:
+    # The run's inputs, re-drawn from the seed root chose, before any probe
+    # builds an attachment. `fixture_spec` says why: with fixed bytes an
+    # `observations.json` recorded from one run satisfies every other one, and a
+    # pristine tree plus an `atexit` hook scored reward 1.0 that way.
+    S.apply_seed(fixture_spec.derive(seed))
     results: dict[str, dict] = {}
     for node, fn in PROBES.items():
         try:
@@ -567,4 +652,4 @@ def main(out_path: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1]))
+    raise SystemExit(main(sys.argv[1], sys.argv[2]))

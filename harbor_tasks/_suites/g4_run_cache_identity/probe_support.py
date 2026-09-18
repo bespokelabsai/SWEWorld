@@ -10,17 +10,22 @@ here is something a forged observations file can copy. In particular the
 component key set, the backend-param allowlist, the `_get_function_hash(None)`
 digest, the cache-disabled run-hash shape, the run-id environment variable, the
 stamp file's NAME and every stamp/row value the judge grades live only in
-`judge.py` (and, for humans, in `test_open.py`/`test_r*.py`), which the worker
-cannot read: /tests is root-only for a split suite and the jail holds only
-`probe.py`, `probe_support.py`, `fixture_spec.py` and `harness.py`.
+`judge.py`, which the worker cannot read: /tests is root-only for a split suite
+and the jail holds only `probe.py`, `probe_support.py`, `fixture_spec.py` and
+`harness.py`. (The `test_open.py`/`test_r*.py` reference tests hold the same
+answers for a human reader, which is why they stay in the repository's
+`_suites/g4_run_cache_identity/` and are not shipped with the task.)
 
 Where a scenario has to USE one of those answers — read a stamp by name, set the
 run-id variable, pass a run id to a call — it is discovered from the submission
 (`stamp_name`, and the discovery in probe.py), never written here; the judge
 checks what was discovered.
 
-`NOW`, `LATER` and `METADATA` are the open feature's inputs (weight 0); the
-hidden facts draw theirs from `fixture_spec.derive(seed)` through `set_spec`.
+`NOW`, `LATER` and `METADATA` are the open feature's inputs — fixed, because the
+open feature is the ticket everyone can read; the hidden facts draw theirs from
+`fixture_spec.derive(seed)` through `set_spec`. Fixed does not mean unscored:
+the open feature is its own node, and `score.py` gives the run 1 only if it
+passes alongside every hidden fact.
 """
 from __future__ import annotations
 
@@ -150,6 +155,40 @@ def sym(name: str, default=_RAISE):
     if default is not _RAISE:
         return default
     pytest.fail(f"the implementation exports no {name!r} anywhere in bespokelabs.curator")
+
+
+def str_collections() -> dict:
+    """Every module-level collection of strings the package exports, by name.
+
+    Reported whole instead of asked for by name. The two constants the hidden
+    requirement invents are graded on their names as well as their values, and
+    an earlier version asked for one of them through `sym(...)` — which spelled
+    that name inside the process that imports and runs agent code, so an
+    import-time read of this file handed the submission half the answer. The
+    name is not written here, in code or in prose, for the same reason: the
+    judge owns the names and picks the ones it is looking for out of this
+    mapping, and a tree that exports neither is measured exactly as before,
+    because a missing name is a missing entry.
+
+    A set is sorted (its iteration order is not the author's); a tuple or list
+    keeps the order it was written in, which is itself graded.
+    """
+    out: dict = {}
+    seen = list(_CANDIDATE_MODULES) + sorted(n for n in sys.modules if n.startswith("bespokelabs.curator"))
+    for mod_name in seen:
+        mod = sys.modules.get(mod_name)
+        if mod is None:
+            continue
+        try:
+            attrs = list(vars(mod).items())
+        except TypeError:
+            continue
+        for name, value in attrs:
+            if name.startswith("__") or name in out:
+                continue
+            if isinstance(value, (set, frozenset, list, tuple)) and value and all(isinstance(v, str) for v in value):
+                out[name] = sorted(value) if isinstance(value, (set, frozenset)) else list(value)
+    return out
 
 
 def stamp_name():

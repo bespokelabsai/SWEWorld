@@ -3,11 +3,12 @@
 Everything asserted here is spelled out in the ticket: the new top-level
 `run_identity` module and the names it exports, the exception family, the three
 frozen dataclasses and their field orders, the `v3-<digest>` run hash over a
-16-character xxh64 digest, the six-key `run_identity.json` stamp and its exact
-serialisation, the four reconciliation statuses and the one raise, the moved
-`_get_function_hash`, the deleted `_hash_fingerprint`, `LLM.backend` /
-`LLM.backend_params`, the `db.py` migration and `store_metadata` status string,
-`CuratorResponse.run_identity` with the `verify` keyword on `load`, and the
+16-character xxh64 digest of a key-sorted payload, the six-key
+`run_identity.json` stamp and its exact serialisation, the four reconciliation
+statuses and the one raise, the moved `_get_function_hash`, the deleted
+`_hash_fingerprint`, `LLM.backend` / `LLM.backend_params`, the `db.py` migration
+and `store_metadata` status string, `CuratorResponse.run_identity` with the
+`verify` keyword on `load` and its fingerprint/size/columns check, and the
 `_is_cached_dataset` reset at the top of `BaseRequestProcessor.run`.
 
 Nothing here touches a hidden fact. It never asserts WHICH components the digest
@@ -93,6 +94,9 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
     ):
         assert dataclasses.is_dataclass(cls), f"{cls.__name__} is not a dataclass"
         assert [f.name for f in dataclasses.fields(cls)] == fields
+        # All three, not just the one a scenario mutates: the split judge reads
+        # `frozen=True` off each declaration (judge.check_frozen_dataclasses).
+        assert cls.__dataclass_params__.frozen, f"{cls.__name__} is not frozen"
 
     # -- the identity of a run ----------------------------------------------
     stub = make_stub()
@@ -101,12 +105,46 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
     assert isinstance(digest, str) and len(digest) == 16
     assert digest == digest.lower() and all(c in "0123456789abcdef" for c in digest), f"digest {digest!r} is not a lowercase hex xxh64"
     assert run_hash_of(identity) == f"v3-{digest}", "the cache directory name is the digest tagged with the identity version"
+    # The split judge does not stop at the shape. `probe.capture_hashes` keeps
+    # the bytes the module fed to xxh64 and `judge.check_digest_recomputed`
+    # re-hashes them with `xxh64_ref` (XXH64 written out in the stdlib, because
+    # the judge's interpreter has no xxhash), so the digest has to BE the xxh64
+    # of a payload that carries this run's seeded inputs and names the identity
+    # version. 16 lowercase hex characters cannot say any of that: a truncated
+    # sha256 has the same shape, and an `xxh64` call the module never uses
+    # satisfies any source check — the TB3 "Verifiable" finding on v7. (The
+    # source scan is a diagnostic now for the converse reason: it reads call
+    # sites, so a correct module holding xxh64 in a dict, on a class or in a
+    # default argument reads as no call at all.) The half of that which holds
+    # for every spelling of the payload is asserted here.
+    # The judge is stricter about the tag than this line can be: it strikes every
+    # component key and value out of the payload and requires what is left to
+    # name the version, so a bespoke untagged rendering cannot pass on a digit
+    # that happens to sit inside one of its own values.
+    import xxhash
+    untagged = json.dumps(components_of(identity), sort_keys=True, separators=(",", ":"))
+    assert digest != xxhash.xxh64(untagged.encode("utf-8")).hexdigest(), \
+        "the digest is taken over a version-tagged payload, not the bare components"
     assert read_field(identity, "identity_version") == 3
     assert read_field(identity, "cache_enabled") is True
     assert run_hash_of(identity_for(make_stub())) == run_hash_of(identity), "the same inputs must give the same run hash"
     assert run_hash_of(identity_for(stub, dataset_hash="other")) != run_hash_of(identity)
     with pytest.raises(dataclasses.FrozenInstanceError):
         identity.run_hash = "v3-0000000000000000"
+
+    # Canonical means key-sorted: the same parameters in opposite insertion
+    # orders are one run. (The split judge also reads the module for the hash it
+    # reaches for — 16 hex characters is the shape of a truncated sha256 too.)
+    gen = {"temperature": 0.7, "top_p": 0.3, "max_tokens": 16}
+    params = {"base_url": "https://canon.example.test/v1", "batch_size": 8}
+    def flip(d):
+        return {key: d[key] for key in reversed(list(d))}
+    as_given = identity_for(make_stub(generation_params=gen, backend_params=params))
+    reordered = identity_for(make_stub(generation_params=flip(gen), backend_params=flip(params)))
+    assert components_of(reordered) == components_of(as_given)
+    assert read_field(reordered, "digest") == read_field(as_given, "digest"), \
+        "insertion order must not move the digest"
+    assert run_hash_of(reordered) == run_hash_of(as_given)
 
     # -- the stamp file ------------------------------------------------------
     home = tmp_path / "created" / "nested"
@@ -128,6 +166,8 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
 
     round_tripped = type(stamp).from_dict(stamp.to_dict())
     assert round_tripped.to_dict() == stamp.to_dict()
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        stamp.run_hash = "v3-0000000000000000"
 
     # -- reading a stamp back ------------------------------------------------
     assert read_field(ri.read_run_stamp(home), "run_hash") == run_hash_of(identity)
@@ -147,6 +187,8 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
     assert read_field(check, "status") == "created"
     assert read_field(check, "previous_version") is None
     assert os.listdir(fresh) == ["run_identity.json"]
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        check.status = "created"
 
     legacy = tmp_path / "b"
     legacy.mkdir()
@@ -220,7 +262,13 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
     import bespokelabs.curator.llm.llm as llm_module
 
     # The function moved and is re-exported; graded on what it answers rather
-    # than on `is`, so a one-line delegating re-export counts too.
+    # than on `is`, so a one-line delegating re-export counts too. "Verbatim" is
+    # not visible from behaviour at all: the split judge AST-compares the
+    # definition in run_identity.py with the pristine one in
+    # CURATOR_BASELINE_DIR/llm/llm.py (judge.check_moved_verbatim), which also
+    # requires llm/llm.py to define it no longer — a copy left behind, dead or
+    # live, is not a move, and that absence is not visible from behaviour either
+    # because llm.py re-exports the name whichever way it got it.
     assert ri._get_function_hash(None) == "ef46db3751d8e999", "the moved function is the same function, byte for byte"
     assert llm_module._get_function_hash(None) == ri._get_function_hash(None)
     assert llm_module._get_function_hash(make_stub) == ri._get_function_hash(make_stub)
@@ -253,7 +301,11 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
     with sqlite3.connect(str(hostile)) as conn:
         conn.execute("CREATE TABLE runs (wrong_col TEXT)")
         conn.commit()
-    with pytest.raises(RuntimeError, match="mismatch"):
+    # "unexpected columns stay fatal" is all the ticket says: fatal, with no
+    # class and no message named. The split judge grades exactly that (and
+    # reports which exception it saw); asserting RuntimeError and "mismatch"
+    # here was the TB3 "Test instruction alignment" finding on v9.
+    with pytest.raises(Exception):
         MetadataDB(str(hostile)).validate_schema()
 
     # -- db.py: store_metadata writes the parse function and says what it did
@@ -298,6 +350,27 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
     assert exc.value.field == "fingerprint"
     assert exc.value.expected == ds._fingerprint
     assert exc.value.found == other._fingerprint
+
+    # The size and the columns are checked too, and a dataset swap can never
+    # reach them: no other dataset shares this one's fingerprint. So the
+    # RECORDED block is edited and the response is loaded with the dataset it
+    # was saved from.
+    def recorded_as(**over):
+        target = tmp_path / ("recorded-" + "-".join(sorted(over)))
+        target.mkdir()
+        CuratorResponse(dataset=ds, cache_dir=str(target), model_name="gpt-4o-mini", run_identity=saved).save(target)
+        data = json.loads((target / "response.json").read_text())
+        data["dataset"].update(over)
+        (target / "response.json").write_text(json.dumps(data))
+        with pytest.raises(ri.CachedResponseMismatch) as raised:
+            CuratorResponse.load(target, ds)
+        return raised.value
+
+    bad_size = recorded_as(size=3)
+    assert (bad_size.field, bad_size.expected, bad_size.found) == ("size", 3, 2)
+    bad_columns = recorded_as(columns=["a", "b", "c"])
+    assert (bad_columns.field, bad_columns.expected, bad_columns.found) == ("columns", ["a", "b", "c"], ["a", "b"])
+
     assert len(CuratorResponse.load(cache_dir, other, verify=False).dataset) == 2, "verify=False takes the dataset it is handed"
 
     legacy_response = json.loads((cache_dir / "response.json").read_text())
@@ -331,8 +404,13 @@ def test_open_feature__a_versioned_run_identity_stamps_reconciles_and_is_recorde
         prompt_formatter=None,
         validate_config=stop,
     )
-    assert BaseRequestProcessor.run(warm, dataset=ds, working_dir=str(tmp_path), parse_func_hash="h", prompt_formatter=None) is ds
-    assert warm._is_cached_dataset is True
+    # Driven, not asserted: the ticket asks only for the flag to be cleared as
+    # run()'s first statement (above). What a warm cache then does with it is
+    # curator's existing behaviour, which this ticket neither states nor
+    # changes, and the split judge reports it as a diagnostic instead of
+    # grading it -- the other half of the v9 "Test instruction alignment"
+    # finding.
+    BaseRequestProcessor.run(warm, dataset=ds, working_dir=str(tmp_path), parse_func_hash="h", prompt_formatter=None)
 
     # -- an identity error out of the cache is not a warning ----------------
     def raise_mismatch(cache_dir, dataset, **kwargs):

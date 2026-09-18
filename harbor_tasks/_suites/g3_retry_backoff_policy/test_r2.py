@@ -170,22 +170,33 @@ def test_exclusions__the_seconds_to_pause_knob_survives_in_config_and_is_never_r
     assert "seconds_to_pause_on_rate_limit" in OnlineRequestProcessorConfig.model_fields
     assert OnlineRequestProcessorConfig(model="gpt-4o-mini").seconds_to_pause_on_rate_limit == 10
     assert OnlineRequestProcessorConfig(model="gpt-4o-mini", seconds_to_pause_on_rate_limit=42).seconds_to_pause_on_rate_limit == 42
-    processor = make_processor(max_retries=3, seconds_to_pause_on_rate_limit=10)
-    assert processor.config.seconds_to_pause_on_rate_limit == 10
+    assert make_processor(max_retries=3, seconds_to_pause_on_rate_limit=10).config.seconds_to_pause_on_rate_limit == 10
 
     slept: list[float] = []
 
     async def fake_sleep(seconds):
         slept.append(seconds)
 
-    real_sleep = asyncio.sleep
+    # The clock the processor reads is frozen for the three scenarios below and
+    # the horizon is placed an exact number of seconds ahead of the frozen
+    # instant, so the pause is compared exactly. It was `time.time() + 4.0`
+    # graded as `3.0 < slept <= 4.0` -- two live readings a scenario apart -- and
+    # a correct implementation failed whenever the host descheduled the process
+    # for a second in between. Frozen before the processor is built, so a policy
+    # that captured `time.time` at construction captured the frozen one.
+    frozen_now = 1_700_000_000.0
+    ahead_seconds = 4.0
+    real_time, real_sleep = time.time, asyncio.sleep
+    time.time = lambda: frozen_now
     asyncio.sleep = fake_sleep
     try:
+        processor = make_processor(max_retries=3, seconds_to_pause_on_rate_limit=10)
+
         # A run that was rate limited long enough ago that its horizon has
         # lapsed -- but whose time_of_last_rate_limit_error is this instant.
         # Deriving the pause from the knob and that timestamp would wait ~10s.
         lapsed = OnlineStatusTracker()
-        lapsed.time_of_last_rate_limit_error = time.time()
+        lapsed.time_of_last_rate_limit_error = frozen_now
         setattr(lapsed, HORIZON, 0.0)
         asyncio.run(processor.cool_down_if_rate_limit_error(lapsed))
         assert slept == [], f"the pause was derived from the knob or from time since the last 429: slept {slept}"
@@ -194,14 +205,16 @@ def test_exclusions__the_seconds_to_pause_knob_survives_in_config_and_is_never_r
         asyncio.run(processor.cool_down_if_rate_limit_error(OnlineStatusTracker()))
         assert slept == [], f"a run that has never been throttled paused for {slept}"
 
-        # ... while a live horizon does pause, and pauses for the horizon.
+        # ... while a live horizon does pause, and pauses for exactly what the
+        # horizon has left against the frozen clock.
         ahead = OnlineStatusTracker()
         ahead.time_of_last_rate_limit_error = 0.0
-        setattr(ahead, HORIZON, time.time() + 4.0)
+        setattr(ahead, HORIZON, frozen_now + ahead_seconds)
         asyncio.run(processor.cool_down_if_rate_limit_error(ahead))
         assert len(slept) == 1, f"a live cooldown horizon did not pause: slept {slept}"
-        assert 3.0 < slept[0] <= 4.0, f"the pause came from something other than the horizon: {slept[0]}"
+        assert slept[0] == ahead_seconds, f"the pause is not the horizon's remaining time: {slept[0]}"
     finally:
+        time.time = real_time
         asyncio.sleep = real_sleep
 
     # ... and the knob is not merely outvoted, it is not consulted at all. Asked of

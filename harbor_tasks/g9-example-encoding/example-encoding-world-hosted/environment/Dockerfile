@@ -66,7 +66,8 @@ RUN chmod 0755 /usr/local/bin/task-setup.sh
 # from `ls /opt/*`, sitting at drwxr-xr-x beside world-state's drwx------. The
 # ingest is unaffected: it runs as root from the healthcheck. Build-time and
 # unconditional, so an ingest that exits early on one of the failure paths below
-# cannot leave the corpus exposed.
+# cannot leave the corpus exposed. And temporary: task-setup.sh deletes it once
+# the ingest succeeds, because the agent may be root and 0700 does not stop root.
 COPY --chmod=0700 plant /opt/task-plant
 
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh

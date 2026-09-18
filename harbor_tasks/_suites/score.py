@@ -8,7 +8,7 @@ collected — because the agent broke `bespokelabs.curator` at import, which is 
 real and interesting outcome — must produce a full set of zeros rather than a
 missing key that reads downstream as "not measured".
 
-**The keys come from `tasks.json`, never from a hardcoded list.** A requirement
+**The keys come from `/tests/task.json`, never from a hardcoded list.** A requirement
 declares only some of the five fact fields: t1.r2 has no
 `exclusions_or_crossover`, t2.r1 has neither `failure_behavior` nor
 `observability`, t4.r2 has no `failure_behavior`. Inventing keys for absent
@@ -20,12 +20,16 @@ the submission is the thing that is broken.
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import re
+import time
 import xml.etree.ElementTree as ET
 
-TESTS = pathlib.Path("/tests")
-LOGS = pathlib.Path("/logs/verifier")
+# Overridable only so the scorer can be exercised against fixture directories
+# off-container; the verifier never sets either.
+TESTS = pathlib.Path(os.environ.get("SCORE_TESTS_DIR", "/tests"))
+LOGS = pathlib.Path(os.environ.get("SCORE_LOGS_DIR", "/logs/verifier"))
 FACT_FIELDS = ("rule", "scope", "exclusions_or_crossover", "failure_behavior",
                "observability")
 
@@ -103,10 +107,16 @@ def junit_outcomes(path: pathlib.Path) -> dict[str, str]:
             tag = child.tag.lower()
             if tag in ("failure", "error"):
                 state = "failed"
+                FAILURE_MESSAGES[node] = (child.get("message") or child.text or "")[:2000]
             elif tag == "skipped":
                 state = "skipped"
         out[node] = state
     return out
+
+
+# node -> the junit failure text, so ctrf.json can say WHY a check failed and not
+# only that it did. Filled as a side effect of `junit_outcomes`.
+FAILURE_MESSAGES: dict[str, str] = {}
 
 
 def fold(meta: dict, outcomes: dict[str, str], rewards: dict) -> tuple[dict, set]:
@@ -152,6 +162,63 @@ def fold(meta: dict, outcomes: dict[str, str], rewards: dict) -> tuple[dict, set
 
 
 
+def protected_report(meta: dict) -> dict[str, str]:
+    """{path: unchanged | modified | deleted | unmeasured} for every protected file.
+
+    `run_suites.py` measures this as root against the pristine tree and writes
+    `protected.json` into the root-only /logs/verifier; this only reads it. A
+    task that protects nothing returns {}. A task that protects files but has no
+    measurement -- the clone failed, the pristine tree was missing -- reads every
+    path as `unmeasured`, which does NOT count as unchanged: an instruction the
+    grader could not check is not one the submission is known to have kept.
+    """
+    paths = meta.get("protected_files") or []
+    if not paths:
+        return {}
+    try:
+        seen = json.loads((LOGS / "protected.json").read_text())
+    except (OSError, ValueError):
+        seen = {}
+    return {p: seen.get(p, "unmeasured") for p in paths}
+
+
+def write_ctrf(meta: dict, outcomes: dict[str, str], protected: dict[str, str],
+               started: int) -> None:
+    """Every discrete check as one CTRF test, at /logs/verifier/ctrf.json.
+
+    Built HERE, from the judge's junit, rather than by a pytest plugin: the split
+    suites never run pytest at all -- the worker imports the submission and the
+    judge decides -- so the plugin had nothing to attach to and those tasks
+    reported a bare reward. This file runs last, as root, on the system python,
+    so it is also the one place that still produces a report when the submission
+    broke everything upstream. Overwrites whatever a pytest run harvested, so a
+    task has one report with one shape.
+    """
+    tests = []
+    for node, state in sorted(outcomes.items()):
+        entry = {"name": node, "status": state, "duration": 0,
+                 "suite": node.partition("::")[0]}
+        if state == "failed" and FAILURE_MESSAGES.get(node):
+            entry["message"] = FAILURE_MESSAGES[node]
+        tests.append(entry)
+    for path, state in sorted(protected.items()):
+        entry = {"name": f"protected_files::{path}",
+                 "status": "passed" if state == "unchanged" else "failed",
+                 "duration": 0, "suite": "protected_files"}
+        if state != "unchanged":
+            entry["message"] = f"{path} is {state}; the instruction says it does not change"
+        tests.append(entry)
+    count = {s: sum(1 for t in tests if t["status"] == s)
+             for s in ("passed", "failed", "skipped")}
+    stop = int(time.time() * 1000)
+    (LOGS / "ctrf.json").write_text(json.dumps({"results": {
+        "tool": {"name": "sweworld-judge"},
+        "summary": {"tests": len(tests), **count, "pending": 0, "other": 0,
+                    "start": started, "stop": stop},
+        "tests": tests,
+    }}, indent=1))
+
+
 def variant_of(meta: dict) -> str:
     """Which arm this task is: blind, spec, or clues.
 
@@ -162,6 +229,7 @@ def variant_of(meta: dict) -> str:
 
 
 def main() -> int:
+    started = int(time.time() * 1000)
     LOGS.mkdir(parents=True, exist_ok=True)
     meta = json.loads((TESTS / "task.json").read_text())
     task = meta["task_id"]
@@ -178,8 +246,7 @@ def main() -> int:
 
     hidden = [v for k, v in rewards.items()
               if not k.endswith("open_feature") and k not in unmeasured]
-    rewards[f"{task}.hidden_mean"] = (
-        round(sum(hidden) / len(hidden), 4) if hidden else 0.0)
+    hidden_mean = round(sum(hidden) / len(hidden), 4) if hidden else 0.0
     # `suite_ok`, not `suite_error`. Same diagnostic, opposite polarity, and the
     # polarity is the whole point: every OTHER key here is higher-is-better, and
     # a consumer that averages the dict has no way to know this one was not.
@@ -197,19 +264,42 @@ def main() -> int:
         for name in ("pushed", "ci_green", "deployed"):
             rewards[f"provenance.{name}"] = float(bool(provenance.get(name)))
 
-    # The headline number. Deliberately the hidden mean and NOT a conjunction
-    # with provenance: this experiment asks whether the requirements are
-    # recoverable, and folding a deploy failure into that would answer a
-    # different question. Provenance is reported beside it, never inside it.
-    rewards["reward"] = rewards[f"{task}.hidden_mean"]
+    protected = protected_report(meta)
+    protected_ok = all(v == "unchanged" for v in protected.values())
+    if meta.get("protected_files"):
+        rewards[f"{task}.protected_unchanged"] = 1.0 if protected_ok else 0.0
+
+    # The headline number, and it is BINARY: 1 only when the ticket's own feature
+    # passed, every measured hidden fact passed, and no file the instruction
+    # protects was touched. `open_feature` gates it but is still not IN the hidden
+    # mean: without the gate a submission could score 1 having recovered the hidden
+    # requirements while leaving the ticket it was asked to deliver unbuilt, which
+    # is not a solved task. (All ten g11 v11 rollouts passed open_feature, so the
+    # gate changed no measured outcome when it was added.) It used to be
+    # the hidden mean, and 8 of 9 facts wrote 0.8889 -- partial credit, which
+    # makes a trial incomparable with every other task's pass/fail and which the
+    # benchmark's binary-reward rule rejects on any reachable path. The mean still
+    # exists, in report.json, and every per-fact key above stays 0/1 beside it,
+    # so nothing that reads WHICH facts passed loses anything.
+    #
+    # Still not a conjunction with provenance: this experiment asks whether the
+    # requirements are recoverable, and folding a deploy failure into that would
+    # answer a different question. Provenance is reported beside it, never
+    # inside it. No measured fact at all is a 0, not a vacuous pass.
+    passed = bool(hidden) and all(v == 1.0 for v in hidden)
+    open_ok = rewards.get(f"{task}.open_feature") == 1.0
+    rewards["reward"] = 1.0 if open_ok and passed and protected_ok else 0.0
 
     # reward.json, singular. Harbor reads /logs/verifier/reward.txt (one
     # float) or /logs/verifier/reward.json (a flat {key: number} dict) and
-    # nothing else; a file named rewards.json is not found, and the trial
+    # nothing else; any other file name (a plural one was tried) is not found, and the trial
     # fails with "No reward file" having run every test correctly.
     (LOGS / "reward.json").write_text(json.dumps(rewards, indent=1))
+    write_ctrf(meta, outcomes, protected, started)
     (LOGS / "report.json").write_text(json.dumps({
         "task": task, "variant": variant_of(meta),
+        "hidden_mean": hidden_mean,
+        "protected_files": protected,
         "tests_seen": len(outcomes),
         "untested_keys": untested,
         "unmeasured_keys": sorted(unmeasured),

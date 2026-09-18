@@ -1,16 +1,19 @@
 """g10 — answer-free scenario helpers shared by the worker (probe.py) and the
-human reference (test_open.py).
+suite's unshipped pytest reference (test_open.py, in SWEWorld at
+harbor_tasks/_suites/g10_token_capacity_budget/).
 
 This module holds ONLY the curator imports, scenario factories and tolerant
 readers the probe needs to drive curator; it contains NO expected-output value
-(no `-250.0`, no `0.25`, no refund numbers). That is load-bearing: `run_split`
-copies this file into the worker's jail, so it is inside the process that runs
-agent code. If any reward-bearing expected value ever appears here, the worker
-can read it and forge a passing `observations.json`. The answers live only in
-`judge.py` (and, for humans, in `test_open.py`), which the worker cannot read.
+(no debt floor, no fraction, no refund numbers) and no scenario NUMBER either —
+those come from `fixture_spec.derive(seed)`, per run. That is load-bearing:
+`run_split` copies this file into the worker's jail, so it is inside the process
+that runs agent code. If any reward-bearing expected value ever appears here,
+the worker can read it and forge a passing `observations.json`. The answers live
+only in `judge.py` (and, for humans, in the unshipped reference), neither of
+which the worker can read.
 
-`test_open.py` imports these names so there is a single definition of each helper
-— the probe cannot drift from the reference.
+The pytest reference imports these same names, so each helper has a single
+definition and the probe cannot drift from it.
 """
 from __future__ import annotations
 
@@ -45,7 +48,7 @@ except Exception as exc:  # pragma: no cover - reported per test by budget_modul
 
 
 # ---------------------------------------------------------------------------
-# Guards and tolerant readers, shared with test_r1 / test_r2
+# Guards and tolerant readers, shared with the r1/r2 references
 # ---------------------------------------------------------------------------
 def importable():
     """Curator itself must import; anything else is an environment fault, not a grade."""
@@ -197,6 +200,40 @@ class StubProcessor(BaseOnlineRequestProcessor if BaseOnlineRequestProcessor els
         self.appended.append(data)
 
 
+def count_releases(status_tracker):
+    """Count the tracker's release operations for one attempt through the handler.
+
+    Wrapped on the INSTANCE, so `status_tracker.free_capacity(...)` and the
+    refund the processor calls go through a counter without the class changing —
+    the handler is driven exactly as it ships. Counting matters because a
+    release is capped at the per-minute limit: a handler that refunds the same
+    reservation twice leaves every bucket reading identical to one that refunds
+    it once, so the values alone cannot tell "exactly once per attempt" from
+    "twice". The refund operation is looked up under either name the tracker may
+    give it, and a submission that has only `free_capacity` is counted through
+    that alone.
+    """
+    counts = {"settle": 0, "refund": 0}
+
+    def wrap(name, key):
+        original = getattr(status_tracker, name, None)
+        if not callable(original):
+            return False
+
+        def counted(*args, **kwargs):
+            counts[key] += 1
+            return original(*args, **kwargs)
+
+        setattr(status_tracker, name, counted)
+        return True
+
+    wrap("free_capacity", "settle")
+    for candidate in ("refund_capacity", "refund"):
+        if wrap(candidate, "refund"):
+            break
+    return counts
+
+
 def make_request(attempts_left: int = 0):
     generic = GenericRequest(
         model="gpt-4o-mini",
@@ -256,3 +293,4 @@ def run_attempt(proc, status_tracker, blocked, *, attempts_left: int, response):
         return request
 
     return asyncio.run(drive())
+

@@ -1,5 +1,6 @@
 """g3 — answer-free scenario helpers and inputs shared by the worker (probe.py)
-and the human reference (test_open.py).
+and the human reference (test_open.py, which lives with the suite's source and is
+not shipped in the task).
 
 This module holds ONLY the curator imports, the tolerant verdict/tracker readers,
 the policy/processor/request factories, and the classification INPUTS the probe
@@ -27,6 +28,8 @@ from __future__ import annotations
 import asyncio
 import datetime
 import inspect
+import os
+import tempfile
 from types import SimpleNamespace
 
 import pytest
@@ -39,6 +42,7 @@ IMPORT_ERROR = None
 try:
     from bespokelabs.curator.request_processor.config import OnlineRequestProcessorConfig
     from bespokelabs.curator.request_processor.online import retry_policy as rp
+    from bespokelabs.curator.request_processor.online import base_online_request_processor as base_module
     from bespokelabs.curator.request_processor.online.base_online_request_processor import (
         APIRequest,
         BaseOnlineRequestProcessor,
@@ -49,7 +53,7 @@ try:
     from bespokelabs.curator.types.generic_response import GenericResponse
 except Exception as _exc:  # pragma: no cover - the shape of an unimplemented tree
     IMPORT_ERROR = _exc
-    rp = OnlineRequestProcessorConfig = APIRequest = BaseOnlineRequestProcessor = None
+    rp = OnlineRequestProcessorConfig = APIRequest = BaseOnlineRequestProcessor = base_module = None
     _TokenUsage = GenericRequest = GenericResponse = OnlineStatusTracker = None
 
 
@@ -265,13 +269,28 @@ def make_api_request(**overrides):
     return APIRequest(**kwargs)
 
 
-def drive_one_failure(processor, request, tracker, exc):
-    """Run the processor's own try/except once over an attempt that raises."""
+def drive_one_failure(processor, request, tracker, exc, *, capture=None):
+    """Run the processor's own try/except once over an attempt that raises.
+
+    `capture`, when a list is passed, collects whatever the processor writes out
+    for a request it has given up on, by standing in for
+    `append_generic_response`. The stand-in is not optional on that path: the
+    real write wants a prompt formatter and a viewer this bare processor has
+    neither of (same reason `drive_one_response` installs one), so without it
+    the exhausted path dies on an AttributeError and reports nothing about the
+    response the ticket describes.
+    """
 
     async def boom(request, session, status_tracker):
         raise exc
 
     processor.call_single_request = boom
+    if capture is not None:
+
+        async def keep(status_tracker, response, filename):
+            capture.append(response)
+
+        processor.append_generic_response = keep
     queue = asyncio.Queue()
 
     async def go():
@@ -286,6 +305,84 @@ def drive_one_failure(processor, request, tracker, exc):
 
     asyncio.run(go())
     return queue
+
+
+class _StopAtConstruction(BaseException):
+    """Raised from the APIRequest spy below, out through the submission loop.
+
+    A `BaseException`, not an `Exception`: the retry path this travels through is
+    wrapped in `except Exception` handlers that would swallow it and turn the
+    observation into a silent nothing.
+    """
+
+
+def production_seeding(max_retries: int) -> dict:
+    """What the processor's OWN submission loop seeds `attempts_left` from.
+
+    Every other request in this suite is built by `make_api_request`, which
+    passes `attempts_left=3` itself -- so nothing behavioural ever touched the
+    construction site in `process_requests_from_file`, and the v12 review said
+    exactly that: a pristine `attempts_left=self.config.max_retries` parked in
+    dead code satisfied the source check while the request that really gets made
+    was seeded from something else.
+
+    So drive the real loop over a one-line request file with the module's
+    `APIRequest` replaced by a spy that records the keyword it was called with
+    and raises. Stopping at the construction is what keeps this offline and
+    quick: the capacity wait and the retry-drain loop that follow never run, and
+    a live run of them does not terminate without a server. The viewer client
+    and prompt formatter are stubbed because a bare processor has neither and
+    the loop reaches for both before it builds a request.
+
+    Answer-free: `max_retries` is an INPUT the caller passes. The value it must
+    come back as is the same number, and it is the judge that knows it.
+    """
+    out = {"observed": False, "attempts_left": None, "error": None}
+    real = None
+    try:
+        real = base_module.APIRequest
+        processor = make_processor(max_retries=max_retries)
+
+        class _Viewer:
+            def __getattr__(self, name):
+                async def _noop(*args, **kwargs):
+                    return None
+
+                return _noop
+
+        processor._viewer_client = _Viewer()
+        processor.prompt_formatter = None
+        seen = []
+
+        def spy(*args, **kwargs):
+            seen.append(kwargs["attempts_left"] if "attempts_left" in kwargs else "<positional>")
+            raise _StopAtConstruction()
+
+        base_module.APIRequest = spy
+        work = tempfile.mkdtemp()
+        request_file = os.path.join(work, "requests.jsonl")
+        generic = GenericRequest(model="gpt-4o-mini", messages=[{"role": "user", "content": "hi"}], original_row={}, original_row_idx=0)
+        with open(request_file, "w", encoding="utf-8") as handle:
+            handle.write(generic.model_dump_json() + "\n")
+
+        async def go():
+            await processor.process_requests_from_file(request_file, os.path.join(work, "responses.jsonl"), OnlineStatusTracker())
+
+        try:
+            asyncio.run(go())
+        except _StopAtConstruction:
+            pass
+        if seen:
+            out["observed"] = True
+            out["attempts_left"] = seen[0]
+        else:
+            out["error"] = "the submission loop ran without constructing an APIRequest"
+    except BaseException as exc:  # noqa: BLE001 - an unobservable path is a failed fact, reported as one
+        out["error"] = f"{type(exc).__name__}: {exc}"[:300]
+    finally:
+        if real is not None:
+            base_module.APIRequest = real
+    return out
 
 
 def drive_one_response(processor, request, tracker, *, finish_reason):
@@ -331,6 +428,154 @@ def drive_one_response(processor, request, tracker, *, finish_reason):
 
     asyncio.run(go())
     return queue
+
+
+# ---------------------------------------------------------------------------
+# Driving one provider processor's rate-limit branch
+# ---------------------------------------------------------------------------
+# instruction.md:120-126 has two halves: the three hand-rolled blocks stop
+# mutating tracker counters, and they "just re-raise". A source read answers the
+# first half; the second is a behaviour, and a handler that returns instead of
+# raising — or that replaces the provider's exception with one of its own —
+# deleted the decrements the ticket names, passed every check, and quietly
+# dropped the failure the base class exists to classify.
+#
+# A provider processor cannot be constructed here: its __init__ wants an API key,
+# a client and, for litellm, a model lookup. So the handler is entered directly
+# with a stand-in `self` carrying the two or three attributes it reads on the way
+# to the rate-limit branch, and with the one call that would reach the network
+# replaced. Nothing in here says what the handler must do: the judge holds that.
+PROVIDER_ERROR = {"message": "Rate limit reached for gpt-4o"}
+
+
+class _StandIn:
+    """A `self` for one handler: what the scenario sets, `None` for the rest."""
+
+    def __init__(self, **attrs):
+        self.__dict__.update(attrs)
+
+    def __getattr__(self, name):
+        return None
+
+
+def _rate_limit_error(litellm_module):
+    """The provider's OWN rate-limit exception, so the module's `except
+    litellm.RateLimitError` catches it however that clause is spelled.
+
+    Constructed through the real signature, because a handler is free to log
+    `str(e)` before it re-raises and litellm's own `__str__` reads attributes
+    only its `__init__` sets: a bare subclass raised an AttributeError there and
+    would have failed a correct handler for it.
+    """
+    error_cls = litellm_module.RateLimitError
+    try:
+        return error_cls(message="rate limit exceeded", llm_provider="openai", model="gpt-4o-mini")
+    except Exception:  # noqa: BLE001 - a litellm whose constructor wants something else
+        class _Throttled(error_cls):
+            def __init__(self):
+                Exception.__init__(self, "rate limit exceeded")
+
+            def __str__(self):
+                return "rate limit exceeded"
+
+        return _Throttled()
+
+
+def _propagated(coro) -> dict:
+    """Run one handler and report what came out, rather than raising it here."""
+    try:
+        asyncio.run(coro)
+        return {"raised": [], "exc": None}
+    except BaseException as exc:  # noqa: BLE001 - the propagation under test
+        return {"raised": [cls.__name__ for cls in type(exc).__mro__], "exc": exc}
+
+
+def drive_provider_rate_limit(which: str) -> dict:
+    """One provider's rate-limit failure, driven through the real handler.
+
+    Records whether the branch could be entered at all, the MRO of whatever
+    propagated out of it, whether that object is the exception raised underneath
+    it (litellm's block is the one that catches the provider's own error, so
+    `raise e` is observable there as identity), and the tracker's three counters
+    before and after. A branch that could not be entered is reported as
+    `driven: False` with the error, never as a pass.
+    """
+    out = {"driven": False, "raised": None, "same_object": None,
+           "counters_before": None, "counters_after": None, "error": None}
+    try:
+        tracker = OnlineStatusTracker()
+        request = make_api_request()
+        out["counters_before"] = list(counters(tracker))
+        if which == "openai":
+            from bespokelabs.curator.request_processor.online import openai_online_request_processor as mod
+
+            async def fetch(session, **kwargs):
+                return {"error": dict(PROVIDER_ERROR)}
+
+            real, mod.fetch_response = mod.fetch_response, fetch
+            try:
+                result = _propagated(mod.OpenAIOnlineRequestProcessor.call_single_request(
+                    _StandIn(api_key="sk-verifier",
+                             url="https://api.openai.com/v1/chat/completions",
+                             config=_StandIn(request_timeout=1, return_completions_object=False)),
+                    request, None, tracker))
+            finally:
+                mod.fetch_response = real
+        elif which == "anthropic":
+            from bespokelabs.curator.request_processor.online import anthropic_online_request_processor as mod
+
+            class _Response:
+                status = 429
+
+                async def json(self):
+                    return {"error": dict(PROVIDER_ERROR)}
+
+            class _Post:
+                async def __aenter__(self):
+                    return _Response()
+
+                async def __aexit__(self, *exc_info):
+                    return False
+
+            class _Session:
+                def post(self, *args, **kwargs):
+                    return _Post()
+
+            result = _propagated(mod.AnthropicOnlineRequestProcessor.call_single_request(
+                _StandIn(api_key="sk-verifier", url="https://api.anthropic.com/v1/messages",
+                         config=_StandIn(request_timeout=1, return_completions_object=False)),
+                request, _Session(), tracker))
+        elif which == "litellm":
+            from bespokelabs.curator.request_processor.online import litellm_online_request_processor as mod
+
+            real = mod.litellm
+            thrown = _rate_limit_error(real)
+
+            class _Litellm:
+                """The real module, with the one network call raising."""
+
+                def __getattr__(self, name):
+                    return getattr(real, name)
+
+                async def acompletion(self, **kwargs):
+                    raise thrown
+
+            mod.litellm = _Litellm()
+            try:
+                result = _propagated(mod.LiteLLMOnlineRequestProcessor.call_single_request(
+                    _StandIn(config=_StandIn(request_timeout=1, return_completions_object=False)),
+                    request, None, tracker))
+                out["same_object"] = result["exc"] is thrown
+            finally:
+                mod.litellm = real
+        else:
+            raise AssertionError(f"no such provider: {which!r}")
+        out["raised"] = result["raised"]
+        out["counters_after"] = list(counters(tracker))
+        out["driven"] = True
+    except BaseException as exc:  # noqa: BLE001 - an unobservable path is a failed fact, reported as one
+        out["error"] = f"{type(exc).__name__}: {exc}"[:300]
+    return out
 
 
 E = type("E", (Exception,), {})
@@ -403,4 +648,77 @@ def classify_marker_inputs():
         Exception("API error: internal server error"),
         Exception(""),
         Exception("rate limit exceeded"),
+        # The TRANSIENT marker row, on its own terms. Every other timeout input
+        # in this suite is a TimeoutError, which the type signal answers first,
+        # so the `timed out` marker was never the thing being read -- and with
+        # TRANSIENT also being the default, a message carrying it alone proves
+        # nothing either. This one carries a TERMINAL marker too, so only a
+        # scan in the ticket's table order (transient row before terminal,
+        # instruction.md:47-54) rather than in message order comes back
+        # TRANSIENT.
+        Exception("Invalid API key rejected after the request timed out"),
     ]
+
+
+def classify_hostile_inputs():
+    """The "never raises" guarantee: exceptions that fight back when read.
+
+    `getattr(exc, "status_code", None)` returns its default only on
+    AttributeError, so a property that raises anything else propagates straight
+    out of the classifier — and `str(exc)` is a method call too. Real clients
+    raise this shape: an SDK error whose `.status_code` parses a half-read
+    response, or whose `__str__` formats a body that never arrived. The ticket
+    states "never raises" outright and nothing measured it, so a classifier
+    that reads both accessors unguarded scored full marks on the fact.
+
+    Answer-free like its neighbours — what each input DOES is the input; the
+    expected classes live in test_open.py and judge.py. Between them the five
+    also separate "guarded" from "wrapped in one try that returns the default":
+    three of them must still come back with the class a working signal found —
+    the message's 429, the status's 429, and the one whose accessors both raise
+    but whose TYPE still names a class.
+    """
+
+    class StatusExplodes(Exception):
+        """No readable status, a readable message, no marker in it."""
+
+        @property
+        def status_code(self):
+            raise RuntimeError("status accessor is broken")
+
+    class ThrottledStatusExplodes(StatusExplodes):
+        """The status is unreadable but the message still says 429."""
+
+        def __str__(self):
+            return "Rate limit exceeded for gpt-4o"
+
+    class MessageExplodes(Exception):
+        """A readable status, an unreadable message: signal 1 answers first."""
+
+        status_code = 429
+
+        def __str__(self):
+            raise RuntimeError("message accessor is broken")
+
+    class BothExplode(PermissionError):
+        """Neither accessor works; the TYPE still names a class."""
+
+        @property
+        def status(self):
+            raise RuntimeError("status accessor is broken")
+
+        def __str__(self):
+            raise RuntimeError("message accessor is broken")
+
+    class NothingWorks(Exception):
+        """Nothing readable and nothing to match: the default still comes back."""
+
+        @property
+        def status_code(self):
+            raise RuntimeError("status accessor is broken")
+
+        def __str__(self):
+            raise RuntimeError("message accessor is broken")
+
+    return [StatusExplodes("boom"), ThrottledStatusExplodes("boom"),
+            MessageExplodes("x"), BothExplode("no"), NothingWorks("x")]

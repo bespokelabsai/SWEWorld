@@ -1,28 +1,32 @@
 schema_version = "1.4"
 
 [task]
-name = "bespokelabs/sweworld-attachment-payload-world-hosted"
+name = "bespokelabs/attachment-payload"
 version = "1.0.0"
 description = "Canonical attachment blocks for multimodal prompts. The requirements that decide correctness are not stated. The remarks they were inferred from are in the company's chat, wiki and mail, and the agent has to find them."
 authors = [{ name = "SWEWorld" }]
-keywords = ["sweworld", "curator", "python", "hidden-requirements", "world-hosted"]
 
 [metadata]
-category = "implementation"
-difficulty = "medium"
-source_task = "g8"
-variant = "world-hosted"
-# Kept beside `variant`: a reader that predates the extra arms falls back to
-# this. `spec` and `clues` are controls — they hand over what the task hides.
-# `world` is not: it is the blind ticket against a corpus that has the answers
-# in it somewhere, so a reader falling back should read it as blind.
-control = false
+author_name = "Nidhi Parthasarathy"
+author_email = "nidhi@bespokelabs.ai"
+author_organization = "Bespoke Labs"
+category = "Software"
+subcategory = "LLM client libraries"
+tags = ["python", "multimodal", "attachments", "llm-provider-apis", "pydantic", "token-estimation", "requirements-discovery"]
+expert_time_estimate_hours = 5.0
+difficulty_explanation = "The ticket is a precise but deliberately incomplete refactor of curator's multimodal request path: three per-provider attachment formatters become one frozen, provider-independent attachment block, one shared MIME policy, pure OpenAI and Anthropic renderers and a token estimator that no longer crashes on non-OpenAI blocks. The requirements that decide correctness are not in it. Two further requirements, one about what an attachment-bearing prompt is allowed to carry and how documents are priced, and one about what identity and naming a block records and how image detail is treated, were settled in scattered remarks: chat threads, wiki pages and their comments, and mail, spread over months and mixed with earlier decisions the team later reversed. The hard part is the same for a human engineer and an agent: work out which of dozens of remarks bear on this change, tell a superseded decision from the current one, and reassemble exact names, constants, check ordering and edge-case behaviour that no single remark states whole, while also delivering a correct multi-file change across the prompt types, the base processor, two provider processors and the token estimator without breaking the back-compatible entry points. The accompanying company data (chat, wiki, mail and issue tracker) is synthetically generated around the real open-source curator repository and its real history. It is written to read like an ordinary engineering organisation, with realistic noise and reversals, so finding the evidence is a realistic retrieval-and-judgement challenge rather than a puzzle. In the real world this is the work of an SDK or backend engineer maintaining an LLM client library across several provider APIs, picking up a ticket in a codebase whose conventions live partly in team memory."
+solution_explanation = "The reference solution (solution/oracle.patch, applied and pushed by solve.sh) adds a leaf module types/attachment.py holding the frozen AttachmentBlock model, the AttachmentError hierarchy, normalize_mime_type, normalize_detail, the fingerprint helper and the limit constants. prompt.py gains is_remote, attachments() and one query-stripping MIME guess shared by Image and File. The base online processor builds each block once in _canonical_attachment_block, applying the refusals in the order the ticket fixes (missing local path, unresolvable MIME, empty payload) and then the per-kind size ceiling before the provider's file_upload_limit_check hook; it derives kind from the MIME type rather than the Python class, caps the filename and fingerprints the payload string. _handle_multi_modal_prompt counts attachments before reading anything, builds every block, sums the base64 blocks against the whole-prompt ceiling, then renders attachments followed by texts. The OpenAI and Anthropic renderers are module-level pure functions of the block; the Anthropic and LiteLLM processors only choose one, and calculate_input_tokens dispatches on the block type with a flat document price. The key insight is that providers differ only in rendering: once validation, measurement and identity live on one canonical block built in one place, every provider stays consistent by construction and the renderers become trivially testable. The patch is then committed and merged to main in Gitea, which is how code reaches the graded and deployed state in this world."
+verification_explanation = "The verifier clones whatever main holds in Gitea after the agent finishes and grades that. A worker process, running unprivileged (as nobody) from a jail that holds no answers, imports the submission, runs fixed scenarios (building blocks from local files, inline content and remote URLs, rendering them for each provider, assembling prompts around the size and count ceilings, and pricing content lists with a one-token-per-character stub encoder) and records the raw values it observed. A separate root judge, which never imports agent code, compares those values against the expected behaviour and writes one test per fact. The two hidden requirements are split into nine facts: the first declares all five fields (rule, scope, exclusions, failure behaviour, observability) and the second declares four, with no observability fact. Each fact passes only if all of its checks pass. The open ticket's behaviour (the block model and exceptions, the MIME policy, is_remote and attachments(), block construction and its refusal order, the OpenAI and Anthropic render shapes, LiteLLM dispatch, the _format_multimodal one-shot, prompt assembly order and the token estimator) is graded as one further test, open_feature, run by the same judge. The reward is binary: 1 only if open_feature passes and all nine hidden facts pass; otherwise 0. A submission that recovers the hidden requirements but does not deliver the ticket therefore scores 0. The instruction protects no whole file, so there is no protected-file comparison. It does name seven pieces of curator that this change must reuse as they are, and they live inside the two files the ticket also edits, which no whole-file comparison can express: Image.serialize, File.serialize, BaseType._is_local_uri, BaseType._load_file_as_b64, BaseType.is_local, _MultiModalPrompt.load and BaseOnlineRequestProcessor._unpack_multimodal. The judge therefore parses the submitted source and the pristine tree the runner stages for it (CURATOR_BASELINE_DIR) and compares each of those functions as an abstract syntax tree - decorators, signature, return annotation and statements, with the docstring and all formatting dropped, so a reflowed line is allowed and a changed statement is not - and also checks that _MultiModalPrompt still does not override pydantic's model_validate. Each of those eight names is resolved the way Python binds it rather than searched for: the class must be defined once at module level, the method once in that class body, and any later rebinding of either name (a second definition anywhere in the class body, `Class.method = ...`, or `setattr(Class, 'method', ...)`) fails the check instead of being ignored. The bytes the worker attaches are re-drawn every run from a seed the runner picks after the agent's container is gone (tests/g8_attachment_payload/fixture_spec.py), and the judge re-derives this run's expected base64 payloads and fingerprints from the same seed, so an observations file recorded from an earlier run does not satisfy this one. Nothing is imported for this; ast.parse only reads. An absent or unreadable baseline fails the check rather than passing it blind. These comparisons are part of open_feature, not a tenth fact. Per-fact results and push/CI/deploy provenance are reported beside the reward in reward.json and ctrf.json; provenance is informational and does not gate it. The judge runs as root with Python in isolated mode (-I) and a root-owned HOME, so nothing the unprivileged worker writes can execute in it. EXACT CHECKS. Almost every check is exact equality: MIME strings, block fields (kind, source, mime_type, payload, filename, detail, fingerprint), whole rendered dicts, content-list order and length, exception classes (by class name in the MRO), the non-float exception attributes, exception messages compared as whole strings (for example 'image attachment is 24.0 MB, over the 20.0 MB limit.' and 'Prompt has 13 attachments, over the limit of 12.'), integer token counts (5, 85, 1400, a mixed-list total of 2975, and that the result is an int), warning counts (exactly 1 on a downgraded image detail and exactly 0 on a supported or absent one), call counts on the stub's file_upload_limit_check hook, and the 12-hex-digit sha256 fingerprints, which the judge also re-derives from the input text with hashlib. Symbols the ticket does not place by name - the constants and helpers a hidden requirement introduces - are looked up in types/attachment.py, types/prompt.py, the types package or the base processor module, whichever defines them. Six named constants or helpers (_ATTACHMENT_COUNT_LIMIT, _OPENAI_TOKENS_PER_DOCUMENT, attachment_fingerprint, _ATTACHMENT_FINGERPRINT_HEX_LEN, normalize_detail, _SUPPORTED_IMAGE_DETAILS) are compared exactly when they are defined; the behaviour each governs is checked either way. The three refusals' messages are checked as whole strings: MissingLocalAttachment and UnknownAttachmentMimeType against the literals the ticket writes, and EmptyAttachment and the extensionless-MIME case against the same templates rebuilt from the throwaway path the probe recorded, because those payloads live in a temporary directory. The block model is checked as the declaration the ticket makes, not only by one rejected assignment: AttachmentBlock is a pydantic BaseModel, its model_config carries frozen=True, two separate field assignments raise, the six declared fields are present with detail the only optional one and its default None, re-validating a real block's own dump returns an equal block, and a kind or source outside the ticket's Literal is rejected with a ValidationError. The seven names the ticket places in types/attachment.py must be reachable from that module, whose __file__ must end in bespokelabs/curator/types/attachment.py. The empty-payload refusal is exercised on a zero-byte local PDF, with the ordering the ticket fixes: the same file without a guessable extension is refused for its MIME instead. Warning counts are exact: exactly one logger.warning when a url's MIME cannot be guessed, on Image and on File, and none when it can be. FLOAT TOLERANCES. Megabyte sizes are the only floats compared. Every approximate comparison uses the judge's defaults, |got - expected| <= max(1e-9 * |expected|, 1e-12); there is no other tolerance. The eight comparisons are these. In the first requirement's rule fact: (1) the size_mb recorded on the block for a 9-byte PDF against 8.58306884765625e-06, (2) curator's get_base64_size of the same payload against the same literal, and (3) the block's size_mb against that get_base64_size value; for these three the 1e-12 absolute floor is the binding bound, about 1.2e-7 relative. (4) The refused image's size_mb against 24.0 and (5) its limit_mb against 20.0, bounds 2.4e-8 and 2e-8 absolute, though the whole-string message check makes both effectively exact. (6) The accepted document's size_mb against 24.0, bound 2.4e-8. In the scope fact: (7) the whole-prompt exception's size_mb against 60.0, bound 6e-8, and (8) its limit_mb against 45.0, bound 4.5e-8. The ceilings are exercised at a boundary: a document of exactly 24.0 MB must pass the 24.0 MB document ceiling, so the comparison has to be strictly greater. INEQUALITY CHECKS, which are one-sided or not-equal rather than tolerances. In the open feature: the token price of each of two document blocks (an OpenAI file block and an Anthropic document block) is >= 0 and an int (the exact price is a hidden fact), and curator's get_base64_size of the PDF payload is > 0. In the second requirement: a different payload has a different fingerprint; adding a query string, and separately a fragment, changes a URL's fingerprint; and the sha256 prefix of the decoded PDF bytes does not appear in a base64 block's fingerprint. CALIBRATION. Every expected size is a whole number of bytes divided by 2^20, which binary floating point represents exactly, and every probe payload's base64 length is a multiple of 4, so correct implementations should agree bit for bit. This was measured, not assumed. Four implementations were run through the real probe and judge: the reference one (curator's get_base64_size, aggregate by sum); decoding the base64 and dividing len(bytes) by 2^20, aggregate by math.fsum; an integer byte count with padding found by rstrip, divided by 1024 twice, aggregate summed in reverse; and float arithmetic len * 0.75 minus trailing padding over 1048576.0, aggregate reduced over the sizes sorted descending. All four scored 10/10 on every test. Offline, the three length-based size formulas agreed exactly (difference 0) across 5,300 payload lengths up to 40 MB, the decoding form agreed with them on every length below 200 KB, and the four aggregate forms agreed exactly over 20,000 random prompts of up to 12 sizes. Three deliberately wrong variants were run as controls. Decimal megabytes (dividing by 1,000,000) failed the rule and scope facts: the 24 MB document was refused at 25.165824 MB, and the prompt aggregate was 62.91456 against 60.0. Measuring the base64 length instead of the decoded bytes failed the same two facts: the document was refused at 32.0 MB and an 18 MB image at 24.0 MB. An aggregate that drops the last block failed the scope fact, 54.0 against 60.0. So the bounds admit every correct formulation tested and reject wrong measurement by many orders of magnitude."
 
 [agent]
 # The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
 # /opt/world-state or the deploy queue.
 user = "ubuntu"
-timeout_sec = 3600.0
+# 7200, not 3600. At an hour every g11 trial was still pushing, polling CI and
+# re-running tests in its last minutes, so the cutoff -- not the hidden
+# requirements -- was deciding how much got checked. The difficulty is meant to
+# be finding what nobody wrote down, not racing the clock.
+timeout_sec = 7200.0
 
 [verifier]
 # Root, because grading reads the pristine tree at /opt/world-state/input/curator
@@ -42,18 +46,48 @@ timeout_sec = 2400.0
 # Harbor's compose template appends `command: ["sh","-c","sleep infinity"]`, and
 # Compose's `command:` overrides CMD rather than ENTRYPOINT, so with a compose
 # file those args reach supervisord as argv and the world never boots.
+#
+# 3600 is sized for the image this build starts FROM, not for the two RUN lines
+# on top of it. The base is the published world image -- every service, the
+# repository with its full history, and the curator virtualenv, several
+# gigabytes of it -- and Harbor's build step pulls and extracts that before the
+# first instruction here runs. What this task adds is small: an apt mirror
+# rewrite, tmux/asciinema for the session recorder, the setup script and the
+# plant directory. A build killed at this ceiling is a rollout that never
+# starts and reports nothing, so the ceiling is set by the pull rather than by
+# the layer.
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
-network_mode = "public"
-# 8, not the 2 build_tasks.py generates, and hand-set on purpose: this arm is
-# submitted with `evaluations submit --machine-type e2-custom-8-16384`, which is
-# the only thing that gives the eval runner more than two cores. Docker REFUSES a
-# `cpus` above the host count rather than capping it, so this number and that flag
-# have to move together -- 8 here with a default-machine submit errors EVERY
-# rollout at `docker compose up --detach --wait`, buried under a screen of BuildKit
-# progress lines that reads like a build failure.
-# It also puts this arm beyond `horizon tasks validate`, whose runner has 4 cores.
-# A rebuild from build_tasks.py (HOSTED_CPUS = 2) silently puts it back to 2.
+# `allow_internet`, not `network_mode`: the benchmark's task.toml schema names
+# only this one, and Harbor's default network mode is already public.
+allow_internet = true
+# WHAT THESE RESOURCES ARE FOR. This container is a whole company, not a test
+# runner. supervisord boots PostgreSQL (Mattermost's database), MariaDB
+# (BookStack's), Mattermost, BookStack, Gitea and its act_runner -- which
+# builds and runs the repository's CI workflows on every push, because pushing
+# is how code reaches the graded state here -- maddy for mail, and nginx in
+# front of all of them. The agent then works alongside that for up to two
+# hours: cloning curator, searching chat, the wiki and IMAP, and running
+# pytest in the curator virtualenv. Grading adds another clone, an
+# unprivileged worker that imports the submission and a root judge.
+#
+# The evidence that two cores is not enough is a sibling arm on this same
+# world image: 0e81bc4 raised this arm from 2 to 8 and missed g10 and g11, and
+# run 2 of eval f25dfb66 then came back "Harbor trial did not complete" with
+# the agent logging git HEAD flipping between three commits and /tmp files
+# vanishing between commands -- a world starved of cores looks exactly like a
+# broken task. memory_mb 13000 is what the two databases, the two PHP/Go web
+# applications, the CI runner and the agent's own Python need side by side,
+# inside the 16384 MB the machine type below provides, with room left for the
+# host. No GPU and no extra storage are requested; the difficulty here is
+# retrieval and reasoning, not computation.
+#
+# 8, not the 2 build_tasks.py generates, and hand-set on purpose: the workload
+# above is a full company world (PostgreSQL, MariaDB, Mattermost, BookStack,
+# Gitea with its CI runner, maddy, nginx) plus an agent searching it and then a
+# clone, a worker and a judge. Two cores were measured breaking runs: the world
+# came up unhealthy or CI queued behind the agent's own pushes. A rebuild from
+# build_tasks.py (HOSTED_CPUS = 2) silently puts it back to 2.
 cpus = 8
 memory_mb = 13000
 

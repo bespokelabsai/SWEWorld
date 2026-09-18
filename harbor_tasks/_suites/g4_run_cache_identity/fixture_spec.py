@@ -82,7 +82,12 @@ def _value(rnd: random.Random, kind: str):
     if kind == "url":
         return f"https://{_word(rnd, 3, 10)}.example.test/v{rnd.randint(1, 9)}"
     if kind == "int":
-        return rnd.randint(2, 99_999)
+        # Two digits at least. The judge strikes every component value out of the
+        # hashed payload and asks what is left to name the identity version; a
+        # one-character value is ambiguous with that tag, so it is neither struck
+        # out (it could BE the tag) nor trustworthy if it stays. Drawing 10 and up
+        # removes the ambiguity, and no fact depends on the magnitude.
+        return rnd.randint(10, 99_999)
     if kind == "window":
         return f"{rnd.randint(2, 96)}h"
     if kind == "bool":
@@ -112,12 +117,23 @@ def _function(rnd: random.Random, prefix: str, arity: int) -> dict:
     return {"name": f"{prefix}_{_word(rnd, 3, 9)}", "args": args, "body": _text(rnd)}
 
 
+# Names a pydantic BaseModel already owns. A drawn field spelled like one of
+# these does not build a model at all, so the scenario would fail on the draw
+# rather than on the submission. It is a 1-in-10^5 draw and it happened to
+# nobody, but a flake a reviewer can name is a finding either way, and refusing
+# the word costs one comparison.
+_RESERVED_FIELD_NAMES = frozenset({
+    "dict", "json", "copy", "schema", "schema_json", "construct", "validate",
+    "fields", "parse_obj", "parse_raw", "parse_file", "from_orm", "update_forward_refs",
+})
+
+
 def _model(rnd: random.Random) -> dict:
     """A structured response model: a class name and 1-3 typed fields."""
     names = []
     while len(names) < rnd.randint(1, 3):
         name = _word(rnd, 3, 9)
-        if name not in names:
+        if name not in names and name not in _RESERVED_FIELD_NAMES:
             names.append(name)
     return {"name": _word(rnd, 4, 10).capitalize(),
             "fields": [[name, rnd.choice(["str", "int", "float", "bool"])] for name in names]}
@@ -185,7 +201,48 @@ def derive(seed: str) -> dict:
     for name in ("id_rule", "id_rule_other", "id_env", "id_explicit", "id_refused",
                  "id_control", "id_obs", "id_obs_other", "id_probe"):
         spec[name] = _run_id(rnd, taken)
+    _assert_invariants(spec)
     return spec
+
+
+def _assert_invariants(spec: dict) -> None:
+    """The properties of a draw the suite's facts are allowed to assume.
+
+    Reproducibility is the point of the seed, and the defence of it is that the
+    REWARD does not move even though the inputs do. That only holds while every
+    draw has the shape the facts expect: a fact that asks "does the hash move
+    when only the model does" is meaningless on a run that drew the same model
+    twice. Each of these is already impossible by construction above — they are
+    a drift guard, not a filter — so if one ever fires it is a bug in this file,
+    and both sides derive from the same seed, so both fail here, loudly, with the
+    defect named, instead of reporting a mysteriously failing fact.
+    """
+    def need(cond, why):
+        if not cond:
+            raise AssertionError(f"fixture_spec drew a degenerate run for seed {spec['seed']!r}: {why}")
+
+    need(spec["model"] != spec["alt_model"], "the two model names are the same")
+    need(spec["dataset_hash"] != spec["alt_dataset_hash"], "the two dataset hashes are the same")
+    need(spec["prompt_fn"] != spec["parse_fn"], "the prompt and parse functions are identical")
+    fields = [name for name, _ in spec["response_model"]["fields"]]
+    need(len(fields) == len(set(fields)), f"the response model has duplicate fields {fields}")
+    need(not set(fields) & _RESERVED_FIELD_NAMES, f"a response model field shadows a BaseModel attribute: {fields}")
+    need(set(spec["knob_values"]) == set(KNOBS), "a backend knob was drawn no value")
+    need(spec["plain_url"] not in spec["knob_values"].values(), "a knob was drawn the plain base_url")
+    need(spec["stamp_params"]["base_url"] == spec["rotated_params"]["base_url"],
+         "the rotated params moved the base_url, which is the one knob that must not move")
+    need(all(spec["stamp_params"][k] != spec["rotated_params"][k]
+             for k in ("max_retries", "api_key", "request_timeout")),
+         "a rotated knob kept its old value, so the rotation scenario proves nothing")
+    ids = [spec[k] for k in spec if k.startswith("id_")]
+    need(len(ids) == len(set(ids)), "two run ids collided")
+    # Every drawn value is spelled with at least two characters (see `_value`):
+    # the judge strikes the component values out of the hashed payload to see
+    # what is left naming the identity version, and a one-character value is
+    # ambiguous with that tag.
+    thin = [v for v in list(spec["knob_values"].values()) + list(spec["stamp_params"].values())
+            + [spec["model"], spec["dataset_hash"], spec["plain_url"]] if len(str(v)) < 2]
+    need(not thin, f"a drawn value is a single character: {thin}")
 
 
 # ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 {
   "task_id": "dba9d0a7-e6ce-47d1-8ff5-11040eb8ea05",
-  "task_name": "g3-retry-backoff-policy-world",
+  "task_name": "retry-backoff-policy",
   "format": "harbor",
   "mini_batch_id": "fde8a4a1-21d7-4f76-b153-6cfe480b82ff",
-  "version": 9
+  "version": 15
 }

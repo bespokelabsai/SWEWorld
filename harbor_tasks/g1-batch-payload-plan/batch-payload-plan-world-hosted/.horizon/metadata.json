@@ -1,7 +1,9 @@
 {
   "task_id": "6877f4a4-3eb2-4536-8d04-229c55517ca4",
-  "task_name": "g1-batch-payload-plan-world",
+  "task_name": "batch-payload-plan",
   "format": "harbor",
+  "project_name": "sweworld",
+  "spec_name": "hidden-requirement-tasks",
   "mini_batch_id": "fde8a4a1-21d7-4f76-b153-6cfe480b82ff",
-  "version": 17
+  "version": 22
 }

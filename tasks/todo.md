@@ -1,3 +1,41 @@
+# TB3 rubric clean-up (2026-09-17): g11 first, then g1–g10
+
+Plan: ~/.claude/plans/so-i-ran-a-gleaming-wombat.md. Rubric verdicts and criterion text are
+readable from Horizon: `horizon rubrics status <task> -v`, `GET /api/rubrics/<id>`.
+
+## Step 1 — g11 world-hosted
+- [x] binary `reward` (all measured hidden facts AND protected files unchanged); hidden_mean → report.json
+- [x] ctrf.json written by score.py from the judge's junit + protected-file checks
+- [x] protected_files in task.json; run_suites.check_protected byte-compares vs pristine (root)
+- [x] v11 rollouts checked: no trial touched a protected file (diffstat hit was curator history)
+- [x] task.toml: TB3 metadata fields, no invented keys, allow_internet, agent 7200s
+- [x] tests/ = harness + own suite only
+- [x] solution/oracle.patch out of the heredoc (identical to fixtures/oracle.patch; applies to Gitea main)
+- [x] setup.sh deletes /opt/task-plant after a successful ingest
+- [x] generator (build_tasks.py, tasks.generated.json g11 entry) carries all of the above
+- [ ] 1b: republish world image under a neutral name, byte-identical — BLOCKED: nidhi@ gets 403 on apex-485220 even after login; needs a Horizon admin `gcrane cp` or AR Reader
+- [x] rubric round 1 on v12: 8/12 pass. Fixed for v13: category → ML; verification text now lists every tolerance exactly (abs 1e-12 floor dominates on rates); hidden_requirements.md → .horizon-meta/ (prepass.py + refresh_answer_key.py read it there); empty comments.jsonl dropped (generator skips zero-byte plant files)
+- [x] anti-cheat plant-in-layer: Nidhi — task design, do not change delivery (runtime rm stays)
+- [x] push v13 — rubric round 2: Category, No extraneous, Task toml pass; Verification explanation + Typos fail
+- [x] v14: typos (`tasks.json`→`/tests/task.json` in score.py, `rewards.json`→`reward.json` in test.sh/TEST_SH, stale `suite_error=1`); verification explanation lists every tolerance + every inequality and reports a MEASURED validation: 4 alternative correct implementations (Fraction/fsum, reordered/fmean, interpolate/reversed-sum) 10/10 through real probe+judge, 2 wrong controls fail the right facts; spread ≤2.7e-20 on rates, ≤8.9e-16 on losses. Task renamed training-step-ledger (UI) + task.toml/metadata.json
+- [x] v15: Verifier execution isolation was REAL — judge inherited the worker's HOME, root python ran worker-planted usercustomize.py as uid 0 (reproduced). Fix: judge `python3 -I` + root-owned HOME/TMPDIR (all split suites; g1/g7 sibling import verified). Verifiable: reward now also requires open_feature (all 10 v11 rollouts passed it → no outcome change)
+- [x] step 2 (2026-09-17): nine agents converted g1–g10 world-hosted arms, pushed + renamed via PATCH /api/tasks/<uuid> {"field":"name","value":…}: g1 v18 batch-payload-plan, g2 v13 executor-output-cap, g3 v10 retry-backoff-policy, g4 v6 run-cache-identity (uuid 1e913041, not 6dd38e43), g6 v9 model-price-lookup, g7 v6 agent-turn-ledger, g8 v10 attachment-payload, g9 v9 example-encoding, g10 v9 token-capacity-budget. open_feature gate flips 0 everywhere. Metadata + protected_files merged into tasks.generated.json; all ten arms verified equal to the generator.
+- [ ] OPEN (owner decisions): cpus 2 on g2/g3/g4/g6/g10 (world starved at 2 on g11); stricter open-feature judge checks for Verifiable / Do-not-modify / Test-instruction gaps (g1,g3,g4,g6,g8,g10); g2 worker-observation forgery (needs g1-v17-style seeded judge); stale "weight 0" comments in _suites/g4 suite; g11 solve.sh stale reward comment (generator fixed; push after the v15 eval)
+- [x] round 2+3 (2026-09-17, later): all eight re-pushed — g1 v21, g2 v14, g3 v13, g4 v8, g7 v7, g8 v11, g9 v11, g10 v11. g6 v9 and g11 v15 deliberately untouched (clean sweeps; a push would restale them).
+      Rubric state: g2 28/28 clean; g6 28/28; g11 33/34 (Near miss by design); g1 closed its twice-failed Do-not-modify (helper-extraction allowed, renamed-locals rewrite rejected, bands widened 2-11 + 20k-seed sweep); g3 11/13 on a local judge pass; g4 Verifiable closed by vendoring a stdlib XXH64 (verified 474/474 vs xxhash) and recomputing; g9 closed the boundary-trick gap and REFUSED the determinism trade (seed stays; forgery 0/8 fresh); g10 deleted its README (closed two rubrics) and compared handler+queue vs pristine, re-running all 17 controls.
+      Open by design everywhere: Environment hygiene, Instruction concision, Outcome verified, Separate verifier, Test instruction alignment (hidden half), Task proposal. Plus per-task: Anti cheat's plant layer (8 tasks), Structured data schema (6), Difficult (9).
+- [x] SHARED BUG found by g4's local judge: run_suites.map_hosts imported HOSTS from fakeapi.py, which split-suite arms stopped shipping in round 1 -> every run recorded hosts_error and pinned NO provider host while allow_internet=true. Inlined PROVIDER_HOSTS in _suites/run_suites.py (verified map_hosts pins all three in the world image) and re-synced every arm LOCALLY; pushed versions still carry the old import until each task's next push.
+- [ ] OWNER DECISIONS: hosted validate on g3 before buying reviews (its new probe drives curator's real submission loop and has never run hosted; a failure there = oracle <1.0 = 409 gate); g4's capture gap (`from xxhash import xxh64 as _h` records nothing -> fails a CORRECT submission); g7's fingerprint-consumption bypass (~8 judge lines); re-runs ready: g1 8, g3 7, g9 5, g10 9, g4 5 (held)
+- [ ] step 2 leftovers: reuse the tolerance-validation harness (probe+judge on formula variants in sweworld:repo-only-dev) for each task's verification_explanation
+- [x] push g11 world-hosted v12 (22 files); Nidhi runs pre-eval
+
+## Step 2 — g1–g10 (after g11 v12 is confirmed)
+- [ ] per-task toml_metadata + protected_files, propagate tests/solution/setup/toml, push
+- [ ] look into g11 test_r1 `mock://` + tokens_processed expectations (report only)
+- [ ] task-name rename (ask: new Horizon task?)
+
+---
+
 # g11: close the score-forgery without changing the task
 
 ## Problem
@@ -380,3 +418,45 @@ the jail and reached for the module's constant instead.
 Both new fixtures stay in the bracket. The twin is rebuilt by `setup_twin.sh` in the
 session scratchpad; `driver.sh` was rewritten after it deleted the container's root
 filesystem (unguarded `cd` + `find .` — see lessons.md).
+
+## Carried conflict: the plant lives in an agent-image layer (Anti cheat robustness, fc915a50)
+
+**Owner decision, 2026-09-17: documented, not pursued.** Reviewed and costed below.
+
+Nine arms `COPY environment/plant /opt/task-plant` in `environment/Dockerfile` (g1 is the
+exception, it has no plant COPY), `setup.sh` ingests it into Mattermost/BookStack/maddy/Gitea
+and then `rm -rf /opt/task-plant`. The reviewer fails it anyway, twice in the same words:
+
+- g6 v8: "the agent image itself embeds the task's discovery corpus: `environment/Dockerfile:90-96`
+  explicitly calls `/opt/task-plant` an 'answer key' and copies `plant/` into an image layer …
+  Protecting it with mode 0700 is insufficient under the rubric's explicit assumption that agents
+  run as root with full system access, and it also does not remove the data from image layers."
+- g4 v9: "environment/setup.sh:181-183 explicitly acknowledges that the COPY layer still contains
+  it after runtime deletion. The planted messages disclose hidden expected values, including
+  IDENTITY_BACKEND_PARAM_KEYS and its exact four members (messages.jsonl:161) … Because official
+  guidance explicitly fails tasks whose answers are embedded in agent-image layers, deleting only
+  the merged-view copy does not satisfy anti-cheat robustness."
+
+What is actually true: inside the running container the agent cannot reach it. `setup.sh` deletes
+the directory before the agent's first turn, and an overlay upper-layer deletion is not
+recoverable from inside — reading the lower layer needs the image, which lives on the host. The
+finding is about image distribution, not in-container reachability. It is still a real finding
+under the official guidance as written, which does not make that distinction.
+
+**The only fix that would satisfy it** is to keep the plant out of every layer of the final
+image: a BuildKit `RUN --mount=type=bind` (or a multi-stage build whose final stage copies only
+the ingested service state), with the ingest moved from runtime into the build. That means
+starting postgres, mariadb, mattermost, bookstack, gitea and maddy inside a `RUN`, ingesting, and
+copying `/var/lib/{postgresql,mysql,...}` forward — a rewrite of `setup.sh`'s phases into the
+Dockerfile, per arm, plus a rebuild and local re-verify each.
+
+**Why it was not pursued:** it needs a push on all nine arms, and a push makes every passing
+rubric on that task stale — roughly 270 paid re-runs, against a finding that changes nothing an
+agent can actually do inside the task. Cost is the blocker, not feasibility.
+
+**Cheap rider for whenever these arms are next pushed** (not done yet, no push of its own):
+`environment/Dockerfile:62` (`:90` on g6, `:68` g7, `:66` g8) says "this directory IS the answer
+key to a discovery task" and `setup.sh:181-183` volunteers that the COPY layer keeps it. Both
+reviewers quoted our own comments back at us. Keep the comments honest but stop handing over the
+phrase: say what the directory is, that it is ingested and removed before the agent's first turn,
+and that the layer caveat is a known accepted conflict.

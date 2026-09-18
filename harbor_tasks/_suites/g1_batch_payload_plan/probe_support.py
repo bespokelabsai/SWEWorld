@@ -1,5 +1,4 @@
-"""g1 — answer-free scenario helpers/inputs shared by the worker (probe.py) and
-the human reference (test_open.py).
+"""g1 — the answer-free scenario helpers the worker (probe.py) drives curator with.
 
 This module holds ONLY the curator imports, the processor/dataset factories, the
 limit-patching context and the log/metadata readers the probe needs to drive
@@ -10,25 +9,21 @@ could read it and forge a passing `observations.json`. The answers — the
 `plan_id` sha256 digests, the `PLAN_FORMAT_VERSION`, the `PLAN_FILE_NAME`
 string, the 512 fan-out cap, the 767/307/153/347/217 byte counts, the exact
 sidecar document and directory listings, and the error types/attributes — live
-only in `judge.py` (and, for humans, in `test_open`/`test_r1`/`test_r2`), which
-the worker cannot read.
+only in `judge.py`, which the worker cannot read.
 
 The INPUTS themselves are no longer written down here. `fixture_spec.derive`
 re-draws them from the seed root picks per run — prompts, row counts, limits, the
 bytes a pre-populated directory holds — because a fixed fixture makes every
 expected value the same every run, and g1's are published in the world the agent
 reads. The helpers below therefore take their inputs as arguments; the defaults
-are only there so `test_open.py` still imports and reads as it did.
+are a readable example of the shape each one expects, never a graded value.
 
 `MODEL` stays a literal: it is the model the processor is built for, and the
 judge never grades a value computed from it. Row sizes are deliberately NOT
 computable from anything in this file — see `fixture_spec`'s header.
 
-`test_open.py` imports these names so there is a single definition of each helper
-— the probe cannot drift from the reference. `test_r1`/`test_r2` keep their own
-local copies of the r1/r2-specific helpers (auto_run, prepopulate, …)
-and are left unchanged; the copies below are the probe's, and they reproduce the
-same curator calls.
+Every scenario the probe runs is built out of these helpers and nothing else, so
+there is one definition of each curator call and no second copy to drift from.
 """
 from __future__ import annotations
 
@@ -40,7 +35,7 @@ import tempfile
 from datasets import Dataset
 from unittest.mock import PropertyMock, patch
 
-from harness import read_field  # noqa: F401 - re-exported for test_open
+from harness import read_field  # noqa: F401 - re-exported: the helpers below take either shape
 
 from bespokelabs.curator.llm.prompt_formatter import PromptFormatter
 from bespokelabs.curator.request_processor.batch.openai_batch_request_processor import OpenAIBatchRequestProcessor
@@ -50,8 +45,8 @@ import pytest
 
 # ---- inputs the fixtures feed --------------------------------------------
 MODEL = "gpt-4o-mini"
-# Defaults for the pytest reference only. The graded run overrides every one of
-# them from `fixture_spec.derive(seed)`; see this module's header.
+# Shape examples only. The graded run overrides every one of them from
+# `fixture_spec.derive(seed)`; see this module's header.
 GEN_PARAMS = '{"temperature": 0.9}'
 STALE_REQUEST = "stale\n"
 STALE_METADATA = "{}\n"
@@ -136,7 +131,7 @@ def check_cover(plan, n_rows):
     """The plan is a contiguous, ordered, exhaustive cover of the dataset.
 
     Pure structure over `index/start_idx/end_idx/num_requests` — no expected
-    output of the feature, so it lives here for test_open. The probe records the
+    output of the feature, so it is safe in the jail. The probe records the
     plan's tuples and judge.py runs the same structural check over them.
     """
     assert plan, "the plan is empty"
@@ -220,13 +215,12 @@ def make_tmp_dir(name=None):
 
 
 # ---------------------------------------------------------------------------
-# r1 — the sidecar (probe copies of test_r1's local helpers)
+# r1 — the sidecar
 # ---------------------------------------------------------------------------
 def auto_run(dataset, *, max_requests=3, max_bytes=400, name=None):
     """An `"auto"` run in its own fresh working dir.
 
-    Returns (processor, plan, working_dir, limits) — the same tuple test_r1's
-    local `auto_run` returns, over a `make_tmp_dir()` instead of the fixture.
+    Returns (processor, plan, working_dir, limits) over a `make_tmp_dir()`.
     `name` puts that directory where the judge can read it afterwards.
     """
     working_dir = make_tmp_dir(name)
@@ -241,7 +235,7 @@ def auto_run(dataset, *, max_requests=3, max_bytes=400, name=None):
 
 
 # ---------------------------------------------------------------------------
-# r2 — the sweep (probe copies of test_r2's local helpers)
+# r2 — the sweep
 # ---------------------------------------------------------------------------
 def prepopulate(working_dir, *, n=6, extra=None, stale_request=STALE_REQUEST, stale_metadata=STALE_METADATA):
     """A working dir left behind by an earlier, differently-limited `"auto"` run."""

@@ -10,14 +10,26 @@ rewriting a report its own process produces, so the process that imports the
 code no longer produces the report — and the numbers it would have to forge to
 pass live only in the judge it cannot read.
 
+WHAT THE SEED ADDED. The split still left this process AUTHORING the values the
+verdict is computed from, and with a fixed fixture — `"A" * 300` under a 64-byte
+budget, every run — those values never changed, while the rule that produces
+them is written down in the corpus the agent is told to read. A pristine tree
+plus one `atexit` hook that rewrote `observations.json` was measured at reward
+1.0 on g1's identically-built suite. So every scenario below is built from
+`fixture_spec.derive(sys.argv[2])`, the seed root drew for THIS run: the
+budgets, the payloads, the exit code and the timeout move, `judge.py` prices
+them with the rule, and there is nothing left to memorise. The one value that
+cannot be re-drawn is the floor, because the floor IS the requirement — so the
+run that proves the floor is accepted uses the `MIN_MAX_OUTPUT_BYTES` the
+submission itself exports, and the judge checks that number against its own.
+
 The curator-facing halves are lifted from `test_open`/`test_r1`/`test_r2`, same
 seam (`install_sandbox`, `run`, `execute`) and same answer-free plumbing
 (`warnings_of`, `LogRecorder`), so a value here is the value the test saw. The
 judge holds the assertions those tests made — the elision marker, the floor of
 16, the `OutputCapError` message, the warning-line template and the
-`error_truncated` semantics. A submission that returns forged values only forges
-values the judge still checks against the real expectations, which is
-implementing them.
+`error_truncated` semantics — and, for the constants a seed cannot move, reads
+them out of the submission's own source rather than out of an observation.
 """
 from __future__ import annotations
 
@@ -111,7 +123,12 @@ class MonkeyPatch:
 import probe_support as S  # noqa: E402
 from harness import read_field  # noqa: E402
 
+import fixture_spec  # noqa: E402 - this run's inputs; stdlib only, no answers
+
 BACKENDS = ("local", "docker", "e2b", "modal", "daytona", "multiprocessing")
+
+# Filled in by main() from argv before any probe runs.
+SPEC: dict = {}
 
 
 def raises(fn, *args, **kwargs) -> dict:
@@ -143,15 +160,17 @@ def probe_open(mp) -> dict:
     from bespokelabs.curator.code_executor import output_cap
     o["DEFAULT_MAX_OUTPUT_BYTES"] = output_cap.DEFAULT_MAX_OUTPUT_BYTES
 
+    budget, plumb = SPEC["budget"], SPEC["plumb_budget"]
+
     cfg = S.CodeExecutionBackendConfig
     o["config_fields"] = sorted(cfg.model_fields)
     o["has_field"] = "max_output_bytes" in cfg.model_fields
     o["default_budget"] = cfg().max_output_bytes
     o["zero_budget"] = cfg(max_output_bytes=0).max_output_bytes
-    o["budget_128"] = cfg(max_output_bytes=128).max_output_bytes
-    o["reject_neg1"] = raises(lambda: cfg(max_output_bytes=-1))
+    o["plumb_budget"] = cfg(max_output_bytes=plumb).max_output_bytes
+    o["reject_negative"] = raises(lambda: cfg(max_output_bytes=SPEC["negative"]))
 
-    o["backends"] = {name: read_field(S._CodeExecutionBackendFactory.create(name, {"max_output_bytes": 128}),
+    o["backends"] = {name: read_field(S._CodeExecutionBackendFactory.create(name, {"max_output_bytes": plumb}),
                                       "max_output_bytes", default=None)
                      for name in BACKENDS}
     o["backend_local_default"] = read_field(S._CodeExecutionBackendFactory.create("local", {}),
@@ -165,52 +184,87 @@ def probe_open(mp) -> dict:
         o["sig_default"] = params["max_output_bytes"].default
 
     o["models"] = {}
-    for label, model, instance in (
-        ("output", S.CodeExecutionOutput, S.CodeExecutionOutput()),
-        ("result", S.CodeExecutionResult, S.CodeExecutionResult(stdout="a", stderr="b", exit_code=0)),
+    for label, model, instance, kwargs in (
+        ("output", S.CodeExecutionOutput, S.CodeExecutionOutput(), {}),
+        ("result", S.CodeExecutionResult, S.CodeExecutionResult(stdout="a", stderr="b", exit_code=0),
+         {"stdout": "a", "stderr": "b", "exit_code": 0}),
     ):
         m = {"has": "truncated_streams" in model.model_fields, "fields": sorted(model.model_fields)}
         if m["has"]:
             m["required"] = model.model_fields["truncated_streams"].is_required()
             m["value"] = read_field(instance, "truncated_streams", default=None)
+            # "Non-Optional, on both models": the annotation names no None, and
+            # None is refused rather than stored.
+            m["annotation"] = str(model.model_fields["truncated_streams"].annotation)
+            m["none_refused"] = raises(lambda mo=model, kw=kwargs: mo(truncated_streams=None, **kw))
         o["models"][label] = m
     dumped = S.CodeExecutionResponse(exec_output=S.CodeExecutionOutput(stdout="a")).model_dump()
     o["dumped_truncated"] = dumped["exec_output"]["truncated_streams"]
 
     # an over-budget run comes back shortened; a positional sixth arg is refused
-    S.install_sandbox(mp, exit_code=0, stdout="A" * 300, stderr="B" * 300)
+    S.install_sandbox(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr=SPEC["over_stderr"],
+                      files=SPEC["files"])
     o["positional_refused"] = raises(
-        lambda: S.sandbox_backend._execute_in_sandbox("print('hi')", "", 10, "local", {}, 64))
-    capped = S.execute(max_output_bytes=64)
+        lambda: S.sandbox_backend._execute_in_sandbox("print('hi')", "", 10, "local", {}, budget))
+    capped = S.execute(max_output_bytes=budget)
+    # Recorded in the order the submission returned it. It used to be recorded
+    # through `sorted()`, and the judge then compared the sorted copy: a tree
+    # that returned ["stdout", "stderr"] passed, while instruction.md:31-32 asks
+    # for the names "sorted alphabetically". Sorting here graded the probe.
     o["capped"] = {"message": capped.message, "len_stdout": len(capped.stdout),
                    "len_stderr": len(capped.stderr),
-                   "truncated_sorted": sorted(read_field(capped, "truncated_streams", default=[])),
+                   "truncated": read_field(capped, "truncated_streams", default=None),
                    "files": capped.files}
 
     # all four construction sites obey the budget
     sites = {
-        "success": S.run(mp, exit_code=0, stdout="A" * 300, max_output_bytes=64),
-        "timeout": S.run(mp, exit_code=124, stdout="A" * 300, timeout=7, max_output_bytes=64),
-        "non-zero exit": S.run(mp, exit_code=1, stdout="A" * 300, max_output_bytes=64),
+        "success": S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], max_output_bytes=budget),
+        "timeout": S.run(mp, exit_code=124, stdout=SPEC["over_stdout"], timeout=SPEC["timeout_secs"],
+                         max_output_bytes=budget),
+        "non-zero exit": S.run(mp, exit_code=SPEC["exit_code"], stdout=SPEC["over_stdout"],
+                               max_output_bytes=budget),
         # a run that produced megabytes and then blew up on the way out of the
         # `with`: `result` is populated, but no in-`with` return ever happened
-        "exception": S.run(mp, exit_code=0, stdout="A" * 300, exit_error=RuntimeError("boom"),
-                           max_output_bytes=64),
+        "exception": S.run(mp, exit_code=0, stdout=SPEC["over_stdout"],
+                           exit_error=RuntimeError(SPEC["exc_short"]), max_output_bytes=budget),
     }
     o["sites"] = {site: {"stdout_none": out.stdout is None,
                          "len": (None if out.stdout is None else len(out.stdout))}
                   for site, out in sites.items()}
 
+    # The `except Exception` site with nothing to salvage: `execute_command`
+    # itself raises, so `result` is still None and the ticket's own salvage
+    # expression — `getattr(result, "stdout", None)`, instruction.md:56 — yields
+    # None for both streams. The other half of the same row ("may be `None`") was
+    # recorded nowhere: this run existed only as a warning count in
+    # probe_r1_observability, so an implementation that returned "" here, or
+    # named a stream it never captured, was never looked at.
+    never = S.run(mp, command_error=RuntimeError(SPEC["exc_short"]), files=SPEC["files"],
+                  max_output_bytes=budget)
+    o["never_captured"] = {
+        "stdout": never.stdout,
+        "stderr": never.stderr,
+        "stdout_is_none": never.stdout is None,
+        "stderr_is_none": never.stderr is None,
+        "truncated": read_field(never, "truncated_streams", default=None),
+        "files": never.files,
+    }
+    # `error_truncated` on this run is deliberately NOT recorded here: it is r2's
+    # hidden field, instruction.md names it nowhere, and the open feature must
+    # not start depending on a requirement the ticket does not state. r2 grades
+    # that flag on the paths its own requirement names.
+
     # the exit-code message carries the capped stderr, unchanged wording
-    failed = S.run(mp, exit_code=1, stdout="", stderr="E" * 300, max_output_bytes=64)
+    failed = S.run(mp, exit_code=SPEC["exit_code"], stdout="", stderr=SPEC["over_stderr"],
+                   max_output_bytes=budget)
     o["failed_len_stderr"] = len(failed.stderr)
     o["failed_error"] = failed.error
     o["failed_stderr"] = failed.stderr
     o["fmt_params"] = list(inspect.signature(S.sandbox_backend._format_exit_code_error).parameters)
-    o["fmt_call"] = S.sandbox_backend._format_exit_code_error(3, "boom")
+    o["fmt_call"] = S.sandbox_backend._format_exit_code_error(SPEC["fmt_exit_code"], SPEC["fmt_stderr"])
 
     # an under-budget run is untouched, and `files` is never capped
-    untouched = S.run(mp, exit_code=0, stdout="A" * 300, stderr="", files="F" * 5000)
+    untouched = S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="", files=SPEC["files_big"])
     o["untouched_stdout"] = untouched.stdout
     o["untouched_files"] = untouched.files
     o["untouched_truncated"] = read_field(untouched, "truncated_streams", default=None)
@@ -221,23 +275,29 @@ def probe_open(mp) -> dict:
 # r1 — the shape of the cut, and what it says about itself
 # =============================================================================
 def probe_r1_rule(mp) -> dict:
-    wide = S.run(mp, exit_code=0, stdout=S.DIGITS, stderr="", max_output_bytes=64)
-    narrow = S.run(mp, exit_code=0, stdout=S.DIGITS, stderr="", max_output_bytes=32)
+    payload = SPEC["rule_payload"]
+    wide = S.run(mp, exit_code=0, stdout=payload, stderr="", max_output_bytes=SPEC["budget"])
+    narrow = S.run(mp, exit_code=0, stdout=payload, stderr="", max_output_bytes=SPEC["narrow_budget"])
     return {"wide_stdout": wide.stdout, "narrow_stdout": narrow.stdout}
 
 
 def probe_r1_scope(mp) -> dict:
-    data = "€" * 10  # "€" is three UTF-8 bytes: 10 chars, 30 bytes
-    out = S.run(mp, exit_code=0, stdout=data, stderr="", max_output_bytes=20)
-    return {"stdout": out.stdout,
-            "truncated": read_field(out, "truncated_streams", default=None)}
+    """One mixed-width UTF-8 payload under four consecutive budgets."""
+    runs = {}
+    for budget in SPEC["wide_budgets"]:
+        out = S.run(mp, exit_code=0, stdout=SPEC["wide_payload"], stderr="", max_output_bytes=budget)
+        runs[str(budget)] = {"stdout": out.stdout,
+                             "truncated": read_field(out, "truncated_streams", default=None)}
+    return {"runs": runs}
 
 
 def probe_r1_exclusions(mp) -> dict:
-    over = S.run(mp, exit_code=0, stdout="A" * 300, stderr="", max_output_bytes=64)
-    unlimited = S.run(mp, exit_code=0, stdout="A" * 300, stderr="B" * 500, max_output_bytes=0)
-    under = S.run(mp, exit_code=0, stdout=S.DIGITS[:60], stderr="", max_output_bytes=64)
-    exactly = S.run(mp, exit_code=0, stdout="A" * 64, stderr="", max_output_bytes=64)
+    budget = SPEC["budget"]
+    over = S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="", max_output_bytes=budget)
+    unlimited = S.run(mp, exit_code=0, stdout=SPEC["unlimited_stdout"], stderr=SPEC["unlimited_stderr"],
+                      max_output_bytes=0)
+    under = S.run(mp, exit_code=0, stdout=SPEC["under"], stderr="", max_output_bytes=budget)
+    exactly = S.run(mp, exit_code=0, stdout=SPEC["exact"], stderr="", max_output_bytes=budget)
     return {
         "over_len": len(over.stdout),
         "unlimited_stdout": unlimited.stdout,
@@ -253,41 +313,55 @@ def probe_r1_exclusions(mp) -> dict:
 
 def probe_r1_failure_behavior(mp) -> dict:
     from bespokelabs.curator.code_executor.output_cap import MIN_MAX_OUTPUT_BYTES, OutputCapError
-    o = {"MIN": MIN_MAX_OUTPUT_BYTES,
+    floor = MIN_MAX_OUTPUT_BYTES
+    o = {"MIN": floor,
          "outputcaperror_mro": [c.__name__ for c in OutputCapError.__mro__]}
 
     # at request time, the raised object (never a constructor call)
-    S.install_sandbox(mp, exit_code=0, stdout="A" * 300, stderr="")
+    S.install_sandbox(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="")
+    o["refused_budget"] = SPEC["refused_budget"]
     o["refused"] = raises(lambda: S.sandbox_backend._execute_in_sandbox(
         code="print('hi')", code_input="", timeout=10, backend_name="local",
-        sandbox_kwargs={}, max_output_bytes=8))
+        sandbox_kwargs={}, max_output_bytes=SPEC["refused_budget"]))
 
-    o["floor16_message"] = S.run(mp, exit_code=0, stdout="A" * 300, stderr="", max_output_bytes=16).message
+    # The floor the submission itself claims must be a budget that WORKS. The
+    # judge holds the number this has to be; nothing here is told it.
+    o["floor_message"] = S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="",
+                               max_output_bytes=floor).message
 
     # and up front, so a typo fails once at construction instead of per row
     mp.delenv("CURATOR_MAX_OUTPUT_BYTES", raising=False)
     o["bad"] = {str(bad): raises(lambda b=bad: S.CodeExecutionBackendConfig(max_output_bytes=b))
-                for bad in (1, 8, 15)}
-    o["docker8"] = raises(lambda: S._CodeExecutionBackendFactory.create("docker", {"max_output_bytes": 8}))
+                for bad in SPEC["sub_floor"]}
+    o["factory_bad"] = raises(
+        lambda: S._CodeExecutionBackendFactory.create("docker", {"max_output_bytes": SPEC["factory_bad"]}))
     o["cfg0"] = S.CodeExecutionBackendConfig(max_output_bytes=0).max_output_bytes
-    o["cfg16"] = S.CodeExecutionBackendConfig(max_output_bytes=16).max_output_bytes
-    o["neg1"] = raises(lambda: S.CodeExecutionBackendConfig(max_output_bytes=-1))
+    o["cfg_floor"] = S.CodeExecutionBackendConfig(max_output_bytes=floor).max_output_bytes
+    o["negative"] = raises(lambda: S.CodeExecutionBackendConfig(max_output_bytes=SPEC["negative"]))
     return o
 
 
 def probe_r1_observability(mp) -> dict:
     from bespokelabs.curator.code_executor.output_cap import TRUNCATION_LOG_TEMPLATE
+    budget = SPEC["budget"]
     return {
-        "template_formatted": TRUNCATION_LOG_TEMPLATE.format(streams="stderr, stdout", budget=64),
-        "w_stdout_only": S.warnings_of(mp, exit_code=0, stdout="A" * 300, stderr="", max_output_bytes=64),
-        "w_both": S.warnings_of(mp, exit_code=0, stdout="A" * 300, stderr="B" * 300, max_output_bytes=64),
-        "w_timeout": S.warnings_of(mp, exit_code=124, stdout="A" * 300, stderr="", timeout=7, max_output_bytes=64),
-        "w_stderr_only": S.warnings_of(mp, exit_code=1, stdout="", stderr="E" * 300, max_output_bytes=64),
-        "w_nothing_cut": S.warnings_of(mp, exit_code=0, stdout="A", stderr="B", max_output_bytes=64),
-        "w_unlimited": S.warnings_of(mp, exit_code=0, stdout="A" * 300, stderr="B" * 300, max_output_bytes=0),
-        "w_salvage": S.warnings_of(mp, exit_code=0, stdout="A" * 300, stderr="",
-                                   exit_error=RuntimeError("boom"), max_output_bytes=64),
-        "w_never_captured": S.warnings_of(mp, command_error=RuntimeError("kaboom"), max_output_bytes=64),
+        "template_formatted": TRUNCATION_LOG_TEMPLATE.format(streams="stderr, stdout", budget=budget),
+        "w_stdout_only": S.warnings_of(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="",
+                                       max_output_bytes=budget),
+        "w_both": S.warnings_of(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr=SPEC["over_stderr"],
+                                max_output_bytes=budget),
+        "w_timeout": S.warnings_of(mp, exit_code=124, stdout=SPEC["over_stdout"], stderr="",
+                                   timeout=SPEC["timeout_secs"], max_output_bytes=budget),
+        "w_stderr_only": S.warnings_of(mp, exit_code=SPEC["exit_code"], stdout="",
+                                       stderr=SPEC["over_stderr"], max_output_bytes=budget),
+        "w_nothing_cut": S.warnings_of(mp, exit_code=0, stdout=SPEC["under"], stderr="",
+                                       max_output_bytes=budget),
+        "w_unlimited": S.warnings_of(mp, exit_code=0, stdout=SPEC["over_stdout"],
+                                     stderr=SPEC["over_stderr"], max_output_bytes=0),
+        "w_salvage": S.warnings_of(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="",
+                                   exit_error=RuntimeError(SPEC["exc_short"]), max_output_bytes=budget),
+        "w_never_captured": S.warnings_of(mp, command_error=RuntimeError(SPEC["exc_short"]),
+                                          max_output_bytes=budget),
     }
 
 
@@ -305,8 +379,9 @@ def probe_r2_rule(mp) -> dict:
         o["index_ok"] = "truncated_streams" in fields and \
             fields.index("error_truncated") == fields.index("truncated_streams") + 1
 
-    # 200 characters of exception text under a 32-byte budget
-    blew_up = S.run(mp, exit_code=0, stdout="", stderr="", exit_error=RuntimeError("Z" * 200), max_output_bytes=32)
+    # a long exception text under the tight budget
+    blew_up = S.run(mp, exit_code=0, stdout="", stderr="",
+                    exit_error=RuntimeError(SPEC["exc_text"]), max_output_bytes=SPEC["exc_budget"])
     o["blew_message"] = blew_up.message
     o["blew_error"] = blew_up.error
     o["blew_len"] = len(blew_up.error)
@@ -315,10 +390,12 @@ def probe_r2_rule(mp) -> dict:
 
 
 def probe_r2_scope(mp) -> dict:
-    failed = S.run(mp, exit_code=1, stdout="", stderr="E" * 200, files="F" * 5000, max_output_bytes=32)
-    timed_out = S.run(mp, exit_code=124, stdout="ok", stderr="", timeout=7, max_output_bytes=16)
-    salvaged = S.run(mp, exit_code=0, stdout=S.BIG, stderr="", files="F" * 5000,
-                     exit_error=RuntimeError("boom"), max_output_bytes=64)
+    failed = S.run(mp, exit_code=SPEC["exit_code"], stdout="", stderr=SPEC["exit_stderr"],
+                   files=SPEC["files_big"], max_output_bytes=SPEC["exc_budget"])
+    timed_out = S.run(mp, exit_code=124, stdout=SPEC["under"], stderr="", timeout=SPEC["timeout_secs"],
+                      max_output_bytes=SPEC["narrow_budget"])
+    salvaged = S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="", files=SPEC["files_big"],
+                     exit_error=RuntimeError(SPEC["exc_short"]), max_output_bytes=SPEC["budget"])
     return {
         "failed_len_stderr": len(failed.stderr),
         "failed_error": failed.error,
@@ -336,23 +413,32 @@ def probe_r2_exclusions(mp) -> dict:
     o = {"output_has_flag": "error_truncated" in S.CodeExecutionOutput.model_fields,
          "result_has_flag": "error_truncated" in S.CodeExecutionResult.model_fields}
     if o["output_has_flag"]:
+        # The dumped error carries this run's token, so the whole payload is
+        # seed-bound rather than a shape a previous run could hand back.
         dumped = S.CodeExecutionResponse(
-            exec_output=S.CodeExecutionOutput(error="x", error_truncated=True)).model_dump()
+            exec_output=S.CodeExecutionOutput(error=SPEC["exc_short"], error_truncated=True)).model_dump()
         o["dumped_keys"] = sorted(dumped["exec_output"])
+        o["dumped"] = dumped["exec_output"]
 
-    both = S.run(mp, exit_code=0, stdout=S.BIG, stderr="", exit_error=RuntimeError("X" * 300), max_output_bytes=64)
+    both = S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="",
+                 exit_error=RuntimeError(SPEC["exc_text"]), max_output_bytes=SPEC["budget"])
     o["both_error_truncated"] = read_field(both, "error_truncated", default=None)
     o["both_truncated"] = read_field(both, "truncated_streams", default=None)
 
-    failed = S.run(mp, exit_code=1, stdout="", stderr="E" * 300, max_output_bytes=64)
+    failed = S.run(mp, exit_code=SPEC["exit_code"], stdout="", stderr=SPEC["over_stderr"],
+                   max_output_bytes=SPEC["budget"])
     o["failed_truncated"] = read_field(failed, "truncated_streams", default=None)
     return o
 
 
 def probe_r2_observability(mp) -> dict:
-    blew_up = S.run(mp, exit_code=0, stdout=S.BIG, stderr="", exit_error=RuntimeError("X" * 300), max_output_bytes=64)
-    short = S.run(mp, exit_code=0, stdout=S.BIG, stderr="", exit_error=RuntimeError("boom"), max_output_bytes=64)
-    failed = S.run(mp, exit_code=1, stdout="", stderr="E" * 80, max_output_bytes=64)
+    budget = SPEC["budget"]
+    blew_up = S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="",
+                    exit_error=RuntimeError(SPEC["exc_text"]), max_output_bytes=budget)
+    short = S.run(mp, exit_code=0, stdout=SPEC["over_stdout"], stderr="",
+                  exit_error=RuntimeError(SPEC["exc_short"]), max_output_bytes=budget)
+    failed = S.run(mp, exit_code=SPEC["exit_code"], stdout="", stderr=SPEC["exit_stderr_short"],
+                   max_output_bytes=budget)
     return {
         "blew_error": blew_up.error,
         "blew_len": len(blew_up.error),
@@ -382,7 +468,10 @@ PROBES = {
 }
 
 
-def main(out_path: str) -> int:
+def main(out_path: str, seed: str) -> int:
+    global SPEC
+    SPEC = fixture_spec.derive(seed)
+
     results: dict[str, dict] = {}
     for node, fn in PROBES.items():
         mp = MonkeyPatch()
@@ -400,4 +489,7 @@ def main(out_path: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1]))
+    # argv: observations path, seed, artifacts dir. g2's scenarios are pure
+    # in-process calls, so the artifacts directory run_suites hands over is
+    # unused here; the seed is what this suite needs from root.
+    raise SystemExit(main(sys.argv[1], sys.argv[2]))

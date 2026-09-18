@@ -18,7 +18,7 @@ GRADING RUNS AGENT-AUTHORED CODE, SO IT DOES NOT RUN AS ROOT
 `task.toml` gives the verifier `user = "root"` because `provenance.py` reads
 `/opt/world-state/baseline.env` (0600) and the release symlinks. This file is
 the one step that must not keep it. Importing the submission IS executing it:
-`conftest.py` does `import bespokelabs` at collection time, and anything on
+`conftest.py` (the non-split path only; split-suite arms do not ship it) does `import bespokelabs` at collection time, and anything on
 `PYTHONPATH` gets a free shot even earlier, because Python imports
 `sitecustomize` at interpreter startup.
 
@@ -88,13 +88,19 @@ BASELINE_TREE = pathlib.Path("/opt/world-state/input/curator")
 DROP_USER = "nobody"
 DROP_GROUP = "nogroup"
 
-# Well inside the 2400s verifier budget in task.toml. pytest-timeout arms a
+# 900, not 1500. Measured worker runs across the split suites are SECONDS (g9 2.1s,
+# g4 7.1s, g3 under 1s; a fifteen-variant sweep took 100s), so 900 is a hundredfold
+# margin for honest work while keeping the worst case inside a 2400s verifier budget:
+# 210 provenance + 900 worker + 900 judge + ~120 clone/baseline/score = 2130. At 1500
+# twice the arithmetic exceeded the budget, and an overrunning verifier is KILLED --
+# which writes no reward at all and reads as a broken harness rather than a failure.
+# Well inside the verifier budget in task.toml. pytest-timeout arms a
 # per-TEST timer, which is no help at all if the submission hangs at import:
 # collection never finishes, no timer exists yet, and the verifier runs to
 # Harbor's cap and is KILLED -- so no reward.json is written and the result
 # reads as a broken harness rather than a failed task. That is a usable way out
 # of a bad score, and it costs one `while True` in `__init__.py`.
-PYTEST_TIMEOUT = 1500
+PYTEST_TIMEOUT = 900
 
 
 def token() -> str:
@@ -153,27 +159,29 @@ def clone_pushed_main(work: pathlib.Path) -> tuple[pathlib.Path | None, str]:
     return dest, sha
 
 
+# The provider names, inline. They used to be imported from `fakeapi`, which a
+# split-suite arm no longer ships (it belongs to the pytest path) -- so the import
+# failed, `hosts_error` was recorded, and nothing was pinned. Three hostnames are
+# not worth a dependency that can vanish: a missing mapping is silent, and the
+# failure it produces is someone else's 401 in the middle of a graded run.
+PROVIDER_HOSTS = ("api.openai.com", "api.deepseek.com", "api.anthropic.com")
+
+
 def map_hosts(report: dict) -> bool:
     """Point the provider names at loopback, as root, before the drop.
 
     `conftest._map_hosts` did this itself and can no longer: the child has no
     write access to /etc/hosts. Doing it here is not merely a convenience —
-    `task.toml` sets `network_mode = "public"`, so an unmapped `api.openai.com`
+    `task.toml` sets `allow_internet = true`, so an unmapped `api.openai.com`
     resolves to the real one and curator makes real outbound calls with a
     mocked key. Every provider test then fails on someone else's 401 instead of
     on the agent's code, which is the least diagnosable failure in the harness.
 
     So this verifies rather than hopes, and says so in the report.
     """
-    sys.path.insert(0, str(TESTS))
-    try:
-        from fakeapi import HOSTS
-    except Exception as exc:                       # noqa: BLE001 - report, don't raise
-        report["hosts_error"] = f"cannot import fakeapi: {exc}"
-        return False
     try:
         current = pathlib.Path("/etc/hosts").read_text()
-        missing = [h for h in HOSTS if h not in current]
+        missing = [h for h in PROVIDER_HOSTS if h not in current]
         if missing:
             with open("/etc/hosts", "a") as fh:
                 fh.write("\n# curator grading suites - provider names on loopback\n")
@@ -182,7 +190,7 @@ def map_hosts(report: dict) -> bool:
     except OSError as exc:
         report["hosts_error"] = str(exc)
         return False
-    still = [h for h in HOSTS if h not in current]
+    still = [h for h in PROVIDER_HOSTS if h not in current]
     if still:
         report["hosts_error"] = f"not mapped: {', '.join(still)}"
         return False
@@ -219,6 +227,39 @@ def stage_baseline(work: pathlib.Path, report: dict) -> pathlib.Path | None:
     subprocess.run(["chmod", "-R", "a+rX", str(dest)], check=False)
     report["baseline"] = f"staged {sum(1 for _ in dest.rglob('*.py'))} files"
     return dest
+
+
+def check_protected(meta: dict, submission: pathlib.Path, report: dict) -> None:
+    """Byte-compare every file the instruction protects against the pristine tree.
+
+    An instruction that says "`base_trainer.py` does not change" and a grader
+    that never looks is worse than no instruction: an agent can rewrite the
+    protected trainer to make its own job easier and still score 1. So root
+    compares the pushed file with `/opt/world-state/input/curator` -- which the
+    agent cannot write -- and records the verdict in the root-only
+    /logs/verifier, where `score.py` gates the reward on it. Nothing the
+    submission runs is involved; this happens before any agent code is imported.
+
+    Always writes the file when the task protects something, including when the
+    pristine copy is missing: `score.py` reads an absent verdict as unmeasured,
+    and unmeasured is not a pass.
+    """
+    paths = meta.get("protected_files") or []
+    if not paths:
+        return
+    verdict = {}
+    for rel in paths:
+        pristine = BASELINE_TREE / rel
+        pushed = submission / rel
+        if not pristine.is_file():
+            verdict[rel] = "unmeasured"
+        elif pushed.is_symlink() or not pushed.is_file():
+            verdict[rel] = "deleted"
+        else:
+            verdict[rel] = ("unchanged" if pushed.read_bytes() == pristine.read_bytes()
+                            else "modified")
+    (LOGS / "protected.json").write_text(json.dumps(verdict, indent=1))
+    report["protected_files"] = verdict
 
 
 def harvest(src: pathlib.Path, dest: pathlib.Path, uid: int) -> str | None:
@@ -336,8 +377,15 @@ def run_split(meta: dict, suite_dir: pathlib.Path, src: pathlib.Path, work: path
 
     obs = out / "observations.json"
 
-    seed = secrets.token_hex(8)
+    # The seed is drawn by ROOT, after the agent's container is gone, which is what
+    # makes a replayed capture useless. `SPLIT_SEED` overrides it for REPRODUCTION
+    # only -- a reviewer re-running a graded scenario, or a suite author bisecting a
+    # draw. It cannot help a submission: the agent's phase is over before this runs,
+    # and nothing the agent writes is read here.
+    seed = os.environ.get("SPLIT_SEED") or secrets.token_hex(8)
     report["seed"] = seed
+    if os.environ.get("SPLIT_SEED"):
+        report["seed_overridden"] = True
 
     # 0755, not the 0700 of `out`: the worker must write here and root must read
     # it back afterwards. Owned by the drop uid, under the unpredictable `work`.
@@ -393,12 +441,35 @@ def run_split(meta: dict, suite_dir: pathlib.Path, src: pathlib.Path, work: path
     # Root, stdlib only, submission NOT importable — PYTHONPATH empty. It reads
     # source under SUBMISSION_SRC (the clone was made `core.symlinks=false`, so a
     # "symlink" in the push is an inert regular file, never a traversal).
+    #
+    # Its HOME and TMPDIR are ROOT-owned, and python runs with -I. The judge used
+    # to inherit the worker's HOME, and root's python enables the user site
+    # directory under whatever HOME says -- so the worker (agent code, as nobody)
+    # could write ~/.local/lib/python3.X/site-packages/usercustomize.py and have it
+    # executed as uid 0 when the judge started, with /logs/verifier in reach.
+    # Reproduced in the world image before this change. -I drops the user site,
+    # every PYTHON* variable and the script's own directory from sys.path; the
+    # judges that need a sibling module insert their (root-owned) directory
+    # themselves.
+    judge_home = work / "judge-home"
+    judge_home.mkdir(mode=0o700)
     judge_env = {"PATH": "/usr/local/bin:/usr/bin:/bin",
                  "LANG": os.environ.get("LANG", "C.UTF-8"),
-                 "HOME": base_env["HOME"], "TMPDIR": base_env["TMPDIR"],
+                 "HOME": str(judge_home), "TMPDIR": str(judge_home),
                  "PYTHONPATH": "", "SUBMISSION_SRC": str(src),
                  "PYTHONHASHSEED": "0", "PYTHONDONTWRITEBYTECODE": "1"}
-    rc_j, _ = spawn(["python3", str(suite_dir / "judge.py"), str(safe_obs),
+    # The pristine tree, for a judge that enforces "this function is reused as-is":
+    # a ticket can protect code INSIDE a file the task must edit, which no
+    # whole-file `protected_files` comparison can express. Same staged copy the
+    # worker gets, and root-owned; absent when staging failed, and a judge that
+    # needs it must fail the fact rather than pass it blind.
+    if base_env.get("CURATOR_BASELINE_DIR"):
+        judge_env["CURATOR_BASELINE_DIR"] = base_env["CURATOR_BASELINE_DIR"]
+    # -B as well as -I. `-I` ignores every PYTHON* variable, PYTHONDONTWRITEBYTECODE
+    # included, so the root judge was free to write a __pycache__ into the suite
+    # directory it imports from -- harmless at grading time (/tests is 0700 root) but
+    # it is what plants one in a checked-out arm whenever tests/ is writable.
+    rc_j, _ = spawn(["python3", "-I", "-B", str(suite_dir / "judge.py"), str(safe_obs),
                      str(LOGS / "junit.xml"), seed, str(artifacts)],
                     judge_env, log, drop=None)
     report["judge_returncode"] = rc_j
@@ -441,6 +512,7 @@ def main() -> int:
         return 1
     report["submission_sha"] = sha_or_error
     report["submission_path"] = str(submission)
+    check_protected(meta, submission, report)
 
     src = submission / "src"
     if not (src / "bespokelabs" / "curator" / "llm" / "llm.py").exists():
@@ -489,6 +561,8 @@ def main() -> int:
     if (suite_dir / "probe.py").is_file() and (suite_dir / "judge.py").is_file():
         return run_split(meta, suite_dir, src, work, out, drop, env, report)
 
+    # NON-SPLIT suites only (g12, g13 and the retired t* set): a split suite never
+    # reaches this branch, and its arm ships no conftest.py at all.
     # Run FROM /tests with a relative suite path. Pointing pytest at
     # /tests/<suite> makes that directory the rootdir, and /tests/conftest.py —
     # one level above it — is then never loaded: every fixture comes back
@@ -510,7 +584,7 @@ def main() -> int:
            # signal, NOT thread. The thread method cannot interrupt a blocked
            # asyncio loop, so it terminates the whole process — and pytest then
            # never writes junit.xml, so every fact in the suite scores 0 with
-           # suite_error=1. t3 lost both its runs that way: curator really does
+           # suite_ok=0. t3 lost both its runs that way: curator really does
            # spin forever in `while not has_capacity(): sleep(0.1)`, which is
            # the very behaviour one of its tests exists to catch. SIGALRM
            # raises inside the test, pytest fails it and carries on.

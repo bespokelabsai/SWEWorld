@@ -8,6 +8,14 @@
 # sweworld:repo-only-dev is the world with the repository and its full history and
 # nothing else — Mattermost, BookStack and mail are empty — plus the virtualenv
 # an engineer needs to actually run curator. See harbor_tasks/_env/Dockerfile.
+#
+# The repository name `sweworld-batch-payload-plan` is HISTORICAL, not this
+# task's: the shared world image was first published under the arm that needed
+# it and every later arm pins the same artefact. The digest below is the current
+# world image and is what identifies it — it is not a g1 image. Renaming the
+# repository needs write access to the Artifact Registry project, which the task
+# author does not have, so the rename is pending and the digest stays put: a
+# re-push under a new name would change the digest and unpin every built task.
 FROM us-central1-docker.pkg.dev/apex-485220/horizon/environments/sweworld-batch-payload-plan@sha256:f34db48366a6603074553d14986d5a58fb55abe8a71231321f838d90c1e6347f
 
 # No `COPY --from=sweworld:repo-only-dev` — Horizon cannot resolve a second
@@ -66,7 +74,8 @@ RUN chmod 0755 /usr/local/bin/task-setup.sh
 # from `ls /opt/*`, sitting at drwxr-xr-x beside world-state's drwx------. The
 # ingest is unaffected: it runs as root from the healthcheck. Build-time and
 # unconditional, so an ingest that exits early on one of the failure paths below
-# cannot leave the corpus exposed.
+# cannot leave the corpus exposed. And temporary: task-setup.sh deletes it once
+# the ingest succeeds, because the agent may be root and 0700 does not stop root.
 COPY --chmod=0700 plant /opt/task-plant
 
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh

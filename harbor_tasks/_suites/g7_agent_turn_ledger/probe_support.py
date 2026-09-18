@@ -1,18 +1,18 @@
 """g7 — answer-free scenario helpers shared by the worker (probe.py) and the
-human reference (test_open.py / test_r1.py / test_r2.py).
+suite's human-readable record of the facts, which is kept in the repository and
+not shipped with the task (a split suite grades through probe.py + judge.py).
 
 This module holds ONLY the curator imports, the conversation fakes and the
 log/dataset readers the probe needs to drive curator; it contains NO expected
 value and NO name a hidden requirement fixes. That is load-bearing: `run_split`
 copies this file into the worker's jail, so it is readable by the process that
 runs agent code. The checkpoint's file name, its version and spelling, the
-completion token and every status word live only in `judge.py` (and, for humans,
-in `test_r1.py`/`test_r2.py`), which the worker cannot read: `test.sh` keeps
-/tests root-only for a split suite.
+completion token and every status word live only in `judge.py`, which the
+worker cannot read: `test.sh` keeps /tests root-only for a split suite.
 
 Agent names are not fixed here either. The grader draws them per run
 (`fixture_spec.derive`) because they are spelled into the checkpoint, and the
-human reference pins its own worked example with `set_names`.
+record's worked example pins its own with `set_names`.
 """
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from harness import read_field  # noqa: F401 - re-exported for test_open/test_r*
+from harness import read_field  # noqa: F401 - re-exported for the probe and the record
 
 import fixture_spec
 
@@ -87,9 +87,13 @@ def sym(name, default=...):
 class Conversation:
     """Two duck-typed agents reading from one script of replies."""
 
-    def __init__(self, replies=(), is_completed=None, raise_on=(), system_prompt=True):
+    def __init__(self, replies=(), is_completed=None, raise_on=(), system_prompt=True,
+                 extra_system=0):
         self.replies = list(replies)
         self.calls = []
+        self.requests = []                     # the messages each call was given
+        self.formatter_out = []                # what the formatter answered, per call
+        self.extra_system = extra_system
         self.raise_on = set(raise_on)          # 1-based call numbers that blow up
         self._is_completed = is_completed or (lambda response: False)
         seeder_prompt = "You ask the questions in this conversation." if system_prompt else None
@@ -113,6 +117,7 @@ class Conversation:
 
         async def call_single_request(request, session, status_tracker=None):
             conversation.calls.append((name, request.task_id))
+            conversation.requests.append([dict(msg) for msg in request.generic_request.messages])
             nth = len(conversation.calls)
             if nth in conversation.raise_on:
                 raise Boom(f"call {nth}")
@@ -126,6 +131,9 @@ class Conversation:
                 response_cost=0.001,
                 finish_reason="stop",
             )
+
+        if self.extra_system:
+            formatter = _MultiSystemFormatter(formatter, self.extra_system, conversation)
 
         processor = SimpleNamespace(
             create_api_specific_request_online=lambda request: {"model": "gpt-4o-mini"},
@@ -156,6 +164,39 @@ class Conversation:
             # An implementation that never took an injected clock still gets to
             # be measured on everything else.
             return MultiTurnAgenticProcessor(self.seeder, self.partner, max_length, SEED)
+
+
+class _MultiSystemFormatter:
+    """A prompt formatter that answers with MORE than one system message.
+
+    A stock `PromptFormatter` cannot: `_put_system_prompt` raises when the prompt
+    function already returned one, so the case instruction.md:44 spells out ("the
+    first is used and the others stay in place in the body") had no fixture and
+    no assertion, and the oracle discarded the extras for eight versions without
+    anything noticing.
+
+    It carries no expected value: the messages it produced are reported to the
+    judge beside the messages the processor then sent, and the judge derives the
+    one from the other.
+    """
+
+    def __init__(self, inner, extra, conversation):
+        self._inner = inner
+        self._extra = extra
+        self._conversation = conversation
+        self.model_name = inner.model_name
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+    def create_generic_request(self, row, idx, *args, **kwargs):
+        request = self._inner.create_generic_request(row, idx, *args, **kwargs)
+        messages = list(request.messages)
+        messages += [{"role": "system", "content": f"trailing system rule {nth + 1}"}
+                     for nth in range(self._extra)]
+        request.messages = messages
+        self._conversation.formatter_out.append([dict(msg) for msg in messages])
+        return request
 
 
 def log_lines(working_dir):

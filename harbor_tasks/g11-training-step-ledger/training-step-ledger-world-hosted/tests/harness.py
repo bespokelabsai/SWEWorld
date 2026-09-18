@@ -34,7 +34,7 @@ BASELINE = pathlib.Path(os.environ.get(
 # failed hosted validation at 0.89 on a bare FileNotFoundError. The Dockerfile
 # copies the vendored tarball into /tests, which apex_arena creates root-owned
 # and 0700 — so it is a baseline the grader can read and the agent cannot.
-BASELINE_ARCHIVE = pathlib.Path("/tests/curator-src.tar.gz")
+BASELINE_ARCHIVE = pathlib.Path("the staged pristine tree (CURATOR_BASELINE_DIR)")
 _ARCHIVE_PREFIX = "./src/bespokelabs/curator/"
 
 

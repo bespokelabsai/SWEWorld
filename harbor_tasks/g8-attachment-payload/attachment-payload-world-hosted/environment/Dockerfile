@@ -5,9 +5,17 @@
 # pull-through cache with a textual pass that cannot resolve an ARG, and the
 # hosted build then dies trying to resolve a literal "${WORLD_IMAGE}".
 #
-# sweworld:repo-only-dev is the world with the repository and its full history and
-# nothing else — Mattermost, BookStack and mail are empty — plus the virtualenv
-# an engineer needs to actually run curator. See harbor_tasks/_env/Dockerfile.
+# The digest below is the PUBLISHED world: the curator repository with its full
+# history in Gitea, the populated Mattermost, BookStack and mail stores the
+# ticket sends the agent to read, and the virtualenv an engineer needs to
+# actually run curator. See harbor_tasks/_env/world-registry.Dockerfile, which
+# builds it. (An earlier comment here described `sweworld:repo-only-dev`, the
+# repository-only LOCAL twin used for offline suite work; the hosted arm has
+# never pinned that, and a corpus-free base would make this task unsolvable.)
+# The registry repository is called `sweworld-batch-payload-plan` for
+# historical reasons (the g1 batch-payload-plan task) and does not name this
+# task; it is build_tasks.py's shared WORLD_REGISTRY, and the g2-g4 and g6-g11
+# hosted arms pin this same digest. Not a typo for this task's own name.
 FROM us-central1-docker.pkg.dev/apex-485220/horizon/environments/sweworld-batch-payload-plan@sha256:f34db48366a6603074553d14986d5a58fb55abe8a71231321f838d90c1e6347f
 
 # No `COPY --from=sweworld:repo-only-dev` — Horizon cannot resolve a second
@@ -66,7 +74,8 @@ RUN chmod 0755 /usr/local/bin/task-setup.sh
 # from `ls /opt/*`, sitting at drwxr-xr-x beside world-state's drwx------. The
 # ingest is unaffected: it runs as root from the healthcheck. Build-time and
 # unconditional, so an ingest that exits early on one of the failure paths below
-# cannot leave the corpus exposed.
+# cannot leave the corpus exposed. And temporary: task-setup.sh deletes it once
+# the ingest succeeds, because the agent may be root and 0700 does not stop root.
 COPY --chmod=0700 plant /opt/task-plant
 
 COPY --chmod=0755 task-entrypoint.sh /usr/local/bin/task-entrypoint.sh

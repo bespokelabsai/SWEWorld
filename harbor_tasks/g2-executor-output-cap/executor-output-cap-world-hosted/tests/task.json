@@ -44,5 +44,10 @@
    ],
    "earlier_reversed_version": "The flag was first carried as an extra \"error\" entry inside truncated_streams and mirrored onto CodeExecutionResult; both were reverted in favour of a separate boolean on CodeExecutionOutput alone."
   }
+ ],
+ "protected_files": [
+  "src/bespokelabs/curator/code_executor/code_execution_backend/_factory.py",
+  "src/bespokelabs/curator/code_executor/code_executor.py",
+  "src/bespokelabs/curator/code_executor/db.py"
  ]
 }

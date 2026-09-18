@@ -1,28 +1,33 @@
 schema_version = "1.4"
 
 [task]
-name = "bespokelabs/sweworld-batch-payload-plan-world"
+name = "bespokelabs/batch-payload-plan"
 version = "1.0.0"
 description = "Batch payload planner for `batch_size=\"auto\"`. The requirements that decide correctness are not stated. The remarks they were inferred from are in the company's chat, wiki and mail, and the agent has to find them."
 authors = [{ name = "SWEWorld" }]
-keywords = ["sweworld", "curator", "python", "hidden-requirements", "world"]
 
 [metadata]
-category = "implementation"
-difficulty = "medium"
-source_task = "g1"
-variant = "world"
-# Kept beside `variant`: a reader that predates the extra arms falls back to
-# this. `spec` and `clues` are controls — they hand over what the task hides.
-# `world` is not: it is the blind ticket against a corpus that has the answers
-# in it somewhere, so a reader falling back should read it as blind.
-control = false
+author_name = "Nidhi Parthasarathy"
+author_email = "nidhi@bespokelabs.ai"
+author_organization = "Bespoke Labs"
+category = "Software"
+subcategory = "Batch request processing"
+tags = ["python", "batch-api", "request-batching", "payload-size-limits", "working-directory-state", "requirements-discovery"]
+expert_time_estimate_hours = 5.0
+difficulty_explanation = "The ticket is a precise but deliberately incomplete refactor of how a bulk LLM inference library splits a dataset into provider batch files when batch_size is \"auto\": replace an ad-hoc sizing loop with a pure greedy planner that measures the provider payload actually submitted, respects both a request-count and a byte limit, rejects a single oversized row instead of hanging, and drives file writing from the plan while the explicit-integer branch stays exactly as it was. The requirements that decide correctness are not in it. Two further requirements, covering how an auto-planned run records the plan it used and how the auto branch treats files an earlier run left in the working directory, were settled in scattered remarks: chat threads, wiki pages and their comments, mail and code review, spread over months and mixed with earlier decisions the team later reversed. The hard part is the same for a human engineer and an agent: work out which of dozens of remarks bear on this change, tell a superseded decision from the current one, and reassemble exact names, formats, limits, ordering and edge-case behaviour that no single remark states whole, while also delivering a correct multi-file change to curator's batch request processors. The accompanying company data (chat, wiki, mail and issue tracker) is synthetically generated around the real open-source curator repository and its real history. It is written to read like an ordinary engineering organisation, with realistic noise and reversals, so finding the evidence is a realistic retrieval-and-judgement challenge rather than a puzzle. In the real world this is the work of a backend or data-platform engineer who owns a batch-inference pipeline and picks up a ticket in a codebase whose conventions live partly in team memory."
+solution_explanation = "The reference solution (solution/oracle.patch, applied and pushed to main by solve.sh) adds a dependency-free module batch_payload_planner.py holding the limits and planned-batch dataclasses, the payload measurement helpers, the greedy planner and the error types. The planner first scans every row against the byte limit, so one row too large to fit anywhere fails with its index before any cut is made, then walks the sizes once, closing a batch only when adding the next row would exceed either limit (counting the newline separators the batch file adds), which makes the spans contiguous, ordered and exhaustive by construction. BaseBatchRequestProcessor gains batch_limits, measure_request_payload (sized from the provider-specific request, not the generic one) and plan_request_batches; create_batch_file raises the new error type and returns bytes, so a planned batch's byte count is exactly the size of the file built for it. The key insight is that the plan is the single source of truth: once it exists, the \"auto\" branch of create_request_files only has to act on it, writing one request and metadata file per planned batch through the existing acreate_request_file, while the explicit-integer branch is left untouched. The hidden requirements are carried out at the same seam and in the same module: the plan is fingerprinted and recorded as a versioned document beside the request files, an over-fragmented plan is refused, and the auto branch clears the previous run's request numbering only once planning has succeeded. The patch is then committed and merged to main in Gitea, which is how code reaches the graded and deployed state in this world."
+verification_explanation = "The verifier clones whatever main holds in Gitea after the agent finishes and grades that. Root picks a fresh random seed for every grading run, and a stdlib-only fixture module derives that run's inputs from it: prompt text of varying width (so every row's byte size changes run to run), row counts, byte and request limits, stale working-directory contents and bystander files, the chunk size the explicit-integer branch is exercised at (2 to 11) and the size of the dataset it is exercised on. A worker process, running as nobody from a jail that holds only the probe, its answer-free helpers and the fixture module, imports the submission and runs fixed scenarios on those inputs: plan_batches over explicit sizes, planning and create_request_files over small datasets in the \"auto\" and explicit-integer branches and with dataset=None, row-level generation params, oversized rows, empty datasets, and working directories pre-populated with stale request/metadata files and bystanders. It records raw values and runs each scenario in its own directory. A separate root judge, which never imports agent code, re-derives the same inputs from the seed, computes the expected answers itself (it prices each row from the provider request shape, packs the rows greedily and hashes the cuts), reads the scenario directories directly, and reads the submission's planner module source. It also reads the pristine copy of curator the world shipped — staged for it by the runner, or the image's own root-only copy — and compares, syntax tree to syntax tree with docstrings stripped, the things instruction.md keeps as they are: the parameter names, order, annotations and defaults of create_batch_file (whose return annotation is the one thing the ticket itself corrects) and of create_request_files, the two provider limit properties in every batch module that defines them, and acreate_request_file including its metadata body. The explicit-integer `batch_size` arm of create_request_files is compared the same way, and in its own place: the four statements the world shipped in it — the ceil(len(dataset) / batch_size) file count, the two fixed-width path lists, and the nested writer whose comprehension carries the `if i in incomplete_files` cache filter — must be the statements of that arm itself, the else of the arm's `batch_size == \"auto\"` test, or must sit verbatim in the body of a helper the arm calls, which is the one refactor the ticket allows. An arm rewritten to suit the sizes one run happens to use fails. Every source comparison the judge makes resolves the definition the module actually BINDS rather than the first one of that name it can find: module-level classes only, the last definition of a name, and a name defined twice is refused outright. That is what the resolution is for — a duplicate `def` carrying a pristine copy above a rewritten one, and a decoy class of the same name defined earlier in the file, each satisfied these comparisons while the interpreter bound something else. Those constraints are about code INSIDE the two files the ticket tells the agent to edit, so no whole-file protection can express them, and the limit properties are patched in every scenario, so behaviour cannot see them at all; with no pristine copy readable those checks fail rather than pass blind. Three further stated things are read as declarations: frozen=True on both dataclasses, the deletion of the nested _get_optimal_batch_size and its while True loop, and a planner module that imports nothing reaching the network, a client or a sleep. Three are graded behaviourally, because behaviour is their only witness: create_batch_file raising BatchPayloadTooLargeError with all three of its attributes on a batch over the byte limit; every dataset row measured exactly once in index order (the probe records which rows the planner priced, in the order it priced them); and the explicit-integer branch under a byte budget no single row fits in, which must still write ceil(len(dataset) / batch_size) fixed-width files, must not call the planner, and must still leave a cache-complete request file untouched — all of it at a chunk size drawn per run over a dataset of a whole number of chunks plus a sometimes-zero remainder, so the file count and the line counts it has to reproduce are not knowable in advance. It writes one test per fact. The two hidden requirements are split into ten facts (rule, scope, exclusions, failure behaviour and observability for each). Each fact passes only if all of its checks pass. The open ticket's behaviour (planner API and error types, payload measurement, greedy byte/count planning, one file per planned batch, create_batch_file sizes, empty datasets and the unchanged explicit-integer branch) is graded as one further test, open_feature, by the same judge. The reward is binary: 1 only if open_feature passes and all ten hidden facts pass; otherwise 0. A submission that recovers the hidden requirements but does not deliver the ticket therefore scores 0. Per-fact results and push/CI/deploy provenance are reported beside the reward in reward.json and ctrf.json; provenance is informational and does not gate it. The judge runs as root with Python in isolated mode (-I) and a root-owned HOME, so nothing the unprivileged worker writes can execute in it. Every agent-influenced file the judge reads back — the request, metadata and sidecar files the worker's scenarios wrote, the submission's own modules and the pristine copies they are compared against — goes through the shared judge_io helper, which opens with O_NOFOLLOW, requires a regular file and caps it at 8 MiB; a scenario directory that is itself a symlink is refused, and a file name the worker chose must be a plain name inside its own scenario directory. So a symlinked, escaped or oversized artifact can neither redirect the root judge's read into a file the agent is not allowed to see nor exhaust the verifier's budget. EVERY CHECK IS EXACT: there are no floating-point comparisons and no tolerances anywhere in the judge. Values are integers, strings, lists, dicts, exception class names and attributes, directory listings and file bodies, all compared with exact equality, and the sidecar document is compared key-for-key including key order and its raw text ending. Three constants that are the requirement itself (the sidecar file name, its format version and the default fan-out cap) are checked both as observed at run time and as literal assignments in the module source, following at most one level of constant indirection for the dataclass default. The only checks that are not equality are: the plan fingerprint must differ when a batch's byte size changes and when a cut moves (and must be equal when only index or num_requests change); every batch of the generation-params plan must have a byte count > 0 (its exact spans are checked by equality, since those rows are cut by count rather than priced); a sanity guard that the seeded fixture plans fewer batches than it pre-populated stale files; the sidecar's raw text must end with \"]\\n}\\n\"; membership checks on directory listings (a file that must be absent, or present, after a run); the planner's import set must be DISJOINT from a list of network, client and sleep modules; neither the planner module nor the three added methods may call anything named sleep; both dataclasses must carry frozen=True; the explicit-integer run under the tight byte limit must NOT raise; and one fixture-drift guard that the pristine tree really defines at least two limit properties. The preservation comparisons are equality of normalized syntax trees. Because nothing is compared with a tolerance, no calibration run is needed."
 
 [agent]
 # The world's engineer: uid 1000, no sudo, cannot reach supervisord, cannot read
 # /opt/world-state or the deploy queue.
 user = "ubuntu"
-timeout_sec = 3600.0
+# 7200, not 3600. At an hour the v17 trial was still checking corpus decisions
+# against its deployed build when the cutoff arrived, and every g11 trial was
+# still pushing and polling CI in its last minutes -- so the clock, not the
+# hidden requirements, was deciding how much got checked. The difficulty is
+# meant to be finding what nobody wrote down, not racing the clock.
+timeout_sec = 7200.0
 
 [verifier]
 # Root, because grading reads the pristine tree at /opt/world-state/input/curator
@@ -30,10 +35,26 @@ timeout_sec = 3600.0
 # symlinks under /opt/sweworld/curator, neither of which the agent can touch —
 # so the state being graded cannot be forged.
 user = "root"
-# 2400, not the local twin's 1800: Horizon's own lint rejects anything under
-# 2000s because a grader that overruns is KILLED, and a killed grader scores 0 —
-# a perfect solution and a broken one look identical in the result.
-timeout_sec = 2400.0
+# 4200, and the number is arithmetic rather than a guess: a grader that
+# overruns is KILLED, which writes no reward.json at all, so a perfect solution
+# and a broken harness come back identical. Added up, from the files that own
+# each budget:
+#   provenance.py  SETTLE_SEC 90 + CI_SETTLE_SEC 120         =  210s
+#   run_suites.py  worker PYTEST_TIMEOUT 900                 =  900s
+#                  judge  PYTEST_TIMEOUT 900                 =  900s
+#   the rest: clone of pushed main, stage_baseline's copy of the
+#   pristine tree, protected-file comparison, score.py        ~  120s
+#                                                      worst case 2130s
+# An honest run is ~4-5 minutes of that: the worker and the judge are seconds
+# each, and almost all of the wall clock is the provenance settle plus the
+# clone. 4200 is the worst case with the whole of it again as headroom, because
+# every second above is spent on a shared 4-CPU host that is simultaneously
+# running the world's own services (postgres, mariadb, mattermost, bookstack,
+# gitea and its CI runner, maddy, nginx) — the CI deploy the provenance settle
+# waits for competes with them, so the 210s and the ~120s are the two terms
+# that stretch under contention. 4200 is also above Horizon's lint floor of
+# 2000, below which a lint-killed grader scores 0.
+timeout_sec = 4200.0
 
 [environment]
 # NO docker_image and NO docker-compose.yaml. One thin layer on the world image,
@@ -43,7 +64,9 @@ timeout_sec = 2400.0
 # file those args reach supervisord as argv and the world never boots.
 build_timeout_sec = 3600.0
 # claude-code installs itself from downloads.claude.ai and calls the API.
-network_mode = "public"
+# `allow_internet`, not `network_mode`: the benchmark's task.toml schema names
+# only this one, and Harbor's default network mode is already public.
+allow_internet = true
 cpus = 4
 memory_mb = 13000
 
